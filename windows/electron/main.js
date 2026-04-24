@@ -40,7 +40,7 @@ function safeIcon(p, size) {
 function findPython() {
   const candidates = [
     path.join(process.resourcesPath, 'python', 'python.exe'),
-    path.join(__dirname, '..', '..', 'python', 'python.exe'),
+    path.join(__dirname, '..', 'python', 'python.exe'),
     'python',
     'python3',
   ];
@@ -56,7 +56,7 @@ function findPython() {
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
   const python = findPython();
-  const appPy  = path.join(__dirname, '..', '..', 'app.py');
+  const appPy  = path.join(__dirname, '..', 'app.py');
 
   if (!python) {
     dialog.showErrorBox('Python not found',
@@ -66,7 +66,7 @@ async function startFlask() {
   }
 
   flaskProc = spawn(python, [appPy], {
-    cwd: path.join(__dirname, '..', '..'),
+    cwd: path.join(__dirname, '..'),
     env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1' },
     windowsHide: true,
     stdio: 'ignore',
@@ -112,7 +112,7 @@ function waitForFlask(retries = 60, delay = 1000) {
 
 // ── Create tray ───────────────────────────────────────────────────────────────
 function createTray() {
-  const iconPath = path.join(__dirname, '..', '..', 'static', 'icon-64.png');
+  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
   tray = new Tray(safeIcon(iconPath, 16));
   tray.setToolTip('EGM Downloader');
 
@@ -144,7 +144,7 @@ function createTray() {
 
 // ── Create window ─────────────────────────────────────────────────────────────
 async function createWindow() {
-  const winIconPath = path.join(__dirname, '..', '..', 'static', 'icon-512.png');
+  const winIconPath = path.join(__dirname, '..', 'static', 'icon-512.png');
   const winIconOpts = fs.existsSync(winIconPath) ? { icon: winIconPath } : {};
 
   mainWindow = new BrowserWindow({
@@ -232,7 +232,7 @@ ipcMain.handle('create-shortcut', async () => {
   try {
     const lnkTarget = path.join(__dirname, '..', 'EGM Downloader.vbs');
     const workDir   = path.join(__dirname, '..');
-    const iconPath  = path.join(__dirname, '..', '..', 'static', 'icon.ico');
+    const iconPath  = path.join(__dirname, '..', 'static', 'icon.ico');
     const tmpVbs    = path.join(os.tmpdir(), `egm_sc_${Date.now()}.vbs`);
 
     const vbs = [
