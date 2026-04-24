@@ -4,6 +4,23 @@ EGM Downloader is built on the shoulders of giants. This project would not be po
 
 ---
 
+## 💡 Inspiration
+
+### ReClip
+**The spark that started it all**
+
+- **Project:** https://github.com/averygan/reclip
+- **Author:** [@averygan](https://github.com/averygan)
+- **License:** MIT
+- **What we borrowed:** The concept of wrapping yt-dlp in a user-friendly interface
+- **What we built differently:** Native multi-platform desktop apps with installers, auto-updates, and zero setup required
+
+EGM Downloader was inspired by ReClip's elegant approach to video downloading. While ReClip is a self-hosted web app perfect for developers, EGM Downloader takes the concept in a different direction—native desktop applications for non-technical users who just want to download videos without the setup hassle.
+
+**Thank you, [@averygan](https://github.com/averygan), for showing what was possible!** 🙏
+
+---
+
 ## 🎯 Core Technologies
 
 ### yt-dlp
