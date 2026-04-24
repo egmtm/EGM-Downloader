@@ -178,6 +178,16 @@ We'd like to thank the following individuals for responsibly disclosing security
 
 *(No vulnerabilities reported yet)*
 
+---
+
+## Legal & Responsible Use
+
+EGM Downloader is a tool designed for lawful purposes. Users are responsible for ensuring their use complies with copyright laws, platform terms of service, and applicable regulations.
+
+**For complete information on legal and responsible use, please see the [Legal & Responsible Use](README.md#%EF%B8%8F-legal--responsible-use) section in the README.**
+
+---
+
 ## Contact
 
 For any security concerns or questions about this policy:
