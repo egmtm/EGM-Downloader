@@ -4,6 +4,7 @@ v0.93 - Build 94 (4/24/2026 8:55 AM EST)
   • [LINUX] Fixed stale GitHub repo link in app footer and INSTRUCTIONS.txt
   • [LINUX] Fixed distribution zip — now correctly includes INSTRUCTIONS.txt alongside AppImage
   • [WINDOWS] Fixed installer: backend launches correctly on first run (was crashing with "code 2" due to incorrect main.js path resolution)
+  • [MAC] Fixed yt-dlp and Deno install — earlier Build 94 loaded a Windows-only app.py on Mac, so ffmpeg auto-download failed, yt-dlp wasn't found, and Deno install tried to extract a Windows binary. Now uses evermeet.cx ffmpeg, Apple Silicon Deno binary, and invokes yt-dlp via bundled Python.
 
 EGM Downloader — Patch Notes
 =============================
