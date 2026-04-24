@@ -7,18 +7,19 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![Electron](https://img.shields.io/badge/Electron-29.0+-47848F?logo=electron&logoColor=white)
 
-**A powerful, multi-platform video downloader for 1000+ websites.**
+**A powerful, multi-platform video and audio downloader for 1000+ websites.**
 
-Download videos from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.
+Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.
 
 ---
 
 ## ✨ Features
 
 - 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
-- 🎬 **Quality Selection** - Choose your preferred video quality and format
+- 🎬 **Video & Audio Downloads** - Download as MP4 video or extract MP3 audio
+- 📊 **Quality Selection** - Choose your preferred video quality and format
 - 📋 **Playlist Support** - Download entire playlists with one click
-- ⚡ **Batch Downloads** - Queue multiple videos and download them all at once
+- ⚡ **Batch Downloads** - Queue multiple videos and audio files, download them all at once
 - 🎨 **Beautiful Dark Interface** - Sleek black and gold design
 - 🔄 **Auto-Updates** - Built-in update checker keeps you current (Windows/Mac)
 - 📝 **Custom Filenames** - Edit filenames before downloading
@@ -132,10 +133,11 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 💡 Usage
 
 1. **Paste URL** - Copy any video URL and paste it into the app
-2. **Select Quality** - Choose your preferred resolution and format
-3. **Edit Filename** (Optional) - Click the filename to customize it
-4. **Download** - Click the download button and wait for completion
-5. **Open Folder** - Click "Open Folder" to view your downloaded video
+2. **Select Format** - Choose MP4 (video) or MP3 (audio)
+3. **Select Quality** - Choose your preferred resolution and format
+4. **Edit Filename** (Optional) - Click the filename to customize it
+5. **Download** - Click the download button and wait for completion
+6. **Open Folder** - Click "Open Folder" to view your downloaded files
 
 ### Advanced Features
 
@@ -146,7 +148,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 **Batch Downloads:**
 - Add multiple URLs to the queue
-- Select quality for each
+- Select format (MP4/MP3) and quality for each
 - Download all at once
 - Cancel individual downloads anytime
 
