@@ -77,10 +77,3 @@ Outputs to `dist/` — upload to `egerena.com/apps/`.
 ## Version Management
 
 `version.json` is the master record. Never edit version numbers manually in individual files — always run `scripts/bump-version.py`.
-
----
-
-## Source Repos (archived after migration)
-
-- Windows: `github.com/egmtm/EGM-DownloaderWIN`
-- Mac: `github.com/egmtm/EGM-DownloaderMAC`
