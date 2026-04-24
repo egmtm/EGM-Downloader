@@ -3,14 +3,11 @@ EGM Downloader — Patch Notes
 https://egerena.com/apps/egm.html
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  COMING SOON
+  AVAILABLE ON
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  ▸ macOS version available at https://egerena.com/apps/egmac.html
-  ▸ Linux port coming soon
-  ▸ More features & site-specific options
-  ▸ More customization (themes, layout, defaults)
-  ▸ Faster everything — smarter queuing, lower overhead
-  ▸ Stay tuned at https://egerena.com/apps/egm.html
+  ▸ Windows  https://egerena.com/apps/egm.html
+  ▸ macOS    https://egerena.com/apps/egmac.html
+  ▸ Linux    https://egerena.com/apps/egmlin.html
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
