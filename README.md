@@ -25,6 +25,44 @@ Download videos from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds
 
 ---
 
+## ⚖️ Legal & Responsible Use
+
+EGM Downloader is a tool for downloading video content from the internet. While the software itself is legal, **you are responsible for how you use it.**
+
+### Legitimate Uses
+
+This tool is designed for lawful purposes, including:
+- Downloading your own content
+- Downloading Creative Commons or public domain content
+- Fair use purposes (education, research, criticism, commentary)
+- Archiving content you have permission to download
+- Backing up content you own or have rights to
+- Offline viewing in jurisdictions where personal downloading is legal
+
+### Your Responsibilities
+
+When using this tool, you must:
+- **Respect copyright laws** - Only download content you have the right to download
+- **Follow Terms of Service** - Many platforms prohibit downloading; check their policies
+- **Obtain permission** - When required by law or platform rules
+- **Use responsibly** - Do not redistribute, sell, or commercially exploit downloaded content without proper rights
+
+### Disclaimer
+
+**This tool is provided "as-is" for personal, lawful use only.**
+
+The developers:
+- Do not encourage or condone copyright infringement
+- Are not responsible for how users choose to use this software
+- Do not provide legal advice regarding what you can or cannot download
+- Assume no liability for user actions or violations of third-party terms
+
+**You are solely responsible for ensuring your use complies with applicable laws, regulations, and terms of service.**
+
+If you're unsure whether your use case is legal, consult a legal professional in your jurisdiction.
+
+---
+
 ## 📥 Download
 
 ### Windows
