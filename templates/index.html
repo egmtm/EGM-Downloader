@@ -770,8 +770,9 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       if (chk) chk.checked = true;
     }
   } catch {}
-  // Always Electron — show shortcut row
-  const sr = document.getElementById('shortcut-row'); if(sr) sr.style.display='flex';
+  // Show shortcut row only on platforms that expose createShortcut (Windows does; Mac does not)
+  const sr = document.getElementById('shortcut-row');
+  if (sr && typeof window.electronAPI?.createShortcut === 'function') sr.style.display = 'flex';
 })();
 
 document.getElementById('quit-on-done-chk').addEventListener('change', function() {
