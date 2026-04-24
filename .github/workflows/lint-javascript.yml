@@ -1,0 +1,36 @@
+name: Lint JavaScript
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'templates/**.html'
+      - 'linux/templates/**.html'
+      - '**/electron/*.js'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        
+    - name: Install ESLint
+      run: |
+        npm install -g eslint
+        
+    - name: Lint Electron JavaScript
+      run: |
+        # Lint electron main process files
+        eslint windows/electron/main.js windows/electron/preload.js || true
+        eslint mac/electron/main.js mac/electron/preload.js || true
+        eslint linux/electron/main.js linux/electron/preload.js || true
+        echo ""
+        echo "Note: ESLint suggestions above are informational only"
+        echo "Manual review recommended for HTML-embedded JavaScript"
