@@ -1,0 +1,82 @@
+{
+  "name": "egm-downloader",
+  "version": "0.91.0",
+  "description": "EGM Downloader — download videos from 1000+ sites",
+  "main": "main.js",
+  "author": "www.egerena.com",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --mac --arm64",
+    "build-universal": "electron-builder --mac --universal",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.egerena.egm-downloader",
+    "productName": "EGM Downloader",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "splash.html",
+      "!node_modules/**/*",
+      "!**/*.md",
+      "!**/*.map",
+      "!**/__tests__/**",
+      "!**/test/**",
+      "!**/tests/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../../",
+        "to": "app",
+        "filter": [
+          "app.py",
+          "templates/**",
+          "static/**",
+          "requirements.txt"
+        ]
+      },
+      {
+        "from": "../python",
+        "to": "python",
+        "filter": ["**/*"]
+      }
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["arm64"]
+        },
+        {
+          "target": "zip",
+          "arch": ["arm64"]
+        }
+      ],
+      "icon": "../../static/icon.icns",
+      "category": "public.app-category.utilities",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "entitlements.mac.plist",
+      "entitlementsInherit": "entitlements.mac.plist"
+    },
+    "dmg": {
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ],
+      "window": { "width": 540, "height": 380 }
+    },
+    "electronLanguages": ["en"],
+    "generateUpdatesFilesForAllChannels": false,
+    "buildVersion": "0.91.0"
+  }
+}

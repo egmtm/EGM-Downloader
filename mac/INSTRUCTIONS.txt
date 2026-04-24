@@ -1,0 +1,126 @@
+# 🚀 BUILD INSTRUCTIONS
+
+## Copy These Commands Into Terminal
+
+### Step 1: Install Prerequisites (One-Time Setup)
+
+```bash
+# Install Homebrew (if you don't have it)
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# IMPORTANT: After Homebrew installs, it will show you 2 commands to run.
+# Copy and run those commands! They look like:
+#   echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+#   eval "$(/opt/homebrew/bin/brew shellenv)"
+
+# Install Python and Node
+brew install python3 node
+```
+
+---
+
+### Step 2: Extract the Zip
+
+```bash
+cd ~/Downloads
+unzip EGM-Downloader-macOS.zip
+cd EGM-Downloader-macOS
+```
+
+---
+
+### Step 3: Build the App
+
+```bash
+./BUILD.sh
+```
+
+**That's it!** The script does everything automatically.
+
+---
+
+## What Happens During Build
+
+You'll see:
+```
+📋 Checking prerequisites...
+   ✓ Python: Python 3.11.x
+   ✓ Node: v20.x.x
+
+🧹 Cleaning old builds...
+   ✓ Cleaned
+
+📦 Installing Node dependencies...
+   ✓ Installed
+
+🐍 Downloading Python 3.11 ARM64...
+   Downloading from GitHub...
+   ✓ Python downloaded
+
+📚 Installing Python dependencies...
+   ✓ Dependencies installed
+
+🔨 Building Electron app...
+   ✓ App built
+
+✅ BUILD SUCCESS!
+```
+
+**Build time:** ~5 minutes
+
+**Output:** A Finder window will open with your `.dmg` file!
+
+---
+
+## Install Your App
+
+1. **Double-click** `EGM Downloader-0.67.0-arm64.dmg`
+2. **Drag** the app to Applications
+3. **First launch:** Right-click → Open
+4. **Done!**
+
+---
+
+## If Build Fails
+
+### Error: "Python not found"
+```bash
+brew install python3
+python3 --version
+```
+
+### Error: "Node not found"
+```bash
+brew install node
+node --version
+```
+
+### Error: "Permission denied"
+```bash
+chmod +x BUILD.sh
+./BUILD.sh
+```
+
+### Start over:
+```bash
+cd ~/Downloads/EGM-Downloader-macOS
+rm -rf python electron/dist electron/node_modules
+./BUILD.sh
+```
+
+---
+
+## All Commands (Copy Everything)
+
+```bash
+# Prerequisites (skip if you have Python and Node)
+brew install python3 node
+
+# Navigate and build
+cd ~/Downloads
+unzip EGM-Downloader-macOS.zip
+cd EGM-Downloader-macOS
+./BUILD.sh
+```
+
+**Done!** 🎉
