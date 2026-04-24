@@ -1,5 +1,9 @@
 # EGM Downloader
 
+![Version Sync](https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg)
+![Python Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg)
+![JavaScript Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg)
+
 **v0.91** — Video downloader for 1000+ sites.
 
 > **Unified repository** — Windows live · macOS coming · Linux coming
@@ -87,16 +91,31 @@ Outputs to `dist/` — upload to `egerena.com/apps/`.
 
 ---
 
-## Platform Notes
+## Platform Status
 
-| Platform | Status     | Shell       | Distribution   |
-|----------|------------|-------------|----------------|
-| Windows  | ✅ Live     | Electron    | EGMd.zip       |
-| macOS    | 🔜 Phase 2  | Electron    | EGMdM.zip      |
-| Linux    | 🔜 Phase 3  | Electron    | EGMdL.zip      |
+| Platform | Status | Build | Shell | Distribution |
+|----------|--------|-------|-------|--------------|
+| Windows  | ✅ Live | Build 88 | Electron | EGMd.zip |
+| macOS    | ✅ Live | Build 88 | Electron | EGMdM.zip |
+| Linux    | ✅ Live | Build 92 | Electron + AppImage | EGMdL.zip |
+
+**All platforms are production-ready and actively maintained.**
 
 ---
 
 ## Version Management
 
 `version.json` is the master record. Never edit version numbers manually in individual files — always run `scripts/bump-version.py`.
+
+---
+
+## Continuous Integration
+
+Automated checks run on every push and pull request:
+
+- **Version Sync Validation** - Ensures version.json stays in sync with all platform files
+- **Python Linting** - Code quality checks (flake8, isort)
+- **JavaScript Linting** - Frontend code quality (ESLint)
+- **First Contributor Welcome** - Automated greeting for new contributors
+
+See [GITHUB_ACTIONS_TODO.md](GITHUB_ACTIONS_TODO.md) for planned workflows.
