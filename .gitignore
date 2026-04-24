@@ -1,0 +1,77 @@
+# ── Python ────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# ── Virtual environments ───────────────────────────────────────
+venv/
+env/
+ENV/
+.venv
+
+# ── Node / Electron ────────────────────────────────────────────
+node_bin/
+runtime/
+electron/node_modules/
+electron/dist/
+node_modules/
+
+# ── Build outputs (all platforms) ─────────────────────────────
+dist/
+windows/build/
+windows/dist/
+mac/build/
+mac/dist/
+linux/build/
+linux/dist/
+
+# ── Installers / packages (don't commit binaries) ─────────────
+*.zip
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.rpm
+!electron/preload.js
+
+# ── User data ─────────────────────────────────────────────────
+egm_settings.json
+cookies.txt
+
+# ── Dev artifacts ──────────────────────────────────────────────
+electron/run_dev.bat
+electron/build_electron.bat
+.node_version
+
+# ── Secrets ───────────────────────────────────────────────────
+secrets.json
+*.key
+*.pem
+.env
+.env.local
+
+# ── IDE ───────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ── Logs ──────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Temp ──────────────────────────────────────────────────────
+*.tmp
+temp/
+tmp/
+
+# ── OS ────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Icon staging ──────────────────────────────────────────────
+static/icon-new.ico
