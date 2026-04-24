@@ -19,6 +19,7 @@ consistent across the codebase. It checks that version.json matches:
     - linux/INSTRUCTIONS.txt (header)
 
   Mac:
+    - mac/app.py (APP_VERSION, APP_BUILD)
     - mac/electron/package.json (version + build.buildVersion)
     - mac/BUILD.sh (VERSION banner, DMG filename)
 
@@ -142,6 +143,14 @@ def check_windows_package_json(v):
     if data.get("version") != v:
         errors.append(f"{rel}: version is '{data.get('version')}', expected '{v}'")
     return errors
+
+
+# --------------------------------------------------------------------------
+# Mac checks
+# --------------------------------------------------------------------------
+
+def check_mac_app_py(v, b):
+    return _check_app_py("mac/app.py", v, b)
 
 
 # --------------------------------------------------------------------------
@@ -296,6 +305,7 @@ def main():
         ("linux/templates/index.html",          lambda: check_linux_index_html(v, b, date, time)),
         ("linux/electron/package.json",         lambda: check_linux_package_json(v)),
         ("linux/INSTRUCTIONS.txt",              lambda: check_linux_instructions(v)),
+        ("mac/app.py",                          lambda: check_mac_app_py(v, b)),
         ("mac/electron/package.json",           lambda: check_mac_package_json(v)),
         ("mac/BUILD.sh",                        lambda: check_mac_build_sh(v)),
     ]
