@@ -14,6 +14,33 @@ https://egerena.com/apps/egm.html
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 
+v0.91 Linux (Build 92)
+──────────────────────
+LINUX FIX — AppImage launch on Ubuntu 22.04 / 24.04+
+
+  Builds 90/91 of the Linux AppImage failed to launch with:
+
+      [FATAL:setuid_sandbox_host.cc(158)] The SUID sandbox helper
+      binary was found, but is not configured correctly.
+
+  Root cause: AppImages mount as a regular user, so the bundled
+  chrome-sandbox helper cannot be SUID root. The existing
+  app.commandLine.appendSwitch('no-sandbox') in main.js runs too
+  late — Chromium's sandbox check fires before the main process
+  loads. On Ubuntu 24.04+ the namespace-sandbox fallback is also
+  blocked by AppArmor's apparmor_restrict_unprivileged_userns
+  default.
+
+  Fix: an electron-builder afterPack hook now installs a tiny
+  POSIX-shell wrapper at the executable name that exec's the real
+  binary with --no-sandbox prepended. Same approach used by VS
+  Code, Discord, Slack, and most production Electron AppImages.
+
+  This also fixes the "splash screen stuck at 'Loading
+  interface...'" symptom seen on double-click launch — the
+  renderer process was hitting the same SUID check.
+
+
 v0.91 (Build 88)
 ──────────────────────
 UI IMPROVEMENT — Update check modal (ported from macOS version)
