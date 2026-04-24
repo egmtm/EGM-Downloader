@@ -4,6 +4,8 @@
 ![Python Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg)
 ![JavaScript Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
+![Electron](https://img.shields.io/badge/Electron-29.0+-47848F?logo=electron&logoColor=white)
 
 **A powerful, multi-platform video downloader for 1000+ websites.**
 
