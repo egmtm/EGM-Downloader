@@ -210,7 +210,7 @@ for line in pn.splitlines():
                 bullets.append(m.group(2))
         elif line.strip() == '' and bullets:
             break
-print('; '.join(bullets))
+print('|||'.join(bullets))
 ")
 if [ -n "$NOTES" ]; then
     python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform mac --notes "$NOTES"
