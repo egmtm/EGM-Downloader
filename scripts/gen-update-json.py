@@ -17,8 +17,8 @@ Usage:
     # Generate all platforms with default notes
     python scripts/gen-update-json.py
     
-    # Generate with custom release notes
-    python scripts/gen-update-json.py --notes "Fixed bug; Improved speed; Added X"
+    # Generate with custom release notes (bullets separated by '|||')
+    python scripts/gen-update-json.py --notes "Fixed bug|||Improved speed|||Added X"
     
     # Generate single platform only
     python scripts/gen-update-json.py --platform windows --notes "Windows-specific fix"
@@ -28,7 +28,7 @@ Usage:
 
 Examples:
     # Standard workflow (after building all platforms)
-    $ python scripts/gen-update-json.py --notes "Bug fixes; Performance improvements"
+    $ python scripts/gen-update-json.py --notes "Bug fixes|||Performance improvements"
     # Creates: dist/egm-version.json, dist/egmac-update.json, dist/egmlinux-update.json
     
     # Windows-only release
@@ -36,8 +36,10 @@ Examples:
     # Creates: dist/egm-version.json only
 
 Notes Format:
-    Use semicolons to separate multiple changes:
-    --notes "First change; Second change; Third change"
+    Use '|||' (triple pipe) to separate multiple changes. This delimiter was
+    chosen over semicolons because bullet text often contains semicolons
+    (e.g. "A; B" as natural punctuation) which would be incorrectly split.
+    --notes "First change|||Second change|||Third change"
     
     These become bullet points on the website:
     • First change
@@ -140,13 +142,13 @@ def gen_linux(data, notes, dry_run):
 
 def main():
     parser = argparse.ArgumentParser(description="Generate platform update JSONs")
-    parser.add_argument("--notes", default="", help="Change notes, semicolon-separated")
+    parser.add_argument("--notes", default="", help="Change notes, '|||'-separated (triple pipe — chosen to avoid collision with natural punctuation)")
     parser.add_argument("--platform", choices=["windows", "mac", "linux"])
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
     data  = load_version()
-    notes = [n.strip() for n in args.notes.split(";") if n.strip()] if args.notes else []
+    notes = [n.strip() for n in args.notes.split("|||") if n.strip()] if args.notes else []
     plats = [args.platform] if args.platform else ["windows", "mac", "linux"]
 
     print(f"\n  Generating update JSONs — v{data['version']} Build {data['build']}\n")
