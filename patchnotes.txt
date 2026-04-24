@@ -3,6 +3,7 @@ v0.93 - Build 94 (4/24/2026 8:55 AM EST)
   • Version sync — Windows, macOS, and Linux aligned to v0.93 Build 94
   • Fixed stale GitHub repo link in Linux app footer and INSTRUCTIONS.txt
   • Fixed Linux distribution zip — now correctly includes INSTRUCTIONS.txt alongside AppImage
+  • Fixed Windows installer: backend launches correctly on first run (was crashing with "code 2" due to incorrect main.js path resolution)
 
 EGM Downloader — Patch Notes
 =============================
