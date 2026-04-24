@@ -4,10 +4,45 @@ EGM Downloader — Universal Build Bump Script
 ============================================
 Increments build number and syncs version info across all platform files.
 
+This script is the single source of truth for version management. It updates:
+  - version.json (master record)
+  - app.py (APP_VERSION, APP_BUILD constants)
+  - templates/index.html (title, version badge, footer)
+  - windows/electron/package.json (version field)
+
 Usage:
-    python scripts/bump-version.py                    # bump build only
-    python scripts/bump-version.py --version 0.92     # bump version + build
-    python scripts/bump-version.py --dry-run          # preview, no writes
+    # Standard workflow - bump build number before every build
+    python scripts/bump-version.py
+    
+    # Bump version string (e.g., from v0.91 to v0.92) + build number
+    python scripts/bump-version.py --version 0.92
+    
+    # Preview changes without writing files
+    python scripts/bump-version.py --dry-run
+    
+    # Preview version bump
+    python scripts/bump-version.py --version 0.92 --dry-run
+
+Examples:
+    # Regular build workflow
+    $ python scripts/bump-version.py
+    # Output: v0.91 Build 88 → v0.91 Build 89
+    
+    # Version bump workflow
+    $ python scripts/bump-version.py --version 0.92
+    # Output: v0.91 Build 88 → v0.92 Build 89
+
+Important:
+    - Always run this BEFORE building any platform
+    - Never manually edit version numbers in individual files
+    - Build number auto-increments (never goes backwards)
+    - Timestamps are in America/New_York timezone (EST)
+    
+Next Steps:
+    After running this script:
+    1. python scripts/add-patchnote.py "Your changes here"
+    2. Build your platform(s)
+    3. python scripts/gen-update-json.py --notes "Your changes"
 """
 
 import json
