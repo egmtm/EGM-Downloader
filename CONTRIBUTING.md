@@ -19,19 +19,21 @@ Thank you for your interest in contributing to EGM Downloader! This document wil
 
 ## 🤝 Code of Conduct
 
-### Our Standards
+This project and everyone participating in it is governed by our [Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code.
 
+**Quick summary:**
 - **Be respectful** - Treat everyone with respect
 - **Be constructive** - Focus on improving the project
 - **Be patient** - Remember everyone was a beginner once
 - **Be inclusive** - Welcome people of all backgrounds
 
-### Unacceptable Behavior
-
+**Unacceptable behavior includes:**
 - Harassment, discrimination, or offensive comments
 - Trolling or insulting remarks
 - Publishing others' private information
 - Other conduct inappropriate for a professional setting
+
+Please read the [full Code of Conduct](CODE_OF_CONDUCT.md) for complete details.
 
 ---
 
