@@ -74,7 +74,7 @@ You'll see:
 
 ## Install Your App
 
-1. **Double-click** `EGM Downloader-0.67.0-arm64.dmg`
+1. **Double-click** `EGM Downloader.dmg`
 2. **Drag** the app to Applications
 3. **First launch:** Right-click → Open
 4. **Done!**
