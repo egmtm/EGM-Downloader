@@ -1,0 +1,41 @@
+name: Lint Python
+
+on:
+  pull_request:
+    branches: [ main ]
+    paths:
+      - '**.py'
+      - 'requirements.txt'
+      - 'linux/requirements.txt'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+        
+    - name: Install linting tools
+      run: |
+        python -m pip install --upgrade pip
+        pip install flake8 isort
+        
+    - name: Run flake8
+      run: |
+        # Stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # Exit-zero treats all errors as warnings
+        # E501: line too long (100 chars)
+        # W503: line break before binary operator (black style)
+        flake8 . --count --exit-zero --max-line-length=100 --ignore=W503 --statistics
+        
+    - name: Check import sorting
+      run: |
+        isort --check-only --diff app.py linux/app.py scripts/ || true
+        echo "Note: import order suggestions above are informational only"
