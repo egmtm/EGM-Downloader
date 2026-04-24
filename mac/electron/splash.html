@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #0b1120;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #e2e8f6;
+            overflow: hidden;
+        }
+        
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 48px;
+            font-weight: 700;
+            color: #ffffff;
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .title {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #FFFFFF;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            color: #3b82f6;
+            margin-bottom: 40px;
+        }
+        
+        .progress-container {
+            width: 400px;
+            height: 4px;
+            background: #182338;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .progress-bar {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #60a5fa);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            font-size: 14px;
+            color: #8faecf;
+            text-align: center;
+            min-height: 20px;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .status.active {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+<body>
+    <div class="logo">EGM</div>
+    <div class="title">EGM Downloader</div>
+    <div class="subtitle">Setting up your application...</div>
+    
+    <div class="progress-container">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+    
+    <div class="status active" id="status">Initializing...</div>
+    
+    <script>
+        const { ipcRenderer } = require('electron');
+        
+        console.log('[SPLASH] Splash screen loaded');
+        
+        // Listen for progress updates from main process
+        ipcRenderer.on('splash-progress', (event, data) => {
+            console.log('[SPLASH] Progress update:', data);
+            const progressBar = document.getElementById('progressBar');
+            const statusText = document.getElementById('status');
+            
+            if (data.progress !== undefined) {
+                progressBar.style.width = data.progress + '%';
+            }
+            
+            if (data.message) {
+                statusText.textContent = data.message;
+                statusText.classList.add('active');
+            }
+        });
+        
+        // Listen for completion
+        ipcRenderer.on('splash-complete', () => {
+            console.log('[SPLASH] Completion signal received');
+            document.getElementById('status').textContent = 'Ready!';
+            document.getElementById('progressBar').style.width = '100%';
+        });
+        
+        console.log('[SPLASH] Event listeners registered');
+    </script>
+</body>
+</html>
