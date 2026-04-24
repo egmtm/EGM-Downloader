@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -12,7 +12,6 @@ const APP_URL = `http://${HOST}:${PORT}`;
 let mainWindow  = null;
 let splashWindow = null;
 let flaskProc   = null;
-let tray        = null;
 
 // ── Fix 1: Single-instance lock ───────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -26,15 +25,6 @@ app.on('second-instance', () => {
     mainWindow.focus();
   }
 });
-
-// ── Icon helper ───────────────────────────────────────────────────────────────
-function safeIcon(p, size) {
-  if (fs.existsSync(p)) {
-    const img = nativeImage.createFromPath(p);
-    return size ? img.resize({ width: size, height: size }) : img;
-  }
-  return nativeImage.createEmpty();
-}
 
 // ── Find Python ───────────────────────────────────────────────────────────────
 function findPython() {
@@ -171,41 +161,9 @@ function closeSplash() {
   }
 }
 
-// ── Create tray ───────────────────────────────────────────────────────────────
-function createTray() {
-  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
-  tray = new Tray(safeIcon(iconPath, 16));
-  tray.setToolTip('EGM Downloader');
-
-  const contextMenu = Menu.buildFromTemplate([
-    {
-      label: 'Open EGM Downloader',
-      click: () => {
-        if (!mainWindow) return;
-        mainWindow.show();
-        mainWindow.focus();
-      },
-    },
-    { type: 'separator' },
-    {
-      label: 'Quit',
-      click: () => { app.isQuiting = true; app.quit(); },
-    },
-  ]);
-
-  tray.setContextMenu(contextMenu);
-
-  // Left-click tray icon → show and focus (tray is secondary access point)
-  tray.on('click', () => {
-    if (!mainWindow) return;
-    mainWindow.show();
-    mainWindow.focus();
-  });
-}
-
 // ── Create window ─────────────────────────────────────────────────────────────
 async function createWindow() {
-  const winIconPath = path.join(__dirname, '..', 'static', 'icon-512.png');
+  const winIconPath = path.join(__dirname, '..', 'app', 'static', 'icon-512.png');
   const winIconOpts = fs.existsSync(winIconPath) ? { icon: winIconPath } : {};
 
   mainWindow = new BrowserWindow({
@@ -276,26 +234,9 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
   }
 });
 
-// ── IPC: create desktop shortcut (macOS uses aliases) ─────────────────────────
-ipcMain.handle('create-shortcut', async () => {
-  try {
-    // On macOS, we create a symbolic link to the app in Desktop
-    const appPath = app.getPath('exe');
-    const desktopPath = app.getPath('desktop');
-    const linkPath = path.join(desktopPath, 'EGM Downloader.app');
-    
-    // Create symlink
-    execSync(`ln -s "${appPath}" "${linkPath}"`, { stdio: 'ignore' });
-    return { success: true };
-  } catch (e) {
-    return { error: e.message };
-  }
-});
-
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   createSplash();    // show splash immediately
-  createTray();      // tray first — visible immediately
   startFlask();      // spawn backend (non-blocking — createWindow waits for it)
   await createWindow(); // window polls until Flask responds, then loads
 });
@@ -305,10 +246,9 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
-// Fix 3: single cleanup point for every quit path (X, tray Quit, crash)
+// Fix 3: single cleanup point for every quit path (X, crash)
 app.on('before-quit', () => {
   app.isQuiting = true;
-  if (tray) { tray.destroy(); tray = null; }
   if (!flaskProc) return;
 
   const pid = flaskProc.pid;
