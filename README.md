@@ -24,6 +24,8 @@ Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Faceb
 - 🔄 **Auto-Updates** - Built-in update checker keeps you current (Windows/Mac)
 - 📝 **Custom Filenames** - Edit filenames before downloading
 - 🛠️ **Plugin Updates** - Update yt-dlp and ffmpeg without reinstalling
+- 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
+- 📌 **System Tray** - Minimize to tray for background operation (Windows)
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
 
 ---
