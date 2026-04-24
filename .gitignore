@@ -4,6 +4,8 @@ __pycache__/
 *.pyo
 *.pyd
 .Python
+linux/python/
+mac/python/
 
 # ── Virtual environments ───────────────────────────────────────
 venv/
