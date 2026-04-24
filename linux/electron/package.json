@@ -1,0 +1,69 @@
+{
+  "name": "egm-downloader",
+  "version": "0.91.0",
+  "description": "EGM Downloader — download videos from 1000+ sites",
+  "main": "main.js",
+  "author": "www.egerena.com",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --linux",
+    "pack": "electron-builder --dir"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0"
+  },
+  "build": {
+    "appId": "com.egerena.egm-downloader",
+    "productName": "EGM Downloader",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "splash.html",
+      "!node_modules/**/*",
+      "!**/*.md",
+      "!**/*.map",
+      "!**/__tests__/**",
+      "!**/test/**",
+      "!**/tests/**"
+    ],
+    "extraResources": [
+      {
+        "from": "../",
+        "to": "app",
+        "filter": [
+          "app.py",
+          "templates/**",
+          "requirements.txt"
+        ]
+      },
+      {
+        "from": "../../static",
+        "to": "app/static",
+        "filter": ["**/*"]
+      },
+      {
+        "from": "../python",
+        "to": "python",
+        "filter": ["**/*"]
+      }
+    ],
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "../../static/icon-512.png",
+      "category": "Network",
+      "executableName": "egm-downloader"
+    },
+    "electronLanguages": ["en"]
+  }
+}
