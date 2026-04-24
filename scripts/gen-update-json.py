@@ -2,13 +2,54 @@
 """
 EGM Downloader — Update JSON Generator
 =======================================
-Generates platform update JSONs from version.json.
+Generates platform update JSONs from version.json for website distribution.
+
+This script creates the JSON files that the website uses to display version
+information and download links. Each platform gets its own JSON file:
+  - Windows: egm-version.json (has auto-update capability)
+  - Mac: egmac-update.json (no auto-update, informational only)
+  - Linux: egmlinux-update.json (no auto-update, informational only)
+
+Output files are created in dist/ directory and must be uploaded to:
+  https://egerena.com/apps/
 
 Usage:
+    # Generate all platforms with default notes
     python scripts/gen-update-json.py
-    python scripts/gen-update-json.py --notes "Fixed X; Added Y"
-    python scripts/gen-update-json.py --platform windows
+    
+    # Generate with custom release notes
+    python scripts/gen-update-json.py --notes "Fixed bug; Improved speed; Added X"
+    
+    # Generate single platform only
+    python scripts/gen-update-json.py --platform windows --notes "Windows-specific fix"
+    
+    # Preview without creating files
     python scripts/gen-update-json.py --dry-run
+
+Examples:
+    # Standard workflow (after building all platforms)
+    $ python scripts/gen-update-json.py --notes "Bug fixes; Performance improvements"
+    # Creates: dist/egm-version.json, dist/egmac-update.json, dist/egmlinux-update.json
+    
+    # Windows-only release
+    $ python scripts/gen-update-json.py --platform windows --notes "Fixed installer"
+    # Creates: dist/egm-version.json only
+
+Notes Format:
+    Use semicolons to separate multiple changes:
+    --notes "First change; Second change; Third change"
+    
+    These become bullet points on the website:
+    • First change
+    • Second change  
+    • Third change
+
+Typical Workflow:
+    1. python scripts/bump-version.py
+    2. Build platform(s)
+    3. python scripts/gen-update-json.py --notes "What changed"
+    4. Upload dist/*.json files to egerena.com/apps/
+    5. Upload platform binaries (EGMd.zip, EGMdM.zip, etc.)
 """
 
 import json
