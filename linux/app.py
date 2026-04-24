@@ -28,7 +28,7 @@ FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
 APP_VERSION = "0.91"
-APP_BUILD   = 91
+APP_BUILD   = 92
 
 # Settings and cookies: writable user data under DATA_DIR
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
