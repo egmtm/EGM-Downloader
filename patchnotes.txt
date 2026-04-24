@@ -1,0 +1,597 @@
+EGM Downloader — Patch Notes
+=============================
+https://egerena.com/apps/egm.html
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  COMING SOON
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ▸ macOS version available at https://egerena.com/apps/egmac.html
+  ▸ Linux port coming soon
+  ▸ More features & site-specific options
+  ▸ More customization (themes, layout, defaults)
+  ▸ Faster everything — smarter queuing, lower overhead
+  ▸ Stay tuned at https://egerena.com/apps/egm.html
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+
+v0.91 (Build 88)
+──────────────────────
+UI IMPROVEMENT — Update check modal (ported from macOS version)
+
+  Replaced the previous toast-based update UI with a proper centered
+  modal dialog for all three update states:
+
+  - Up to Date: shows current version, handles dev builds gracefully
+  - Update Available: shows current vs latest version side by side,
+    release notes panel, Update Now + Open Page + Later buttons
+  - Error: clean message with close button
+
+  Also added compareVersions() — proper semver comparison that strips
+  the "v" prefix and compares each segment numerically. Correctly handles
+  v0.91 vs v1.0, dev builds (current > latest), and 2-segment versions.
+  Also checks build number within the same version.
+
+  Windows-specific features intact:
+  - Update Now downloads EGMd.zip, extracts installer, launches NSIS
+  - Auto-quits app after installer launches
+
+v0.91 (Build 87)
+──────────────────────
+BUG FIX — Cancel doesn't kill ffmpeg / ffmpeg survives app quit
+
+Root cause: proc.kill() on Windows only terminates the exact PID it targets.
+When yt-dlp spawns ffmpeg as a child process, killing yt-dlp leaves ffmpeg
+running as an orphan — still encoding, still holding temp files open.
+The same issue affected app quit: by the time the Electron before-quit
+taskkill fired, Flask had already exited (via /api/shutdown), and the
+orphaned yt-dlp+ffmpeg processes were no longer in Flask's process tree.
+
+Fixes:
+  - New _kill_proc() helper: on Windows uses taskkill /F /T /PID which
+    kills the entire process tree (yt-dlp + ffmpeg children). On other
+    platforms falls back to proc.kill().
+  - New _active_procs registry: maps job_id → proc, maintained with a
+    threading.Lock. Populated on proc start, cleared on proc exit or
+    exception — never leaks.
+  - cancel_download: now calls _kill_proc() instead of proc.kill()
+  - /api/shutdown: now kills all active procs via _kill_proc() BEFORE
+    calling os._exit(0), so no orphans survive the app quit
+
+Applies to both audio and video downloads uniformly.
+File cleanup (_cleanup) was already correct — it now fires reliably
+because proc.wait() returns promptly once the full tree is dead.
+
+v0.91 (Build 86)
+──────────────────────
+BUG FIX — Cards not minimizing after Download All Audio/Video
+
+Root cause: stale DOM references in the bulk download poller.
+When playlist items finish loading their full info in the background,
+fetchPlaylistEntries calls renderCard() a second time using innerHTML —
+this destroys and recreates the card's DOM elements (stEl, dlBtn, progEl).
+The wiv setInterval poller had captured these elements at the start of
+downloadOne, so it was holding detached (no-longer-in-document) nodes.
+When status='done', stEl.closest('.vcard') on a detached node returns null,
+minimizeDoneCard fell into the no-card branch, and the card stayed as-is.
+
+Fix: wiv poller now re-fetches stEl, dlBtn, and progEl via getElementById
+on every tick before calling applyJobProgress and applyJobDone.
+Falls back to the originally captured reference if the element is gone
+(e.g. item removed mid-download).
+
+Also in this build:
+- Auto-close on update: app quits after NSIS installer launches
+- Footer: 'Check for Updates 🔄' moved after version number
+
+v0.91 (Build 85)
+──────────────────────
+CRITICAL BUG FIX — Download All Audio deadlock
+
+Root cause: classic subprocess pipe buffer deadlock.
+When running yt-dlp with -x (audio extraction), ffmpeg writes
+codec info and per-frame progress to stderr during MP3 encoding
+— easily 100KB+ for a 3-minute track. The OS pipe buffer fills
+(~64KB), ffmpeg blocks waiting for it to drain, yt-dlp blocks
+waiting for ffmpeg, and our stdout reading loop waits forever.
+
+Fix: stderr is now drained in a background daemon thread while
+the stdout loop runs. The process can always write to stderr
+without blocking, regardless of how much it outputs.
+
+Also fixed:
+  - Auto-update: app now quits automatically after NSIS installer
+    launches (after 1.5s delay), so installer can replace files cleanly
+  - Footer: "Check for Updates 🔄" moved to after the version number
+    (now last in footer), emoji appended after text
+
+v0.91 (Build 84)
+──────────────────────
+BUG FIXES
+
+Download All Audio stuck on "Downloading"
+  - Backend: added [ExtractAudio] detection alongside [Merger] and
+    [VideoRemuxer] — audio conversion now correctly switches status
+    to "converting" so UI shows "Converting…" with indeterminate bar
+  - Frontend: when progress reaches 100% and status is still
+    "downloading", UI now shows "Converting…" as a safe fallback
+    instead of appearing frozen
+
+Layout: bulk buttons no longer expand the fetch row
+  - "Download All Videos" and "Download All Audio" moved to their
+    own dedicated row below the fetch controls
+  - Fetch row (Fetch Info, Stop Fetching, Clear, Videos, Fragments)
+    stays compact and never changes size regardless of fetch state
+  - Bulk action row slides in cleanly below after fetch completes
+
+v0.91 (Build 83)
+──────────────────────
+NEW FEATURES
+
+Download All Videos / Download All Audio
+  - Two separate bulk download buttons replace the old "Download All"
+  - "Download All Videos" forces best quality MP4 for every item
+  - "Download All Audio" forces MP3 for every item, ignores card settings
+  - Bulk bar and completion toast show which mode is active
+  - Both buttons always shown/hidden together (single setDlAllVisible helper)
+
+Auto-Update with Guided Installer
+  - Update available toast now has "Update Now" button (Electron only)
+  - Downloads EGMd.zip silently using password-protected extraction
+  - Extracts egm-setup.exe, launches familiar NSIS install wizard
+  - Temp files cleaned up automatically on next app startup
+  - Falls back to "Open Page" button if not in Electron context
+
+Release Notes in Update Toast
+  - Update available toast now shows bullet-point release notes
+  - Notes pulled from egm-version.json "notes" field (\n separated)
+  - Rendered safely via textContent — no injection risk
+  - Gracefully hidden when notes field is empty or missing
+
+Check for Updates — Footer Link
+  - "Check for Updates" added to footer alongside www.egerena.com and GitHub
+  - Same shared checkForUpdates() function as header badge and icon
+  - Three entry points (badge, icon, footer), one function, no duplication
+
+egm-version.json updated
+  - Now includes zip_url field for direct auto-download
+  - notes field carries formatted bullet points for testers
+
+UNDER THE HOOD
+  - pyzipper added for AES-256 password-protected zip extraction
+  - /api/download-update Flask route (download + extract + return path)
+  - launch-installer IPC handler in Electron (detached spawn)
+  - launchInstaller() exposed in preload.js
+  - checkForUpdates() lifted to module scope (was private to IIFE)
+  - 2 bugs fixed: duplicate require() in main.js, zip not cleaned on early return
+
+v0.90 (Build 82)
+──────────────────────
+UI — Check for Updates icon
+  - Added 🔄 icon button next to version badge in header
+  - Both the version badge and icon trigger the update check
+  - Hovering either brightens the icon to full opacity
+  - During check: icon swaps to ⏳, badge dims
+  - After check: icon restores to 🔄, opacity resets
+
+v0.90 (Build 81)
+──────────────────────
+NEW FEATURE — Check for Updates
+  - Version badge in header (v0.90) is now clickable
+  - Hovering shows "Check for Updates" tooltip
+  - Click fetches https://egerena.com/apps/egm-version.json and compares
+    to the running version and build number
+  - Up to date → green toast confirmation
+  - Update available → amber clickable toast → opens download page
+  - Network error → error toast (silent fail, no crash)
+  - New backend route: /api/check-app-update
+  - New CSS: .toast.warn style for amber update toast
+
+v0.90 (Build 80)
+──────────────────────
+CODE AUDIT & CLEAN
+
+Bug fix:
+  - cancel_download route: removed premature job["status"] = "cancelled"
+    Setting status before proc.wait() raced with the worker thread that
+    does file cleanup — could cause clearCompleted to fire before temp
+    files were fully removed. Worker now has sole ownership of that write.
+
+Code quality:
+  - Thread lock added to settings cache (_settings_cache) — prevents
+    concurrent request corruption under heavy parallel downloads
+  - UTF-8 encoding explicitly set on settings file read/write —
+    fixes non-ASCII folder paths (accented chars, CJK, etc.)
+  - 20 bare except: clauses → except Exception: in app.py and launch.py
+  - Duplicated poll status logic extracted into shared helpers:
+    applyJobProgress() and applyJobDone() — single source of truth
+  - fetchAll split into fetchSingle() + fetchPlaylistEntries() helpers
+    (85 lines → 49 lines, nesting depth 4-5 → 2)
+  - Quit delay and toast duration replaced with named constants
+    (QUIT_DELAY_MS, TOAST_DURATION)
+  - import time moved to top of launch.py (was inline in exception handlers)
+  - Stale "Fix N:" debug comments replaced with descriptive comments
+  - Outdated cookies comment updated (said "No UI required" — wrong)
+  - Dead electron-builder build config removed from package.json
+  - Version bumped to v0.90
+
+v0.89 (Build 78)
+─────────────────────────────────
+- Version display simplified: shows "v0.89" — hover to see full build info
+- Update Plugins now shows installed versions immediately on expand (no network)
+  Check for Updates button still available for latest version comparison
+- NSIS Windows installer (setup.exe) — replaces raw zip delivery
+  * Welcome screen, directory picker, progress bar, finish with launch option
+  * Upgrade-aware: detects previous install, replaces app files, preserves
+    egm_settings.json, node_bin/, runtime/deno.exe, electron/node_modules/
+  * Uninstaller registered in Windows Add/Remove Programs
+  * Offers to keep or remove large cached components on uninstall
+  * Start Menu shortcut created automatically
+- instructions.txt included: setup guide, requirements, troubleshooting
+- Post-install space savings (first launch only):
+  * Non-English Electron locale files removed (~15 MB)
+  * npm download cache cleared after install (~50-200 MB)
+- URL updated to https://egerena.com/apps/egm.html in all text files
+- Package format: setup.exe delivered as EGMd.zip
+
+v0.91 (Build 88)
+──────────────────────
+UI IMPROVEMENT — Update check modal (ported from macOS version)
+
+  Replaced the previous toast-based update UI with a proper centered
+  modal dialog for all three update states:
+
+  - Up to Date: shows current version, handles dev builds gracefully
+  - Update Available: shows current vs latest version side by side,
+    release notes panel, Update Now + Open Page + Later buttons
+  - Error: clean message with close button
+
+  Also added compareVersions() — proper semver comparison that strips
+  the "v" prefix and compares each segment numerically. Correctly handles
+  v0.91 vs v1.0, dev builds (current > latest), and 2-segment versions.
+  Also checks build number within the same version.
+
+  Windows-specific features intact:
+  - Update Now downloads EGMd.zip, extracts installer, launches NSIS
+  - Auto-quits app after installer launches
+
+v0.91 (Build 87)
+──────────────────────
+BUG FIX — Cancel doesn't kill ffmpeg / ffmpeg survives app quit
+
+Root cause: proc.kill() on Windows only terminates the exact PID it targets.
+When yt-dlp spawns ffmpeg as a child process, killing yt-dlp leaves ffmpeg
+running as an orphan — still encoding, still holding temp files open.
+The same issue affected app quit: by the time the Electron before-quit
+taskkill fired, Flask had already exited (via /api/shutdown), and the
+orphaned yt-dlp+ffmpeg processes were no longer in Flask's process tree.
+
+Fixes:
+  - New _kill_proc() helper: on Windows uses taskkill /F /T /PID which
+    kills the entire process tree (yt-dlp + ffmpeg children). On other
+    platforms falls back to proc.kill().
+  - New _active_procs registry: maps job_id → proc, maintained with a
+    threading.Lock. Populated on proc start, cleared on proc exit or
+    exception — never leaks.
+  - cancel_download: now calls _kill_proc() instead of proc.kill()
+  - /api/shutdown: now kills all active procs via _kill_proc() BEFORE
+    calling os._exit(0), so no orphans survive the app quit
+
+Applies to both audio and video downloads uniformly.
+File cleanup (_cleanup) was already correct — it now fires reliably
+because proc.wait() returns promptly once the full tree is dead.
+
+v0.91 (Build 86)
+──────────────────────
+BUG FIX — Cards not minimizing after Download All Audio/Video
+
+Root cause: stale DOM references in the bulk download poller.
+When playlist items finish loading their full info in the background,
+fetchPlaylistEntries calls renderCard() a second time using innerHTML —
+this destroys and recreates the card's DOM elements (stEl, dlBtn, progEl).
+The wiv setInterval poller had captured these elements at the start of
+downloadOne, so it was holding detached (no-longer-in-document) nodes.
+When status='done', stEl.closest('.vcard') on a detached node returns null,
+minimizeDoneCard fell into the no-card branch, and the card stayed as-is.
+
+Fix: wiv poller now re-fetches stEl, dlBtn, and progEl via getElementById
+on every tick before calling applyJobProgress and applyJobDone.
+Falls back to the originally captured reference if the element is gone
+(e.g. item removed mid-download).
+
+Also in this build:
+- Auto-close on update: app quits after NSIS installer launches
+- Footer: 'Check for Updates 🔄' moved after version number
+
+v0.91 (Build 85)
+──────────────────────
+CRITICAL BUG FIX — Download All Audio deadlock
+
+Root cause: classic subprocess pipe buffer deadlock.
+When running yt-dlp with -x (audio extraction), ffmpeg writes
+codec info and per-frame progress to stderr during MP3 encoding
+— easily 100KB+ for a 3-minute track. The OS pipe buffer fills
+(~64KB), ffmpeg blocks waiting for it to drain, yt-dlp blocks
+waiting for ffmpeg, and our stdout reading loop waits forever.
+
+Fix: stderr is now drained in a background daemon thread while
+the stdout loop runs. The process can always write to stderr
+without blocking, regardless of how much it outputs.
+
+Also fixed:
+  - Auto-update: app now quits automatically after NSIS installer
+    launches (after 1.5s delay), so installer can replace files cleanly
+  - Footer: "Check for Updates 🔄" moved to after the version number
+    (now last in footer), emoji appended after text
+
+v0.91 (Build 84)
+──────────────────────
+BUG FIXES
+
+Download All Audio stuck on "Downloading"
+  - Backend: added [ExtractAudio] detection alongside [Merger] and
+    [VideoRemuxer] — audio conversion now correctly switches status
+    to "converting" so UI shows "Converting…" with indeterminate bar
+  - Frontend: when progress reaches 100% and status is still
+    "downloading", UI now shows "Converting…" as a safe fallback
+    instead of appearing frozen
+
+Layout: bulk buttons no longer expand the fetch row
+  - "Download All Videos" and "Download All Audio" moved to their
+    own dedicated row below the fetch controls
+  - Fetch row (Fetch Info, Stop Fetching, Clear, Videos, Fragments)
+    stays compact and never changes size regardless of fetch state
+  - Bulk action row slides in cleanly below after fetch completes
+
+v0.91 (Build 83)
+──────────────────────
+NEW FEATURES
+
+Download All Videos / Download All Audio
+  - Two separate bulk download buttons replace the old "Download All"
+  - "Download All Videos" forces best quality MP4 for every item
+  - "Download All Audio" forces MP3 for every item, ignores card settings
+  - Bulk bar and completion toast show which mode is active
+  - Both buttons always shown/hidden together (single setDlAllVisible helper)
+
+Auto-Update with Guided Installer
+  - Update available toast now has "Update Now" button (Electron only)
+  - Downloads EGMd.zip silently using password-protected extraction
+  - Extracts egm-setup.exe, launches familiar NSIS install wizard
+  - Temp files cleaned up automatically on next app startup
+  - Falls back to "Open Page" button if not in Electron context
+
+Release Notes in Update Toast
+  - Update available toast now shows bullet-point release notes
+  - Notes pulled from egm-version.json "notes" field (\n separated)
+  - Rendered safely via textContent — no injection risk
+  - Gracefully hidden when notes field is empty or missing
+
+Check for Updates — Footer Link
+  - "Check for Updates" added to footer alongside www.egerena.com and GitHub
+  - Same shared checkForUpdates() function as header badge and icon
+  - Three entry points (badge, icon, footer), one function, no duplication
+
+egm-version.json updated
+  - Now includes zip_url field for direct auto-download
+  - notes field carries formatted bullet points for testers
+
+UNDER THE HOOD
+  - pyzipper added for AES-256 password-protected zip extraction
+  - /api/download-update Flask route (download + extract + return path)
+  - launch-installer IPC handler in Electron (detached spawn)
+  - launchInstaller() exposed in preload.js
+  - checkForUpdates() lifted to module scope (was private to IIFE)
+  - 2 bugs fixed: duplicate require() in main.js, zip not cleaned on early return
+
+v0.90 (Build 82)
+──────────────────────
+UI — Check for Updates icon
+  - Added 🔄 icon button next to version badge in header
+  - Both the version badge and icon trigger the update check
+  - Hovering either brightens the icon to full opacity
+  - During check: icon swaps to ⏳, badge dims
+  - After check: icon restores to 🔄, opacity resets
+
+v0.90 (Build 81)
+──────────────────────
+NEW FEATURE — Check for Updates
+  - Version badge in header (v0.90) is now clickable
+  - Hovering shows "Check for Updates" tooltip
+  - Click fetches https://egerena.com/apps/egm-version.json and compares
+    to the running version and build number
+  - Up to date → green toast confirmation
+  - Update available → amber clickable toast → opens download page
+  - Network error → error toast (silent fail, no crash)
+  - New backend route: /api/check-app-update
+  - New CSS: .toast.warn style for amber update toast
+
+v0.90 (Build 80)
+──────────────────────
+CODE AUDIT & CLEAN
+
+Bug fix:
+  - cancel_download route: removed premature job["status"] = "cancelled"
+    Setting status before proc.wait() raced with the worker thread that
+    does file cleanup — could cause clearCompleted to fire before temp
+    files were fully removed. Worker now has sole ownership of that write.
+
+Code quality:
+  - Thread lock added to settings cache (_settings_cache) — prevents
+    concurrent request corruption under heavy parallel downloads
+  - UTF-8 encoding explicitly set on settings file read/write —
+    fixes non-ASCII folder paths (accented chars, CJK, etc.)
+  - 20 bare except: clauses → except Exception: in app.py and launch.py
+  - Duplicated poll status logic extracted into shared helpers:
+    applyJobProgress() and applyJobDone() — single source of truth
+  - fetchAll split into fetchSingle() + fetchPlaylistEntries() helpers
+    (85 lines → 49 lines, nesting depth 4-5 → 2)
+  - Quit delay and toast duration replaced with named constants
+    (QUIT_DELAY_MS, TOAST_DURATION)
+  - import time moved to top of launch.py (was inline in exception handlers)
+  - Stale "Fix N:" debug comments replaced with descriptive comments
+  - Outdated cookies comment updated (said "No UI required" — wrong)
+  - Dead electron-builder build config removed from package.json
+  - Version bumped to v0.90
+
+v0.89 (Build 78)
+──────────────────────
+INSTALLER
+  - New: setup.exe installer (NSIS MUI2) replaces manual zip extraction
+    Welcome screen, directory picker, progress bar, finish with Launch checkbox
+  - Upgrade-aware: detects previous install, reuses install dir, preserves
+    settings (egm_settings.json) and downloaded components
+  - Maintenance mode: running setup.exe on same version shows
+    Yes=Repair / No=Uninstall / Cancel=Exit
+  - Full uninstaller registered in Windows Add/Remove Programs
+    Optionally removes downloaded components (Node.js, Electron, Deno)
+    with option to keep them for faster reinstall (~350 MB)
+  - Start Menu shortcut created during install
+  - No admin rights required (installs to %LOCALAPPDATA%)
+  - Delivery format: EGMd.zip containing setup.exe + instructions.txt
+
+FIRST-RUN OPTIMIZATION
+  - Non-English Electron locale files deleted after first npm install (~15 MB saved)
+  - npm global cache cleared after first install (~50-200 MB freed)
+  - Both run automatically on first launch, one time only
+
+UI
+  - Version shows as v0.89 in header and footer
+    Hover over version number to see full build info (Build N, date, time)
+  - Update Plugins panel shows installed versions immediately on expand
+    (no network needed — Check for Updates still available for latest comparison)
+
+v0.67.7 (Build 77)
+──────────────────────
+- Deno now auto-installs silently on first launch (~35 MB background download)
+  No more manual install step — YouTube best quality works out of the box
+  A subtle "Installing Deno…" badge appears in the Update Plugins header
+  On completion: brief toast confirms success; on failure: silent fallback
+- Removed the "Install Deno" toast prompt entirely
+
+v0.67.1 (Build 76)
+──────────────────────
+LAUNCH & PROCESS IMPROVEMENTS
+  - Fixed CMD window flash on relaunch: added CREATE_NO_WINDOW flag
+    to Node.js version-check subprocess (was missing, caused brief flash)
+  - Faster relaunch: Node.js version check now cached to node_bin/.node_version
+    Subsequent launches skip the subprocess call entirely — noticeably snappier
+  - Removed idle launcher process: pythonw.exe (launch.py) no longer waits
+    for Electron to exit — it spawns Electron and exits immediately,
+    removing one permanently idle process from Task Manager
+
+v0.67.1 (Builds 74–75) ★ BIGGEST UPDATE TO DATE
+─────────────────────────────────────────────────
+This release is the most substantial update since the
+initial build, touching every layer of the app.
+
+STABILITY & PROCESS MANAGEMENT
+  - Fixed intermittent background Python process on close
+    Electron now calls /api/shutdown (clean Flask exit) then
+    taskkill /F /T as a fallback — kills the full process tree
+    including yt-dlp and ffmpeg children
+  - Fixed app freezing when Stop Fetching is clicked mid-fetch
+    UI now resets immediately on click; in-flight network
+    requests continue silently in the background and clean up
+    when they resolve — no more waiting, no more frozen state
+  - Fixed Stop Fetching leaving orphaned stub cards for playlists
+    In-flight /api/info calls check abort state on resolve and
+    remove their stub cards cleanly
+
+FETCH & PLAYLIST IMPROVEMENTS
+  - Stop Fetching now works correctly for both single videos
+    and large playlists at any point during the fetch
+  - pendingInfo counter tracks all in-flight /api/info calls —
+    kept videos are preserved, unloaded stubs are removed
+  - Fixed button row overlap on narrower windows
+  - Paste and Paste & Fetch moved to the card header title bar
+
+SIZE & PERFORMANCE
+  - electron-builder removed from runtime install (~150 MB saved)
+    Users no longer download build tools they never need
+  - icon.ico stripped of redundant BMP 256x256 entry (264 KB saved)
+    Windows 10/11 uses PNG exclusively; BMP was dead weight
+  - PWA manifest.json and icon-192.png removed (unused in Electron)
+  - Electron window and content area resized for a tighter layout
+  - npm install now uses --omit=dev, skipping all dev dependencies
+
+UI & UX POLISH
+  - Scroll-to-top arrow fixed (DOM timing bug — was never visible)
+  - Scroll-to-top arrow fades in smoothly with opacity transition
+  - Completed downloads move to the top of the results list
+  - Clear Completed and Clear Cancelled now work correctly for
+    playlists (fixed: cards not removed after DOM rebuild)
+  - Clicking anywhere on a panel header toggles it open/closed
+  - Panel open/closed states remembered across launches
+    (Settings, Update Plugins, Cookies all persist)
+  - "Quit when all downloads complete" checkbox added to Settings
+  - Deno not-installed notice replaced with a 5-second toast
+  - Cookies section independently collapsible within Settings
+  - Desktop Shortcut button moved to Settings card header
+  - Empty state icon removed, blank space reduced
+  - Tooltips added to Videos and Fragments dropdowns
+  - Concurrent videos default: 6, Fragments default: 4
+  - Both values remembered across launches
+
+
+v0.67.1 (Builds 67–73)
+────────────────────────
+- Site Cookies section independently collapsible within Settings
+- Scroll-to-top arrow fixed and fades in smoothly
+- Panel states (Settings, Update Plugins, Cookies) remembered
+- "Quit when all downloads complete" in Settings
+- Deno notice replaced with 5-second toast
+- Concurrent videos default 6, fragments default 4
+- App window resized for compact layout (max-width 760px)
+- electron-builder removed from runtime (~150 MB saved)
+- icon.ico BMP 256x256 removed (264 KB saved)
+- manifest.json and icon-192.png removed (dead PWA artifacts)
+- Paste / Paste & Fetch moved to card header title bar
+- Fixed background Python process on close (taskkill /F /T)
+- Fixed button row overlap on narrower windows
+- Fixed Stop Fetching disappearing mid-playlist
+
+
+v0.67 (Builds 64–66)
+──────────────────────
+- Completed downloads move to top of results list
+- Clear Completed and Clear Cancelled fixed for playlists
+- Desktop Shortcut button moved to Settings card header
+- Update Plugins card spacing fixed
+- Concurrent downloads and fragment settings remembered
+- Cookies section merged into Settings card
+- Empty state icon removed, blank space reduced
+
+
+v0.67 (Builds 50–63)
+──────────────────────
+- Smart remux: AAC audio stream-copied instead of re-encoded
+- --concurrent-fragments support (parallel connections per video)
+- Download speed (MB/s) shown in progress badge
+- "Converting..." status shown during ffmpeg merge phase
+- Progress bar wired to real percentage
+- Deno auto-install in Update Plugins (no admin rights required)
+- bgutil-ytdlp-pot-provider for YouTube PO Token generation
+- Cookies panel: upload/remove cookies.txt from within the app
+- Cookies status badge always visible in Settings header
+- Done cards minimised to single row; click opens download folder
+- "Clear Completed" added to bulk download bar
+- Scroll-to-top arrow added
+- All panels collapsible; clicking header toggles them
+- Version stamp: v0.67 - Build N - date/time EST
+
+
+v0.67 (Builds 1–49)
+─────────────────────
+- Initial port from ReClip open-source project
+- Flask + Electron architecture
+- yt-dlp integration with 1000+ supported sites
+- Per-video quality selector with real format IDs
+- Playlist support (flat-playlist expansion)
+- Filename editing modal before download
+- Individual and bulk download with configurable concurrency
+- Update Plugins panel: yt-dlp and ffmpeg update/check
+- System tray icon with Quit functionality
+- Pure dark navy theme with blue accent (EGM branding)
+- Custom EGM icon throughout
+- ffmpeg bundled (auto-downloaded, no admin required)
+- Build timestamp in version string
