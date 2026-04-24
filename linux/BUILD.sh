@@ -47,7 +47,7 @@ echo ""
 
 # ── Clean old builds ──────────────────────────────────────────────────────────
 echo "🧹 Cleaning old builds..."
-rm -rf "$ELECTRON_DIR/dist" "$ELECTRON_DIR/node_modules" "$LINUX_DIR/python"
+rm -rf "$ELECTRON_DIR/dist" "$ELECTRON_DIR/node_modules" "$LINUX_DIR/python" 2>/dev/null || true
 echo "   ✓ Cleaned"
 echo ""
 
@@ -78,9 +78,19 @@ else
 fi
 echo ""
 
+# ── Strip terminfo from Python bundle ────────────────────────────────────────
+# The terminfo directory contains relative symlinks. electron-builder processes
+# extraResources in parallel and can hit ENOENT when a symlink target hasn't
+# been written yet. These files are unused by Flask/yt-dlp — safe to remove.
+if [ -d "$PYTHON_DIR/share/terminfo" ]; then
+    rm -rf "$PYTHON_DIR/share/terminfo"
+    echo "   ✓ Stripped terminfo (unused, causes symlink race in packager)"
+fi
+echo ""
+
 # ── Install Python deps ───────────────────────────────────────────────────────
 echo "📚 Installing Python dependencies..."
-"$PYTHON_DIR/bin/python3" -m pip install --quiet --upgrade pip
+# Note: do NOT upgrade pip — pip 26 has a resolvelib regression that breaks installs
 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$LINUX_DIR/requirements.txt" 2>/dev/null || \
 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
 echo "   ✓ Dependencies installed"
@@ -104,9 +114,12 @@ if [ -z "$APPIMAGE" ]; then
 fi
 
 # Linux zip — no password (per EGM build rules)
+# Must contain: AppImage + INSTRUCTIONS.txt
 cd "$ELECTRON_DIR/dist"
 zip -r "$REPO_ROOT/dist/EGMdL.zip" "$(basename "$APPIMAGE")"
-echo "   ✓ dist/EGMdL.zip created"
+cd "$LINUX_DIR"
+zip -j "$REPO_ROOT/dist/EGMdL.zip" "$LINUX_DIR/INSTRUCTIONS.txt"
+echo "   ✓ dist/EGMdL.zip created (AppImage + INSTRUCTIONS.txt)"
 echo ""
 
 # ── Generate update JSON ──────────────────────────────────────────────────────
