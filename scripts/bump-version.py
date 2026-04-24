@@ -119,7 +119,7 @@ def update_index_html(v, b, date, time_str, dry_run):
 
 
 def update_package_json(v, b, dry_run):
-    path = ROOT / "electron" / "package.json"
+    path = ROOT / "windows" / "electron" / "package.json"
     if not path.exists():
         print(f"  ⚠️  electron/package.json — not found, skipping")
         return
