@@ -1,7 +1,7 @@
 blank_issues_enabled: true
 contact_links:
   - name: 🔒 Security Vulnerability
-    url: mailto:security@egerena.com
+    url: mailto:contact@egerena.com
     about: Please report security vulnerabilities via email, not public issues
   - name: 💬 Discussions
     url: https://github.com/egmtm/EGM-Downloader/discussions

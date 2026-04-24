@@ -324,7 +324,7 @@ See [CREDITS.md](CREDITS.md) for detailed acknowledgments.
 Found a security vulnerability? **Please do not open a public issue.**
 
 Instead:
-1. Email security concerns to: security@egerena.com
+1. Email security concerns to: contact@egerena.com
 2. Include: description, steps to reproduce, potential impact
 3. We'll respond within 48 hours
 4. We'll work with you on a fix and responsible disclosure

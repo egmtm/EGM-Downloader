@@ -54,4 +54,4 @@ Paste any error messages here
 - [ ] I am using the latest version
 - [ ] I checked existing issues for duplicates
 - [ ] I tried the troubleshooting steps in the README
-- [ ] This is not a security vulnerability (use security@egerena.com for those)
+- [ ] This is not a security vulnerability (use contact@egerena.com for those)
