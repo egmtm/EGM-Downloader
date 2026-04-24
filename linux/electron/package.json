@@ -17,6 +17,7 @@
   "build": {
     "appId": "com.egerena.egm-downloader",
     "productName": "EGM Downloader",
+    "afterPack": "build/after-pack.js",
     "directories": {
       "output": "dist",
       "buildResources": "build"

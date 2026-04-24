@@ -1,9 +1,9 @@
 {
   "version": "0.91",
-  "build": 88,
+  "build": 92,
   "channel": "stable",
   "date": "4/24/2026",
-  "time": "3:15 AM EST",
+  "time": "5:35 AM EST",
   "platforms": {
     "windows": {
       "installer": "egm-setup.exe",
