@@ -112,15 +112,13 @@ MINIMUM MACOS: 11.0 (Big Sur) or later
   INSTALLATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Extract this ZIP file (password: EGMsterling)
+1. Double-click "EGM Downloader-0.91.0-arm64.dmg"
 
-2. Double-click "EGM Downloader-0.91.0-arm64.dmg"
+2. Drag "EGM Downloader" to your Applications folder
 
-3. Drag "EGM Downloader" to your Applications folder
+3. Open Applications folder and launch "EGM Downloader"
 
-4. Open Applications folder and launch "EGM Downloader"
-
-5. If you see "App can't be opened" security warning:
+4. If you see "App can't be opened" security warning:
    - Open System Settings → Privacy & Security
    - Scroll down to Security section
    - Click "Open Anyway" next to EGM Downloader
