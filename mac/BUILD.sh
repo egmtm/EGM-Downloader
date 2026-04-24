@@ -97,9 +97,96 @@ if [ -z "$DMG" ]; then
     exit 1
 fi
 
+# ── Create end-user INSTRUCTIONS.txt ──────────────────────────────────────────
 cd "$ELECTRON_DIR/dist"
-zip -e -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" -P "EGMsterling"
-echo "   ✓ dist/EGMdM.zip created"
+cat > INSTRUCTIONS.txt << 'EOF'
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+VERSION: v0.91
+PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
+MINIMUM MACOS: 11.0 (Big Sur) or later
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  INSTALLATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Extract this ZIP file (password: EGMsterling)
+
+2. Double-click "EGM Downloader-0.91.0-arm64.dmg"
+
+3. Drag "EGM Downloader" to your Applications folder
+
+4. Open Applications folder and launch "EGM Downloader"
+
+5. If you see "App can't be opened" security warning:
+   - Open System Settings → Privacy & Security
+   - Scroll down to Security section
+   - Click "Open Anyway" next to EGM Downloader
+   - Click "Open" in the confirmation dialog
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  FIRST RUN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+On first launch, the app will:
+• Install required components (yt-dlp, ffmpeg, Deno)
+• This takes ~30 seconds
+• Progress shown in the app
+• After completion, app is ready to use
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  USAGE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1. Paste a video URL (YouTube, Vimeo, TikTok, 1000+ sites)
+2. Choose quality (video) or audio-only (MP3)
+3. Click Download
+4. Files save to your Downloads folder by default
+
+FEATURES:
+• 1000+ supported sites via yt-dlp
+• Quality selector with real format IDs
+• Playlist support (individual or bulk download)
+• Filename editing before download
+• Cancel downloads anytime
+• Update plugins (yt-dlp, ffmpeg) from app
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SYSTEM REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+• macOS 11.0 (Big Sur) or later
+• Apple Silicon (M1/M2/M3/M4/M5)
+• ~200 MB disk space
+• Internet connection (for downloads)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  SUPPORT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Website: https://egerena.com/apps/egmac.html
+GitHub: https://github.com/egmtm/EGM-Downloader
+Email: enrique@egerena.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  LICENSE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+MIT License - Free to use, modify, and distribute.
+See LICENSE file in GitHub repository for full terms.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+© 2026 EGM - www.egerena.com
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+EOF
+
+# ── Create password-protected ZIP with DMG + INSTRUCTIONS ─────────────────────
+zip -e -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt -P "EGMsterling"
+echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
 echo ""
 
 # ── Generate update JSON ──────────────────────────────────────────────────────
