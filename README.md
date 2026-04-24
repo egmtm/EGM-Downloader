@@ -179,9 +179,9 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows  | ✅ Live | Build 88 | EGMd.zip | ✅ Yes |
-| macOS    | ✅ Live | Build 88 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 92 | EGMdL.zip | ❌ Manual |
+| Windows  | ✅ Live | Build 94 | EGMd.zip | ✅ Yes |
+| macOS    | ✅ Live | Build 94 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 94 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
