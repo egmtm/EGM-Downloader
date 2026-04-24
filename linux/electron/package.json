@@ -63,7 +63,8 @@
       ],
       "icon": "../../static/icon-512.png",
       "category": "Network",
-      "executableName": "egm-downloader"
+      "executableName": "egm-downloader",
+      "artifactName": "EGM Downloader.AppImage"
     },
     "electronLanguages": ["en"]
   }
