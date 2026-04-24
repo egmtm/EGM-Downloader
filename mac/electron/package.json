@@ -1,7 +1,7 @@
 {
   "name": "egm-downloader",
   "version": "0.93.0",
-  "description": "EGM Downloader — download videos from 1000+ sites",
+  "description": "EGM Downloader \u2014 download videos from 1000+ sites",
   "main": "main.js",
   "author": "www.egerena.com",
   "license": "MIT",
@@ -47,18 +47,24 @@
       {
         "from": "../python",
         "to": "python",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "mac": {
       "target": [
         {
           "target": "dmg",
-          "arch": ["arm64"]
+          "arch": [
+            "arm64"
+          ]
         },
         {
           "target": "zip",
-          "arch": ["arm64"]
+          "arch": [
+            "arm64"
+          ]
         }
       ],
       "icon": "../../static/icon.icns",
@@ -70,12 +76,25 @@
     },
     "dmg": {
       "contents": [
-        { "x": 130, "y": 220 },
-        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+        {
+          "x": 130,
+          "y": 220
+        },
+        {
+          "x": 410,
+          "y": 220,
+          "type": "link",
+          "path": "/Applications"
+        }
       ],
-      "window": { "width": 540, "height": 380 }
+      "window": {
+        "width": 540,
+        "height": 380
+      }
     },
-    "electronLanguages": ["en"],
+    "electronLanguages": [
+      "en"
+    ],
     "generateUpdatesFilesForAllChannels": false,
     "buildVersion": "0.93.0"
   }
