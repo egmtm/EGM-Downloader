@@ -14,9 +14,12 @@ ENV/
 # ── Node / Electron ────────────────────────────────────────────
 node_bin/
 runtime/
-electron/node_modules/
-electron/dist/
 node_modules/
+
+# ── Windows runtime (downloaded on first launch) ───────────────
+windows/node_bin/
+windows/electron/node_modules/
+windows/electron/dist/
 
 # ── Build outputs (all platforms) ─────────────────────────────
 dist/
