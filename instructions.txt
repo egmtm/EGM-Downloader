@@ -1,0 +1,73 @@
+EGM Downloader — Installation & Setup Guide
+============================================
+https://egerena.com/apps/egm.html
+
+
+REQUIREMENTS
+─────────────
+  • Windows 10 or 11 (64-bit)
+  • Python 3.10 or newer
+      Download: https://www.python.org/downloads/
+      IMPORTANT: During install, check "Add Python to PATH"
+
+  Everything else (Node.js, Electron, ffmpeg, Deno) is downloaded
+  automatically on first launch — no manual setup required.
+
+
+INSTALLATION
+─────────────
+  1. Run setup.exe
+  2. Choose an install folder (default is recommended)
+  3. Click Install
+  4. Check "Launch EGM Downloader" on the finish screen, or run it
+     from the Start Menu shortcut created during install
+
+
+FIRST LAUNCH
+─────────────
+  The first time you run the app, it will download required components:
+
+    • Node.js + Electron  ~250 MB  (one time only)
+    • Deno                ~35 MB   (one time only, background)
+
+  This may take a few minutes depending on your connection speed.
+  Subsequent launches are near-instant.
+
+
+UPDATING
+─────────
+  To update yt-dlp or ffmpeg (recommended periodically):
+    Open the app → expand "Update Plugins" → click "Check for Updates"
+
+  To update EGM Downloader itself:
+    Download the latest setup.exe from https://egerena.com/apps/egm.html
+    Run it over your existing install — your settings are preserved.
+
+
+UNINSTALLING
+─────────────
+  Open Windows Settings → Apps → search "EGM Downloader" → Uninstall
+  Or run uninstall.exe in your install folder.
+
+  Your download folder and its contents are never deleted by the
+  uninstaller — only the application files are removed.
+
+
+TROUBLESHOOTING
+────────────────
+  "Python not found" on launch
+      → Install Python from python.org and check "Add to PATH"
+      → Restart your PC after installing Python
+
+  Downloads fail or show errors
+      → Open Update Plugins and update yt-dlp to the latest version
+      → For age-restricted content, use the Site Cookies feature
+
+  App won't start after update
+      → Delete the electron\node_modules folder inside your install
+        directory, then relaunch — it will reinstall automatically
+
+
+SUPPORT
+────────
+  https://egerena.com/apps/egm.html

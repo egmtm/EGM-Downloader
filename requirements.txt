@@ -1,0 +1,4 @@
+flask>=3.0.0
+yt-dlp>=2024.1.1
+bgutil-ytdlp-pot-provider
+pyzipper>=0.3.6
