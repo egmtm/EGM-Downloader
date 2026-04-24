@@ -28,17 +28,17 @@ Download videos from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.91 Build 88  
+**Latest:** v0.93 Build 93  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (~75 MB)  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### macOS
-**Latest:** v0.91 Build 88  
+**Latest:** v0.93 Build 93  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (~120 MB)  
 **Requirements:** macOS 11.0 (Big Sur) or later
 
 ### Linux
-**Latest:** v0.91 Build 92  
+**Latest:** v0.93 Build 93  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (~130 MB)  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
@@ -349,8 +349,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 0.91
-- **Build:** 88 (Windows/Mac) / 92 (Linux)
+- **Version:** 0.93
+- **Build:** 93
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** MIT
