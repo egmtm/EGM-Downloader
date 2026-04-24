@@ -3,14 +3,109 @@
 ![Version Sync](https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg)
 ![Python Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg)
 ![JavaScript Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**v0.91** — Video downloader for 1000+ sites.
+**A powerful, multi-platform video downloader for 1000+ websites.**
 
-> **Unified repository** — Windows live · macOS coming · Linux coming
+Download videos from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.
 
 ---
 
-## Repository Structure
+## ✨ Features
+
+- 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
+- 🎬 **Quality Selection** - Choose your preferred video quality and format
+- 📋 **Playlist Support** - Download entire playlists with one click
+- ⚡ **Batch Downloads** - Queue multiple videos and download them all at once
+- 🎨 **Beautiful Dark Interface** - Sleek black and gold design
+- 🔄 **Auto-Updates** - Built-in update checker keeps you current (Windows/Mac)
+- 📝 **Custom Filenames** - Edit filenames before downloading
+- 🛠️ **Plugin Updates** - Update yt-dlp and ffmpeg without reinstalling
+- 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
+
+---
+
+## 📥 Download
+
+### Windows
+**Latest:** v0.91 Build 88  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (~75 MB)  
+**Requirements:** Windows 10/11 (64-bit)
+
+### macOS
+**Latest:** v0.91 Build 88  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (~120 MB)  
+**Requirements:** macOS 11.0 (Big Sur) or later
+
+### Linux
+**Latest:** v0.91 Build 92  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (~130 MB)  
+**Format:** AppImage (Universal)  
+**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
+
+> **Note:** Distributions available on [egerena.com](https://egerena.com)
+
+---
+
+## 🚀 Quick Start
+
+### Windows
+1. Extract `EGMd.zip`
+2. Run `EGM Downloader.vbs` (or see `instructions.txt` for alternatives)
+3. Paste a video URL and click Download!
+
+### macOS
+1. Extract `EGMdM.zip`
+2. Open the `.dmg` file
+3. Drag "EGM Downloader" to Applications
+4. Launch from Applications folder
+
+### Linux
+1. Extract `EGMdL.zip`
+2. Make executable: `chmod +x "EGM Downloader.AppImage"`
+3. Double-click to launch (or run from terminal)
+
+**First launch:** App will download required components (Node.js, Electron, ffmpeg) - this is normal and only happens once.
+
+---
+
+## 💡 Usage
+
+1. **Paste URL** - Copy any video URL and paste it into the app
+2. **Select Quality** - Choose your preferred resolution and format
+3. **Edit Filename** (Optional) - Click the filename to customize it
+4. **Download** - Click the download button and wait for completion
+5. **Open Folder** - Click "Open Folder" to view your downloaded video
+
+### Advanced Features
+
+**Playlist Downloads:**
+- Paste playlist URL
+- Select "Download All" or choose specific videos
+- Videos download in sequence
+
+**Batch Downloads:**
+- Add multiple URLs to the queue
+- Select quality for each
+- Download all at once
+- Cancel individual downloads anytime
+
+**Plugin Updates:**
+- Click "Update Plugins" in settings
+- Update yt-dlp for newest site support
+- Update ffmpeg for latest codecs
+
+---
+
+## 🖼️ Screenshots
+
+> 📸 *Screenshots will be added when repository goes public*
+
+---
+
+## 🛠️ For Developers
+
+### Repository Structure
 
 ```
 EGM-Downloader/
@@ -19,91 +114,80 @@ EGM-Downloader/
 ├── templates/index.html        ← UI                    [shared — Windows + Mac]
 ├── static/                     ← CSS, JS, icons        [shared — all platforms]
 │
-├── windows/                    ← Windows platform
-│   ├── electron/               ← Windows Electron shell
-│   │   ├── main.js
-│   │   ├── package.json
-│   │   └── preload.js
-│   ├── launch.py               ← Windows launcher (downloads Node/Electron)
-│   ├── launch.bat
-│   ├── EGM Downloader.vbs
-│   └── instructions.txt
+├── windows/                    ← Windows platform files
+├── mac/                        ← macOS platform files
+├── linux/                      ← Linux platform files
+├── scripts/                    ← Build automation
+│   ├── bump-version.py         ← Version management
+│   ├── gen-update-json.py      ← Update JSON generation
+│   └── add-patchnote.py        ← Changelog management
 │
-├── mac/                        ← macOS platform
-│   ├── electron/               ← Mac Electron shell + electron-builder config
-│   │   ├── main.js
-│   │   ├── package.json
-│   │   ├── preload.js
-│   │   ├── splash.html
-│   │   └── entitlements.mac.plist
-│   ├── BUILD.sh                ← Mac build script
-│   └── BUILD_NOTES.txt
-│
-├── linux/                      ← Linux platform
-│   ├── electron/               ← Linux Electron shell + electron-builder config
-│   │   ├── main.js
-│   │   ├── package.json
-│   │   ├── preload.js
-│   │   ├── splash.html
-│   │   └── build/after-pack.js ← AppImage sandbox fix
-│   ├── app.py                  ← Linux-specific backend (AppImage paths)
-│   ├── templates/index.html    ← Linux-specific UI
-│   ├── requirements.txt        ← Linux deps (no pyzipper)
-│   ├── BUILD.sh                ← Linux build script
-│   └── INSTRUCTIONS.txt
-│
-├── scripts/                    ← Build automation      [all platforms]
-│   ├── bump-version.py         ← Increment build, sync all version strings
-│   ├── gen-update-json.py      ← Generate platform update JSONs
-│   └── add-patchnote.py        ← Prepend to patchnotes.txt
-│
-├── version.json                ← Single source of truth for version/build
-├── requirements.txt            ← Python deps (Windows + Mac)
-└── patchnotes.txt
+├── version.json                ← Single source of truth
+├── requirements.txt            ← Python dependencies
+└── patchnotes.txt             ← Version history
 ```
 
----
+### Build Workflow
 
-## Build Workflow
-
-### 1. Bump build number (run before every build)
+**1. Bump version:**
 ```bash
 python scripts/bump-version.py
-# Also bump version string:
+# Or bump version string:
 python scripts/bump-version.py --version 0.92
-# Preview without writing:
-python scripts/bump-version.py --dry-run
 ```
-Updates: `version.json`, `app.py`, `templates/index.html`, `electron/package.json`
 
-### 2. Add patch notes
+**2. Add patch notes:**
 ```bash
-python scripts/add-patchnote.py "Fixed playlist bug" "Improved speed"
+python scripts/add-patchnote.py "Fixed bug" "Added feature"
 ```
 
-### 3. Generate update JSONs
+**3. Generate update JSONs:**
 ```bash
 python scripts/gen-update-json.py --notes "Fixed X; Added Y"
-# Windows only:
-python scripts/gen-update-json.py --platform windows --notes "Fixed X"
 ```
-Outputs to `dist/` — upload to `egerena.com/apps/`.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for complete development guide.
 
 ---
 
-## Platform Status
+## 🤝 Contributing
 
-| Platform | Status | Build | Shell | Distribution |
-|----------|--------|-------|-------|--------------|
-| Windows  | ✅ Live | Build 88 | Electron | EGMd.zip |
-| macOS    | ✅ Live | Build 88 | Electron | EGMdM.zip |
-| Linux    | ✅ Live | Build 92 | Electron + AppImage | EGMdL.zip |
+We welcome contributions! Whether it's:
+- 🐛 Bug reports
+- 💡 Feature requests
+- 📝 Documentation improvements
+- 🔧 Code contributions
+
+**Get started:**
+1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
+2. Fork the repository
+3. Create a feature branch
+4. Make your changes
+5. Submit a pull request
+
+**Code Quality:**
+- ✅ Python linting (flake8, isort)
+- ✅ JavaScript linting (ESLint)
+- ✅ Version sync validation
+- ✅ Automated quality checks
+
+All pull requests are automatically tested via GitHub Actions.
+
+---
+
+## 📊 Platform Status
+
+| Platform | Status | Build | Distribution | Auto-Update |
+|----------|--------|-------|--------------|-------------|
+| Windows  | ✅ Live | Build 88 | EGMd.zip | ✅ Yes |
+| macOS    | ✅ Live | Build 88 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 92 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
 ---
 
-## Built With
+## 🏗️ Built With
 
 EGM Downloader is powered by incredible open source projects:
 
@@ -117,19 +201,174 @@ See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
 
 ---
 
-## Version Management
+## 🔄 Version Management
 
-`version.json` is the master record. Never edit version numbers manually in individual files — always run `scripts/bump-version.py`.
+`version.json` is the single source of truth. Never edit version numbers manually — always use:
+
+```bash
+python scripts/bump-version.py
+```
+
+This ensures all platform files stay synchronized.
 
 ---
 
-## Continuous Integration
+## 🧪 Continuous Integration
 
-Automated checks run on every push and pull request:
+Automated quality checks run on every push and pull request:
 
-- **Version Sync Validation** - Ensures version.json stays in sync with all platform files
-- **Python Linting** - Code quality checks (flake8, isort)
-- **JavaScript Linting** - Frontend code quality (ESLint)
-- **First Contributor Welcome** - Automated greeting for new contributors
+- **Version Sync Validation** - Prevents version drift across platforms
+- **Python Linting** - Code quality (flake8, isort)
+- **JavaScript Linting** - Frontend quality (ESLint)
+- **First Contributor Welcome** - Automated onboarding
 
-See [GITHUB_ACTIONS_TODO.md](GITHUB_ACTIONS_TODO.md) for planned workflows.
+View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions)
+
+---
+
+## 📋 System Requirements
+
+### Windows
+- Windows 10 (64-bit) or Windows 11
+- 200 MB free disk space
+- Internet connection (first launch only)
+
+### macOS
+- macOS 11.0 (Big Sur) or later
+- Apple Silicon (M1/M2/M3) or Intel
+- 250 MB free disk space
+- Internet connection (first launch only)
+
+### Linux
+- 64-bit distribution (see supported list below)
+- 300 MB free disk space
+- FUSE support (pre-installed on most distros)
+- Internet connection (first launch only)
+
+**Supported Linux Distributions:**
+Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
+
+> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
+
+---
+
+## 🐛 Troubleshooting
+
+### Windows
+**App won't start:**
+- Run `launch.bat` to see error messages
+- Ensure Windows Defender isn't blocking
+- Check `logs/` folder for details
+
+**Download fails:**
+- Update yt-dlp via "Update Plugins"
+- Check internet connection
+- Try different quality/format
+
+### macOS
+**"App can't be opened" error:**
+- Right-click app → Open → confirm
+- Or: System Settings → Privacy → Allow from Identified Developers
+
+**Download stuck:**
+- Update plugins
+- Restart the app
+- Check Console.app for errors
+
+### Linux
+**AppImage won't launch:**
+- Ensure executable: `chmod +x "EGM Downloader.AppImage"`
+- Install FUSE: `sudo apt install libfuse2` (Ubuntu/Debian)
+- Run from terminal to see errors
+
+**Need more help?** Open an issue on GitHub!
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+**What this means:**
+- ✅ Commercial use allowed
+- ✅ Modification allowed
+- ✅ Distribution allowed
+- ✅ Private use allowed
+- ⚠️ Liability and warranty not provided
+
+---
+
+## 🙏 Acknowledgments
+
+Huge thanks to:
+- The **yt-dlp** team for the incredible download engine
+- The **open source community** for the amazing tools and libraries
+- **Contributors** who help improve this project
+- **Users** who report bugs and suggest features
+
+See [CREDITS.md](CREDITS.md) for detailed acknowledgments.
+
+---
+
+## 📞 Support
+
+- 🐛 **Bug Reports:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
+- 💡 **Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
+- 📖 **Documentation:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
+- 🔒 **Security Issues:** See [Security Policy](#security)
+
+---
+
+## 🔒 Security
+
+Found a security vulnerability? **Please do not open a public issue.**
+
+Instead:
+1. Email security concerns to: security@egerena.com
+2. Include: description, steps to reproduce, potential impact
+3. We'll respond within 48 hours
+4. We'll work with you on a fix and responsible disclosure
+
+Alternatively, you can report via GitHub's private vulnerability reporting feature.
+
+---
+
+## 🗺️ Roadmap
+
+**Planned Features:**
+- 🎨 Light theme option
+- 🌍 Multi-language support
+- 📊 Download statistics/history
+- 🔔 Download completion notifications
+- ⚙️ Advanced format/codec selection
+- 🎯 Browser extension
+
+**See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
+
+---
+
+## 📈 Project Stats
+
+- **Version:** 0.91
+- **Build:** 88 (Windows/Mac) / 92 (Linux)
+- **Supported Sites:** 1000+
+- **Platforms:** 3 (Windows, macOS, Linux)
+- **License:** MIT
+- **Language:** Python + JavaScript
+
+---
+
+## ⭐ Show Your Support
+
+If you find EGM Downloader useful, please consider:
+- ⭐ **Starring this repository**
+- 🐛 **Reporting bugs** to help improve it
+- 💡 **Suggesting features** you'd like to see
+- 🤝 **Contributing** code or documentation
+- 📢 **Sharing** with others who might find it useful
+
+**Every bit of support helps make this project better!**
+
+---
+
+**Made with ❤️ by the open source community**
