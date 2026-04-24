@@ -295,7 +295,7 @@ View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions
 
 ### macOS
 - macOS 11.0 (Big Sur) or later
-- Apple Silicon (M1/M2/M3) or Intel
+- Apple Silicon (M1/M2/M3/M4)
 - 250 MB free disk space
 - Internet connection (first launch only)
 
