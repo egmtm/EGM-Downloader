@@ -103,6 +103,20 @@ Outputs to `dist/` — upload to `egerena.com/apps/`.
 
 ---
 
+## Built With
+
+EGM Downloader is powered by incredible open source projects:
+
+- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - Download engine (1000+ sites)
+- **[Flask](https://flask.palletsprojects.com/)** - Web framework
+- **[Electron](https://www.electronjs.org/)** - Cross-platform desktop wrapper
+- **[FFmpeg](https://ffmpeg.org/)** - Video/audio processing
+- **[Deno](https://deno.com/)** - JavaScript runtime for YouTube tokens
+
+See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
+
+---
+
 ## Version Management
 
 `version.json` is the master record. Never edit version numbers manually in individual files — always run `scripts/bump-version.py`.
