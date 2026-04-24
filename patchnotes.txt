@@ -3,8 +3,12 @@ v0.93 - Build 94 (4/24/2026 8:55 AM EST)
   • [ALL] Version sync — Windows, macOS, and Linux aligned to v0.93 Build 94
   • [LINUX] Fixed stale GitHub repo link in app footer and INSTRUCTIONS.txt
   • [LINUX] Fixed distribution zip — now correctly includes INSTRUCTIONS.txt alongside AppImage
+  • [LINUX] Removed system tray icon — the main window is now the sole entry point
+  • [LINUX] Fixed window icon — previously fell back to default Electron icon; now loads the EGM logo correctly
   • [WINDOWS] Fixed installer: backend launches correctly on first run (was crashing with "code 2" due to incorrect main.js path resolution)
   • [MAC] Fixed yt-dlp and Deno install — earlier Build 94 loaded a Windows-only app.py on Mac, so ffmpeg auto-download failed, yt-dlp wasn't found, and Deno install tried to extract a Windows binary. Now uses evermeet.cx ffmpeg, Apple Silicon Deno binary, and invokes yt-dlp via bundled Python.
+  • [MAC] Removed menu-bar tray icon and desktop shortcut — the main window is now the sole entry point
+  • [MAC] Fixed window icon — previously fell back to default Electron icon; now loads the EGM logo correctly
 
 EGM Downloader — Patch Notes
 =============================
