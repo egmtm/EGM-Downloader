@@ -67,6 +67,7 @@
           ]
         }
       ],
+      "artifactName": "EGM Downloader.${ext}",
       "icon": "../../static/icon.icns",
       "category": "public.app-category.utilities",
       "hardenedRuntime": true,

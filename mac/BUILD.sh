@@ -112,7 +112,7 @@ MINIMUM MACOS: 11.0 (Big Sur) or later
   INSTALLATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Double-click "EGM Downloader-0.93.0-arm64.dmg"
+1. Double-click "EGM Downloader.dmg"
 
 2. Drag "EGM Downloader" to your Applications folder
 
@@ -220,12 +220,9 @@ else
 fi
 echo ""
 
-# ── Push to GitHub ────────────────────────────────────────────────────────────
-echo "🚀 Pushing to GitHub..."
-cd "$REPO_ROOT"
-git add -A
-git commit -m "Mac v$VERSION Build $BUILD_NUM"
-git push origin main
+# ── GitHub push disabled — user pushes manually after verifying the build ─────
+# (Previous auto-push failed because the user's extracted source zip is not a
+# git repo. Leave the repo state untouched and let the user handle git.)
 
 echo ""
 echo "╔════════════════════════════════════╗"
