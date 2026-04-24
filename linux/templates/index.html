@@ -1,0 +1,1793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>EGM Downloader v0.91</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0b1120;
+      --surf:    #111c2e;
+      --surf2:   #182338;
+      --surf3:   #1e2d47;
+      --border:  #243454;
+      --border2: #2d4068;
+      --acc:     #3b82f6;
+      --acc-h:   #60a5fa;
+      --acc-dim: rgba(59,130,246,.14);
+      --green:   #22c55e;
+      --red:     #ef4444;
+      --yellow:  #f59e0b;
+      --text:    #e2e8f6;
+      --text2:   #8faecf;
+      --muted:   #3d5470;
+      --shadow:  0 4px 32px rgba(0,0,0,.6);
+      --r:       10px;
+      --rs:      7px;
+      --ease:    .15s ease;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg); color: var(--text);
+      min-height: 100vh; display: flex; flex-direction: column;
+      align-items: center; padding: 0 16px 40px;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%; max-width: 760px; padding: 28px 0 20px;
+      display: flex; align-items: center; gap: 14px;
+      position: relative;
+    }
+    .logo { width: 44px; height: 44px; flex-shrink: 0; }
+    .logo img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
+    .header-text {
+      flex: 1; text-align: center;
+    }
+    header h1 {
+      font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em;
+      color: var(--acc);
+    }
+    header p { font-size: .74rem; color: var(--text2); margin-top: 3px; line-height: 1.6; }
+
+    /* ── Card ── */
+    .card {
+      width: 100%; max-width: 760px;
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 18px 20px;
+      margin-bottom: 16px; box-shadow: var(--shadow);
+    }
+    .card-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 14px;
+    }
+    .card-header.clickable { cursor: pointer; user-select: none; }
+    .card-header.clickable:hover .card-title { color: var(--text); }
+    .card-title {
+      font-size: .78rem; font-weight: 600;
+      letter-spacing: .01em; color: var(--text2);
+    }
+    .card-toggle {
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: .75rem; padding: 2px 8px;
+      border-radius: 5px; transition: color var(--ease), background var(--ease);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .card-toggle:hover { color: var(--acc); background: var(--acc-dim); }
+    .card-body.collapsed { display: none; }
+    .collapsed { display: none; }
+
+    /* ── URL area ── */
+    .url-wrap { position: relative; }
+    textarea#urls {
+      width: 100%; background: var(--surf2); border: 1px solid var(--border);
+      border-radius: var(--rs); color: var(--text); font-size: .88rem;
+      padding: 11px 13px; resize: vertical; min-height: 88px;
+      font-family: inherit; outline: none; transition: border-color var(--ease);
+    }
+    textarea#urls::placeholder { color: var(--muted); }
+    textarea#urls:focus { border-color: var(--acc); }
+    .paste-btn {
+      background: var(--surf3); border: 1px solid var(--border2);
+      border-radius: var(--rs); color: var(--text2);
+      font-size: .72rem; font-weight: 600; padding: 4px 9px;
+      cursor: pointer; transition: all var(--ease); white-space: nowrap;
+    }
+    .paste-btn:hover { border-color: var(--acc); color: var(--acc); }
+    .paste-fetch-btn {
+      background: var(--acc-dim); border: 1px solid var(--acc);
+      border-radius: var(--rs); color: var(--acc);
+      font-size: .72rem; font-weight: 600; padding: 4px 9px;
+      cursor: pointer; transition: all var(--ease); white-space: nowrap;
+    }
+    .paste-fetch-btn:hover { background: var(--acc); color: #fff; }
+
+    /* ── Buttons ── */
+    .btn {
+      padding: 8px 18px; border-radius: var(--rs); border: none;
+      font-size: .84rem; font-weight: 600; cursor: pointer;
+      transition: all var(--ease); display: inline-flex;
+      align-items: center; gap: 6px; white-space: nowrap; font-family: inherit;
+    }
+    .btn:disabled { opacity: .35; cursor: not-allowed; }
+    .btn-primary { background: var(--acc); color: #0a0a0a; }
+    .btn-primary:hover:not(:disabled) { background: var(--acc-h); transform: translateY(-1px); }
+    .btn-ghost { background: var(--surf2); color: var(--text2); border: 1px solid var(--border); }
+    .btn-ghost:hover:not(:disabled) { border-color: var(--acc); color: var(--acc); }
+    .btn-red { background: transparent; color: var(--red); border: 1px solid #3a1a1a; }
+    .btn-red:hover:not(:disabled) { background: rgba(239,68,68,.1); border-color: var(--red); }
+    .btn-green { background: var(--green); color: #000; }
+    .btn-green:hover:not(:disabled) { filter: brightness(1.1); }
+    .btn-sm { padding: 5px 12px; font-size: .78rem; }
+    .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
+
+    /* ── Bulk Download Buttons ── */
+    #bulk-dl-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .bulk-video-btn, .bulk-audio-btn {
+      flex: 1;
+      padding: 9px 16px;
+      border-radius: var(--rs);
+      border: none;
+      font-size: .85rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--ease);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      white-space: nowrap;
+      font-family: inherit;
+    }
+    .bulk-video-btn {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+    }
+    .bulk-video-btn:hover:not(:disabled) {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+    .bulk-audio-btn {
+      background: var(--acc);
+      color: #0a0a0a;
+      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+    }
+    .bulk-audio-btn:hover:not(:disabled) {
+      background: var(--acc-h);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+    }
+    .bulk-video-btn:disabled, .bulk-audio-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .bulk-video-btn:active:not(:disabled), .bulk-audio-btn:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+
+    /* ── Settings ── */
+    .opt-label { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 6px; display: block; }
+    .path-row { display: flex; gap: 7px; align-items: center; }
+    .path-row input {
+      flex: 1; background: var(--surf2); border: 1px solid var(--border);
+      border-radius: var(--rs); color: var(--text); font-size: .85rem;
+      padding: 8px 11px; outline: none; transition: border-color var(--ease); font-family: inherit;
+    }
+    .path-row input:focus { border-color: var(--acc); }
+    .path-hint { font-size: .68rem; color: var(--muted); margin-top: 5px; }
+
+    /* ── Results ── */
+    #results { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 760px; margin-bottom: 16px; }
+    .results-empty { text-align: center; padding: 10px 20px; color: var(--muted); font-size: .82rem; line-height: 1.7; }
+    .results-empty .empty-icon { font-size: 2rem; display: block; margin-bottom: 8px; opacity: .5; }
+
+    .vcard {
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: var(--r); overflow: hidden; display: flex;
+      box-shadow: var(--shadow); transition: border-color var(--ease), opacity var(--ease); position: relative;
+    }
+    .vcard:hover { border-color: var(--border2); }
+    .vcard.done-minimized {
+      padding: 8px 14px; display: flex; align-items: center; gap: 10px;
+    }
+    .vcard.done-minimized .thumb,
+    .vcard.done-minimized .qual-panel,
+    .vcard.done-minimized .prog,
+    .vcard.done-minimized .vcontrols { display: none !important; }
+    .vcard.done-minimized .vbody { padding: 0; flex-direction: row; align-items: center; gap: 10px; }
+    .vcard.done-minimized .vmeta { font-size: .7rem; }
+    .done-dismiss {
+      margin-left: auto; background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: .85rem; padding: 3px 7px; border-radius: 5px;
+      flex-shrink: 0; transition: color var(--ease), background var(--ease);
+    }
+    .done-dismiss:hover { color: var(--red); background: rgba(239,68,68,.1); }
+
+    /* Remove button */
+    .vcard-remove {
+      position: absolute; top: 7px; right: 8px;
+      background: none; border: none; cursor: pointer;
+      color: var(--muted); font-size: 1rem; line-height: 1; padding: 2px 5px;
+      border-radius: 4px; transition: color var(--ease), background var(--ease); z-index: 2;
+    }
+    .vcard-remove:hover { color: var(--red); background: rgba(239,68,68,.1); }
+
+    .thumb {
+      width: 150px; aspect-ratio: 16/9; flex-shrink: 0;
+      background: #080808; position: relative; overflow: hidden;
+    }
+    .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: .88; background: #080808; }
+    .thumb .noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.8rem; }
+    .dur { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,.85); color: #ddd; font-size: .64rem; padding: 2px 5px; border-radius: 3px; }
+
+    .vbody { flex: 1; padding: 12px 36px 12px 16px; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
+    .vtitle { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
+    .vmeta  { font-size: .73rem; color: var(--text2); }
+
+    /* ── Quality panel ── */
+    .qual-panel {
+      background: var(--surf2); border: 1px solid var(--border);
+      border-radius: var(--rs); padding: 10px 12px;
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
+    }
+    .qual-group { display: flex; flex-direction: column; gap: 4px; }
+    .qual-label { font-size: .65rem; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+
+    .pills { display: flex; background: var(--surf3); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
+    .pills input[type=radio] { display: none; }
+    .pills label { padding: 4px 13px; border-radius: 999px; font-size: .76rem; font-weight: 500; cursor: pointer; color: var(--text2); transition: all var(--ease); user-select: none; }
+    .pills input[type=radio]:checked + label { background: var(--acc); color: #0a0a0a; }
+
+    select.qsel {
+      background: var(--surf3); border: 1px solid var(--border);
+      border-radius: var(--rs); color: var(--text);
+      font-size: .78rem; padding: 6px 9px; outline: none;
+      transition: border-color var(--ease); font-family: inherit; cursor: pointer;
+    }
+    select.qsel:focus { border-color: var(--acc); }
+    select.qsel option { background: var(--surf2); }
+
+    .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
+
+    .badge { display: inline-flex; align-items: center; gap: 4px; font-size: .71rem; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
+    .b-wait  { background: rgba(245,158,11,.1);  color: var(--yellow); }
+    .b-dl    { background: rgba(201,168,76,.12); color: var(--acc-h); }
+    .b-done  { background: rgba(34,197,94,.1);   color: var(--green); }
+    .b-error { background: rgba(239,68,68,.1);   color: var(--red); }
+    .b-cancel{ background: rgba(100,100,100,.15);color: var(--text2); }
+
+    .spinner { width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: spin .7s linear infinite; display: inline-block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .prog { height: 3px; background: var(--surf3); border-radius: 999px; overflow: hidden; margin-top: 5px; }
+    .prog-inner { height: 100%; width: 0%; background: linear-gradient(90deg, var(--acc), var(--acc-h)); border-radius: 999px; transition: width .4s ease; }
+    .prog-inner.indeterminate { animation: pani 1.6s ease infinite; }
+    @keyframes pani { 0%{width:0%;margin-left:0%} 50%{width:70%;margin-left:15%} 100%{width:0%;margin-left:100%} }
+
+    /* ── Playlist header ── */
+    /* ── Bulk bar ── */
+    #bulk-bar {
+      display: none; width: 100%; max-width: 760px;
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: var(--r); padding: 12px 18px;
+      margin-bottom: 16px; align-items: center; gap: 12px; box-shadow: var(--shadow);
+    }
+    #bulk-bar.show { display: flex; }
+    #bulk-txt { font-size: .85rem; color: var(--text2); flex: 1; }
+
+    /* ── Update panel ── */
+
+
+    .update-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; margin-bottom: 4px; }
+    @media(max-width:600px) { .update-grid { grid-template-columns: 1fr 1fr; } }
+    @media(max-width:400px) { .update-grid { grid-template-columns: 1fr; } }
+    .upd-item {
+      background: var(--surf2); border: 1px solid var(--border);
+      border-radius: var(--rs); padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 7px;
+    }
+    .upd-head { display: flex; justify-content: space-between; align-items: center; }
+    .upd-name { font-weight: 600; font-size: .86rem; }
+    .vbadge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .66rem; font-weight: 700; }
+    .vb-ok  { background: rgba(34,197,94,.12);  color: var(--green); }
+    .vb-upd { background: rgba(245,158,11,.12); color: var(--yellow); }
+    .ver-info { font-size: .72rem; color: var(--text2); display: flex; flex-direction: column; gap: 2px; }
+    .sw-wrap { display: flex; align-items: center; gap: 7px; font-size: .77rem; color: var(--text2); cursor: pointer; user-select: none; }
+    input.sw[type=checkbox] { appearance: none; width: 32px; height: 17px; background: var(--border2); border-radius: 999px; cursor: pointer; transition: background var(--ease); position: relative; flex-shrink: 0; }
+    input.sw[type=checkbox]::after { content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; background:#fff; border-radius:50%; transition:left var(--ease); }
+    input.sw[type=checkbox]:checked { background: var(--acc); }
+    input.sw[type=checkbox]:checked::after { left:17px; }
+    .upd-log {
+      background: #060606; border: 1px solid var(--border);
+      border-radius: var(--rs); padding: 9px 11px;
+      font-family: 'Consolas','Courier New',monospace;
+      font-size: .72rem; color: #8a9a80; max-height: 120px;
+      overflow-y: auto; display: none; margin-top: 8px;
+      white-space: pre-wrap; line-height: 1.5;
+    }
+    .upd-log.show { display: block; }
+
+    /* ── Filename modal ── */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(0,0,0,.75);
+      backdrop-filter: blur(4px); z-index: 900;
+      display: flex; align-items: center; justify-content: center;
+      animation: fadein .16s ease;
+    }
+    @keyframes fadein { from { opacity:0; } }
+    .modal {
+      background: var(--surf); border: 1px solid var(--border2);
+      border-radius: 12px; padding: 26px 26px 20px;
+      width: min(460px, 92vw); box-shadow: 0 20px 60px rgba(0,0,0,.8);
+      animation: popin .18s ease;
+    }
+    @keyframes popin { from { opacity:0; transform:scale(.93) translateY(8px); } }
+    .modal h3 { font-size: .95rem; font-weight: 700; margin-bottom: 5px; color: var(--acc); }
+    .modal p  { font-size: .76rem; color: var(--text2); margin-bottom: 15px; }
+    .modal-input-row { display: flex; align-items: center; margin-bottom: 18px; }
+    .modal input[type=text] {
+      flex: 1; background: var(--surf2); border: 1px solid var(--border2);
+      border-radius: var(--rs); color: var(--text); font-size: .9rem;
+      padding: 9px 12px; outline: none; font-family: inherit;
+      transition: border-color var(--ease);
+    }
+    .modal input[type=text]:focus { border-color: var(--acc); }
+    .modal-ext {
+      background: var(--surf3); border: 1px solid var(--border2);
+      border-radius: var(--rs); padding: 9px 10px;
+      font-size: .85rem; color: var(--text2); margin-left: 6px; white-space: nowrap; flex-shrink: 0;
+    }
+    .modal-actions { display: flex; gap: 9px; justify-content: flex-end; }
+
+    /* ── Toast ── */
+    #toasts { position: fixed; bottom: 22px; right: 22px; display: flex; flex-direction: column-reverse; gap: 9px; z-index: 999; }
+    .toast { background: var(--surf2); border: 1px solid var(--border2); border-left: 3px solid var(--acc); color: var(--text); padding: 10px 14px; border-radius: var(--rs); font-size: .8rem; max-width: 320px; box-shadow: var(--shadow); animation: sli .2s ease; }
+    .toast.ok  { border-left-color: var(--green); }
+    .toast.err { border-left-color: var(--red); }
+    @keyframes sli { from { opacity:0; transform:translateX(32px); } }
+
+    footer { width: 100%; max-width: 760px; margin-top: 24px; text-align: center; font-size: .68rem; color: var(--muted); padding-bottom: 14px; }
+    footer a { color: var(--muted); text-decoration: none; }
+    footer a:hover { color: var(--acc); text-decoration: underline; }
+    
+
+
+
+    @media(max-width:560px) { .thumb { width: 100px; } }
+    @media(max-width:400px) { .thumb { width: 80px; } }
+    /* ── Scroll to top ── */
+    #scroll-top {
+      position: fixed; right: 22px; bottom: 22px;
+      width: 38px; height: 38px; border-radius: 50%;
+      background: var(--surf2); border: 1px solid var(--border2);
+      color: var(--text2); font-size: 1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow); z-index: 500;
+      opacity: 0; pointer-events: none;
+      transition: opacity .3s ease, background var(--ease), border-color var(--ease), transform var(--ease);
+    }
+    #scroll-top.visible { opacity: 1; pointer-events: auto; }
+    #scroll-top:hover { background: var(--acc); border-color: var(--acc); color: #fff; transform: translateY(-2px); }
+
+
+
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><img src="/static/icon-512.png" alt="EGM"></div>
+  <div class="header-text">
+    <h1>EGM Downloader <span style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.91 - Build 91 - 4/24/2026 5:05 AM EST">v0.91</span></h1>
+    <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
+  </div>
+</header>
+
+<!-- URL Input -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Video / Playlist URLs</span>
+    <div style="display:flex;gap:6px">
+      <button class="paste-btn" id="paste-btn">📋 Paste</button>
+      <button class="paste-fetch-btn" id="paste-fetch-btn">📋 Paste &amp; Fetch</button>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="url-wrap">
+      <textarea id="urls" placeholder="Paste one or more URLs here (one per line)&#10;https://www.youtube.com/watch?v=…&#10;https://www.youtube.com/playlist?list=…"></textarea>
+    </div>
+    <div class="row" style="flex-wrap:nowrap">
+      <button class="btn btn-primary" id="fetch-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Fetch Info
+      </button>
+      <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none">⏹ Stop Fetching</button>
+      <div id="bulk-dl-buttons" style="display:none;gap:8px">
+        <button class="btn bulk-video-btn" id="dl-all-video-btn">📹 Download All Videos</button>
+        <button class="btn bulk-audio-btn" id="dl-all-audio-btn">🎵 Download Audio</button>
+      </div>
+      <button class="btn btn-ghost" id="clear-btn">✕ Clear</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text2);white-space:nowrap" title="Max simultaneous video downloads">
+          Videos
+          <select id="concurrency-sel" class="qsel" style="padding:5px 8px;font-size:.75rem">
+            <option value="2">2</option>
+            <option value="4">4</option>
+            <option value="6" selected>6</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="20">20</option>
+          </select>
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text2);white-space:nowrap" title="Parallel connections per video — higher = faster on fast connections">
+          Fragments
+          <select id="fragments-sel" class="qsel" style="padding:5px 8px;font-size:.75rem">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="4" selected>4</option>
+            <option value="6">6</option>
+            <option value="8">8</option>
+            <option value="10">10</option>
+          </select>
+        </label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Settings + Cookies -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Settings</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:3px 10px">Cookies: not loaded</span>
+      <button class="card-toggle" id="settings-toggle" onclick="toggleSettingsPanel()">▼ Hide</button>
+    </div>
+  </div>
+  <div class="card-body" id="settings-body">
+    <span class="opt-label">Download folder</span>
+    <div class="path-row">
+      <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
+      <button class="btn btn-ghost btn-sm" id="browse-btn">📂 Browse</button>
+      <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled>📁 Open</button>
+    </div>
+    <div class="path-hint" id="dir-hint" style="color:var(--yellow)">⚠ Select a download folder before downloading.</div>
+
+    <div style="margin-top:10px">
+      <label class="sw-wrap">
+        <input type="checkbox" class="sw" id="quit-on-done-chk">
+        Quit when all downloads complete
+      </label>
+    </div>
+
+    <div style="border-top:1px solid var(--border);margin:14px 0 12px"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <span class="opt-label" style="margin-bottom:0">🍪 Site Cookies</span>
+      <button class="card-toggle" id="ck-toggle" onclick="toggleCookiePanel()">▶ Show</button>
+    </div>
+    <div id="ck-body" class="collapsed">
+      <div id="ck-info" style="font-size:.8rem;color:var(--text2);margin-bottom:10px">
+        Optional — use to download age-restricted or login-required content from YouTube, Facebook, Instagram and more.
+      </div>
+      <div class="path-row">
+        <input type="text" id="ck-path" placeholder="No cookies.txt loaded" readonly style="flex:1"/>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+          📂 Browse
+          <input type="file" id="ck-file-input" accept=".txt" style="display:none" onchange="uploadCookies(this)">
+        </label>
+        <button class="btn btn-red btn-sm" id="ck-clear-btn" style="display:none">✕ Remove</button>
+      </div>
+      <div class="path-hint" id="ck-hint" style="margin-top:6px;font-size:.72rem;color:var(--text2);line-height:1.6">
+        Export via incognito using <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">Get cookies.txt Locally</a>.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Bulk bar -->
+<div id="bulk-bar">
+  <span id="bulk-txt">Downloading…</span>
+  <button class="btn btn-ghost btn-sm" onclick="clearCompleted()">✓ Clear Completed</button>
+  <button class="btn btn-red btn-sm" onclick="cancelBulk()">✕ Cancel All</button>
+</div>
+
+<!-- Results -->
+<div id="results"></div>
+
+<!-- Update Plugins — collapsed by default -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Update Plugins</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
+      <button class="card-toggle" id="upd-toggle" onclick="toggleUpdPanel()">▶ Show</button>
+    </div>
+  </div>
+  <div class="card-body collapsed" id="upd-body">
+    <div class="update-grid" id="update-grid">
+      <div style="color:var(--text2);font-size:.82rem;grid-column:1/-1">Click <b>Check for Updates</b> to see installed versions.</div>
+    </div>
+    <div class="row">
+      <button class="btn btn-ghost" id="check-updates-btn">🔍 Check for Updates</button>
+      <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none">⬆ Install Updates</button>
+    </div>
+    <div class="upd-log" id="upd-log"></div>
+  </div>
+</div>
+
+<footer>&copy; <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener">www.egerena.com</a> &nbsp;·&nbsp; <a href="https://github.com/egmtm/EGM-DownloaderLIN" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a> &nbsp;·&nbsp; EGM Downloader <span style="cursor:help;border-bottom:1px dotted currentColor" title="v0.91 - Build 91 - 4/24/2026 5:05 AM EST">v0.91</span></footer>
+<div id="toasts"></div>
+
+<!-- Filename modal -->
+<div class="modal-backdrop" id="name-modal" style="display:none" onclick="modalBgClick(event)">
+  <div class="modal">
+    <h3>✏️ Name your file</h3>
+    <p>Edit the filename before downloading. The extension is added automatically.</p>
+    <div class="modal-input-row">
+      <input type="text" id="modal-input" autocomplete="off" spellcheck="false"/>
+      <span class="modal-ext" id="modal-ext">.mp4</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmModal()">⬇ Download</button>
+    </div>
+  </div>
+</div>
+
+<button id="scroll-top" title="Back to top">↑</button>
+
+<script>
+'use strict';
+
+// ── Timing constants ──────────────────────────────────────────────────────────
+const QUIT_DELAY_MS  = 1500;  // ms after last download before quitting
+const TOAST_DURATION = 4500;  // ms before toast auto-dismisses
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let items       = [];
+let bulkStop    = false;
+let fetchAbort  = false;   // set to true to cancel an in-progress fetchAll
+const bulkCancelledJobs = new Set();   // job IDs cancelled via Cancel All
+let seq         = 0;
+let _modalOk    = null;
+let chosenPath  = null;    // Absolute path string (Electron only)
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+(async () => {
+  try {
+    const s = await fetch('/api/settings').then(r => r.json());
+    if (s.last_folder) {
+      chosenPath = s.last_folder;
+      document.getElementById('dl-dir').value = s.last_folder;
+      document.getElementById('open-folder-btn').disabled = false;
+      document.getElementById('dir-hint').textContent = 'Files saved to: ' + s.last_folder;
+      document.getElementById('dir-hint').style.color = '';
+    }
+    if (s.concurrency) {
+      const sel = document.getElementById('concurrency-sel');
+      if (sel) sel.value = String(s.concurrency);
+    }
+    if (s.fragments) {
+      const sel = document.getElementById('fragments-sel');
+      if (sel) sel.value = String(s.fragments);
+    }
+    // Restore panel open/closed states
+    if (s.settings_open === false) {
+      settingsOpen = false;
+      document.getElementById('settings-body').classList.add('collapsed');
+      document.getElementById('settings-toggle').textContent = '▶ Show';
+    }
+    if (s.upd_open === true) {
+      updOpen = true;
+      updLoaded = true;
+      document.getElementById('upd-body').classList.remove('collapsed');
+      document.getElementById('upd-toggle').textContent = '▼ Hide';
+      // Panel already open — load installed versions immediately
+      (async () => {
+        try {
+          const [data, deno] = await Promise.all([
+            fetch('/api/installed-versions').then(r => r.json()),
+            fetch('/api/deno/status').then(r => r.json()),
+          ]);
+          data.deno = deno;
+          renderUpdGrid(data);
+        } catch {}
+      })();
+    }
+    if (s.ck_open === true) {
+      ckOpen = true;
+      document.getElementById('ck-body').classList.remove('collapsed');
+      document.getElementById('ck-toggle').textContent = '▼ Hide';
+    }
+    if (s.quit_on_done) {
+      const chk = document.getElementById('quit-on-done-chk');
+      if (chk) chk.checked = true;
+    }
+  } catch {}
+})();
+
+document.getElementById('quit-on-done-chk').addEventListener('change', function() {
+  post('/api/settings/save', { quit_on_done: this.checked });
+});
+
+// Save concurrency and fragments whenever changed
+document.getElementById('concurrency-sel').addEventListener('change', () => {
+  post('/api/settings/save', { concurrency: parseInt(document.getElementById('concurrency-sel').value, 10) });
+});
+document.getElementById('fragments-sel').addEventListener('change', () => {
+  post('/api/settings/save', { fragments: parseInt(document.getElementById('fragments-sel').value, 10) });
+});
+
+
+// ── Update panel toggle ───────────────────────────────────────────────────────
+let updOpen = false;
+let updLoaded = false;  // track if installed versions have been fetched yet
+function toggleUpdPanel() {
+  updOpen = !updOpen;
+  document.getElementById('upd-body').classList.toggle('collapsed', !updOpen);
+  document.getElementById('upd-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
+  post('/api/settings/save', { upd_open: updOpen });
+  // On first expand, immediately show installed versions (no network)
+  if (updOpen && !updLoaded) {
+    updLoaded = true;
+    (async () => {
+      try {
+        const [data, deno] = await Promise.all([
+          fetch('/api/installed-versions').then(r => r.json()),
+          fetch('/api/deno/status').then(r => r.json()),
+        ]);
+        data.deno = deno;
+        renderUpdGrid(data);
+      } catch {}
+    })();
+  }
+}
+
+// ── Settings panel toggle ─────────────────────────────────────────────────────
+let settingsOpen = true;  // starts open
+function toggleSettingsPanel() {
+  settingsOpen = !settingsOpen;
+  document.getElementById('settings-body').classList.toggle('collapsed', !settingsOpen);
+  document.getElementById('settings-toggle').textContent = settingsOpen ? '▼ Hide' : '▶ Show';
+  post('/api/settings/save', { settings_open: settingsOpen });
+}
+
+// ── Clicking anywhere on a collapsible card header toggles it ─────────────────
+(function() {
+  // Settings card header
+  const settingsHeader = document.getElementById('settings-toggle').closest('.card-header');
+  if (settingsHeader) {
+    settingsHeader.classList.add('clickable');
+    settingsHeader.addEventListener('click', e => {
+      if (e.target.closest('button') || e.target.closest('label')) return;
+      toggleSettingsPanel();
+    });
+  }
+  // Update Plugins card header
+  const updHeader = document.getElementById('upd-toggle').closest('.card-header');
+  if (updHeader) {
+    updHeader.classList.add('clickable');
+    updHeader.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      toggleUpdPanel();
+    });
+  }
+})();
+
+// ── Cookies sub-panel toggle ──────────────────────────────────────────────────
+let ckOpen = false;
+function toggleCookiePanel() {
+  ckOpen = !ckOpen;
+  document.getElementById('ck-body').classList.toggle('collapsed', !ckOpen);
+  document.getElementById('ck-toggle').textContent = ckOpen ? '▼ Hide' : '▶ Show';
+  post('/api/settings/save', { ck_open: ckOpen });
+}
+
+// Clicking anywhere on the cookies sub-row label also toggles it
+(function() {
+  const ckRow = document.getElementById('ck-toggle')?.closest('div');
+  if (ckRow) {
+    ckRow.style.cursor = 'pointer';
+    ckRow.addEventListener('click', e => {
+      if (e.target.closest('button')) return;
+      toggleCookiePanel();
+    });
+  }
+})();
+
+// ── Paste ─────────────────────────────────────────────────────────────────────
+async function doPaste() {
+  try {
+    const t  = await navigator.clipboard.readText();
+    const ta = document.getElementById('urls');
+    const c  = ta.value.trim();
+    ta.value = c ? c + '\n' + t.trim() : t.trim();
+    return true;
+  } catch { toast('Use Ctrl+V in the text box', 'err'); return false; }
+}
+
+document.getElementById('paste-btn').addEventListener('click', async () => {
+  if (await doPaste()) toast('Pasted');
+});
+
+document.getElementById('paste-fetch-btn').addEventListener('click', async () => {
+  if (await doPaste()) fetchAll();
+});
+
+// ── Settings ──────────────────────────────────────────────────────────────────
+document.getElementById('browse-btn').addEventListener('click', async () => {
+  const picked = await window.electronAPI.pickFolder(chosenPath || '');
+  if (!picked) return;
+  chosenPath = picked;
+  document.getElementById('dl-dir').value = picked;
+  document.getElementById('open-folder-btn').disabled = false;
+  document.getElementById('dir-hint').textContent = 'Files will be saved to: ' + picked;
+  document.getElementById('dir-hint').style.color = '';
+  await post('/api/settings/save', { last_folder: picked });
+  toast('Folder selected', 'ok');
+});
+document.getElementById('open-folder-btn').addEventListener('click', async () => {
+  const folder = chosenPath || document.getElementById('dl-dir').value.trim();
+  const r = await window.electronAPI.openFolder(folder);
+  if (r && r.error) toast(r.error, 'err');
+});
+
+// ── Update panel ──────────────────────────────────────────────────────────────
+document.getElementById('check-updates-btn').addEventListener('click', async () => {
+  const btn = document.getElementById('check-updates-btn');
+  btn.disabled = true; btn.textContent = '⏳ Checking…';
+  try {
+    const [data, deno] = await Promise.all([
+      fetch('/api/check-updates').then(r => r.json()),
+      fetch('/api/deno/status').then(r => r.json()),
+    ]);
+    data.deno = deno;
+    renderUpdGrid(data);
+    document.getElementById('run-update-btn').style.display = '';
+  } catch (e) { toast('Check failed: ' + e.message, 'err'); }
+  btn.disabled = false; btn.textContent = '🔍 Check for Updates';
+});
+
+function renderUpdGrid(data) {
+  const grid = document.getElementById('update-grid');
+  grid.innerHTML = '';
+
+  // ── yt-dlp card ───────────────────────────────────────────────────────────
+  const ytEl = document.createElement('div');
+  ytEl.className = 'upd-item';
+  const ytD = data.ytdlp;
+  const ytLatest = ytD.latest ? `<span>Latest: <b style="color:var(--text)">${esc(ytD.latest)}</b></span>` : '';
+  const ytBadge  = ytD.up_to_date === null
+    ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
+    : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+  ytEl.innerHTML = `
+    <div class="upd-head">
+      <span class="upd-name">⚡ yt-dlp</span>
+      ${ytBadge}
+    </div>
+    <div class="ver-info">
+      <span>Installed: <b style="color:var(--text)">${esc(ytD.current)}</b></span>
+      ${ytLatest}
+    </div>
+    <label class="sw-wrap" style="margin-top:4px">
+      <input type="checkbox" class="sw" id="sw-ytdlp" ${ytD.up_to_date===false?'checked':''}>
+      Update yt-dlp
+    </label>`;
+  grid.appendChild(ytEl);
+
+  // ── ffmpeg card ───────────────────────────────────────────────────────────
+  const ffEl = document.createElement('div');
+  ffEl.className = 'upd-item';
+  const ffD = data.ffmpeg;
+  const ffLatest = ffD.latest ? `<span>Latest: <b style="color:var(--text)">${esc(ffD.latest)}</b></span>` : '';
+  const ffBadge  = ffD.up_to_date === null
+    ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
+    : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+  ffEl.innerHTML = `
+    <div class="upd-head">
+      <span class="upd-name">🎬 ffmpeg</span>
+      ${ffBadge}
+    </div>
+    <div class="ver-info">
+      <span>Installed: <b style="color:var(--text)">${esc(ffD.current)}</b></span>
+      ${ffLatest}
+    </div>
+    <label class="sw-wrap" style="margin-top:4px">
+      <input type="checkbox" class="sw" id="sw-ffmpeg" ${ffD.up_to_date===false?'checked':''}>
+      Update ffmpeg
+    </label>`;
+  grid.appendChild(ffEl);
+
+  // ── Deno card ─────────────────────────────────────────────────────────────
+  const deEl = document.createElement('div');
+  deEl.className = 'upd-item';
+  const deD = data.deno;
+  const deInstalled = deD && deD.installed;
+  const deVer = (deD && deD.version) ? esc(deD.version) : 'not installed';
+  deEl.innerHTML = `
+    <div class="upd-head">
+      <span class="upd-name">🦕 Deno</span>
+      <span class="vbadge ${deInstalled ? 'vb-ok' : 'vb-upd'}">${deInstalled ? '✓ Installed' : '✗ Not installed'}</span>
+    </div>
+    <div class="ver-info">
+      <span>Installed: <b style="color:var(--text)">${deVer}</b></span>
+      <span style="font-size:.7rem;color:var(--text2)">Required for YouTube</span>
+    </div>
+    ${deInstalled
+      ? '<p style="font-size:.72rem;color:var(--text2);margin-top:4px">Deno is bundled and ready.</p>'
+      : `<button class="btn btn-green btn-sm" id="install-deno-btn" style="margin-top:6px" onclick="installDeno()">⬇ Install Deno</button>
+         <div class="upd-log" id="deno-log"></div>`
+    }`;
+  grid.appendChild(deEl);
+
+}
+
+document.getElementById('run-update-btn').addEventListener('click', async () => {
+  const doY = document.getElementById('sw-ytdlp')?.checked ?? true;
+  const doF = document.getElementById('sw-ffmpeg')?.checked ?? false;
+  if (!doY && !doF) { toast('Select at least one item', 'err'); return; }
+  const log = document.getElementById('upd-log');
+  log.textContent = ''; log.classList.add('show');
+  document.getElementById('run-update-btn').disabled = true;
+  await post('/api/run-update', { ytdlp: doY, ffmpeg: doF });
+  log.textContent = 'Starting…\n';
+  const iv = setInterval(async () => {
+    const s = await fetch('/api/update-status').then(r => r.json());
+    log.textContent = (s.log||[]).join('\n');
+    log.scrollTop = log.scrollHeight;
+    if (!s.running) {
+      clearInterval(iv);
+      document.getElementById('run-update-btn').disabled = false;
+      if (s.done) {
+        toast('Update complete ✓', 'ok');
+        // Re-check versions so "Installed" reflects the new version immediately
+        try {
+          const [fresh, freshDeno] = await Promise.all([
+            fetch('/api/check-updates').then(r => r.json()),
+            fetch('/api/deno/status').then(r => r.json()),
+          ]);
+          fresh.deno = freshDeno;
+          renderUpdGrid(fresh);
+        } catch {}
+      } else if (s.error) toast('Error: ' + s.error, 'err');
+    }
+  }, 800);
+});
+
+// ── Deno installer ───────────────────────────────────────────────────────────
+async function installDeno() {
+  const btn = document.getElementById('install-deno-btn');
+  const log = document.getElementById('deno-log');
+  if (!btn || !log) return;
+
+  btn.disabled = true;
+  btn.textContent = '⏳ Installing...';
+  log.textContent = '';
+  log.classList.add('show');
+
+  try {
+    const r = await post('/api/deno/install', {});
+    if (r.error) { toast('Deno install failed: ' + r.error, 'err'); btn.disabled = false; return; }
+  } catch (e) { toast('Deno install error: ' + e.message, 'err'); btn.disabled = false; return; }
+
+  // Poll progress
+  const iv = setInterval(async () => {
+    try {
+      const s = await fetch('/api/deno/install-status').then(r => r.json());
+      log.textContent = (s.log || []).join('\n');
+      log.scrollTop = log.scrollHeight;
+
+      if (!s.running) {
+        clearInterval(iv);
+        if (s.done) {
+          toast('Deno installed — YouTube signature solving now active', 'ok');
+          // Refresh the whole update grid to show installed state
+          try {
+            const [data, deno] = await Promise.all([
+              fetch('/api/check-updates').then(r => r.json()),
+              fetch('/api/deno/status').then(r => r.json()),
+            ]);
+            data.deno = deno;
+            renderUpdGrid(data);
+          } catch {}
+        } else if (s.error) {
+          toast('Deno install failed: ' + s.error, 'err');
+          btn.disabled = false;
+          btn.textContent = '⬇ Install Deno';
+        }
+      }
+    } catch {}
+  }, 800);
+}
+
+// ── Cookies card ─────────────────────────────────────────────────────────────
+async function refreshCookieCard() {
+  try {
+    const s = await fetch('/api/cookies/status').then(r => r.json());
+    const badge   = document.getElementById('ck-badge');
+    const pathEl  = document.getElementById('ck-path');
+    const hintEl  = document.getElementById('ck-hint');
+    const clearBtn= document.getElementById('ck-clear-btn');
+    const infoEl  = document.getElementById('ck-info');
+    if (!badge) return;
+
+    if (s.active) {
+      badge.textContent = s.age_days != null ? `Cookies: active · ${s.age_days}d old` : 'Cookies: active';
+      badge.className   = (s.age_days >= 10 ? 'vbadge vb-upd' : 'vbadge vb-ok') + ' ' + 'vbadge';
+      badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
+      pathEl.value      = s.path || 'cookies.txt loaded';
+      clearBtn.style.display = '';
+      infoEl.textContent = s.age_days >= 10
+        ? 'Warning: cookies are ' + s.age_days + ' days old and expiring soon — re-export before downloads start failing.'
+        : 'Cookies active — authenticated downloads enabled.';
+      hintEl.style.display = 'none';
+    } else {
+      badge.textContent     = 'Cookies: not loaded';
+      badge.className       = 'vbadge vb-upd';
+      badge.style.cssText   = 'font-size:.72rem;padding:3px 10px';
+      pathEl.value          = '';
+      clearBtn.style.display = 'none';
+      infoEl.innerHTML = 'Optional — use to download age-restricted or login-required content from YouTube, Facebook, Instagram and more.';
+      hintEl.style.display = '';
+    }
+  } catch {}
+}
+
+async function uploadCookies(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const text = await file.text();
+  // Accept any valid Netscape cookie file — not just YouTube ones
+  if (!text.includes('# Netscape') && !text.trim().startsWith('#')) {
+    toast('This does not look like a valid cookies.txt file', 'err');
+    input.value = '';
+    return;
+  }
+  try {
+    const r = await post('/api/cookies/save', { content: text });
+    if (r.error) { toast('Failed to save cookies: ' + r.error, 'err'); return; }
+    toast('cookies.txt loaded — authenticated downloads enabled', 'ok');
+    await refreshCookieCard();
+  } catch (e) { toast('Upload error: ' + e.message, 'err'); }
+  input.value = '';
+}
+
+async function clearCookies() {
+  try {
+    const r = await post('/api/cookies/clear', {});
+    if (r.error) { toast('Failed to remove cookies: ' + r.error, 'err'); return; }
+    toast('Cookies removed', 'ok');
+    await refreshCookieCard();
+  } catch (e) { toast('Error: ' + e.message, 'err'); }
+}
+
+async function refreshUpdGrid() {
+  try {
+    const [data, deno] = await Promise.all([
+      fetch('/api/check-updates').then(r => r.json()),
+      fetch('/api/deno/status').then(r => r.json()),
+    ]);
+    data.deno = deno;
+    renderUpdGrid(data);
+    document.getElementById('run-update-btn').style.display = '';
+  } catch {}
+}
+
+// Cookies card clear button
+document.getElementById('ck-clear-btn').addEventListener('click', clearCookies);
+
+// Load cookie status on startup
+refreshCookieCard();
+
+// Auto-install Deno silently on first launch if not present
+(async () => {
+  try {
+    const d = await fetch('/api/deno/status').then(r => r.json());
+    if (d.installed) return;  // already installed — nothing to do
+
+    // Kick off background install silently
+    const r = await post('/api/deno/install', {});
+    if (r.error) return;  // already running or other issue — ignore
+
+    // Show subtle badge in Update Plugins header
+    const badge = document.getElementById('deno-status-badge');
+    if (badge) { badge.textContent = '🦕 Installing Deno…'; badge.style.display = ''; }
+
+    // Poll silently until done
+    const iv = setInterval(async () => {
+      try {
+        const s = await fetch('/api/deno/install-status').then(r => r.json());
+        if (!s.running) {
+          clearInterval(iv);
+          if (badge) badge.style.display = 'none';
+          if (s.done) {
+            toast('🦕 Deno installed — YouTube quality improved', 'ok');
+            // Refresh update grid if panel is open
+            try {
+              const [data, deno] = await Promise.all([
+                fetch('/api/check-updates').then(r => r.json()),
+                fetch('/api/deno/status').then(r => r.json()),
+              ]);
+              data.deno = deno;
+              renderUpdGrid(data);
+            } catch {}
+          }
+          // On failure: do nothing — app works fine without Deno
+        }
+      } catch {}
+    }, 1500);
+  } catch {}
+})();
+
+// ── UI helpers (shared between fetch + bulk download flows) ─────────────────
+// Show/hide the bulk-download button row. Called by fetchAll, downloadAll,
+// clear, and remove-card paths. If undefined, fetchAll throws a ReferenceError
+// which becomes a swallowed promise rejection — Fetch silently does nothing.
+function setDlAllVisible(show) {
+  const el = document.getElementById('bulk-dl-buttons');
+  if (el) el.style.display = show ? 'flex' : 'none';
+}
+
+// Update a single card's status badge + progress bar from a polled job state.
+// Used by the bulk "Download All" polling loop. Returns nothing.
+function applyJobProgress(d, stEl, progEl) {
+  if (d.status === 'converting') {
+    setBadge(stEl, 'dl', 'Converting…');
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.progress >= 100) {
+    // Download finished but backend hasn't emitted [Merger]/[ExtractAudio] yet —
+    // keep the bar visible as Converting… so the UI doesn't appear frozen.
+    setBadge(stEl, 'dl', 'Converting…');
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.progress > 0) {
+    const spd = d.speed ? ` · ${d.speed}` : '';
+    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
+  }
+}
+
+// Handle terminal job states (done/error/cancelled) for one card. Returns true
+// if the job is finished and the caller should stop polling, false otherwise.
+function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
+  if (d.status === 'done') {
+    item.status = 'done';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (typeof minimizeDoneCard === 'function') {
+      minimizeDoneCard(item, d.filename, stEl, dlBtn);
+    } else {
+      setBadge(stEl, 'done', 'Done');
+      if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+    }
+    toast('Saved: ' + d.filename, 'ok');
+    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
+      const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
+      if (allFinished) setTimeout(() => window.electronAPI.quit(), (typeof QUIT_DELAY_MS !== 'undefined' ? QUIT_DELAY_MS : 1500));
+    }
+    return true;
+  }
+  if (d.status === 'error') {
+    item.status = 'error';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    setBadge(stEl, 'error', d.error || 'Error');
+    if (dlBtn) dlBtn.disabled = false;
+    return true;
+  }
+  if (d.status === 'cancelled') {
+    item.status = 'cancelled';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    setBadge(stEl, 'cancel', 'Cancelled');
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+    return true;
+  }
+  return false;
+}
+
+// ── Fetch ─────────────────────────────────────────────────────────────────────
+document.getElementById('fetch-btn').addEventListener('click', fetchAll);
+
+// Fetch info for a single non-playlist URL and render its card
+async function fetchSingle(url, ph) {
+  const info = await post('/api/info', { url });
+  if (fetchAbort) { ph.remove(); return; }
+  if (info.error) throw new Error(info.error);
+  renderCard(ph, addItem(url, info));
+}
+
+// Enqueue all playlist entries as stub cards, then fetch full info in parallel
+function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
+  for (const e of entries) {
+    if (fetchAbort) break;
+    const el    = makeCardEl();
+    document.getElementById('results').appendChild(el);
+    const pItem = addItem(e.url, {
+      title: e.title, thumbnail: e.thumbnail || '',
+      duration: e.duration, uploader: e.uploader || '',
+      formats: [], audio_formats: [],
+    });
+    renderCard(el, pItem);
+    pendingInfo.count++;
+    (async () => {
+      try {
+        const info2 = await post('/api/info', { url: pItem.url });
+        if (fetchAbort) {
+          el.remove();
+          items = items.filter(i => i !== pItem);
+        } else if (!info2.error) {
+          pItem.info = info2;
+          renderCard(el, pItem);
+        }
+      } catch {}
+      pendingInfo.count--;
+      if (fetchAbort && pendingInfo.count === 0) finishFetch();
+    })();
+  }
+}
+
+async function fetchAll() {
+  const raw  = document.getElementById('urls').value;
+  const urls = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
+  if (!urls.length) { toast('Paste at least one URL', 'err'); return; }
+  items = [];
+  fetchAbort = false;
+  document.getElementById('results').innerHTML = '';
+  setDlAllVisible(false);
+  document.getElementById('fetch-btn').disabled = true;
+  document.getElementById('cancel-fetch-btn').style.display = '';
+
+  document.getElementById('cancel-fetch-btn').onclick = () => {
+    fetchAbort = true;
+    document.getElementById('fetch-btn').disabled = false;
+    document.getElementById('cancel-fetch-btn').style.display = 'none';
+    if (items.length > 1) setDlAllVisible(true);
+    toast('Stopped — keeping ' + items.length + ' loaded video' + (items.length !== 1 ? 's' : ''));
+  };
+
+  // Use an object so fetchPlaylistEntries can mutate the counter by reference
+  const pendingInfo = { count: 0 };
+
+  function finishFetch() {
+    fetchAbort = false;
+    document.getElementById('fetch-btn').disabled = false;
+    document.getElementById('cancel-fetch-btn').style.display = 'none';
+    if (items.length > 1) setDlAllVisible(true);
+  }
+
+  for (const url of urls) {
+    if (fetchAbort) break;
+    const ph = makePh(url);
+    try {
+      const pl = await post('/api/playlist', { url });
+      if (fetchAbort) { ph.remove(); break; }
+      if (pl.error) throw new Error(pl.error);
+      if (pl.is_playlist && pl.entries?.length) {
+        ph.remove();
+        fetchPlaylistEntries(pl.entries, pendingInfo, finishFetch);
+      } else {
+        await fetchSingle(url, ph);
+      }
+    } catch (e) { renderErr(ph, url, e.message); }
+  }
+
+  // Finish immediately if not aborted, or if aborted with no pending info calls
+  if (!fetchAbort || pendingInfo.count === 0) finishFetch();
+}
+
+function addItem(url, info) {
+  const item = { id: seq++, url, info, jobId: null, status:'idle', selFmt:'video', selFmtId:'' };
+  items.push(item);
+  return item;
+}
+
+// ── Card rendering ─────────────────────────────────────────────────────────────
+function makePh(url) {
+  const el = makeCardEl();
+  el.innerHTML = `
+    <div class="thumb"><div class="noimg">⏳</div></div>
+    <div class="vbody">
+      <div class="vtitle" style="color:var(--muted)">${esc(trunc(url,70))}</div>
+      <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> Fetching…</span></div>
+    </div>`;
+  document.getElementById('results').appendChild(el);
+  return el;
+}
+function makeCardEl() { const el=document.createElement('div'); el.className='vcard'; return el; }
+
+
+function renderErr(el, url, msg) {
+  el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
+    <div class="vbody"><div class="vtitle">${esc(trunc(url,70))}</div>
+    <div class="vmeta"><span class="badge b-error">Error: ${esc(msg)}</span></div></div>`;
+}
+
+function renderCard(el, item) {
+  const info = item.info, n = item.id;
+  const dur  = info.duration ? fmtDur(info.duration) : '';
+  const vOpts = (info.formats||[]).map(f => `<option value="${esc(f.id)}">${esc(f.label)}</option>`).join('');
+  const aOpts = (info.audio_formats||[]).map(f => `<option value="${esc(f.id)}">${esc(f.label)}</option>`).join('');
+  const hasQ  = (info.formats||[]).length > 0 || (info.audio_formats||[]).length > 0;
+
+  el.innerHTML = `
+    <button class="vcard-remove" title="Remove" data-id="${n}">✕</button>
+    <div class="thumb">
+      ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg">🎬</div>`}
+      ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
+    </div>
+    <div class="vbody">
+      <div class="vtitle" title="${esc(info.title)}">${esc(info.title||item.url)}</div>
+      <div class="vmeta">${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
+      <div class="qual-panel">
+        <div class="qual-group">
+          <span class="qual-label">Format</span>
+          <div class="pills">
+            <input type="radio" name="fmt${n}" id="fv${n}" value="video" checked>
+            <label for="fv${n}">🎬 Video</label>
+            <input type="radio" name="fmt${n}" id="fa${n}" value="audio">
+            <label for="fa${n}">🎵 MP3</label>
+          </div>
+        </div>
+        <div class="qual-group" id="vqg${n}" ${!hasQ?'style="display:none"':''}>
+          <span class="qual-label">Video quality</span>
+          <select class="qsel" id="vq${n}">
+            <option value="">Best available</option>${vOpts}
+          </select>
+        </div>
+        <div class="qual-group" id="aqg${n}" style="display:none">
+          <span class="qual-label">Audio quality</span>
+          <select class="qsel" id="aq${n}">
+            <option value="">Best available</option>${aOpts}
+          </select>
+        </div>
+        ${!hasQ ? `<div class="qual-group" id="lqg${n}"><span class="qual-label">&nbsp;</span>
+          <span class="badge b-dl" style="font-size:.7rem"><span class="spinner"></span></span></div>` : ''}
+      </div>
+      <div class="vcontrols">
+        <span class="badge b-wait" id="st${n}">Ready</span>
+        <button class="btn btn-primary btn-sm" id="dl${n}">⬇ Download</button>
+      </div>
+      <div class="prog" id="prog${n}" style="display:none"><div class="prog-inner indeterminate"></div></div>
+    </div>`;
+
+  // Remove button
+  el.querySelector('.vcard-remove').addEventListener('click', () => removeItem(item.id, el));
+
+  // Format toggle
+  el.querySelectorAll(`input[name="fmt${n}"]`).forEach(r => {
+    r.addEventListener('change', () => {
+      item.selFmt = r.value;
+      const isA = r.value === 'audio';
+      const vqg = document.getElementById(`vqg${n}`);
+      const aqg = document.getElementById(`aqg${n}`);
+      if (vqg) vqg.style.display = isA ? 'none' : '';
+      if (aqg) aqg.style.display = isA ? '' : 'none';
+      item.selFmtId = '';
+    });
+  });
+
+  const vq = document.getElementById(`vq${n}`);
+  if (vq) vq.addEventListener('change', () => { item.selFmtId = vq.value; });
+  const aq = document.getElementById(`aq${n}`);
+  if (aq) aq.addEventListener('change', () => { item.selFmtId = aq.value; });
+
+  document.getElementById(`dl${n}`).addEventListener('click', () => startDl(item, n));
+
+}
+
+function removeItem(id, el) {
+  items = items.filter(i => i.id !== id);
+  el.remove();
+  if (items.length <= 1) setDlAllVisible(false);
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function safeName(s) { return s.replace(/[\/\\:\*\?"<>|]/g,'').trim().slice(0,120).trim() || 'download'; }
+
+function showModal(name, ext) {
+  return new Promise(resolve => {
+    _modalOk = resolve;
+    document.getElementById('modal-input').value = safeName(name);
+    document.getElementById('modal-ext').textContent = ext;
+    document.getElementById('name-modal').style.display = 'flex';
+    setTimeout(() => {
+      const inp = document.getElementById('modal-input');
+      inp.focus(); inp.select();
+      inp.onkeydown = e => { if (e.key==='Enter') confirmModal(); if (e.key==='Escape') closeModal(); };
+    }, 50);
+  });
+}
+function confirmModal() {
+  const name = safeName(document.getElementById('modal-input').value) || 'download';
+  closeModal(name);
+}
+function closeModal(result=null) {
+  document.getElementById('name-modal').style.display = 'none';
+  if (_modalOk) { _modalOk(result); _modalOk = null; }
+}
+function modalBgClick(e) { if (e.target.id==='name-modal') closeModal(); }
+
+// ── Download ──────────────────────────────────────────────────────────────────
+async function startDl(item, n) {
+  if (item.status === 'downloading') return;
+
+  // Block download if no folder selected
+  if (!chosenPath) {
+    toast('Please select a download folder first', 'err');
+    document.getElementById('browse-btn').focus();
+    document.getElementById('dir-hint').style.color = 'var(--red)';
+    document.getElementById('dir-hint').textContent = '⚠ Select a download folder before downloading.';
+    setTimeout(() => {
+      document.getElementById('dir-hint').style.color = 'var(--yellow)';
+    }, 3000);
+    return;
+  }
+
+  // Lazy fetch for playlist stubs
+  if (!item.info.formats?.length && !item.info.audio_formats?.length) {
+    const stEl = document.getElementById(`st${n}`);
+    const dlBtn = document.getElementById(`dl${n}`);
+    setBadge(stEl, 'dl', 'Fetching quality…'); dlBtn.disabled = true;
+    try {
+      const i2 = await post('/api/info', { url: item.url });
+      if (i2.error) throw new Error(i2.error);
+      item.info = i2;
+      const card = dlBtn?.closest?.('.vcard');
+      if (card) renderCard(card, item);
+      return startDl(item, n);
+    } catch (e) {
+      setBadge(document.getElementById(`st${n}`), 'error', e.message);
+      document.getElementById(`dl${n}`).disabled = false;
+      return;
+    }
+  }
+
+  const ext = item.selFmt === 'audio' ? '.mp3' : '.mp4';
+  const chosenName = await showModal(item.info.title || 'download', ext);
+  if (!chosenName) return;   // cancelled
+
+  const stEl   = document.getElementById(`st${n}`);
+  const dlBtn  = document.getElementById(`dl${n}`);
+  const progEl = document.getElementById(`prog${n}`);
+  const dir = chosenPath;
+
+  item.status = 'downloading';
+  setBadge(stEl, 'dl', 'Downloading…');
+  dlBtn.disabled = true;
+  if (progEl) progEl.style.display = '';
+
+  // Add cancel button next to download button
+  let cancelBtn = document.getElementById(`cancel${n}`);
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.id = `cancel${n}`;
+    cancelBtn.className = 'btn btn-red btn-sm';
+    cancelBtn.textContent = '✕ Cancel';
+    dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
+  }
+  cancelBtn.style.display = '';
+  cancelBtn.onclick = () => cancelDownload(item, n);
+
+  try {
+    const res = await post('/api/download', {
+      url: item.url, format: item.selFmt,
+      format_id: item.selFmtId || null,
+      audio_codec: (() => {
+        // Look up the acodec of the selected video format so backend can decide copy vs encode
+        if (item.selFmt === 'audio') return null;
+        const fmts = item.info.formats || [];
+        const sel = fmts.find(f => f.id === item.selFmtId);
+        return sel ? (sel.acodec || '') : '';
+      })(),
+      concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
+      title: chosenName, download_dir: dir,
+    });
+    if (res.error) throw new Error(res.error);
+    item.jobId = res.job_id;
+    pollJob(item, stEl, dlBtn, progEl, cancelBtn);
+  } catch (e) {
+    item.status = 'error';
+    setBadge(stEl, 'error', e.message);
+    dlBtn.disabled = false;
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+}
+
+async function cancelDownload(item, n) {
+  if (!item.jobId) return;
+  try {
+    await fetch(`/api/cancel/${item.jobId}`, { method:'POST' });
+  } catch {}
+  item.status = 'cancelled';
+  const stEl   = document.getElementById(`st${n}`);
+  const progEl = document.getElementById(`prog${n}`);
+  const dlBtn  = document.getElementById(`dl${n}`);
+  const cancelBtn = document.getElementById(`cancel${n}`);
+  setBadge(stEl, 'cancel', 'Cancelled');
+  if (progEl) progEl.style.display = 'none';
+  if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  toast('Download cancelled');
+}
+
+function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
+  const iv = setInterval(async () => {
+    // Stop immediately if cancelled (bulk or individual)
+    if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
+      clearInterval(iv);
+      bulkCancelledJobs.delete(item.jobId);
+      // Ensure UI reflects cancelled state — may have been overwritten
+      setBadge(stEl, 'cancel', 'Cancelled');
+      if (progEl) progEl.style.display = 'none';
+      if (dlBtn)  { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      return;
+    }
+    try {
+      const d = await fetch(`/api/status/${item.jobId}`).then(r => r.json());
+      // Re-check after async fetch — cancel may have fired while waiting
+      if (item.status === 'cancelled') return;
+      if (d.status === 'converting') {
+        setBadge(stEl, 'dl', 'Converting…');
+        const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+        if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+        if (progEl) progEl.style.display = '';
+      } else if (d.status === 'downloading' && d.progress > 0) {
+        const spd = d.speed ? ` · ${d.speed}` : '';
+        setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
+        const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+        if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
+      }
+      if (d.status === 'done') {
+        clearInterval(iv); item.status = 'done';
+        if (progEl) progEl.style.display = 'none';
+        if (cancelBtn) cancelBtn.style.display = 'none';
+
+        minimizeDoneCard(item, d.filename, stEl, dlBtn);
+        toast('Saved: ' + d.filename, 'ok');
+        // Quit if enabled and every item is now finished
+        if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
+          const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
+          if (allFinished) setTimeout(() => window.electronAPI.quit(), 1500);
+        }
+      } else if (d.status === 'error') {
+        clearInterval(iv); item.status = 'error';
+        if (progEl) progEl.style.display = 'none';
+        setBadge(stEl, 'error', d.error || 'Error');
+        dlBtn.disabled = false;
+        if (cancelBtn) cancelBtn.style.display = 'none';
+      } else if (d.status === 'cancelled') {
+        clearInterval(iv); item.status = 'cancelled';
+        setBadge(stEl, 'cancel', 'Cancelled');
+        if (progEl) progEl.style.display = 'none';
+        if (dlBtn)  { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+        if (cancelBtn) cancelBtn.style.display = 'none';
+      }
+    } catch {}
+  }, 1000);
+}
+
+// ── Download All — best quality, no modal ─────────────────────────────────────
+document.getElementById('dl-all-video-btn').addEventListener('click', () => downloadAll('video'));
+document.getElementById('dl-all-audio-btn').addEventListener('click', () => downloadAll('audio'));
+
+async function downloadAll(forceFormat) {
+  if (!chosenPath) {
+    toast('Please select a download folder first', 'err');
+    document.getElementById('browse-btn').focus();
+    return;
+  }
+  const pending = items.filter(i => i.status === 'idle' || i.status === 'error');
+  if (!pending.length) { toast('Nothing to download', 'err'); return; }
+  bulkStop = false;
+  const bar       = document.getElementById('bulk-bar');
+  const modeLabel = forceFormat === 'audio' ? 'audio files' : 'videos';
+  bar.classList.add('show');
+  const dir = chosenPath;
+  const CONCURRENCY = parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
+  let done = 0, active = 0, idx = 0;
+
+  function updateBulkTxt() {
+    document.getElementById('bulk-txt').textContent =
+      `Downloading ${done} / ${pending.length} ${modeLabel} done  (${active} active)`;
+  }
+  async function downloadOne(item) {
+    if (bulkStop || item.status === 'cancelled') { active--; return; }
+    const n       = item.id;
+    const stEl    = document.getElementById('st'     + n);
+    const dlBtn   = document.getElementById('dl'     + n);
+    const progEl  = document.getElementById('prog'   + n);
+    if (!stEl || !dlBtn) { done++; updateBulkTxt(); return; }
+
+    if (!item.info.formats?.length && !item.info.audio_formats?.length) {
+      setBadge(stEl, 'dl', 'Fetching...'); dlBtn.disabled = true;
+      try {
+        const i2 = await post('/api/info', { url: item.url });
+        if (!i2.error) item.info = i2;
+      } catch {}
+    }
+
+    item.status = 'downloading';
+    setBadge(stEl, 'dl', 'Queued...');
+    dlBtn.disabled = true;
+    if (progEl) progEl.style.display = '';
+
+    let cancelBtn = document.getElementById('cancel' + n);
+    if (!cancelBtn) {
+      cancelBtn = document.createElement('button');
+      cancelBtn.id = 'cancel' + n;
+      cancelBtn.className = 'btn btn-red btn-sm';
+      cancelBtn.textContent = '\u2715 Cancel';
+      dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
+    }
+    cancelBtn.style.display = '';
+    cancelBtn.onclick = () => cancelDownload(item, n);
+
+    try {
+      if (bulkStop || item.status === 'cancelled') { active--; return; }
+      setBadge(stEl, 'dl', 'Downloading...');
+      const res = await post('/api/download', {
+        url: item.url, format: forceFormat,
+        format_id: null,
+        concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
+        title: item.info.title || 'download',
+        download_dir: dir,
+      });
+      if (res.error) throw new Error(res.error);
+      item.jobId = res.job_id;
+
+      await new Promise(resolve => {
+        const wiv = setInterval(async () => {
+          if (item.status === 'cancelled' || bulkStop) {
+            clearInterval(wiv);
+            applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
+            done++; resolve();
+            return;
+          }
+          try {
+            const d = await fetch('/api/status/' + item.jobId).then(r => r.json());
+            if (item.status === 'cancelled' || bulkStop) {
+              clearInterval(wiv);
+              applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
+              done++; resolve();
+              return;
+            }
+            const liveStEl   = document.getElementById('st'   + n) || stEl;
+            const liveDlBtn  = document.getElementById('dl'   + n) || dlBtn;
+            const liveProgEl = document.getElementById('prog' + n) || progEl;
+            applyJobProgress(d, liveStEl, liveProgEl);
+            if (applyJobDone(d, item, liveStEl, liveDlBtn, liveProgEl, cancelBtn)) {
+              clearInterval(wiv);
+              done++; resolve();
+            }
+          } catch {}
+        }, 1000);
+      });
+    } catch (e) {
+      item.status = 'error';
+      setBadge(stEl, 'error', e.message);
+      dlBtn.disabled = false;
+      if (progEl) progEl.style.display = 'none';
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      done++;
+    }
+    active--;
+  }
+
+  await new Promise(resolve => {
+    function pump() {
+      if (bulkStop) { resolve(); return; }
+      while (active < CONCURRENCY && idx < pending.length) {
+        active++;
+        downloadOne(pending[idx++]).then(pump);
+      }
+      updateBulkTxt();
+      if (idx >= pending.length && active === 0) resolve();
+    }
+    pump();
+  });
+
+  bar.classList.remove('show');
+  if (!bulkStop) {
+    toast('Done \u2014 ' + done + ' ' + modeLabel, 'ok');
+    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
+      setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
+    }
+  }
+}
+
+function cancelBulk() {
+  bulkStop = true;
+  document.getElementById('bulk-bar').classList.remove('show');
+  items.forEach(item => {
+    // Cancel anything in-flight: downloading (has jobId) or queued (jobId assigned but not yet running)
+    if ((item.status === 'downloading' || item.status === 'queued') && item.jobId) {
+      bulkCancelledJobs.add(item.jobId);
+      fetch('/api/cancel/' + item.jobId, { method: 'POST' }).catch(() => {});
+    }
+    // Also mark idle items that the pump hasn't started yet so they don't start
+    if (item.status === 'downloading' || item.status === 'queued' || item.status === 'idle') {
+      item.status = 'cancelled';
+      const n = item.id;
+      const stEl    = document.getElementById('st'     + n);
+      const progEl  = document.getElementById('prog'   + n);
+      const dlBtn   = document.getElementById('dl'     + n);
+      const cancelBtn = document.getElementById('cancel' + n);
+      if (stEl)      setBadge(stEl, 'cancel', 'Cancelled');
+      if (progEl)    progEl.style.display = 'none';
+      if (dlBtn)     { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+      if (cancelBtn) cancelBtn.style.display = 'none';
+    }
+  });
+  toast('All downloads cancelled');
+}
+
+function clearCompleted() {
+  const before = items.length;
+  items = items.filter(item => {
+    if (item.status === 'done') {
+      // After minimizeDoneCard, st+id is destroyed — use stored _card reference
+      const card = item._card;
+      if (card) card.remove();
+      return false;
+    }
+    if (item.status === 'cancelled') {
+      // Cancelled cards still have their full DOM (st+id exists)
+      const stEl = document.getElementById('st' + item.id);
+      const card = stEl ? stEl.closest('.vcard') : null;
+      if (card) card.remove();
+      return false;
+    }
+    return true;
+  });
+  const cleared = before - items.length;
+  if (cleared > 0) toast(`Cleared ${cleared} item${cleared !== 1 ? 's' : ''}`, 'ok');
+  else toast('Nothing to clear', '');
+  if (items.length <= 1) setDlAllVisible(false);
+}
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  document.getElementById('urls').value = '';
+  showEmptyState();
+  setDlAllVisible(false);
+  items = [];
+});
+
+function showEmptyState() {
+  document.getElementById('results').innerHTML =
+    '<div class="results-empty">Paste a URL above and click <b>Fetch Info</b> to get started.</div>';
+}
+
+showEmptyState();
+
+// ── Scroll-to-top button ──────────────────────────────────────────────────────
+(function() {
+  const btn = document.getElementById('scroll-top');
+  function getScrollY() {
+    return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  }
+  function onScroll() {
+    btn.classList.toggle('visible', getScrollY() > 150);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
+})();
+
+// ── Minimize a completed download card ──────────────────────────────────────────
+function minimizeDoneCard(item, filename, stEl, dlBtn) {
+  const card = stEl ? stEl.closest('.vcard') : null;
+  if (!card) {
+    if (stEl) setBadge(stEl, 'done', '\u2713 Done');
+    if (dlBtn) { dlBtn.textContent = '\u2b07 Again'; dlBtn.disabled = false; }
+    return;
+  }
+  card.classList.add('done-minimized');
+  item._card = card;  // store reference for clearCompleted lookup
+  const vbody = card.querySelector('.vbody');
+  if (!vbody) return;
+
+  const badge = document.createElement('span');
+  badge.className = 'badge b-done';
+  badge.style.flexShrink = '0';
+  badge.textContent = '\u2713 Done';
+
+  const nameEl = document.createElement('span');
+  nameEl.style.cssText = 'font-size:.82rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1';
+  nameEl.title = filename;
+  nameEl.textContent = filename;
+
+  // Clicking the row (except X) opens the download folder
+  vbody.style.cursor = 'pointer';
+  vbody.title = 'Click to open folder';
+  vbody.addEventListener('click', (e) => {
+    if (e.target.classList.contains('done-dismiss')) return;
+    const folder = item.download_dir || chosenPath || '';
+    if (folder) post('/api/open-folder', { folder }).catch(() => {});
+  });
+
+  const dismissBtn = document.createElement('button');
+  dismissBtn.className = 'done-dismiss';
+  dismissBtn.title = 'Dismiss';
+  dismissBtn.textContent = '\u2715';
+  dismissBtn.style.cssText = 'padding:4px 10px;font-size:.9rem;';
+  dismissBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    items = items.filter(i => i.id !== item.id);
+    card.remove();
+    if (items.length <= 1) setDlAllVisible(false);
+  });
+
+  vbody.innerHTML = '';
+  vbody.appendChild(badge);
+  vbody.appendChild(nameEl);
+  vbody.appendChild(dismissBtn);
+  const removeBtn = card.querySelector('.vcard-remove');
+  if (removeBtn) removeBtn.remove();
+  // Move completed card to top of results list
+  const resultsEl = document.getElementById('results');
+  if (resultsEl && card.parentNode === resultsEl) resultsEl.prepend(card);
+}
+
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+async function post(path, body) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  return r.json();
+}
+
+function setBadge(el, type, text) {
+  if (!el) return;
+  const map = {dl:'b-dl', done:'b-done', error:'b-error', wait:'b-wait', cancel:'b-cancel'};
+  el.className = `badge ${map[type]||'b-wait'}`;
+  el.innerHTML = type==='dl' ? `<span class="spinner"></span> ${esc(text)}` : esc(text);
+}
+
+function fmtDur(s) {
+  s = Math.round(s);
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  return h ? `${h}:${pad(m)}:${pad(ss)}` : `${m}:${pad(ss)}`;
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+function trunc(s,n) { s=String(s); return s.length>n ? s.slice(0,n)+'…' : s; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(msg, type='') {
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`; t.textContent=msg;
+  c.appendChild(t); setTimeout(()=>t.remove(), TOAST_DURATION);
+}
+
+
+
+
+
+</script>
+
+</body>
+</html>
