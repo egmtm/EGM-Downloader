@@ -62,4 +62,4 @@ Delete those too if you want a clean removal.
 SUPPORT
 ────────────────────────────────────────
 www.egerena.com
-github.com/egmtm/EGM-DownloaderLIN
+github.com/egmtm/EGM-Downloader
