@@ -12,17 +12,41 @@
 EGM-Downloader/
 │
 ├── app.py                      ← Flask backend         [shared — all platforms]
-├── templates/index.html        ← UI                    [shared — all platforms]
+├── templates/index.html        ← UI                    [shared — Windows + Mac]
 ├── static/                     ← CSS, JS, icons        [shared — all platforms]
 │
-├── electron/                   ← Electron shell        [Windows — Mac/Linux in Phase 2]
-│   ├── main.js
-│   ├── package.json
-│   └── preload.js
+├── windows/                    ← Windows platform
+│   ├── electron/               ← Windows Electron shell
+│   │   ├── main.js
+│   │   ├── package.json
+│   │   └── preload.js
+│   ├── launch.py               ← Windows launcher (downloads Node/Electron)
+│   ├── launch.bat
+│   ├── EGM Downloader.vbs
+│   └── instructions.txt
 │
-├── windows/                    ← Windows packaging     [NSIS spec goes here]
-├── mac/                        ← macOS packaging       [Phase 2]
-├── linux/                      ← Linux packaging       [Phase 3]
+├── mac/                        ← macOS platform
+│   ├── electron/               ← Mac Electron shell + electron-builder config
+│   │   ├── main.js
+│   │   ├── package.json
+│   │   ├── preload.js
+│   │   ├── splash.html
+│   │   └── entitlements.mac.plist
+│   ├── BUILD.sh                ← Mac build script
+│   └── BUILD_NOTES.txt
+│
+├── linux/                      ← Linux platform
+│   ├── electron/               ← Linux Electron shell + electron-builder config
+│   │   ├── main.js
+│   │   ├── package.json
+│   │   ├── preload.js
+│   │   ├── splash.html
+│   │   └── build/after-pack.js ← AppImage sandbox fix
+│   ├── app.py                  ← Linux-specific backend (AppImage paths)
+│   ├── templates/index.html    ← Linux-specific UI
+│   ├── requirements.txt        ← Linux deps (no pyzipper)
+│   ├── BUILD.sh                ← Linux build script
+│   └── INSTRUCTIONS.txt
 │
 ├── scripts/                    ← Build automation      [all platforms]
 │   ├── bump-version.py         ← Increment build, sync all version strings
@@ -30,9 +54,8 @@ EGM-Downloader/
 │   └── add-patchnote.py        ← Prepend to patchnotes.txt
 │
 ├── version.json                ← Single source of truth for version/build
-├── requirements.txt            ← Python deps
-├── patchnotes.txt
-└── launch.py / launch.bat / EGM Downloader.vbs   ← Windows launchers
+├── requirements.txt            ← Python deps (Windows + Mac)
+└── patchnotes.txt
 ```
 
 ---
