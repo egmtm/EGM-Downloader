@@ -65,6 +65,26 @@ If you're unsure whether your use case is legal, consult a legal professional in
 
 ---
 
+## 💡 The Origin Story
+
+EGM Downloader was born from inspiration and a desire to make video downloading accessible to everyone.
+
+**The inspiration:** [ReClip](https://github.com/averygan/reclip) by [@averygan](https://github.com/averygan) beautifully demonstrated what's possible with yt-dlp and a clean web interface.
+
+**The challenge:** ReClip's self-hosted approach is perfect for developers, but I wanted to share this with friends and family who don't use the terminal. Setting up Python, yt-dlp, ffmpeg, and Flask isn't everyone's cup of tea.
+
+**The solution:** What if you could just download an app and go? No terminal. No dependencies. No setup. Just double-click and start downloading.
+
+That's EGM Downloader—native desktop apps for Windows, macOS, and Linux with professional installers, auto-updates, and zero technical knowledge required.
+
+We've taken the concept in a different direction (native apps vs. web-based, end-users vs. developers), but the core inspiration came from ReClip's elegant simplicity.
+
+**Big thanks to [@averygan](https://github.com/averygan) for ReClip—you sparked the idea that became this project!** 🙏
+
+**This is my first major project, and I'm excited to keep learning and building more tools that make technology accessible to everyone.** 🚀
+
+---
+
 ## 📥 Download
 
 ### Windows
