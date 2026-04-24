@@ -124,7 +124,35 @@ echo ""
 
 # ── Generate update JSON ──────────────────────────────────────────────────────
 echo "📄 Generating Linux update JSON..."
-python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform linux
+# Pull bullets from latest patchnotes.txt entry, filtered to [LINUX] and [ALL] only
+# per JSON_UPDATE_FEED_RULE — never cross-reference other OS changes.
+NOTES=$(python3 -c "
+import re
+from pathlib import Path
+pn = Path('$REPO_ROOT/patchnotes.txt').read_text(encoding='utf-8')
+bullets = []
+in_block = False
+for line in pn.splitlines():
+    if re.match(r'^v\d', line):
+        if in_block: break
+        in_block = True
+        continue
+    if in_block:
+        if line.startswith('  \u2022 '):
+            text = line[4:].strip()
+            m = re.match(r'^\[(LINUX|ALL)\]\s+(.+)\$', text)
+            if m:
+                bullets.append(m.group(2))
+        elif line.strip() == '' and bullets:
+            break
+print('; '.join(bullets))
+")
+if [ -n "$NOTES" ]; then
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform linux --notes "$NOTES"
+else
+    echo "   ⚠️  No [LINUX] or [ALL] bullets found in patchnotes.txt — generating with empty notes"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform linux
+fi
 echo ""
 
 # ── Push to GitHub ────────────────────────────────────────────────────────────

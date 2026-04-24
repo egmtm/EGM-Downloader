@@ -147,7 +147,8 @@ echo ""
 # ── Generate update JSON ─────────────────────────────────────────────────────
 echo "📄 Generating Windows update JSON..."
 # Pull bullets from the most recent patchnotes.txt entry (matches current build).
-# Prevents wiping _version_notes to [] when BUILD.sh re-runs.
+# Filter to ONLY include [WINDOWS] and [ALL] tagged bullets — never cross-reference
+# other OS changes per JSON_UPDATE_FEED_RULE.
 NOTES=$(python3 -c "
 import re
 from pathlib import Path
@@ -161,7 +162,11 @@ for line in pn.splitlines():
         continue
     if in_block:
         if line.startswith('  \u2022 '):
-            bullets.append(line[4:].strip())
+            text = line[4:].strip()
+            # Only include bullets tagged [WINDOWS] or [ALL] for the Windows feed
+            m = re.match(r'^\[(WINDOWS|ALL)\]\s+(.+)\$', text)
+            if m:
+                bullets.append(m.group(2))
         elif line.strip() == '' and bullets:
             break
 print('; '.join(bullets))
@@ -169,7 +174,7 @@ print('; '.join(bullets))
 if [ -n "$NOTES" ]; then
     python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --notes "$NOTES"
 else
-    echo "   ⚠️  No bullets found in patchnotes.txt — generating with empty notes"
+    echo "   ⚠️  No [WINDOWS] or [ALL] bullets found in patchnotes.txt — generating with empty notes"
     python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows
 fi
 echo ""
