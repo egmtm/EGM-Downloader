@@ -27,8 +27,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION = "0.91"
-APP_BUILD   = 92
+APP_VERSION = "0.93"
+APP_BUILD   = 93
 
 # Settings and cookies: writable user data under DATA_DIR
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"

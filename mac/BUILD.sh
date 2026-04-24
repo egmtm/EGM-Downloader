@@ -104,7 +104,7 @@ cat > INSTRUCTIONS.txt << 'EOF'
   EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-VERSION: v0.91
+VERSION: v0.93
 PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
 MINIMUM MACOS: 11.0 (Big Sur) or later
 
@@ -112,7 +112,7 @@ MINIMUM MACOS: 11.0 (Big Sur) or later
   INSTALLATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Double-click "EGM Downloader-0.91.0-arm64.dmg"
+1. Double-click "EGM Downloader-0.93.0-arm64.dmg"
 
 2. Drag "EGM Downloader" to your Applications folder
 
