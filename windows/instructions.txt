@@ -16,7 +16,7 @@ REQUIREMENTS
 
 INSTALLATION
 ─────────────
-  1. Run setup.exe
+  1. Run egm-setup.exe
   2. Choose an install folder (default is recommended)
   3. Click Install
   4. Check "Launch EGM Downloader" on the finish screen, or run it
@@ -40,7 +40,7 @@ UPDATING
     Open the app → expand "Update Plugins" → click "Check for Updates"
 
   To update EGM Downloader itself:
-    Download the latest setup.exe from https://egerena.com/apps/egm.html
+    Download the latest egm-setup.exe from https://egerena.com/apps/egm.html
     Run it over your existing install — your settings are preserved.
 
 
