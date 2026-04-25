@@ -905,9 +905,14 @@ def check_app_update():
             data = json.loads(r.read())
         latest_ver   = str(data.get("version", "")).strip()
         latest_build = int(data.get("build", 0))
-        notes        = str(data.get("notes", "")).strip()
+        # _version_notes (new format) is a list; old "notes" was a plain string — handle both
+        notes        = data.get("_version_notes", data.get("notes", []))
+        if isinstance(notes, list): notes = "\n".join(notes)
+        else: notes = str(notes).strip()
+        # "download" was a web page URL in old format — new format has no equivalent; leave blank
         download     = str(data.get("download", "")).strip()
-        zip_url      = str(data.get("zip_url", APP_UPDATE_ZIP_URL)).strip()
+        # "downloadUrl" in new format; "zip_url" in old format; fallback to hardcoded constant
+        zip_url      = str(data.get("downloadUrl", data.get("zip_url", APP_UPDATE_ZIP_URL))).strip()
         up_to_date   = (latest_ver == APP_VERSION and latest_build <= APP_BUILD)
         return jsonify({
             "up_to_date":      up_to_date,
