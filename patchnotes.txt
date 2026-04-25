@@ -1,3 +1,8 @@
+v0.94 - Build 96 (4/25/2026 9:30 AM EST)
+-----------------------------------------
+  • [ALL] Light theme added — Cool Slate palette, toggleable via moon/sun button in header top-right. Preference saved via localStorage and restored on next launch. Dark mode remains the default.
+  • [ALL] All hardcoded surface/button/overlay colors moved to CSS variables — both themes respect every UI element including thumbnails, modals, log panel, and status badges.
+
 v0.93 - Build 94 (4/24/2026 8:55 AM EST)
 ----------------------------------------
   • [ALL] Version sync — Windows, macOS, and Linux aligned to v0.93 Build 94
