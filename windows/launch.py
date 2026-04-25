@@ -200,7 +200,29 @@ def launch_electron():
     # removing the idle pythonw.exe process from the process list.
 
 # ── Main ─────────────────────────────────────────────────────────────────────
+def _signal_running_instance():
+    """Try to signal a running instance via Flask /api/show-window.
+    Returns True if the app was already running (signal sent successfully).
+    This check runs BEFORE any Tkinter GUI or Electron spawn — if the app is
+    already running, we exit silently in milliseconds with no visible flash."""
+    try:
+        req = urllib.request.Request(
+            f"http://127.0.0.1:8899/api/show-window",
+            data=b"{}",
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=1) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
 if __name__ == "__main__":
+    # Check if the app is already running — if so, signal it to show and exit.
+    # Must happen before _gui_init() so no Tkinter window ever flashes.
+    if _signal_running_instance():
+        sys.exit(0)
+
     _gui_init()
     ensure_python_deps()
     node_exe = ensure_node()

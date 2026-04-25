@@ -338,11 +338,37 @@ ipcMain.handle('create-shortcut', async () => {
   }
 });
 
+// ── Show-window poller — receives signals from launch.py via Flask ────────────
+// launch.py POSTs /api/show-window if the app is already running.
+// Flask sets a flag; we poll /api/show-window-check every 500ms and show
+// the window when the flag fires. Replaces the second-instance spawn entirely.
+function startShowWindowPoller() {
+  setInterval(() => {
+    if (!mainWindow) return;
+    const req = http.get(`${APP_URL}/api/show-window-check`, (res) => {
+      let body = '';
+      res.on('data', d => body += d);
+      res.on('end', () => {
+        try {
+          if (JSON.parse(body).show) {
+            restoreWindowState();
+            if (!mainWindow.isVisible()) mainWindow.show();
+            mainWindow.focus();
+          }
+        } catch {}
+      });
+    });
+    req.on('error', () => {}); // Flask not ready yet — ignore silently
+    req.setTimeout(400, () => req.destroy());
+  }, 500);
+}
+
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
-  createTray();      // tray first — visible immediately
-  startFlask();      // spawn backend (non-blocking — createWindow waits for it)
+  createTray();         // tray first — visible immediately
+  startFlask();         // spawn backend (non-blocking — createWindow waits for it)
   await createWindow(); // window polls until Flask responds, then loads
+  startShowWindowPoller(); // start after window is ready — listens for show signals
 });
 
 // Window is hidden to tray when X is pressed — window-all-closed should NOT
