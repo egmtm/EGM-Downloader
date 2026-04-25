@@ -20,14 +20,23 @@ app = Flask(__name__)
 IS_ARM = _platform.machine().lower() in ("arm64", "aarch64")
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-# Inside Electron (.app bundle), app.py is at Resources/app/app.py.
-# We want ffmpeg_bin/, runtime/, egm_settings.json etc. written next to the
-# bundled python/ directory at Resources/, so we go up one level.
+# BASE_DIR: read-only bundle root (templates, static, python binary).
+# DATA_DIR: mutable user data that must survive app updates.
+#
+# When packaged inside Electron (.app bundle), app.py lives at
+# Resources/app/app.py — BASE_DIR goes up to Resources/.
+# Mutable files (ffmpeg, Deno, settings, cookies) are stored in
+# ~/Library/Application Support/EGM Downloader/ so they survive
+# every update (dragging a new .app never touches that directory).
 if os.environ.get("EGM_ELECTRON") == "1":
     BASE_DIR = Path(__file__).parent.parent  # Resources/
+    DATA_DIR = Path.home() / "Library" / "Application Support" / "EGM Downloader"
 else:
     BASE_DIR = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
-FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
+    DATA_DIR = BASE_DIR
+
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
 APP_VERSION           = "0.94"
@@ -39,11 +48,12 @@ APP_UPDATE_PASSWORD   = "EGMsterling"
 # ── Update temp dir — cleaned up on startup if present ───────────────────────
 UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "egm-update"
 
-# Settings file: persists last used folder
-SETTINGS_FILE = BASE_DIR / "egm_settings.json"
+# Settings file: persists last used folder — lives in DATA_DIR so it
+# survives app updates (DATA_DIR is never touched when dragging a new .app).
+SETTINGS_FILE = DATA_DIR / "egm_settings.json"
 
 # ── Cookies: path to cookies.txt — managed via Settings UI ───────────────────
-COOKIES_FILE = BASE_DIR / "cookies.txt"
+COOKIES_FILE = DATA_DIR / "cookies.txt"
 
 _settings_cache: dict = {}
 _settings_lock  = threading.Lock()
@@ -134,7 +144,7 @@ FFPROBE_URL     = "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip"
 FFMPEG_TAG_FILE = FFMPEG_DIR / "build_tag.txt"
 
 # ── Deno: bundled JS runtime required for YouTube (no admin, no PATH needed) ──
-DENO_DIR     = BASE_DIR / "runtime"
+DENO_DIR     = DATA_DIR / "runtime"
 DENO_EXE     = DENO_DIR / "deno"   # Mac: no .exe suffix
 # Apple Silicon (arm64) gets native binary; Intel Mac falls back to x86_64
 if IS_ARM:
@@ -837,7 +847,8 @@ def check_app_update():
 
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
-    """Download EGMd.zip, extract egm-setup.exe using password, return installer path."""
+    """Download EGMdM.zip, extract the DMG, mount it, and open a Finder
+    window so the user can drag EGM Downloader to Applications in one step."""
     data    = request.json or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     if not zip_url:
@@ -848,27 +859,58 @@ def download_update():
         return jsonify({"error": "pyzipper not installed — restart the app to install it"}), 500
 
     UPDATE_TMP_DIR.mkdir(parents=True, exist_ok=True)
-    zip_path       = UPDATE_TMP_DIR / "EGMd.zip"
-    installer_path = UPDATE_TMP_DIR / "egm-setup.exe"
+    zip_path = UPDATE_TMP_DIR / "EGMdM.zip"
+    dmg_name = "EGM Downloader.dmg"
+    dmg_path = UPDATE_TMP_DIR / dmg_name
 
     try:
-        # Download zip
+        # 1. Download password-protected zip
         req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=60) as r, open(zip_path, "wb") as f:
+        with urllib.request.urlopen(req, timeout=120) as r, open(zip_path, "wb") as f:
             shutil.copyfileobj(r, f)
 
-        # Extract egm-setup.exe using password
+        # 2. Extract DMG from zip
         with pyzipper.AESZipFile(zip_path, "r") as z:
             z.setpassword(APP_UPDATE_PASSWORD.encode("utf-8"))
-            names = z.namelist()
-            if "egm-setup.exe" not in names:
+            if dmg_name not in z.namelist():
                 zip_path.unlink(missing_ok=True)
-                return jsonify({"error": "egm-setup.exe not found in zip"}), 500
-            z.extract("egm-setup.exe", UPDATE_TMP_DIR)
+                return jsonify({"error": f"'{dmg_name}' not found in update zip"}), 500
+            z.extract(dmg_name, UPDATE_TMP_DIR)
 
         zip_path.unlink(missing_ok=True)
-        return jsonify({"success": True, "installer_path": str(installer_path)})
 
+        # 3. Mount the DMG (-nobrowse suppresses auto-open so we control it)
+        result = subprocess.run(
+            ["hdiutil", "attach", str(dmg_path), "-nobrowse"],
+            capture_output=True, text=True, timeout=30
+        )
+        if result.returncode != 0:
+            return jsonify({"error": f"Could not mount update: {result.stderr.strip()}"}), 500
+
+        # 4. Parse mount point from hdiutil output (tab-separated, last field)
+        mount_point = None
+        for line in result.stdout.splitlines():
+            parts = line.split("\t")
+            if len(parts) >= 3 and "/Volumes/" in parts[-1]:
+                mount_point = parts[-1].strip()
+                break
+
+        if not mount_point:
+            return jsonify({"error": "DMG mounted but volume path not found"}), 500
+
+        # 5. Open Finder showing the mounted volume — user drags to Applications
+        subprocess.Popen(["open", mount_point])
+
+        return jsonify({
+            "success":     True,
+            "mount_point": mount_point,
+            "message":     "Drag 'EGM Downloader' to your Applications folder to update.",
+        })
+
+    except subprocess.TimeoutExpired:
+        try: zip_path.unlink(missing_ok=True)
+        except Exception: pass
+        return jsonify({"error": "DMG mount timed out — please try again"}), 500
     except Exception as e:
         try: zip_path.unlink(missing_ok=True)
         except Exception: pass
