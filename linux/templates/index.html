@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v0.93</title>
+  <title>EGM Downloader v0.94</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -27,13 +27,69 @@
       --r:       10px;
       --rs:      7px;
       --ease:    .15s ease;
+      /* ── extra semantic tokens for hardcoded-color sites ── */
+      --thumb-bg:          #080808;
+      --log-bg:            #060606;
+      --log-text:          #8a9a80;
+      --modal-overlay:     rgba(0,0,0,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #0a0a0a;
+      --btn-on-accent:     #000;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #b45309;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #ddd;
     }
+
+    /* ── Cool Slate light theme ── */
+    body.light {
+      --bg:      #cdd2da;
+      --surf:    #c2c8d2;
+      --surf2:   #b8bec8;
+      --surf3:   #adb4c0;
+      --border:  #9da5b2;
+      --border2: #8d96a5;
+      --acc:     #2563eb;
+      --acc-h:   #3b82f6;
+      --acc-dim: rgba(37,99,235,.14);
+      --green:   #16a34a;
+      --red:     #dc2626;
+      --yellow:  #d97706;
+      --text:    #161c28;
+      --text2:   #3e4a5e;
+      --muted:   #6e7a8e;
+      --shadow:  0 4px 32px rgba(0,0,0,.18);
+      --thumb-bg:          #9da5b2;
+      --log-bg:            #adb4c0;
+      --log-text:          #2a3a50;
+      --modal-overlay:     rgba(22,28,40,.55);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.25);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #92400e;
+      --dur-bg:            rgba(22,28,40,.75);
+      --dur-text:          #e2e8f6;
+    }
+
+    /* ── Theme toggle button ── */
+    #theme-toggle {
+      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+      background: var(--surf); border: 1px solid var(--border2);
+      border-radius: var(--rs); width: 34px; height: 34px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: var(--text2); flex-shrink: 0;
+      transition: background var(--ease), border-color var(--ease), color var(--ease), transform var(--ease);
+    }
+    #theme-toggle:hover { border-color: var(--acc); color: var(--acc); transform: translateY(-50%) scale(1.1); }
+    #theme-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
       background: var(--bg); color: var(--text);
       min-height: 100vh; display: flex; flex-direction: column;
       align-items: center; padding: 0 16px 40px;
+      transition: background var(--ease), color var(--ease);
     }
 
     /* ── Header ── */
@@ -103,7 +159,7 @@
       font-size: .72rem; font-weight: 600; padding: 4px 9px;
       cursor: pointer; transition: all var(--ease); white-space: nowrap;
     }
-    .paste-fetch-btn:hover { background: var(--acc); color: #fff; }
+    .paste-fetch-btn:hover { background: var(--acc); color: var(--btn-primary-text); }
 
     /* ── Buttons ── */
     .btn {
@@ -113,13 +169,13 @@
       align-items: center; gap: 6px; white-space: nowrap; font-family: inherit;
     }
     .btn:disabled { opacity: .35; cursor: not-allowed; }
-    .btn-primary { background: var(--acc); color: #0a0a0a; }
+    .btn-primary { background: var(--acc); color: var(--btn-primary-text); }
     .btn-primary:hover:not(:disabled) { background: var(--acc-h); transform: translateY(-1px); }
     .btn-ghost { background: var(--surf2); color: var(--text2); border: 1px solid var(--border); }
     .btn-ghost:hover:not(:disabled) { border-color: var(--acc); color: var(--acc); }
-    .btn-red { background: transparent; color: var(--red); border: 1px solid #3a1a1a; }
+    .btn-red { background: transparent; color: var(--red); border: 1px solid var(--btn-red-border); }
     .btn-red:hover:not(:disabled) { background: rgba(239,68,68,.1); border-color: var(--red); }
-    .btn-green { background: var(--green); color: #000; }
+    .btn-green { background: var(--green); color: var(--btn-on-accent); }
     .btn-green:hover:not(:disabled) { filter: brightness(1.1); }
     .btn-sm { padding: 5px 12px; font-size: .78rem; }
     .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
@@ -147,24 +203,24 @@
       font-family: inherit;
     }
     .bulk-video-btn {
-      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-      color: white;
-      box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+      background: linear-gradient(135deg, var(--acc-h) 0%, var(--acc) 100%);
+      color: var(--btn-primary-text);
+      box-shadow: 0 2px 8px var(--acc-dim);
     }
     .bulk-video-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      background: linear-gradient(135deg, var(--acc) 0%, var(--acc-h) 100%);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+      box-shadow: 0 4px 12px var(--acc-dim);
     }
     .bulk-audio-btn {
       background: var(--acc);
-      color: #0a0a0a;
-      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+      color: var(--btn-primary-text);
+      box-shadow: 0 2px 8px var(--acc-dim);
     }
     .bulk-audio-btn:hover:not(:disabled) {
       background: var(--acc-h);
       transform: translateY(-1px);
-      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.4);
+      box-shadow: 0 4px 12px var(--acc-dim);
     }
     .bulk-video-btn:disabled, .bulk-audio-btn:disabled {
       opacity: 0.35;
@@ -225,11 +281,11 @@
 
     .thumb {
       width: 150px; aspect-ratio: 16/9; flex-shrink: 0;
-      background: #080808; position: relative; overflow: hidden;
+      background: var(--thumb-bg); position: relative; overflow: hidden;
     }
-    .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: .88; background: #080808; }
+    .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: .88; background: var(--thumb-bg); }
     .thumb .noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.8rem; }
-    .dur { position: absolute; bottom: 5px; right: 5px; background: rgba(0,0,0,.85); color: #ddd; font-size: .64rem; padding: 2px 5px; border-radius: 3px; }
+    .dur { position: absolute; bottom: 5px; right: 5px; background: var(--dur-bg); color: var(--dur-text); font-size: .64rem; padding: 2px 5px; border-radius: 3px; }
 
     .vbody { flex: 1; padding: 12px 36px 12px 16px; display: flex; flex-direction: column; gap: 7px; min-width: 0; }
     .vtitle { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
@@ -247,7 +303,7 @@
     .pills { display: flex; background: var(--surf3); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
     .pills input[type=radio] { display: none; }
     .pills label { padding: 4px 13px; border-radius: 999px; font-size: .76rem; font-weight: 500; cursor: pointer; color: var(--text2); transition: all var(--ease); user-select: none; }
-    .pills input[type=radio]:checked + label { background: var(--acc); color: #0a0a0a; }
+    .pills input[type=radio]:checked + label { background: var(--acc); color: var(--btn-primary-text); }
 
     select.qsel {
       background: var(--surf3); border: 1px solid var(--border);
@@ -304,14 +360,14 @@
     .ver-info { font-size: .72rem; color: var(--text2); display: flex; flex-direction: column; gap: 2px; }
     .sw-wrap { display: flex; align-items: center; gap: 7px; font-size: .77rem; color: var(--text2); cursor: pointer; user-select: none; }
     input.sw[type=checkbox] { appearance: none; width: 32px; height: 17px; background: var(--border2); border-radius: 999px; cursor: pointer; transition: background var(--ease); position: relative; flex-shrink: 0; }
-    input.sw[type=checkbox]::after { content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; background:#fff; border-radius:50%; transition:left var(--ease); }
+    input.sw[type=checkbox]::after { content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; background:var(--btn-primary-text); border-radius:50%; transition:left var(--ease); }
     input.sw[type=checkbox]:checked { background: var(--acc); }
     input.sw[type=checkbox]:checked::after { left:17px; }
     .upd-log {
-      background: #060606; border: 1px solid var(--border);
+      background: var(--log-bg); border: 1px solid var(--border);
       border-radius: var(--rs); padding: 9px 11px;
       font-family: 'Consolas','Courier New',monospace;
-      font-size: .72rem; color: #8a9a80; max-height: 120px;
+      font-size: .72rem; color: var(--log-text); max-height: 120px;
       overflow-y: auto; display: none; margin-top: 8px;
       white-space: pre-wrap; line-height: 1.5;
     }
@@ -319,7 +375,7 @@
 
     /* ── Filename modal ── */
     .modal-backdrop {
-      position: fixed; inset: 0; background: rgba(0,0,0,.75);
+      position: fixed; inset: 0; background: var(--modal-overlay);
       backdrop-filter: blur(4px); z-index: 900;
       display: flex; align-items: center; justify-content: center;
       animation: fadein .16s ease;
@@ -328,7 +384,7 @@
     .modal {
       background: var(--surf); border: 1px solid var(--border2);
       border-radius: 12px; padding: 26px 26px 20px;
-      width: min(460px, 92vw); box-shadow: 0 20px 60px rgba(0,0,0,.8);
+      width: min(460px, 92vw); box-shadow: var(--modal-shadow);
       animation: popin .18s ease;
     }
     @keyframes popin { from { opacity:0; transform:scale(.93) translateY(8px); } }
@@ -377,7 +433,7 @@
       transition: opacity .3s ease, background var(--ease), border-color var(--ease), transform var(--ease);
     }
     #scroll-top.visible { opacity: 1; pointer-events: auto; }
-    #scroll-top:hover { background: var(--acc); border-color: var(--acc); color: #fff; transform: translateY(-2px); }
+    #scroll-top:hover { background: var(--acc); border-color: var(--acc); color: var(--btn-primary-text); transform: translateY(-2px); }
 
 
 
@@ -388,9 +444,13 @@
 <header>
   <div class="logo"><img src="/static/icon-512.png" alt="EGM"></div>
   <div class="header-text">
-    <h1>EGM Downloader <span style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.93 - Build 94 - 4/24/2026 8:55 AM EST">v0.93</span></h1>
+    <h1>EGM Downloader <span style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.94 - Build 96 - 4/25/2026 9:30 AM EST">v0.94</span></h1>
     <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
   </div>
+  <button id="theme-toggle" title="Switch to light theme" aria-label="Toggle theme">
+    <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  </button>
 </header>
 
 <!-- URL Input -->
@@ -530,7 +590,7 @@
   </div>
 </div>
 
-<footer>&copy; <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener">www.egerena.com</a> &nbsp;·&nbsp; <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a> &nbsp;·&nbsp; EGM Downloader <span style="cursor:help;border-bottom:1px dotted currentColor" title="v0.93 - Build 94 - 4/24/2026 8:55 AM EST">v0.93</span></footer>
+<footer>&copy; <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener">www.egerena.com</a> &nbsp;·&nbsp; <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a> &nbsp;·&nbsp; EGM Downloader <span style="cursor:help;border-bottom:1px dotted currentColor" title="v0.94 - Build 96 - 4/25/2026 9:30 AM EST">v0.94</span></footer>
 <div id="toasts"></div>
 
 <!-- Filename modal -->
@@ -1787,6 +1847,29 @@ function toast(msg, type='') {
 
 
 
+
+// ── Theme toggle ──────────────────────────────────────────────────────────────
+(function() {
+  const btn  = document.getElementById('theme-toggle');
+  const moon = document.getElementById('theme-icon-moon');
+  const sun  = document.getElementById('theme-icon-sun');
+
+  function applyTheme(isLight) {
+    document.body.classList.toggle('light', isLight);
+    moon.style.display = isLight ? 'none'  : '';
+    sun.style.display  = isLight ? ''      : 'none';
+    btn.title = isLight ? 'Switch to dark theme' : 'Switch to light theme';
+  }
+
+  const saved = localStorage.getItem('egm-theme');
+  applyTheme(saved === 'light');
+
+  btn.addEventListener('click', function() {
+    const goLight = !document.body.classList.contains('light');
+    applyTheme(goLight);
+    localStorage.setItem('egm-theme', goLight ? 'light' : 'dark');
+  });
+})();
 </script>
 
 </body>
