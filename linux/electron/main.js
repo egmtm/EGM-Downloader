@@ -1,8 +1,9 @@
-const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, screen } = require('electron');
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
 const http = require('http');
+const os   = require('os');
 
 // ── Sandbox: AppImages cannot set SUID on chrome-sandbox — disable sandbox ────
 // Safe here because we only load a local Flask server (127.0.0.1), never
@@ -13,6 +14,58 @@ app.commandLine.appendSwitch('no-sandbox');
 const PORT    = 8899;
 const HOST    = '127.0.0.1';
 const APP_URL = `http://${HOST}:${PORT}`;
+
+// ── Settings file (~/.local/share/egm-downloader/) ───────────────────────────
+const SETTINGS_FILE = path.join(
+  os.homedir(), '.local', 'share', 'egm-downloader', 'egm_settings.json'
+);
+
+function loadSettings() {
+  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')); }
+  catch { return {}; }
+}
+
+function saveSettings(patch) {
+  try {
+    const s = loadSettings();
+    Object.assign(s, patch);
+    fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2), 'utf8');
+  } catch {}
+}
+
+// ── Window state helpers ──────────────────────────────────────────────────────
+const DEFAULT_BOUNDS = { width: 920, height: 780 };
+
+function isOnScreen(bounds) {
+  return screen.getAllDisplays().some(d => {
+    const { x, y, width, height } = d.workArea;
+    return bounds.x >= x - 50 && bounds.y >= y - 50 &&
+           bounds.x + bounds.width  <= x + width  + 50 &&
+           bounds.y + bounds.height <= y + height + 50;
+  });
+}
+
+function loadWindowState() {
+  const s = loadSettings();
+  return {
+    bounds:    s.window_bounds    || null,
+    maximized: s.window_maximized || false,
+  };
+}
+
+function saveWindowState() {
+  if (!mainWindow) return;
+  const maximized = mainWindow.isMaximized();
+  const bounds = maximized ? loadWindowState().bounds : mainWindow.getBounds();
+  saveSettings({ window_bounds: bounds, window_maximized: maximized });
+}
+
+// ── Debounce ──────────────────────────────────────────────────────────────────
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+}
 
 let mainWindow  = null;
 let splashWindow = null;
@@ -26,6 +79,12 @@ if (!gotLock) {
 }
 app.on('second-instance', () => {
   if (mainWindow) {
+    const { bounds, maximized } = loadWindowState();
+    if (maximized) {
+      mainWindow.maximize();
+    } else if (bounds && isOnScreen(bounds)) {
+      mainWindow.setBounds(bounds);
+    }
     if (!mainWindow.isVisible()) mainWindow.show();
     mainWindow.focus();
   }
@@ -127,8 +186,8 @@ function createSplash() {
     alwaysOnTop: true,
     resizable: false,
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration:  false,
+      contextIsolation: true,
     },
   });
   const splashPath = path.join(__dirname, 'splash.html');
@@ -161,9 +220,14 @@ async function createWindow() {
   const winIconPath = path.join(__dirname, '..', 'app', 'static', 'icon-512.png');
   const winIconOpts = fs.existsSync(winIconPath) ? { icon: winIconPath } : {};
 
+  // Load saved window state — use saved dimensions or defaults
+  const { bounds, maximized } = loadWindowState();
+  const initBounds = (bounds && isOnScreen(bounds))
+    ? { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height }
+    : DEFAULT_BOUNDS;
+
   mainWindow = new BrowserWindow({
-    width:  920,
-    height: 780,
+    ...initBounds,
     minWidth:  700,
     minHeight: 560,
     title: 'EGM Downloader',
@@ -177,6 +241,9 @@ async function createWindow() {
     show: false,
   });
 
+  // Restore maximized state after window is created
+  if (maximized) mainWindow.maximize();
+
   mainWindow.setMenuBarVisibility(false);
 
   mainWindow.once('ready-to-show', () => {
@@ -185,7 +252,16 @@ async function createWindow() {
     mainWindow.show();
   });
 
-  mainWindow.on('close', () => { app.isQuitting = true; });
+  // Save window state on resize/move — debounced 500ms
+  const debouncedSave = debounce(saveWindowState, 500);
+  mainWindow.on('resize', debouncedSave);
+  mainWindow.on('move',   debouncedSave);
+
+  // Save state on close
+  mainWindow.on('close', () => {
+    saveWindowState();
+    app.isQuitting = true;
+  });
 
   try {
     await waitForFlask();

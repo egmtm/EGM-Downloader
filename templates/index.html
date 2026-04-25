@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v0.94</title>
+  <title>EGM Downloader v0.95</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -41,8 +41,81 @@
       --dur-text:          #ddd;
     }
 
-    /* ── Cool Slate light theme ── */
-    body.light {
+    /* ── Smooth theme transition — all elements fade together ── */
+    *, *::before, *::after {
+      transition: background-color 0.2s ease, border-color 0.2s ease,
+                  color 0.2s ease, box-shadow 0.2s ease;
+    }
+    /* Faster on interactive elements so hover feels snappy */
+    button, input, select, a, .btn, .badge, .vbadge {
+      transition: background-color 0.15s ease, border-color 0.15s ease,
+                  color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    /* ── Eclipse theme ── */
+    body.eclipse {
+      --bg:      #18161a;
+      --surf:    #241f28;
+      --surf2:   #2e2535;
+      --surf3:   #3a2d47;
+      --border:  #3a3040;
+      --border2: #4a3d5c;
+      --acc:     #a855f7;
+      --acc-h:   #c084fc;
+      --acc-dim: rgba(168,85,247,.14);
+      --green:   #4ade80;
+      --red:     #f87171;
+      --yellow:  #fbbf24;
+      --text:    #e2daea;
+      --text2:   #8b7fa0;
+      --muted:   #5a4d6e;
+      --shadow:  0 4px 32px rgba(0,0,0,.6);
+      --thumb-bg:          #3a2d47;
+      --log-bg:            #220a40;
+      --log-text:          #8b7fa0;
+      --modal-overlay:     rgba(0,0,0,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #d4a017;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #ddd;
+    }
+
+    /* ── Ghost theme ── */
+    body.ghost {
+      --bg:      #0d1117;
+      --surf:    #161b22;
+      --surf2:   #1c2128;
+      --surf3:   #21262d;
+      --border:  #30363d;
+      --border2: #3a424a;
+      --acc:     #238636;
+      --acc-h:   #3fb950;
+      --acc-dim: rgba(35,134,54,.14);
+      --green:   #3fb950;
+      --red:     #f85149;
+      --yellow:  #d29922;
+      --text:    #e6edf3;
+      --text2:   #8b949e;
+      --muted:   #484f58;
+      --shadow:  0 4px 32px rgba(0,0,0,.6);
+      --thumb-bg:          #21262d;
+      --log-bg:            #010409;
+      --log-text:          #8b949e;
+      --modal-overlay:     rgba(0,0,0,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #b08800;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #ddd;
+    }
+
+    /* ── Frost theme (light) ── */
+    body.frost {
       --bg:      #cdd2da;
       --surf:    #c2c8d2;
       --surf2:   #b8bec8;
@@ -72,17 +145,146 @@
       --dur-text:          #e2e8f6;
     }
 
-    /* ── Theme toggle button ── */
-    #theme-toggle {
+    /* ── Bone theme (light) ── */
+    body.bone {
+      --bg:      #f5f0e8;
+      --surf:    #ede7d9;
+      --surf2:   #e4ddd0;
+      --surf3:   #d9d1c2;
+      --border:  #c8bfaa;
+      --border2: #b8af9c;
+      --acc:     #2563eb;
+      --acc-h:   #3b82f6;
+      --acc-dim: rgba(37,99,235,.14);
+      --green:   #16a34a;
+      --red:     #b91c1c;
+      --yellow:  #b45309;
+      --text:    #1e1810;
+      --text2:   #5a4e3a;
+      --muted:   #8a7d68;
+      --shadow:  0 4px 32px rgba(0,0,0,.12);
+      --thumb-bg:          #d9d1c2;
+      --log-bg:            #ccc5b8;
+      --log-text:          #5a4e3a;
+      --modal-overlay:     rgba(30,24,16,.5);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.2);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #92400e;
+      --dur-bg:            rgba(30,24,16,.75);
+      --dur-text:          #e2e8f6;
+    }
+
+    /* ── Haze theme (light) ── */
+    body.haze {
+      --bg:      #d4d9d0;
+      --surf:    #c9d0c4;
+      --surf2:   #bec6b8;
+      --surf3:   #b2bba8;
+      --border:  #a0a89a;
+      --border2: #909a8a;
+      --acc:     #2563eb;
+      --acc-h:   #3b82f6;
+      --acc-dim: rgba(37,99,235,.14);
+      --green:   #16a34a;
+      --red:     #dc2626;
+      --yellow:  #d97706;
+      --text:    #181e16;
+      --text2:   #3a4a38;
+      --muted:   #6a7a68;
+      --shadow:  0 4px 32px rgba(0,0,0,.15);
+      --thumb-bg:          #b2bba8;
+      --log-bg:            #a8b29e;
+      --log-text:          #3a4a38;
+      --modal-overlay:     rgba(24,30,22,.5);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.2);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #92400e;
+      --dur-bg:            rgba(24,30,22,.75);
+      --dur-text:          #e2e8f6;
+    }
+
+    /* ── Theme picker button ── */
+    #theme-btn {
       position: absolute; right: 0; top: 50%; transform: translateY(-50%);
       background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--rs); width: 34px; height: 34px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: var(--text2); flex-shrink: 0;
-      transition: background var(--ease), border-color var(--ease), color var(--ease), transform var(--ease);
     }
-    #theme-toggle:hover { border-color: var(--acc); color: var(--acc); transform: translateY(-50%) scale(1.1); }
-    #theme-toggle svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    #theme-btn:hover { border-color: var(--acc); color: var(--acc); }
+    #theme-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+    /* ── Theme picker panel ── */
+    #theme-panel {
+      display: none; position: absolute; right: 0; top: 42px;
+      width: 186px; background: var(--surf); border: 1px solid var(--border2);
+      border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      z-index: 1000; overflow: hidden;
+    }
+    #theme-panel.open { display: block; }
+    .theme-panel-hdr {
+      padding: 7px 12px 5px; font-size: 10px; letter-spacing: .08em;
+      text-transform: uppercase; color: var(--text2);
+      border-bottom: 1px solid var(--border);
+    }
+    .theme-list { padding: 4px 6px 6px; }
+    .theme-row {
+      display: flex; align-items: center; gap: 8px;
+      padding: 5px 7px; border-radius: 6px; cursor: pointer;
+      margin-bottom: 1px; border: 1px solid transparent;
+    }
+    .theme-row:hover { background: var(--surf2); }
+    .theme-row.active { background: var(--acc-dim); border-color: var(--acc); }
+    .theme-swatches { display: flex; gap: 2px; flex-shrink: 0; }
+    .theme-sw { width: 11px; height: 11px; border-radius: 2px; border: 1px solid rgba(0,0,0,.15); }
+    .theme-name { font-size: 11px; font-weight: 500; color: var(--text); flex: 1; }
+    .theme-check { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+                   display: flex; align-items: center; justify-content: center;
+                   border: 1px solid var(--border2); }
+    .theme-check.checked { background: var(--acc); border-color: var(--acc); }
+    .theme-check.checked::after { content:''; display:block; width:5px; height:5px;
+      border-right: 1.5px solid #fff; border-bottom: 1.5px solid #fff;
+      transform: rotate(45deg) translate(-1px,-1px); }
+
+    /* ── Advanced panel ── */
+    .adv-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
+    .adv-toggle-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin-bottom: 0; }
+    .adv-toggle-row:hover .adv-label { color: var(--text); }
+    .adv-label { font-size: .78rem; color: var(--text2); font-weight: 500; }
+    .adv-body { display: none; margin-top: 10px; }
+    .adv-body.open { display: block; }
+    .adv-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
+    .adv-row:last-child { border-bottom: none; }
+    .adv-row-label { font-size: .8rem; color: var(--text); }
+    .adv-row-sub { font-size: .71rem; color: var(--text2); margin-top: 1px; }
+    .adv-port-row { display: flex; gap: 6px; align-items: center; }
+    .adv-port-input { width: 64px; background: var(--surf2); border: 1px solid var(--border); border-radius: 5px; height: 26px; padding: 0 8px; font-size: .8rem; color: var(--text); font-family: monospace; }
+    .btn-adv { height: 26px; padding: 0 10px; border-radius: 5px; font-size: .75rem; background: transparent; border: 1px solid var(--border2); color: var(--text2); cursor: pointer; white-space: nowrap; }
+    .btn-adv:hover { border-color: var(--acc); color: var(--acc); }
+    .btn-adv.danger { border-color: var(--btn-red-border); color: var(--red); }
+    .btn-adv.danger:hover { background: rgba(239,68,68,.08); }
+    .btn-adv.warn { border-color: rgba(245,158,11,.3); color: var(--yellow); }
+    .btn-adv.warn:hover { background: rgba(245,158,11,.08); }
+    .btn-adv.info { border-color: var(--border2); color: var(--acc); }
+    .adv-warn { font-size: .7rem; color: var(--text2); margin-top: 4px; line-height: 1.5; }
+
+    /* ── Audio quality modal ── */
+    #audio-quality-modal .modal { max-width: 320px; }
+    .quality-options { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+    .quality-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surf2); cursor: pointer; }
+    .quality-option:hover { border-color: var(--acc); background: var(--acc-dim); }
+    .quality-option.selected { border-color: var(--acc); background: var(--acc-dim); }
+    .quality-label { font-size: .9rem; font-weight: 500; color: var(--text); flex: 1; }
+    .quality-desc { font-size: .75rem; color: var(--text2); }
+
+    /* ── What's New modal ── */
+    #whats-new-modal .modal { max-width: 420px; }
+    .whats-new-list { margin: 10px 0 14px; padding-left: 18px; }
+    .whats-new-list li { font-size: .82rem; color: var(--text2); margin-bottom: 6px; line-height: 1.5; }
 
     body {
       font-family: 'Segoe UI', system-ui, sans-serif;
@@ -397,17 +599,80 @@
 <body>
 
 <header>
-  <div class="logo"><img src="/static/icon-512.png" alt="EGM"></div>
+  <!-- New logo — inline SVG with CSS vars so it adapts to all themes -->
+  <div class="logo">
+    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="width:44px;height:44px;border-radius:8px">
+      <rect width="512" height="512" rx="102" fill="transparent"/>
+      <line x1="256" y1="154" x2="256" y2="37" stroke="var(--acc)" stroke-width="9" stroke-linecap="round" stroke-dasharray="15 18" opacity=".5"/>
+      <line x1="318" y1="172" x2="424" y2="66" stroke="var(--acc)" stroke-width="7" stroke-linecap="round" stroke-dasharray="11 22" opacity=".32"/>
+      <line x1="194" y1="172" x2="88" y2="66" stroke="var(--acc)" stroke-width="7" stroke-linecap="round" stroke-dasharray="11 22" opacity=".32"/>
+      <line x1="358" y1="216" x2="475" y2="168" stroke="var(--acc)" stroke-width="5.5" stroke-linecap="round" stroke-dasharray="11 22" opacity=".18"/>
+      <line x1="154" y1="216" x2="37" y2="168" stroke="var(--acc)" stroke-width="5.5" stroke-linecap="round" stroke-dasharray="11 22" opacity=".18"/>
+      <line x1="373" y1="186" x2="461" y2="110" stroke="var(--acc)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="7 26" opacity=".1"/>
+      <line x1="139" y1="186" x2="51" y2="110" stroke="var(--acc)" stroke-width="3.5" stroke-linecap="round" stroke-dasharray="7 26" opacity=".1"/>
+      <circle cx="256" cy="230" r="146" fill="none" stroke="var(--yellow)" stroke-width="5.5" stroke-dasharray="15 15" opacity=".45"/>
+      <circle cx="256" cy="230" r="117" fill="var(--surf)"/>
+      <circle cx="256" cy="230" r="117" fill="none" stroke="var(--acc)" stroke-width="9"/>
+      <text x="256" y="252" font-family="'Exo 2','Segoe UI',system-ui,sans-serif" font-size="80" font-weight="500" fill="var(--text)" text-anchor="middle" letter-spacing="4">EGM</text>
+      <line x1="256" y1="355" x2="256" y2="432" stroke="var(--yellow)" stroke-width="7.5" stroke-linecap="round"/>
+      <path d="M216 410 L256 443 L296 410" fill="none" stroke="var(--yellow)" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:pointer;border-bottom:1px dotted var(--border2)" title="v0.94 - Build 96 - 4/25/2026 9:30 AM EST" data-build-title="v0.94 - Build 96 - 4/25/2026 9:30 AM EST">v0.94</span><button id="update-check-icon" title="Check for Updates" style="background:none;border:none;padding:0 0 0 5px;margin:0;cursor:pointer;font-size:1rem;color:var(--text2);vertical-align:middle;opacity:.55;line-height:1;transition:opacity .15s" aria-label="Check for Updates">🔄</button></h1>
+    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:pointer;border-bottom:1px dotted var(--border2)" title="v0.95" data-build-title="v0.95">v0.95</span><button id="update-check-icon" title="Check for Updates" style="background:none;border:none;padding:0 0 0 5px;margin:0;cursor:pointer;font-size:1rem;color:var(--text2);vertical-align:middle;opacity:.55;line-height:1;transition:opacity .15s" aria-label="Check for Updates">🔄</button></h1>
     <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
   </div>
-  <button id="theme-toggle" title="Switch to light theme" aria-label="Toggle theme">
-    <!-- Moon icon (shown in dark mode — click to go light) -->
-    <svg id="theme-icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-    <!-- Sun icon (shown in light mode — click to go dark) -->
-    <svg id="theme-icon-sun" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-  </button>
+  <!-- Theme picker button — replaces binary moon/sun toggle -->
+  <div style="position:absolute;right:0;top:50%;transform:translateY(-50%)">
+    <button id="theme-btn" title="Change theme" aria-label="Change theme">
+      <svg viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="3"/>
+        <circle cx="12" cy="4" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="20" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="4" cy="12" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="20" cy="12" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="6.34" cy="6.34" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="17.66" cy="17.66" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="6.34" cy="17.66" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="17.66" cy="6.34" r="1.3" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+    <div id="theme-panel">
+      <div class="theme-panel-hdr">Theme</div>
+      <div class="theme-list">
+        <div class="theme-row active" data-theme="void">
+          <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
+          <span class="theme-name">Void</span>
+          <div class="theme-check checked"></div>
+        </div>
+        <div class="theme-row" data-theme="eclipse">
+          <div class="theme-swatches"><div class="theme-sw" style="background:#18161a"></div><div class="theme-sw" style="background:#241f28"></div><div class="theme-sw" style="background:#a855f7"></div></div>
+          <span class="theme-name">Eclipse</span>
+          <div class="theme-check"></div>
+        </div>
+        <div class="theme-row" data-theme="ghost">
+          <div class="theme-swatches"><div class="theme-sw" style="background:#0d1117"></div><div class="theme-sw" style="background:#161b22"></div><div class="theme-sw" style="background:#238636"></div></div>
+          <span class="theme-name">Ghost</span>
+          <div class="theme-check"></div>
+        </div>
+        <div class="theme-row" data-theme="frost">
+          <div class="theme-swatches"><div class="theme-sw" style="background:#cdd2da"></div><div class="theme-sw" style="background:#c2c8d2"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+          <span class="theme-name">Frost</span>
+          <div class="theme-check"></div>
+        </div>
+        <div class="theme-row" data-theme="bone">
+          <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e8"></div><div class="theme-sw" style="background:#ede7d9"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+          <span class="theme-name">Bone</span>
+          <div class="theme-check"></div>
+        </div>
+        <div class="theme-row" data-theme="haze">
+          <div class="theme-swatches"><div class="theme-sw" style="background:#d4d9d0"></div><div class="theme-sw" style="background:#c9d0c4"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+          <span class="theme-name">Haze</span>
+          <div class="theme-check"></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </header>
 
 <!-- URL Input -->
@@ -516,6 +781,75 @@
         Export via incognito using <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">Get cookies.txt Locally</a>.
       </div>
     </div>
+
+    <!-- Advanced settings panel — collapsed by default -->
+    <div class="adv-section">
+      <div class="adv-toggle-row" id="adv-toggle-row">
+        <span class="adv-label">⚙ Advanced</span>
+        <span id="adv-arrow" style="font-size:.7rem;color:var(--text2)">▶</span>
+      </div>
+      <div class="adv-body" id="adv-body">
+        <!-- Flask port -->
+        <div class="adv-row">
+          <div>
+            <div class="adv-row-label">Flask port</div>
+            <div class="adv-row-sub">Change if port 8899 is in use. Requires restart.</div>
+          </div>
+          <div class="adv-port-row">
+            <input type="number" class="adv-port-input" id="adv-port-input" value="8899" min="1024" max="65535"/>
+            <button class="btn-adv" id="adv-port-btn">Apply</button>
+          </div>
+        </div>
+        <!-- Clear cache -->
+        <div class="adv-row">
+          <div>
+            <div class="adv-row-label">Clear app cache</div>
+            <div class="adv-row-sub">Removes temp files and partial downloads</div>
+          </div>
+          <button class="btn-adv warn" id="adv-clear-cache-btn">Clear</button>
+        </div>
+        <!-- Reset settings -->
+        <div class="adv-row">
+          <div>
+            <div class="adv-row-label">Reset all settings</div>
+            <div class="adv-row-sub">Restores defaults, keeps downloads</div>
+          </div>
+          <button class="btn-adv danger" id="adv-reset-btn">Reset</button>
+        </div>
+        <!-- Reinstall ffmpeg -->
+        <div class="adv-row">
+          <div>
+            <div class="adv-row-label">Reinstall ffmpeg</div>
+            <div class="adv-row-sub">Fresh download on next launch</div>
+          </div>
+          <button class="btn-adv warn" id="adv-ffmpeg-btn">Reinstall</button>
+        </div>
+        <!-- Reinstall Deno -->
+        <div class="adv-row">
+          <div>
+            <div class="adv-row-label">Reinstall Deno</div>
+            <div class="adv-row-sub">Fresh install on next launch</div>
+          </div>
+          <button class="btn-adv warn" id="adv-deno-btn">Reinstall</button>
+        </div>
+        <!-- Export settings -->
+        <div class="adv-row">
+          <div>
+            <div class="adv-row-label">Export settings</div>
+            <div class="adv-row-sub">Copy preferences to clipboard</div>
+          </div>
+          <button class="btn-adv info" id="adv-export-btn">Export</button>
+        </div>
+        <!-- Import settings -->
+        <div class="adv-row">
+          <div>
+            <div class="adv-row-label">Import settings</div>
+            <div class="adv-row-sub">Load preferences from clipboard</div>
+          </div>
+          <button class="btn-adv info" id="adv-import-btn">Import</button>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -550,8 +884,56 @@
   </div>
 </div>
 
-<footer>&copy; <a href="https://egerena.com/apps/egm.html" target="_blank" rel="noopener">www.egerena.com</a> &nbsp;·&nbsp; <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a> &nbsp;·&nbsp; EGM Downloader <span style="cursor:help;border-bottom:1px dotted currentColor" title="v0.94 - Build 96 - 4/25/2026 9:30 AM EST">v0.94</span> &nbsp;·&nbsp; <button id="footer-update-btn" style="background:none;border:none;padding:0;margin:0;cursor:pointer;font-size:inherit;color:inherit;font-family:inherit;opacity:.7;text-decoration:underline;text-underline-offset:2px;text-decoration-style:dotted">Check for Updates 🔄</button></footer>
+<footer>&copy; <a href="https://egerena.com/apps/egm.html" target="_blank" rel="noopener">www.egerena.com</a> &nbsp;·&nbsp; <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a> &nbsp;·&nbsp; EGM Downloader <span style="cursor:help;border-bottom:1px dotted currentColor" title="v0.95">v0.95</span> &nbsp;·&nbsp; <button id="footer-update-btn" style="background:none;border:none;padding:0;margin:0;cursor:pointer;font-size:inherit;color:inherit;font-family:inherit;opacity:.7;text-decoration:underline;text-underline-offset:2px;text-decoration-style:dotted">Check for Updates 🔄</button></footer>
 <div id="toasts"></div>
+
+<!-- Audio quality modal — shown before bulk audio download -->
+<div class="modal-backdrop" id="audio-quality-modal" style="display:none" onclick="audioQualityBgClick(event)">
+  <div class="modal" id="audio-quality-modal">
+    <h3>♫ Audio Quality</h3>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all audio downloads.</p>
+    <div class="quality-options">
+      <div class="quality-option" data-quality="128">
+        <div><div class="quality-label">128 kbps MP3</div><div class="quality-desc">Small files · streaming quality</div></div>
+      </div>
+      <div class="quality-option" data-quality="192">
+        <div><div class="quality-label">192 kbps MP3</div><div class="quality-desc">Good balance · most use cases</div></div>
+      </div>
+      <div class="quality-option selected" data-quality="320">
+        <div><div class="quality-label">320 kbps MP3</div><div class="quality-desc">CD quality · recommended</div></div>
+      </div>
+      <div class="quality-option" data-quality="flac">
+        <div><div class="quality-label">FLAC</div><div class="quality-desc">Lossless · large files</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('audio-quality-modal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" id="audio-quality-confirm-btn">Download</button>
+    </div>
+  </div>
+</div>
+
+<!-- What's New modal — shown once per version -->
+<div class="modal-backdrop" id="whats-new-modal" style="display:none">
+  <div class="modal" id="whats-new-modal-inner">
+    <h3>🎉 What's New in <span id="whats-new-version">v0.95</span></h3>
+    <ul class="whats-new-list" id="whats-new-list">
+      <li>New logo — Transmission Halo with theme-adaptive CSS variables</li>
+      <li>6 themes: Void · Eclipse · Ghost · Frost · Bone · Haze</li>
+      <li>Smooth theme transitions — 0.2s fade across all elements</li>
+      <li>ETA and file size shown during active downloads</li>
+      <li>Audio quality selector for bulk audio downloads</li>
+      <li>Window size and position remembered across sessions</li>
+      <li>Windows: X button hides to tray — downloads continue in background</li>
+      <li>Advanced settings: port, cache, reset, reinstall ffmpeg/Deno, export/import</li>
+      <li>Friendly error messages for common failure types</li>
+      <li>Security hardening across all platforms</li>
+    </ul>
+    <div class="modal-actions">
+      <button class="btn btn-primary" id="whats-new-dismiss-btn">Got it</button>
+    </div>
+  </div>
+</div>
 
 <!-- Filename modal -->
 <div class="modal-backdrop" id="name-modal" style="display:none" onclick="modalBgClick(event)">
@@ -1670,9 +2052,9 @@ function setDlAllVisible(show) {
   document.getElementById('bulk-actions').style.display = show ? 'flex' : 'none';
 }
 
-document.getElementById('dl-all-btn').addEventListener('click',       () => downloadAll('video'));
-document.getElementById('dl-all-audio-btn').addEventListener('click', () => downloadAll('audio'));
-async function downloadAll(forceFormat) {
+document.getElementById('dl-all-btn').addEventListener('click', () => downloadAll('video'));
+// dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
+async function downloadAll(forceFormat, audioQuality) {
   if (!chosenPath) {
     toast('Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
@@ -1736,6 +2118,7 @@ async function downloadAll(forceFormat) {
         concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
         title: item.info.title || 'download',
         download_dir: dir,
+        audio_quality: audioQuality || '320',
       });
       if (res.error) throw new Error(res.error);
       item.jobId = res.job_id;
@@ -1973,27 +2356,181 @@ function toast(msg, type='') {
   c.appendChild(t); setTimeout(()=>t.remove(), TOAST_DURATION);
 }
 
-// ── Theme toggle ──────────────────────────────────────────────────────────────
+// ── Theme picker ──────────────────────────────────────────────────────────────
 (function() {
-  const btn  = document.getElementById('theme-toggle');
-  const moon = document.getElementById('theme-icon-moon');
-  const sun  = document.getElementById('theme-icon-sun');
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze'];
+  const btn    = document.getElementById('theme-btn');
+  const panel  = document.getElementById('theme-panel');
+  const rows   = document.querySelectorAll('.theme-row');
 
-  function applyTheme(isLight) {
-    document.body.classList.toggle('light', isLight);
-    moon.style.display = isLight ? 'none'  : '';
-    sun.style.display  = isLight ? ''      : 'none';
-    btn.title = isLight ? 'Switch to dark theme' : 'Switch to light theme';
+  function applyTheme(name) {
+    // Remove all theme classes, then add the chosen one (void = no class needed)
+    document.body.classList.remove(...THEMES);
+    if (name && name !== 'void') document.body.classList.add(name);
+    localStorage.setItem('egm-theme', name || 'void');
+    // Update checkmarks
+    rows.forEach(r => {
+      const active = r.dataset.theme === (name || 'void');
+      r.classList.toggle('active', active);
+      const chk = r.querySelector('.theme-check');
+      chk.classList.toggle('checked', active);
+    });
   }
 
-  // Restore saved preference (default: dark)
-  const saved = localStorage.getItem('egm-theme');
-  applyTheme(saved === 'light');
+  // Restore saved theme on load
+  const saved = localStorage.getItem('egm-theme') || 'void';
+  applyTheme(saved);
 
-  btn.addEventListener('click', function() {
-    const goLight = !document.body.classList.contains('light');
-    applyTheme(goLight);
-    localStorage.setItem('egm-theme', goLight ? 'light' : 'dark');
+  // Toggle panel open/close
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    panel.classList.toggle('open');
+  });
+
+  // Click outside → close panel
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && e.target !== btn) {
+      panel.classList.remove('open');
+    }
+  });
+
+  // Theme row click → apply + close
+  rows.forEach(r => {
+    r.addEventListener('click', () => {
+      applyTheme(r.dataset.theme);
+      panel.classList.remove('open');
+    });
+  });
+})();
+
+// ── Audio quality popup ───────────────────────────────────────────────────────
+let _selectedAudioQuality = '320';
+
+(function() {
+  const modal   = document.getElementById('audio-quality-modal');
+  const options = document.querySelectorAll('.quality-option');
+  const confirm = document.getElementById('audio-quality-confirm-btn');
+
+  options.forEach(opt => {
+    opt.addEventListener('click', () => {
+      options.forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      _selectedAudioQuality = opt.dataset.quality;
+    });
+  });
+
+  // Override dl-all-audio-btn to show quality picker first
+  document.getElementById('dl-all-audio-btn').addEventListener('click', () => {
+    modal.style.display = 'flex';
+  });
+
+  confirm.addEventListener('click', () => {
+    modal.style.display = 'none';
+    downloadAll('audio', _selectedAudioQuality);
+  });
+})();
+
+function audioQualityBgClick(e) {
+  if (e.target === document.getElementById('audio-quality-modal'))
+    document.getElementById('audio-quality-modal').style.display = 'none';
+}
+
+// ── What's New — show once per version ───────────────────────────────────────
+(async function() {
+  try {
+    const s = await fetch('/api/settings').then(r => r.json());
+    const currentVersion = document.getElementById('version-badge')?.textContent?.trim() || '';
+    if (currentVersion && s.last_seen_version !== currentVersion) {
+      // Show What's New modal
+      document.getElementById('whats-new-version').textContent = currentVersion;
+      document.getElementById('whats-new-modal').style.display = 'flex';
+      document.getElementById('whats-new-dismiss-btn').addEventListener('click', async () => {
+        document.getElementById('whats-new-modal').style.display = 'none';
+        await post('/api/settings/save', { last_seen_version: currentVersion });
+      }, { once: true });
+    }
+  } catch {}
+})();
+
+// ── Advanced settings panel ───────────────────────────────────────────────────
+(function() {
+  // Toggle open/close
+  document.getElementById('adv-toggle-row').addEventListener('click', () => {
+    const body  = document.getElementById('adv-body');
+    const arrow = document.getElementById('adv-arrow');
+    const open  = body.classList.toggle('open');
+    arrow.textContent = open ? '▼' : '▶';
+  });
+
+  // Load saved port on startup
+  (async () => {
+    try {
+      const s = await fetch('/api/settings').then(r => r.json());
+      const input = document.getElementById('adv-port-input');
+      if (input && s.flask_port) input.value = s.flask_port;
+    } catch {}
+  })();
+
+  // Apply port change
+  document.getElementById('adv-port-btn').addEventListener('click', async () => {
+    const input = document.getElementById('adv-port-input');
+    const port  = parseInt(input.value, 10);
+    if (!port || port < 1024 || port > 65535) { toast('Port must be between 1024 and 65535', 'err'); return; }
+    if (port === 8899 && !confirm('Change port to ' + port + '?\n\nOnly do this if port 8899 is already in use. The app will need to restart.')) return;
+    if (port !== 8899 && !confirm('Change port to ' + port + '?\n\nOnly do this if port 8899 is already in use by another application.\n\nThe app will restart to apply the change.')) return;
+    await post('/api/settings/save', { flask_port: port });
+    toast('Port saved — restart the app to apply', 'warn');
+  });
+
+  // Clear cache
+  document.getElementById('adv-clear-cache-btn').addEventListener('click', async () => {
+    const r = await post('/api/cache/clear', {});
+    if (r.ok) toast('Cache cleared ✓', 'ok');
+    else toast('Clear failed: ' + (r.error || 'unknown'), 'err');
+  });
+
+  // Reset settings
+  document.getElementById('adv-reset-btn').addEventListener('click', async () => {
+    if (!confirm('Reset all settings to defaults?\n\nYour downloads and history are not affected.')) return;
+    const r = await post('/api/settings/reset', {});
+    if (r.ok) { toast('Settings reset — restart to see changes', 'ok'); }
+    else toast('Reset failed: ' + (r.error || 'unknown'), 'err');
+  });
+
+  // Reinstall ffmpeg
+  document.getElementById('adv-ffmpeg-btn').addEventListener('click', async () => {
+    if (!confirm('Remove the current ffmpeg installation?\n\nA fresh copy will be downloaded on next launch. Make sure you have an internet connection.')) return;
+    const r = await post('/api/ffmpeg/reinstall', {});
+    if (r.ok) toast('ffmpeg removed — will reinstall on next launch', 'ok');
+    else toast('Failed: ' + (r.error || 'unknown'), 'err');
+  });
+
+  // Reinstall Deno
+  document.getElementById('adv-deno-btn').addEventListener('click', async () => {
+    if (!confirm('Remove the current Deno installation?\n\nDeno will reinstall on next launch. Make sure you have an internet connection.')) return;
+    const r = await post('/api/deno/reinstall', {});
+    if (r.ok) toast('Deno removed — will reinstall on next launch', 'ok');
+    else toast('Failed: ' + (r.error || 'unknown'), 'err');
+  });
+
+  // Export settings
+  document.getElementById('adv-export-btn').addEventListener('click', async () => {
+    try {
+      const s = await fetch('/api/settings').then(r => r.json());
+      await navigator.clipboard.writeText(JSON.stringify(s, null, 2));
+      toast('Settings copied to clipboard ✓', 'ok');
+    } catch { toast('Could not copy to clipboard', 'err'); }
+  });
+
+  // Import settings
+  document.getElementById('adv-import-btn').addEventListener('click', async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      const data = JSON.parse(text);
+      if (typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid format');
+      await post('/api/settings/save', data);
+      toast('Settings imported — restart to apply', 'ok');
+    } catch { toast('Clipboard does not contain valid settings JSON', 'err'); }
   });
 })();
 </script>

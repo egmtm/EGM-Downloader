@@ -10,6 +10,7 @@ import threading
 import urllib.request
 import zipfile
 import shutil
+from collections import deque
 from pathlib import Path
 from flask import Flask, request, jsonify, render_template
 
@@ -20,8 +21,8 @@ BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else P
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.94"
-APP_BUILD             = 96
+APP_VERSION           = "0.95"
+APP_BUILD             = 97
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 APP_UPDATE_PASSWORD   = "EGMsterling"
@@ -60,11 +61,51 @@ def _get_last_folder() -> str:
     return _load_settings().get("last_folder", "")
 
 jobs: dict = {}
+_jobs_lock = threading.Lock()
 
 # ── Active process registry — used to kill yt-dlp+ffmpeg trees on cancel/quit ─
 # Maps job_id → proc. Maintained by run_download; cleared when proc exits.
 _active_procs: dict = {}
 _active_procs_lock  = threading.Lock()
+
+# ── Jobs cleanup — remove stale completed entries after ~10 minutes ───────────
+def _jobs_cleanup_worker():
+    """Background thread: sweep jobs dict every 60s and evict entries that
+    have been in a terminal state for over 10 minutes. Prevents unbounded
+    growth during long playlist sessions."""
+    TERMINAL = {"done", "error", "cancelled"}
+    MAX_AGE  = 600  # seconds
+    while True:
+        time.sleep(60)
+        now = time.time()
+        with _jobs_lock:
+            stale = [jid for jid, j in list(jobs.items())
+                     if j.get("status") in TERMINAL
+                     and now - j.get("_finished_at", now) > MAX_AGE]
+            for jid in stale:
+                jobs.pop(jid, None)
+
+threading.Thread(target=_jobs_cleanup_worker, daemon=True, name="jobs-cleanup").start()
+
+# ── Friendly error messages ───────────────────────────────────────────────────
+_ERROR_MAP = [
+    (_re.compile(r"Sign in to confirm|bot|login required",            _re.I), "YouTube requires sign-in for this video. Try adding cookies in Settings."),
+    (_re.compile(r"Private video",                                     _re.I), "This video is private."),
+    (_re.compile(r"Video unavailable|has been removed|no longer",     _re.I), "This video is unavailable or has been removed."),
+    (_re.compile(r"Requested format is not available|format.*not.*available", _re.I), "The selected quality isn't available. Try a different format."),
+    (_re.compile(r"Unable to extract|Could not extract",              _re.I), "Could not extract video info. The page may have changed."),
+    (_re.compile(r"HTTP Error 403",                                    _re.I), "Access denied (403). This video may be region-locked or require login."),
+    (_re.compile(r"HTTP Error 404",                                    _re.I), "Video not found (404). The URL may be incorrect or the video deleted."),
+    (_re.compile(r"HTTP Error 429|Too many requests",                 _re.I), "Too many requests. Please wait a moment before trying again."),
+    (_re.compile(r"This live event will begin|premiere",              _re.I), "This video is a scheduled premiere and hasn't started yet."),
+    (_re.compile(r"members.only|membership required",                 _re.I), "This video is for channel members only."),
+]
+
+def _friendly_error(raw: str) -> str:
+    for pattern, friendly in _ERROR_MAP:
+        if pattern.search(raw):
+            return friendly
+    return raw
 
 def _kill_proc(proc: subprocess.Popen) -> None:
     """Kill a yt-dlp process and its entire child tree (including ffmpeg).
@@ -227,13 +268,14 @@ def _build_audio_formats(info):
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
 # ── Download worker ────────────────────────────────────────────────────────────
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320"):
     job     = jobs[job_id]
     out_dir = Path(download_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
 
     args = ["--no-playlist", "--no-check-formats", "--ignore-no-formats-error",
+            "--retries", "5", "--fragment-retries", "5",
             "-o", out_tmpl]
 
     # Parallel fragment downloads — speeds up individual video downloads on fast connections
@@ -241,7 +283,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         args += ["--concurrent-fragments", str(concurrent_fragments)]
 
     if format_choice == "audio":
-        args += ["-x", "--audio-format", "mp3"]
+        # audio_quality: "128", "192", "320" (kbps MP3) or "flac" (lossless)
+        if audio_quality == "flac":
+            args += ["-x", "--audio-format", "flac"]
+        else:
+            q = audio_quality if audio_quality in ("128", "192", "320") else "320"
+            args += ["-x", "--audio-format", "mp3",
+                     "--postprocessor-args", f"ffmpeg:-b:a {q}k"]
         if format_id: args += ["-f", format_id]
     else:
         args += ["--merge-output-format", "mp4"]
@@ -273,7 +321,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # ffmpeg writes extensively to stderr during audio conversion — if nobody
         # reads it the OS pipe buffer fills (~64KB), ffmpeg blocks, yt-dlp blocks,
         # and our stdout loop waits forever (process never exits).
-        stderr_lines = []
+        # Cap at 200 lines — only the last line matters for error reporting.
+        stderr_lines = deque(maxlen=200)
         def _drain_stderr():
             for l in proc.stderr:
                 stderr_lines.append(l)
@@ -284,6 +333,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # [download]  47.3% of 1.23GiB at 2.34MiB/s ETA 00:30
         pct_re   = _re.compile(r"\[download\]\s+([\d.]+)%")
         speed_re = _re.compile(r"at\s+([\d.]+\s*[KMG]iB/s)")
+        eta_re   = _re.compile(r"ETA\s+(\d+:\d+)")
+        size_re  = _re.compile(r"of\s+([\d.]+\s*[KMGiB]+)")
         for line in proc.stdout:
             line = line.rstrip()
             # Detect merge/convert phase — no percentage available from yt-dlp
@@ -296,6 +347,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 job["progress"] = float(m.group(1))
                 sm = speed_re.search(line)
                 job["speed"] = sm.group(1).strip() if sm else ""
+                em = eta_re.search(line)
+                if em: job["eta"] = em.group(1)
+                szm = size_re.search(line)
+                if szm: job["filesize"] = szm.group(1).strip()
 
         proc.wait()
         stderr_thread.join()
@@ -310,18 +365,23 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             # proc is dead — now safe to clean up partial files
             _cleanup(job_id, out_dir)
             job["status"] = "cancelled"
+            job["_finished_at"] = time.time()
             return
 
         if proc.returncode != 0:
             err = [l for l in stderr_data.strip().splitlines()
                    if l.strip() and not l.strip().startswith("WARNING")]
-            job["status"] = "error"; job["error"] = err[-1] if err else stderr_data.strip(); return
+            raw_err = err[-1] if err else stderr_data.strip()
+            job["status"] = "error"
+            job["error"]  = _friendly_error(raw_err)
+            job["_finished_at"] = time.time()
+            return
 
         files = glob.glob(str(out_dir / f"{job_id}.*"))
         if not files:
             job["status"] = "error"; job["error"] = "No output file found."; return
 
-        want      = ".mp3" if format_choice == "audio" else ".mp4"
+        want      = ".flac" if (format_choice == "audio" and audio_quality == "flac") else ".mp3" if format_choice == "audio" else ".mp4"
         preferred = [f for f in files if f.endswith(want)]
         chosen    = preferred[0] if preferred else files[0]
         for f in files:
@@ -342,11 +402,14 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["status"]   = "done"
         job["file"]     = str(final_path)
         job["filename"] = final_path.name
+        job["_finished_at"] = time.time()
 
     except Exception as e:
         with _active_procs_lock:
             _active_procs.pop(job_id, None)
-        job["status"] = "error"; job["error"] = str(e)
+        job["status"] = "error"
+        job["error"]  = _friendly_error(str(e))
+        job["_finished_at"] = time.time()
 
 def _cleanup(job_id, out_dir):
     for f in glob.glob(str(Path(out_dir) / f"{job_id}.*")):
@@ -411,6 +474,15 @@ def start_download():
     if not url: return jsonify({"error": "No URL provided"}), 400
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
+
+    # Traversal guard: warn if path looks like a system directory
+    _SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/sys", "/proc",
+                     "C:\\Windows", "C:\\Program Files", "C:\\System32")
+    dl_str = str(dl_dir).rstrip("/\\")
+    for root in _SYSTEM_ROOTS:
+        if dl_str.lower().startswith(root.lower()):
+            return jsonify({"error": f"Download directory '{dl_dir}' looks like a system path. Please choose a different folder."}), 400
+
     jobs[job_id] = {"status": "queued", "url": url,
                     "title": data.get("title",""), "proc": None, "cancelled": False,
                     "download_dir": dl_dir}
@@ -418,7 +490,8 @@ def start_download():
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
-                           int(data.get("concurrent_fragments") or 1)),
+                           int(data.get("concurrent_fragments") or 1),
+                           data.get("audio_quality") or "320"),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -445,7 +518,8 @@ def check_status(job_id):
     status = job["status"]
     resp = {"status": status, "error": job.get("error"),
             "filename": job.get("filename"), "progress": job.get("progress", 0),
-            "speed": job.get("speed", "")}
+            "speed": job.get("speed", ""), "eta": job.get("eta", ""),
+            "filesize": job.get("filesize", "")}
     # Remove completed jobs from memory once the UI has consumed the result.
     if status in ("done", "error", "cancelled") and job.get("_ack"):
         jobs.pop(job_id, None)
@@ -457,24 +531,29 @@ def check_status(job_id):
 def get_settings():
     s = _load_settings()
     return jsonify({
-        "last_folder": s.get("last_folder", ""),
-        "concurrency":    s.get("concurrency", 6),
-        "fragments":      s.get("fragments", 4),
-        "settings_open":  s.get("settings_open", True),
-        "upd_open":       s.get("upd_open", False),
-        "ck_open":        s.get("ck_open", False),
-        "quit_on_done":   s.get("quit_on_done", False),
+        "last_folder":       s.get("last_folder", ""),
+        "concurrency":       s.get("concurrency", 6),
+        "fragments":         s.get("fragments", 4),
+        "settings_open":     s.get("settings_open", True),
+        "upd_open":          s.get("upd_open", False),
+        "ck_open":           s.get("ck_open", False),
+        "quit_on_done":      s.get("quit_on_done", False),
+        "flask_port":        s.get("flask_port", 8899),
+        "last_seen_version": s.get("last_seen_version", ""),
     })
 
 @app.route("/api/settings/save", methods=["POST"])
 def save_settings():
     data = request.json or {}
+    ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
+               "upd_open", "ck_open", "quit_on_done", "flask_port",
+               "last_seen_version", "window_bounds", "window_maximized"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
             try: Path(folder).mkdir(parents=True, exist_ok=True)
             except Exception: pass
-    _save_settings({k: v for k, v in data.items()})
+    _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
 @app.route("/api/open-folder", methods=["POST"])
@@ -796,6 +875,9 @@ def download_update():
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     if not zip_url:
         return jsonify({"error": "No zip URL provided"}), 400
+    # SSRF guard: only allow downloads from the official distribution server
+    if not zip_url.startswith("https://egerena.com/"):
+        return jsonify({"error": "Invalid update URL"}), 400
     try:
         import pyzipper
     except ImportError:
@@ -828,6 +910,59 @@ def download_update():
         except Exception: pass
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/cache/clear", methods=["POST"])
+def cache_clear():
+    """Clear temp update files and orphaned partial download files."""
+    cleared = []
+    try:
+        if UPDATE_TMP_DIR.exists():
+            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
+            cleared.append("update cache")
+    except Exception: pass
+    try:
+        last_folder = _load_settings().get("last_folder", "")
+        if last_folder:
+            dl_path = Path(last_folder)
+            if dl_path.is_dir():
+                for pattern in ("*.part", "*.ytdl", "*.f*.mp4", "*.f*.webm"):
+                    for f in dl_path.glob(pattern):
+                        try: f.unlink(); cleared.append(f.name)
+                        except Exception: pass
+    except Exception: pass
+    return jsonify({"ok": True, "cleared": cleared})
+
+@app.route("/api/settings/reset", methods=["POST"])
+def settings_reset():
+    """Reset all settings to defaults — keeps downloads and history."""
+    try:
+        SETTINGS_FILE.write_text("{}", encoding="utf-8")
+        global _settings_cache
+        with _settings_lock:
+            _settings_cache = {}
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/ffmpeg/reinstall", methods=["POST"])
+def ffmpeg_reinstall():
+    """Delete ffmpeg binaries so they are re-downloaded on next launch."""
+    try:
+        for f in FFMPEG_DIR.glob("*"):
+            try: f.unlink()
+            except Exception: pass
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route("/api/deno/reinstall", methods=["POST"])
+def deno_reinstall():
+    """Delete Deno binary so it is reinstalled on next launch."""
+    try:
+        if DENO_EXE.exists(): DENO_EXE.unlink()
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Clean shutdown requested by Electron before-quit.
@@ -853,9 +988,23 @@ if __name__ == "__main__":
             shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
     except Exception:
         pass
+
+    # Clean up any orphaned .part and .ytdl files left by a crashed session
+    try:
+        last_folder = _load_settings().get("last_folder", "")
+        if last_folder:
+            dl_path = Path(last_folder)
+            if dl_path.is_dir():
+                for pattern in ("*.part", "*.ytdl", "*.f*.mp4", "*.f*.webm"):
+                    for f in dl_path.glob(pattern):
+                        try: f.unlink()
+                        except Exception: pass
+    except Exception:
+        pass
+
     ensure_ffmpeg()
-    port = int(os.environ.get("PORT", 8899))
-    host = os.environ.get("HOST", "127.0.0.1")
+    port = int(_load_settings().get("flask_port", os.environ.get("PORT", 8899)))
+    host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host,port=port,use_reloader=False),
                      daemon=True, name="flask").start()
 

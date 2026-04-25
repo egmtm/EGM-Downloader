@@ -156,28 +156,32 @@ def update_root_app_py(v, b, dry_run):
 
 def update_root_index_html(v, b, date, time_str, dry_run):
     path = ROOT / "templates" / "index.html"
-    tooltip = f"v{v} - Build {b} - {date} {time_str}"
 
     patch(path, "templates/index.html -> <title>",
           r'(<title>EGM Downloader )v[\d.]+(</title>)',
           rf'\g<1>v{v}\g<2>', dry_run)
 
+    # version-badge title attr — simplified (no build# shown to users)
     patch(path, "templates/index.html -> version-badge title=",
           r'(id="version-badge"[^>]*?title=")[^"]*(")',
-          rf'\g<1>{tooltip}\g<2>', dry_run, flags=re.DOTALL)
+          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
+    # data-build-title attr
     patch(path, "templates/index.html -> data-build-title=",
           r'(data-build-title=")[^"]*(")',
-          rf'\g<1>{tooltip}\g<2>', dry_run)
+          rf'\g<1>v{v}\g<2>', dry_run)
 
+    # version-badge visible text
     patch(path, "templates/index.html -> version-badge text",
           r'(id="version-badge"[^>]*>)v[\d.]+(<)',
           rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
+    # footer span title attr — matches simplified title="vX.XX" or old long format
     patch(path, "templates/index.html -> footer span title=",
-          r'(cursor:help[^>]*title=")v[\d.]+ - Build \d+ - [^"]*(")',
-          rf'\g<1>{tooltip}\g<2>', dry_run)
+          r'(cursor:help[^>]*title=")[^"]*(")',
+          rf'\g<1>v{v}\g<2>', dry_run)
 
+    # footer span visible text
     patch(path, "templates/index.html -> footer span text",
           r'(cursor:help[^>]*>[^<]*)v[\d.]+(</span>)',
           rf'\g<1>v{v}\g<2>', dry_run)
@@ -205,25 +209,31 @@ def update_linux_app_py(v, b, dry_run):
 
 def update_linux_index_html(v, b, date, time_str, dry_run):
     path = ROOT / "linux" / "templates" / "index.html"
-    tooltip = f"v{v} - Build {b} - {date} {time_str}"
 
     # <title> tag
     patch(path, "linux/templates/index.html -> <title>",
           r'(<title>EGM Downloader )v[\d.]+(</title>)',
           rf'\g<1>v{v}\g<2>', dry_run)
 
-    # Linux has TWO identical `title="v... - Build ... - ..."` attributes:
-    # one on the header span and one on the footer span. count=0 = replace all.
-    patch(path, "linux/templates/index.html -> build-tooltip title= attrs",
-          r'title="v[\d.]+ - Build \d+ - [^"]*"',
-          rf'title="{tooltip}"', dry_run, count=0)
+    # version-badge title attr (Linux now has id="version-badge")
+    patch(path, "linux/templates/index.html -> version-badge title=",
+          r'(id="version-badge"[^>]*?title=")[^"]*(")',
+          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
-    # Linux has TWO `>v0.xx</span>` visible spans (header + footer).
-    # Match any tooltip-bearing span whose visible content is "v<digits>".
-    # Uses the nearby cursor:help marker which is present on both spans.
-    patch(path, "linux/templates/index.html -> visible version spans",
-          r'(cursor:help[^>]*>)v[\d.]+(</span>)',
-          rf'\g<1>v{v}\g<2>', dry_run, count=0)
+    # version-badge visible text
+    patch(path, "linux/templates/index.html -> version-badge text",
+          r'(id="version-badge"[^>]*>)v[\d.]+(<)',
+          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
+
+    # footer span title attr
+    patch(path, "linux/templates/index.html -> footer span title=",
+          r'(cursor:help[^>]*title=")[^"]*(")',
+          rf'\g<1>v{v}\g<2>', dry_run)
+
+    # footer span visible text
+    patch(path, "linux/templates/index.html -> footer span text",
+          r'(cursor:help[^>]*>[^<]*)v[\d.]+(</span>)',
+          rf'\g<1>v{v}\g<2>', dry_run)
 
 
 def update_linux_package_json(v, dry_run):
@@ -245,8 +255,17 @@ def update_linux_instructions(v, dry_run):
 # Platform updaters -- MAC
 # --------------------------------------------------------------------------
 
-def update_mac_package_json(v, dry_run):
-    # Mac package.json has TWO version fields: top-level "version" and
+def update_mac_app_py(v, b, dry_run):
+    path = ROOT / "mac" / "app.py"
+    patch(path, "mac/app.py -> APP_VERSION",
+          r'(APP_VERSION\s*=\s*")[^"]*(")',
+          rf'\g<1>{v}\g<2>', dry_run)
+    patch(path, "mac/app.py -> APP_BUILD",
+          r'(APP_BUILD\s*=\s*)\d+',
+          rf'\g<1>{b}', dry_run)
+
+
+def update_mac_package_json(v, dry_run):    # Mac package.json has TWO version fields: top-level "version" and
     # build.buildVersion (used by electron-builder for CFBundleVersion).
     path = ROOT / "mac" / "electron" / "package.json"
 
@@ -341,6 +360,7 @@ def main():
     update_linux_instructions(new_version, args.dry_run)
 
     print("\n-- Mac ---------------------------------------------------")
+    update_mac_app_py(new_version, new_build, args.dry_run)
     update_mac_package_json(new_version, args.dry_run)
     update_mac_build_sh(new_version, args.dry_run)
 
