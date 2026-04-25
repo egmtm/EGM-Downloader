@@ -3,7 +3,7 @@
 ![Version Sync](https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg)
 ![Python Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg)
 ![JavaScript Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
 ![Electron](https://img.shields.io/badge/Electron-29.0+-47848F?logo=electron&logoColor=white)
 
@@ -352,13 +352,14 @@ Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 
 
 ## 📜 License
 
-This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
 
 **What this means:**
-- ✅ Commercial use allowed
-- ✅ Modification allowed
-- ✅ Distribution allowed
-- ✅ Private use allowed
+- ✅ Free for personal and non-commercial use
+- ✅ Modification allowed (must share modifications)
+- ✅ Distribution allowed (must include source code)
+- ✅ Patent protection included
+- ⚠️ Network use triggers copyleft (modifications must be shared)
 - ⚠️ Liability and warranty not provided
 
 ---
@@ -401,12 +402,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 ## 🗺️ Roadmap
 
 **Planned Features:**
-- 🎨 Light theme option
 - 🌍 Multi-language support
 - 📊 Download statistics/history
-- 🔔 Download completion notifications
-- ⚙️ Advanced format/codec selection
-- 🎯 Browser extension
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
@@ -418,7 +415,7 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 - **Build:** 96
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
-- **License:** MIT
+- **License:** AGPL-3.0
 - **Language:** Python + JavaScript
 
 ---
