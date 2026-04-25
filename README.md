@@ -27,7 +27,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple videos and audio files, download them all at once
 - 🎨 **Beautiful Dark Interface** - Sleek black and gold design
-- 🌓 **Theme Toggle** - Switch between Dark (default) and Light (Cool Slate) modes instantly
+- 🎨 **6 Themes** - Void (dark default), Eclipse, Ghost, Frost, Bone, Haze with smooth 0.2s transitions
 - 🔄 **Auto-Updates** - Built-in update checker keeps you current (Windows/Mac)
 - 📝 **Custom Filenames** - Edit filenames before downloading
 - 🛠️ **Plugin Updates** - Update yt-dlp and ffmpeg without reinstalling
