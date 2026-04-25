@@ -22,6 +22,7 @@ v0.95 - Build 97 (4/25/2026 3:32 PM EST)
   • [MAC] Splash window nodeIntegration hardened to false + contextIsolation true
   • [LINUX] Splash window nodeIntegration hardened to false + contextIsolation true
 
+
 v0.94 - Build 96 (4/25/2026 9:30 AM EST)
 -----------------------------------------
   • [ALL] Light theme added — Cool Slate palette, toggleable via moon/sun button in header top-right. Preference saved via localStorage and restored on next launch. Dark mode remains the default.
