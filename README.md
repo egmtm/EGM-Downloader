@@ -1,15 +1,21 @@
-# EGM Downloader
+<div align="center">
+  <img src=".github/images/logo-512.png" alt="EGM Downloader Logo" width="180"/>
+  
+  <h1>EGM Downloader</h1>
+  
+  <p>
+    <img src="https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg" alt="Version Sync"/>
+    <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg" alt="Python Lint"/>
+    <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
+    <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
+    <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"/>
+    <img src="https://img.shields.io/badge/Electron-29.0+-47848F?logo=electron&logoColor=white" alt="Electron"/>
+  </p>
 
-![Version Sync](https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg)
-![Python Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg)
-![JavaScript Lint](https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg)
-[![License: AGPL-3.0](https://img.shields.io/badge/License-AGPL_3.0-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
-![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)
-![Electron](https://img.shields.io/badge/Electron-29.0+-47848F?logo=electron&logoColor=white)
-
-**A powerful, multi-platform video and audio downloader for 1000+ websites.**
-
-Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.
+  <p><strong>A powerful, multi-platform video and audio downloader for 1000+ websites.</strong></p>
+  
+  <p>Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.</p>
+</div>
 
 ---
 
