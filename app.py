@@ -968,6 +968,27 @@ def deno_reinstall():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+# ── Show-window signal (Windows tray) ────────────────────────────────────────
+# launch.py POSTs /api/show-window when the user launches the shortcut while
+# the app is already running. main.js polls /api/show-window-check every 500ms
+# and shows the window when the flag is set. This avoids spawning a second
+# Electron process and prevents the Tkinter "launching" splash from appearing.
+_show_window_flag = threading.Event()
+
+@app.route("/api/show-window", methods=["POST"])
+def show_window():
+    """Signal from launch.py — app already running, bring window to front."""
+    _show_window_flag.set()
+    return jsonify({"ok": True})
+
+@app.route("/api/show-window-check")
+def show_window_check():
+    """Polled by main.js every 500ms — returns show:true once, then clears."""
+    if _show_window_flag.is_set():
+        _show_window_flag.clear()
+        return jsonify({"show": True})
+    return jsonify({"show": False})
+
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Clean shutdown requested by Electron before-quit.
