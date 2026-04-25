@@ -409,7 +409,7 @@ EGM-Downloader/
 
 - **version.json** - Master version/build record (NEVER edit manually)
 - **patchnotes.txt** - User-facing changelog
-- **LICENSE** - MIT License
+- **LICENSE** - AGPL-3.0 License
 - **README.md** - Main documentation
 - **CONTRIBUTING.md** - This file
 
