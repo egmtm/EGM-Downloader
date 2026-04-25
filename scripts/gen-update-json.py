@@ -55,6 +55,7 @@ Typical Workflow:
 """
 
 import json
+import re
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -65,8 +66,9 @@ try:
 except ImportError:
     _tz = None
 
-ROOT = Path(__file__).parent.parent
-DIST = ROOT / "dist"
+ROOT      = Path(__file__).parent.parent
+DIST      = ROOT / "dist"
+PATCHNOTES = ROOT / "patchnotes.txt"
 
 
 def load_version():
@@ -83,6 +85,60 @@ def now_iso():
 
 def build_label(data):
     return f"v{data['version']} - Build {data['build']} - {data['date']} {data['time']}"
+
+
+def parse_history(platform, max_versions=5):
+    """Parse patchnotes.txt and return the last N version blocks filtered by platform.
+
+    Only parses entries using the tagged bullet format (v0.93+):
+        v0.94 - Build 96 (4/25/2026 9:30 AM EST)
+        -----------------------------------------
+          • [ALL] description
+          • [WINDOWS] description
+
+    Older entries without tags are skipped (no tagged bullets → nothing added).
+    Returns newest-first list of {"version", "date", "notes"} dicts.
+    """
+    try:
+        text = PATCHNOTES.read_text(encoding="utf-8")
+    except Exception:
+        return []
+
+    platform_tag = platform.upper()       # WINDOWS, MAC, LINUX
+    header_re = re.compile(
+        r'^v(\d+\.\d+(?:\.\d+)?)\s+-\s+Build\s+\d+\s+\(([^)]+)\)'
+    )
+    bullet_re = re.compile(
+        r'^\s+•\s+\[(ALL|WINDOWS|MAC|LINUX)\]\s+(.+)$'
+    )
+
+    blocks   = []
+    current  = None
+
+    for line in text.splitlines():
+        # Check for a version header line
+        m = header_re.match(line.strip())
+        if m:
+            # Save previous block if it had any matching bullets
+            if current is not None and current["notes"]:
+                blocks.append(current)
+            current = {"version": m.group(1), "date": m.group(2), "notes": []}
+            continue
+
+        if current is not None:
+            bm = bullet_re.match(line)
+            if bm:
+                tag  = bm.group(1)   # ALL | WINDOWS | MAC | LINUX
+                note = bm.group(2).strip()
+                if tag in ("ALL", platform_tag):
+                    current["notes"].append(note)
+
+    # Flush the last block
+    if current is not None and current["notes"]:
+        blocks.append(current)
+
+    # patchnotes.txt is newest-first — return up to max_versions
+    return blocks[:max_versions]
 
 
 def write_json(filename, payload, dry_run, label):
@@ -102,6 +158,7 @@ def gen_windows(data, notes, dry_run):
     return write_json(p["updateJson"], {
         "_comment":       "EGM Downloader Windows update feed. Upload to egerena.com/apps/egm-version.json",
         "_version_notes": notes,
+        "_history":       parse_history("windows"),
         "_last_updated":  now_iso(),
         "version":        data["version"],
         "build":          data["build"],
@@ -117,6 +174,7 @@ def gen_mac(data, notes, dry_run):
     return write_json(p["updateJson"], {
         "_comment":       "EGM Downloader Mac update feed. Upload to egerena.com/apps/egmac-update.json",
         "_version_notes": notes,
+        "_history":       parse_history("mac"),
         "_last_updated":  now_iso(),
         "version":        data["version"],
         "build":          data["build"],
@@ -131,6 +189,7 @@ def gen_linux(data, notes, dry_run):
     return write_json(p["updateJson"], {
         "_comment":       "EGM Downloader Linux — informational, no auto-update. Upload to egerena.com/apps/egmlinux-update.json",
         "_version_notes": notes,
+        "_history":       parse_history("linux"),
         "_last_updated":  now_iso(),
         "version":        data["version"],
         "build":          data["build"],
