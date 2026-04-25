@@ -21,6 +21,7 @@ Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Faceb
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple videos and audio files, download them all at once
 - 🎨 **Beautiful Dark Interface** - Sleek black and gold design
+- 🌓 **Theme Toggle** - Switch between Dark (default) and Light (Cool Slate) modes instantly
 - 🔄 **Auto-Updates** - Built-in update checker keeps you current (Windows/Mac)
 - 📝 **Custom Filenames** - Edit filenames before downloading
 - 🛠️ **Plugin Updates** - Update yt-dlp and ffmpeg without reinstalling
@@ -243,9 +244,9 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows  | ✅ Live | Build 94 | EGMd.zip | ✅ Yes |
-| macOS    | ✅ Live | Build 94 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 94 | EGMdL.zip | ❌ Manual |
+| Windows  | ✅ Live | Build 96 | EGMd.zip | ✅ Yes |
+| macOS    | ✅ Live | Build 96 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 96 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
