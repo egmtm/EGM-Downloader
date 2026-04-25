@@ -30,8 +30,8 @@ else:
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.93"
-APP_BUILD             = 94
+APP_VERSION           = "0.94"
+APP_BUILD             = 96
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 APP_UPDATE_PASSWORD   = "EGMsterling"
