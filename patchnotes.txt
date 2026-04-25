@@ -2,6 +2,8 @@ v0.94 - Build 96 (4/25/2026 9:30 AM EST)
 -----------------------------------------
   • [ALL] Light theme added — Cool Slate palette, toggleable via moon/sun button in header top-right. Preference saved via localStorage and restored on next launch. Dark mode remains the default.
   • [ALL] All hardcoded surface/button/overlay colors moved to CSS variables — both themes respect every UI element including thumbnails, modals, log panel, and status badges.
+  • [MAC] Settings persistence fixed — download folder, cookies, and Deno now stored in ~/Library/Application Support/EGM Downloader/ and survive app updates.
+  • [MAC] App update flow improved — after downloading the update, the DMG is auto-mounted and a Finder window opens so the user only needs to drag EGM Downloader to Applications.
 
 v0.93 - Build 94 (4/24/2026 8:55 AM EST)
 ----------------------------------------
