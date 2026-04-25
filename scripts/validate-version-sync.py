@@ -111,20 +111,21 @@ def check_root_index_html(v, b, date, time):
     if content is None:
         return errors
 
-    tooltip = f"v{v} - Build {b} - {date} {time}"
-
+    # <title> tag
     m = re.search(r'<title>EGM Downloader v([\d.]+)</title>', content)
     if not m:
         errors.append(f"{rel}: <title> tag not found")
     elif m.group(1) != v:
         errors.append(f"{rel}: <title> is 'v{m.group(1)}', expected 'v{v}'")
 
+    # version-badge title= — simplified (no build# shown to users)
     m = re.search(r'id="version-badge"[^>]*?title="([^"]*)"', content, re.DOTALL)
     if not m:
         errors.append(f"{rel}: version-badge title= not found")
-    elif m.group(1) != tooltip:
-        errors.append(f"{rel}: version-badge title is '{m.group(1)}', expected '{tooltip}'")
+    elif m.group(1) != f"v{v}":
+        errors.append(f"{rel}: version-badge title is '{m.group(1)}', expected 'v{v}'")
 
+    # version-badge visible text
     m = re.search(r'id="version-badge"[^>]*>v([\d.]+)<', content, re.DOTALL)
     if not m:
         errors.append(f"{rel}: version-badge visible text not found")
@@ -169,29 +170,34 @@ def check_linux_index_html(v, b, date, time):
     if content is None:
         return errors
 
-    tooltip = f"v{v} - Build {b} - {date} {time}"
-
+    # <title> tag
     m = re.search(r'<title>EGM Downloader v([\d.]+)</title>', content)
     if not m:
         errors.append(f"{rel}: <title> tag not found")
     elif m.group(1) != v:
         errors.append(f"{rel}: <title> is 'v{m.group(1)}', expected 'v{v}'")
 
-    # All build-tooltip title= attrs must match the expected tooltip.
-    all_tooltips = re.findall(r'title="(v[\d.]+ - Build \d+ - [^"]*)"', content)
-    if not all_tooltips:
-        errors.append(f"{rel}: no build-tooltip title= attributes found")
-    for t in all_tooltips:
-        if t != tooltip:
-            errors.append(f"{rel}: tooltip '{t}' does not match expected '{tooltip}'")
+    # version-badge title= (Linux now has id="version-badge", simplified format)
+    m = re.search(r'id="version-badge"[^>]*?title="([^"]*)"', content, re.DOTALL)
+    if not m:
+        errors.append(f"{rel}: version-badge title= not found")
+    elif m.group(1) != f"v{v}":
+        errors.append(f"{rel}: version-badge title is '{m.group(1)}', expected 'v{v}'")
 
-    # All cursor:help visible spans should show the current version.
+    # version-badge visible text
+    m = re.search(r'id="version-badge"[^>]*>v([\d.]+)<', content, re.DOTALL)
+    if not m:
+        errors.append(f"{rel}: version-badge visible text not found")
+    elif m.group(1) != v:
+        errors.append(f"{rel}: version-badge text is 'v{m.group(1)}', expected 'v{v}'")
+
+    # footer cursor:help span version
     span_versions = re.findall(r'cursor:help[^>]*>v([\d.]+)</span>', content)
     if not span_versions:
-        errors.append(f"{rel}: no visible version spans found")
+        errors.append(f"{rel}: no footer cursor:help version span found")
     for sv in span_versions:
         if sv != v:
-            errors.append(f"{rel}: visible span shows 'v{sv}', expected 'v{v}'")
+            errors.append(f"{rel}: footer span shows 'v{sv}', expected 'v{v}'")
 
     return errors
 

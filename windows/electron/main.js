@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, nativeImage } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, nativeImage, screen } = require('electron');
 const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -9,6 +9,67 @@ const os   = require('os');
 const PORT    = 8899;
 const HOST    = '127.0.0.1';
 const APP_URL = `http://${HOST}:${PORT}`;
+
+// ── Settings file (same location as app.py BASE_DIR) ─────────────────────────
+const SETTINGS_FILE = path.join(__dirname, '..', 'egm_settings.json');
+
+function loadSettings() {
+  try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')); }
+  catch { return {}; }
+}
+
+function saveSettings(patch) {
+  try {
+    const s = loadSettings();
+    Object.assign(s, patch);
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2), 'utf8');
+  } catch {}
+}
+
+// ── Window state helpers ──────────────────────────────────────────────────────
+const DEFAULT_BOUNDS = { width: 920, height: 780 };
+
+function isOnScreen(bounds) {
+  return screen.getAllDisplays().some(d => {
+    const { x, y, width, height } = d.workArea;
+    // Allow 50px tolerance for partially off-screen windows
+    return bounds.x >= x - 50 && bounds.y >= y - 50 &&
+           bounds.x + bounds.width  <= x + width  + 50 &&
+           bounds.y + bounds.height <= y + height + 50;
+  });
+}
+
+function loadWindowState() {
+  const s = loadSettings();
+  return {
+    bounds:    s.window_bounds    || null,
+    maximized: s.window_maximized || false,
+  };
+}
+
+function saveWindowState() {
+  if (!mainWindow) return;
+  const maximized = mainWindow.isMaximized();
+  // Only save bounds when not maximized — maximized bounds are the full screen
+  const bounds = maximized ? loadWindowState().bounds : mainWindow.getBounds();
+  saveSettings({ window_bounds: bounds, window_maximized: maximized });
+}
+
+function restoreWindowState() {
+  if (!mainWindow) return;
+  const { bounds, maximized } = loadWindowState();
+  if (maximized) {
+    mainWindow.maximize();
+  } else if (bounds && isOnScreen(bounds)) {
+    mainWindow.setBounds(bounds);
+  }
+}
+
+// ── Debounce ──────────────────────────────────────────────────────────────────
+function debounce(fn, delay) {
+  let timer;
+  return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), delay); };
+}
 
 let mainWindow  = null;
 let flaskProc   = null;
@@ -22,6 +83,7 @@ if (!gotLock) {
 }
 app.on('second-instance', () => {
   if (mainWindow) {
+    restoreWindowState();
     if (!mainWindow.isVisible()) mainWindow.show();
     mainWindow.focus();
   }
@@ -121,6 +183,7 @@ function createTray() {
       label: 'Open EGM Downloader',
       click: () => {
         if (!mainWindow) return;
+        restoreWindowState();
         mainWindow.show();
         mainWindow.focus();
       },
@@ -134,9 +197,10 @@ function createTray() {
 
   tray.setContextMenu(contextMenu);
 
-  // Left-click tray icon → show and focus (tray is secondary access point)
+  // Left-click tray icon → restore and show
   tray.on('click', () => {
     if (!mainWindow) return;
+    restoreWindowState();
     mainWindow.show();
     mainWindow.focus();
   });
@@ -147,9 +211,14 @@ async function createWindow() {
   const winIconPath = path.join(__dirname, '..', 'static', 'icon-512.png');
   const winIconOpts = fs.existsSync(winIconPath) ? { icon: winIconPath } : {};
 
+  // Load saved window state — use saved dimensions or defaults
+  const { bounds, maximized } = loadWindowState();
+  const initBounds = (bounds && isOnScreen(bounds))
+    ? { x: bounds.x, y: bounds.y, width: bounds.width, height: bounds.height }
+    : DEFAULT_BOUNDS;
+
   mainWindow = new BrowserWindow({
-    width:  920,
-    height: 780,
+    ...initBounds,
     minWidth:  700,
     minHeight: 560,
     title: 'EGM Downloader',
@@ -163,14 +232,28 @@ async function createWindow() {
     show: false,
   });
 
+  // Restore maximized state after window is created
+  if (maximized) mainWindow.maximize();
+
   mainWindow.setMenuBarVisibility(false);
 
   // Show window only when Flask page is ready — no blank loading screen
   mainWindow.once('ready-to-show', () => mainWindow.show());
 
-  // Minimize → normal OS behavior (no intercept)
-  // Close (X) → quit the app
-  mainWindow.on('close', () => { app.isQuitting = true; });
+  // Save window state on resize/move — debounced 500ms to avoid hammering disk
+  const debouncedSave = debounce(saveWindowState, 500);
+  mainWindow.on('resize', debouncedSave);
+  mainWindow.on('move',   debouncedSave);
+
+  // X button → hide to tray (downloads continue in background)
+  // Tray Quit → app.isQuitting = true → this interceptor does not fire
+  mainWindow.on('close', (e) => {
+    if (!app.isQuitting) {
+      e.preventDefault();
+      saveWindowState(); // save immediately before hiding
+      mainWindow.hide();
+    }
+  });
 
   // Wait for Flask to be ready, then load the page
   try {
@@ -262,9 +345,10 @@ app.whenReady().then(async () => {
   await createWindow(); // window polls until Flask responds, then loads
 });
 
-// All cleanup consolidated in before-quit — window-all-closed just triggers quit
+// Window is hidden to tray when X is pressed — window-all-closed should NOT
+// trigger app quit. Only tray Quit sets app.isQuitting and calls app.quit().
 app.on('window-all-closed', () => {
-  app.quit();
+  if (app.isQuitting) app.quit();
 });
 
 // Single cleanup point for every quit path (X button, tray Quit, crash)

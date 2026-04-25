@@ -1,3 +1,27 @@
+v0.95 - Build 97 (4/25/2026 3:32 PM EST)
+-----------------------------------------
+  • [ALL] New logo — Transmission Halo design, inline SVG using CSS variables; adapts automatically to every theme without any image files
+  • [ALL] 6 themes — Void (default), Eclipse (deep purple), Ghost (GitHub green), Frost (cool blue-gray light), Bone (warm cream light), Haze (green-gray light); replaces binary dark/light toggle
+  • [ALL] Smooth theme transitions — all elements fade in 0.2s; interactive elements 0.15s
+  • [ALL] Audio quality picker for bulk audio downloads — choose 128, 192, 320 kbps MP3 or FLAC before batch starts
+  • [ALL] ETA and file size now displayed in download cards during active downloads
+  • [ALL] Window size and position remembered across launches; restores correctly after monitor layout changes
+  • [ALL] Advanced settings panel (collapsed by default) — Flask port, clear cache, reset all settings, reinstall ffmpeg, reinstall Deno, export/import settings
+  • [ALL] What's New modal shown automatically once per version upgrade
+  • [ALL] Friendly error messages for common failures — private videos, region locks, 403/404/429, premiere, members-only
+  • [ALL] Orphaned .part and .ytdl files cleaned up automatically on launch
+  • [ALL] Jobs cleanup thread now correctly evicts terminal-state entries after 10 minutes
+  • [ALL] stderr capped at 200 lines (deque) — prevents unbounded memory growth during long downloads
+  • [ALL] 5 retries and 5 fragment-retries on all platforms (was already set on Windows)
+  • [ALL] Security: settings save route validates keys against a whitelist; unknown keys dropped
+  • [ALL] Security: download directory checked against system path list; system paths rejected
+  • [ALL] Security: HOST binding hardcoded to 127.0.0.1 — Flask never exposed to network
+  • [ALL] Security: update zip URL validated against egerena.com domain before download
+  • [ALL] Build numbers removed from all user-facing version displays
+  • [WINDOWS] X button minimizes to system tray — downloads continue in background; tray Quit exits cleanly
+  • [MAC] Splash window nodeIntegration hardened to false + contextIsolation true
+  • [LINUX] Splash window nodeIntegration hardened to false + contextIsolation true
+
 v0.94 - Build 96 (4/25/2026 9:30 AM EST)
 -----------------------------------------
   • [ALL] Light theme added — Cool Slate palette, toggleable via moon/sun button in header top-right. Preference saved via localStorage and restored on next launch. Dark mode remains the default.
