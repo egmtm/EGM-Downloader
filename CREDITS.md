@@ -237,7 +237,7 @@ To everyone who contributes to open source software - from bug reports to docume
 
 ## 📄 License Compliance
 
-EGM Downloader is released under the **MIT License**, which is compatible with all the dependencies listed above.
+EGM Downloader is released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, which is compatible with all the dependencies listed above.
 
 ### License Summary:
 - **MIT License:** Electron, Flask, Deno, bgutil, PyZipper, electron-builder, flake8, isort, ESLint, Node.js
@@ -246,7 +246,7 @@ EGM Downloader is released under the **MIT License**, which is compatible with a
 - **LGPL/GPL:** FFmpeg (dynamically linked, separate binary)
 - **Python Software Foundation License:** Python
 
-All licenses are compatible with the MIT License under which EGM Downloader is distributed.
+All licenses are compatible with the AGPL-3.0 License under which EGM Downloader is distributed.
 
 ---
 
