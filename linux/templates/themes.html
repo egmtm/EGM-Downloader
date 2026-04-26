@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>All Themes — EGM Downloader</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:#0b1120;--surf:#111c2e;--surf2:#182338;--surf3:#1e2d47;
+      --border:#243454;--border2:#2d4068;--acc:#3b82f6;--acc-h:#60a5fa;
+      --text:#e2e8f6;--text2:#8faecf;--muted:#3d5470;
+      --r:10px;--rs:7px;
+      --bg-texture:none;--bg-texture-opacity:0.18;
+    }
+    body::before {
+      content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
+      background-image:var(--bg-texture);opacity:var(--bg-texture-opacity);
+    }
+
+    body {
+      font-family:'Segoe UI',system-ui,sans-serif;
+      background:var(--bg);color:var(--text);
+      min-height:100vh;display:flex;flex-direction:column;
+      transition:background .2s,color .2s;
+      -webkit-app-region:no-drag;
+    }
+
+    /* ── Topbar ── */
+    .topbar {
+      display:flex;align-items:center;gap:10px;padding:10px 14px;
+      background:var(--surf);border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:10;-webkit-app-region:drag;
+    }
+    .topbar-title { font-size:.9rem;font-weight:600;color:var(--text);flex:1; }
+
+    input[type=search] {
+      -webkit-app-region:no-drag;
+      background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);
+      color:var(--text);font-size:.78rem;padding:5px 10px;width:180px;outline:none;
+    }
+    input[type=search]:focus { border-color:var(--acc); }
+    input[type=search]::placeholder { color:var(--muted); }
+
+    /* ── Category tabs ── */
+    .tabs {
+      display:flex;gap:3px;padding:8px 14px 0;
+      background:var(--surf);border-bottom:1px solid var(--border);
+      overflow-x:auto;-webkit-app-region:no-drag;
+    }
+    .tab {
+      font-size:.72rem;padding:4px 10px;border-radius:5px 5px 0 0;cursor:pointer;
+      color:var(--text2);background:transparent;border:none;white-space:nowrap;
+      transition:background .1s,color .1s;
+    }
+    .tab:hover { color:var(--text);background:var(--surf2); }
+    .tab.on { color:#fff;background:var(--acc);font-weight:500; }
+
+    /* ── Theme grid ── */
+    .grid {
+      display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+      gap:8px;padding:14px;position:relative;z-index:1;
+    }
+
+    .theme-card {
+      border:1px solid var(--border);border-radius:var(--rs);padding:8px;
+      cursor:pointer;display:flex;flex-direction:column;gap:5px;
+      background:var(--surf);transition:border-color .15s,transform .1s;
+    }
+    .theme-card:hover { border-color:var(--border2);transform:translateY(-1px); }
+    .theme-card.active {
+      border-color:var(--acc);border-width:2px;
+      box-shadow:0 0 0 1px var(--acc);
+    }
+
+    .swatches { display:flex;gap:2px; }
+    .swatch { flex:1;height:20px;border-radius:3px; }
+    .card-name {
+      font-size:.68rem;color:var(--text2);white-space:nowrap;
+      overflow:hidden;text-overflow:ellipsis;
+    }
+    .theme-card.active .card-name { color:var(--acc);font-weight:500; }
+
+    .seasonal-badge {
+      font-size:.5rem;opacity:.6;margin-left:2px;
+    }
+
+    .empty {
+      grid-column:1/-1;text-align:center;padding:40px;
+      color:var(--muted);font-size:.82rem;
+    }
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">All Themes</span>
+  <input type="search" id="search" placeholder="Search themes...">
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div class="grid" id="grid"></div>
+
+<script>
+const THEME_DATA = {
+  void:            {label:'Void',            bg:'#0b1120',surf:'#111c2e',acc:'#3b82f6',  cat:'dark'},
+  eclipse:         {label:'Eclipse',         bg:'#18161a',surf:'#241f28',acc:'#a855f7',  cat:'dark'},
+  ghost:           {label:'Ghost',           bg:'#0d1117',surf:'#161b22',acc:'#238636',  cat:'dark'},
+  frost:           {label:'Frost',           bg:'#cdd2da',surf:'#c2c8d2',acc:'#2563eb',  cat:'light'},
+  bone:            {label:'Bone',            bg:'#f5f0e8',surf:'#ede7d9',acc:'#2563eb',  cat:'light'},
+  haze:            {label:'Haze',            bg:'#d4d9d0',surf:'#c9d0c4',acc:'#2563eb',  cat:'light'},
+  kush:            {label:'Kush',            bg:'#0d1a0f',surf:'#152015',acc:'#5a9e3a',  cat:'dark'},
+  purplehaze:      {label:'Purple Haze',     bg:'#0e0818',surf:'#170e28',acc:'#9b5de5',  cat:'dark'},
+  sativa:          {label:'Sativa',          bg:'#edf5e8',surf:'#e2eedb',acc:'#2e7d32',  cat:'light'},
+  ogcream:         {label:'OG Cream',        bg:'#f5f0e5',surf:'#ede6d8',acc:'#8b6914',  cat:'light'},
+  abyssal:         {label:'Abyssal',         bg:'#010d18',surf:'#021525',acc:'#00b4d8',  cat:'nature'},
+  wildfire:        {label:'Wildfire',        bg:'#100600',surf:'#1c0a00',acc:'#f4511e',  cat:'nature'},
+  permafrost:      {label:'Permafrost',      bg:'#e8f4fb',surf:'#daeef8',acc:'#0277bd',  cat:'nature'},
+  canopy:          {label:'Canopy',          bg:'#021a08',surf:'#052e10',acc:'#2ecc71',  cat:'nature'},
+  magma:           {label:'Magma',           bg:'#0c0500',surf:'#1a0800',acc:'#ff6b00',  cat:'nature'},
+  monsoon:         {label:'Monsoon',         bg:'#0a0e14',surf:'#10161e',acc:'#4fc3f7',  cat:'nature'},
+  famicom:         {label:'Famicom',         bg:'#1a1a1a',surf:'#242424',acc:'#e60012',  cat:'consoles'},
+  dmg:             {label:'DMG',             bg:'#8bac0f',surf:'#9bbc0f',acc:'#0f380f',  cat:'consoles'},
+  dreamcast:       {label:'Dreamcast',       bg:'#0a0a12',surf:'#14141e',acc:'#f47321',  cat:'consoles'},
+  blastprocessing: {label:'Blast Processing',bg:'#000033',surf:'#000044',acc:'#cc0000',  cat:'consoles'},
+  ps1gray:         {label:'PS1 Gray',        bg:'#2a2a2e',surf:'#343438',acc:'#003791',  cat:'consoles'},
+  woodgrain:       {label:'Woodgrain',       bg:'#2a1a08',surf:'#3a2410',acc:'#cc8822',  cat:'consoles'},
+  spartan:         {label:'Spartan',         bg:'#0d1408',surf:'#151e0e',acc:'#7a9a30',  cat:'characters'},
+  hylian:          {label:'Hylian',          bg:'#0c1a08',surf:'#142410',acc:'#d4a012',  cat:'characters'},
+  varia:           {label:'Varia',           bg:'#0e0a04',surf:'#1a1208',acc:'#f4a020',  cat:'characters'},
+  cobaltrush:      {label:'Cobalt Rush',     bg:'#000a2e',surf:'#001040',acc:'#2979ff',  cat:'characters'},
+  'ghostofspartа': {label:'Ghost of Sparta', bg:'#0e0202',surf:'#180404',acc:'#cc0000',  cat:'characters'},
+  whitewolf:       {label:'White Wolf',      bg:'#0a0a0a',surf:'#141414',acc:'#c8c8c8',  cat:'characters'},
+  zion:            {label:'Zion',            bg:'#000800',surf:'#001000',acc:'#00ff41',  cat:'movies'},
+  twentyfortynine: {label:'2049',            bg:'#080410',surf:'#10081c',acc:'#e8a020',  cat:'movies'},
+  thegrid:         {label:'The Grid',        bg:'#020814',surf:'#040e20',acc:'#00e5ff',  cat:'movies'},
+  furyroad:        {label:'Fury Road',       bg:'#140a00',surf:'#1e1000',acc:'#e8780a',  cat:'movies'},
+  thedon:          {label:'The Don',         bg:'#0a0004',surf:'#120008',acc:'#9a1030',  cat:'movies'},
+  hal:             {label:'HAL',             bg:'#f0f4f8',surf:'#e4eaf0',acc:'#cc0000',  cat:'movies'},
+  vhs:             {label:'VHS',             bg:'#0a0010',surf:'#10001e',acc:'#00ffcc',  cat:'retro'},
+  crt:             {label:'CRT',             bg:'#020a02',surf:'#041204',acc:'#33ff33',  cat:'retro'},
+  cassette:        {label:'Cassette',        bg:'#1a0e04',surf:'#261608',acc:'#e8920a',  cat:'retro'},
+  arcade:          {label:'Arcade',          bg:'#000000',surf:'#0a0a0a',acc:'#ff00ff',  cat:'retro'},
+  polaroid:        {label:'Polaroid',        bg:'#f8f2e8',surf:'#f0e8d8',acc:'#c8640a',  cat:'retro'},
+  dialup:          {label:'Dialup',          bg:'#c8c0b8',surf:'#c0b8b0',acc:'#000080',  cat:'retro'},
+  glitch:          {label:'Glitch',          bg:'#040408',surf:'#08080e',acc:'#ff0055',  cat:'experimental'},
+  vaporwave:       {label:'Vaporwave',       bg:'#1a0030',surf:'#260040',acc:'#ff71ce',  cat:'experimental'},
+  acid:            {label:'Acid',            bg:'#040800',surf:'#080e00',acc:'#ccff00',  cat:'experimental'},
+  tiedye:          {label:'Tiedye',          bg:'#1a0820',surf:'#240c2e',acc:'#ff6ec7',  cat:'experimental'},
+  infrared:        {label:'Infrared',        bg:'#000a14',surf:'#001020',acc:'#ff2200',  cat:'experimental'},
+  antimatter:      {label:'Antimatter',      bg:'#f0f0f8',surf:'#e4e4f0',acc:'#1a003a',  cat:'experimental'},
+  valentines:      {label:"Valentine's",     bg:'#1a0008',surf:'#260010',acc:'#ff4488',  cat:'seasonal'},
+  stpatricks:      {label:"St. Patrick's",   bg:'#021008',surf:'#041c0e',acc:'#1aaa44',  cat:'seasonal'},
+  easter:          {label:'Easter',          bg:'#f8eef8',surf:'#f0e4f4',acc:'#9b4dca',  cat:'seasonal'},
+  fourthofjuly:    {label:'4th of July',     bg:'#020a1e',surf:'#04122e',acc:'#ee2233',  cat:'seasonal'},
+  halloween:       {label:'Halloween',       bg:'#080400',surf:'#120800',acc:'#ff6600',  cat:'seasonal'},
+  thanksgiving:    {label:'Thanksgiving',    bg:'#120800',surf:'#1c1000',acc:'#cc7700',  cat:'seasonal'},
+  christmas:       {label:'Christmas',       bg:'#020e04',surf:'#04160a',acc:'#cc1111',  cat:'seasonal'},
+  newyear:         {label:'New Year',        bg:'#08040e',surf:'#100818',acc:'#ffd700',  cat:'seasonal'},
+  diwali:          {label:'Diwali',          bg:'#0e0800',surf:'#1a1000',acc:'#ffaa00',  cat:'seasonal'},
+  hanukkah:        {label:'Hanukkah',        bg:'#020814',surf:'#040e20',acc:'#4488ff',  cat:'seasonal'},
+};
+
+const CATS = [
+  {id:'all',       label:'All'},
+  {id:'dark',      label:'Dark'},
+  {id:'light',     label:'Light'},
+  {id:'nature',    label:'Nature'},
+  {id:'consoles',  label:'Consoles'},
+  {id:'characters',label:'Characters'},
+  {id:'movies',    label:'Movies'},
+  {id:'retro',     label:'Retro'},
+  {id:'experimental',label:'Experimental'},
+  {id:'seasonal',  label:'Seasonal ✦'},
+];
+
+let currentTheme = localStorage.getItem('egm-theme') || 'void';
+let activeCat = 'all';
+let searchQ   = '';
+
+// Apply current theme CSS to this window
+function applyBodyTheme(name) {
+  Object.keys(THEME_DATA).forEach(k => document.body.classList.remove(k));
+  if (name && name !== 'void') document.body.classList.add(name);
+}
+applyBodyTheme(currentTheme);
+
+// Build tabs
+const tabsEl = document.getElementById('tabs');
+CATS.forEach(c => {
+  const btn = document.createElement('button');
+  btn.className = 'tab' + (c.id === 'all' ? ' on' : '');
+  btn.textContent = c.label;
+  btn.addEventListener('click', () => {
+    activeCat = c.id;
+    tabsEl.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
+    btn.classList.add('on');
+    render();
+  });
+  tabsEl.appendChild(btn);
+});
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+  searchQ = e.target.value.toLowerCase();
+  render();
+});
+
+function render() {
+  const grid = document.getElementById('grid');
+  const entries = Object.entries(THEME_DATA).filter(([key, d]) => {
+    if (activeCat !== 'all' && d.cat !== activeCat) return false;
+    if (searchQ && !d.label.toLowerCase().includes(searchQ) && !key.includes(searchQ)) return false;
+    return true;
+  });
+
+  if (!entries.length) {
+    grid.innerHTML = '<div class="empty">No themes match your search.</div>';
+    return;
+  }
+
+  grid.innerHTML = entries.map(([key, d]) => `
+    <div class="theme-card${key === currentTheme ? ' active' : ''}" data-theme="${key}">
+      <div class="swatches">
+        <div class="swatch" style="background:${d.bg}"></div>
+        <div class="swatch" style="background:${d.surf}"></div>
+        <div class="swatch" style="background:${d.acc}"></div>
+      </div>
+      <span class="card-name">${d.label}${d.cat === 'seasonal' ? '<span class="seasonal-badge">✦</span>' : ''}</span>
+    </div>
+  `).join('');
+
+  grid.querySelectorAll('.theme-card').forEach(card => {
+    card.addEventListener('click', () => {
+      const theme = card.dataset.theme;
+      currentTheme = theme;
+      localStorage.setItem('egm-theme', theme);
+      applyBodyTheme(theme);
+      // Notify main window via IPC
+      if (window.electronAPI && window.electronAPI.setTheme) {
+        window.electronAPI.setTheme(theme);
+      }
+      render();
+    });
+  });
+}
+
+render();
+</script>
+</body>
+</html>
