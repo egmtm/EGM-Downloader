@@ -58,7 +58,7 @@ echo "📋 Verifying source files..."
 MISSING=0
 for f in "windows/EGM Downloader.vbs" windows/launch.bat windows/launch.py \
          windows/instructions.txt app.py requirements.txt patchnotes.txt README.md \
-         templates/index.html static/icon.ico static/icon-512.png \
+         templates/index.html templates/history.html static/icon.ico static/icon-512.png \
          windows/electron/main.js windows/electron/preload.js windows/electron/package.json; do
     if [ ! -e "$REPO_ROOT/$f" ]; then
         echo "   ❌ MISSING: $f"
