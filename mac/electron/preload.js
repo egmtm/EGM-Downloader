@@ -8,5 +8,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFile:           (name, content) => ipcRenderer.invoke('save-file', name, content),
   openFile:           ()              => ipcRenderer.invoke('open-file'),
   openHistoryWindow:  ()              => ipcRenderer.invoke('open-history-window'),
+  openThemesWindow:   ()              => ipcRenderer.invoke('open-themes-window'),
+  setTheme:           (theme)         => ipcRenderer.send('set-theme', theme),
+  onThemeChanged:     (cb)            => ipcRenderer.on('theme-changed', (e, theme) => cb(theme)),
   isElectron: true,
 });
