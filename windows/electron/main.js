@@ -208,7 +208,7 @@ function createTray() {
 
 // ── Create window ─────────────────────────────────────────────────────────────
 async function createWindow() {
-  const winIconPath = path.join(__dirname, '..', 'static', 'icon-512.png');
+  const winIconPath = path.join(__dirname, '..', 'static', 'icon.ico');
   const winIconOpts = fs.existsSync(winIconPath) ? { icon: winIconPath } : {};
 
   // Load saved window state — use saved dimensions or defaults
@@ -420,7 +420,7 @@ ipcMain.handle('open-themes-window', async () => {
     ...bounds, minWidth: 480, minHeight: 400,
     title: 'All Themes — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   themesWindow.loadURL(`${APP_URL}/themes-page`);
