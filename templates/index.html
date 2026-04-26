@@ -4420,6 +4420,37 @@ function audioQualityBgClick(e) {
     document.getElementById('audio-quality-modal').style.display = 'none';
 }
 
+// ── Video quality popup ───────────────────────────────────────────────────────
+(function() {
+  const modal   = document.getElementById('video-quality-modal');
+  if (!modal) return;
+  const confirm = document.getElementById('video-quality-confirm-btn');
+  let selectedVQ = 'best';
+  modal.querySelectorAll('.quality-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selectedVQ = opt.dataset.vquality;
+    });
+  });
+  confirm.addEventListener('click', () => {
+    modal.style.display = 'none';
+    downloadAll('video', null, selectedVQ);
+  });
+})();
+
+function showVideoQualityModal() {
+  const modal = document.getElementById('video-quality-modal');
+  modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+  const best = modal.querySelector('[data-vquality="best"]');
+  if (best) best.classList.add('selected');
+  modal.style.display = 'flex';
+}
+function videoQualityBgClick(e) {
+  if (e.target === document.getElementById('video-quality-modal'))
+    document.getElementById('video-quality-modal').style.display = 'none';
+}
+
 // ── What's New — show once per version ───────────────────────────────────────
 (async function() {
   try {
