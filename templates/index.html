@@ -892,6 +892,152 @@
       --bg-texture-opacity: 1;
     }
 
+
+    /* ══════════════════════════════════════════════════════════════
+       SEASONAL THEMES — auto-shown/hidden by JS based on date
+       Hidden by default via .theme-row[data-seasonal] display:none
+    ══════════════════════════════════════════════════════════════ */
+
+    /* Valentine's Day — Feb 14 */
+    body.valentines {
+      --bg:#1a0008;--surf:#260010;--surf2:#32001c;--surf3:#3e0028;
+      --border:#780040;--border2:#a00058;--acc:#ff4488;--acc-h:#ff6ea8;
+      --acc-dim:rgba(255,68,136,.14);--green:#ff99cc;--red:#ff1155;--yellow:#ffcc44;
+      --text:#ffe8f0;--text2:#cc4488;--muted:#5a0030;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#260010;--log-bg:#0e0006;--log-text:#cc4488;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffcc44;--dur-bg:rgba(0,0,0,.88);--dur-text:#ffe8f0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpath d='M30 45 C15 30 5 20 5 12 C5 6 10 2 15 2 C20 2 25 6 30 12 C35 6 40 2 45 2 C50 2 55 6 55 12 C55 20 45 30 30 45Z' fill='none' stroke='%23ff4488' stroke-width='0.6'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.15;
+    }
+
+    /* St. Patrick's Day — Mar 17 */
+    body.stpatricks {
+      --bg:#021008;--surf:#041c0e;--surf2:#062814;--surf3:#08341a;
+      --border:#105a20;--border2:#187030;--acc:#1aaa44;--acc-h:#22cc55;
+      --acc-dim:rgba(26,170,68,.14);--green:#22cc55;--red:#dd2222;--yellow:#ddaa00;
+      --text:#c8f0d0;--text2:#3a8844;--muted:#083820;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#041c0e;--log-bg:#010804;--log-text:#3a8844;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ddaa00;--dur-bg:rgba(0,0,0,.88);--dur-text:#c8f0d0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Cellipse cx='25' cy='18' rx='8' ry='10' fill='none' stroke='%231aaa44' stroke-width='0.5'/%3E%3Cellipse cx='15' cy='30' rx='8' ry='10' fill='none' stroke='%231aaa44' stroke-width='0.5'/%3E%3Cellipse cx='35' cy='30' rx='8' ry='10' fill='none' stroke='%231aaa44' stroke-width='0.5'/%3E%3Cline x1='25' y1='28' x2='25' y2='48' stroke='%231aaa44' stroke-width='0.5'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
+    }
+
+    /* Easter */
+    body.easter {
+      --bg:#f8eef8;--surf:#f0e4f4;--surf2:#e8daf0;--surf3:#e0d0ec;
+      --border:#c8a8e0;--border2:#b090cc;--acc:#9b4dca;--acc-h:#b060e0;
+      --acc-dim:rgba(155,77,202,.12);--green:#2d8a2d;--red:#cc1c1c;--yellow:#dd9900;
+      --text:#280e38;--text2:#7040a0;--muted:#c0a0d8;--shadow:0 4px 20px rgba(0,0,0,.1);
+      --thumb-bg:#e8daf0;--log-bg:#e0d0ec;--log-text:#7040a0;
+      --modal-overlay:rgba(40,14,56,.42);--modal-shadow:0 20px 60px rgba(0,0,0,.18);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#fca5a5;
+      --audio-btn-color:#dd9900;--dur-bg:rgba(40,14,56,.75);--dur-text:#f8eef8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='80'%3E%3Cellipse cx='30' cy='42' rx='18' ry='22' fill='none' stroke='%239b4dca' stroke-width='0.5'/%3E%3Cellipse cx='30' cy='42' rx='10' ry='14' fill='none' stroke='%23dd9900' stroke-width='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
+    }
+
+    /* 4th of July */
+    body.fourthofjuly {
+      --bg:#020a1e;--surf:#04122e;--surf2:#061a3e;--surf3:#08224e;
+      --border:#1a3a7a;--border2:#224a9a;--acc:#ee2233;--acc-h:#ff3344;
+      --acc-dim:rgba(238,34,51,.14);--green:#4caf50;--red:#ee2233;--yellow:#ffffff;
+      --text:#eeeeff;--text2:#6688cc;--muted:#0c1a3a;--shadow:0 4px 32px rgba(0,0,0,.85);
+      --thumb-bg:#04122e;--log-bg:#01060f;--log-text:#6688cc;
+      --modal-overlay:rgba(0,0,0,.86);--modal-shadow:0 20px 60px rgba(0,0,0,.94);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffffff;--dur-bg:rgba(0,0,0,.9);--dur-text:#eeeeff;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='2' fill='%23ffffff' opacity='0.15'/%3E%3Cline x1='20' y1='4' x2='20' y2='10' stroke='%23ffffff' stroke-width='0.8' opacity='0.1'/%3E%3Cline x1='20' y1='30' x2='20' y2='36' stroke='%23ffffff' stroke-width='0.8' opacity='0.1'/%3E%3Cline x1='4' y1='20' x2='10' y2='20' stroke='%23ffffff' stroke-width='0.8' opacity='0.1'/%3E%3Cline x1='30' y1='20' x2='36' y2='20' stroke='%23ffffff' stroke-width='0.8' opacity='0.1'/%3E%3Cline x1='8' y1='8' x2='12' y2='12' stroke='%23ffffff' stroke-width='0.8' opacity='0.1'/%3E%3Cline x1='28' y1='28' x2='32' y2='32' stroke='%23ffffff' stroke-width='0.8' opacity='0.1'/%3E%3Cline x1='28' y1='8' x2='32' y2='12' stroke='%23ee2233' stroke-width='0.8' opacity='0.12'/%3E%3Cline x1='8' y1='28' x2='12' y2='32' stroke='%23ee2233' stroke-width='0.8' opacity='0.12'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 1;
+    }
+
+    /* Halloween — Oct 31 */
+    body.halloween {
+      --bg:#080400;--surf:#120800;--surf2:#1c0c00;--surf3:#261000;
+      --border:#5a2800;--border2:#783800;--acc:#ff6600;--acc-h:#ff8822;
+      --acc-dim:rgba(255,102,0,.14);--green:#44aa00;--red:#cc0000;--yellow:#ff6600;
+      --text:#f0c880;--text2:#aa5500;--muted:#3a1800;--shadow:0 4px 32px rgba(0,0,0,.9);
+      --thumb-bg:#120800;--log-bg:#040200;--log-text:#aa5500;
+      --modal-overlay:rgba(0,0,0,.9);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ff6600;--dur-bg:rgba(0,0,0,.92);--dur-text:#f0c880;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='36' r='24' fill='none' stroke='%23ff6600' stroke-width='0.5'/%3E%3Cpolygon points='40,12 44,22 36,22' fill='none' stroke='%23ff6600' stroke-width='0.5'/%3E%3Crect x='34' y='22' width='12' height='4' fill='none' stroke='%23ff6600' stroke-width='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.16;
+    }
+
+    /* Thanksgiving — 4th Thu Nov */
+    body.thanksgiving {
+      --bg:#120800;--surf:#1c1000;--surf2:#261800;--surf3:#302000;
+      --border:#7a4400;--border2:#9a5800;--acc:#cc7700;--acc-h:#e68800;
+      --acc-dim:rgba(204,119,0,.14);--green:#6a9a20;--red:#aa2200;--yellow:#cc7700;
+      --text:#f0d8a0;--text2:#aa7700;--muted:#4a2800;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#1c1000;--log-bg:#090400;--log-text:#aa7700;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#cc7700;--dur-bg:rgba(0,0,0,.88);--dur-text:#f0d8a0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cellipse cx='30' cy='40' rx='12' ry='8' fill='none' stroke='%23cc7700' stroke-width='0.5'/%3E%3Cpath d='M22 40 Q18 20 30 10 Q42 20 38 40' fill='none' stroke='%236a9a20' stroke-width='0.5'/%3E%3Cpath d='M26 40 Q24 24 30 16' fill='none' stroke='%236a9a20' stroke-width='0.4'/%3E%3Cpath d='M34 40 Q36 24 30 16' fill='none' stroke='%236a9a20' stroke-width='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.2;
+    }
+
+    /* Christmas — Dec 25 */
+    body.christmas {
+      --bg:#020e04;--surf:#04160a;--surf2:#061e10;--surf3:#082616;
+      --border:#104a18;--border2:#186024;--acc:#cc1111;--acc-h:#ee2222;
+      --acc-dim:rgba(204,17,17,.14);--green:#22aa44;--red:#cc1111;--yellow:#ffdd00;
+      --text:#e8f8e8;--text2:#4a8844;--muted:#083a10;--shadow:0 4px 32px rgba(0,0,0,.85);
+      --thumb-bg:#04160a;--log-bg:#010602;--log-text:#4a8844;
+      --modal-overlay:rgba(0,0,0,.86);--modal-shadow:0 20px 60px rgba(0,0,0,.94);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffdd00;--dur-bg:rgba(0,0,0,.9);--dur-text:#e8f8e8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='70'%3E%3Cpolygon points='30,5 50,30 40,30 55,55 35,55 35,65 25,65 25,55 5,55 20,30 10,30' fill='none' stroke='%2322aa44' stroke-width='0.5'/%3E%3Ccircle cx='20' cy='40' r='2' fill='%23cc1111' opacity='0.4'/%3E%3Ccircle cx='38' cy='32' r='2' fill='%23ffdd00' opacity='0.4'/%3E%3Ccircle cx='30' cy='48' r='2' fill='%23cc1111' opacity='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
+    }
+
+    /* New Year — Jan 1 */
+    body.newyear {
+      --bg:#08040e;--surf:#100818;--surf2:#180c22;--surf3:#20102c;
+      --border:#3a1a5a;--border2:#4e2478;--acc:#ffd700;--acc-h:#ffe44d;
+      --acc-dim:rgba(255,215,0,.14);--green:#69f0ae;--red:#ff4081;--yellow:#ffd700;
+      --text:#fffde8;--text2:#b89820;--muted:#2a1040;--shadow:0 4px 32px rgba(0,0,0,.86);
+      --thumb-bg:#100818;--log-bg:#040208;--log-text:#b89820;
+      --modal-overlay:rgba(0,0,0,.88);--modal-shadow:0 20px 60px rgba(0,0,0,.96);
+      --btn-primary-text:#08040e;--btn-on-accent:#08040e;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffd700;--dur-bg:rgba(0,0,0,.9);--dur-text:#fffde8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Cpolygon points='25,2 27,18 43,18 30,28 35,44 25,35 15,44 20,28 7,18 23,18' fill='none' stroke='%23ffd700' stroke-width='0.5'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.2;
+    }
+
+    /* Diwali — varies (Oct/Nov) */
+    body.diwali {
+      --bg:#0e0800;--surf:#1a1000;--surf2:#261800;--surf3:#322000;
+      --border:#7a4400;--border2:#9a5a00;--acc:#ffaa00;--acc-h:#ffcc22;
+      --acc-dim:rgba(255,170,0,.14);--green:#aaff00;--red:#ff2200;--yellow:#ffaa00;
+      --text:#fff8e0;--text2:#cc8800;--muted:#4a2800;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#1a1000;--log-bg:#090500;--log-text:#cc8800;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#0e0800;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffaa00;--dur-bg:rgba(0,0,0,.88);--dur-text:#fff8e0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='70'%3E%3Cellipse cx='25' cy='50' rx='8' ry='4' fill='none' stroke='%23ffaa00' stroke-width='0.5'/%3E%3Crect x='22' y='20' width='6' height='30' fill='none' stroke='%23cc8800' stroke-width='0.5'/%3E%3Cellipse cx='25' cy='18' rx='6' ry='10' fill='none' stroke='%23ffcc22' stroke-width='0.5'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.2;
+    }
+
+    /* Hanukkah — varies (Nov/Dec) */
+    body.hanukkah {
+      --bg:#020814;--surf:#040e20;--surf2:#06142c;--surf3:#081a38;
+      --border:#0a2e6e;--border2:#0c3888;--acc:#4488ff;--acc-h:#66aaff;
+      --acc-dim:rgba(68,136,255,.14);--green:#69f0ae;--red:#ff4444;--yellow:#ffd700;
+      --text:#e0eeff;--text2:#4466cc;--muted:#041840;--shadow:0 4px 32px rgba(0,0,0,.86);
+      --thumb-bg:#040e20;--log-bg:#010408;--log-text:#4466cc;
+      --modal-overlay:rgba(0,0,0,.88);--modal-shadow:0 20px 60px rgba(0,0,0,.96);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffd700;--dur-bg:rgba(0,0,0,.9);--dur-text:#e0eeff;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='60'%3E%3Crect x='36' y='10' width='8' height='40' fill='none' stroke='%234488ff' stroke-width='0.5'/%3E%3Crect x='4' y='20' width='6' height='30' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='16' y='16' width='6' height='34' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='28' y='12' width='6' height='38' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='50' y='12' width='6' height='38' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='62' y='16' width='6' height='34' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='70' y='20' width='6' height='30' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
+    }
+
     /* ── Hamburger button (B4 grid) ── */
     #hamburger-btn {
       position: absolute; right: 0; top: 50%; transform: translateY(-50%);
@@ -1393,7 +1539,9 @@
       <!-- Themes tab -->
       <div class="hpanel-content" id="hpanel-themes" style="display:none">
         <div style="padding:5px">
-          <div class="theme-list" id="theme-list">
+          <div class="theme-list" id="theme-list"><!-- populated by JS --></div>
+          <div onclick="openThemesWindow()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border-top:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--acc)">View all themes ›</div>
+          <div style="display:none" id="theme-list-static">
             <div class="theme-row active" data-theme="void">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
               <span class="theme-name">Void</span><div class="theme-check checked"></div>
@@ -1578,11 +1726,51 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#f0f0f8"></div><div class="theme-sw" style="background:#e4e4f0"></div><div class="theme-sw" style="background:#1a003a"></div></div>
               <span class="theme-name">Antimatter</span><div class="theme-check"></div>
             </div>
+            <div class="theme-row" data-theme="valentines" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#1a0008"></div><div class="theme-sw" style="background:#260010"></div><div class="theme-sw" style="background:#ff4488"></div></div>
+              <span class="theme-name">Valentine's <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="stpatricks" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#021008"></div><div class="theme-sw" style="background:#041c0e"></div><div class="theme-sw" style="background:#1aaa44"></div></div>
+              <span class="theme-name">St. Patrick's <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="easter" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#f8eef8"></div><div class="theme-sw" style="background:#f0e4f4"></div><div class="theme-sw" style="background:#9b4dca"></div></div>
+              <span class="theme-name">Easter <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="fourthofjuly" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#020a1e"></div><div class="theme-sw" style="background:#04122e"></div><div class="theme-sw" style="background:#ee2233"></div></div>
+              <span class="theme-name">4th of July <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="halloween" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#080400"></div><div class="theme-sw" style="background:#120800"></div><div class="theme-sw" style="background:#ff6600"></div></div>
+              <span class="theme-name">Halloween <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="thanksgiving" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#120800"></div><div class="theme-sw" style="background:#1c1000"></div><div class="theme-sw" style="background:#cc7700"></div></div>
+              <span class="theme-name">Thanksgiving <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="christmas" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#020e04"></div><div class="theme-sw" style="background:#04160a"></div><div class="theme-sw" style="background:#cc1111"></div></div>
+              <span class="theme-name">Christmas <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="newyear" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#08040e"></div><div class="theme-sw" style="background:#100818"></div><div class="theme-sw" style="background:#ffd700"></div></div>
+              <span class="theme-name">New Year <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="diwali" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0e0800"></div><div class="theme-sw" style="background:#1a1000"></div><div class="theme-sw" style="background:#ffaa00"></div></div>
+              <span class="theme-name">Diwali <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="hanukkah" data-seasonal="true" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#020814"></div><div class="theme-sw" style="background:#040e20"></div><div class="theme-sw" style="background:#4488ff"></div></div>
+              <span class="theme-name">Hanukkah <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
             <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
               <div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div>
               <span class="theme-name" id="custom-theme-name">Custom</span><div class="theme-check"></div>
             </div>
-          </div>
+          </div><!-- end theme-list-static -->
           <div style="display:flex;gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
             <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬆ Import</button>
             <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬇ Export</button>
@@ -3449,28 +3637,174 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','dmg','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','custom'];
-  const rows   = document.querySelectorAll('.theme-row');
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','dmg','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','custom'];
+
+  // ── Seasonal theme visibility ────────────────────────────────────────────────
+  (function() {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth()+1, d = now.getDate();
+    const doy = (mm,dd) => mm*100+dd; // simple comparable
+    const cur = doy(m,d);
+    const inRange = (s,e) => {
+      // Handle year-wrap (e.g. Christmas Nov25–Jan24)
+      if (doy(s[0],s[1]) <= doy(e[0],e[1])) return cur >= doy(s[0],s[1]) && cur <= doy(e[0],e[1]);
+      return cur >= doy(s[0],s[1]) || cur <= doy(e[0],e[1]);
+    };
+    // Fixed windows
+    const windows = {
+      valentines:   [[1,15],[3,15]],
+      stpatricks:   [[2,15],[4,16]],
+      fourthofjuly: [[6,4],[8,3]],
+      halloween:    [[10,1],[11,30]],
+      thanksgiving: [[11,1],[12,25]],
+      christmas:    [[11,25],[1,24]],
+      newyear:      [[12,2],[1,31]],
+    };
+    // Variable dates: Easter, Diwali, Hanukkah — ±30 days
+    const variableDates = {
+      easter:       {2025:[4,20],2026:[4,5],2027:[3,28],2028:[4,16],2029:[4,1],2030:[4,21]},
+      diwali:       {2025:[10,20],2026:[11,8],2027:[10,29],2028:[10,17],2029:[11,5],2030:[10,26]},
+      hanukkah:     {2025:[12,14],2026:[12,4],2027:[12,24],2028:[12,12],2029:[12,1],2030:[12,20]},
+    };
+    const addDays = (mm,dd,days) => {
+      const dt = new Date(y,mm-1,dd+days);
+      return [dt.getMonth()+1, dt.getDate()];
+    };
+    Object.entries(variableDates).forEach(([key,dates]) => {
+      const base = dates[y] || dates[y-1];
+      if (!base) return;
+      windows[key] = [addDays(base[0],base[1],-30), addDays(base[0],base[1],30)];
+    });
+    // Show seasonal rows that are in-window
+    document.querySelectorAll('.theme-row[data-seasonal]').forEach(row => {
+      const key = row.dataset.theme;
+      const win = windows[key];
+      if (win && inRange(win[0], win[1])) row.style.display = '';
+    });
+  })();
+
+  // ── Theme data — swatches + labels + categories ─────────────────────────────
+  const THEME_DATA = {
+    void:             {label:'Void',             bg:'#0b1120',surf:'#111c2e',acc:'#3b82f6',   cat:'dark'},
+    eclipse:          {label:'Eclipse',          bg:'#18161a',surf:'#241f28',acc:'#a855f7',   cat:'dark'},
+    ghost:            {label:'Ghost',            bg:'#0d1117',surf:'#161b22',acc:'#238636',   cat:'dark'},
+    frost:            {label:'Frost',            bg:'#cdd2da',surf:'#c2c8d2',acc:'#2563eb',   cat:'light'},
+    bone:             {label:'Bone',             bg:'#f5f0e8',surf:'#ede7d9',acc:'#2563eb',   cat:'light'},
+    haze:             {label:'Haze',             bg:'#d4d9d0',surf:'#c9d0c4',acc:'#2563eb',   cat:'light'},
+    kush:             {label:'Kush',             bg:'#0d1a0f',surf:'#152015',acc:'#5a9e3a',   cat:'dark'},
+    purplehaze:       {label:'Purple Haze',      bg:'#0e0818',surf:'#170e28',acc:'#9b5de5',   cat:'dark'},
+    sativa:           {label:'Sativa',           bg:'#edf5e8',surf:'#e2eedb',acc:'#2e7d32',   cat:'light'},
+    ogcream:          {label:'OG Cream',         bg:'#f5f0e5',surf:'#ede6d8',acc:'#8b6914',   cat:'light'},
+    abyssal:          {label:'Abyssal',          bg:'#010d18',surf:'#021525',acc:'#00b4d8',   cat:'nature'},
+    wildfire:         {label:'Wildfire',         bg:'#100600',surf:'#1c0a00',acc:'#f4511e',   cat:'nature'},
+    permafrost:       {label:'Permafrost',       bg:'#e8f4fb',surf:'#daeef8',acc:'#0277bd',   cat:'nature'},
+    canopy:           {label:'Canopy',           bg:'#021a08',surf:'#052e10',acc:'#2ecc71',   cat:'nature'},
+    magma:            {label:'Magma',            bg:'#0c0500',surf:'#1a0800',acc:'#ff6b00',   cat:'nature'},
+    monsoon:          {label:'Monsoon',          bg:'#0a0e14',surf:'#10161e',acc:'#4fc3f7',   cat:'nature'},
+    famicom:          {label:'Famicom',          bg:'#1a1a1a',surf:'#242424',acc:'#e60012',   cat:'consoles'},
+    dmg:              {label:'DMG',              bg:'#8bac0f',surf:'#9bbc0f',acc:'#0f380f',   cat:'consoles'},
+    dreamcast:        {label:'Dreamcast',        bg:'#0a0a12',surf:'#14141e',acc:'#f47321',   cat:'consoles'},
+    blastprocessing:  {label:'Blast Processing', bg:'#000033',surf:'#000044',acc:'#cc0000',   cat:'consoles'},
+    ps1gray:          {label:'PS1 Gray',         bg:'#2a2a2e',surf:'#343438',acc:'#003791',   cat:'consoles'},
+    woodgrain:        {label:'Woodgrain',        bg:'#2a1a08',surf:'#3a2410',acc:'#cc8822',   cat:'consoles'},
+    spartan:          {label:'Spartan',          bg:'#0d1408',surf:'#151e0e',acc:'#7a9a30',   cat:'characters'},
+    hylian:           {label:'Hylian',           bg:'#0c1a08',surf:'#142410',acc:'#d4a012',   cat:'characters'},
+    varia:            {label:'Varia',            bg:'#0e0a04',surf:'#1a1208',acc:'#f4a020',   cat:'characters'},
+    cobaltrush:       {label:'Cobalt Rush',      bg:'#000a2e',surf:'#001040',acc:'#2979ff',   cat:'characters'},
+    'ghostofspartа':  {label:'Ghost of Sparta',  bg:'#0e0202',surf:'#180404',acc:'#cc0000',   cat:'characters'},
+    whitewolf:        {label:'White Wolf',       bg:'#0a0a0a',surf:'#141414',acc:'#c8c8c8',   cat:'characters'},
+    zion:             {label:'Zion',             bg:'#000800',surf:'#001000',acc:'#00ff41',   cat:'movies'},
+    twentyfortynine:  {label:'2049',             bg:'#080410',surf:'#10081c',acc:'#e8a020',   cat:'movies'},
+    thegrid:          {label:'The Grid',         bg:'#020814',surf:'#040e20',acc:'#00e5ff',   cat:'movies'},
+    furyroad:         {label:'Fury Road',        bg:'#140a00',surf:'#1e1000',acc:'#e8780a',   cat:'movies'},
+    thedon:           {label:'The Don',          bg:'#0a0004',surf:'#120008',acc:'#9a1030',   cat:'movies'},
+    hal:              {label:'HAL',              bg:'#f0f4f8',surf:'#e4eaf0',acc:'#cc0000',   cat:'movies'},
+    vhs:              {label:'VHS',              bg:'#0a0010',surf:'#10001e',acc:'#00ffcc',   cat:'retro'},
+    crt:              {label:'CRT',              bg:'#020a02',surf:'#041204',acc:'#33ff33',   cat:'retro'},
+    cassette:         {label:'Cassette',         bg:'#1a0e04',surf:'#261608',acc:'#e8920a',   cat:'retro'},
+    arcade:           {label:'Arcade',           bg:'#000000',surf:'#0a0a0a',acc:'#ff00ff',   cat:'retro'},
+    polaroid:         {label:'Polaroid',         bg:'#f8f2e8',surf:'#f0e8d8',acc:'#c8640a',   cat:'retro'},
+    dialup:           {label:'Dialup',           bg:'#c8c0b8',surf:'#c0b8b0',acc:'#000080',   cat:'retro'},
+    glitch:           {label:'Glitch',           bg:'#040408',surf:'#08080e',acc:'#ff0055',   cat:'experimental'},
+    vaporwave:        {label:'Vaporwave',        bg:'#1a0030',surf:'#260040',acc:'#ff71ce',   cat:'experimental'},
+    acid:             {label:'Acid',             bg:'#040800',surf:'#080e00',acc:'#ccff00',   cat:'experimental'},
+    tiedye:           {label:'Tiedye',           bg:'#1a0820',surf:'#240c2e',acc:'#ff6ec7',   cat:'experimental'},
+    infrared:         {label:'Infrared',         bg:'#000a14',surf:'#001020',acc:'#ff2200',   cat:'experimental'},
+    antimatter:       {label:'Antimatter',       bg:'#f0f0f8',surf:'#e4e4f0',acc:'#1a003a',   cat:'experimental'},
+    valentines:       {label:"Valentine's",      bg:'#1a0008',surf:'#260010',acc:'#ff4488',   cat:'seasonal'},
+    stpatricks:       {label:"St. Patrick's",    bg:'#021008',surf:'#041c0e',acc:'#1aaa44',   cat:'seasonal'},
+    easter:           {label:'Easter',           bg:'#f8eef8',surf:'#f0e4f4',acc:'#9b4dca',   cat:'seasonal'},
+    fourthofjuly:     {label:'4th of July',      bg:'#020a1e',surf:'#04122e',acc:'#ee2233',   cat:'seasonal'},
+    halloween:        {label:'Halloween',        bg:'#080400',surf:'#120800',acc:'#ff6600',   cat:'seasonal'},
+    thanksgiving:     {label:'Thanksgiving',     bg:'#120800',surf:'#1c1000',acc:'#cc7700',   cat:'seasonal'},
+    christmas:        {label:'Christmas',        bg:'#020e04',surf:'#04160a',acc:'#cc1111',   cat:'seasonal'},
+    newyear:          {label:'New Year',         bg:'#08040e',surf:'#100818',acc:'#ffd700',   cat:'seasonal'},
+    diwali:           {label:'Diwali',           bg:'#0e0800',surf:'#1a1000',acc:'#ffaa00',   cat:'seasonal'},
+    hanukkah:         {label:'Hanukkah',         bg:'#020814',surf:'#040e20',acc:'#4488ff',   cat:'seasonal'},
+    custom:           {label:'Custom',           bg:'#0b1120',surf:'#111c2e',acc:'#3b82f6',   cat:'custom'},
+  };
+
+  // ── Recent themes (up to 9, persisted in localStorage) ──────────────────────
+  let recentThemes = [];
+  try { recentThemes = JSON.parse(localStorage.getItem('egm-recent-themes') || '[]'); } catch {}
+
+  function saveRecents(theme) {
+    recentThemes = [theme, ...recentThemes.filter(t => t !== theme)].slice(0, 9);
+    localStorage.setItem('egm-recent-themes', JSON.stringify(recentThemes));
+  }
+
+  // ── Render picker — current theme + up to 9 recents ─────────────────────────
+  function renderPicker(current) {
+    const list = document.getElementById('theme-list');
+    if (!list) return;
+    const show = [current, ...recentThemes.filter(t => t !== current)].slice(0, 10);
+    list.innerHTML = show.map(key => {
+      const d = THEME_DATA[key]; if (!d) return '';
+      const isSeasonal = d.cat === 'seasonal';
+      const label = isSeasonal ? `${d.label} <span style="font-size:.55rem;opacity:.5">✦</span>` : d.label;
+      return `<div class="theme-row${key === current ? ' active' : ''}" data-theme="${key}">
+        <div class="theme-swatches">
+          <div class="theme-sw" style="background:${d.bg}"></div>
+          <div class="theme-sw" style="background:${d.surf}"></div>
+          <div class="theme-sw" style="background:${d.acc}"></div>
+        </div>
+        <span class="theme-name">${label}</span>
+        <div class="theme-check${key === current ? ' checked' : ''}"></div>
+      </div>`;
+    }).join('');
+    // Re-attach click handlers
+    list.querySelectorAll('.theme-row').forEach(r => r.addEventListener('click', () => {
+      applyTheme(r.dataset.theme);
+      document.getElementById('hamburger-panel').classList.remove('open');
+    }));
+  }
 
   function applyTheme(name) {
     document.body.classList.remove(...THEMES);
     if (name && name !== 'void') document.body.classList.add(name);
     localStorage.setItem('egm-theme', name || 'void');
-    rows.forEach(r => {
-      const active = r.dataset.theme === (name || 'void');
-      r.classList.toggle('active', active);
-      r.querySelector('.theme-check').classList.toggle('checked', active);
-    });
+    saveRecents(name || 'void');
+    renderPicker(name || 'void');
+    post('/api/settings/save', { theme: name || 'void' }).catch(() => {});
   }
 
   const saved = localStorage.getItem('egm-theme') || 'void';
   applyTheme(saved);
 
-  rows.forEach(r => r.addEventListener('click', () => {
-    applyTheme(r.dataset.theme);
+  // Listen for theme changes from themes window (via IPC)
+  if (window.electronAPI && window.electronAPI.onThemeChanged) {
+    window.electronAPI.onThemeChanged(theme => applyTheme(theme));
+  }
+
+  // Open themes window
+  window.openThemesWindow = function() {
+    if (window.electronAPI && window.electronAPI.openThemesWindow) {
+      window.electronAPI.openThemesWindow();
+    } else {
+      window.open('/themes-page', '_blank');
+    }
     document.getElementById('hamburger-panel').classList.remove('open');
-  }));
-})();
+  };
 
 // ── Theme import / export ─────────────────────────────────────────────────────
 (function() {
@@ -3580,15 +3914,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
         backdrop.remove();
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
-        // Switch to custom theme
-        document.getElementById('theme-list').querySelectorAll('.theme-row').forEach(r => {
-          const active = r.dataset.theme === 'custom';
-          r.classList.toggle('active', active);
-          r.querySelector('.theme-check').classList.toggle('checked', active);
-        });
-        document.body.classList.remove('void','eclipse','ghost','frost','bone','haze');
-        document.body.classList.add('custom');
-        localStorage.setItem('egm-theme', 'custom');
+        applyTheme('custom');
         toast(`Theme "${theme.name}" applied ✓`, 'ok');
       });
 
