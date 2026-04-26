@@ -482,7 +482,8 @@ def get_info():
         return jsonify({"title": info.get("title",""), "thumbnail": info.get("thumbnail",""),
                         "duration": info.get("duration"),
                         "uploader": info.get("uploader") or info.get("channel") or "",
-                        "formats": _build_formats(info), "audio_formats": _build_audio_formats(info)})
+                        "formats": _build_formats(info), "audio_formats": _build_audio_formats(info),
+                        "width": info.get("width"), "height": info.get("height")})
     except subprocess.TimeoutExpired: return jsonify({"error": "Timed out"}), 400
     except Exception as e: return jsonify({"error": str(e)}), 400
 
