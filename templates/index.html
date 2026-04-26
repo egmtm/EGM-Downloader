@@ -736,9 +736,6 @@
   <div class="card-header">
     <span class="card-title">Settings</span>
     <div style="display:flex;align-items:center;gap:8px">
-      <div id="shortcut-row" style="display:none">
-        <button class="btn btn-ghost btn-sm" id="shortcut-btn" style="white-space:nowrap">🔗 Desktop Shortcut</button>
-      </div>
       <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:3px 10px">Cookies: not loaded</span>
       <button class="card-toggle" id="settings-toggle" onclick="toggleSettingsPanel()">▼ Hide</button>
     </div>
@@ -791,6 +788,14 @@
         <span id="adv-arrow" style="font-size:.7rem;color:var(--text2)">▶</span>
       </div>
       <div class="adv-body" id="adv-body">
+        <!-- Desktop shortcut — Windows only (hidden on Mac/Linux via JS) -->
+        <div class="adv-row" id="adv-shortcut-row" style="display:none">
+          <div>
+            <div class="adv-row-label">Desktop shortcut</div>
+            <div class="adv-row-sub">Add EGM Downloader to your desktop</div>
+          </div>
+          <button class="btn-adv" id="adv-shortcut-btn">Create</button>
+        </div>
         <!-- Flask port -->
         <div class="adv-row">
           <div>
@@ -1173,8 +1178,8 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       if (chk) chk.checked = true;
     }
   } catch {}
-  // Show shortcut row only on platforms that expose createShortcut (Windows does; Mac does not)
-  const sr = document.getElementById('shortcut-row');
+  // Show desktop shortcut row only on Windows (createShortcut exposed via electronAPI)
+  const sr = document.getElementById('adv-shortcut-row');
   if (sr && typeof window.electronAPI?.createShortcut === 'function') sr.style.display = 'flex';
 })();
 
@@ -1287,21 +1292,21 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
 });
 
 // ── Settings ──────────────────────────────────────────────────────────────────
-document.getElementById('shortcut-btn')?.addEventListener('click', async () => {
-  const btn = document.getElementById('shortcut-btn');
-  btn.disabled = true; btn.textContent = '⏳ Creating…';
+document.getElementById('adv-shortcut-btn')?.addEventListener('click', async () => {
+  const btn = document.getElementById('adv-shortcut-btn');
+  btn.disabled = true; btn.textContent = '…';
   try {
     const r = await window.electronAPI.createShortcut();
     if (r.success) {
       toast('Desktop shortcut created ✓', 'ok');
-      btn.textContent = '✓ Shortcut added';
+      btn.textContent = '✓ Done';
     } else {
       toast('Shortcut error: ' + r.error, 'err');
-      btn.disabled = false; btn.textContent = '🔗 Add Desktop Shortcut';
+      btn.disabled = false; btn.textContent = 'Create';
     }
   } catch (e) {
     toast('Shortcut error: ' + e.message, 'err');
-    btn.disabled = false; btn.textContent = '🔗 Add Desktop Shortcut';
+    btn.disabled = false; btn.textContent = 'Create';
   }
 });
 
