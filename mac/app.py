@@ -489,11 +489,11 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         try: os.rename(chosen, final_path)
         except: final_path = Path(chosen)
 
-        job["status"]   = "done"
         job["file"]     = str(final_path)
         job["filename"] = final_path.name
         job["_finished_at"] = time.time()
         _append_history(job, final_path)
+        job["status"]   = "done"
 
     except Exception as e:
         with _active_procs_lock:
