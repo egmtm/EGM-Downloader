@@ -220,14 +220,14 @@
     /* ── Hamburger panel ── */
     #hamburger-panel {
       display: none; position: absolute; right: 0; top: 42px;
-      width: 235px; background: var(--surf); border: 1px solid var(--border2);
+      width: 400px; background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,.35);
       z-index: 1000; overflow: hidden;
     }
     #hamburger-panel.open { display: block; }
     .hpanel-tabs { display: flex; padding: 5px 5px 0; gap: 3px; background: var(--surf2); }
     .hpanel-tab {
-      flex: 1; padding: 5px 0; font-size: 10px; font-weight: 500;
+      flex: 1; padding: 7px 0; font-size: 12px; font-weight: 500;
       color: var(--text2); background: transparent; border: none;
       border-radius: 5px 5px 0 0; cursor: pointer;
     }
@@ -237,19 +237,19 @@
     @keyframes hpanel-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
     .hpanel-open-full {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 5px 8px; background: var(--surf2); border-bottom: 1px solid var(--border);
+      padding: 7px 12px; background: var(--surf2); border-bottom: 1px solid var(--border);
       cursor: pointer; border-top: 1px solid var(--border);
     }
     .hpanel-open-full:hover { background: var(--surf3); }
-    .hpanel-open-full span { font-size: 9px; color: var(--acc); }
-    .hpanel-open-full small { font-size: 9px; color: var(--text2); }
-    .hentry { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 5px; margin-bottom: 3px; }
+    .hpanel-open-full span { font-size: 11px; color: var(--acc); }
+    .hpanel-open-full small { font-size: 11px; color: var(--text2); }
+    .hentry { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; margin-bottom: 4px; }
     .hentry:hover { background: var(--surf2); }
-    .hthumb { width: 32px; height: 24px; border-radius: 3px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text2); border: 0.5px solid var(--border); }
-    .htitle { font-size: 11px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
-    .hmeta { font-size: 9px; color: var(--text2); margin: 0; }
-    .hbtns { display: flex; gap: 3px; flex-shrink: 0; margin-left: auto; }
-    .hbtn { font-size: 9px; padding: 2px 5px; border-radius: 3px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
+    .hthumb { width: 40px; height: 30px; border-radius: 3px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text2); border: 0.5px solid var(--border); }
+    .htitle { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+    .hmeta { font-size: 11px; color: var(--text2); margin: 0; }
+    .hbtns { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
+    .hbtn { font-size: 10px; padding: 2px 7px; border-radius: 3px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
     .hbtn:hover { color: var(--acc); border-color: var(--acc); }
     .hbtn.red:hover { color: var(--red); border-color: var(--red); }
     .hpill { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; margin: 2px 0; background: rgba(255,255,255,.04); border: 0.5px dashed var(--border); border-radius: 4px; cursor: pointer; font-size: 9px; color: var(--text2); width: 100%; }
@@ -946,6 +946,8 @@
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
     <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.96</span>
     <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
+  </div>
+  <div style="margin-top:7px;text-align:center">
     <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
   </div>
 </footer>
@@ -1988,6 +1990,7 @@ async function startDl(item, n) {
   item.status = 'downloading';
   setBadge(stEl, 'dl', 'Downloading…');
   dlBtn.disabled = true;
+  dlBtn.style.display = 'none';
   if (progEl) progEl.style.display = '';
 
   // Add cancel button next to download button
@@ -2022,7 +2025,7 @@ async function startDl(item, n) {
   } catch (e) {
     item.status = 'error';
     setBadge(stEl, 'error', e.message);
-    dlBtn.disabled = false;
+    dlBtn.disabled = false; dlBtn.style.display = '';
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
   }
@@ -2040,7 +2043,7 @@ async function cancelDownload(item, n) {
   const cancelBtn = document.getElementById(`cancel${n}`);
   setBadge(stEl, 'cancel', 'Cancelled');
   if (progEl) progEl.style.display = 'none';
-  if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+  if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
   toast('Download cancelled');
 }
@@ -2083,13 +2086,13 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   if (d.status === 'error') {
     item.status = 'error';
     setBadge(stEl, 'error', d.error || 'Error');
-    if (dlBtn) dlBtn.disabled = false;
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
     return true;
   }
   if (d.status === 'cancelled') {
     item.status = 'cancelled';
     setBadge(stEl, 'cancel', 'Cancelled');
-    if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
     return true;
   }
   return false;
@@ -2102,7 +2105,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
       bulkCancelledJobs.delete(item.jobId);
       setBadge(stEl, 'cancel', 'Cancelled');
       if (progEl) progEl.style.display = 'none';
-      if (dlBtn)  { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
       return;
     }
@@ -2226,7 +2229,7 @@ async function downloadAll(forceFormat, audioQuality) {
     } catch (e) {
       item.status = 'error';
       setBadge(stEl, 'error', e.message);
-      dlBtn.disabled = false;
+      dlBtn.disabled = false; dlBtn.style.display = '';
       if (progEl) progEl.style.display = 'none';
       if (cancelBtn) cancelBtn.style.display = 'none';
       done++;
@@ -2278,7 +2281,7 @@ function cancelBulk() {
       const cancelBtn = document.getElementById('cancel' + n);
       if (stEl)      setBadge(stEl, 'cancel', 'Cancelled');
       if (progEl)    progEl.style.display = 'none';
-      if (dlBtn)     { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
     }
   });
@@ -2346,7 +2349,7 @@ function minimizeDoneCard(item, filename, stEl, dlBtn) {
   const card = stEl ? stEl.closest('.vcard') : null;
   if (!card) {
     if (stEl) setBadge(stEl, 'done', '\u2713 Done');
-    if (dlBtn) { dlBtn.textContent = '\u2b07 Again'; dlBtn.disabled = false; }
+    if (dlBtn) { dlBtn.textContent = '\u2b07 Again'; dlBtn.disabled = false; dlBtn.style.display = ''; }
     return;
   }
   card.classList.add('done-minimized');

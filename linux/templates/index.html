@@ -118,7 +118,7 @@
     #hamburger-btn:hover { border-color: var(--acc); color: var(--acc); }
     #hamburger-panel {
       display: none; position: absolute; right: 0; top: 42px;
-      width: 235px; background: var(--surf); border: 1px solid var(--border2);
+      width: 400px; background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,.35);
       z-index: 1000; overflow: hidden;
     }
@@ -131,15 +131,15 @@
     @keyframes hpanel-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
     .hpanel-open-full { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; background: var(--surf2); border-bottom: 1px solid var(--border); cursor: pointer; border-top: 1px solid var(--border); }
     .hpanel-open-full:hover { background: var(--surf3); }
-    .hpanel-open-full span { font-size: 9px; color: var(--acc); }
-    .hpanel-open-full small { font-size: 9px; color: var(--text2); }
-    .hentry { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 5px; margin-bottom: 3px; }
+    .hpanel-open-full span { font-size: 11px; color: var(--acc); }
+    .hpanel-open-full small { font-size: 11px; color: var(--text2); }
+    .hentry { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; margin-bottom: 4px; }
     .hentry:hover { background: var(--surf2); }
-    .hthumb { width: 32px; height: 24px; border-radius: 3px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text2); border: 0.5px solid var(--border); }
-    .htitle { font-size: 11px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
-    .hmeta { font-size: 9px; color: var(--text2); margin: 0; }
-    .hbtns { display: flex; gap: 3px; flex-shrink: 0; margin-left: auto; }
-    .hbtn { font-size: 9px; padding: 2px 5px; border-radius: 3px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
+    .hthumb { width: 40px; height: 30px; border-radius: 3px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text2); border: 0.5px solid var(--border); }
+    .htitle { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+    .hmeta { font-size: 11px; color: var(--text2); margin: 0; }
+    .hbtns { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
+    .hbtn { font-size: 10px; padding: 2px 7px; border-radius: 3px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
     .hbtn:hover { color: var(--acc); border-color: var(--acc); }
     .hbtn.red:hover { color: var(--red); border-color: var(--red); }
     .hpill { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; margin: 2px 0; background: rgba(255,255,255,.04); border: 0.5px dashed var(--border); border-radius: 4px; cursor: pointer; font-size: 9px; color: var(--text2); width: 100%; }
@@ -804,6 +804,8 @@
     <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
     <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.96</span>
+  </div>
+  <div style="margin-top:7px;text-align:center">
     <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
   </div>
 </footer>
@@ -1426,7 +1428,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
       minimizeDoneCard(item, d.filename, stEl, dlBtn);
     } else {
       setBadge(stEl, 'done', 'Done');
-      if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
     }
     toast('Saved: ' + d.filename, 'ok');
     if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
@@ -1440,7 +1442,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'error', d.error || 'Error');
-    if (dlBtn) dlBtn.disabled = false;
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
     return true;
   }
   if (d.status === 'cancelled') {
@@ -1448,7 +1450,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'cancel', 'Cancelled');
-    if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
     return true;
   }
   return false;
@@ -1723,6 +1725,7 @@ async function startDl(item, n) {
   item.status = 'downloading';
   setBadge(stEl, 'dl', 'Downloading…');
   dlBtn.disabled = true;
+  dlBtn.style.display = 'none';
   if (progEl) progEl.style.display = '';
 
   // Add cancel button next to download button
@@ -1775,7 +1778,7 @@ async function cancelDownload(item, n) {
   const cancelBtn = document.getElementById(`cancel${n}`);
   setBadge(stEl, 'cancel', 'Cancelled');
   if (progEl) progEl.style.display = 'none';
-  if (dlBtn) { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+  if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
   toast('Download cancelled');
 }
@@ -1789,7 +1792,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
       // Ensure UI reflects cancelled state — may have been overwritten
       setBadge(stEl, 'cancel', 'Cancelled');
       if (progEl) progEl.style.display = 'none';
-      if (dlBtn)  { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
       return;
     }
@@ -1824,13 +1827,13 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
         clearInterval(iv); item.status = 'error';
         if (progEl) progEl.style.display = 'none';
         setBadge(stEl, 'error', d.error || 'Error');
-        dlBtn.disabled = false;
+        dlBtn.disabled = false; dlBtn.style.display = '';
         if (cancelBtn) cancelBtn.style.display = 'none';
       } else if (d.status === 'cancelled') {
         clearInterval(iv); item.status = 'cancelled';
         setBadge(stEl, 'cancel', 'Cancelled');
         if (progEl) progEl.style.display = 'none';
-        if (dlBtn)  { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+        if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
         if (cancelBtn) cancelBtn.style.display = 'none';
       }
     } catch {}
