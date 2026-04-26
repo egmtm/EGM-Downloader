@@ -8,6 +8,10 @@ v0.97 - Build 99 (4/26/2026 12:00 PM EST)
   • [ALL] Cookies section — helper text "For age-restricted or login-required content" added before browser extension pills
   • [ALL] Settings panel — download folder only; compacted
   • [ALL] Advanced panel — Check updates on launch toggle (left) and Quit when done toggle (right) on same top row
+  • [ALL] 18 additional themes: 6 Consoles (SNES, N64, GameCube, Virtual Boy, Saturn, Neo Geo), 6 Characters (Chosen Undead, Vault Dweller, N7, Dragonborn, Big Boss, Lara Croft), 6 Experimental (Holographic, Y2K, Liminal, Signal, Corrupted, Neon Noir)
+  • [ALL] DMG and Cobalt Rush themes reworked for proper readability
+  • [ALL] Themes window and Download History window now fully themed — inherit the active theme with live update on change
+  • [WINDOWS] App icon fixed — now uses icon.ico for crisp title bar rendering
 
 v0.96 - Build 98 (4/25/2026 10:00 PM EST)
 -----------------------------------------
