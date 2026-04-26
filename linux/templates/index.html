@@ -1154,6 +1154,7 @@
       width: 150px; aspect-ratio: 16/9; flex-shrink: 0;
       background: var(--thumb-bg); position: relative; overflow: hidden;
     }
+    .thumb.portrait { width: 85px; aspect-ratio: 9/16; }
     .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: .88; background: var(--thumb-bg); }
     .thumb .noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.8rem; }
     .dur { position: absolute; bottom: 5px; right: 5px; background: var(--dur-bg); color: var(--dur-text); font-size: .64rem; padding: 2px 5px; border-radius: 3px; }
@@ -2556,7 +2557,7 @@ function renderCard(el, item) {
 
   el.innerHTML = `
     <button class="vcard-remove" title="Remove" data-id="${n}">✕</button>
-    <div class="thumb">
+    <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
       ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg">🎬</div>`}
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
     </div>
