@@ -583,7 +583,8 @@ def get_settings():
         "settings_open":     s.get("settings_open", True),
         "upd_open":          s.get("upd_open", False),
         "ck_open":           s.get("ck_open", False),
-        "quit_on_done":      s.get("quit_on_done", False),
+        "quit_on_done":              s.get("quit_on_done", False),
+        "check_updates_on_launch": s.get("check_updates_on_launch", False),
         "flask_port":        s.get("flask_port", 8899),
         "last_seen_version": s.get("last_seen_version", ""),
     })
@@ -593,7 +594,7 @@ def save_settings():
     data = request.json or {}
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
                "upd_open", "ck_open", "quit_on_done", "flask_port",
-               "last_seen_version", "window_bounds", "window_maximized"}
+               "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
