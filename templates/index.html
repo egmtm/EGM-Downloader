@@ -639,7 +639,7 @@
     </button>
     <div id="theme-panel">
       <div class="theme-panel-hdr">Theme</div>
-      <div class="theme-list">
+      <div class="theme-list" id="theme-list">
         <div class="theme-row active" data-theme="void">
           <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
           <span class="theme-name">Void</span>
@@ -670,6 +670,20 @@
           <span class="theme-name">Haze</span>
           <div class="theme-check"></div>
         </div>
+        <!-- Custom theme row — injected by JS when a custom theme is loaded -->
+        <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
+          <div class="theme-swatches" id="custom-theme-swatches">
+            <div class="theme-sw" id="csw1"></div>
+            <div class="theme-sw" id="csw2"></div>
+            <div class="theme-sw" id="csw3"></div>
+          </div>
+          <span class="theme-name" id="custom-theme-name">Custom</span>
+          <div class="theme-check"></div>
+        </div>
+      </div>
+      <div style="display:flex;gap:4px;padding:6px 6px 6px;border-top:1px solid var(--border)">
+        <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:10px;color:var(--text2)">⬆ Import</button>
+        <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:10px;color:var(--text2)">⬇ Export</button>
       </div>
     </div>
   </div>
@@ -2322,7 +2336,7 @@ function toast(msg, type='') {
 
 // ── Theme picker ──────────────────────────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','custom'];
   const btn    = document.getElementById('theme-btn');
   const panel  = document.getElementById('theme-panel');
   const rows   = document.querySelectorAll('.theme-row');
@@ -2364,6 +2378,130 @@ function toast(msg, type='') {
       applyTheme(r.dataset.theme);
       panel.classList.remove('open');
     });
+  });
+})();
+
+// ── Theme import / export ─────────────────────────────────────────────────────
+(function() {
+  const REQUIRED_VARS = ['--bg','--surf','--surf2','--surf3','--border','--border2',
+                         '--acc','--acc-h','--acc-dim','--text','--text2','--muted'];
+  const ALL_VARS      = [...REQUIRED_VARS,
+                         '--shadow','--thumb-bg','--log-bg','--log-text',
+                         '--modal-overlay','--modal-shadow',
+                         '--btn-primary-text','--btn-on-accent','--btn-red-border',
+                         '--audio-btn-color','--dur-bg','--dur-text'];
+
+  // Restore custom theme from localStorage on load
+  const saved = localStorage.getItem('egm-custom-theme');
+  if (saved) {
+    try { _applyCustomTheme(JSON.parse(saved)); } catch {}
+  }
+
+  function _applyCustomTheme(theme) {
+    let el = document.getElementById('custom-theme-style');
+    if (!el) { el = document.createElement('style'); el.id = 'custom-theme-style'; document.head.appendChild(el); }
+    const vars = Object.entries(theme.vars).map(([k,v]) => `${k}:${v}`).join(';');
+    el.textContent = `body.custom{${vars}}`;
+    // Update custom row swatches + name
+    const row = document.getElementById('custom-theme-row');
+    if (row) {
+      document.getElementById('csw1').style.background = theme.vars['--bg']   || '';
+      document.getElementById('csw2').style.background = theme.vars['--surf'] || '';
+      document.getElementById('csw3').style.background = theme.vars['--acc']  || '';
+      document.getElementById('custom-theme-name').textContent = theme.name || 'Custom';
+      row.style.display = '';
+    }
+  }
+
+  // Export — collect vars from getComputedStyle (reflects active theme)
+  document.getElementById('theme-export-btn').addEventListener('click', async () => {
+    const cs    = getComputedStyle(document.body);
+    const vars  = {};
+    ALL_VARS.forEach(v => { const val = cs.getPropertyValue(v).trim(); if (val) vars[v] = val; });
+    const activeTheme = localStorage.getItem('egm-theme') || 'void';
+    const themeName   = activeTheme.charAt(0).toUpperCase() + activeTheme.slice(1);
+    const payload     = JSON.stringify({ name: themeName, 'egm-theme': true, vars }, null, 2);
+    const filename    = `egm-theme-${activeTheme}.json`;
+    if (window.electronAPI?.saveFile) {
+      const r = await window.electronAPI.saveFile(filename, payload);
+      if (r.canceled) return;
+      if (r.ok) toast('Theme exported ✓', 'ok');
+      else toast('Export failed: ' + (r.error || 'unknown'), 'err');
+    } else {
+      await navigator.clipboard.writeText(payload);
+      toast('Theme copied to clipboard ✓', 'ok');
+    }
+  });
+
+  // Import — validate → preview → apply
+  document.getElementById('theme-import-btn').addEventListener('click', async () => {
+    try {
+      let text;
+      if (window.electronAPI?.openFile) {
+        const r = await window.electronAPI.openFile();
+        if (r.canceled) return;
+        if (r.error) { toast('Could not read file: ' + r.error, 'err'); return; }
+        text = r.content;
+      } else {
+        text = await navigator.clipboard.readText();
+      }
+
+      let theme;
+      try { theme = JSON.parse(text); } catch { toast('✗ Not a valid JSON file', 'err'); return; }
+
+      // Validate structure
+      if (!theme['egm-theme']) { toast('✗ Not a valid EGM theme file', 'err'); return; }
+      if (typeof theme.name !== 'string') { toast('✗ Theme is missing a name', 'err'); return; }
+      if (typeof theme.vars !== 'object' || Array.isArray(theme.vars)) { toast('✗ Theme has no vars block', 'err'); return; }
+
+      // Validate required vars
+      const missing = REQUIRED_VARS.filter(v => !theme.vars[v]);
+      if (missing.length) { toast(`✗ Missing required vars: ${missing.slice(0,3).join(', ')}${missing.length>3?' …':''}`, 'err'); return; }
+
+      // Show preview modal
+      const bg  = theme.vars['--bg']   || '#000';
+      const sf  = theme.vars['--surf'] || '#111';
+      const ac  = theme.vars['--acc']  || '#3b82f6';
+      const tx  = theme.vars['--text'] || '#fff';
+      const nm  = theme.name;
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      backdrop.innerHTML = `
+        <div class="modal">
+          <h3>Import Theme</h3>
+          <p style="font-size:.82rem;color:var(--text2);margin-bottom:12px">Preview — <strong style="color:var(--text)">${nm}</strong></p>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <div style="width:40px;height:40px;border-radius:6px;background:${bg};border:1px solid var(--border)"></div>
+            <div style="width:40px;height:40px;border-radius:6px;background:${sf};border:1px solid var(--border)"></div>
+            <div style="width:40px;height:40px;border-radius:6px;background:${ac};border:1px solid var(--border)"></div>
+            <div style="flex:1;border-radius:6px;background:${bg};border:1px solid var(--border);display:flex;align-items:center;padding:0 10px;font-size:.8rem;color:${tx}">EGM Downloader</div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-ghost" id="theme-import-cancel">Cancel</button>
+            <button class="btn btn-primary" id="theme-import-confirm">Apply Theme</button>
+          </div>
+        </div>`;
+      document.body.appendChild(backdrop);
+
+      document.getElementById('theme-import-cancel').addEventListener('click', () => backdrop.remove());
+      document.getElementById('theme-import-confirm').addEventListener('click', () => {
+        backdrop.remove();
+        _applyCustomTheme(theme);
+        localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
+        // Switch to custom theme
+        document.getElementById('theme-list').querySelectorAll('.theme-row').forEach(r => {
+          const active = r.dataset.theme === 'custom';
+          r.classList.toggle('active', active);
+          r.querySelector('.theme-check').classList.toggle('checked', active);
+        });
+        document.body.classList.remove('void','eclipse','ghost','frost','bone','haze');
+        document.body.classList.add('custom');
+        localStorage.setItem('egm-theme', 'custom');
+        toast(`Theme "${theme.name}" applied ✓`, 'ok');
+      });
+
+    } catch { toast('✗ Could not import theme', 'err'); }
   });
 })();
 
