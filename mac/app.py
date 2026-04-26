@@ -354,7 +354,7 @@ def _build_audio_formats(info):
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
 # ── Download worker ────────────────────────────────────────────────────────────
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320"):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None):
     job     = jobs[job_id]
     out_dir = Path(download_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -387,8 +387,12 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--postprocessor-args", "ffmpeg:-c copy"]
         else:
             args += ["--postprocessor-args", "ffmpeg:-c:v copy -c:a aac -b:a 192k"]
-        args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"
-                 if format_id else "bestvideo+bestaudio/best"]
+        if format_id:
+            args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"]
+        elif video_height and video_height != 0:
+            args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
+        else:
+            args += ["-f", "bestvideo+bestaudio/best"]
     args.append(url)
 
     cmd = [sys.executable, "-m", "yt_dlp"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
@@ -579,7 +583,8 @@ def start_download():
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
                            int(data.get("concurrent_fragments") or 1),
-                           data.get("audio_quality") or "320"),
+                           data.get("audio_quality") or "320",
+                           int(data.get("video_height") or 0) or None),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 

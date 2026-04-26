@@ -2181,6 +2181,35 @@
   </div>
 </div>
 
+<!-- Video Quality modal — shown before Download All Videos -->
+<div class="modal-backdrop" id="video-quality-modal" style="display:none" onclick="videoQualityBgClick(event)">
+  <div class="modal" id="video-quality-modal-inner">
+    <h3>🎬 Video Quality</h3>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all video downloads.</p>
+    <div class="quality-options">
+      <div class="quality-option selected" data-vquality="best">
+        <div><div class="quality-label">Best available</div><div class="quality-desc">Highest quality per video</div></div>
+      </div>
+      <div class="quality-option" data-vquality="1080">
+        <div><div class="quality-label">1080p</div><div class="quality-desc">Full HD · recommended</div></div>
+      </div>
+      <div class="quality-option" data-vquality="720">
+        <div><div class="quality-label">720p</div><div class="quality-desc">HD · smaller files</div></div>
+      </div>
+      <div class="quality-option" data-vquality="480">
+        <div><div class="quality-label">480p</div><div class="quality-desc">SD · fast downloads</div></div>
+      </div>
+      <div class="quality-option" data-vquality="360">
+        <div><div class="quality-label">360p</div><div class="quality-desc">Low quality · smallest files</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('video-quality-modal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" id="video-quality-confirm-btn">Download</button>
+    </div>
+  </div>
+</div>
+
 <!-- What's New modal -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal">
@@ -2581,6 +2610,37 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
   }, 800);
 });
 
+// ── Video quality modal ────────────────────────────────────────────────────────
+(function() {
+  const modal   = document.getElementById('video-quality-modal');
+  if (!modal) return;
+  const confirm = document.getElementById('video-quality-confirm-btn');
+  let selectedVQ = 'best';
+  modal.querySelectorAll('.quality-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selectedVQ = opt.dataset.vquality;
+    });
+  });
+  confirm.addEventListener('click', () => {
+    modal.style.display = 'none';
+    downloadAll('video', null, selectedVQ);
+  });
+})();
+
+function showVideoQualityModal() {
+  const modal = document.getElementById('video-quality-modal');
+  modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+  const best = modal.querySelector('[data-vquality="best"]');
+  if (best) best.classList.add('selected');
+  modal.style.display = 'flex';
+}
+function videoQualityBgClick(e) {
+  if (e.target === document.getElementById('video-quality-modal'))
+    document.getElementById('video-quality-modal').style.display = 'none';
+}
+
 // ── Deno installer ───────────────────────────────────────────────────────────
 async function installDeno() {
   const btn = document.getElementById('install-deno-btn');
@@ -2787,6 +2847,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
       if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
     }
     toast('Saved: ' + d.filename, 'ok');
+    if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
     if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
       const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
       if (allFinished) setTimeout(() => window.electronAPI.quit(), (typeof QUIT_DELAY_MS !== 'undefined' ? QUIT_DELAY_MS : 1500));
@@ -3197,9 +3258,9 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
 }
 
 // ── Download All — best quality, no modal ─────────────────────────────────────
-document.getElementById('dl-all-video-btn').addEventListener('click', () => downloadAll('video'));
+document.getElementById('dl-all-video-btn').addEventListener('click', () => showVideoQualityModal());
 // dl-all-audio-btn handled by audio quality popup below
-async function downloadAll(forceFormat, audioQuality) {
+async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
     toast('Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
@@ -3257,6 +3318,7 @@ async function downloadAll(forceFormat, audioQuality) {
       const res = await post('/api/download', {
         url: item.url, format: forceFormat,
         format_id: null,
+        video_height: (forceFormat !== 'audio' && videoQuality && videoQuality !== 'best') ? parseInt(videoQuality) : null,
         concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
         title: item.info.title || 'download',
         download_dir: dir,

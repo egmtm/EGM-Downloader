@@ -2390,6 +2390,35 @@
   </div>
 </div>
 
+<!-- Video Quality modal — shown before Download All Videos -->
+<div class="modal-backdrop" id="video-quality-modal" style="display:none" onclick="videoQualityBgClick(event)">
+  <div class="modal" id="video-quality-modal-inner">
+    <h3>🎬 Video Quality</h3>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all video downloads.</p>
+    <div class="quality-options">
+      <div class="quality-option selected" data-vquality="best">
+        <div><div class="quality-label">Best available</div><div class="quality-desc">Highest quality per video</div></div>
+      </div>
+      <div class="quality-option" data-vquality="1080">
+        <div><div class="quality-label">1080p</div><div class="quality-desc">Full HD · recommended</div></div>
+      </div>
+      <div class="quality-option" data-vquality="720">
+        <div><div class="quality-label">720p</div><div class="quality-desc">HD · smaller files</div></div>
+      </div>
+      <div class="quality-option" data-vquality="480">
+        <div><div class="quality-label">480p</div><div class="quality-desc">SD · fast downloads</div></div>
+      </div>
+      <div class="quality-option" data-vquality="360">
+        <div><div class="quality-label">360p</div><div class="quality-desc">Low quality · smallest files</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="document.getElementById('video-quality-modal').style.display='none'">Cancel</button>
+      <button class="btn btn-primary" id="video-quality-confirm-btn">Download</button>
+    </div>
+  </div>
+</div>
+
 <!-- What's New modal — shown once per version -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
@@ -3496,6 +3525,8 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (cancelBtn) cancelBtn.style.display = 'none';
     minimizeDoneCard(item, d.filename, stEl, dlBtn);
     toast('Saved: ' + d.filename, 'ok');
+    // Refresh mini history panel so new entry appears immediately
+    if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
     if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
       const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
       if (allFinished) setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
@@ -3547,9 +3578,9 @@ function setDlAllVisible(show) {
   document.getElementById('bulk-actions').style.display = show ? 'flex' : 'none';
 }
 
-document.getElementById('dl-all-btn').addEventListener('click', () => downloadAll('video'));
+document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
 // dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
-async function downloadAll(forceFormat, audioQuality) {
+async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
     toast('Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
@@ -3608,7 +3639,8 @@ async function downloadAll(forceFormat, audioQuality) {
       setBadge(stEl, 'dl', 'Downloading...');
       const res = await post('/api/download', {
         url: item.url, format: forceFormat || item.selFmt,
-        format_id: null,   // always best quality for Download All
+        format_id: null,
+        video_height: (forceFormat !== 'audio' && videoQuality && videoQuality !== 'best') ? parseInt(videoQuality) : null,
         // audio_codec not sent — backend defaults to encode path (safe for unknown bestaudio)
         concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
         title: item.info.title || 'download',
