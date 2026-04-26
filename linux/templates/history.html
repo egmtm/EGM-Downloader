@@ -15,13 +15,7 @@
   }
   body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 
-  /* theme classes */
-  body.eclipse{--bg:#18161a;--surf:#241f28;--surf2:#2e2535;--surf3:#3a2d47;--border:#3a3040;--border2:#4a3d5c;--acc:#a855f7;--text:#e2daea;--text2:#8b7fa0;--muted:#5a4d6e}
-  body.ghost{--bg:#0d1117;--surf:#161b22;--surf2:#1c2128;--surf3:#21262d;--border:#30363d;--border2:#3a424a;--acc:#238636;--text:#e6edf3;--text2:#8b949e;--muted:#484f58}
-  body.frost{--bg:#cdd2da;--surf:#c2c8d2;--surf2:#b8bec8;--surf3:#adb4c0;--border:#9da5b2;--border2:#8d96a5;--acc:#2563eb;--text:#161c28;--text2:#3e4a5e;--muted:#6e7a8e}
-  body.bone{--bg:#f5f0e8;--surf:#ede7d9;--surf2:#e4ddd0;--surf3:#d9d1c2;--border:#c8bfaa;--border2:#b8af9c;--acc:#2563eb;--text:#1e1810;--text2:#5a4e3a;--muted:#8a7d68}
-  body.haze{--bg:#d4d9d0;--surf:#c9d0c4;--surf2:#bec6b8;--surf3:#b2bba8;--border:#a0a89a;--border2:#909a8a;--acc:#2563eb;--text:#181e16;--text2:#3a4a38;--muted:#6a7a68}
-  body.custom{}
+  {% include 'theme_styles.html' %}
 
   /* titlebar */
   .titlebar{background:var(--surf2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
@@ -128,8 +122,17 @@
 <script>
 (function() {
   // Apply saved theme
+  // Apply saved theme and listen for changes
+  const ALL_HIST_THEMES = ['eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','dmg','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','custom'];
+  function applyHistTheme(name) {
+    document.body.classList.remove(...ALL_HIST_THEMES);
+    if (name && name !== 'void') document.body.classList.add(name);
+  }
   const theme = localStorage.getItem('egm-theme') || 'void';
-  if (theme && theme !== 'void') document.body.classList.add(theme);
+  applyHistTheme(theme);
+  if (window.electronAPI && window.electronAPI.onThemeChanged) {
+    window.electronAPI.onThemeChanged(t => applyHistTheme(t));
+  }
 
   const AUDIO_FMTS = ['mp3','aac','flac','wav','ogg','m4a','opus'];
   const PER_PAGE = 10;
