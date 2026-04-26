@@ -457,18 +457,18 @@
       --bg-texture-opacity: 1;
     }
 
-    /* DMG — Game Boy pea green (reworked) */
-    body.dmg {
-      --bg:#9bbc0f;--surf:#8bac0f;--surf2:#306230;--surf3:#0f380f;
-      --border:#306230;--border2:#0f380f;--acc:#0f380f;--acc-h:#1a5c1a;
-      --acc-dim:rgba(15,56,15,.25);--green:#0f380f;--red:#8b0000;--yellow:#3a5c00;
-      --text:#0f380f;--text2:#1a4a1a;--muted:#306230;--shadow:0 4px 24px rgba(0,0,0,.3);
-      --thumb-bg:#8bac0f;--log-bg:#8bac0f;--log-text:#0f380f;
-      --modal-overlay:rgba(15,56,15,.55);--modal-shadow:0 20px 60px rgba(0,0,0,.35);
-      --btn-primary-text:#9bbc0f;--btn-on-accent:#9bbc0f;--btn-red-border:#0f380f;
-      --audio-btn-color:#0f380f;--dur-bg:rgba(15,56,15,.85);--dur-text:#9bbc0f;
-      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='%230f380f' opacity='0.12'/%3E%3C/svg%3E");
-      --bg-texture-opacity: 1;
+    /* GBC — Game Boy Color purple/teal */
+    body.gbc {
+      --bg:#1a0a2a;--surf:#240e38;--surf2:#2e1246;--surf3:#381654;
+      --border:#5a2888;--border2:#7234aa;--acc:#00e5cc;--acc-h:#40f0da;
+      --acc-dim:rgba(0,229,204,.14);--green:#00e5cc;--red:#ff4466;--yellow:#ffd600;
+      --text:#e8d8ff;--text2:#aa88dd;--muted:#3a1a5a;--shadow:0 4px 32px rgba(0,0,0,.85);
+      --thumb-bg:#240e38;--log-bg:#0e0418;--log-text:#aa88dd;
+      --modal-overlay:rgba(0,0,0,.86);--modal-shadow:0 20px 60px rgba(0,0,0,.94);
+      --btn-primary-text:#fff;--btn-on-accent:#1a0a2a;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffd600;--dur-bg:rgba(0,0,0,.88);--dur-text:#e8d8ff;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='8' fill='none' stroke='%2300e5cc' stroke-width='0.4'/%3E%3Ccircle cx='10' cy='10' r='3' fill='none' stroke='%237234aa' stroke-width='0.3'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
     }
 
     /* Dreamcast — swirl orange/white */
@@ -1039,19 +1039,7 @@
     }
 
 
-    /* ── DMG REWORK — proper GB contrast ── */
-    body.dmg {
-      --bg:#9bbc0f;--surf:#8bac0f;--surf2:#306230;--surf3:#0f380f;
-      --border:#306230;--border2:#0f380f;--acc:#0f380f;--acc-h:#1a5c1a;
-      --acc-dim:rgba(15,56,15,.25);--green:#0f380f;--red:#8b0000;--yellow:#3a5c00;
-      --text:#0f380f;--text2:#1a4a1a;--muted:#306230;--shadow:0 4px 24px rgba(0,0,0,.3);
-      --thumb-bg:#8bac0f;--log-bg:#8bac0f;--log-text:#0f380f;
-      --modal-overlay:rgba(15,56,15,.55);--modal-shadow:0 20px 60px rgba(0,0,0,.35);
-      --btn-primary-text:#9bbc0f;--btn-on-accent:#9bbc0f;--btn-red-border:#0f380f;
-      --audio-btn-color:#0f380f;--dur-bg:rgba(15,56,15,.85);--dur-text:#9bbc0f;
-      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='%230f380f' opacity='0.12'/%3E%3C/svg%3E");
-      --bg-texture-opacity: 1;
-    }
+
 
     /* ── COBALT RUSH REWORK — lifted contrast ── */
     body.cobaltrush {
@@ -1130,8 +1118,8 @@
       --bg:#0a1a1e;--surf:#102428;--surf2:#162e34;--surf3:#1c3840;
       --border:#1e5a64;--border2:#287080;--acc:#00838f;--acc-h:#00acc1;
       --acc-dim:rgba(0,131,143,.14);--green:#4caf50;--red:#f44336;--yellow:#ffc107;
-      --text:#c0e0e8;--text2:#3a8898;--muted:#143440;--shadow:0 4px 32px rgba(0,0,0,.8);
-      --thumb-bg:#102428;--log-bg:#040e10;--log-text:#3a8898;
+      --text:#e8f6f8;--text2:#a0d4dc;--muted:#143440;--shadow:0 4px 32px rgba(0,0,0,.8);
+      --thumb-bg:#102428;--log-bg:#040e10;--log-text:#a0d4dc;
       --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
       --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
       --audio-btn-color:#ffc107;--dur-bg:rgba(0,0,0,.86);--dur-text:#c0e0e8;
@@ -1323,6 +1311,32 @@
       --audio-btn-color:#ffee00;--dur-bg:rgba(0,0,0,.92);--dur-text:#f8e8ff;
       --bg-texture: repeating-linear-gradient(100deg, transparent, transparent 2px, rgba(255,0,144,.04) 2px, rgba(255,0,144,.04) 3px), repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(0,229,255,.03) 60px, rgba(0,229,255,.03) 61px);
       --bg-texture-opacity: 1;
+    }
+
+    /* Pitch — pure black dominant */
+    body.pitch {
+      --bg:#000000;--surf:#0a0a0a;--surf2:#141414;--surf3:#1e1e1e;
+      --border:#2a2a2a;--border2:#383838;--acc:#d0d0d0;--acc-h:#f0f0f0;
+      --acc-dim:rgba(208,208,208,.1);--green:#aaaaaa;--red:#888888;--yellow:#cccccc;
+      --text:#ffffff;--text2:#888888;--muted:#222222;--shadow:0 4px 32px rgba(0,0,0,.98);
+      --thumb-bg:#0a0a0a;--log-bg:#000000;--log-text:#666666;
+      --modal-overlay:rgba(0,0,0,.95);--modal-shadow:0 20px 60px rgba(0,0,0,.99);
+      --btn-primary-text:#000;--btn-on-accent:#000;--btn-red-border:#444444;
+      --audio-btn-color:#888888;--dur-bg:rgba(0,0,0,.95);--dur-text:#ffffff;
+      --bg-texture: none;--bg-texture-opacity: 0;
+    }
+
+    /* Blanc — pure white dominant */
+    body.blanc {
+      --bg:#ffffff;--surf:#f5f5f5;--surf2:#ebebeb;--surf3:#e0e0e0;
+      --border:#cccccc;--border2:#b8b8b8;--acc:#1a1a1a;--acc-h:#333333;
+      --acc-dim:rgba(26,26,26,.08);--green:#2a2a2a;--red:#444444;--yellow:#555555;
+      --text:#000000;--text2:#444444;--muted:#aaaaaa;--shadow:0 4px 20px rgba(0,0,0,.08);
+      --thumb-bg:#ebebeb;--log-bg:#e0e0e0;--log-text:#555555;
+      --modal-overlay:rgba(0,0,0,.35);--modal-shadow:0 20px 60px rgba(0,0,0,.15);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#cccccc;
+      --audio-btn-color:#444444;--dur-bg:rgba(0,0,0,.6);--dur-text:#ffffff;
+      --bg-texture: none;--bg-texture-opacity: 0;
     }
 
     /* ── Hamburger button (B4 grid) ── */
@@ -1898,9 +1912,9 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#1a1a1a"></div><div class="theme-sw" style="background:#242424"></div><div class="theme-sw" style="background:#e60012"></div></div>
               <span class="theme-name">Famicom</span><div class="theme-check"></div>
             </div>
-            <div class="theme-row" data-theme="dmg">
-              <div class="theme-swatches"><div class="theme-sw" style="background:#8bac0f"></div><div class="theme-sw" style="background:#9bbc0f"></div><div class="theme-sw" style="background:#0f380f"></div></div>
-              <span class="theme-name">DMG</span><div class="theme-check"></div>
+            <div class="theme-row" data-theme="gbc">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#1a0a2a"></div><div class="theme-sw" style="background:#240e38"></div><div class="theme-sw" style="background:#00e5cc"></div></div>
+              <span class="theme-name">GBC</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="dreamcast">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0a0a12"></div><div class="theme-sw" style="background:#14141e"></div><div class="theme-sw" style="background:#f47321"></div></div>
@@ -2125,6 +2139,14 @@
             <div class="theme-row" data-theme="hanukkah" data-seasonal="true" style="display:none">
               <div class="theme-swatches"><div class="theme-sw" style="background:#020814"></div><div class="theme-sw" style="background:#040e20"></div><div class="theme-sw" style="background:#4488ff"></div></div>
               <span class="theme-name">Hanukkah <span style="font-size:.6rem;opacity:.6">✦</span></span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="pitch">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#000000"></div><div class="theme-sw" style="background:#0a0a0a"></div><div class="theme-sw" style="background:#d0d0d0"></div></div>
+              <span class="theme-name">Pitch</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="blanc">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#ffffff"></div><div class="theme-sw" style="background:#f5f5f5"></div><div class="theme-sw" style="background:#1a1a1a"></div></div>
+              <span class="theme-name">Blanc</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
               <div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div>
@@ -4027,7 +4049,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','dmg','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','custom'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','pitch','blanc','custom'];
 
   // ── Seasonal theme visibility ────────────────────────────────────────────────
   (function() {
@@ -4092,7 +4114,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     magma:            {label:'Magma',            bg:'#0c0500',surf:'#1a0800',acc:'#ff6b00',   cat:'nature'},
     monsoon:          {label:'Monsoon',          bg:'#0a0e14',surf:'#10161e',acc:'#4fc3f7',   cat:'nature'},
     famicom:          {label:'Famicom',          bg:'#1a1a1a',surf:'#242424',acc:'#e60012',   cat:'consoles'},
-    dmg:              {label:'DMG',              bg:'#8bac0f',surf:'#9bbc0f',acc:'#0f380f',   cat:'consoles'},
+    gbc:              {label:'GBC',              bg:'#1a0a2a',surf:'#240e38',acc:'#00e5cc',   cat:'consoles'},
     dreamcast:        {label:'Dreamcast',        bg:'#0a0a12',surf:'#14141e',acc:'#f47321',   cat:'consoles'},
     blastprocessing:  {label:'Blast Processing', bg:'#000033',surf:'#000044',acc:'#cc0000',   cat:'consoles'},
     ps1gray:          {label:'PS1 Gray',         bg:'#2a2a2e',surf:'#343438',acc:'#003791',   cat:'consoles'},
@@ -4149,6 +4171,8 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     newyear:          {label:'New Year',         bg:'#08040e',surf:'#100818',acc:'#ffd700',   cat:'seasonal'},
     diwali:           {label:'Diwali',           bg:'#0e0800',surf:'#1a1000',acc:'#ffaa00',   cat:'seasonal'},
     hanukkah:         {label:'Hanukkah',         bg:'#020814',surf:'#040e20',acc:'#4488ff',   cat:'seasonal'},
+    pitch:            {label:'Pitch',            bg:'#000000',surf:'#0a0a0a',acc:'#d0d0d0',   cat:'dark'},
+    blanc:            {label:'Blanc',            bg:'#ffffff',surf:'#f5f5f5',acc:'#1a1a1a',   cat:'light'},
     custom:           {label:'Custom',           bg:'#0b1120',surf:'#111c2e',acc:'#3b82f6',   cat:'custom'},
   };
 
