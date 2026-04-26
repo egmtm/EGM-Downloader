@@ -730,11 +730,11 @@
           <button class="btn-adv warn" id="adv-deno-btn">Reinstall</button>
         </div>
         <div class="adv-row">
-          <div><div class="adv-row-label">Export settings</div><div class="adv-row-sub">Copy preferences to clipboard</div></div>
+          <div><div class="adv-row-label">Export settings</div><div class="adv-row-sub">Save preferences to a JSON file</div></div>
           <button class="btn-adv info" id="adv-export-btn">Export</button>
         </div>
         <div class="adv-row">
-          <div><div class="adv-row-label">Import settings</div><div class="adv-row-sub">Load preferences from clipboard</div></div>
+          <div><div class="adv-row-label">Import settings</div><div class="adv-row-sub">Load preferences from a JSON file</div></div>
           <button class="btn-adv info" id="adv-import-btn">Import</button>
         </div>
       </div>
@@ -2213,19 +2213,35 @@ function audioQualityBgClick(e) {
   document.getElementById('adv-export-btn').addEventListener('click', async () => {
     try {
       const s = await fetch('/api/settings').then(r => r.json());
-      await navigator.clipboard.writeText(JSON.stringify(s, null, 2));
-      toast('Settings copied to clipboard ✓', 'ok');
-    } catch { toast('Could not copy to clipboard', 'err'); }
+      const content = JSON.stringify(s, null, 2);
+      if (window.electronAPI?.saveFile) {
+        const r = await window.electronAPI.saveFile('egm-settings.json', content);
+        if (r.canceled) return;
+        if (r.ok) toast('Settings exported ✓', 'ok');
+        else toast('Export failed: ' + (r.error || 'unknown'), 'err');
+      } else {
+        await navigator.clipboard.writeText(content);
+        toast('Settings copied to clipboard ✓', 'ok');
+      }
+    } catch { toast('Could not export settings', 'err'); }
   });
 
   document.getElementById('adv-import-btn').addEventListener('click', async () => {
     try {
-      const text = await navigator.clipboard.readText();
+      let text;
+      if (window.electronAPI?.openFile) {
+        const r = await window.electronAPI.openFile();
+        if (r.canceled) return;
+        if (r.error) { toast('Could not read file: ' + r.error, 'err'); return; }
+        text = r.content;
+      } else {
+        text = await navigator.clipboard.readText();
+      }
       const data = JSON.parse(text);
       if (typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid format');
       await post('/api/settings/save', data);
       toast('Settings imported — restart to apply', 'ok');
-    } catch { toast('Clipboard does not contain valid settings JSON', 'err'); }
+    } catch { toast('Could not import settings — file may not be valid settings JSON', 'err'); }
   });
 })();
 </script>
