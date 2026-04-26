@@ -142,6 +142,7 @@ Section "Install"
   File "${REPO_ROOT}/templates/index.html"
   File "${REPO_ROOT}/templates/history.html"
   File "${REPO_ROOT}/templates/themes.html"
+  File "${REPO_ROOT}/templates/theme_styles.html"
 
   ; ── static\ ──
   SetOutPath "$INSTDIR\static"
