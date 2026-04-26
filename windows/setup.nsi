@@ -63,6 +63,10 @@ Var PreviousInstDir
 !define MUI_FINISHPAGE_RUN_TEXT "Launch ${APPNAME}"
 !define MUI_FINISHPAGE_TITLE    "Installation Complete"
 !define MUI_FINISHPAGE_TEXT     "EGM Downloader v${VERSION} (Build ${BUILD}) has been installed.$\r$\n$\r$\nOn first launch, required components will be downloaded in the background. This is a one-time process."
+!define MUI_FINISHPAGE_SHOWREADME        ""
+!define MUI_FINISHPAGE_SHOWREADME_TEXT   "Add shortcut to desktop"
+!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+!define MUI_FINISHPAGE_SHOWREADME_FUNCTION FinishPage_CreateDesktopShortcut
 
 ; ── Pages ────────────────────────────────────────────────────
 !insertmacro MUI_PAGE_WELCOME
@@ -74,6 +78,13 @@ Var PreviousInstDir
 !insertmacro MUI_UNPAGE_INSTFILES
 
 !insertmacro MUI_LANGUAGE "English"
+
+; ── Desktop shortcut — created only if user checks the box on finish page ────
+Function FinishPage_CreateDesktopShortcut
+  CreateShortCut "$DESKTOP\EGM Downloader.lnk" \
+    "$INSTDIR\launch.bat" "" \
+    "$INSTDIR\static\icon.ico" 0
+FunctionEnd
 
 ; ── Startup: detect existing install ─────────────────────────
 Function .onInit
