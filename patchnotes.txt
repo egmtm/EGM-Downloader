@@ -1,3 +1,14 @@
+v0.97 - Build 99 (4/26/2026 12:00 PM EST)
+-----------------------------------------
+  • [ALL] 46 new permanent themes across 6 categories: Nature, Consoles, Characters, Movies, Retro, Experimental — each with a unique static background texture
+  • [ALL] 10 seasonal easter egg themes (Valentine's, St. Patrick's, Easter, 4th of July, Halloween, Thanksgiving, Christmas, New Year, Diwali, Hanukkah) — auto-show 30 days before, auto-hide 30 days after
+  • [ALL] Theme picker in hamburger panel now shows 10 themes only (current pinned first, 9 most recently used)
+  • [ALL] View All Themes window — separate window with category tabs (Dark, Light, Nature, Consoles, Characters, Movies, Retro, Experimental, Seasonal, Imported), search, and grid layout; remembers size and position
+  • [ALL] Install Updates button now only appears when at least one plugin update toggle is ON; resets after install completes
+  • [ALL] Cookies section — helper text "For age-restricted or login-required content" added before browser extension pills
+  • [ALL] Settings panel — download folder only; compacted
+  • [ALL] Advanced panel — Check updates on launch toggle (left) and Quit when done toggle (right) on same top row
+
 v0.96 - Build 98 (4/25/2026 10:00 PM EST)
 -----------------------------------------
   • [ALL] Download History — hamburger (B4 grid) button in header replaces theme picker; History + Themes tabs; sliding window 10×10 with collapsed pills; ⤢ Open full history window; per-entry re-add, open folder, remove; count badge
