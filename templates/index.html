@@ -469,13 +469,28 @@
     }
     .card.collapsed-card { padding: 8px 16px; margin-bottom: 8px; }
     /* ── Settings + Advanced side-by-side grid ── */
-    .sa-grid { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr; gap: 6px; width: 100%; max-width: 760px; margin-bottom: 8px; }
-    .sa-grid .card, .sa-grid .card.collapsed-card { padding: 0; margin-bottom: 0; width: auto; max-width: none; align-self: start; }
-    .sa-grid .card-header { padding: 5px 8px; margin-bottom: 0; }
-    .sa-grid .card-body { border-top: 1px solid var(--border); padding: 3px 8px 5px; }
-    .sa-grid .adv-row { padding: 3px 0; }
-    .sa-grid .opt-label { font-size: .75rem; margin-bottom: 4px; margin-top: 2px; }
-    .sa-grid .update-grid { grid-template-columns: 1fr; gap: 4px; margin-bottom: 4px; }
+    /* ── Unified settings panel ── */
+    .unified-panel {
+      width: 100%; max-width: 760px; margin-bottom: 16px;
+      background: var(--surf); border: 1px solid var(--border);
+      border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden;
+    }
+    .sec-hdr {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 14px; cursor: pointer; user-select: none;
+      border-top: 1px solid var(--border);
+    }
+    .unified-panel .sec-hdr:first-child { border-top: none; }
+    .sec-hdr:hover { background: var(--surf2); }
+    .sec-hdr.open { background: var(--surf2); }
+    .sec-title { font-size: .78rem; font-weight: 600; color: var(--text2); letter-spacing: .01em; }
+    .sec-body { padding: 6px 14px 10px; background: var(--surf2); border-top: 1px solid var(--border); }
+    .sec-body.collapsed { display: none; }
+    .sec-body .adv-row { padding: 4px 0; }
+    .sec-body .update-grid { grid-template-columns: 1fr; gap: 6px; margin-bottom: 6px; }
+    .adv-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
+    .adv-2col .adv-row { border-bottom: 0.5px solid var(--border); }
+    .adv-2col .adv-row:nth-last-child(-n+2) { border-bottom: none; }
     .card-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 14px;
@@ -927,17 +942,18 @@
   </div>
 </div>
 
-<div class="sa-grid">
-<!-- Settings + Cookies -->
-<div class="card">
-  <div class="card-header">
-    <span class="card-title">Settings</span>
+<!-- Unified settings panel -->
+<div class="unified-panel">
+
+  <!-- Settings section — collapsed by default -->
+  <div class="sec-hdr" id="settings-sec-hdr" onclick="toggleSettingsPanel()">
+    <span class="sec-title">⚙ Settings</span>
     <div style="display:flex;align-items:center;gap:8px">
-      <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:3px 10px">Cookies: not loaded</span>
-      <button class="card-toggle" id="settings-toggle" onclick="toggleSettingsPanel()">▼ Hide</button>
+      <span id="settings-folder-hint" style="font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px"></span>
+      <button class="card-toggle" id="settings-toggle" onclick="event.stopPropagation();toggleSettingsPanel()">▶ Show</button>
     </div>
   </div>
-  <div class="card-body" id="settings-body">
+  <div class="sec-body collapsed" id="settings-body">
     <span class="opt-label">Download folder</span>
     <div class="path-row">
       <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
@@ -945,58 +961,48 @@
       <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled>📁 Open</button>
     </div>
     <div class="path-hint" id="dir-hint" style="color:var(--yellow)">⚠ Select a download folder before downloading.</div>
-
     <div style="margin-top:10px">
       <label class="sw-wrap">
         <input type="checkbox" class="sw" id="quit-on-done-chk">
         Quit when all downloads complete
       </label>
     </div>
-
-    <div style="border-top:1px solid var(--border);margin:14px 0 12px"></div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <span class="opt-label" style="margin-bottom:0">🍪 Site Cookies</span>
-      <button class="card-toggle" id="ck-toggle" onclick="toggleCookiePanel()">▶ Show</button>
-    </div>
-    <div id="ck-body" class="collapsed">
-      <!-- Not loaded state -->
-      <div id="ck-not-loaded" style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;flex-wrap:wrap;gap:4px">
-        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-          <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
-          <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
-        </div>
-        <label class="btn btn-ghost btn-sm" style="cursor:pointer;flex-shrink:0">
-          📂 Browse
-          <input type="file" id="ck-file-input" accept=".txt" style="display:none" onchange="uploadCookies(this)">
-        </label>
-      </div>
-      <!-- Loaded state -->
-      <div id="ck-loaded" style="display:none;align-items:center;justify-content:space-between;padding:4px 0;gap:6px">
-        <span id="ck-status-text" style="font-size:.72rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">cookies.txt · active</span>
-        <div style="display:flex;gap:4px;flex-shrink:0">
-          <label class="btn btn-ghost btn-sm" style="cursor:pointer">
-            📂 Replace
-            <input type="file" id="ck-replace-input" accept=".txt" style="display:none" onchange="uploadCookies(this)">
-          </label>
-          <button class="btn btn-red btn-sm" id="ck-clear-btn">✕ Unload</button>
-        </div>
-      </div>
-    </div>
-
   </div>
-</div>
 
-<!-- Update Plugins — in sa-grid -->
-<div class="card collapsed-card">
-  <div class="card-header">
-    <span class="card-title">Update Plugins</span>
+  <!-- Cookies section -->
+  <div class="sec-hdr" onclick="toggleCookiePanel()">
+    <span class="sec-title">🍪 Site Cookies</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px">Cookies: not loaded</span>
+      <button class="card-toggle" id="ck-toggle" onclick="event.stopPropagation();toggleCookiePanel()">▶ Show</button>
+    </div>
+  </div>
+  <div class="sec-body collapsed" id="ck-body">
+    <div id="ck-not-loaded" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
+      <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+        <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+      </div>
+      <label class="btn btn-ghost btn-sm" style="cursor:pointer;flex-shrink:0">📂 Browse<input type="file" id="ck-file-input" accept=".txt" style="display:none" onchange="uploadCookies(this)"></label>
+    </div>
+    <div id="ck-loaded" style="display:none;align-items:center;justify-content:space-between;gap:6px">
+      <span id="ck-status-text" style="font-size:.72rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">cookies.txt · active</span>
+      <div style="display:flex;gap:4px;flex-shrink:0">
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer">📂 Replace<input type="file" id="ck-replace-input" accept=".txt" style="display:none" onchange="uploadCookies(this)"></label>
+        <button class="btn btn-red btn-sm" id="ck-clear-btn">✕ Unload</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Update Plugins section -->
+  <div class="sec-hdr" onclick="toggleUpdPanel()">
+    <span class="sec-title">🔌 Update Plugins</span>
     <div style="display:flex;align-items:center;gap:8px">
       <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
-      <button class="card-toggle" id="upd-toggle" onclick="toggleUpdPanel()">▶ Show</button>
+      <button class="card-toggle" id="upd-toggle" onclick="event.stopPropagation();toggleUpdPanel()">▶ Show</button>
     </div>
   </div>
-  <div class="card-body collapsed" id="upd-body">
+  <div class="sec-body collapsed" id="upd-body">
     <div class="update-grid" id="update-grid">
       <div style="color:var(--text2);font-size:.82rem;grid-column:1/-1">Click <b>Check for Updates</b> to see installed versions.</div>
     </div>
@@ -1006,85 +1012,50 @@
     </div>
     <div class="upd-log" id="upd-log"></div>
   </div>
-</div>
 
-<!-- Advanced settings — standalone card -->
-<div class="card collapsed-card">
-  <div class="card-header">
-    <span class="card-title">Advanced</span>
-    <button class="card-toggle" id="adv-card-toggle">▶ Show</button>
+  <!-- Advanced section -->
+  <div class="sec-hdr" onclick="toggleAdvPanel()">
+    <span class="sec-title">⚙ Advanced</span>
+    <button class="card-toggle" id="adv-card-toggle" onclick="event.stopPropagation();toggleAdvPanel()">▶ Show</button>
   </div>
-  <div class="card-body collapsed" id="adv-card-body">
-        <!-- Desktop shortcut — Windows only (hidden on Mac/Linux via JS) -->
-        <div class="adv-row" id="adv-shortcut-row" style="display:none">
-          <div>
-            <div class="adv-row-label">Desktop shortcut</div>
-            <div class="adv-row-sub">Add EGM Downloader to your desktop</div>
-          </div>
-          <button class="btn-adv" id="adv-shortcut-btn">Create</button>
-        </div>
-        <!-- Flask port -->
-        <div class="adv-row">
-          <div>
-            <div class="adv-row-label">Flask port</div>
-            <div class="adv-row-sub">Change if port 8899 is in use. Requires restart.</div>
-          </div>
-          <div class="adv-port-row">
-            <input type="number" class="adv-port-input" id="adv-port-input" value="8899" min="1024" max="65535"/>
-            <button class="btn-adv" id="adv-port-btn">Apply</button>
-          </div>
-        </div>
-        <!-- Clear cache -->
-        <div class="adv-row">
-          <div>
-            <div class="adv-row-label">Clear app cache</div>
-            <div class="adv-row-sub">Removes temp files and partial downloads</div>
-          </div>
-          <button class="btn-adv warn" id="adv-clear-cache-btn">Clear</button>
-        </div>
-        <!-- Reset settings -->
-        <div class="adv-row">
-          <div>
-            <div class="adv-row-label">Reset all settings</div>
-            <div class="adv-row-sub">Restores defaults, keeps downloads</div>
-          </div>
-          <button class="btn-adv danger" id="adv-reset-btn">Reset</button>
-        </div>
-        <!-- Reinstall ffmpeg -->
-        <div class="adv-row">
-          <div>
-            <div class="adv-row-label">Reinstall ffmpeg</div>
-            <div class="adv-row-sub">Fresh download on next launch</div>
-          </div>
-          <button class="btn-adv warn" id="adv-ffmpeg-btn">Reinstall</button>
-        </div>
-        <!-- Reinstall Deno -->
-        <div class="adv-row">
-          <div>
-            <div class="adv-row-label">Reinstall Deno</div>
-            <div class="adv-row-sub">Fresh install on next launch</div>
-          </div>
-          <button class="btn-adv warn" id="adv-deno-btn">Reinstall</button>
-        </div>
-        <!-- Export settings -->
-        <div class="adv-row">
-          <div>
-            <div class="adv-row-label">Export settings</div>
-            <div class="adv-row-sub">Save preferences to a JSON file</div>
-          </div>
-          <button class="btn-adv info" id="adv-export-btn">Export</button>
-        </div>
-        <!-- Import settings -->
-        <div class="adv-row">
-          <div>
-            <div class="adv-row-label">Import settings</div>
-            <div class="adv-row-sub">Load preferences from a JSON file</div>
-          </div>
-          <button class="btn-adv info" id="adv-import-btn">Import</button>
-        </div>
+  <div class="sec-body collapsed" id="adv-card-body">
+    <div class="adv-2col">
+      <div class="adv-row" id="adv-shortcut-row" style="display:none">
+        <div><div class="adv-row-label">Desktop shortcut</div></div>
+        <button class="btn-adv" id="adv-shortcut-btn">Create</button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Flask port</div></div>
+        <div class="adv-port-row"><input type="number" class="adv-port-input" id="adv-port-input" value="8899" min="1024" max="65535"/><button class="btn-adv" id="adv-port-btn">Apply</button></div>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Export settings</div></div>
+        <button class="btn-adv info" id="adv-export-btn">Export</button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Import settings</div></div>
+        <button class="btn-adv info" id="adv-import-btn">Import</button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Clear cache</div></div>
+        <button class="btn-adv warn" id="adv-clear-cache-btn">Clear</button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Reset settings</div></div>
+        <button class="btn-adv danger" id="adv-reset-btn">Reset</button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Reinstall ffmpeg</div></div>
+        <button class="btn-adv warn" id="adv-ffmpeg-btn">Reinstall</button>
+      </div>
+      <div class="adv-row">
+        <div><div class="adv-row-label">Reinstall Deno</div></div>
+        <button class="btn-adv warn" id="adv-deno-btn">Reinstall</button>
+      </div>
+    </div>
   </div>
+
 </div>
-</div><!-- end sa-grid -->
 
 <!-- Bulk bar -->
 <div id="bulk-bar">
@@ -1096,7 +1067,7 @@
 <!-- Results -->
 <div id="results"></div>
 
-<!-- Update Plugins moved into sa-grid above -->
+<!-- Update Plugins moved into unified panel above -->
 
 <footer>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
@@ -1394,6 +1365,7 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
     if (s.last_folder) {
       chosenPath = s.last_folder;
       document.getElementById('dl-dir').value = s.last_folder;
+      const fh = document.getElementById('settings-folder-hint'); if (fh) fh.textContent = s.last_folder.split(/[\\/]/).pop() || s.last_folder;
       document.getElementById('open-folder-btn').disabled = false;
       document.getElementById('dir-hint').textContent = 'Files saved to: ' + s.last_folder;
       document.getElementById('dir-hint').style.color = '';
@@ -1407,18 +1379,17 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       if (sel) sel.value = String(s.fragments);
     }
     // Restore panel open/closed states
-    if (s.settings_open === false) {
-      settingsOpen = false;
-      document.getElementById('settings-body').classList.add('collapsed');
-      document.getElementById('settings-toggle').textContent = '▶ Show';
-      document.getElementById('settings-toggle').closest('.card').classList.add('collapsed-card');
+    if (s.settings_open === true) {
+      settingsOpen = true;
+      document.getElementById('settings-body').classList.remove('collapsed');
+      document.getElementById('settings-toggle').textContent = '▼ Hide';
+      document.getElementById('settings-sec-hdr').classList.add('open');
     }
     if (s.upd_open === true) {
       updOpen = true;
       updLoaded = true;
       document.getElementById('upd-body').classList.remove('collapsed');
       document.getElementById('upd-toggle').textContent = '▼ Hide';
-      document.getElementById('upd-toggle').closest('.card').classList.remove('collapsed-card');
       // Panel already open — load installed versions immediately
       (async () => {
         try {
@@ -1466,7 +1437,6 @@ function toggleUpdPanel() {
   updOpen = !updOpen;
   document.getElementById('upd-body').classList.toggle('collapsed', !updOpen);
   document.getElementById('upd-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
-  document.getElementById('upd-toggle').closest('.card').classList.toggle('collapsed-card', !updOpen);
   post('/api/settings/save', { upd_open: updOpen });
   // On first expand, immediately show installed versions (no network)
   if (updOpen && !updLoaded) {
@@ -1485,12 +1455,12 @@ function toggleUpdPanel() {
 }
 
 // ── Settings panel toggle ─────────────────────────────────────────────────────
-let settingsOpen = true;  // starts open
+let settingsOpen = false;  // starts collapsed
 function toggleSettingsPanel() {
   settingsOpen = !settingsOpen;
   document.getElementById('settings-body').classList.toggle('collapsed', !settingsOpen);
   document.getElementById('settings-toggle').textContent = settingsOpen ? '▼ Hide' : '▶ Show';
-  document.getElementById('settings-toggle').closest('.card').classList.toggle('collapsed-card', !settingsOpen);
+  document.getElementById('settings-sec-hdr').classList.toggle('open', settingsOpen);
   post('/api/settings/save', { settings_open: settingsOpen });
 }
 
@@ -1580,6 +1550,7 @@ document.getElementById('browse-btn').addEventListener('click', async () => {
   if (!picked) return;
   chosenPath = picked;
   document.getElementById('dl-dir').value = picked;
+  const fh2 = document.getElementById('settings-folder-hint'); if (fh2) fh2.textContent = picked.split(/[\\/]/).pop() || picked;
   document.getElementById('open-folder-btn').disabled = false;
   document.getElementById('dir-hint').textContent = 'Files will be saved to: ' + picked;
   document.getElementById('dir-hint').style.color = '';
@@ -2982,13 +2953,15 @@ function audioQualityBgClick(e) {
 // ── Advanced settings panel ───────────────────────────────────────────────────
 (function() {
   // Toggle open/close
-  document.getElementById('adv-card-toggle').addEventListener('click', () => {
+  // Advanced panel toggle — used by sec-hdr onclick and button
+  window.toggleAdvPanel = function() {
     const body = document.getElementById('adv-card-body');
     const btn  = document.getElementById('adv-card-toggle');
     const open = body.classList.toggle('collapsed');
     btn.textContent = open ? '▶ Show' : '▼ Hide';
-    btn.closest('.card').classList.toggle('collapsed-card', open);
-  });
+    document.getElementById('adv-card-toggle').closest('.sec-hdr').classList.toggle('open', !open);
+  };
+  document.getElementById('adv-card-toggle').addEventListener('click', toggleAdvPanel);
 
   // Load saved port on startup
   (async () => {
