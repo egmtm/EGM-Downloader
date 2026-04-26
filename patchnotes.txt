@@ -3,6 +3,7 @@ v0.96 - Build 98 (4/25/2026 10:00 PM EST)
   • [ALL] Download History — hamburger (B4 grid) button in header replaces theme picker; History + Themes tabs; sliding window 10×10 with collapsed pills; ⤢ Open full history window; per-entry re-add, open folder, remove; count badge
   • [ALL] Full history window — search, filter (All/Video/Audio/FLAC), sort, paginated table with format badges and file sizes; Clear All; persists across launches in egm_history.json
   • [ALL] Theme import/export — export active theme as .json file via native Save As dialog; import with validation of 12 required CSS vars; preview modal before applying; custom theme slot in picker
+  • [ALL] 10 themes total (4 new themes added)
   • [ALL] Settings export/import via native Save As/Open File dialog (replaces clipboard)
   • [ALL] Auto-update check on launch (silent — only acts if update found)
   • [ALL] Footer restructured — version pill + Check for Updates on one row; ♥ Support EGM donate pill below
@@ -10,10 +11,15 @@ v0.96 - Build 98 (4/25/2026 10:00 PM EST)
   • [ALL] Up to date and error update states now show as toasts instead of modals
   • [ALL] Cookies section — single line with Add-on: Chrome/Edge/Brave and Firefox browser pills
   • [ALL] Desktop shortcut moved to Advanced settings panel
+  • [ALL] Unified settings panel with 4 accordion sections
+  • [ALL] Compact plugin cards/rows
+  • [ALL] Cancel button fix
+  • [ALL] Advanced panel toggle fix
   • [WINDOWS] Auto-update: silent background download → toast with Restart Now button (8s)
   • [WINDOWS] NSIS installer finish page — Add shortcut to desktop checkbox (unchecked by default)
   • [MAC] Auto-update: launch check shows update available modal
   • [LINUX] Auto-update: launch check shows toast with Download link (no auto-install)
+
 
 v0.95 - Build 97 (4/25/2026 3:32 PM EST)
 -----------------------------------------
