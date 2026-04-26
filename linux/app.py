@@ -28,7 +28,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION    = "0.96"
+APP_VERSION           = "0.97"
 APP_BUILD      = 98
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
