@@ -7,5 +7,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   createShortcut:  ()               => ipcRenderer.invoke('create-shortcut'),
   quit:            ()               => ipcRenderer.invoke('quit-app'),
   launchInstaller: (installerPath)  => ipcRenderer.invoke('launch-installer', installerPath),
+  saveFile:        (name, content)  => ipcRenderer.invoke('save-file', name, content),
+  openFile:        ()               => ipcRenderer.invoke('open-file'),
   isElectron: true,
 });
