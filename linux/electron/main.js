@@ -333,6 +333,20 @@ ipcMain.handle('open-file', async () => {
   }
 });
 
+// ── IPC: open full history window ─────────────────────────────────────────────
+let historyWindow = null;
+ipcMain.handle('open-history-window', async () => {
+  if (historyWindow && !historyWindow.isDestroyed()) { historyWindow.focus(); return; }
+  historyWindow = new BrowserWindow({
+    width: 780, height: 560, minWidth: 600, minHeight: 420,
+    title: 'Download History',
+    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    autoHideMenuBar: true,
+  });
+  historyWindow.loadURL(`${APP_URL}/history-page`);
+  historyWindow.on('closed', () => { historyWindow = null; });
+});
+
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
   createSplash();

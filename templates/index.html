@@ -207,46 +207,71 @@
       --dur-text:          #e2e8f6;
     }
 
-    /* ── Theme picker button ── */
-    #theme-btn {
+    /* ── Hamburger button (B4 grid) ── */
+    #hamburger-btn {
       position: absolute; right: 0; top: 50%; transform: translateY(-50%);
       background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--rs); width: 34px; height: 34px;
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: var(--text2); flex-shrink: 0;
     }
-    #theme-btn:hover { border-color: var(--acc); color: var(--acc); }
-    #theme-btn svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    #hamburger-btn:hover { border-color: var(--acc); color: var(--acc); }
 
-    /* ── Theme picker panel ── */
-    #theme-panel {
+    /* ── Hamburger panel ── */
+    #hamburger-panel {
       display: none; position: absolute; right: 0; top: 42px;
-      width: 186px; background: var(--surf); border: 1px solid var(--border2);
+      width: 205px; background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,.35);
       z-index: 1000; overflow: hidden;
     }
-    #theme-panel.open { display: block; }
-    .theme-panel-hdr {
-      padding: 7px 12px 5px; font-size: 10px; letter-spacing: .08em;
-      text-transform: uppercase; color: var(--text2);
-      border-bottom: 1px solid var(--border);
+    #hamburger-panel.open { display: block; }
+    .hpanel-tabs { display: flex; padding: 5px 5px 0; gap: 3px; background: var(--surf2); }
+    .hpanel-tab {
+      flex: 1; padding: 5px 0; font-size: 10px; font-weight: 500;
+      color: var(--text2); background: transparent; border: none;
+      border-radius: 5px 5px 0 0; cursor: pointer;
     }
-    .theme-list { padding: 4px 6px 6px; }
+    .hpanel-tab.active { color: #fff; background: var(--acc); }
+    .hpanel-tab:not(.active):hover { color: var(--text); background: var(--surf3); }
+    .hpanel-content { animation: hpanel-fade .15s ease; }
+    @keyframes hpanel-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    .hpanel-open-full {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 5px 8px; background: var(--surf2); border-bottom: 1px solid var(--border);
+      cursor: pointer; border-top: 1px solid var(--border);
+    }
+    .hpanel-open-full:hover { background: var(--surf3); }
+    .hpanel-open-full span { font-size: 9px; color: var(--acc); }
+    .hpanel-open-full small { font-size: 9px; color: var(--text2); }
+    .hentry { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 4px; margin-bottom: 2px; }
+    .hentry:hover { background: var(--surf2); }
+    .hthumb { width: 26px; height: 19px; border-radius: 2px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--text2); border: 0.5px solid var(--border); }
+    .htitle { font-size: 10px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+    .hmeta { font-size: 8px; color: var(--text2); margin: 0; }
+    .hbtns { display: flex; gap: 2px; flex-shrink: 0; margin-left: auto; }
+    .hbtn { font-size: 7px; padding: 1px 3px; border-radius: 2px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
+    .hbtn:hover { color: var(--acc); border-color: var(--acc); }
+    .hbtn.red:hover { color: var(--red); border-color: var(--red); }
+    .hpill { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; margin: 2px 0; background: rgba(255,255,255,.04); border: 0.5px dashed var(--border); border-radius: 4px; cursor: pointer; font-size: 9px; color: var(--text2); width: 100%; }
+    .hpill:hover { color: var(--acc); border-color: var(--acc); }
+
+    /* ── Theme picker (inside Themes tab) ── */
+    .theme-list { padding: 0; }
     .theme-row {
-      display: flex; align-items: center; gap: 8px;
-      padding: 5px 7px; border-radius: 6px; cursor: pointer;
-      margin-bottom: 1px; border: 1px solid transparent;
+      display: flex; align-items: center; gap: 7px;
+      padding: 4px 7px; border-radius: 5px; cursor: pointer;
+      margin-bottom: 2px; border: 0.5px solid transparent;
     }
     .theme-row:hover { background: var(--surf2); }
     .theme-row.active { background: var(--acc-dim); border-color: var(--acc); }
     .theme-swatches { display: flex; gap: 2px; flex-shrink: 0; }
-    .theme-sw { width: 11px; height: 11px; border-radius: 2px; border: 1px solid rgba(0,0,0,.15); }
-    .theme-name { font-size: 11px; font-weight: 500; color: var(--text); flex: 1; }
-    .theme-check { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0;
+    .theme-sw { width: 9px; height: 9px; border-radius: 2px; border: 0.5px solid rgba(0,0,0,.15); }
+    .theme-name { font-size: 10px; font-weight: 500; color: var(--text); flex: 1; }
+    .theme-check { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
                    display: flex; align-items: center; justify-content: center;
-                   border: 1px solid var(--border2); }
+                   border: 0.5px solid var(--border2); }
     .theme-check.checked { background: var(--acc); border-color: var(--acc); }
-    .theme-check.checked::after { content:''; display:block; width:5px; height:5px;
+    .theme-check.checked::after { content:''; display:block; width:4px; height:4px;
       border-right: 1.5px solid #fff; border-bottom: 1.5px solid #fff;
       transform: rotate(45deg) translate(-1px,-1px); }
 
@@ -622,68 +647,75 @@
     <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.95" data-build-title="v0.95">v0.95</span></h1>
     <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
   </div>
-  <!-- Theme picker button — replaces binary moon/sun toggle -->
+  <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
   <div style="position:absolute;right:0;top:50%;transform:translateY(-50%)">
-    <button id="theme-btn" title="Change theme" aria-label="Change theme">
-      <svg viewBox="0 0 24 24">
-        <circle cx="12" cy="12" r="3"/>
-        <circle cx="12" cy="4" r="1.3" fill="currentColor" stroke="none"/>
-        <circle cx="12" cy="20" r="1.3" fill="currentColor" stroke="none"/>
-        <circle cx="4" cy="12" r="1.3" fill="currentColor" stroke="none"/>
-        <circle cx="20" cy="12" r="1.3" fill="currentColor" stroke="none"/>
-        <circle cx="6.34" cy="6.34" r="1.3" fill="currentColor" stroke="none"/>
-        <circle cx="17.66" cy="17.66" r="1.3" fill="currentColor" stroke="none"/>
-        <circle cx="6.34" cy="17.66" r="1.3" fill="currentColor" stroke="none"/>
-        <circle cx="17.66" cy="6.34" r="1.3" fill="currentColor" stroke="none"/>
-      </svg>
+    <button id="hamburger-btn" title="History &amp; Themes" aria-label="History and Themes" style="position:relative">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
+        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
+        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
+        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
+        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
+      </div>
+      <span id="history-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--acc);border-radius:50%;font-size:8px;color:#fff;align-items:center;justify-content:center;border:1.5px solid var(--bg)">0</span>
     </button>
-    <div id="theme-panel">
-      <div class="theme-panel-hdr">Theme</div>
-      <div class="theme-list" id="theme-list">
-        <div class="theme-row active" data-theme="void">
-          <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
-          <span class="theme-name">Void</span>
-          <div class="theme-check checked"></div>
+    <div id="hamburger-panel">
+      <!-- Tabs -->
+      <div class="hpanel-tabs">
+        <button class="hpanel-tab active" data-tab="history">History <span id="history-tab-count" style="background:rgba(255,255,255,.2);border-radius:8px;padding:0 5px;font-size:8px"></span></button>
+        <button class="hpanel-tab" data-tab="themes">Themes</button>
+      </div>
+      <!-- History tab -->
+      <div class="hpanel-content" id="hpanel-history">
+        <div class="hpanel-open-full" id="open-history-window-btn">
+          <span>⤢ Open full history</span>
+          <small id="history-total-info">0 downloads</small>
         </div>
-        <div class="theme-row" data-theme="eclipse">
-          <div class="theme-swatches"><div class="theme-sw" style="background:#18161a"></div><div class="theme-sw" style="background:#241f28"></div><div class="theme-sw" style="background:#a855f7"></div></div>
-          <span class="theme-name">Eclipse</span>
-          <div class="theme-check"></div>
+        <div id="history-panel-body" style="padding:5px">
+          <div id="history-empty" style="padding:12px 8px;font-size:10px;color:var(--text2);text-align:center">No downloads yet</div>
         </div>
-        <div class="theme-row" data-theme="ghost">
-          <div class="theme-swatches"><div class="theme-sw" style="background:#0d1117"></div><div class="theme-sw" style="background:#161b22"></div><div class="theme-sw" style="background:#238636"></div></div>
-          <span class="theme-name">Ghost</span>
-          <div class="theme-check"></div>
-        </div>
-        <div class="theme-row" data-theme="frost">
-          <div class="theme-swatches"><div class="theme-sw" style="background:#cdd2da"></div><div class="theme-sw" style="background:#c2c8d2"></div><div class="theme-sw" style="background:#2563eb"></div></div>
-          <span class="theme-name">Frost</span>
-          <div class="theme-check"></div>
-        </div>
-        <div class="theme-row" data-theme="bone">
-          <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e8"></div><div class="theme-sw" style="background:#ede7d9"></div><div class="theme-sw" style="background:#2563eb"></div></div>
-          <span class="theme-name">Bone</span>
-          <div class="theme-check"></div>
-        </div>
-        <div class="theme-row" data-theme="haze">
-          <div class="theme-swatches"><div class="theme-sw" style="background:#d4d9d0"></div><div class="theme-sw" style="background:#c9d0c4"></div><div class="theme-sw" style="background:#2563eb"></div></div>
-          <span class="theme-name">Haze</span>
-          <div class="theme-check"></div>
-        </div>
-        <!-- Custom theme row — injected by JS when a custom theme is loaded -->
-        <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
-          <div class="theme-swatches" id="custom-theme-swatches">
-            <div class="theme-sw" id="csw1"></div>
-            <div class="theme-sw" id="csw2"></div>
-            <div class="theme-sw" id="csw3"></div>
-          </div>
-          <span class="theme-name" id="custom-theme-name">Custom</span>
-          <div class="theme-check"></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;border-top:1px solid var(--border)">
+          <span id="history-panel-count" style="font-size:8px;color:var(--text2)">0 total</span>
+          <button id="history-clear-btn" style="font-size:8px;padding:1px 7px;border:0.5px solid rgba(239,68,68,.4);border-radius:3px;background:transparent;color:var(--red);cursor:pointer">Clear All</button>
         </div>
       </div>
-      <div style="display:flex;gap:4px;padding:6px 6px 6px;border-top:1px solid var(--border)">
-        <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:10px;color:var(--text2)">⬆ Import</button>
-        <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:10px;color:var(--text2)">⬇ Export</button>
+      <!-- Themes tab -->
+      <div class="hpanel-content" id="hpanel-themes" style="display:none">
+        <div style="padding:5px">
+          <div class="theme-list" id="theme-list">
+            <div class="theme-row active" data-theme="void">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
+              <span class="theme-name">Void</span><div class="theme-check checked"></div>
+            </div>
+            <div class="theme-row" data-theme="eclipse">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#18161a"></div><div class="theme-sw" style="background:#241f28"></div><div class="theme-sw" style="background:#a855f7"></div></div>
+              <span class="theme-name">Eclipse</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="ghost">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0d1117"></div><div class="theme-sw" style="background:#161b22"></div><div class="theme-sw" style="background:#238636"></div></div>
+              <span class="theme-name">Ghost</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="frost">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#cdd2da"></div><div class="theme-sw" style="background:#c2c8d2"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+              <span class="theme-name">Frost</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="bone">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e8"></div><div class="theme-sw" style="background:#ede7d9"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+              <span class="theme-name">Bone</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="haze">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#d4d9d0"></div><div class="theme-sw" style="background:#c9d0c4"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+              <span class="theme-name">Haze</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div>
+              <span class="theme-name" id="custom-theme-name">Custom</span><div class="theme-check"></div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
+            <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬆ Import</button>
+            <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬇ Export</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -2392,51 +2424,225 @@ function toast(msg, type='') {
   c.appendChild(t); setTimeout(()=>t.remove(), TOAST_DURATION);
 }
 
-// ── Theme picker ──────────────────────────────────────────────────────────────
+// ── Hamburger panel — History + Themes tabs ────────────────────────────────────
+(function() {
+  const btn   = document.getElementById('hamburger-btn');
+  const panel = document.getElementById('hamburger-panel');
+  const tabs  = document.querySelectorAll('.hpanel-tab');
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const opening = !panel.classList.contains('open');
+    panel.classList.toggle('open');
+    if (opening) loadHistoryPanel();
+  });
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
+  });
+
+  tabs.forEach(t => t.addEventListener('click', () => {
+    tabs.forEach(x => x.classList.remove('active'));
+    t.classList.add('active');
+    const tab = t.dataset.tab;
+    document.getElementById('hpanel-history').style.display = tab === 'history' ? '' : 'none';
+    document.getElementById('hpanel-themes').style.display  = tab === 'themes'  ? '' : 'none';
+    // Re-trigger animation
+    const el = document.getElementById(`hpanel-${tab}`);
+    el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+  }));
+
+  document.getElementById('open-history-window-btn').addEventListener('click', () => {
+    panel.classList.remove('open');
+    if (window.electronAPI?.openHistoryWindow) window.electronAPI.openHistoryWindow();
+    else window.open('/history-page', '_blank');
+  });
+  document.getElementById('history-clear-btn').addEventListener('click', async () => {
+    if (!confirm('Clear all download history? This cannot be undone.')) return;
+    await fetch('/api/history/clear', { method: 'POST' });
+    loadHistoryPanel();
+  });
+})();
+
+// ── History panel state & render ──────────────────────────────────────────────
+let _historyPage = 1;         // current batch (1-based, newest first)
+let _historyTotal = 0;
+let _historyBatches = [];     // [{page, items}] — already loaded pages
+const HBATCH = 10;
+
+function _fmtSize(b) {
+  if (!b) return '';
+  if (b > 1073741824) return (b/1073741824).toFixed(1) + ' GB';
+  if (b > 1048576)    return (b/1048576).toFixed(1) + ' MB';
+  if (b > 1024)       return (b/1024).toFixed(0) + ' KB';
+  return b + ' B';
+}
+function _fmtDate(iso) {
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 86400) return 'Today';
+    if (diff < 172800) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch { return ''; }
+}
+function _fmtFmt(f) {
+  return f ? f.toUpperCase() : '';
+}
+
+function _buildEntry(item) {
+  const div = document.createElement('div');
+  div.className = 'hentry';
+  const isAudio = ['mp3','aac','flac','wav','ogg','m4a'].includes(item.format);
+  div.innerHTML = `
+    <div class="hthumb">${isAudio ? '♫' : '▶'}</div>
+    <div style="flex:1;min-width:0">
+      <p class="htitle">${item.title || item.filename || '—'}</p>
+      <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
+    </div>
+    <div class="hbtns">
+      <button class="hbtn" title="Re-add URL">↺</button>
+      <button class="hbtn" title="Open folder">🗁</button>
+      <button class="hbtn red" title="Remove">✕</button>
+    </div>`;
+  const [btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
+  btnReadd.addEventListener('click', () => {
+    const ta = document.getElementById('urls');
+    if (ta) { ta.value = item.url; ta.focus(); }
+    document.getElementById('hamburger-panel').classList.remove('open');
+  });
+  btnOpen.addEventListener('click', () => {
+    if (window.electronAPI?.openFolder) window.electronAPI.openFolder(item.download_dir);
+  });
+  btnDel.addEventListener('click', async () => {
+    await fetch(`/api/history/${item.id}`, { method: 'DELETE' });
+    loadHistoryPanel();
+  });
+  return div;
+}
+
+async function loadHistoryPanel(page = 1) {
+  _historyPage = page;
+  _historyBatches = [];
+  const body  = document.getElementById('history-panel-body');
+  const empty = document.getElementById('history-empty');
+  body.innerHTML = '';
+
+  try {
+    const d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
+    _historyTotal = d.total;
+    document.getElementById('history-panel-count').textContent = d.total + ' total';
+    document.getElementById('history-total-info').textContent  = d.total + ' downloads';
+
+    const badge = document.getElementById('history-badge');
+    if (d.total > 0) {
+      badge.textContent = d.total > 99 ? '99+' : d.total;
+      badge.style.display = 'flex';
+    } else { badge.style.display = 'none'; }
+
+    document.getElementById('history-tab-count').textContent = d.total || '';
+
+    if (!d.items || d.items.length === 0) {
+      empty.style.display = '';
+      return;
+    }
+    empty.style.display = 'none';
+
+    // Render current batch items (max 5 shown, rest in "· · · N more · · ·")
+    const shown = d.items.slice(0, 5);
+    const hidden = d.items.length - shown.length;
+    shown.forEach(item => body.appendChild(_buildEntry(item)));
+    if (hidden > 0) {
+      const more = document.createElement('p');
+      more.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:2px 0';
+      more.textContent = `· · · ${hidden} more in this batch · · ·`;
+      body.appendChild(more);
+    }
+
+    // "Show older" button
+    if (page < d.pages) {
+      const btn = document.createElement('button');
+      btn.className = 'hpill';
+      btn.textContent = `↓ Show older (${(d.pages - page) * HBATCH} more)`;
+      btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, d.pages, body, btn));
+      body.appendChild(btn);
+    }
+  } catch { empty.style.display = ''; }
+}
+
+async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
+  const d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
+  if (!d.items || !d.items.length) return;
+
+  // Collapse previous entries into a pill
+  const pills = parentBody.querySelectorAll('.hentry, p, .hpill');
+  const collapseCount = parentBody.querySelectorAll('.hentry').length;
+  if (collapseCount > 0) {
+    const pill = document.createElement('button');
+    pill.className = 'hpill';
+    pill.innerHTML = `↑ Show newer <span style="background:var(--surf2);border-radius:6px;padding:0 4px;font-size:8px;border:0.5px solid var(--border)">${collapseCount}</span>`;
+    // On click: restore original page
+    pill.addEventListener('click', () => loadHistoryPanel(_historyPage));
+    [...pills].forEach(el => el.remove());
+    parentBody.insertBefore(pill, parentBody.firstChild);
+  }
+  oldBtn.remove();
+
+  // Render new batch
+  const frag = document.createDocumentFragment();
+  d.items.slice(0, 5).forEach(item => frag.appendChild(_buildEntry(item)));
+  parentBody.appendChild(frag);
+
+  if (page < totalPages) {
+    const btn = document.createElement('button');
+    btn.className = 'hpill';
+    btn.textContent = `↓ Show older (${(totalPages - page) * HBATCH} more)`;
+    btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, totalPages, parentBody, btn));
+    parentBody.appendChild(btn);
+  } else {
+    const end = document.createElement('p');
+    end.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:4px 0 2px';
+    end.textContent = '— beginning of history —';
+    parentBody.appendChild(end);
+  }
+}
+
+// Load badge count on startup
+(async () => {
+  try {
+    const d = await fetch('/api/history?page=1&per_page=1').then(r => r.json());
+    if (d.total > 0) {
+      const badge = document.getElementById('history-badge');
+      badge.textContent = d.total > 99 ? '99+' : d.total;
+      badge.style.display = 'flex';
+      document.getElementById('history-tab-count').textContent = d.total;
+    }
+  } catch {}
+})();
+
+// ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
   const THEMES = ['void','eclipse','ghost','frost','bone','haze','custom'];
-  const btn    = document.getElementById('theme-btn');
-  const panel  = document.getElementById('theme-panel');
   const rows   = document.querySelectorAll('.theme-row');
 
   function applyTheme(name) {
-    // Remove all theme classes, then add the chosen one (void = no class needed)
     document.body.classList.remove(...THEMES);
     if (name && name !== 'void') document.body.classList.add(name);
     localStorage.setItem('egm-theme', name || 'void');
-    // Update checkmarks
     rows.forEach(r => {
       const active = r.dataset.theme === (name || 'void');
       r.classList.toggle('active', active);
-      const chk = r.querySelector('.theme-check');
-      chk.classList.toggle('checked', active);
+      r.querySelector('.theme-check').classList.toggle('checked', active);
     });
   }
 
-  // Restore saved theme on load
   const saved = localStorage.getItem('egm-theme') || 'void';
   applyTheme(saved);
 
-  // Toggle panel open/close
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    panel.classList.toggle('open');
-  });
-
-  // Click outside → close panel
-  document.addEventListener('click', (e) => {
-    if (!panel.contains(e.target) && e.target !== btn) {
-      panel.classList.remove('open');
-    }
-  });
-
-  // Theme row click → apply + close
-  rows.forEach(r => {
-    r.addEventListener('click', () => {
-      applyTheme(r.dataset.theme);
-      panel.classList.remove('open');
-    });
-  });
+  rows.forEach(r => r.addEventListener('click', () => {
+    applyTheme(r.dataset.theme);
+    document.getElementById('hamburger-panel').classList.remove('open');
+  }));
 })();
 
 // ── Theme import / export ─────────────────────────────────────────────────────
