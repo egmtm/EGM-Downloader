@@ -881,6 +881,31 @@ let seq         = 0;
 let _modalOk    = null;
 let chosenPath  = null;    // Absolute path string (Electron only)
 
+// ── Auto-check for updates on launch (Linux — notify only, no auto-install) ──
+async function checkForUpdatesOnLaunch() {
+  try {
+    const d = await fetch('/api/check-app-update').then(r => r.json());
+    if (d.error || d.up_to_date) return;
+    const cmp = compareVersions(d.current_version, d.latest_version);
+    if (cmp >= 0) return;
+    // Show toast with download link
+    const c = document.getElementById('toasts');
+    const t = document.createElement('div');
+    t.className = 'toast ok';
+    t.style.cssText = 'display:flex;align-items:center;gap:10px;padding-right:8px';
+    const span = document.createElement('span');
+    span.textContent = `v${d.latest_version} available`;
+    const btn = document.createElement('button');
+    btn.textContent = 'Download';
+    btn.style.cssText = 'flex-shrink:0;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:#fff;font-size:.75rem;padding:2px 10px;cursor:pointer';
+    btn.addEventListener('click', () => { t.remove(); window.open(d.download_url || 'https://egerena.com/apps/egml.html', '_blank'); });
+    t.appendChild(span); t.appendChild(btn);
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 8000);
+  } catch { /* silent */ }
+}
+setTimeout(checkForUpdatesOnLaunch, 3000);
+
 // ── Init ──────────────────────────────────────────────────────────────────────
 (async () => {
   try {

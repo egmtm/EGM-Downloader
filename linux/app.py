@@ -28,8 +28,9 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION = "0.95"
-APP_BUILD   = 97
+APP_VERSION    = "0.95"
+APP_BUILD      = 97
+APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
@@ -864,6 +865,33 @@ def deno_reinstall():
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ── Check for app update (informational only — Linux has no auto-install) ─────
+@app.route("/api/check-app-update")
+def check_app_update():
+    try:
+        req = urllib.request.Request(APP_UPDATE_URL,
+            headers={"User-Agent": f"EGMDownloader/{APP_VERSION}"})
+        with urllib.request.urlopen(req, timeout=5) as r:
+            data = json.loads(r.read().decode())
+        latest_ver   = str(data.get("version", "")).strip()
+        latest_build = int(data.get("build", 0))
+        notes        = data.get("_version_notes", data.get("notes", []))
+        if isinstance(notes, list): notes = "\n".join(notes)
+        else: notes = str(notes).strip()
+        download_url = str(data.get("downloadUrl", "https://egerena.com/apps/egml.html")).strip()
+        up_to_date   = (latest_ver == APP_VERSION and latest_build <= APP_BUILD)
+        return jsonify({
+            "up_to_date":      up_to_date,
+            "current_version": APP_VERSION,
+            "current_build":   APP_BUILD,
+            "latest_version":  latest_ver,
+            "latest_build":    latest_build,
+            "notes":           notes,
+            "download_url":    download_url,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 200
 
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
