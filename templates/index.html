@@ -673,11 +673,13 @@
     @media(max-width:400px) { .update-grid { grid-template-columns: 1fr; } }
     .upd-item {
       background: var(--surf2); border: 1px solid var(--border);
-      border-radius: var(--rs); padding: 12px 14px;
-      display: flex; flex-direction: column; gap: 7px;
+      border-radius: var(--rs); padding: 5px 8px;
+      display: flex; align-items: center; justify-content: space-between; gap: 8px;
     }
-    .upd-head { display: flex; justify-content: space-between; align-items: center; }
-    .upd-name { font-weight: 600; font-size: .86rem; }
+    .upd-item-left { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .upd-name { font-weight: 600; font-size: .82rem; white-space: nowrap; }
+    .upd-ver  { font-size: .68rem; color: var(--text2); white-space: nowrap; }
+    .upd-item-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
     .vbadge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .66rem; font-weight: 700; }
     .vb-ok  { background: rgba(34,197,94,.12);  color: var(--green); }
     .vb-upd { background: rgba(245,158,11,.12); color: var(--yellow); }
@@ -1583,74 +1585,62 @@ function renderUpdGrid(data) {
   const grid = document.getElementById('update-grid');
   grid.innerHTML = '';
 
-  // ── yt-dlp card ───────────────────────────────────────────────────────────
-  const ytEl = document.createElement('div');
-  ytEl.className = 'upd-item';
+  // ── yt-dlp ────────────────────────────────────────────────────────────────
   const ytD = data.ytdlp;
-  const ytLatest = ytD.latest ? `<span>Latest: <b style="color:var(--text)">${esc(ytD.latest)}</b></span>` : '';
-  const ytBadge  = ytD.up_to_date === null
+  const ytBadge = ytD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
     : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+  const ytEl = document.createElement('div');
+  ytEl.className = 'upd-item';
   ytEl.innerHTML = `
-    <div class="upd-head">
+    <div class="upd-item-left">
       <span class="upd-name">⚡ yt-dlp</span>
+      <span class="upd-ver">${esc(ytD.current)}${ytD.latest && !ytD.up_to_date ? ` → ${esc(ytD.latest)}` : ''}</span>
+    </div>
+    <div class="upd-item-right">
       ${ytBadge}
-    </div>
-    <div class="ver-info">
-      <span>Installed: <b style="color:var(--text)">${esc(ytD.current)}</b></span>
-      ${ytLatest}
-    </div>
-    <label class="sw-wrap" style="margin-top:4px">
-      <input type="checkbox" class="sw" id="sw-ytdlp" ${ytD.up_to_date===false?'checked':''}>
-      Update yt-dlp
-    </label>`;
+      <label class="sw-wrap" style="margin:0">
+        <input type="checkbox" class="sw" id="sw-ytdlp" ${ytD.up_to_date===false?'checked':''}>
+      </label>
+    </div>`;
   grid.appendChild(ytEl);
 
-  // ── ffmpeg card ───────────────────────────────────────────────────────────
-  const ffEl = document.createElement('div');
-  ffEl.className = 'upd-item';
+  // ── ffmpeg ────────────────────────────────────────────────────────────────
   const ffD = data.ffmpeg;
-  const ffLatest = ffD.latest ? `<span>Latest: <b style="color:var(--text)">${esc(ffD.latest)}</b></span>` : '';
-  const ffBadge  = ffD.up_to_date === null
+  const ffBadge = ffD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
     : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+  const ffEl = document.createElement('div');
+  ffEl.className = 'upd-item';
   ffEl.innerHTML = `
-    <div class="upd-head">
+    <div class="upd-item-left">
       <span class="upd-name">🎬 ffmpeg</span>
+      <span class="upd-ver">${esc(ffD.current)}${ffD.latest && !ffD.up_to_date ? ` → ${esc(ffD.latest)}` : ''}</span>
+    </div>
+    <div class="upd-item-right">
       ${ffBadge}
-    </div>
-    <div class="ver-info">
-      <span>Installed: <b style="color:var(--text)">${esc(ffD.current)}</b></span>
-      ${ffLatest}
-    </div>
-    <label class="sw-wrap" style="margin-top:4px">
-      <input type="checkbox" class="sw" id="sw-ffmpeg" ${ffD.up_to_date===false?'checked':''}>
-      Update ffmpeg
-    </label>`;
+      <label class="sw-wrap" style="margin:0">
+        <input type="checkbox" class="sw" id="sw-ffmpeg" ${ffD.up_to_date===false?'checked':''}>
+      </label>
+    </div>`;
   grid.appendChild(ffEl);
 
-  // ── Deno card ─────────────────────────────────────────────────────────────
-  const deEl = document.createElement('div');
-  deEl.className = 'upd-item';
+  // ── Deno ──────────────────────────────────────────────────────────────────
   const deD = data.deno;
   const deInstalled = deD && deD.installed;
   const deVer = (deD && deD.version) ? esc(deD.version) : 'not installed';
+  const deEl = document.createElement('div');
+  deEl.className = 'upd-item';
   deEl.innerHTML = `
-    <div class="upd-head">
+    <div class="upd-item-left">
       <span class="upd-name">🦕 Deno</span>
-      <span class="vbadge ${deInstalled ? 'vb-ok' : 'vb-upd'}">${deInstalled ? '✓ Installed' : '✗ Not installed'}</span>
+      <span class="upd-ver">${deVer} · ${deInstalled ? 'bundled' : 'required for YouTube'}</span>
     </div>
-    <div class="ver-info">
-      <span>Installed: <b style="color:var(--text)">${deVer}</b></span>
-      <span style="font-size:.7rem;color:var(--text2)">Required for YouTube</span>
-    </div>
-    ${deInstalled
-      ? '<p style="font-size:.72rem;color:var(--text2);margin-top:4px">Deno is bundled and ready.</p>'
-      : `<button class="btn btn-green btn-sm" id="install-deno-btn" style="margin-top:6px" onclick="installDeno()">⬇ Install Deno</button>
-         <div class="upd-log" id="deno-log"></div>`
-    }`;
+    <div class="upd-item-right">
+      <span class="vbadge ${deInstalled?'vb-ok':'vb-upd'}">${deInstalled?'✓ Installed':'✗ Not installed'}</span>
+      ${!deInstalled ? `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()">⬇ Install</button>` : ''}
+    </div>`;
   grid.appendChild(deEl);
-
 }
 
 document.getElementById('run-update-btn').addEventListener('click', async () => {
@@ -2961,7 +2951,6 @@ function audioQualityBgClick(e) {
     btn.textContent = open ? '▶ Show' : '▼ Hide';
     document.getElementById('adv-card-toggle').closest('.sec-hdr').classList.toggle('open', !open);
   };
-  document.getElementById('adv-card-toggle').addEventListener('click', toggleAdvPanel);
 
   // Load saved port on startup
   (async () => {
