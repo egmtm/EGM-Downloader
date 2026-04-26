@@ -27,7 +27,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple videos and audio files, download them all at once
 - 🎨 **Beautiful Dark Interface** - Sleek black and gold design
-- 🎨 **10 Themes** - Void (dark default), Eclipse, Ghost, Frost, Bone, Haze, and 4 more with smooth 0.2s transitions
+- 🎨 **76 Themes** - 66 permanent across 8 categories + 10 seasonal easter eggs with smooth transitions
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔄 **Auto-Updates** - Built-in update checker keeps you current (Windows/Mac)
 - 📝 **Custom Filenames** - Edit filenames before downloading
