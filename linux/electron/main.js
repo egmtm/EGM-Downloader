@@ -398,7 +398,7 @@ ipcMain.handle('open-themes-window', async () => {
     ...bounds, minWidth: 480, minHeight: 400,
     title: 'All Themes — EGM Downloader',
     icon: path.join(__dirname, '..', 'app', 'static', 'icon-512.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   themesWindow.loadURL(`${APP_URL}/themes-page`);
