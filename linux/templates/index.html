@@ -257,12 +257,13 @@
       margin-bottom: 16px; box-shadow: var(--shadow);
     }
     .card.collapsed-card { padding: 8px 16px; margin-bottom: 8px; }
-    .sa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; max-width: 760px; margin-bottom: 8px; }
+    .sa-grid { display: grid; grid-template-columns: 2fr 1.5fr 1.5fr; gap: 6px; width: 100%; max-width: 760px; margin-bottom: 8px; }
     .sa-grid .card, .sa-grid .card.collapsed-card { padding: 0; margin-bottom: 0; width: auto; max-width: none; align-self: start; }
     .sa-grid .card-header { padding: 5px 8px; margin-bottom: 0; }
     .sa-grid .card-body { border-top: 1px solid var(--border); padding: 3px 8px 5px; }
     .sa-grid .adv-row { padding: 3px 0; }
     .sa-grid .opt-label { font-size: .75rem; margin-bottom: 4px; margin-top: 2px; }
+    .sa-grid .update-grid { grid-template-columns: 1fr; gap: 4px; margin-bottom: 4px; }
     .card-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 14px;
@@ -753,24 +754,49 @@
       <button class="card-toggle" id="ck-toggle" onclick="toggleCookiePanel()">▶ Show</button>
     </div>
     <div id="ck-body" class="collapsed">
-      <div id="ck-info" style="font-size:.8rem;color:var(--text2);margin-bottom:10px">
-        Optional — use to download age-restricted or login-required content from YouTube, Facebook, Instagram and more.
-      </div>
-      <div class="path-row">
-        <input type="text" id="ck-path" placeholder="No cookies.txt loaded" readonly style="flex:1"/>
-        <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+      <div id="ck-not-loaded" style="display:flex;align-items:center;justify-content:space-between;padding:4px 0;flex-wrap:wrap;gap:4px">
+        <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+          <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+          <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+        </div>
+        <label class="btn btn-ghost btn-sm" style="cursor:pointer;flex-shrink:0">
           📂 Browse
           <input type="file" id="ck-file-input" accept=".txt" style="display:none" onchange="uploadCookies(this)">
         </label>
-        <button class="btn btn-red btn-sm" id="ck-clear-btn" style="display:none">✕ Remove</button>
       </div>
-      <div class="path-hint" id="ck-hint" style="margin-top:6px;font-size:.72rem;color:var(--text2);line-height:1.6;display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
-        <span style="white-space:nowrap">Optional — use to download age-restricted or login-required content. Add-on:</span>
-        <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 7px;background:var(--surf);white-space:nowrap">🌐 Chrome / Edge / Brave</a>
-        <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 7px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+      <div id="ck-loaded" style="display:none;align-items:center;justify-content:space-between;padding:4px 0;gap:6px">
+        <span id="ck-status-text" style="font-size:.72rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">cookies.txt · active</span>
+        <div style="display:flex;gap:4px;flex-shrink:0">
+          <label class="btn btn-ghost btn-sm" style="cursor:pointer">
+            📂 Replace
+            <input type="file" id="ck-replace-input" accept=".txt" style="display:none" onchange="uploadCookies(this)">
+          </label>
+          <button class="btn btn-red btn-sm" id="ck-clear-btn">✕ Unload</button>
+        </div>
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- Update Plugins — in sa-grid -->
+<div class="card collapsed-card">
+  <div class="card-header">
+    <span class="card-title">Update Plugins</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
+      <button class="card-toggle" id="upd-toggle" onclick="toggleUpdPanel()">▶ Show</button>
+    </div>
+  </div>
+  <div class="card-body collapsed" id="upd-body">
+    <div class="update-grid" id="update-grid">
+      <div style="color:var(--text2);font-size:.82rem;grid-column:1/-1">Click <b>Check for Updates</b> to see installed versions.</div>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <button class="btn btn-ghost btn-sm" id="check-updates-btn">🔍 Check for Updates</button>
+      <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none">⬆ Install Updates</button>
+    </div>
+    <div class="upd-log" id="upd-log"></div>
   </div>
 </div>
 
@@ -826,26 +852,7 @@
 <!-- Results -->
 <div id="results"></div>
 
-<!-- Update Plugins — collapsed by default -->
-<div class="card collapsed-card">
-  <div class="card-header">
-    <span class="card-title">Update Plugins</span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
-      <button class="card-toggle" id="upd-toggle" onclick="toggleUpdPanel()">▶ Show</button>
-    </div>
-  </div>
-  <div class="card-body collapsed" id="upd-body">
-    <div class="update-grid" id="update-grid">
-      <div style="color:var(--text2);font-size:.82rem;grid-column:1/-1">Click <b>Check for Updates</b> to see installed versions.</div>
-    </div>
-    <div class="row">
-      <button class="btn btn-ghost" id="check-updates-btn">🔍 Check for Updates</button>
-      <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none">⬆ Install Updates</button>
-    </div>
-    <div class="upd-log" id="upd-log"></div>
-  </div>
-</div>
+<!-- Update Plugins moved into sa-grid above -->
 
 <footer>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
@@ -1318,31 +1325,26 @@ async function installDeno() {
 async function refreshCookieCard() {
   try {
     const s = await fetch('/api/cookies/status').then(r => r.json());
-    const badge   = document.getElementById('ck-badge');
-    const pathEl  = document.getElementById('ck-path');
-    const hintEl  = document.getElementById('ck-hint');
-    const clearBtn= document.getElementById('ck-clear-btn');
-    const infoEl  = document.getElementById('ck-info');
+    const badge      = document.getElementById('ck-badge');
+    const notLoaded  = document.getElementById('ck-not-loaded');
+    const loaded     = document.getElementById('ck-loaded');
+    const statusText = document.getElementById('ck-status-text');
     if (!badge) return;
 
     if (s.active) {
-      badge.textContent = s.age_days != null ? `Cookies: active · ${s.age_days}d old` : 'Cookies: active';
-      badge.className   = (s.age_days >= 10 ? 'vbadge vb-upd' : 'vbadge vb-ok') + ' ' + 'vbadge';
+      const ageStr = s.age_days != null ? ` · ${s.age_days}d old` : '';
+      badge.textContent = `Cookies: active${ageStr}`;
+      badge.className   = (s.age_days >= 10 ? 'vbadge vb-upd' : 'vbadge vb-ok');
       badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
-      pathEl.value      = s.path || 'cookies.txt loaded';
-      clearBtn.style.display = '';
-      infoEl.textContent = s.age_days >= 10
-        ? 'Warning: cookies are ' + s.age_days + ' days old and expiring soon — re-export before downloads start failing.'
-        : 'Cookies active — authenticated downloads enabled.';
-      hintEl.style.display = 'none';
+      if (statusText) statusText.textContent = (s.path ? s.path.split(/[\\/]/).pop() : 'cookies.txt') + ageStr;
+      if (notLoaded) notLoaded.style.display = 'none';
+      if (loaded)    loaded.style.display = 'flex';
     } else {
-      badge.textContent     = 'Cookies: not loaded';
-      badge.className       = 'vbadge vb-upd';
-      badge.style.cssText   = 'font-size:.72rem;padding:3px 10px';
-      pathEl.value          = '';
-      clearBtn.style.display = 'none';
-      infoEl.innerHTML = 'Optional — use to download age-restricted or login-required content from YouTube, Facebook, Instagram and more.';
-      hintEl.style.display = '';
+      badge.textContent   = 'Cookies: not loaded';
+      badge.className     = 'vbadge vb-upd';
+      badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
+      if (notLoaded) notLoaded.style.display = 'flex';
+      if (loaded)    loaded.style.display = 'none';
     }
   } catch {}
 }
