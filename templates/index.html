@@ -1314,6 +1314,7 @@
       width: 150px; aspect-ratio: 16/9; flex-shrink: 0;
       background: var(--thumb-bg); position: relative; overflow: hidden;
     }
+    .thumb.portrait { width: 85px; aspect-ratio: 9/16; }
     .thumb img { width: 100%; height: 100%; object-fit: contain; display: block; opacity: .88; background: var(--thumb-bg); }
     .thumb .noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.8rem; }
     .dur { position: absolute; bottom: 5px; right: 5px; background: var(--dur-bg); color: var(--dur-text); font-size: .64rem; padding: 2px 5px; border-radius: 3px; }
@@ -2013,15 +2014,13 @@
   <div class="modal" id="whats-new-modal-inner">
     <h3>🎉 What's New in <span id="whats-new-version">v0.95</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
-      <li>Download History — hamburger menu with History + Themes tabs, sliding window, full history window with search and filter</li>
-      <li>Theme import/export — save any theme as a .json file, import with preview before applying</li>
-      <li>Settings export/import — native Save As / Open File dialog</li>
-      <li>Auto-update check on launch — silent on Windows, modal on Mac, toast on Linux</li>
-      <li>Footer restructured — version pill, Check for Updates, and ♥ Support EGM donate button</li>
-      <li>Cookies section — single line with Chrome/Edge/Brave and Firefox add-on pills</li>
-      <li>Desktop shortcut moved to Advanced settings panel</li>
-      <li>Windows installer — Add shortcut to desktop checkbox (unchecked by default)</li>
-      <li>Up to date and error checks now show as toasts instead of modals</li>
+      <li>46 new permanent themes across 6 categories: Nature, Consoles, Characters, Movies, Retro, Experimental — each with a unique background texture</li>
+      <li>10 seasonal easter egg themes — auto-appear 30 days before their date, auto-hide 30 days after</li>
+      <li>Theme picker shows 10 themes (current pinned first, 9 most recently used) — View All Themes window with category tabs and search</li>
+      <li>Install Updates button only appears when a plugin toggle is ON</li>
+      <li>Cookies panel — helper text added before browser extension pills</li>
+      <li>Settings panel — download folder only, compacted</li>
+      <li>Advanced panel — Check updates on launch + Quit when done toggles on same row</li>
     </ul>
     <div class="modal-actions">
       <button class="btn btn-primary" id="whats-new-dismiss-btn">Got it</button>
@@ -2886,7 +2885,7 @@ function renderCard(el, item) {
 
   el.innerHTML = `
     <button class="vcard-remove" title="Remove" data-id="${n}">✕</button>
-    <div class="thumb">
+    <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
       ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg">🎬</div>`}
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
     </div>

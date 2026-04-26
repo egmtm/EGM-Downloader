@@ -419,6 +419,7 @@ ipcMain.handle('open-themes-window', async () => {
   themesWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 400,
     title: 'All Themes — EGM Downloader',
+    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true },
     autoHideMenuBar: true,
   });
