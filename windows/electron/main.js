@@ -391,6 +391,52 @@ ipcMain.handle('open-history-window', async () => {
   historyWindow.on('closed', () => { historyWindow = null; });
 });
 
+
+// ── IPC: open themes window ───────────────────────────────────────────────────
+let themesWindow = null;
+const THEMES_BOUNDS_FILE = path.join(path.dirname(app.getPath('exe')), 'egm_themes_window.json');
+
+function loadThemesBounds() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(THEMES_BOUNDS_FILE, 'utf8'));
+    const displays = require('electron').screen.getAllDisplays();
+    const onScreen = displays.some(d => {
+      const b = d.bounds;
+      return saved.x < b.x + b.width && saved.x + saved.width > b.x &&
+             saved.y < b.y + b.height && saved.y + saved.height > b.y;
+    });
+    return onScreen ? saved : { width: saved.width || 720, height: saved.height || 560 };
+  } catch { return { width: 720, height: 560 }; }
+}
+
+function saveThemesBounds(win) {
+  try { fs.writeFileSync(THEMES_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
+}
+
+ipcMain.handle('open-themes-window', async () => {
+  if (themesWindow && !themesWindow.isDestroyed()) { themesWindow.focus(); return; }
+  const bounds = loadThemesBounds();
+  themesWindow = new BrowserWindow({
+    ...bounds, minWidth: 480, minHeight: 400,
+    title: 'All Themes — EGM Downloader',
+    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    autoHideMenuBar: true,
+  });
+  themesWindow.loadURL(`${APP_URL}/themes-page`);
+  let saveTimer = null;
+  const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveThemesBounds(themesWindow), 500); };
+  themesWindow.on('resize', debouncedSave);
+  themesWindow.on('move',   debouncedSave);
+  themesWindow.on('closed', () => { themesWindow = null; });
+});
+
+// ── IPC: relay theme change from themes window to main window ─────────────────
+ipcMain.on('set-theme', (event, theme) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('theme-changed', theme);
+  }
+});
+
 // ── IPC: create desktop shortcut ─────────────────────────────────────────────
 ipcMain.handle('create-shortcut', async () => {
   try {
