@@ -4221,7 +4221,11 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   function renderPicker(current) {
     const list = document.getElementById('theme-list');
     if (!list) return;
-    const show = [current, ...recentThemes.filter(t => t !== current)].slice(0, 10);
+    // current pinned first + recents, then pad from THEMES array to always reach 10
+    const base = [current, ...recentThemes.filter(t => t !== current)];
+    const padded = base.length >= 10 ? base.slice(0, 10)
+      : [...base, ...THEMES.filter(k => !base.includes(k) && k !== 'custom')].slice(0, 10);
+    const show = padded;
     list.innerHTML = show.map(key => {
       const d = THEME_DATA[key]; if (!d) return '';
       const isSeasonal = d.cat === 'seasonal';
