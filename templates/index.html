@@ -2628,10 +2628,8 @@ function toastWithAction(msg, btnLabel, fn, ms = 8000) {
 async function checkForUpdatesOnLaunch() {
   try {
     const d = await fetch('/api/check-app-update').then(r => r.json());
-    if (d.error || d.up_to_date) return; // silent — do nothing if up to date or error
-
-    const cmp = compareVersions(d.current_version, d.latest_version);
-    if (cmp >= 0) return; // current is same or newer — do nothing
+    // Trust backend fully — it compares both version string AND build number
+    if (d.error || d.up_to_date) return;
 
     // Update available
     if (window.electronAPI && d.zip_url) {
