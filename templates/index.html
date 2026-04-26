@@ -1856,12 +1856,6 @@
       <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled>📁 Open</button>
     </div>
     <div class="path-hint" id="dir-hint" style="color:var(--yellow)">⚠ Select a download folder before downloading.</div>
-    <div style="margin-top:10px">
-      <label class="sw-wrap">
-        <input type="checkbox" class="sw" id="quit-on-done-chk">
-        Quit when all downloads complete
-      </label>
-    </div>
   </div>
 
   <!-- Cookies section -->
@@ -1875,6 +1869,7 @@
   <div class="sec-body collapsed" id="ck-body">
     <div id="ck-not-loaded" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
       <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
+        <span style="font-size:.65rem;color:var(--muted);white-space:nowrap">For age-restricted or login-required content</span>
         <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
         <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
       </div>
@@ -1915,6 +1910,16 @@
   </div>
   <div class="sec-body collapsed" id="adv-card-body">
     <div class="adv-2col">
+      <div class="adv-row" style="grid-column:1/-1;padding:4px 0;border-bottom:0.5px solid var(--border)">
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
+          <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
+        </div>
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="quit-on-done-chk">
+          <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
+        </div>
+      </div>
       <div class="adv-row" id="adv-shortcut-row" style="display:none">
         <div><div class="adv-row-label">Desktop shortcut</div></div>
         <button class="btn-adv" id="adv-shortcut-btn">Create</button>
@@ -2306,6 +2311,12 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       const chk = document.getElementById('quit-on-done-chk');
       if (chk) chk.checked = true;
     }
+    if (s.check_updates_on_launch) {
+      const chk = document.getElementById('check-updates-on-launch-chk');
+      if (chk) chk.checked = true;
+      // Trigger silent update check on launch
+      if (typeof checkForUpdatesOnLaunch === 'function') checkForUpdatesOnLaunch();
+    }
   } catch {}
   // Show desktop shortcut row only on Windows (createShortcut exposed via electronAPI)
   const sr = document.getElementById('adv-shortcut-row');
@@ -2314,6 +2325,9 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
 
 document.getElementById('quit-on-done-chk').addEventListener('change', function() {
   post('/api/settings/save', { quit_on_done: this.checked });
+});
+document.getElementById('check-updates-on-launch-chk').addEventListener('change', function() {
+  post('/api/settings/save', { check_updates_on_launch: this.checked });
 });
 
 // Save concurrency and fragments whenever changed
@@ -2469,7 +2483,7 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
     ]);
     data.deno = deno;
     renderUpdGrid(data);
-    document.getElementById('run-update-btn').style.display = '';
+    syncInstallBtn();
   } catch (e) { toast('Check failed: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = '🔍 Check for Updates';
 });
@@ -2536,6 +2550,19 @@ function renderUpdGrid(data) {
   grid.appendChild(deEl);
 }
 
+
+// ── Install Updates button visibility — only when a toggle is ON ─────────────
+function syncInstallBtn() {
+  const ytOn = document.getElementById('sw-ytdlp')?.checked;
+  const ffOn = document.getElementById('sw-ffmpeg')?.checked;
+  const btn  = document.getElementById('run-update-btn');
+  if (btn) btn.style.display = (ytOn || ffOn) ? '' : 'none';
+}
+
+// Re-sync after renderUpdGrid populates the grid (delegate via grid container)
+document.getElementById('update-grid').addEventListener('change', e => {
+  if (e.target.type === 'checkbox') syncInstallBtn();
+});
 document.getElementById('run-update-btn').addEventListener('click', async () => {
   const doY = document.getElementById('sw-ytdlp')?.checked ?? true;
   const doF = document.getElementById('sw-ffmpeg')?.checked ?? false;
@@ -2562,6 +2589,11 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
           ]);
           fresh.deno = freshDeno;
           renderUpdGrid(fresh);
+          // Reset toggles and hide Install button — job done
+          ['sw-ytdlp','sw-ffmpeg'].forEach(id => {
+            const el = document.getElementById(id); if (el) el.checked = false;
+          });
+          syncInstallBtn();
         } catch {}
       } else if (s.error) toast('Error: ' + s.error, 'err');
     }
