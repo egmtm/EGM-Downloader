@@ -207,6 +207,130 @@
       --dur-text:          #e2e8f6;
     }
 
+    /* ── Kush theme ── */
+    body.kush {
+      --bg:      #0d1a0f;
+      --surf:    #152015;
+      --surf2:   #1c2c1c;
+      --surf3:   #243224;
+      --border:  #2e4a2e;
+      --border2: #3a5e3a;
+      --acc:     #5a9e3a;
+      --acc-h:   #78be58;
+      --acc-dim: rgba(90,158,58,.14);
+      --green:   #4ade80;
+      --red:     #f87171;
+      --yellow:  #fbbf24;
+      --text:    #c8e0c4;
+      --text2:   #6a9460;
+      --muted:   #3e6438;
+      --shadow:  0 4px 32px rgba(0,0,0,.65);
+      --thumb-bg:          #1c2c1c;
+      --log-bg:            #081408;
+      --log-text:          #6a9460;
+      --modal-overlay:     rgba(8,20,8,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #d4a017;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #c8e0c4;
+    }
+
+    /* ── Purple Haze theme ── */
+    body.purplehaze {
+      --bg:      #0e0818;
+      --surf:    #170e28;
+      --surf2:   #201538;
+      --surf3:   #281c48;
+      --border:  #3a2860;
+      --border2: #4e3878;
+      --acc:     #9b5de5;
+      --acc-h:   #b87af5;
+      --acc-dim: rgba(155,93,229,.14);
+      --green:   #4ade80;
+      --red:     #f87171;
+      --yellow:  #fbbf24;
+      --text:    #e8d8f8;
+      --text2:   #9070b8;
+      --muted:   #5a4080;
+      --shadow:  0 4px 32px rgba(0,0,0,.7);
+      --thumb-bg:          #201538;
+      --log-bg:            #08041a;
+      --log-text:          #9070b8;
+      --modal-overlay:     rgba(8,4,26,.8);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.85);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #d4a017;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #e8d8f8;
+    }
+
+    /* ── Sativa theme ── */
+    body.sativa {
+      --bg:      #edf5e8;
+      --surf:    #e2eedb;
+      --surf2:   #d6e6ce;
+      --surf3:   #c8dcc0;
+      --border:  #aecca2;
+      --border2: #94ba88;
+      --acc:     #2e7d32;
+      --acc-h:   #1b5e20;
+      --acc-dim: rgba(46,125,50,.12);
+      --green:   #1b5e20;
+      --red:     #c62828;
+      --yellow:  #e65100;
+      --text:    #1a2e18;
+      --text2:   #3d6b38;
+      --muted:   #6a8e65;
+      --shadow:  0 4px 20px rgba(0,0,0,.12);
+      --thumb-bg:          #c8dcc0;
+      --log-bg:            #c0d8b8;
+      --log-text:          #3d6b38;
+      --modal-overlay:     rgba(26,46,24,.45);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.2);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #e65100;
+      --dur-bg:            rgba(26,46,24,.8);
+      --dur-text:          #e8f5e0;
+    }
+
+    /* ── OG Cream theme ── */
+    body.ogcream {
+      --bg:      #f5f0e5;
+      --surf:    #ede6d8;
+      --surf2:   #e4dbc8;
+      --surf3:   #d9ceb8;
+      --border:  #c8bc9e;
+      --border2: #b8aa88;
+      --acc:     #8b6914;
+      --acc-h:   #a07c1c;
+      --acc-dim: rgba(139,105,20,.12);
+      --green:   #2d6a2d;
+      --red:     #c62828;
+      --yellow:  #8b6914;
+      --text:    #2a1f0a;
+      --text2:   #6b4e1a;
+      --muted:   #9a7a40;
+      --shadow:  0 4px 20px rgba(0,0,0,.1);
+      --thumb-bg:          #d9ceb8;
+      --log-bg:            #d0c4a8;
+      --log-text:          #6b4e1a;
+      --modal-overlay:     rgba(42,31,10,.4);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.18);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #8b6914;
+      --dur-bg:            rgba(42,31,10,.8);
+      --dur-text:          #f5f0e5;
+    }
+
     /* ── Hamburger button (B4 grid) ── */
     #hamburger-btn {
       position: absolute; right: 0; top: 50%; transform: translateY(-50%);
@@ -344,6 +468,13 @@
       margin-bottom: 16px; box-shadow: var(--shadow);
     }
     .card.collapsed-card { padding: 8px 16px; margin-bottom: 8px; }
+    /* ── Settings + Advanced side-by-side grid ── */
+    .sa-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; width: 100%; max-width: 760px; margin-bottom: 8px; }
+    .sa-grid .card, .sa-grid .card.collapsed-card { padding: 0; margin-bottom: 0; width: auto; max-width: none; align-self: start; }
+    .sa-grid .card-header { padding: 5px 8px; margin-bottom: 0; }
+    .sa-grid .card-body { border-top: 1px solid var(--border); padding: 3px 8px 5px; }
+    .sa-grid .adv-row { padding: 3px 0; }
+    .sa-grid .opt-label { font-size: .75rem; margin-bottom: 4px; margin-top: 2px; }
     .card-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 14px;
@@ -708,6 +839,22 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#d4d9d0"></div><div class="theme-sw" style="background:#c9d0c4"></div><div class="theme-sw" style="background:#2563eb"></div></div>
               <span class="theme-name">Haze</span><div class="theme-check"></div>
             </div>
+            <div class="theme-row" data-theme="kush">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0d1a0f"></div><div class="theme-sw" style="background:#152015"></div><div class="theme-sw" style="background:#5a9e3a"></div></div>
+              <span class="theme-name">Kush</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="purplehaze">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0e0818"></div><div class="theme-sw" style="background:#170e28"></div><div class="theme-sw" style="background:#9b5de5"></div></div>
+              <span class="theme-name">Purple Haze</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="sativa">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#edf5e8"></div><div class="theme-sw" style="background:#e2eedb"></div><div class="theme-sw" style="background:#2e7d32"></div></div>
+              <span class="theme-name">Sativa</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="ogcream">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e5"></div><div class="theme-sw" style="background:#ede6d8"></div><div class="theme-sw" style="background:#8b6914"></div></div>
+              <span class="theme-name">OG Cream</span><div class="theme-check"></div>
+            </div>
             <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
               <div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div>
               <span class="theme-name" id="custom-theme-name">Custom</span><div class="theme-check"></div>
@@ -779,6 +926,7 @@
   </div>
 </div>
 
+<div class="sa-grid">
 <!-- Settings + Cookies -->
 <div class="card">
   <div class="card-header">
@@ -908,6 +1056,7 @@
         </div>
   </div>
 </div>
+</div><!-- end sa-grid -->
 
 <!-- Bulk bar -->
 <div id="bulk-bar">
@@ -2071,10 +2220,10 @@ function applyJobProgress(d, stEl, progEl) {
 }
 
 function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
-  if (progEl) progEl.style.display = 'none';
-  if (cancelBtn) cancelBtn.style.display = 'none';
   if (d.status === 'done') {
     item.status = 'done';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
     minimizeDoneCard(item, d.filename, stEl, dlBtn);
     toast('Saved: ' + d.filename, 'ok');
     if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
@@ -2085,12 +2234,16 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   }
   if (d.status === 'error') {
     item.status = 'error';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'error', d.error || 'Error');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
     return true;
   }
   if (d.status === 'cancelled') {
     item.status = 'cancelled';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'cancel', 'Cancelled');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
     return true;
@@ -2626,7 +2779,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','custom'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','custom'];
   const rows   = document.querySelectorAll('.theme-row');
 
   function applyTheme(name) {
