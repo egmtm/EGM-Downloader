@@ -310,6 +310,38 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
   }
 });
 
+// ── IPC: save file dialog (settings export) ───────────────────────────────────
+ipcMain.handle('save-file', async (event, defaultName, content) => {
+  const result = await dialog.showSaveDialog(mainWindow, {
+    title:       'Export Settings',
+    defaultPath: defaultName || 'egm-settings.json',
+    filters:     [{ name: 'JSON', extensions: ['json'] }],
+  });
+  if (result.canceled || !result.filePath) return { canceled: true };
+  try {
+    require('fs').writeFileSync(result.filePath, content, 'utf8');
+    return { ok: true, path: result.filePath };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+// ── IPC: open file dialog (settings import) ───────────────────────────────────
+ipcMain.handle('open-file', async () => {
+  const result = await dialog.showOpenDialog(mainWindow, {
+    title:      'Import Settings',
+    filters:    [{ name: 'JSON', extensions: ['json'] }],
+    properties: ['openFile'],
+  });
+  if (result.canceled || !result.filePaths.length) return { canceled: true };
+  try {
+    const content = require('fs').readFileSync(result.filePaths[0], 'utf8');
+    return { ok: true, content };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
 // ── IPC: create desktop shortcut ─────────────────────────────────────────────
 ipcMain.handle('create-shortcut', async () => {
   try {
