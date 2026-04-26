@@ -692,8 +692,10 @@
         </label>
         <button class="btn btn-red btn-sm" id="ck-clear-btn" style="display:none">✕ Remove</button>
       </div>
-      <div class="path-hint" id="ck-hint" style="margin-top:6px;font-size:.72rem;color:var(--text2);line-height:1.6">
-        Export via incognito using <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">Get cookies.txt Locally</a>.
+      <div class="path-hint" id="ck-hint" style="margin-top:6px;font-size:.72rem;color:var(--text2);line-height:1.6;display:flex;align-items:center;gap:6px;flex-wrap:nowrap">
+        <span style="white-space:nowrap">Optional — use to download age-restricted or login-required content. Add-on:</span>
+        <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 7px;background:var(--surf);white-space:nowrap">🌐 Chrome / Edge / Brave</a>
+        <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:3px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 7px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
       </div>
     </div>
 
@@ -771,7 +773,18 @@
   </div>
 </div>
 
-<footer>&copy; <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener">www.egerena.com</a> &nbsp;·&nbsp; <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a> &nbsp;·&nbsp; EGM Downloader <span style="cursor:help;border-bottom:1px dotted currentColor" title="v0.95">v0.95</span></footer>
+<footer>
+  <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
+    <span>&copy; <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener">www.egerena.com</a></span>
+    <span style="opacity:.4">·</span>
+    <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a>
+    <span style="opacity:.4">·</span>
+    <span style="font-size:.68rem;background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:1px 9px;color:var(--text2)">v0.95</span>
+  </div>
+  <div style="margin-top:7px">
+    <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="display:inline-flex;align-items:center;gap:4px;font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:2px 12px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
+  </div>
+</footer>
 <div id="toasts"></div>
 
 <!-- Audio quality modal -->
