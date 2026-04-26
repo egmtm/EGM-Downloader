@@ -342,15 +342,39 @@ ipcMain.handle('open-file', async () => {
 
 // ── IPC: open full history window ─────────────────────────────────────────────
 let historyWindow = null;
+const HISTORY_BOUNDS_FILE = path.join(app.getPath('userData'), 'egm_history_window.json');
+
+function loadHistoryBounds() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(HISTORY_BOUNDS_FILE, 'utf8'));
+    const displays = require('electron').screen.getAllDisplays();
+    const onScreen = displays.some(d => {
+      const b = d.bounds;
+      return saved.x < b.x + b.width && saved.x + saved.width > b.x &&
+             saved.y < b.y + b.height && saved.y + saved.height > b.y;
+    });
+    return onScreen ? saved : { width: saved.width || 780, height: saved.height || 560 };
+  } catch { return { width: 780, height: 560 }; }
+}
+
+function saveHistoryBounds(win) {
+  try { fs.writeFileSync(HISTORY_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
+}
+
 ipcMain.handle('open-history-window', async () => {
   if (historyWindow && !historyWindow.isDestroyed()) { historyWindow.focus(); return; }
+  const bounds = loadHistoryBounds();
   historyWindow = new BrowserWindow({
-    width: 780, height: 560, minWidth: 600, minHeight: 420,
+    ...bounds, minWidth: 600, minHeight: 420,
     title: 'Download History',
     webPreferences: { nodeIntegration: false, contextIsolation: true },
     autoHideMenuBar: true,
   });
   historyWindow.loadURL(`${APP_URL}/history-page`);
+  let saveTimer = null;
+  const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveHistoryBounds(historyWindow), 500); };
+  historyWindow.on('resize', debouncedSave);
+  historyWindow.on('move',   debouncedSave);
   historyWindow.on('closed', () => { historyWindow = null; });
 });
 
