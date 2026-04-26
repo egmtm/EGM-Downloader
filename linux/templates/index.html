@@ -220,10 +220,12 @@
       border-radius: var(--r); padding: 18px 20px;
       margin-bottom: 16px; box-shadow: var(--shadow);
     }
+    .card.collapsed-card { padding: 8px 16px; margin-bottom: 8px; }
     .card-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 14px;
     }
+    .collapsed-card .card-header { margin-bottom: 0; }
     .card-header.clickable { cursor: pointer; user-select: none; }
     .card-header.clickable:hover .card-title { color: var(--text); }
     .card-title {
@@ -726,7 +728,7 @@
 </div>
 
 <!-- Advanced settings — standalone card -->
-<div class="card">
+<div class="card collapsed-card">
   <div class="card-header">
     <span class="card-title">Advanced</span>
     <button class="card-toggle" id="adv-card-toggle">▶ Show</button>
@@ -777,7 +779,7 @@
 <div id="results"></div>
 
 <!-- Update Plugins — collapsed by default -->
-<div class="card">
+<div class="card collapsed-card">
   <div class="card-header">
     <span class="card-title">Update Plugins</span>
     <div style="display:flex;align-items:center;gap:8px">
@@ -986,6 +988,7 @@ function toggleUpdPanel() {
   updOpen = !updOpen;
   document.getElementById('upd-body').classList.toggle('collapsed', !updOpen);
   document.getElementById('upd-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
+  document.getElementById('upd-toggle').closest('.card').classList.toggle('collapsed-card', !updOpen);
   post('/api/settings/save', { upd_open: updOpen });
   // On first expand, immediately show installed versions (no network)
   if (updOpen && !updLoaded) {
@@ -1009,6 +1012,7 @@ function toggleSettingsPanel() {
   settingsOpen = !settingsOpen;
   document.getElementById('settings-body').classList.toggle('collapsed', !settingsOpen);
   document.getElementById('settings-toggle').textContent = settingsOpen ? '▼ Hide' : '▶ Show';
+  document.getElementById('settings-toggle').closest('.card').classList.toggle('collapsed-card', !settingsOpen);
   post('/api/settings/save', { settings_open: settingsOpen });
 }
 
@@ -2480,6 +2484,7 @@ function audioQualityBgClick(e) {
     const btn  = document.getElementById('adv-card-toggle');
     const open = body.classList.toggle('collapsed');
     btn.textContent = open ? '▶ Show' : '▼ Hide';
+    btn.closest('.card').classList.toggle('collapsed-card', open);
   });
 
   (async () => {
