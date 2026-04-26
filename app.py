@@ -1066,6 +1066,9 @@ def clear_history():
 @app.route("/history-page")
 def history_page(): return render_template("history.html")
 
+@app.route("/themes-page")
+def themes_page(): return render_template("themes.html")
+
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Clean shutdown requested by Electron before-quit.
