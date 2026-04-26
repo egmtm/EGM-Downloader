@@ -457,17 +457,17 @@
       --bg-texture-opacity: 1;
     }
 
-    /* DMG — Game Boy pea green */
+    /* DMG — Game Boy pea green (reworked) */
     body.dmg {
-      --bg:#8bac0f;--surf:#9bbc0f;--surf2:#306230;--surf3:#0f380f;
-      --border:#306230;--border2:#0f380f;--acc:#0f380f;--acc-h:#306230;
-      --acc-dim:rgba(15,56,15,.2);--green:#0f380f;--red:#8b0000;--yellow:#556b2f;
-      --text:#0f380f;--text2:#306230;--muted:#6aaa00;--shadow:0 4px 32px rgba(0,0,0,.4);
-      --thumb-bg:#9bbc0f;--log-bg:#8bac0f;--log-text:#0f380f;
-      --modal-overlay:rgba(15,56,15,.5);--modal-shadow:0 20px 60px rgba(0,0,0,.4);
+      --bg:#9bbc0f;--surf:#8bac0f;--surf2:#306230;--surf3:#0f380f;
+      --border:#306230;--border2:#0f380f;--acc:#0f380f;--acc-h:#1a5c1a;
+      --acc-dim:rgba(15,56,15,.25);--green:#0f380f;--red:#8b0000;--yellow:#3a5c00;
+      --text:#0f380f;--text2:#1a4a1a;--muted:#306230;--shadow:0 4px 24px rgba(0,0,0,.3);
+      --thumb-bg:#8bac0f;--log-bg:#8bac0f;--log-text:#0f380f;
+      --modal-overlay:rgba(15,56,15,.55);--modal-shadow:0 20px 60px rgba(0,0,0,.35);
       --btn-primary-text:#9bbc0f;--btn-on-accent:#9bbc0f;--btn-red-border:#0f380f;
-      --audio-btn-color:#0f380f;--dur-bg:rgba(15,56,15,.8);--dur-text:#9bbc0f;
-      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Crect width='4' height='4' fill='none'/%3E%3Ccircle cx='1' cy='1' r='0.8' fill='%230f380f' opacity='0.15'/%3E%3C/svg%3E");
+      --audio-btn-color:#0f380f;--dur-bg:rgba(15,56,15,.85);--dur-text:#9bbc0f;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='%230f380f' opacity='0.12'/%3E%3C/svg%3E");
       --bg-texture-opacity: 1;
     }
 
@@ -577,15 +577,15 @@
     /* Cobalt Rush — Sonic cobalt blue/gold */
     body.cobaltrush {
       --bg:#000a2e;--surf:#001040;--surf2:#001a54;--surf3:#002268;
-      --border:#003a9a;--border2:#004ac0;--acc:#2979ff;--acc-h:#448aff;
-      --acc-dim:rgba(41,121,255,.14);--green:#00e676;--red:#ff1744;--yellow:#ffd600;
-      --text:#c8dcff;--text2:#4a6acc;--muted:#001a50;--shadow:0 4px 32px rgba(0,0,0,.82);
-      --thumb-bg:#001040;--log-bg:#000618;--log-text:#4a6acc;
+      --border:#003a9a;--border2:#0050c8;--acc:#4090ff;--acc-h:#66aaff;
+      --acc-dim:rgba(64,144,255,.16);--green:#00e676;--red:#ff1744;--yellow:#ffd600;
+      --text:#d8eaff;--text2:#88aaee;--muted:#1a3a7a;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#001040;--log-bg:#000618;--log-text:#88aaee;
       --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
       --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
-      --audio-btn-color:#ffd600;--dur-bg:rgba(0,0,0,.88);--dur-text:#c8dcff;
-      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='18' fill='none' stroke='%232979ff' stroke-width='0.5'/%3E%3Ccircle cx='20' cy='20' r='10' fill='none' stroke='%23ffd600' stroke-width='0.4'/%3E%3C/svg%3E");
-      --bg-texture-opacity: 0.15;
+      --audio-btn-color:#ffd600;--dur-bg:rgba(0,0,0,.88);--dur-text:#d8eaff;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='18' fill='none' stroke='%234090ff' stroke-width='0.5'/%3E%3Ccircle cx='20' cy='20' r='10' fill='none' stroke='%23ffd600' stroke-width='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
     }
 
     /* Ghost of Sparta — Kratos blood red/ash */
@@ -1036,6 +1036,293 @@
       --audio-btn-color:#ffd700;--dur-bg:rgba(0,0,0,.9);--dur-text:#e0eeff;
       --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='60'%3E%3Crect x='36' y='10' width='8' height='40' fill='none' stroke='%234488ff' stroke-width='0.5'/%3E%3Crect x='4' y='20' width='6' height='30' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='16' y='16' width='6' height='34' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='28' y='12' width='6' height='38' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='50' y='12' width='6' height='38' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='62' y='16' width='6' height='34' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3Crect x='70' y='20' width='6' height='30' fill='none' stroke='%234488ff' stroke-width='0.4'/%3E%3C/svg%3E");
       --bg-texture-opacity: 0.18;
+    }
+
+
+    /* ── DMG REWORK — proper GB contrast ── */
+    body.dmg {
+      --bg:#9bbc0f;--surf:#8bac0f;--surf2:#306230;--surf3:#0f380f;
+      --border:#306230;--border2:#0f380f;--acc:#0f380f;--acc-h:#1a5c1a;
+      --acc-dim:rgba(15,56,15,.25);--green:#0f380f;--red:#8b0000;--yellow:#3a5c00;
+      --text:#0f380f;--text2:#1a4a1a;--muted:#306230;--shadow:0 4px 24px rgba(0,0,0,.3);
+      --thumb-bg:#8bac0f;--log-bg:#8bac0f;--log-text:#0f380f;
+      --modal-overlay:rgba(15,56,15,.55);--modal-shadow:0 20px 60px rgba(0,0,0,.35);
+      --btn-primary-text:#9bbc0f;--btn-on-accent:#9bbc0f;--btn-red-border:#0f380f;
+      --audio-btn-color:#0f380f;--dur-bg:rgba(15,56,15,.85);--dur-text:#9bbc0f;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='4' height='4'%3E%3Ccircle cx='1' cy='1' r='0.8' fill='%230f380f' opacity='0.12'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 1;
+    }
+
+    /* ── COBALT RUSH REWORK — lifted contrast ── */
+    body.cobaltrush {
+      --bg:#000a2e;--surf:#001040;--surf2:#001a54;--surf3:#002268;
+      --border:#003a9a;--border2:#0050c8;--acc:#4090ff;--acc-h:#66aaff;
+      --acc-dim:rgba(64,144,255,.16);--green:#00e676;--red:#ff1744;--yellow:#ffd600;
+      --text:#d8eaff;--text2:#88aaee;--muted:#1a3a7a;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#001040;--log-bg:#000618;--log-text:#88aaee;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffd600;--dur-bg:rgba(0,0,0,.88);--dur-text:#d8eaff;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='18' fill='none' stroke='%234090ff' stroke-width='0.5'/%3E%3Ccircle cx='20' cy='20' r='10' fill='none' stroke='%23ffd600' stroke-width='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
+    }
+
+    /* ══ 6 NEW CONSOLES ══════════════════════════════════════════ */
+
+    /* SNES — Super Nintendo gray/purple */
+    body.snes {
+      --bg:#1a1a2e;--surf:#22223a;--surf2:#2a2a46;--surf3:#323252;
+      --border:#4a4a70;--border2:#5e5e8a;--acc:#7b5ea7;--acc-h:#9b7ec7;
+      --acc-dim:rgba(123,94,167,.14);--green:#4ade80;--red:#f87171;--yellow:#fbbf24;
+      --text:#e8e8f8;--text2:#9090b8;--muted:#3a3a58;--shadow:0 4px 32px rgba(0,0,0,.75);
+      --thumb-bg:#22223a;--log-bg:#0e0e1e;--log-text:#9090b8;
+      --modal-overlay:rgba(0,0,0,.82);--modal-shadow:0 20px 60px rgba(0,0,0,.9);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#fbbf24;--dur-bg:rgba(0,0,0,.85);--dur-text:#e8e8f8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Ccircle cx='12' cy='12' r='4' fill='none' stroke='%237b5ea7' stroke-width='0.4'/%3E%3Ccircle cx='12' cy='12' r='1.5' fill='%237b5ea7' opacity='0.15'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.25;
+    }
+
+    /* N64 — Nintendo 64 dark/tri-color */
+    body.n64 {
+      --bg:#111111;--surf:#1e1e1e;--surf2:#282828;--surf3:#323232;
+      --border:#444444;--border2:#585858;--acc:#cc0000;--acc-h:#ee2222;
+      --acc-dim:rgba(204,0,0,.14);--green:#00aa00;--red:#cc0000;--yellow:#cccc00;
+      --text:#f0f0f0;--text2:#909090;--muted:#3a3a3a;--shadow:0 4px 32px rgba(0,0,0,.8);
+      --thumb-bg:#1e1e1e;--log-bg:#080808;--log-text:#909090;
+      --modal-overlay:rgba(0,0,0,.85);--modal-shadow:0 20px 60px rgba(0,0,0,.95);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#cccc00;--dur-bg:rgba(0,0,0,.88);--dur-text:#f0f0f0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='46'%3E%3Cpolygon points='20,2 38,13 38,33 20,44 2,33 2,13' fill='none' stroke='%23cc0000' stroke-width='0.3' opacity='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.3;
+    }
+
+    /* GameCube — Indigo/purple */
+    body.gamecube {
+      --bg:#1a0a2e;--surf:#24103c;--surf2:#2e1650;--surf3:#381c64;
+      --border:#5a2a90;--border2:#7038b0;--acc:#6a0dad;--acc-h:#8a1dcd;
+      --acc-dim:rgba(106,13,173,.16);--green:#4caf50;--red:#f44336;--yellow:#ffc107;
+      --text:#e8d8f8;--text2:#9060c0;--muted:#3a1a5a;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#24103c;--log-bg:#0e0418;--log-text:#9060c0;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffc107;--dur-bg:rgba(0,0,0,.88);--dur-text:#e8d8f8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Crect x='10' y='10' width='30' height='30' rx='4' fill='none' stroke='%236a0dad' stroke-width='0.4'/%3E%3Crect x='18' y='18' width='14' height='14' rx='2' fill='none' stroke='%236a0dad' stroke-width='0.3'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.2;
+    }
+
+    /* Virtual Boy — red monochrome */
+    body.virtualboy {
+      --bg:#000000;--surf:#1a0000;--surf2:#2e0000;--surf3:#420000;
+      --border:#6a0000;--border2:#8a0000;--acc:#ff0000;--acc-h:#ff3333;
+      --acc-dim:rgba(255,0,0,.14);--green:#ff0000;--red:#ff0000;--yellow:#ff3300;
+      --text:#ff4444;--text2:#cc2222;--muted:#550000;--shadow:0 4px 32px rgba(0,0,0,.95);
+      --thumb-bg:#1a0000;--log-bg:#000000;--log-text:#cc2222;
+      --modal-overlay:rgba(0,0,0,.92);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#000;--btn-on-accent:#000;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ff3300;--dur-bg:rgba(0,0,0,.92);--dur-text:#ff4444;
+      --bg-texture: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,0,0,.04) 2px, rgba(255,0,0,.04) 3px);
+      --bg-texture-opacity: 1;
+    }
+
+    /* Saturn — Sega Saturn teal/charcoal */
+    body.saturn {
+      --bg:#0a1a1e;--surf:#102428;--surf2:#162e34;--surf3:#1c3840;
+      --border:#1e5a64;--border2:#287080;--acc:#00838f;--acc-h:#00acc1;
+      --acc-dim:rgba(0,131,143,.14);--green:#4caf50;--red:#f44336;--yellow:#ffc107;
+      --text:#c0e0e8;--text2:#3a8898;--muted:#143440;--shadow:0 4px 32px rgba(0,0,0,.8);
+      --thumb-bg:#102428;--log-bg:#040e10;--log-text:#3a8898;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffc107;--dur-bg:rgba(0,0,0,.86);--dur-text:#c0e0e8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='30'%3E%3Cellipse cx='30' cy='15' rx='28' ry='12' fill='none' stroke='%2300838f' stroke-width='0.4'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.2;
+    }
+
+    /* Neo Geo — SNK blue/gold */
+    body.neogeo {
+      --bg:#050a1a;--surf:#0a1428;--surf2:#101e38;--surf3:#162848;
+      --border:#1e3a6a;--border2:#284e88;--acc:#d4a017;--acc-h:#e8b820;
+      --acc-dim:rgba(212,160,23,.14);--green:#4caf50;--red:#f44336;--yellow:#d4a017;
+      --text:#e8d890;--text2:#8878408;--muted:#1a2a4a;--shadow:0 4px 32px rgba(0,0,0,.85);
+      --thumb-bg:#0a1428;--log-bg:#020610;--log-text:#887840;
+      --modal-overlay:rgba(0,0,0,.86);--modal-shadow:0 20px 60px rgba(0,0,0,.94);
+      --btn-primary-text:#050a1a;--btn-on-accent:#050a1a;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#d4a017;--dur-bg:rgba(0,0,0,.9);--dur-text:#e8d890;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect x='5' y='5' width='50' height='50' fill='none' stroke='%23d4a017' stroke-width='0.5'/%3E%3Crect x='15' y='15' width='30' height='30' fill='none' stroke='%23d4a017' stroke-width='0.3'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.14;
+    }
+
+    /* ══ 6 NEW CHARACTERS ════════════════════════════════════════ */
+
+    /* Chosen Undead — Dark Souls ash/ember */
+    body.chosenundead {
+      --bg:#0c0c0c;--surf:#181818;--surf2:#222222;--surf3:#2c2c2c;
+      --border:#484030;--border2:#605040;--acc:#e07010;--acc-h:#f08820;
+      --acc-dim:rgba(224,112,16,.14);--green:#6aaa44;--red:#cc2200;--yellow:#e07010;
+      --text:#c8b090;--text2:#806040;--muted:#302820;--shadow:0 4px 32px rgba(0,0,0,.92);
+      --thumb-bg:#181818;--log-bg:#060606;--log-text:#806040;
+      --modal-overlay:rgba(0,0,0,.9);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#e07010;--dur-bg:rgba(0,0,0,.92);--dur-text:#c8b090;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='25' fill='none' stroke='%23e07010' stroke-width='0.4' stroke-dasharray='3,6'/%3E%3Ccircle cx='30' cy='30' r='3' fill='%23e07010' opacity='0.2'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.2;
+    }
+
+    /* Vault Dweller — Fallout pip-boy */
+    body.vaultdweller {
+      --bg:#030a03;--surf:#051005;--surf2:#081808;--surf3:#0c200c;
+      --border:#103810;--border2:#1a5010;--acc:#00ff41;--acc-h:#40ff70;
+      --acc-dim:rgba(0,255,65,.1);--green:#00ff41;--red:#ff4400;--yellow:#aaff00;
+      --text:#00ff41;--text2:#00aa28;--muted:#0a280a;--shadow:0 4px 32px rgba(0,0,0,.92);
+      --thumb-bg:#051005;--log-bg:#010401;--log-text:#00aa28;
+      --modal-overlay:rgba(0,0,0,.9);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#030a03;--btn-on-accent:#030a03;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#aaff00;--dur-bg:rgba(0,0,0,.9);--dur-text:#00ff41;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Ccircle cx='10' cy='10' r='8' fill='none' stroke='%2300ff41' stroke-width='0.3' opacity='0.3'/%3E%3Ccircle cx='10' cy='10' r='2' fill='%2300ff41' opacity='0.15'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 1;
+    }
+
+    /* N7 — Mass Effect red/black */
+    body.n7 {
+      --bg:#050005;--surf:#0e000e;--surf2:#160016;--surf3:#1e001e;
+      --border:#5a0018;--border2:#780020;--acc:#cc0000;--acc-h:#ee1111;
+      --acc-dim:rgba(204,0,0,.14);--green:#00e5ff;--red:#cc0000;--yellow:#ff6600;
+      --text:#f0e8e8;--text2:#9a5060;--muted:#3a0018;--shadow:0 4px 32px rgba(0,0,0,.92);
+      --thumb-bg:#0e000e;--log-bg:#020002;--log-text:#9a5060;
+      --modal-overlay:rgba(0,0,0,.9);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ff6600;--dur-bg:rgba(0,0,0,.92);--dur-text:#f0e8e8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='60'%3E%3Cpath d='M8 8 L8 52 L20 52 L20 30 L32 52 L40 52 L40 8 L32 8 L32 30 L20 8Z' fill='none' stroke='%23cc0000' stroke-width='0.4' opacity='0.2'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.35;
+    }
+
+    /* Dragonborn — Skyrim frost/steel */
+    body.dragonborn {
+      --bg:#0a1018;--surf:#121c26;--surf2:#1a2634;--surf3:#223042;
+      --border:#304a64;--border2:#3e5e7e;--acc:#6888c0;--acc-h:#88aadd;
+      --acc-dim:rgba(104,136,192,.14);--green:#4caf50;--red:#c62828;--yellow:#d4a017;
+      --text:#d0d8e8;--text2:#5878a8;--muted:#1e2e40;--shadow:0 4px 32px rgba(0,0,0,.8);
+      --thumb-bg:#121c26;--log-bg:#060c12;--log-text:#5878a8;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#d4a017;--dur-bg:rgba(0,0,0,.86);--dur-text:#d0d8e8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpolygon points='30,4 56,20 56,40 30,56 4,40 4,20' fill='none' stroke='%236888c0' stroke-width='0.4'/%3E%3Cpolygon points='30,16 44,24 44,36 30,44 16,36 16,24' fill='none' stroke='%236888c0' stroke-width='0.3'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.15;
+    }
+
+    /* Big Boss — Metal Gear olive/military */
+    body.bigboss {
+      --bg:#0c1008;--surf:#141a10;--surf2:#1c2418;--surf3:#242e20;
+      --border:#3a5020;--border2:#4e6a28;--acc:#6a8020;--acc-h:#84a028;
+      --acc-dim:rgba(106,128,32,.14);--green:#6a8020;--red:#aa2200;--yellow:#b89020;
+      --text:#c8d0a0;--text2:#6a7840;--muted:#2a3818;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#141a10;--log-bg:#060806;--log-text:#6a7840;
+      --modal-overlay:rgba(0,0,0,.85);--modal-shadow:0 20px 60px rgba(0,0,0,.93);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#b89020;--dur-bg:rgba(0,0,0,.88);--dur-text:#c8d0a0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20'%3E%3Crect x='0' y='0' width='10' height='10' fill='%236a8020' opacity='0.06'/%3E%3Crect x='10' y='10' width='10' height='10' fill='%236a8020' opacity='0.06'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 1;
+    }
+
+    /* Lara Croft — Tomb Raider earthy/gold */
+    body.laracroft {
+      --bg:#12080a;--surf:#1e100e;--surf2:#2a1814;--surf3:#36201a;
+      --border:#6a3820;--border2:#8a4c28;--acc:#c8780a;--acc-h:#e08818;
+      --acc-dim:rgba(200,120,10,.14);--green:#6aaa44;--red:#cc2200;--yellow:#c8780a;
+      --text:#e0c8a0;--text2:#a07040;--muted:#4a2818;--shadow:0 4px 32px rgba(0,0,0,.82);
+      --thumb-bg:#1e100e;--log-bg:#090404;--log-text:#a07040;
+      --modal-overlay:rgba(0,0,0,.84);--modal-shadow:0 20px 60px rgba(0,0,0,.92);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#c8780a;--dur-bg:rgba(0,0,0,.88);--dur-text:#e0c8a0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='50' height='50'%3E%3Cpath d='M25 5 L45 15 L45 35 L25 45 L5 35 L5 15Z' fill='none' stroke='%23c8780a' stroke-width='0.4'/%3E%3Ccircle cx='25' cy='25' r='6' fill='none' stroke='%23c8780a' stroke-width='0.3'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.18;
+    }
+
+    /* ══ 6 NEW EXPERIMENTAL ══════════════════════════════════════ */
+
+    /* Holographic — iridescent rainbow on dark */
+    body.holographic {
+      --bg:#04040e;--surf:#080812;--surf2:#0c0c18;--surf3:#10101e;
+      --border:#1e1e40;--border2:#2a2a58;--acc:#00e5ff;--acc-h:#40f0ff;
+      --acc-dim:rgba(0,229,255,.12);--green:#00ff88;--red:#ff0080;--yellow:#ffff00;
+      --text:#e8f8ff;--text2:#6080c0;--muted:#141430;--shadow:0 4px 32px rgba(0,0,0,.92);
+      --thumb-bg:#080812;--log-bg:#020208;--log-text:#6080c0;
+      --modal-overlay:rgba(0,0,0,.9);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#04040e;--btn-on-accent:#04040e;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffff00;--dur-bg:rgba(0,0,0,.92);--dur-text:#e8f8ff;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cellipse cx='40' cy='40' rx='38' ry='20' fill='none' stroke='%2300e5ff' stroke-width='0.3' opacity='0.4'/%3E%3Cellipse cx='40' cy='40' rx='38' ry='20' fill='none' stroke='%23ff0080' stroke-width='0.3' opacity='0.3' transform='rotate(60 40 40)'/%3E%3Cellipse cx='40' cy='40' rx='38' ry='20' fill='none' stroke='%23ffff00' stroke-width='0.3' opacity='0.3' transform='rotate(120 40 40)'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.5;
+    }
+
+    /* Y2K — early 2000s chrome/electric blue */
+    body.y2k {
+      --bg:#e8eef8;--surf:#dce4f4;--surf2:#d0d8ec;--surf3:#c4cce4;
+      --border:#8898c8;--border2:#6878b0;--acc:#0044ff;--acc-h:#2266ff;
+      --acc-dim:rgba(0,68,255,.12);--green:#0088ff;--red:#cc0000;--yellow:#0044ff;
+      --text:#001466;--text2:#2244aa;--muted:#8898c8;--shadow:0 4px 20px rgba(0,0,0,.14);
+      --thumb-bg:#dce4f4;--log-bg:#d0d8ec;--log-text:#2244aa;
+      --modal-overlay:rgba(0,20,102,.4);--modal-shadow:0 20px 60px rgba(0,0,0,.2);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#fca5a5;
+      --audio-btn-color:#0044ff;--dur-bg:rgba(0,20,102,.75);--dur-text:#e8eef8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='18' fill='none' stroke='%230044ff' stroke-width='0.5' opacity='0.12'/%3E%3Ccircle cx='20' cy='20' r='10' fill='none' stroke='%230044ff' stroke-width='0.4' opacity='0.1'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 1;
+    }
+
+    /* Liminal — uncanny off-white spaces */
+    body.liminal {
+      --bg:#f5f0e0;--surf:#ece6d0;--surf2:#e2dbbf;--surf3:#d8d0ae;
+      --border:#c0b890;--border2:#a8a078;--acc:#c8a060;--acc-h:#e0b878;
+      --acc-dim:rgba(200,160,96,.12);--green:#4a7a20;--red:#8a1a1a;--yellow:#c8a060;
+      --text:#302010;--text2:#706040;--muted:#b0a880;--shadow:0 4px 16px rgba(0,0,0,.08);
+      --thumb-bg:#ece6d0;--log-bg:#e2dbbf;--log-text:#706040;
+      --modal-overlay:rgba(48,32,16,.38);--modal-shadow:0 20px 60px rgba(0,0,0,.14);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#fca5a5;
+      --audio-btn-color:#c8a060;--dur-bg:rgba(48,32,16,.72);--dur-text:#f5f0e0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect x='0' y='0' width='60' height='60' fill='none' stroke='%23c0b890' stroke-width='0.4'/%3E%3Crect x='10' y='10' width='40' height='40' fill='none' stroke='%23c0b890' stroke-width='0.3'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 0.35;
+    }
+
+    /* Signal — TV static/broadcast */
+    body.signal {
+      --bg:#030303;--surf:#0a0a0a;--surf2:#111111;--surf3:#181818;
+      --border:#282828;--border2:#383838;--acc:#ffffff;--acc-h:#dddddd;
+      --acc-dim:rgba(255,255,255,.1);--green:#ffffff;--red:#ff2222;--yellow:#ffff22;
+      --text:#e8e8e8;--text2:#888888;--muted:#202020;--shadow:0 4px 32px rgba(0,0,0,.95);
+      --thumb-bg:#0a0a0a;--log-bg:#000000;--log-text:#888888;
+      --modal-overlay:rgba(0,0,0,.92);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#000;--btn-on-accent:#000;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffff22;--dur-bg:rgba(0,0,0,.92);--dur-text:#e8e8e8;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2'%3E%3Crect x='0' y='0' width='1' height='1' fill='%23fff' opacity='0.04'/%3E%3Crect x='1' y='1' width='1' height='1' fill='%23fff' opacity='0.02'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 1;
+    }
+
+    /* Corrupted — data corruption RGB artifact */
+    body.corrupted {
+      --bg:#000500;--surf:#001000;--surf2:#001800;--surf3:#002000;
+      --border:#003800;--border2:#005000;--acc:#ff0080;--acc-h:#ff40a0;
+      --acc-dim:rgba(255,0,128,.12);--green:#00ff00;--red:#ff0080;--yellow:#ff8800;
+      --text:#e0ffe0;--text2:#00cc00;--muted:#003000;--shadow:0 4px 32px rgba(0,0,0,.92);
+      --thumb-bg:#001000;--log-bg:#000200;--log-text:#00cc00;
+      --modal-overlay:rgba(0,0,0,.9);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#000500;--btn-on-accent:#000500;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ff8800;--dur-bg:rgba(0,0,0,.92);--dur-text:#e0ffe0;
+      --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='8'%3E%3Crect x='0' y='0' width='40' height='3' fill='%23ff0080' opacity='0.06'/%3E%3Crect x='20' y='2' width='60' height='2' fill='%2300ff00' opacity='0.05'/%3E%3Crect x='50' y='4' width='50' height='3' fill='%230066ff' opacity='0.06'/%3E%3C/svg%3E");
+      --bg-texture-opacity: 1;
+    }
+
+    /* Neon Noir — rain-soaked city neon */
+    body.neonnoir {
+      --bg:#020008;--surf:#06000e;--surf2:#0a0014;--surf3:#0e001a;
+      --border:#2a0040;--border2:#3a0058;--acc:#ff0090;--acc-h:#ff40b0;
+      --acc-dim:rgba(255,0,144,.14);--green:#00e5ff;--red:#ff0090;--yellow:#ffee00;
+      --text:#f8e8ff;--text2:#b040c0;--muted:#200030;--shadow:0 4px 32px rgba(0,0,0,.92);
+      --thumb-bg:#06000e;--log-bg:#020004;--log-text:#b040c0;
+      --modal-overlay:rgba(0,0,0,.9);--modal-shadow:0 20px 60px rgba(0,0,0,.98);
+      --btn-primary-text:#fff;--btn-on-accent:#fff;--btn-red-border:#3a1a1a;
+      --audio-btn-color:#ffee00;--dur-bg:rgba(0,0,0,.92);--dur-text:#f8e8ff;
+      --bg-texture: repeating-linear-gradient(100deg, transparent, transparent 2px, rgba(255,0,144,.04) 2px, rgba(255,0,144,.04) 3px), repeating-linear-gradient(0deg, transparent, transparent 60px, rgba(0,229,255,.03) 60px, rgba(0,229,255,.03) 61px);
+      --bg-texture-opacity: 1;
     }
 
     /* ── Hamburger button (B4 grid) ── */
@@ -1726,6 +2013,78 @@
             <div class="theme-row" data-theme="antimatter">
               <div class="theme-swatches"><div class="theme-sw" style="background:#f0f0f8"></div><div class="theme-sw" style="background:#e4e4f0"></div><div class="theme-sw" style="background:#1a003a"></div></div>
               <span class="theme-name">Antimatter</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="snes">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#1a1a2e"></div><div class="theme-sw" style="background:#22223a"></div><div class="theme-sw" style="background:#7b5ea7"></div></div>
+              <span class="theme-name">SNES</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="n64">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#111111"></div><div class="theme-sw" style="background:#1e1e1e"></div><div class="theme-sw" style="background:#cc0000"></div></div>
+              <span class="theme-name">N64</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="gamecube">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#1a0a2e"></div><div class="theme-sw" style="background:#24103c"></div><div class="theme-sw" style="background:#6a0dad"></div></div>
+              <span class="theme-name">GameCube</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="virtualboy">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#000000"></div><div class="theme-sw" style="background:#1a0000"></div><div class="theme-sw" style="background:#ff0000"></div></div>
+              <span class="theme-name">Virtual Boy</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="saturn">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0a1a1e"></div><div class="theme-sw" style="background:#102428"></div><div class="theme-sw" style="background:#00838f"></div></div>
+              <span class="theme-name">Saturn</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="neogeo">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#050a1a"></div><div class="theme-sw" style="background:#0a1428"></div><div class="theme-sw" style="background:#d4a017"></div></div>
+              <span class="theme-name">Neo Geo</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="chosenundead">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0c0c0c"></div><div class="theme-sw" style="background:#181818"></div><div class="theme-sw" style="background:#e07010"></div></div>
+              <span class="theme-name">Chosen Undead</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="vaultdweller">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#030a03"></div><div class="theme-sw" style="background:#051005"></div><div class="theme-sw" style="background:#00ff41"></div></div>
+              <span class="theme-name">Vault Dweller</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="n7">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#050005"></div><div class="theme-sw" style="background:#0e000e"></div><div class="theme-sw" style="background:#cc0000"></div></div>
+              <span class="theme-name">N7</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="dragonborn">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0a1018"></div><div class="theme-sw" style="background:#121c26"></div><div class="theme-sw" style="background:#6888c0"></div></div>
+              <span class="theme-name">Dragonborn</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="bigboss">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0c1008"></div><div class="theme-sw" style="background:#141a10"></div><div class="theme-sw" style="background:#6a8020"></div></div>
+              <span class="theme-name">Big Boss</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="laracroft">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#12080a"></div><div class="theme-sw" style="background:#1e100e"></div><div class="theme-sw" style="background:#c8780a"></div></div>
+              <span class="theme-name">Lara Croft</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="holographic">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#04040e"></div><div class="theme-sw" style="background:#080812"></div><div class="theme-sw" style="background:#00e5ff"></div></div>
+              <span class="theme-name">Holographic</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="y2k">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#e8eef8"></div><div class="theme-sw" style="background:#dce4f4"></div><div class="theme-sw" style="background:#0044ff"></div></div>
+              <span class="theme-name">Y2K</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="liminal">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e0"></div><div class="theme-sw" style="background:#ece6d0"></div><div class="theme-sw" style="background:#c8a060"></div></div>
+              <span class="theme-name">Liminal</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="signal">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#030303"></div><div class="theme-sw" style="background:#0a0a0a"></div><div class="theme-sw" style="background:#ffffff"></div></div>
+              <span class="theme-name">Signal</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="corrupted">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#000500"></div><div class="theme-sw" style="background:#001000"></div><div class="theme-sw" style="background:#ff0080"></div></div>
+              <span class="theme-name">Corrupted</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="neonnoir">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#020008"></div><div class="theme-sw" style="background:#06000e"></div><div class="theme-sw" style="background:#ff0090"></div></div>
+              <span class="theme-name">Neon Noir</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="valentines" data-seasonal="true" style="display:none">
               <div class="theme-swatches"><div class="theme-sw" style="background:#1a0008"></div><div class="theme-sw" style="background:#260010"></div><div class="theme-sw" style="background:#ff4488"></div></div>
@@ -3668,7 +4027,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','dmg','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','custom'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','dmg','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','custom'];
 
   // ── Seasonal theme visibility ────────────────────────────────────────────────
   (function() {
@@ -3762,6 +4121,24 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     tiedye:           {label:'Tiedye',           bg:'#1a0820',surf:'#240c2e',acc:'#ff6ec7',   cat:'experimental'},
     infrared:         {label:'Infrared',         bg:'#000a14',surf:'#001020',acc:'#ff2200',   cat:'experimental'},
     antimatter:       {label:'Antimatter',       bg:'#f0f0f8',surf:'#e4e4f0',acc:'#1a003a',   cat:'experimental'},
+    snes:             {label:'SNES', bg:'#1a1a2e',surf:'#22223a',acc:'#7b5ea7', cat:'consoles'},
+    n64:             {label:'N64', bg:'#111111',surf:'#1e1e1e',acc:'#cc0000', cat:'consoles'},
+    gamecube:             {label:'GameCube', bg:'#1a0a2e',surf:'#24103c',acc:'#6a0dad', cat:'consoles'},
+    virtualboy:             {label:'Virtual Boy', bg:'#000000',surf:'#1a0000',acc:'#ff0000', cat:'consoles'},
+    saturn:             {label:'Saturn', bg:'#0a1a1e',surf:'#102428',acc:'#00838f', cat:'consoles'},
+    neogeo:             {label:'Neo Geo', bg:'#050a1a',surf:'#0a1428',acc:'#d4a017', cat:'consoles'},
+    chosenundead:             {label:'Chosen Undead', bg:'#0c0c0c',surf:'#181818',acc:'#e07010', cat:'characters'},
+    vaultdweller:             {label:'Vault Dweller', bg:'#030a03',surf:'#051005',acc:'#00ff41', cat:'characters'},
+    n7:             {label:'N7', bg:'#050005',surf:'#0e000e',acc:'#cc0000', cat:'characters'},
+    dragonborn:             {label:'Dragonborn', bg:'#0a1018',surf:'#121c26',acc:'#6888c0', cat:'characters'},
+    bigboss:             {label:'Big Boss', bg:'#0c1008',surf:'#141a10',acc:'#6a8020', cat:'characters'},
+    laracroft:             {label:'Lara Croft', bg:'#12080a',surf:'#1e100e',acc:'#c8780a', cat:'characters'},
+    holographic:             {label:'Holographic', bg:'#04040e',surf:'#080812',acc:'#00e5ff', cat:'experimental'},
+    y2k:             {label:'Y2K', bg:'#e8eef8',surf:'#dce4f4',acc:'#0044ff', cat:'experimental'},
+    liminal:             {label:'Liminal', bg:'#f5f0e0',surf:'#ece6d0',acc:'#c8a060', cat:'experimental'},
+    signal:             {label:'Signal', bg:'#030303',surf:'#0a0a0a',acc:'#ffffff', cat:'experimental'},
+    corrupted:             {label:'Corrupted', bg:'#000500',surf:'#001000',acc:'#ff0080', cat:'experimental'},
+    neonnoir:             {label:'Neon Noir', bg:'#020008',surf:'#06000e',acc:'#ff0090', cat:'experimental'},
     valentines:       {label:"Valentine's",      bg:'#1a0008',surf:'#260010',acc:'#ff4488',   cat:'seasonal'},
     stpatricks:       {label:"St. Patrick's",    bg:'#021008',surf:'#041c0e',acc:'#1aaa44',   cat:'seasonal'},
     easter:           {label:'Easter',           bg:'#f8eef8',surf:'#f0e4f4',acc:'#9b4dca',   cat:'seasonal'},

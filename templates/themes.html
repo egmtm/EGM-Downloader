@@ -12,12 +12,8 @@
       --border:#243454;--border2:#2d4068;--acc:#3b82f6;--acc-h:#60a5fa;
       --text:#e2e8f6;--text2:#8faecf;--muted:#3d5470;
       --r:10px;--rs:7px;
-      --bg-texture:none;--bg-texture-opacity:0.18;
     }
-    body::before {
-      content:'';pointer-events:none;position:fixed;inset:0;z-index:0;
-      background-image:var(--bg-texture);opacity:var(--bg-texture-opacity);
-    }
+    {% include 'theme_styles.html' %}
 
     body {
       font-family:'Segoe UI',system-ui,sans-serif;
@@ -151,6 +147,24 @@ const THEME_DATA = {
   tiedye:          {label:'Tiedye',          bg:'#1a0820',surf:'#240c2e',acc:'#ff6ec7',  cat:'experimental'},
   infrared:        {label:'Infrared',        bg:'#000a14',surf:'#001020',acc:'#ff2200',  cat:'experimental'},
   antimatter:      {label:'Antimatter',      bg:'#f0f0f8',surf:'#e4e4f0',acc:'#1a003a',  cat:'experimental'},
+  snes:             {label:'SNES', bg:'#1a1a2e',surf:'#22223a',acc:'#7b5ea7',  cat:'consoles'},
+  n64:             {label:'N64', bg:'#111111',surf:'#1e1e1e',acc:'#cc0000',  cat:'consoles'},
+  gamecube:             {label:'GameCube', bg:'#1a0a2e',surf:'#24103c',acc:'#6a0dad',  cat:'consoles'},
+  virtualboy:             {label:'Virtual Boy', bg:'#000000',surf:'#1a0000',acc:'#ff0000',  cat:'consoles'},
+  saturn:             {label:'Saturn', bg:'#0a1a1e',surf:'#102428',acc:'#00838f',  cat:'consoles'},
+  neogeo:             {label:'Neo Geo', bg:'#050a1a',surf:'#0a1428',acc:'#d4a017',  cat:'consoles'},
+  chosenundead:             {label:'Chosen Undead', bg:'#0c0c0c',surf:'#181818',acc:'#e07010',  cat:'characters'},
+  vaultdweller:             {label:'Vault Dweller', bg:'#030a03',surf:'#051005',acc:'#00ff41',  cat:'characters'},
+  n7:             {label:'N7', bg:'#050005',surf:'#0e000e',acc:'#cc0000',  cat:'characters'},
+  dragonborn:             {label:'Dragonborn', bg:'#0a1018',surf:'#121c26',acc:'#6888c0',  cat:'characters'},
+  bigboss:             {label:'Big Boss', bg:'#0c1008',surf:'#141a10',acc:'#6a8020',  cat:'characters'},
+  laracroft:             {label:'Lara Croft', bg:'#12080a',surf:'#1e100e',acc:'#c8780a',  cat:'characters'},
+  holographic:             {label:'Holographic', bg:'#04040e',surf:'#080812',acc:'#00e5ff',  cat:'experimental'},
+  y2k:             {label:'Y2K', bg:'#e8eef8',surf:'#dce4f4',acc:'#0044ff',  cat:'experimental'},
+  liminal:             {label:'Liminal', bg:'#f5f0e0',surf:'#ece6d0',acc:'#c8a060',  cat:'experimental'},
+  signal:             {label:'Signal', bg:'#030303',surf:'#0a0a0a',acc:'#ffffff',  cat:'experimental'},
+  corrupted:             {label:'Corrupted', bg:'#000500',surf:'#001000',acc:'#ff0080',  cat:'experimental'},
+  neonnoir:             {label:'Neon Noir', bg:'#020008',surf:'#06000e',acc:'#ff0090',  cat:'experimental'},
   valentines:      {label:"Valentine's",     bg:'#1a0008',surf:'#260010',acc:'#ff4488',  cat:'seasonal'},
   stpatricks:      {label:"St. Patrick's",   bg:'#021008',surf:'#041c0e',acc:'#1aaa44',  cat:'seasonal'},
   easter:          {label:'Easter',          bg:'#f8eef8',surf:'#f0e4f4',acc:'#9b4dca',  cat:'seasonal'},
@@ -212,11 +226,21 @@ let activeCat = 'all';
 let searchQ   = '';
 
 // Apply current theme CSS to this window
+const ALL_THEME_KEYS = Object.keys(THEME_DATA);
 function applyBodyTheme(name) {
-  Object.keys(THEME_DATA).forEach(k => document.body.classList.remove(k));
+  document.body.classList.remove(...ALL_THEME_KEYS);
   if (name && name !== 'void') document.body.classList.add(name);
 }
 applyBodyTheme(currentTheme);
+
+// Listen for theme changes from main window
+if (window.electronAPI && window.electronAPI.onThemeChanged) {
+  window.electronAPI.onThemeChanged(theme => {
+    currentTheme = theme;
+    applyBodyTheme(theme);
+    render();
+  });
+}
 
 // Build tabs
 const tabsEl = document.getElementById('tabs');
