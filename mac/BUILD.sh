@@ -187,38 +187,8 @@ zip -e -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt -P "
 echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
 echo ""
 
-# ── Generate update JSON ──────────────────────────────────────────────────────
-echo "📄 Generating Mac update JSON..."
-# Pull bullets from latest patchnotes.txt entry, filtered to [MAC] and [ALL] only
-# per JSON_UPDATE_FEED_RULE — never cross-reference other OS changes.
-NOTES=$(python3 -c "
-import re
-from pathlib import Path
-pn = Path('$REPO_ROOT/patchnotes.txt').read_text(encoding='utf-8')
-bullets = []
-in_block = False
-for line in pn.splitlines():
-    if re.match(r'^v\d', line):
-        if in_block: break
-        in_block = True
-        continue
-    if in_block:
-        if line.startswith('  \u2022 '):
-            text = line[4:].strip()
-            m = re.match(r'^\[(MAC|ALL)\]\s+(.+)\$', text)
-            if m:
-                bullets.append(m.group(2))
-        elif line.strip() == '' and bullets:
-            break
-print('|||'.join(bullets))
-")
-if [ -n "$NOTES" ]; then
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform mac --notes "$NOTES"
-else
-    echo "   ⚠️  No [MAC] or [ALL] bullets found in patchnotes.txt — generating with empty notes"
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform mac
-fi
-echo ""
+# ── Update JSON ───────────────────────────────────────────────────────────────
+# JSON feed (egmac-update.json) is provided by Claude directly — no local generation needed.
 
 # ── GitHub push disabled — user pushes manually after verifying the build ─────
 # (Previous auto-push failed because the user's extracted source zip is not a
