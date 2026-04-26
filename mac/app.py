@@ -52,12 +52,56 @@ UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "
 # Settings file: persists last used folder — lives in DATA_DIR so it
 # survives app updates (DATA_DIR is never touched when dragging a new .app).
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
+HISTORY_FILE  = DATA_DIR / "egm_history.json"
 
 # ── Cookies: path to cookies.txt — managed via Settings UI ───────────────────
 COOKIES_FILE = DATA_DIR / "cookies.txt"
 
 _settings_cache: dict = {}
 _settings_lock  = threading.Lock()
+
+# ── History ────────────────────────────────────────────────────────────────────
+_history_lock = threading.Lock()
+_HISTORY_MAX  = 500
+
+def _load_history() -> list:
+    try:
+        if HISTORY_FILE.exists():
+            return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        pass
+    return []
+
+def _save_history(items: list):
+    try:
+        HISTORY_FILE.write_text(json.dumps(items, indent=2), encoding="utf-8")
+    except Exception:
+        pass
+
+def _append_history(job: dict, final_path):
+    try:
+        size_bytes = 0
+        try: size_bytes = final_path.stat().st_size
+        except: pass
+        entry = {
+            "id":           str(uuid.uuid4()),
+            "url":          job.get("url", ""),
+            "title":        job.get("title", ""),
+            "filename":     final_path.name,
+            "format":       final_path.suffix.lstrip(".").lower(),
+            "download_dir": str(final_path.parent),
+            "file_path":    str(final_path),
+            "size_bytes":   size_bytes,
+            "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        }
+        with _history_lock:
+            items = _load_history()
+            items.insert(0, entry)
+            if len(items) > _HISTORY_MAX:
+                items = items[:_HISTORY_MAX]
+            _save_history(items)
+    except Exception:
+        pass
 
 def _load_settings() -> dict:
     global _settings_cache
@@ -445,6 +489,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["file"]     = str(final_path)
         job["filename"] = final_path.name
         job["_finished_at"] = time.time()
+        _append_history(job, final_path)
 
     except Exception as e:
         with _active_procs_lock:
@@ -527,7 +572,7 @@ def start_download():
 
     jobs[job_id] = {"status": "queued", "url": url,
                     "title": data.get("title",""), "proc": None, "cancelled": False,
-                    "download_dir": dl_dir}
+                    "download_dir": dl_dir, "format": data.get("format", "video")}
     threading.Thread(target=run_download,
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
@@ -1055,6 +1100,37 @@ def deno_reinstall():
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# ── History routes ────────────────────────────────────────────────────────────
+@app.route("/api/history")
+def get_history():
+    page     = int(request.args.get("page", 1))
+    per_page = int(request.args.get("per_page", 10))
+    with _history_lock:
+        items = _load_history()
+    total = len(items)
+    pages = max(1, (total + per_page - 1) // per_page)
+    page  = max(1, min(page, pages))
+    start = (page - 1) * per_page
+    return jsonify({"items": items[start:start+per_page], "total": total,
+                    "page": page, "pages": pages, "per_page": per_page})
+
+@app.route("/api/history/<entry_id>", methods=["DELETE"])
+def delete_history_entry(entry_id):
+    with _history_lock:
+        items = _load_history()
+        items = [i for i in items if i.get("id") != entry_id]
+        _save_history(items)
+    return jsonify({"ok": True})
+
+@app.route("/api/history/clear", methods=["POST"])
+def clear_history():
+    with _history_lock:
+        _save_history([])
+    return jsonify({"ok": True})
+
+@app.route("/history-page")
+def history_page(): return render_template("history.html")
 
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():

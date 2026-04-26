@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Download History — EGM Downloader</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0b1120;--surf:#111c2e;--surf2:#162338;--surf3:#1c2d47;
+    --border:#1e3a5f;--border2:#274d7a;--acc:#3b82f6;--acc-h:#60a5fa;
+    --text:#e2e8f0;--text2:#8b949e;--muted:#4a5568;
+    --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
+    --shadow:0 4px 32px rgba(0,0,0,.6);
+  }
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+  /* theme classes */
+  body.eclipse{--bg:#18161a;--surf:#241f28;--surf2:#2e2535;--surf3:#3a2d47;--border:#3a3040;--border2:#4a3d5c;--acc:#a855f7;--text:#e2daea;--text2:#8b7fa0;--muted:#5a4d6e}
+  body.ghost{--bg:#0d1117;--surf:#161b22;--surf2:#1c2128;--surf3:#21262d;--border:#30363d;--border2:#3a424a;--acc:#238636;--text:#e6edf3;--text2:#8b949e;--muted:#484f58}
+  body.frost{--bg:#cdd2da;--surf:#c2c8d2;--surf2:#b8bec8;--surf3:#adb4c0;--border:#9da5b2;--border2:#8d96a5;--acc:#2563eb;--text:#161c28;--text2:#3e4a5e;--muted:#6e7a8e}
+  body.bone{--bg:#f5f0e8;--surf:#ede7d9;--surf2:#e4ddd0;--surf3:#d9d1c2;--border:#c8bfaa;--border2:#b8af9c;--acc:#2563eb;--text:#1e1810;--text2:#5a4e3a;--muted:#8a7d68}
+  body.haze{--bg:#d4d9d0;--surf:#c9d0c4;--surf2:#bec6b8;--surf3:#b2bba8;--border:#a0a89a;--border2:#909a8a;--acc:#2563eb;--text:#181e16;--text2:#3a4a38;--muted:#6a7a68}
+  body.custom{}
+
+  /* titlebar */
+  .titlebar{background:var(--surf2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+  .titlebar h1{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+  .total-badge{font-size:10px;background:rgba(59,130,246,.15);color:var(--acc);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:1px 8px}
+  .tb-actions{display:flex;gap:8px}
+  .tb-btn{font-size:11px;padding:3px 12px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2)}
+  .tb-btn:hover{color:var(--text);border-color:var(--acc)}
+  .tb-btn.danger{color:var(--red);border-color:rgba(239,68,68,.4)}
+  .tb-btn.danger:hover{background:rgba(239,68,68,.08)}
+
+  /* toolbar */
+  .toolbar{background:var(--surf);padding:8px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);flex-shrink:0}
+  .search{flex:1;background:var(--surf2);border:1px solid var(--border);border-radius:6px;height:28px;padding:0 10px;font-size:11px;color:var(--text);outline:none}
+  .search::placeholder{color:var(--muted)}
+  .search:focus{border-color:var(--acc)}
+  .filter-btn{height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap}
+  .filter-btn.active{border-color:var(--acc);color:var(--acc);background:rgba(59,130,246,.1)}
+  .filter-btn:hover:not(.active){color:var(--text)}
+  .sort-btn{height:28px;padding:0 10px;border-radius:6px;border:1px solid var(--border);background:transparent;font-size:11px;color:var(--text2);cursor:pointer}
+  .sort-btn:hover{color:var(--text)}
+
+  /* table */
+  .table-wrap{flex:1;overflow-y:auto}
+  .table-header{display:grid;grid-template-columns:36px 1fr 80px 70px 70px 90px;padding:6px 14px;border-bottom:1px solid var(--border);background:var(--surf);position:sticky;top:0;z-index:1}
+  .th{font-size:9px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none}
+  .th:hover{color:var(--text2)}
+  .row{display:grid;grid-template-columns:36px 1fr 80px 70px 70px 90px;padding:6px 14px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center}
+  .row:hover{background:var(--surf2)}
+  .rthumb{width:32px;height:24px;border-radius:3px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--muted);border:1px solid var(--border)}
+  .rt{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px}
+  .rm{font-size:9px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;margin-top:1px}
+  .col{font-size:10px;color:var(--text2)}
+  .col.hi{color:var(--text)}
+  .fmt{font-size:9px;padding:1px 6px;border-radius:3px;border:1px solid;display:inline-block}
+  .fmt-mp3,.fmt-aac,.fmt-m4a{background:rgba(22,163,74,.1);color:#4ade80;border-color:rgba(22,163,74,.3)}
+  .fmt-mp4,.fmt-webm{background:rgba(59,130,246,.1);color:#60a5fa;border-color:rgba(59,130,246,.3)}
+  .fmt-flac,.fmt-wav{background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.3)}
+  .fmt-other{background:rgba(255,255,255,.06);color:var(--text2);border-color:var(--border)}
+  .row-btns{display:flex;gap:3px;justify-content:flex-end}
+  .rb{font-size:9px;padding:2px 6px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2)}
+  .rb:hover{color:var(--acc);border-color:var(--acc)}
+  .rb.red:hover{color:var(--red);border-color:rgba(239,68,68,.5)}
+  .empty-state{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px}
+
+  /* pagination */
+  .pagination{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--border);background:var(--surf);flex-shrink:0}
+  .pg-info{font-size:10px;color:var(--text2)}
+  .pg-btns{display:flex;gap:4px}
+  .pg-btn{font-size:10px;padding:3px 10px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--text2);cursor:pointer}
+  .pg-btn.active{border-color:var(--acc);color:var(--acc);background:rgba(59,130,246,.1)}
+  .pg-btn:hover:not(.active):not(:disabled){color:var(--text)}
+  .pg-btn:disabled{opacity:.3;cursor:default}
+
+  /* statusbar */
+  .statusbar{display:flex;align-items:center;justify-content:space-between;padding:4px 14px;background:var(--surf2);border-top:1px solid var(--border);flex-shrink:0}
+  .sb-text{font-size:9px;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div class="titlebar">
+  <h1>
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
+    Download History
+    <span class="total-badge" id="total-badge">0</span>
+  </h1>
+  <div class="tb-actions">
+    <button class="tb-btn danger" id="clear-all-btn">Clear All</button>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input class="search" id="search-input" placeholder="Search title, URL, format…">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="video">Video</button>
+  <button class="filter-btn" data-filter="audio">Audio</button>
+  <button class="filter-btn" data-filter="flac">FLAC</button>
+  <button class="sort-btn" id="sort-btn">↓ Newest</button>
+</div>
+
+<div class="table-header">
+  <div class="th"></div>
+  <div class="th">Title</div>
+  <div class="th">Format</div>
+  <div class="th">Size</div>
+  <div class="th">Date</div>
+  <div class="th" style="text-align:right">Actions</div>
+</div>
+
+<div class="table-wrap" id="table-wrap">
+  <div class="empty-state" id="empty-state" style="display:none">No downloads yet</div>
+</div>
+
+<div class="pagination" id="pagination">
+  <span class="pg-info" id="pg-info">Showing 0–0 of 0</span>
+  <div class="pg-btns" id="pg-btns"></div>
+</div>
+
+<div class="statusbar">
+  <span class="sb-text" id="status-bar">0 downloads</span>
+</div>
+
+<script>
+(function() {
+  // Apply saved theme
+  const theme = localStorage.getItem('egm-theme') || 'void';
+  if (theme && theme !== 'void') document.body.classList.add(theme);
+
+  const AUDIO_FMTS = ['mp3','aac','flac','wav','ogg','m4a','opus'];
+  const PER_PAGE = 10;
+
+  let allItems = [];
+  let filtered = [];
+  let currentPage = 1;
+  let currentFilter = 'all';
+  let searchQuery = '';
+  let sortAsc = false; // false = newest first
+
+  function fmtSize(b) {
+    if (!b) return '—';
+    if (b > 1073741824) return (b/1073741824).toFixed(1) + ' GB';
+    if (b > 1048576)    return (b/1048576).toFixed(1) + ' MB';
+    if (b > 1024)       return (b/1024).toFixed(0) + ' KB';
+    return b + ' B';
+  }
+  function fmtDate(iso) {
+    try {
+      const d = new Date(iso), now = new Date();
+      const diff = (now - d) / 1000;
+      if (diff < 86400) return 'Today';
+      if (diff < 172800) return 'Yesterday';
+      return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined });
+    } catch { return ''; }
+  }
+  function fmtClass(f) {
+    if (!f) return 'fmt-other';
+    const fm = f.toLowerCase();
+    if (['mp3','aac','m4a'].includes(fm)) return 'fmt-mp3';
+    if (['mp4','webm'].includes(fm))      return 'fmt-mp4';
+    if (['flac','wav'].includes(fm))      return 'fmt-flac';
+    return 'fmt-other';
+  }
+  function totalSize(items) {
+    const t = items.reduce((s,i) => s + (i.size_bytes||0), 0);
+    return t ? fmtSize(t) : '';
+  }
+
+  async function loadAll() {
+    // Load all history pages (for client-side filtering/search)
+    let items = [], page = 1;
+    while (true) {
+      const d = await fetch(`/api/history?page=${page}&per_page=50`).then(r=>r.json());
+      items = items.concat(d.items || []);
+      if (page >= d.pages) break;
+      page++;
+    }
+    allItems = items;
+    applyFilters();
+  }
+
+  function applyFilters() {
+    let items = [...allItems];
+    // Search
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      items = items.filter(i =>
+        (i.title||'').toLowerCase().includes(q) ||
+        (i.url||'').toLowerCase().includes(q) ||
+        (i.format||'').toLowerCase().includes(q) ||
+        (i.filename||'').toLowerCase().includes(q)
+      );
+    }
+    // Format filter
+    if (currentFilter === 'video') items = items.filter(i => !AUDIO_FMTS.includes((i.format||'').toLowerCase()));
+    if (currentFilter === 'audio') items = items.filter(i => AUDIO_FMTS.includes((i.format||'').toLowerCase()) && i.format !== 'flac');
+    if (currentFilter === 'flac')  items = items.filter(i => (i.format||'').toLowerCase() === 'flac');
+    // Sort
+    if (sortAsc) items = [...items].reverse();
+    filtered = items;
+    currentPage = 1;
+    render();
+  }
+
+  function render() {
+    const wrap = document.getElementById('table-wrap');
+    const empty = document.getElementById('empty-state');
+    wrap.querySelectorAll('.row').forEach(el => el.remove());
+
+    document.getElementById('total-badge').textContent = allItems.length;
+    const ts = totalSize(allItems);
+    document.getElementById('status-bar').textContent = `${allItems.length} downloads${ts ? ' · ' + ts + ' total' : ''}`;
+
+    if (filtered.length === 0) { empty.style.display = ''; updatePagination(0, 0, 0); return; }
+    empty.style.display = 'none';
+
+    const total = filtered.length;
+    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+    currentPage = Math.min(currentPage, pages);
+    const start = (currentPage - 1) * PER_PAGE;
+    const pageItems = filtered.slice(start, start + PER_PAGE);
+
+    pageItems.forEach(item => {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const isAudio = AUDIO_FMTS.includes((item.format||'').toLowerCase());
+      row.innerHTML = `
+        <div class="rthumb">${isAudio ? '♫' : '▶'}</div>
+        <div>
+          <div class="rt">${item.title || item.filename || '—'}</div>
+          <div class="rm">${item.url || ''}</div>
+        </div>
+        <div class="col"><span class="fmt ${fmtClass(item.format)}">${(item.format||'?').toUpperCase()}</span></div>
+        <div class="col hi">${fmtSize(item.size_bytes)}</div>
+        <div class="col">${fmtDate(item.completed_at)}</div>
+        <div class="row-btns">
+          <button class="rb" title="Re-add">↺</button>
+          <button class="rb" title="Open folder">🗁</button>
+          <button class="rb red" title="Remove">✕</button>
+        </div>`;
+      const [btnReadd, btnOpen, btnDel] = row.querySelectorAll('.rb');
+      btnReadd.addEventListener('click', () => { window.opener && (window.opener.document.getElementById('urls').value = item.url); });
+      btnOpen.addEventListener('click',  () => { window.electronAPI?.openFolder(item.download_dir); });
+      btnDel.addEventListener('click',   async () => {
+        await fetch(`/api/history/${item.id}`, { method: 'DELETE' });
+        allItems = allItems.filter(i => i.id !== item.id);
+        applyFilters();
+      });
+      wrap.appendChild(row);
+    });
+
+    updatePagination(start + 1, start + pageItems.length, total);
+  }
+
+  function updatePagination(from, to, total) {
+    document.getElementById('pg-info').textContent = total > 0 ? `Showing ${from}–${to} of ${total}` : 'No results';
+    const pages = Math.max(1, Math.ceil(total / PER_PAGE));
+    const btns = document.getElementById('pg-btns');
+    btns.innerHTML = '';
+    const prev = document.createElement('button');
+    prev.className = 'pg-btn'; prev.textContent = '← Newer';
+    if (currentPage <= 1) prev.disabled = true;
+    prev.addEventListener('click', () => { currentPage--; render(); });
+    btns.appendChild(prev);
+    const pageNums = [];
+    for (let i = Math.max(1, currentPage - 1); i <= Math.min(pages, currentPage + 1); i++) pageNums.push(i);
+    pageNums.forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'pg-btn' + (p === currentPage ? ' active' : '');
+      b.textContent = p;
+      b.addEventListener('click', () => { currentPage = p; render(); });
+      btns.appendChild(b);
+    });
+    const next = document.createElement('button');
+    next.className = 'pg-btn'; next.textContent = 'Older →';
+    if (currentPage >= pages) next.disabled = true;
+    next.addEventListener('click', () => { currentPage++; render(); });
+    btns.appendChild(next);
+  }
+
+  // Event wiring
+  document.getElementById('search-input').addEventListener('input', e => { searchQuery = e.target.value.trim(); applyFilters(); });
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      currentFilter = btn.dataset.filter;
+      applyFilters();
+    });
+  });
+  document.getElementById('sort-btn').addEventListener('click', () => {
+    sortAsc = !sortAsc;
+    document.getElementById('sort-btn').textContent = sortAsc ? '↑ Oldest' : '↓ Newest';
+    applyFilters();
+  });
+  document.getElementById('clear-all-btn').addEventListener('click', async () => {
+    if (!confirm('Clear all download history? This cannot be undone.')) return;
+    await fetch('/api/history/clear', { method: 'POST' });
+    allItems = []; applyFilters();
+  });
+
+  loadAll();
+})();
+</script>
+</body>
+</html>
