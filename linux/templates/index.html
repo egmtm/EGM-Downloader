@@ -118,7 +118,7 @@
     #hamburger-btn:hover { border-color: var(--acc); color: var(--acc); }
     #hamburger-panel {
       display: none; position: absolute; right: 0; top: 42px;
-      width: 205px; background: var(--surf); border: 1px solid var(--border2);
+      width: 235px; background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,.35);
       z-index: 1000; overflow: hidden;
     }
@@ -133,13 +133,13 @@
     .hpanel-open-full:hover { background: var(--surf3); }
     .hpanel-open-full span { font-size: 9px; color: var(--acc); }
     .hpanel-open-full small { font-size: 9px; color: var(--text2); }
-    .hentry { display: flex; align-items: center; gap: 6px; padding: 4px 6px; border-radius: 4px; margin-bottom: 2px; }
+    .hentry { display: flex; align-items: center; gap: 8px; padding: 5px 8px; border-radius: 5px; margin-bottom: 3px; }
     .hentry:hover { background: var(--surf2); }
-    .hthumb { width: 26px; height: 19px; border-radius: 2px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 8px; color: var(--text2); border: 0.5px solid var(--border); }
-    .htitle { font-size: 10px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
-    .hmeta { font-size: 8px; color: var(--text2); margin: 0; }
-    .hbtns { display: flex; gap: 2px; flex-shrink: 0; margin-left: auto; }
-    .hbtn { font-size: 7px; padding: 1px 3px; border-radius: 2px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
+    .hthumb { width: 32px; height: 24px; border-radius: 3px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text2); border: 0.5px solid var(--border); }
+    .htitle { font-size: 11px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+    .hmeta { font-size: 9px; color: var(--text2); margin: 0; }
+    .hbtns { display: flex; gap: 3px; flex-shrink: 0; margin-left: auto; }
+    .hbtn { font-size: 9px; padding: 2px 5px; border-radius: 3px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
     .hbtn:hover { color: var(--acc); border-color: var(--acc); }
     .hbtn.red:hover { color: var(--red); border-color: var(--red); }
     .hpill { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; margin: 2px 0; background: rgba(255,255,255,.04); border: 0.5px dashed var(--border); border-radius: 4px; cursor: pointer; font-size: 9px; color: var(--text2); width: 100%; }
@@ -722,13 +722,16 @@
       </div>
     </div>
 
-    <!-- Advanced settings panel — collapsed by default -->
-    <div class="adv-section">
-      <div class="adv-toggle-row" id="adv-toggle-row">
-        <span class="adv-label">⚙ Advanced</span>
-        <span id="adv-arrow" style="font-size:.7rem;color:var(--text2)">▶</span>
-      </div>
-      <div class="adv-body" id="adv-body">
+  </div>
+</div>
+
+<!-- Advanced settings — standalone card -->
+<div class="card">
+  <div class="card-header">
+    <span class="card-title">Advanced</span>
+    <button class="card-toggle" id="adv-card-toggle">▶ Show</button>
+  </div>
+  <div class="card-body collapsed" id="adv-card-body">
         <div class="adv-row">
           <div><div class="adv-row-label">Flask port</div><div class="adv-row-sub">Change if port 8899 is in use. Requires restart.</div></div>
           <div class="adv-port-row">
@@ -760,8 +763,6 @@
           <div><div class="adv-row-label">Import settings</div><div class="adv-row-sub">Load preferences from a JSON file</div></div>
           <button class="btn-adv info" id="adv-import-btn">Import</button>
         </div>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -797,15 +798,11 @@
 </div>
 
 <footer>
-  <div style="display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap">
-    <span>&copy; <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener">www.egerena.com</a></span>
-    <span style="opacity:.4">·</span>
-    <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="color:inherit;text-decoration:none">GitHub</a>
-    <span style="opacity:.4">·</span>
-    <span style="font-size:.68rem;background:var(--surf);border:1px solid var(--border);border-radius:20px;padding:1px 9px;color:var(--text2)">v0.95</span>
-  </div>
-  <div style="margin-top:7px">
-    <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="display:inline-flex;align-items:center;gap:4px;font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:2px 12px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
+  <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
+    <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
+    <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.96</span>
+    <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
   </div>
 </footer>
 <div id="toasts"></div>
@@ -2478,11 +2475,11 @@ function audioQualityBgClick(e) {
 
 // ── Advanced settings panel ───────────────────────────────────────────────────
 (function() {
-  document.getElementById('adv-toggle-row').addEventListener('click', () => {
-    const body  = document.getElementById('adv-body');
-    const arrow = document.getElementById('adv-arrow');
-    const open  = body.classList.toggle('open');
-    arrow.textContent = open ? '▼' : '▶';
+  document.getElementById('adv-card-toggle').addEventListener('click', () => {
+    const body = document.getElementById('adv-card-body');
+    const btn  = document.getElementById('adv-card-toggle');
+    const open = body.classList.toggle('collapsed');
+    btn.textContent = open ? '▶ Show' : '▼ Hide';
   });
 
   (async () => {
