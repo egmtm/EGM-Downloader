@@ -2269,8 +2269,6 @@ async function checkForUpdatesOnLaunch() {
   try {
     const d = await fetch('/api/check-app-update').then(r => r.json());
     if (d.error || d.up_to_date) return;
-    const cmp = compareVersions(d.current_version, d.latest_version);
-    if (cmp >= 0) return;
     // Show toast with download link
     const c = document.getElementById('toasts');
     const t = document.createElement('div');
