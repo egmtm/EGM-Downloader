@@ -268,6 +268,8 @@ async function createWindow() {
 // ── IPC: launch installer (for auto-update) ──────────────────────────────────
 ipcMain.handle('launch-installer', async (event, installerPath) => {
   try {
+    if (!installerPath || typeof installerPath !== 'string') return { error: 'Invalid installer path' };
+    if (!installerPath.includes('egm-update') && !installerPath.includes('egm-setup')) return { error: 'Unexpected installer name' };
     if (!fs.existsSync(installerPath)) return { error: 'Installer not found: ' + installerPath };
     // Spawn installer detached so it outlives Electron
     // spawn is already imported at the top of this file
@@ -303,6 +305,8 @@ ipcMain.handle('pick-folder', async (event, defaultPath) => {
 // ── IPC: open folder in Explorer ──────────────────────────────────────────────
 ipcMain.handle('open-folder', async (event, folderPath) => {
   try {
+    if (!folderPath || typeof folderPath !== 'string') return { error: 'Invalid path' };
+    if (folderPath.startsWith('http') || folderPath.startsWith('javascript')) return { error: 'Invalid path' };
     await shell.openPath(folderPath);
     return { success: true };
   } catch (e) {
@@ -432,7 +436,11 @@ ipcMain.handle('open-themes-window', async () => {
 });
 
 // ── IPC: relay theme change from themes window to main window ─────────────────
+
+// Valid theme keys — used to validate set-theme IPC
+const VALID_THEMES = new Set(['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','pitch','blanc','custom']);
 ipcMain.on('set-theme', (event, theme) => {
+  if (!theme || !VALID_THEMES.has(theme)) return; // ignore unknown theme keys
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('theme-changed', theme);
   }
