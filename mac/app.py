@@ -40,8 +40,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.97"
-APP_BUILD             = 99
+APP_VERSION           = "0.97.5"
+APP_BUILD             = 100
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 APP_UPDATE_PASSWORD   = "EGMsterling"
@@ -975,6 +975,7 @@ def check_app_update():
             "notes":           notes,
             "download":        download,
             "zip_url":         zip_url,
+            "download_url":    zip_url,
         })
     except urllib.error.URLError:
         return jsonify({"error": "Could not reach update server"}), 503
