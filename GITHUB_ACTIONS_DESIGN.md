@@ -1,6 +1,13 @@
-# GitHub Actions Workflows - TODO
+# GitHub Actions Workflows - Design Reference
 
-This document outlines GitHub Actions workflows to implement when the repository goes public.
+> **📌 HISTORICAL DOCUMENT - April 2026**
+>
+> All workflows described in this document have been **implemented and are active**.
+> This document is kept for historical reference of the original design rationale.
+>
+> For current workflow definitions, see [`.github/workflows/`](.github/workflows/).
+
+This document outlines the original design and implementation plan for GitHub Actions workflows.
 
 ---
 
