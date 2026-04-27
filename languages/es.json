@@ -207,6 +207,26 @@
     "footer.link.website": "egerena.com",
     "footer.link.github": "GitHub",
     "footer.btn.check_updates": "Buscar Actualizaciones",
-    "footer.btn.support": "♥ Apoyar a EGM"
+    "footer.btn.support": "♥ Apoyar a EGM",
+    "tooltip.hamburger": "Historial y Temas",
+    "tooltip.videos_selector": "Máximo de descargas de video simultáneas",
+    "tooltip.fragments_selector": "Conexiones paralelas por video — más = más rápido en conexiones rápidas",
+    "tooltip.support": "Las donaciones no son necesarias, pero se aprecian 😇",
+    "tooltip.back_to_top": "Volver arriba",
+    "tooltip.card.remove": "Eliminar",
+    "tooltip.card.readd": "Volver a agregar URL",
+    "tooltip.card.open_folder": "Abrir carpeta",
+    "confirm.port_change": "¿Cambiar el puerto a {0}?",
+    "confirm.reset_settings": "¿Restablecer toda la configuración a los valores predeterminados?\n\nTus descargas e historial no se verán afectados.",
+    "confirm.reinstall_ffmpeg": "¿Eliminar la instalación actual de ffmpeg?\n\nSe descargará una copia nueva al próximo inicio. Asegúrate de tener conexión a internet.",
+    "confirm.reinstall_deno": "¿Eliminar la instalación actual de Deno?\n\nDeno se reinstalará al próximo inicio. Asegúrate de tener conexión a internet.",
+    "status.cookies_active": "Cookies: activas{0}",
+    "status.bulk_progress": "Descargando {0} / {1} {2} listos  ({3} activos)",
+    "status.batch_hidden": "· · · {0} más en este lote · · ·",
+    "status.show_older": "↓ Mostrar más antiguos ({0} más)",
+    "status.bar.count": "{0} descargas",
+    "aria.hamburger": "Historial y Temas",
+    "history.sort.newest_short": "↓ Más reciente",
+    "history.sort.oldest_short": "↑ Más antiguo"
   }
 }
