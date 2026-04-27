@@ -99,17 +99,17 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.96 Build 98  
+**Latest:** v0.97.5 Build 100  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (~75 MB)  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### macOS
-**Latest:** v0.96 Build 98  
+**Latest:** v0.97.5 Build 100  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (~120 MB)  
 **Requirements:** macOS 11.0 (Big Sur) or later
 
 ### Linux
-**Latest:** v0.96 Build 98  
+**Latest:** v0.97.5 Build 100  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (~130 MB)  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
@@ -418,8 +418,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 0.96
-- **Build:** 98
+- **Version:** 0.97.5
+- **Build:** 100
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** AGPL-3.0

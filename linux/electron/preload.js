@@ -12,4 +12,5 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setTheme:           (theme)         => ipcRenderer.send('set-theme', theme),
   onThemeChanged:     (cb)            => ipcRenderer.on('theme-changed', (e, theme) => cb(theme)),
   isElectron: true,
+  platform: 'linux',
 });
