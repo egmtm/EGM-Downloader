@@ -1,6 +1,10 @@
 {
   "name": "egm-downloader",
+<<<<<<< HEAD
   "version": "0.97.5.0",
+=======
+  "version": "0.97.0",
+>>>>>>> HEAD@{1}
   "description": "EGM Downloader \u2014 download videos from 1000+ sites",
   "main": "main.js",
   "author": "www.egerena.com",
