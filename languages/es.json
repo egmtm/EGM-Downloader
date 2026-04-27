@@ -8,7 +8,7 @@
   "_last_updated": "2026-04-26",
   "strings": {
     "app.title": "EGM Downloader",
-    "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} más sitios",
+    "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo y {0} sitios más",
     "app.subtitle.more_sites": "1000+",
     "url.section_title": "URLs de Videos / Listas",
     "url.placeholder": "Pega una o más URLs aquí (una por línea)\nhttps://www.youtube.com/watch?v=...\nhttps://www.youtube.com/playlist?list=...",
@@ -193,7 +193,7 @@
     "download.error.unavailable": "Este video no está disponible o ha sido eliminado.",
     "download.error.region": "Este video no está disponible en tu región.",
     "download.error.members": "Este video es solo para miembros.",
-    "download.error.premiere": "Este video es un estreno programado — aún no ha comenzado.",
+    "download.error.premiere": "Este video es un estreno programado — aún no se ha emitido.",
     "download.error.login": "YouTube requiere inicio de sesión para este video. Intenta agregar cookies en Configuración.",
     "download.error.format": "La calidad seleccionada no está disponible. Intenta con otro formato.",
     "download.error.generic": "La descarga falló. Por favor intenta de nuevo.",
