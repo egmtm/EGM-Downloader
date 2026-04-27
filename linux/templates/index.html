@@ -1211,8 +1211,6 @@
     .adv-row:last-child { border-bottom: none; }
     .adv-row-label { font-size: .8rem; color: var(--text); }
     .adv-row-sub { font-size: .71rem; color: var(--text2); margin-top: 1px; }
-    .adv-section-label { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 8px 0 4px; grid-column: 1/-1; }
-    .adv-section-divider { grid-column: 1/-1; height: 1px; background: var(--border); margin: 2px 0; }
     .adv-btn-full { display: flex; align-items: center; gap: 8px; background: var(--surf2); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-size: .72rem; padding: 8px 12px; cursor: pointer; width: 100%; height: 36px; font-family: inherit; transition: border-color .15s; }
     .adv-btn-full:hover { border-color: var(--acc); }
     .adv-btn-full .adv-btn-icon { width: 16px; height: 16px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
@@ -2170,36 +2168,21 @@
         </div>
       </div>
 
-      <!-- GENERAL -->
-      <div class="adv-section-label">General</div>
       <button class="adv-btn-full" id="adv-clear-cache-btn">
         <span class="adv-btn-icon amber">⌫</span>Clear cache
       </button>
-      <div></div>
-
-      <!-- SETTINGS -->
-      <div class="adv-section-divider"></div>
-      <div class="adv-section-label">Settings</div>
       <button class="adv-btn-full" id="adv-export-btn">
         <span class="adv-btn-icon blue">↑</span>Export settings
       </button>
       <button class="adv-btn-full" id="adv-import-btn">
         <span class="adv-btn-icon blue">↓</span>Import settings
       </button>
-
-      <!-- PLUGINS -->
-      <div class="adv-section-divider"></div>
-      <div class="adv-section-label">Plugins</div>
       <button class="adv-btn-full" id="adv-ffmpeg-btn">
         <span class="adv-btn-icon green">↺</span>Reinstall ffmpeg
       </button>
       <button class="adv-btn-full" id="adv-deno-btn">
         <span class="adv-btn-icon green">↺</span>Reinstall Deno
       </button>
-
-      <!-- SYSTEM -->
-      <div class="adv-section-divider"></div>
-      <div class="adv-section-label">System</div>
       <button class="adv-btn-full" id="adv-reset-btn">
         <span class="adv-btn-icon red">↺</span>Reset settings
       </button>
@@ -2349,7 +2332,10 @@ let _modalOk    = null;
 let chosenPath  = null;    // Absolute path string (Electron only)
 
 // ── Auto-check for updates on launch (Linux — notify only, no auto-install) ──
+let _autoUpdateCheckRan = false;
 async function checkForUpdatesOnLaunch() {
+  if (_autoUpdateCheckRan) return;
+  _autoUpdateCheckRan = true;
   try {
     const d = await fetch('/api/check-app-update').then(r => r.json());
     if (d.error || d.up_to_date) return;

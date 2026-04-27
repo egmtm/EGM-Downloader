@@ -437,10 +437,11 @@ ipcMain.handle('open-themes-window', async () => {
 
 // ── IPC: relay theme change from themes window to main window ─────────────────
 
-// Valid theme keys — used to validate set-theme IPC
-const VALID_THEMES = new Set(['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','pitch','blanc','custom']);
+// Theme key validation — alphanumeric only, prevents IPC injection while
+// supporting any future theme without allowlist maintenance
+const VALID_THEME_RE = /^[a-z0-9]+$/;
 ipcMain.on('set-theme', (event, theme) => {
-  if (!theme || !VALID_THEMES.has(theme)) return; // ignore unknown theme keys
+  if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return; // reject malformed theme keys
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('theme-changed', theme);
   }
