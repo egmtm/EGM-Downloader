@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 EGM Downloader v0.97.5 — Linux
+=======
+EGM Downloader v0.97 — Linux
+>>>>>>> HEAD@{1}
 www.egerena.com
 ────────────────────────────────────────
 
