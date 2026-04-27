@@ -203,8 +203,10 @@ Email: enrique@egerena.com
   LICENSE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-MIT License - Free to use, modify, and distribute.
-See LICENSE file in GitHub repository for full terms.
+GNU Affero General Public License v3.0 (AGPL-3.0)
+This is copyleft software. Modifications must be released under the
+same license. See the LICENSE file in the GitHub repository for the
+full terms: https://github.com/egmtm/EGM-Downloader/blob/main/LICENSE
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
