@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v0.97</title>
+  <title>EGM Downloader v0.97.5</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -1414,10 +1414,23 @@
     .adv-label { font-size: .78rem; color: var(--text2); font-weight: 500; }
     .adv-body { display: none; margin-top: 10px; }
     .adv-body.open { display: block; }
+    /* ── Advanced panel redesign ── */
     .adv-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
     .adv-row:last-child { border-bottom: none; }
     .adv-row-label { font-size: .8rem; color: var(--text); }
     .adv-row-sub { font-size: .71rem; color: var(--text2); margin-top: 1px; }
+    .adv-section-label { font-size: .6rem; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; padding: 8px 0 4px; grid-column: 1/-1; }
+    .adv-section-divider { grid-column: 1/-1; height: 1px; background: var(--border); margin: 2px 0; }
+    .adv-btn-full { display: flex; align-items: center; gap: 8px; background: var(--surf2); border: 1px solid var(--border); border-radius: 7px; color: var(--text); font-size: .72rem; padding: 8px 12px; cursor: pointer; width: 100%; height: 36px; font-family: inherit; transition: border-color .15s; }
+    .adv-btn-full:hover { border-color: var(--acc); }
+    .adv-btn-full .adv-btn-icon { width: 16px; height: 16px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 10px; flex-shrink: 0; }
+    .adv-btn-icon.blue { background: rgba(59,130,246,.15); color: #3b82f6; }
+    .adv-btn-icon.green { background: rgba(74,222,128,.1); color: #4ade80; }
+    .adv-btn-icon.amber { background: rgba(251,191,36,.1); color: #fbbf24; }
+    .adv-btn-icon.red { background: rgba(248,113,113,.1); color: #f87171; }
+    .adv-btn-icon.teal { background: rgba(45,212,191,.1); color: #2dd4bf; }
+    .adv-port-wrap { display: flex; align-items: center; gap: 6px; background: var(--surf2); border: 1px solid var(--border); border-radius: 7px; padding: 0 10px; height: 36px; }
+    .adv-port-label { font-size: .65rem; color: var(--text2); white-space: nowrap; }
     .adv-port-row { display: flex; gap: 6px; align-items: center; }
     .adv-port-input { width: 64px; background: var(--surf2); border: 1px solid var(--border); border-radius: 5px; height: 26px; padding: 0 8px; font-size: .8rem; color: var(--text); font-family: monospace; }
     .btn-adv { height: 26px; padding: 0 10px; border-radius: 5px; font-size: .75rem; background: transparent; border: 1px solid var(--border2); color: var(--text2); cursor: pointer; white-space: nowrap; }
@@ -1759,7 +1772,7 @@
     .upd-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
     @keyframes updFade { to { opacity:1; } }
 
-    footer { width: 100%; max-width: 760px; margin-top: 24px; text-align: center; font-size: .68rem; color: var(--muted); padding-bottom: 14px; }
+    footer { width: 100%; max-width: 760px; margin-top: 20px; text-align: center; font-size: .68rem; color: var(--muted); padding-bottom: 14px; }
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--acc); text-decoration: underline; }
 
@@ -1804,7 +1817,7 @@
     </svg>
   </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.97" data-build-title="v0.97">v0.97</span></h1>
+    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.97.5" data-build-title="v0.97.5">v0.97.5</span></h1>
     <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
   </div>
   <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
@@ -2292,7 +2305,9 @@
   </div>
   <div class="sec-body collapsed" id="adv-card-body">
     <div class="adv-2col">
-      <div class="adv-row" style="grid-column:1/-1;padding:4px 0;border-bottom:0.5px solid var(--border)">
+
+      <!-- Toggles row (full width) -->
+      <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:2px">
         <div class="sw-wrap">
           <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
           <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
@@ -2302,38 +2317,51 @@
           <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
         </div>
       </div>
-      <div class="adv-row" id="adv-shortcut-row" style="display:none">
-        <div><div class="adv-row-label">Desktop shortcut</div></div>
-        <button class="btn-adv" id="adv-shortcut-btn">Create</button>
+
+      <!-- GENERAL -->
+      <div class="adv-section-label">General</div>
+      <button class="adv-btn-full" id="adv-shortcut-btn" style="display:none" onclick="document.getElementById('adv-shortcut-row').click()">
+        <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
+      </button>
+      <!-- hidden legacy row for JS compat -->
+      <div id="adv-shortcut-row" style="display:none"></div>
+      <button class="adv-btn-full" id="adv-clear-cache-btn">
+        <span class="adv-btn-icon amber">⌫</span>Clear cache
+      </button>
+
+      <!-- SETTINGS -->
+      <div class="adv-section-divider"></div>
+      <div class="adv-section-label">Settings</div>
+      <button class="adv-btn-full" id="adv-export-btn">
+        <span class="adv-btn-icon blue">↑</span>Export settings
+      </button>
+      <button class="adv-btn-full" id="adv-import-btn">
+        <span class="adv-btn-icon blue">↓</span>Import settings
+      </button>
+
+      <!-- PLUGINS -->
+      <div class="adv-section-divider"></div>
+      <div class="adv-section-label">Plugins</div>
+      <button class="adv-btn-full" id="adv-ffmpeg-btn">
+        <span class="adv-btn-icon green">↺</span>Reinstall ffmpeg
+      </button>
+      <button class="adv-btn-full" id="adv-deno-btn">
+        <span class="adv-btn-icon green">↺</span>Reinstall Deno
+      </button>
+
+      <!-- SYSTEM -->
+      <div class="adv-section-divider"></div>
+      <div class="adv-section-label">System</div>
+      <button class="adv-btn-full" id="adv-reset-btn">
+        <span class="adv-btn-icon red">↺</span>Reset settings
+      </button>
+      <div class="adv-port-wrap">
+        <span class="adv-btn-icon teal">⌥</span>
+        <span class="adv-port-label">Flask port</span>
+        <input type="number" class="adv-port-input" id="adv-port-input" value="8899" min="1024" max="65535" style="background:transparent;border:none;color:var(--text);font-size:.72rem;width:60px;outline:none;margin-left:4px"/>
+        <button class="btn-adv" id="adv-port-btn" style="flex-shrink:0">Apply</button>
       </div>
-      <div class="adv-row">
-        <div><div class="adv-row-label">Flask port</div></div>
-        <div class="adv-port-row"><input type="number" class="adv-port-input" id="adv-port-input" value="8899" min="1024" max="65535"/><button class="btn-adv" id="adv-port-btn">Apply</button></div>
-      </div>
-      <div class="adv-row">
-        <div><div class="adv-row-label">Export settings</div></div>
-        <button class="btn-adv info" id="adv-export-btn">Export</button>
-      </div>
-      <div class="adv-row">
-        <div><div class="adv-row-label">Import settings</div></div>
-        <button class="btn-adv info" id="adv-import-btn">Import</button>
-      </div>
-      <div class="adv-row">
-        <div><div class="adv-row-label">Clear cache</div></div>
-        <button class="btn-adv warn" id="adv-clear-cache-btn">Clear</button>
-      </div>
-      <div class="adv-row">
-        <div><div class="adv-row-label">Reset settings</div></div>
-        <button class="btn-adv danger" id="adv-reset-btn">Reset</button>
-      </div>
-      <div class="adv-row">
-        <div><div class="adv-row-label">Reinstall ffmpeg</div></div>
-        <button class="btn-adv warn" id="adv-ffmpeg-btn">Reinstall</button>
-      </div>
-      <div class="adv-row">
-        <div><div class="adv-row-label">Reinstall Deno</div></div>
-        <button class="btn-adv warn" id="adv-deno-btn">Reinstall</button>
-      </div>
+
     </div>
   </div>
 
@@ -2533,8 +2561,10 @@ function showUpdateAvailableModal(d) {
   // Buttons
   const btns = backdrop.querySelector('#_upd_btns_slot');
 
-  // "Update Now" — Windows Electron only
-  if (window.electronAPI && d.zip_url) {
+  // "Update Now" — platform-aware
+  const _updPlat = window.electronAPI?.platform || 'web';
+  if (_updPlat === 'win' && d.zip_url) {
+    // Windows: silent download + launch installer
     const btnUpdate = document.createElement('button');
     btnUpdate.className = 'btn btn-primary';
     btnUpdate.textContent = '⬇ Update Now';
@@ -2560,6 +2590,16 @@ function showUpdateAvailableModal(d) {
       }
     });
     btns.appendChild(btnUpdate);
+  } else if (_updPlat === 'mac' || _updPlat === 'linux') {
+    // Mac/Linux: open download URL in browser — user installs manually
+    const btnDownload = document.createElement('button');
+    btnDownload.className = 'btn btn-primary';
+    btnDownload.textContent = '⬇ Download Update';
+    btnDownload.addEventListener('click', () => {
+      window.open(d.download_url || d.zip_url || 'https://egerena.com', '_blank');
+      backdrop.remove();
+    });
+    btns.appendChild(btnDownload);
   }
 
   // "Open Page" — always available
@@ -2632,16 +2672,18 @@ async function checkForUpdatesOnLaunch() {
     // Trust backend fully — it compares both version string AND build number
     if (d.error || d.up_to_date) return;
 
-    // Update available
-    if (window.electronAPI && d.zip_url) {
-      // Windows Electron: silent background download → action toast
+    // Update available — route by platform
+    const _plat = window.electronAPI?.platform || 'web';
+
+    if (_plat === 'win' && d.zip_url) {
+      // Windows: silent background download → restart toast
       try {
         const dl = await fetch('/api/download-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ zip_url: d.zip_url }),
         }).then(r => r.json());
-        if (dl.error) return; // silent fail — don't bother user
+        if (dl.error) return; // silent fail
         const installerPath = dl.installer_path;
         toastWithAction(
           `Update downloaded — restart to apply v${d.latest_version}`,
@@ -2653,8 +2695,27 @@ async function checkForUpdatesOnLaunch() {
           8000
         );
       } catch { /* silent */ }
+
+    } else if (_plat === 'mac') {
+      // Mac: open download page in browser, show toast — user installs manually
+      toastWithAction(
+        `v${d.latest_version} is available — download to update`,
+        'Download',
+        () => { window.open(d.download_url || 'https://egerena.com/mac', '_blank'); },
+        10000
+      );
+
+    } else if (_plat === 'linux') {
+      // Linux: same as Mac — open download page, no auto-install
+      toastWithAction(
+        `v${d.latest_version} is available — download to update`,
+        'Download',
+        () => { window.open(d.download_url || 'https://egerena.com/linux', '_blank'); },
+        10000
+      );
+
     } else {
-      // Mac (no electronAPI.zip_url) or fallback: show update modal
+      // Fallback / web: show update modal
       showUpdateAvailableModal(d);
     }
   } catch { /* silent — network error on launch is expected */ }
