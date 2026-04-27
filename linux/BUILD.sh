@@ -96,6 +96,37 @@ echo "📚 Installing Python dependencies..."
 echo "   ✓ Dependencies installed"
 echo ""
 
+# ── Strip Python bundle bloat ─────────────────────────────────────────────────
+echo "🗜  Stripping unused Python packages and bytecache..."
+SITE="$PYTHON_DIR/lib/python3.11/site-packages"
+
+# Package managers — never needed at runtime
+rm -rf "$SITE/pip" "$SITE/pip-"*.dist-info
+rm -rf "$SITE/setuptools" "$SITE/setuptools-"*.dist-info
+rm -rf "$SITE/pkg_resources" "$SITE/_distutils_hack"
+
+# Stdlib modules unused at runtime
+rm -rf "$PYTHON_DIR/lib/python3.11/ensurepip"
+rm -rf "$PYTHON_DIR/lib/python3.11/idlelib"
+rm -rf "$PYTHON_DIR/lib/python3.11/tkinter"
+rm -rf "$PYTHON_DIR/lib/python3.11/lib2to3"
+rm -rf "$PYTHON_DIR/lib/python3.11/turtledemo"
+rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
+
+# .dist-info metadata (not needed at runtime)
+find "$SITE" -maxdepth 1 -name "*.dist-info" -type d ! -name "yt_dlp*" -exec rm -rf {} + 2>/dev/null || true
+
+# Bytecache (regenerated on demand, wastes space in bundle)
+find "$PYTHON_DIR" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
+find "$PYTHON_DIR" -name "*.pyc" -delete 2>/dev/null || true
+
+# Test directories inside packages
+find "$SITE" -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
+find "$SITE" -type d -name "test" -exec rm -rf {} + 2>/dev/null || true
+
+echo "   ✓ Python bundle stripped"
+echo ""
+
 # ── Build Electron AppImage ───────────────────────────────────────────────────
 echo "🔨 Building Electron AppImage..."
 cd "$ELECTRON_DIR"
