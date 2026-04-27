@@ -207,6 +207,26 @@
     "footer.link.website": "egerena.com",
     "footer.link.github": "GitHub",
     "footer.btn.check_updates": "Check for Updates",
-    "footer.btn.support": "♥ Support EGM"
+    "footer.btn.support": "♥ Support EGM",
+    "tooltip.hamburger": "History & Themes",
+    "tooltip.videos_selector": "Max simultaneous video downloads",
+    "tooltip.fragments_selector": "Parallel connections per video — higher = faster on fast connections",
+    "tooltip.support": "Donations are not needed, but appreciated 😇",
+    "tooltip.back_to_top": "Back to top",
+    "tooltip.card.remove": "Remove",
+    "tooltip.card.readd": "Re-add URL",
+    "tooltip.card.open_folder": "Open folder",
+    "confirm.port_change": "Change port to {0}?",
+    "confirm.reset_settings": "Reset all settings to defaults?\n\nYour downloads and history are not affected.",
+    "confirm.reinstall_ffmpeg": "Remove the current ffmpeg installation?\n\nA fresh copy will be downloaded on next launch. Make sure you have an internet connection.",
+    "confirm.reinstall_deno": "Remove the current Deno installation?\n\nDeno will reinstall on next launch. Make sure you have an internet connection.",
+    "status.cookies_active": "Cookies: active{0}",
+    "status.bulk_progress": "Downloading {0} / {1} {2} done  ({3} active)",
+    "status.batch_hidden": "· · · {0} more in this batch · · ·",
+    "status.show_older": "↓ Show older ({0} more)",
+    "status.bar.count": "{0} downloads",
+    "aria.hamburger": "History and Themes",
+    "history.sort.newest_short": "↓ Newest",
+    "history.sort.oldest_short": "↑ Oldest"
   }
 }
