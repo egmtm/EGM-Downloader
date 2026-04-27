@@ -8,7 +8,7 @@
   "_last_updated": "2026-04-26",
   "strings": {
     "app.title": "EGM Downloader",
-    "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} mais sites",
+    "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo e mais {0} sites",
     "app.subtitle.more_sites": "1000+",
     "url.section_title": "URLs de Vídeos / Playlists",
     "url.placeholder": "Cole uma ou mais URLs aqui (uma por linha)\nhttps://www.youtube.com/watch?v=...\nhttps://www.youtube.com/playlist?list=...",
@@ -75,7 +75,7 @@
     "card.status.done": "✓ Concluído",
     "card.status.error": "✗ Erro",
     "card.status.cancelled": "Cancelado",
-    "card.status.fetching": "Obtendo info...",
+    "card.status.fetching": "Buscando info...",
     "bulk.status.downloading": "Baixando…",
     "bulk.btn.clear_completed": "✓ Limpar Concluídos",
     "bulk.btn.cancel_all": "✕ Cancelar Tudo",
