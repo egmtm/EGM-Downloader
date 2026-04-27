@@ -1,3 +1,13 @@
+v0.97.5 - Build 100 (4/26/2026 10:25 PM EST)
+-----------------------------------------
+  • [ALL] Mac auto-update — now opens download page in browser instead of attempting installer launch; no false error
+  • [ALL] Footer spacing — gap between Advanced panel and footer reduced to match top spacing
+  • [ALL] Advanced panel redesigned — sectioned layout with General, Settings, Plugins, System labels and uniform button rows
+  • [ALL] Security hardening — URL scheme validation on all API endpoints, IPC input allowlists, concurrent_fragments clamped, video_height allowlisted, open-folder path safety
+  • [ALL] App size reduction — Python bundle stripped of pip, setuptools, idlelib, tkinter, pycache (~40MB saved on Linux/Mac)
+  • [ALL] 14 new themes: Music (Vinyl, Lo-Fi, Jazz Club, Studio Midnight, Rave, Acoustic), Nature (Bioluminescent, Aurora, Desert Dusk, Volcanic), Cities (Tokyo Neon, Havana, Dubai Midnight, Favela Sunset)
+  • [ALL] Music, Cities, Moods category tabs added to themes window; total theme count reaches 100
+
 v0.97 - Build 99 (4/26/2026 12:00 PM EST)
 -----------------------------------------
   • [ALL] 76 themes total — 66 permanent across 8 categories plus 10 seasonal easter eggs that automatically appear near their holiday and hide after
