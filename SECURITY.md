@@ -74,10 +74,10 @@ When a security vulnerability is confirmed:
 
 | Version | Supported |
 |---------|-----------|
-| 0.91.x  | ✅ Yes    |
-| < 0.91  | ❌ No     |
+| Latest  | ✅ Yes    |
+| < Latest | ❌ No — please update to the latest version |
 
-We only provide security updates for the latest stable release. Users on older versions should upgrade to the latest version.
+We provide security updates for the latest stable release only. Users on older versions should upgrade to the latest version available at https://egerena.com or https://github.com/egmtm/EGM-Downloader/releases.
 
 ## Security Best Practices for Users
 
