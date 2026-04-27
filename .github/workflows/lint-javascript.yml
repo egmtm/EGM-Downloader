@@ -1,5 +1,13 @@
 name: Lint JavaScript
 
+# POLICY: Informational lint only.
+# ESLint runs with `|| true` so the workflow always succeeds regardless
+# of lint findings. The badge stays green; lint output is advisory and
+# surfaces in the workflow logs for manual review.
+# Decision rationale: solo dev workflow, avoid blocking CI on subjective
+# style preferences. To switch to lint-blocking, remove `|| true` from
+# each eslint command below.
+
 on:
   push:
     branches: [ main ]
