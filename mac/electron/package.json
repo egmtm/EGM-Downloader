@@ -103,10 +103,6 @@
       "en"
     ],
     "generateUpdatesFilesForAllChannels": false,
-<<<<<<< HEAD
     "buildVersion": "0.97.5.0"
-=======
-    "buildVersion": "0.97.0"
->>>>>>> HEAD@{1}
   }
 }
