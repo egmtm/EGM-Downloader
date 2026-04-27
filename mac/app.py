@@ -516,6 +516,8 @@ def get_info():
     data = request.json or {}
     url  = data.get("url", "").strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
+    if not url.lower().startswith(("http://", "https://")):
+        return jsonify({"error": "Only http and https URLs are supported"}), 400
     try:
         r = _ytdlp("--no-playlist", "-j", url, timeout=60)
         if r.returncode != 0:
@@ -537,6 +539,8 @@ def get_playlist():
     data = request.json or {}
     url  = data.get("url", "").strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
+    if not url.lower().startswith(("http://", "https://")):
+        return jsonify({"error": "Only http and https URLs are supported"}), 400
     try:
         r = _ytdlp("--flat-playlist", "-j", url, timeout=90)
         lines = [l.strip() for l in r.stdout.splitlines() if l.strip().startswith("{")]
@@ -564,6 +568,8 @@ def start_download():
     data = request.json or {}
     url  = data.get("url","").strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
+    if not url.lower().startswith(("http://", "https://")):
+        return jsonify({"error": "Only http and https URLs are supported"}), 400
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
 
@@ -582,9 +588,9 @@ def start_download():
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
-                           int(data.get("concurrent_fragments") or 1),
+                           min(max(int(data.get("concurrent_fragments") or 1), 1), 16),
                            data.get("audio_quality") or "320",
-                           int(data.get("video_height") or 0) or None),
+                           (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160") else None)),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -654,7 +660,9 @@ def save_settings():
 def open_folder():
     data   = request.json or {}
     folder = data.get("folder", _get_last_folder() or str(Path.home()))
-    path   = Path(folder); path.mkdir(parents=True, exist_ok=True)
+    path   = Path(folder)
+    if not path.exists() or not path.is_dir():
+        return jsonify({"error": "Folder not found"}), 400
     try:
         if sys.platform == "win32": os.startfile(str(path))
         elif sys.platform == "darwin": _popen("open", str(path))
