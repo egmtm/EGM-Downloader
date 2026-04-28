@@ -279,6 +279,57 @@ def check_mac_build_sh(v):
 # Item 5 — Portable file list drift check
 # --------------------------------------------------------------------------
 
+def check_linux_drift_from_root():
+    """Verify linux/templates/* matches root templates/* and linux/requirements.txt
+    matches root requirements.txt.
+
+    Bug class this catches:
+      - linux/templates/theme_styles.html drifting from root → new themes
+        (added to root) silently don't apply on Linux because the CSS rules
+        are missing from the build.
+      - linux/requirements.txt drifting from root → mutagen (or other deps)
+        added to root never get installed in Linux Python bundle, so
+        importlib.metadata.version() returns "not installed" forever.
+
+    Returns errors list. Opportunistic — skips if either side doesn't exist.
+    """
+    errors = []
+    root = ROOT
+
+    # Templates that must stay in lock-step
+    template_files = ['index.html', 'history.html', 'themes.html', 'theme_styles.html']
+    for name in template_files:
+        root_path = root / 'templates' / name
+        linux_path = root / 'linux' / 'templates' / name
+        if not root_path.exists() or not linux_path.exists():
+            continue
+        if root_path.read_bytes() != linux_path.read_bytes():
+            errors.append(
+                f"linux/templates/{name} has drifted from templates/{name} — "
+                f"copy root version into linux/ to resync (root may have new "
+                f"themes, fixes, or layout updates)."
+            )
+
+    # requirements.txt
+    root_req  = root / 'requirements.txt'
+    linux_req = root / 'linux' / 'requirements.txt'
+    if root_req.exists() and linux_req.exists():
+        # Compare ignoring blank lines and comments — what matters is the deps
+        def normalize(p):
+            return sorted(
+                line.strip() for line in p.read_text().splitlines()
+                if line.strip() and not line.strip().startswith('#')
+            )
+        if normalize(root_req) != normalize(linux_req):
+            errors.append(
+                "linux/requirements.txt has drifted from requirements.txt — "
+                "deps differ (e.g. mutagen missing on linux means the plugin "
+                "won't install, causing 'checking…' UI hang). Sync both."
+            )
+
+    return errors
+
+
 def check_portable_file_list():
     """Verify the portable build's file copy list matches the NSIS installer file list.
 
@@ -496,6 +547,13 @@ def main():
     # ── Item 5: Portable file list drift check ────────────────────────────────
     print("   Checking portable file list sync with NSIS installer...")
     all_errors.extend(check_portable_file_list())
+
+    # ── Item 6: Linux/Mac copies drift check ──────────────────────────────────
+    # linux/templates/* and linux/requirements.txt should track root/templates/*
+    # and root/requirements.txt. Mac uses root templates + root requirements,
+    # so it's only the linux side that needs explicit drift detection.
+    print("   Checking linux/templates and linux/requirements for drift vs root...")
+    all_errors.extend(check_linux_drift_from_root())
 
     # ── Item 2: Merge conflict markers ────────────────────────────────────────
     print("   Scanning for merge conflict markers...")
