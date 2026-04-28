@@ -1461,13 +1461,30 @@
           <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
         </div>
       </div>
-      <!-- Output format row (4d: MKV support) -->
-      <div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px">
-        <span style="font-size:.76rem;color:var(--text2);white-space:nowrap" title="Container format for video downloads">Output format</span>
-        <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
-          <option value="mp4" selected>MP4 (recommended)</option>
-          <option value="mkv">MKV (preserves chapters, multiple audio tracks)</option>
-        </select>
+      <!-- Format row: Audio (default) + Video (container) — Option A compact -->
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:0;padding:6px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px">
+        <div style="flex:1;display:flex;align-items:center;gap:8px">
+          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
+          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+            <option value="320">MP3 320 kbps (default)</option>
+            <option value="192">MP3 192 kbps</option>
+            <option value="128">MP3 128 kbps</option>
+            <option value="flac">FLAC</option>
+            <option value="m4a_256">M4A 256 kbps</option>
+            <option value="opus_192">OPUS 192 kbps</option>
+            <option value="opus_128">OPUS 128 kbps</option>
+          </select>
+        </div>
+        <div style="width:1px;height:28px;background:var(--border);margin:0 14px;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;align-items:center;gap:8px">
+          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Video</span>
+          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+            <option value="mp4" selected>MP4 (recommended)</option>
+            <option value="mkv">MKV</option>
+            <option value="mov">MOV</option>
+            <option value="webm">WebM (may re-encode, slower)</option>
+          </select>
+        </div>
       </div>
 
       <button class="adv-btn-full" id="adv-shortcut-btn">
@@ -1969,9 +1986,13 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       const chk = document.getElementById('embed-metadata-chk');
       if (chk) chk.checked = false;
     }
-    if (s.output_format && s.output_format === 'mkv') {
+    if (s.output_format) {
       const sel = document.getElementById('output-format-sel');
-      if (sel) sel.value = 'mkv';
+      if (sel) sel.value = s.output_format;
+    }
+    if (s.default_audio_format) {
+      const sel = document.getElementById('default-audio-fmt-sel');
+      if (sel) sel.value = s.default_audio_format;
     }
   } catch {}
   // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows)
@@ -2003,6 +2024,9 @@ document.getElementById('embed-metadata-chk').addEventListener('change', functio
 });
 document.getElementById('output-format-sel').addEventListener('change', function() {
   post('/api/settings/save', { output_format: this.value });
+});
+document.getElementById('default-audio-fmt-sel').addEventListener('change', function() {
+  post('/api/settings/save', { default_audio_format: this.value });
 });
 
 // Save concurrency and fragments whenever changed
@@ -2264,7 +2288,25 @@ function renderUpdGrid(data) {
     </div>`;
   grid.appendChild(ytEl);
 
-  // ── ffmpeg ────────────────────────────────────────────────────────────────
+  // ── mutagen ───────────────────────────────────────────────────────────────
+  const muD = data.mutagen || {};
+  const muBadge = muD.up_to_date === null || muD.up_to_date === undefined
+    ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
+    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+  const muEl = document.createElement('div');
+  muEl.className = 'upd-item';
+  muEl.innerHTML = `
+    <div class="upd-item-left">
+      <span class="upd-name">🏷 mutagen</span>
+      <span class="upd-ver">${esc(muD.current || 'checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
+    </div>
+    <div class="upd-item-right">
+      ${muBadge}
+      <label class="sw-wrap" style="margin:0">
+        <input type="checkbox" class="sw" id="sw-mutagen" ${muD.up_to_date===false?'checked':''}>
+      </label>
+    </div>`;
+  grid.appendChild(muEl);
   const ffD = data.ffmpeg;
   const ffBadge = ffD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
@@ -2307,8 +2349,9 @@ function renderUpdGrid(data) {
 function syncInstallBtn() {
   const ytOn = document.getElementById('sw-ytdlp')?.checked;
   const ffOn = document.getElementById('sw-ffmpeg')?.checked;
+  const muOn = document.getElementById('sw-mutagen')?.checked;
   const btn  = document.getElementById('run-update-btn');
-  if (btn) btn.style.display = (ytOn || ffOn) ? '' : 'none';
+  if (btn) btn.style.display = (ytOn || ffOn || muOn) ? '' : 'none';
 }
 
 // Re-sync after renderUpdGrid populates the grid (delegate via grid container)
@@ -2318,11 +2361,12 @@ document.getElementById('update-grid').addEventListener('change', e => {
 document.getElementById('run-update-btn').addEventListener('click', async () => {
   const doY = document.getElementById('sw-ytdlp')?.checked ?? true;
   const doF = document.getElementById('sw-ffmpeg')?.checked ?? false;
-  if (!doY && !doF) { toast('Select at least one item', 'err'); return; }
+  const doM = document.getElementById('sw-mutagen')?.checked ?? false;
+  if (!doY && !doF && !doM) { toast('Select at least one item', 'err'); return; }
   const log = document.getElementById('upd-log');
   log.textContent = ''; log.classList.add('show');
   document.getElementById('run-update-btn').disabled = true;
-  await post('/api/run-update', { ytdlp: doY, ffmpeg: doF });
+  await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM });
   log.textContent = 'Starting…\n';
   const iv = setInterval(async () => {
     const s = await fetch('/api/update-status').then(r => r.json());
@@ -2870,7 +2914,11 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     minimizeDoneCard(item, d.filename, stEl, dlBtn);
-    toast('Saved: ' + d.filename, 'ok');
+    if (d.warning) {
+      toast(d.warning, 'warn');
+    } else {
+      toast('Saved: ' + d.filename, 'ok');
+    }
     // Refresh mini history panel so new entry appears immediately
     if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
     if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
@@ -2991,7 +3039,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
         title: item.info.title || 'download',
         download_dir: dir,
-        audio_quality: audioQuality || '320',
+        audio_quality: audioQuality || document.getElementById('default-audio-fmt-sel')?.value || '320',
         subtitles: !!document.getElementById('subtitles-chk')?.checked,
         embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
         output_format: document.getElementById('output-format-sel')?.value || 'mp4',

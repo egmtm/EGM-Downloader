@@ -46,6 +46,7 @@
       transition: background-color 0.2s ease, border-color 0.2s ease,
                   color 0.2s ease, box-shadow 0.2s ease;
     }
+    /* Faster on interactive elements so hover feels snappy */
     button, input, select, a, .btn, .badge, .vbadge {
       transition: background-color 0.15s ease, border-color 0.15s ease,
                   color 0.15s ease, opacity 0.15s ease, transform 0.15s ease;
@@ -53,94 +54,281 @@
 
     /* ── Eclipse theme ── */
     body.eclipse {
-      --bg:      #18161a; --surf:    #241f28; --surf2:   #2e2535; --surf3:   #3a2d47;
-      --border:  #3a3040; --border2: #4a3d5c; --acc:     #a855f7; --acc-h:   #c084fc;
-      --acc-dim: rgba(168,85,247,.14); --green:   #4ade80; --red:     #f87171;
-      --yellow:  #fbbf24; --text:    #e2daea; --text2:   #8b7fa0; --muted:   #5a4d6e;
-      --shadow:  0 4px 32px rgba(0,0,0,.6); --thumb-bg: #3a2d47; --log-bg: #220a40;
-      --log-text: #8b7fa0; --modal-overlay: rgba(0,0,0,.75); --modal-shadow: 0 20px 60px rgba(0,0,0,.8);
-      --btn-primary-text: #fff; --btn-on-accent: #fff; --btn-red-border: #3a1a1a;
-      --audio-btn-color: #d4a017; --dur-bg: rgba(0,0,0,.85); --dur-text: #ddd;
+      --bg:      #18161a;
+      --surf:    #241f28;
+      --surf2:   #2e2535;
+      --surf3:   #3a2d47;
+      --border:  #3a3040;
+      --border2: #4a3d5c;
+      --acc:     #a855f7;
+      --acc-h:   #c084fc;
+      --acc-dim: rgba(168,85,247,.14);
+      --green:   #4ade80;
+      --red:     #f87171;
+      --yellow:  #fbbf24;
+      --text:    #e2daea;
+      --text2:   #8b7fa0;
+      --muted:   #5a4d6e;
+      --shadow:  0 4px 32px rgba(0,0,0,.6);
+      --thumb-bg:          #3a2d47;
+      --log-bg:            #220a40;
+      --log-text:          #8b7fa0;
+      --modal-overlay:     rgba(0,0,0,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #d4a017;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #ddd;
     }
+
     /* ── Ghost theme ── */
     body.ghost {
-      --bg:      #0d1117; --surf:    #161b22; --surf2:   #1c2128; --surf3:   #21262d;
-      --border:  #30363d; --border2: #3a424a; --acc:     #238636; --acc-h:   #3fb950;
-      --acc-dim: rgba(35,134,54,.14); --green:   #3fb950; --red:     #f85149;
-      --yellow:  #d29922; --text:    #e6edf3; --text2:   #8b949e; --muted:   #484f58;
-      --shadow:  0 4px 32px rgba(0,0,0,.6); --thumb-bg: #21262d; --log-bg: #010409;
-      --log-text: #8b949e; --modal-overlay: rgba(0,0,0,.75); --modal-shadow: 0 20px 60px rgba(0,0,0,.8);
-      --btn-primary-text: #fff; --btn-on-accent: #fff; --btn-red-border: #3a1a1a;
-      --audio-btn-color: #b08800; --dur-bg: rgba(0,0,0,.85); --dur-text: #ddd;
+      --bg:      #0d1117;
+      --surf:    #161b22;
+      --surf2:   #1c2128;
+      --surf3:   #21262d;
+      --border:  #30363d;
+      --border2: #3a424a;
+      --acc:     #238636;
+      --acc-h:   #3fb950;
+      --acc-dim: rgba(35,134,54,.14);
+      --green:   #3fb950;
+      --red:     #f85149;
+      --yellow:  #d29922;
+      --text:    #e6edf3;
+      --text2:   #8b949e;
+      --muted:   #484f58;
+      --shadow:  0 4px 32px rgba(0,0,0,.6);
+      --thumb-bg:          #21262d;
+      --log-bg:            #010409;
+      --log-text:          #8b949e;
+      --modal-overlay:     rgba(0,0,0,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #b08800;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #ddd;
     }
+
     /* ── Frost theme (light) ── */
     body.frost {
-      --bg:      #cdd2da; --surf:    #c2c8d2; --surf2:   #b8bec8; --surf3:   #adb4c0;
-      --border:  #9da5b2; --border2: #8d96a5; --acc:     #2563eb; --acc-h:   #3b82f6;
-      --acc-dim: rgba(37,99,235,.14); --green:   #16a34a; --red:     #dc2626;
-      --yellow:  #d97706; --text:    #161c28; --text2:   #3e4a5e; --muted:   #6e7a8e;
-      --shadow:  0 4px 32px rgba(0,0,0,.18); --thumb-bg: #9da5b2; --log-bg: #adb4c0;
-      --log-text: #2a3a50; --modal-overlay: rgba(22,28,40,.55); --modal-shadow: 0 20px 60px rgba(0,0,0,.25);
-      --btn-primary-text: #fff; --btn-on-accent: #fff; --btn-red-border: #fca5a5;
-      --audio-btn-color: #92400e; --dur-bg: rgba(22,28,40,.75); --dur-text: #e2e8f6;
+      --bg:      #cdd2da;
+      --surf:    #c2c8d2;
+      --surf2:   #b8bec8;
+      --surf3:   #adb4c0;
+      --border:  #9da5b2;
+      --border2: #8d96a5;
+      --acc:     #2563eb;
+      --acc-h:   #3b82f6;
+      --acc-dim: rgba(37,99,235,.14);
+      --green:   #16a34a;
+      --red:     #dc2626;
+      --yellow:  #d97706;
+      --text:    #161c28;
+      --text2:   #3e4a5e;
+      --muted:   #6e7a8e;
+      --shadow:  0 4px 32px rgba(0,0,0,.18);
+      --thumb-bg:          #9da5b2;
+      --log-bg:            #adb4c0;
+      --log-text:          #2a3a50;
+      --modal-overlay:     rgba(22,28,40,.55);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.25);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #92400e;
+      --dur-bg:            rgba(22,28,40,.75);
+      --dur-text:          #e2e8f6;
     }
+
     /* ── Bone theme (light) ── */
     body.bone {
-      --bg:      #f5f0e8; --surf:    #ede7d9; --surf2:   #e4ddd0; --surf3:   #d9d1c2;
-      --border:  #c8bfaa; --border2: #b8af9c; --acc:     #2563eb; --acc-h:   #3b82f6;
-      --acc-dim: rgba(37,99,235,.14); --green:   #16a34a; --red:     #b91c1c;
-      --yellow:  #b45309; --text:    #1e1810; --text2:   #5a4e3a; --muted:   #8a7d68;
-      --shadow:  0 4px 32px rgba(0,0,0,.12); --thumb-bg: #d9d1c2; --log-bg: #ccc5b8;
-      --log-text: #5a4e3a; --modal-overlay: rgba(30,24,16,.5); --modal-shadow: 0 20px 60px rgba(0,0,0,.2);
-      --btn-primary-text: #fff; --btn-on-accent: #fff; --btn-red-border: #fca5a5;
-      --audio-btn-color: #92400e; --dur-bg: rgba(30,24,16,.75); --dur-text: #e2e8f6;
+      --bg:      #f5f0e8;
+      --surf:    #ede7d9;
+      --surf2:   #e4ddd0;
+      --surf3:   #d9d1c2;
+      --border:  #c8bfaa;
+      --border2: #b8af9c;
+      --acc:     #2563eb;
+      --acc-h:   #3b82f6;
+      --acc-dim: rgba(37,99,235,.14);
+      --green:   #16a34a;
+      --red:     #b91c1c;
+      --yellow:  #b45309;
+      --text:    #1e1810;
+      --text2:   #5a4e3a;
+      --muted:   #8a7d68;
+      --shadow:  0 4px 32px rgba(0,0,0,.12);
+      --thumb-bg:          #d9d1c2;
+      --log-bg:            #ccc5b8;
+      --log-text:          #5a4e3a;
+      --modal-overlay:     rgba(30,24,16,.5);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.2);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #92400e;
+      --dur-bg:            rgba(30,24,16,.75);
+      --dur-text:          #e2e8f6;
     }
+
     /* ── Haze theme (light) ── */
     body.haze {
-      --bg:      #d4d9d0; --surf:    #c9d0c4; --surf2:   #bec6b8; --surf3:   #b2bba8;
-      --border:  #a0a89a; --border2: #909a8a; --acc:     #2563eb; --acc-h:   #3b82f6;
-      --acc-dim: rgba(37,99,235,.14); --green:   #16a34a; --red:     #dc2626;
-      --yellow:  #d97706; --text:    #181e16; --text2:   #3a4a38; --muted:   #6a7a68;
-      --shadow:  0 4px 32px rgba(0,0,0,.15); --thumb-bg: #b2bba8; --log-bg: #a8b29e;
-      --log-text: #3a4a38; --modal-overlay: rgba(24,30,22,.5); --modal-shadow: 0 20px 60px rgba(0,0,0,.2);
-      --btn-primary-text: #fff; --btn-on-accent: #fff; --btn-red-border: #fca5a5;
-      --audio-btn-color: #92400e; --dur-bg: rgba(24,30,22,.75); --dur-text: #e2e8f6;
+      --bg:      #d4d9d0;
+      --surf:    #c9d0c4;
+      --surf2:   #bec6b8;
+      --surf3:   #b2bba8;
+      --border:  #a0a89a;
+      --border2: #909a8a;
+      --acc:     #2563eb;
+      --acc-h:   #3b82f6;
+      --acc-dim: rgba(37,99,235,.14);
+      --green:   #16a34a;
+      --red:     #dc2626;
+      --yellow:  #d97706;
+      --text:    #181e16;
+      --text2:   #3a4a38;
+      --muted:   #6a7a68;
+      --shadow:  0 4px 32px rgba(0,0,0,.15);
+      --thumb-bg:          #b2bba8;
+      --log-bg:            #a8b29e;
+      --log-text:          #3a4a38;
+      --modal-overlay:     rgba(24,30,22,.5);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.2);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #92400e;
+      --dur-bg:            rgba(24,30,22,.75);
+      --dur-text:          #e2e8f6;
     }
 
+    /* ── Kush theme ── */
     body.kush {
-      --bg:#0d1a0f;--surf:#152015;--surf2:#1c2c1c;--surf3:#243224;--border:#2e4a2e;--border2:#3a5e3a;
-      --acc:#5a9e3a;--acc-h:#78be58;--acc-dim:rgba(90,158,58,.14);--green:#4ade80;--red:#f87171;--yellow:#fbbf24;
-      --text:#c8e0c4;--text2:#6a9460;--muted:#3e6438;--shadow:0 4px 32px rgba(0,0,0,.65);
-      --thumb-bg:#1c2c1c;--log-bg:#081408;--log-text:#6a9460;--modal-overlay:rgba(8,20,8,.75);
-      --modal-shadow:0 20px 60px rgba(0,0,0,.8);--btn-primary-text:#fff;--btn-on-accent:#fff;
-      --btn-red-border:#3a1a1a;--audio-btn-color:#d4a017;--dur-bg:rgba(0,0,0,.85);--dur-text:#c8e0c4;
+      --bg:      #0d1a0f;
+      --surf:    #152015;
+      --surf2:   #1c2c1c;
+      --surf3:   #243224;
+      --border:  #2e4a2e;
+      --border2: #3a5e3a;
+      --acc:     #5a9e3a;
+      --acc-h:   #78be58;
+      --acc-dim: rgba(90,158,58,.14);
+      --green:   #4ade80;
+      --red:     #f87171;
+      --yellow:  #fbbf24;
+      --text:    #c8e0c4;
+      --text2:   #6a9460;
+      --muted:   #3e6438;
+      --shadow:  0 4px 32px rgba(0,0,0,.65);
+      --thumb-bg:          #1c2c1c;
+      --log-bg:            #081408;
+      --log-text:          #6a9460;
+      --modal-overlay:     rgba(8,20,8,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #d4a017;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #c8e0c4;
     }
 
+    /* ── Purple Haze theme ── */
     body.purplehaze {
-      --bg:#0e0818;--surf:#170e28;--surf2:#201538;--surf3:#281c48;--border:#3a2860;--border2:#4e3878;
-      --acc:#9b5de5;--acc-h:#b87af5;--acc-dim:rgba(155,93,229,.14);--green:#4ade80;--red:#f87171;--yellow:#fbbf24;
-      --text:#e8d8f8;--text2:#9070b8;--muted:#5a4080;--shadow:0 4px 32px rgba(0,0,0,.7);
-      --thumb-bg:#201538;--log-bg:#08041a;--log-text:#9070b8;--modal-overlay:rgba(8,4,26,.8);
-      --modal-shadow:0 20px 60px rgba(0,0,0,.85);--btn-primary-text:#fff;--btn-on-accent:#fff;
-      --btn-red-border:#3a1a1a;--audio-btn-color:#d4a017;--dur-bg:rgba(0,0,0,.85);--dur-text:#e8d8f8;
+      --bg:      #0e0818;
+      --surf:    #170e28;
+      --surf2:   #201538;
+      --surf3:   #281c48;
+      --border:  #3a2860;
+      --border2: #4e3878;
+      --acc:     #9b5de5;
+      --acc-h:   #b87af5;
+      --acc-dim: rgba(155,93,229,.14);
+      --green:   #4ade80;
+      --red:     #f87171;
+      --yellow:  #fbbf24;
+      --text:    #e8d8f8;
+      --text2:   #9070b8;
+      --muted:   #5a4080;
+      --shadow:  0 4px 32px rgba(0,0,0,.7);
+      --thumb-bg:          #201538;
+      --log-bg:            #08041a;
+      --log-text:          #9070b8;
+      --modal-overlay:     rgba(8,4,26,.8);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.85);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #d4a017;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #e8d8f8;
     }
 
+    /* ── Sativa theme ── */
     body.sativa {
-      --bg:#edf5e8;--surf:#e2eedb;--surf2:#d6e6ce;--surf3:#c8dcc0;--border:#aecca2;--border2:#94ba88;
-      --acc:#2e7d32;--acc-h:#1b5e20;--acc-dim:rgba(46,125,50,.12);--green:#1b5e20;--red:#c62828;--yellow:#e65100;
-      --text:#1a2e18;--text2:#3d6b38;--muted:#6a8e65;--shadow:0 4px 20px rgba(0,0,0,.12);
-      --thumb-bg:#c8dcc0;--log-bg:#c0d8b8;--log-text:#3d6b38;--modal-overlay:rgba(26,46,24,.45);
-      --modal-shadow:0 20px 60px rgba(0,0,0,.2);--btn-primary-text:#fff;--btn-on-accent:#fff;
-      --btn-red-border:#fca5a5;--audio-btn-color:#e65100;--dur-bg:rgba(26,46,24,.8);--dur-text:#e8f5e0;
+      --bg:      #edf5e8;
+      --surf:    #e2eedb;
+      --surf2:   #d6e6ce;
+      --surf3:   #c8dcc0;
+      --border:  #aecca2;
+      --border2: #94ba88;
+      --acc:     #2e7d32;
+      --acc-h:   #1b5e20;
+      --acc-dim: rgba(46,125,50,.12);
+      --green:   #1b5e20;
+      --red:     #c62828;
+      --yellow:  #e65100;
+      --text:    #1a2e18;
+      --text2:   #3d6b38;
+      --muted:   #6a8e65;
+      --shadow:  0 4px 20px rgba(0,0,0,.12);
+      --thumb-bg:          #c8dcc0;
+      --log-bg:            #c0d8b8;
+      --log-text:          #3d6b38;
+      --modal-overlay:     rgba(26,46,24,.45);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.2);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #e65100;
+      --dur-bg:            rgba(26,46,24,.8);
+      --dur-text:          #e8f5e0;
     }
 
+    /* ── OG Cream theme ── */
     body.ogcream {
-      --bg:#f5f0e5;--surf:#ede6d8;--surf2:#e4dbc8;--surf3:#d9ceb8;--border:#c8bc9e;--border2:#b8aa88;
-      --acc:#8b6914;--acc-h:#a07c1c;--acc-dim:rgba(139,105,20,.12);--green:#2d6a2d;--red:#c62828;--yellow:#8b6914;
-      --text:#2a1f0a;--text2:#6b4e1a;--muted:#9a7a40;--shadow:0 4px 20px rgba(0,0,0,.1);
-      --thumb-bg:#d9ceb8;--log-bg:#d0c4a8;--log-text:#6b4e1a;--modal-overlay:rgba(42,31,10,.4);
-      --modal-shadow:0 20px 60px rgba(0,0,0,.18);--btn-primary-text:#fff;--btn-on-accent:#fff;
-      --btn-red-border:#fca5a5;--audio-btn-color:#8b6914;--dur-bg:rgba(42,31,10,.8);--dur-text:#f5f0e5;
+      --bg:      #f5f0e5;
+      --surf:    #ede6d8;
+      --surf2:   #e4dbc8;
+      --surf3:   #d9ceb8;
+      --border:  #c8bc9e;
+      --border2: #b8aa88;
+      --acc:     #8b6914;
+      --acc-h:   #a07c1c;
+      --acc-dim: rgba(139,105,20,.12);
+      --green:   #2d6a2d;
+      --red:     #c62828;
+      --yellow:  #8b6914;
+      --text:    #2a1f0a;
+      --text2:   #6b4e1a;
+      --muted:   #9a7a40;
+      --shadow:  0 4px 20px rgba(0,0,0,.1);
+      --thumb-bg:          #d9ceb8;
+      --log-bg:            #d0c4a8;
+      --log-text:          #6b4e1a;
+      --modal-overlay:     rgba(42,31,10,.4);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.18);
+      --btn-primary-text:  #fff;
+      --btn-on-accent:     #fff;
+      --btn-red-border:    #fca5a5;
+      --audio-btn-color:   #8b6914;
+      --dur-bg:            rgba(42,31,10,.8);
+      --dur-text:          #f5f0e5;
     }
 
 
@@ -155,6 +343,8 @@
       cursor: pointer; color: var(--text2); flex-shrink: 0;
     }
     #hamburger-btn:hover { border-color: var(--acc); color: var(--acc); }
+
+    /* ── Hamburger panel ── */
     #hamburger-panel {
       display: none; position: absolute; right: 0; top: 42px;
       width: 400px; background: var(--surf); border: 1px solid var(--border2);
@@ -163,12 +353,20 @@
     }
     #hamburger-panel.open { display: block; }
     .hpanel-tabs { display: flex; padding: 5px 5px 0; gap: 3px; background: var(--surf2); }
-    .hpanel-tab { flex: 1; padding: 5px 0; font-size: 10px; font-weight: 500; color: var(--text2); background: transparent; border: none; border-radius: 5px 5px 0 0; cursor: pointer; }
+    .hpanel-tab {
+      flex: 1; padding: 7px 0; font-size: 12px; font-weight: 500;
+      color: var(--text2); background: transparent; border: none;
+      border-radius: 5px 5px 0 0; cursor: pointer;
+    }
     .hpanel-tab.active { color: #fff; background: var(--acc); }
     .hpanel-tab:not(.active):hover { color: var(--text); background: var(--surf3); }
     .hpanel-content { animation: hpanel-fade .15s ease; }
     @keyframes hpanel-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
-    .hpanel-open-full { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; background: var(--surf2); border-bottom: 1px solid var(--border); cursor: pointer; border-top: 1px solid var(--border); }
+    .hpanel-open-full {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 7px 12px; background: var(--surf2); border-bottom: 1px solid var(--border);
+      cursor: pointer; border-top: 1px solid var(--border);
+    }
     .hpanel-open-full:hover { background: var(--surf3); }
     .hpanel-open-full span { font-size: 11px; color: var(--acc); }
     .hpanel-open-full small { font-size: 11px; color: var(--text2); }
@@ -183,20 +381,30 @@
     .hbtn.red:hover { color: var(--red); border-color: var(--red); }
     .hpill { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; margin: 2px 0; background: rgba(255,255,255,.04); border: 0.5px dashed var(--border); border-radius: 4px; cursor: pointer; font-size: 9px; color: var(--text2); width: 100%; }
     .hpill:hover { color: var(--acc); border-color: var(--acc); }
+
+    /* ── Theme picker (inside Themes tab) ── */
     .theme-list { padding: 0; }
-    .theme-row { display: flex; align-items: center; gap: 7px; padding: 4px 7px; border-radius: 5px; cursor: pointer; margin-bottom: 2px; border: 0.5px solid transparent; }
+    .theme-row {
+      display: flex; align-items: center; gap: 7px;
+      padding: 4px 7px; border-radius: 5px; cursor: pointer;
+      margin-bottom: 2px; border: 0.5px solid transparent;
+    }
     .theme-row:hover { background: var(--surf2); }
     .theme-row.active { background: var(--acc-dim); border-color: var(--acc); }
     .theme-swatches { display: flex; gap: 2px; flex-shrink: 0; }
     .theme-sw { width: 9px; height: 9px; border-radius: 2px; border: 0.5px solid rgba(0,0,0,.15); }
     .theme-name { font-size: 10px; font-weight: 500; color: var(--text); flex: 1; }
-    .theme-check { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; border: 0.5px solid var(--border2); }
+    .theme-check { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+                   display: flex; align-items: center; justify-content: center;
+                   border: 0.5px solid var(--border2); }
     .theme-check.checked { background: var(--acc); border-color: var(--acc); }
-    .theme-check.checked::after { content:''; display:block; width:4px; height:4px; border-right: 1.5px solid #fff; border-bottom: 1.5px solid #fff; transform: rotate(45deg) translate(-1px,-1px); }
+    .theme-check.checked::after { content:''; display:block; width:4px; height:4px;
+      border-right: 1.5px solid #fff; border-bottom: 1.5px solid #fff;
+      transform: rotate(45deg) translate(-1px,-1px); }
 
     /* ── Advanced panel ── */
     .adv-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
-    .adv-toggle-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; }
+    .adv-toggle-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin-bottom: 0; }
     .adv-toggle-row:hover .adv-label { color: var(--text); }
     .adv-label { font-size: .78rem; color: var(--text2); font-weight: 500; }
     .adv-body { display: none; margin-top: 10px; }
@@ -225,8 +433,10 @@
     .btn-adv.warn { border-color: rgba(245,158,11,.3); color: var(--yellow); }
     .btn-adv.warn:hover { background: rgba(245,158,11,.08); }
     .btn-adv.info { border-color: var(--border2); color: var(--acc); }
+    .adv-warn { font-size: .7rem; color: var(--text2); margin-top: 4px; line-height: 1.5; }
 
     /* ── Audio quality modal ── */
+    #audio-quality-modal .modal { max-width: 320px; }
     .quality-options { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
     .quality-option { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); background: var(--surf2); cursor: pointer; }
     .quality-option:hover { border-color: var(--acc); background: var(--acc-dim); }
@@ -235,6 +445,7 @@
     .quality-desc { font-size: .75rem; color: var(--text2); }
 
     /* ── What's New modal ── */
+    #whats-new-modal .modal { max-width: 420px; }
     .whats-new-list { margin: 10px 0 14px; padding-left: 18px; }
     .whats-new-list li { font-size: .82rem; color: var(--text2); margin-bottom: 6px; line-height: 1.5; }
 
@@ -271,6 +482,7 @@
       margin-bottom: 16px; box-shadow: var(--shadow);
     }
     .card.collapsed-card { padding: 8px 16px; margin-bottom: 8px; }
+    /* ── Settings + Advanced side-by-side grid ── */
     /* ── Unified settings panel ── */
     .unified-panel {
       width: 100%; max-width: 760px; margin-bottom: 16px;
@@ -359,58 +571,6 @@
     .btn-green:hover:not(:disabled) { filter: brightness(1.1); }
     .btn-sm { padding: 5px 12px; font-size: .78rem; }
     .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
-
-    /* ── Bulk Download Buttons ── */
-    #bulk-dl-buttons {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-    }
-    .bulk-video-btn, .bulk-audio-btn {
-      flex: 1;
-      padding: 9px 16px;
-      border-radius: var(--rs);
-      border: none;
-      font-size: .85rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--ease);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 6px;
-      white-space: nowrap;
-      font-family: inherit;
-    }
-    .bulk-video-btn {
-      background: linear-gradient(135deg, var(--acc-h) 0%, var(--acc) 100%);
-      color: var(--btn-primary-text);
-      box-shadow: 0 2px 8px var(--acc-dim);
-    }
-    .bulk-video-btn:hover:not(:disabled) {
-      background: linear-gradient(135deg, var(--acc) 0%, var(--acc-h) 100%);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px var(--acc-dim);
-    }
-    .bulk-audio-btn {
-      background: var(--acc);
-      color: var(--btn-primary-text);
-      box-shadow: 0 2px 8px var(--acc-dim);
-    }
-    .bulk-audio-btn:hover:not(:disabled) {
-      background: var(--acc-h);
-      transform: translateY(-1px);
-      box-shadow: 0 4px 12px var(--acc-dim);
-    }
-    .bulk-video-btn:disabled, .bulk-audio-btn:disabled {
-      opacity: 0.35;
-      cursor: not-allowed;
-      transform: none;
-    }
-    .bulk-video-btn:active:not(:disabled), .bulk-audio-btn:active:not(:disabled) {
-      transform: translateY(0);
-    }
-
 
     /* ── Settings ── */
     .opt-label { font-size: .68rem; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 6px; display: block; }
@@ -591,16 +751,30 @@
     /* ── Toast ── */
     #toasts { position: fixed; bottom: 22px; right: 22px; display: flex; flex-direction: column-reverse; gap: 9px; z-index: 999; }
     .toast { background: var(--surf2); border: 1px solid var(--border2); border-left: 3px solid var(--acc); color: var(--text); padding: 10px 14px; border-radius: var(--rs); font-size: .8rem; max-width: 320px; box-shadow: var(--shadow); animation: sli .2s ease; }
-    .toast.ok  { border-left-color: var(--green); }
-    .toast.err { border-left-color: var(--red); }
+    .toast.ok   { border-left-color: var(--green); }
+    .toast.err  { border-left-color: var(--red); }
+    .toast.warn { border-left-color: var(--yellow); }
+
+    /* ── Portable mode — hide update UI entirely ── */
+    body.portable-mode #footer-update-btn,
+    body.portable-mode .sec-hdr[onclick*="toggleUpdPanel"],
+    body.portable-mode #upd-body { display: none !important; }
     @keyframes sli { from { opacity:0; transform:translateX(32px); } }
+
+    /* ── Update modal ── */
+    .upd-backdrop { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--modal-overlay); display:flex; align-items:center; justify-content:center; z-index:10000; opacity:0; animation:updFade .2s forwards; }
+    .upd-modal { background:var(--surf); border:1px solid var(--border); border-radius:var(--r); padding:24px; max-width:420px; width:90%; box-shadow:var(--modal-shadow); }
+    .upd-modal h3 { margin:0 0 16px; color:var(--text); font-size:1.1rem; }
+    .upd-modal-body { color:var(--text2); font-size:.88rem; line-height:1.6; margin-bottom:20px; }
+    .upd-ver-row { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border2); }
+    .upd-ver-row:last-child { border-bottom:none; }
+    .upd-notes { margin-top:12px; padding:10px 12px; background:var(--surf2); border-radius:var(--rs); border-left:3px solid var(--acc); font-size:.82rem; line-height:1.5; display:flex; flex-direction:column; gap:3px; }
+    .upd-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+    @keyframes updFade { to { opacity:1; } }
 
     footer { width: 100%; max-width: 760px; margin-top: 20px; text-align: center; font-size: .68rem; color: var(--muted); padding-bottom: 14px; }
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--acc); text-decoration: underline; }
-    
-
-
 
     @media(max-width:560px) { .thumb { width: 100px; } }
     @media(max-width:400px) { .thumb { width: 80px; } }
@@ -618,13 +792,12 @@
     #scroll-top.visible { opacity: 1; pointer-events: auto; }
     #scroll-top:hover { background: var(--acc); border-color: var(--acc); color: var(--btn-primary-text); transform: translateY(-2px); }
 
-
-
   </style>
 </head>
 <body>
 
 <header>
+  <!-- New logo — inline SVG with CSS vars so it adapts to all themes -->
   <div class="logo">
     <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="width:44px;height:44px;border-radius:8px">
       <rect width="512" height="512" rx="102" fill="transparent"/>
@@ -644,9 +817,10 @@
     </svg>
   </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.98">v0.98</span></h1>
+    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.98" data-build-title="v0.98">v0.98</span></h1>
     <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
   </div>
+  <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
   <div style="position:absolute;right:0;top:50%;transform:translateY(-50%)">
     <button id="hamburger-btn" title="History &amp; Themes" aria-label="History and Themes" style="position:relative">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
@@ -658,10 +832,12 @@
       <span id="history-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--acc);border-radius:50%;font-size:8px;color:#fff;align-items:center;justify-content:center;border:1.5px solid var(--bg)">0</span>
     </button>
     <div id="hamburger-panel">
+      <!-- Tabs -->
       <div class="hpanel-tabs">
         <button class="hpanel-tab active" data-tab="history">History <span id="history-tab-count" style="background:rgba(255,255,255,.2);border-radius:8px;padding:0 5px;font-size:8px"></span></button>
         <button class="hpanel-tab" data-tab="themes">Themes</button>
       </div>
+      <!-- History tab -->
       <div class="hpanel-content" id="hpanel-history">
         <div class="hpanel-open-full" id="open-history-window-btn">
           <span>⤢ Open full history</span>
@@ -675,22 +851,52 @@
           <button id="history-clear-btn" style="font-size:8px;padding:1px 7px;border:0.5px solid rgba(239,68,68,.4);border-radius:3px;background:transparent;color:var(--red);cursor:pointer">Clear All</button>
         </div>
       </div>
+      <!-- Themes tab -->
       <div class="hpanel-content" id="hpanel-themes" style="display:none">
         <div style="padding:5px">
           <div class="theme-list" id="theme-list"><!-- populated by JS --></div>
           <div onclick="openThemesWindow()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border-top:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--acc)">View all themes ›</div>
           <div style="display:none" id="theme-list-static">
-
-            <div class="theme-row active" data-theme="void"><div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div><span class="theme-name">Void</span><div class="theme-check checked"></div></div>
-            <div class="theme-row" data-theme="eclipse"><div class="theme-swatches"><div class="theme-sw" style="background:#18161a"></div><div class="theme-sw" style="background:#241f28"></div><div class="theme-sw" style="background:#a855f7"></div></div><span class="theme-name">Eclipse</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="ghost"><div class="theme-swatches"><div class="theme-sw" style="background:#0d1117"></div><div class="theme-sw" style="background:#161b22"></div><div class="theme-sw" style="background:#238636"></div></div><span class="theme-name">Ghost</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="frost"><div class="theme-swatches"><div class="theme-sw" style="background:#cdd2da"></div><div class="theme-sw" style="background:#c2c8d2"></div><div class="theme-sw" style="background:#2563eb"></div></div><span class="theme-name">Frost</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="bone"><div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e8"></div><div class="theme-sw" style="background:#ede7d9"></div><div class="theme-sw" style="background:#2563eb"></div></div><span class="theme-name">Bone</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="haze"><div class="theme-swatches"><div class="theme-sw" style="background:#d4d9d0"></div><div class="theme-sw" style="background:#c9d0c4"></div><div class="theme-sw" style="background:#2563eb"></div></div><span class="theme-name">Haze</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="kush"><div class="theme-swatches"><div class="theme-sw" style="background:#0d1a0f"></div><div class="theme-sw" style="background:#152015"></div><div class="theme-sw" style="background:#5a9e3a"></div></div><span class="theme-name">Kush</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="purplehaze"><div class="theme-swatches"><div class="theme-sw" style="background:#0e0818"></div><div class="theme-sw" style="background:#170e28"></div><div class="theme-sw" style="background:#9b5de5"></div></div><span class="theme-name">Purple Haze</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="sativa"><div class="theme-swatches"><div class="theme-sw" style="background:#edf5e8"></div><div class="theme-sw" style="background:#e2eedb"></div><div class="theme-sw" style="background:#2e7d32"></div></div><span class="theme-name">Sativa</span><div class="theme-check"></div></div>
-            <div class="theme-row" data-theme="ogcream"><div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e5"></div><div class="theme-sw" style="background:#ede6d8"></div><div class="theme-sw" style="background:#8b6914"></div></div><span class="theme-name">OG Cream</span><div class="theme-check"></div></div>
+            <div class="theme-row active" data-theme="void">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
+              <span class="theme-name">Void</span><div class="theme-check checked"></div>
+            </div>
+            <div class="theme-row" data-theme="eclipse">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#18161a"></div><div class="theme-sw" style="background:#241f28"></div><div class="theme-sw" style="background:#a855f7"></div></div>
+              <span class="theme-name">Eclipse</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="ghost">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0d1117"></div><div class="theme-sw" style="background:#161b22"></div><div class="theme-sw" style="background:#238636"></div></div>
+              <span class="theme-name">Ghost</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="frost">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#cdd2da"></div><div class="theme-sw" style="background:#c2c8d2"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+              <span class="theme-name">Frost</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="bone">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e8"></div><div class="theme-sw" style="background:#ede7d9"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+              <span class="theme-name">Bone</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="haze">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#d4d9d0"></div><div class="theme-sw" style="background:#c9d0c4"></div><div class="theme-sw" style="background:#2563eb"></div></div>
+              <span class="theme-name">Haze</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="kush">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0d1a0f"></div><div class="theme-sw" style="background:#152015"></div><div class="theme-sw" style="background:#5a9e3a"></div></div>
+              <span class="theme-name">Kush</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="purplehaze">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0e0818"></div><div class="theme-sw" style="background:#170e28"></div><div class="theme-sw" style="background:#9b5de5"></div></div>
+              <span class="theme-name">Purple Haze</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="sativa">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#edf5e8"></div><div class="theme-sw" style="background:#e2eedb"></div><div class="theme-sw" style="background:#2e7d32"></div></div>
+              <span class="theme-name">Sativa</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="ogcream">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e5"></div><div class="theme-sw" style="background:#ede6d8"></div><div class="theme-sw" style="background:#8b6914"></div></div>
+              <span class="theme-name">OG Cream</span><div class="theme-check"></div>
+            </div>
             <div class="theme-row" data-theme="abyssal">
               <div class="theme-swatches"><div class="theme-sw" style="background:#010d18"></div><div class="theme-sw" style="background:#021525"></div><div class="theme-sw" style="background:#00b4d8"></div></div>
               <span class="theme-name">Abyssal</span><div class="theme-check"></div>
@@ -1091,7 +1297,10 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#ffffff"></div><div class="theme-sw" style="background:#f5f5f5"></div><div class="theme-sw" style="background:#1a1a1a"></div></div>
               <span class="theme-name">Blanc</span><div class="theme-check"></div>
             </div>
-            <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none"><div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div><span class="theme-name" id="custom-theme-name">Custom</span><div class="theme-check"></div></div>
+            <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
+              <div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div>
+              <span class="theme-name" id="custom-theme-name">Custom</span><div class="theme-check"></div>
+            </div>
           </div><!-- end theme-list-static -->
           <div style="display:flex;gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
             <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬆ Import</button>
@@ -1122,10 +1331,6 @@
         Fetch Info
       </button>
       <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none">⏹ Stop Fetching</button>
-      <div id="bulk-dl-buttons" style="display:none;gap:8px">
-        <button class="btn bulk-video-btn" id="dl-all-video-btn">📹 Download All Videos</button>
-        <button class="btn bulk-audio-btn" id="dl-all-audio-btn">🎵 Download Audio</button>
-      </div>
       <button class="paste-btn" id="clear-btn" style="height:28px">✕ Clear</button>
       <div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
         <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" title="Max simultaneous video downloads">
@@ -1155,6 +1360,10 @@
           </select>
         </label>
       </div>
+    </div>
+    <div id="bulk-actions" style="display:none;gap:8px;margin-top:8px">
+      <button class="btn btn-primary" id="dl-all-btn">⬇ Download All Videos</button>
+      <button class="btn btn-ghost" id="dl-all-audio-btn" style="border-color:var(--audio-btn-color);color:var(--audio-btn-color)">♫ Download All Audio</button>
     </div>
   </div>
 </div>
@@ -1252,15 +1461,35 @@
           <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
         </div>
       </div>
-      <!-- Output format row (4d: MKV support) -->
-      <div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px">
-        <span style="font-size:.76rem;color:var(--text2);white-space:nowrap" title="Container format for video downloads">Output format</span>
-        <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
-          <option value="mp4" selected>MP4 (recommended)</option>
-          <option value="mkv">MKV (preserves chapters, multiple audio tracks)</option>
-        </select>
+      <!-- Format row: Audio (default) + Video (container) — Option A compact -->
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:0;padding:6px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px">
+        <div style="flex:1;display:flex;align-items:center;gap:8px">
+          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
+          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+            <option value="320">MP3 320 kbps (default)</option>
+            <option value="192">MP3 192 kbps</option>
+            <option value="128">MP3 128 kbps</option>
+            <option value="flac">FLAC</option>
+            <option value="m4a_256">M4A 256 kbps</option>
+            <option value="opus_192">OPUS 192 kbps</option>
+            <option value="opus_128">OPUS 128 kbps</option>
+          </select>
+        </div>
+        <div style="width:1px;height:28px;background:var(--border);margin:0 14px;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;align-items:center;gap:8px">
+          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Video</span>
+          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+            <option value="mp4" selected>MP4 (recommended)</option>
+            <option value="mkv">MKV</option>
+            <option value="mov">MOV</option>
+            <option value="webm">WebM (may re-encode, slower)</option>
+          </select>
+        </div>
       </div>
 
+      <button class="adv-btn-full" id="adv-shortcut-btn">
+        <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
+      </button>
       <button class="adv-btn-full" id="adv-clear-cache-btn">
         <span class="adv-btn-icon amber">⌫</span>Clear cache
       </button>
@@ -1305,9 +1534,10 @@
 
 <footer>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
-    <a href="https://egerena.com/apps/egml.html" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
+    <a href="https://egerena.com/apps/egm.html" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
     <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.97</span>
+    <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
   </div>
   <div style="margin-top:7px;text-align:center">
     <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
@@ -1315,9 +1545,9 @@
 </footer>
 <div id="toasts"></div>
 
-<!-- Audio quality modal -->
+<!-- Audio quality modal — shown before bulk audio download -->
 <div class="modal-backdrop" id="audio-quality-modal" style="display:none" onclick="audioQualityBgClick(event)">
-  <div class="modal">
+  <div class="modal" id="audio-quality-modal">
     <h3>♫ Audio Quality</h3>
     <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all audio downloads.</p>
     <div class="quality-options">
@@ -1413,9 +1643,9 @@
   </div>
 </div>
 
-<!-- What's New modal -->
+<!-- What's New modal — shown once per version -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
-  <div class="modal">
+  <div class="modal" id="whats-new-modal-inner">
     <h3>🎉 What's New in <span id="whats-new-version">v0.97</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
@@ -1447,10 +1677,6 @@
 <script>
 'use strict';
 
-// ── Timing constants ──────────────────────────────────────────────────────────
-const QUIT_DELAY_MS  = 1500;  // ms after last download before quitting
-const TOAST_DURATION = 4500;  // ms before toast auto-dismisses
-
 // ── State ─────────────────────────────────────────────────────────────────────
 let items       = [];
 let bulkStop    = false;
@@ -1460,31 +1686,238 @@ let seq         = 0;
 let _modalOk    = null;
 let chosenPath  = null;    // Absolute path string (Electron only)
 
-// ── Auto-check for updates on launch (Linux — notify only, no auto-install) ──
+// ── Timing constants ──────────────────────────────────────────────────────────
+const QUIT_DELAY_MS  = 1500;  // ms after last download before quitting
+const TOAST_DURATION = 4500;  // ms before toast auto-dismisses
+
+// ── Version comparison — semver-safe ─────────────────────────────────────────
+function compareVersions(current, latest) {
+  const c = current.replace(/^v/, '').split('.').map(Number);
+  const l = latest.replace(/^v/, '').split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((l[i] || 0) > (c[i] || 0)) return 1;   // latest is newer
+    if ((l[i] || 0) < (c[i] || 0)) return -1;  // current is newer (dev build)
+  }
+  return 0;
+}
+
+// ── Update modals ─────────────────────────────────────────────────────────────
+function _showUpdModal(html) {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'upd-backdrop';
+  backdrop.innerHTML = html;
+  document.body.appendChild(backdrop);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+  return backdrop;
+}
+
+function showUpToDateModal(isDev = false) {
+  toast(isDev ? '✓ You\'re ahead of the latest release' : '✓ EGM Downloader is up to date', 'ok');
+}
+
+function showUpdateErrorModal() {
+  toast('⚠ Could not reach update server', 'warn');
+}
+
+function showUpdateAvailableModal(d) {
+  // Build release notes rows safely — textContent assigned after creation
+  const backdrop = _showUpdModal(`
+    <div class="upd-modal">
+      <h3>🎉 Update Available!</h3>
+      <div class="upd-modal-body">
+        <div class="upd-ver-row"><span>Current</span><strong>${d.current_version}</strong></div>
+        <div class="upd-ver-row"><span>Latest</span><strong style="color:var(--acc)">v${d.latest_version}</strong></div>
+        <div id="_upd_notes_slot"></div>
+      </div>
+      <div class="upd-actions" id="_upd_btns_slot"></div>
+    </div>`);
+
+  // Release notes — textContent only, no innerHTML injection risk
+  if (d.notes && d.notes.trim()) {
+    const noteLines = d.notes.split('\n').map(l => l.trim()).filter(Boolean);
+    if (noteLines.length) {
+      const box = document.createElement('div');
+      box.className = 'upd-notes';
+      for (const line of noteLines) {
+        const row = document.createElement('div');
+        row.textContent = line;
+        box.appendChild(row);
+      }
+      backdrop.querySelector('#_upd_notes_slot').appendChild(box);
+    }
+  }
+
+  // Buttons
+  const btns = backdrop.querySelector('#_upd_btns_slot');
+
+  // "Update Now" — platform-aware
+  const _updPlat = window.electronAPI?.platform || 'web';
+  if (_updPlat === 'win' && d.zip_url) {
+    // Windows: silent download + launch installer
+    const btnUpdate = document.createElement('button');
+    btnUpdate.className = 'btn btn-primary';
+    btnUpdate.textContent = '⬇ Update Now';
+    btnUpdate.addEventListener('click', async () => {
+      btnUpdate.textContent = 'Downloading…';
+      btnUpdate.disabled = true;
+      try {
+        const dl = await fetch('/api/download-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
+        }).then(r => r.json());
+        if (dl.error) { toast(dl.error, 'err'); backdrop.remove(); return; }
+        toast('Launching installer…', 'ok');
+        backdrop.remove();
+        await new Promise(res => setTimeout(res, 800));
+        const launch = await window.electronAPI.launchInstaller(dl.installer_path);
+        if (launch.error) { toast('Could not launch installer: ' + launch.error, 'err'); return; }
+        setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
+      } catch {
+        toast('Update failed — try downloading manually', 'err');
+        backdrop.remove();
+      }
+    });
+    btns.appendChild(btnUpdate);
+  } else if (_updPlat === 'mac' || _updPlat === 'linux') {
+    // Mac/Linux: open download URL in browser — user installs manually
+    const btnDownload = document.createElement('button');
+    btnDownload.className = 'btn btn-primary';
+    btnDownload.textContent = '⬇ Download Update';
+    btnDownload.addEventListener('click', () => {
+      window.open(d.download_url || d.zip_url || 'https://egerena.com', '_blank');
+      backdrop.remove();
+    });
+    btns.appendChild(btnDownload);
+  }
+
+  // "Open Page" — always available
+  if (d.download) {
+    const btnPage = document.createElement('button');
+    btnPage.className = 'btn btn-ghost';
+    btnPage.textContent = '🌐 Open Page';
+    btnPage.addEventListener('click', () => { window.open(d.download, '_blank'); backdrop.remove(); });
+    btns.appendChild(btnPage);
+  }
+
+  // "Later" dismiss
+  const btnLater = document.createElement('button');
+  btnLater.className = 'btn btn-ghost';
+  btnLater.textContent = 'Later';
+  btnLater.addEventListener('click', () => backdrop.remove());
+  btns.insertBefore(btnLater, btns.firstChild);
+}
+
+// ── Check for Updates — called from footer only ──────────────────────────────
+async function checkForUpdates() {
+  const badge = document.getElementById('version-badge');
+  if (badge) badge.style.opacity = '0.6';
+  try {
+    const d = await fetch('/api/check-app-update').then(r => r.json());
+    if (d.error) { showUpdateErrorModal(); return; }
+
+    const cmp = compareVersions(d.current_version, d.latest_version);
+    if (cmp === 0) {
+      if (d.latest_build && d.current_build && d.latest_build > d.current_build) {
+        showUpdateAvailableModal(d);
+      } else {
+        showUpToDateModal();
+      }
+    } else if (cmp < 0) {
+      showUpToDateModal(true);
+    } else {
+      showUpdateAvailableModal(d);
+    }
+  } catch {
+    showUpdateErrorModal();
+  } finally {
+    const badge2 = document.getElementById('version-badge');
+    if (badge2) badge2.style.opacity = '';
+  }
+}
+
+// ── Toast with action button (used for auto-update notification) ──────────────
+function toastWithAction(msg, btnLabel, fn, ms = 8000) {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ok';
+  t.style.cssText = 'display:flex;align-items:center;gap:10px;padding-right:8px';
+  const span = document.createElement('span');
+  span.textContent = msg;
+  const btn = document.createElement('button');
+  btn.textContent = btnLabel;
+  btn.style.cssText = 'flex-shrink:0;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:#fff;font-size:.75rem;padding:2px 10px;cursor:pointer';
+  btn.addEventListener('click', () => { t.remove(); fn(); });
+  t.appendChild(span);
+  t.appendChild(btn);
+  c.appendChild(t);
+  setTimeout(() => t.remove(), ms);
+}
+
+// ── Auto-check for updates on launch (silent — only acts if update found) ─────
 let _autoUpdateCheckRan = false;
 async function checkForUpdatesOnLaunch() {
   if (_autoUpdateCheckRan) return;
   _autoUpdateCheckRan = true;
   try {
     const d = await fetch('/api/check-app-update').then(r => r.json());
+    // Trust backend fully — it compares both version string AND build number
     if (d.error || d.up_to_date) return;
-    // Show toast with download link
-    const c = document.getElementById('toasts');
-    const t = document.createElement('div');
-    t.className = 'toast ok';
-    t.style.cssText = 'display:flex;align-items:center;gap:10px;padding-right:8px';
-    const span = document.createElement('span');
-    span.textContent = `v${d.latest_version} available`;
-    const btn = document.createElement('button');
-    btn.textContent = 'Download';
-    btn.style.cssText = 'flex-shrink:0;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:#fff;font-size:.75rem;padding:2px 10px;cursor:pointer';
-    btn.addEventListener('click', () => { t.remove(); window.open(d.download_url || 'https://egerena.com/apps/egml.html', '_blank'); });
-    t.appendChild(span); t.appendChild(btn);
-    c.appendChild(t);
-    setTimeout(() => t.remove(), 8000);
-  } catch { /* silent */ }
+
+    // Update available — route by platform
+    const _plat = window.electronAPI?.platform || 'web';
+
+    if (_plat === 'win' && d.zip_url) {
+      // Windows: silent background download → restart toast
+      try {
+        const dl = await fetch('/api/download-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
+        }).then(r => r.json());
+        if (dl.error) return; // silent fail
+        const installerPath = dl.installer_path;
+        toastWithAction(
+          `Update downloaded — restart to apply v${d.latest_version}`,
+          'Restart now',
+          async () => {
+            const launch = await window.electronAPI.launchInstaller(installerPath);
+            if (!launch.error) setTimeout(() => window.electronAPI.quit(), 800);
+          },
+          8000
+        );
+      } catch { /* silent */ }
+
+    } else if (_plat === 'mac') {
+      // Mac: open download page in browser, show toast — user installs manually
+      toastWithAction(
+        `v${d.latest_version} is available — download to update`,
+        'Download',
+        () => { window.open(d.download_url || 'https://egerena.com/mac', '_blank'); },
+        10000
+      );
+
+    } else if (_plat === 'linux') {
+      // Linux: same as Mac — open download page, no auto-install
+      toastWithAction(
+        `v${d.latest_version} is available — download to update`,
+        'Download',
+        () => { window.open(d.download_url || 'https://egerena.com/linux', '_blank'); },
+        10000
+      );
+
+    } else {
+      // Fallback / web: show update modal
+      showUpdateAvailableModal(d);
+    }
+  } catch { /* silent — network error on launch is expected */ }
 }
+
+// Fire 3s after page loads — backend is ready, user has settled in
 setTimeout(checkForUpdatesOnLaunch, 3000);
+
+
+document.getElementById('footer-update-btn').addEventListener('click', checkForUpdates);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 (async () => {
@@ -1553,11 +1986,28 @@ setTimeout(checkForUpdatesOnLaunch, 3000);
       const chk = document.getElementById('embed-metadata-chk');
       if (chk) chk.checked = false;
     }
-    if (s.output_format && s.output_format === 'mkv') {
+    if (s.output_format) {
       const sel = document.getElementById('output-format-sel');
-      if (sel) sel.value = 'mkv';
+      if (sel) sel.value = s.output_format;
+    }
+    if (s.default_audio_format) {
+      const sel = document.getElementById('default-audio-fmt-sel');
+      if (sel) sel.value = s.default_audio_format;
     }
   } catch {}
+  // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows)
+  const sb = document.getElementById('adv-shortcut-btn');
+  if (sb && typeof window.electronAPI?.createShortcut !== 'function') sb.style.display = 'none';
+
+// ── Portable mode detection — runs immediately, hides update UI if portable ───
+(async function() {
+  try {
+    const p = await fetch('/api/portable-status').then(r => r.json());
+    if (p.portable) {
+      document.body.classList.add('portable-mode');
+    }
+  } catch {}
+})();
 })();
 
 document.getElementById('quit-on-done-chk').addEventListener('change', function() {
@@ -1574,6 +2024,9 @@ document.getElementById('embed-metadata-chk').addEventListener('change', functio
 });
 document.getElementById('output-format-sel').addEventListener('change', function() {
   post('/api/settings/save', { output_format: this.value });
+});
+document.getElementById('default-audio-fmt-sel').addEventListener('change', function() {
+  post('/api/settings/save', { default_audio_format: this.value });
 });
 
 // Save concurrency and fragments whenever changed
@@ -1610,7 +2063,7 @@ function toggleUpdPanel() {
 }
 
 // ── Settings panel toggle ─────────────────────────────────────────────────────
-let settingsOpen = false;
+let settingsOpen = false;  // starts collapsed
 function toggleSettingsPanel() {
   settingsOpen = !settingsOpen;
   document.getElementById('settings-body').classList.toggle('collapsed', !settingsOpen);
@@ -1694,6 +2147,7 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
   }
   ta.addEventListener('input', autoGrow);
   ta.addEventListener('paste', () => setTimeout(autoGrow, 0));
+  // Initial sizing in case content is restored from settings
   setTimeout(autoGrow, 0);
 
   // Drag & drop URLs into the textarea
@@ -1712,6 +2166,7 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
     const dt = e.dataTransfer;
     let dropped = (dt.getData('text/uri-list') || dt.getData('text/plain') || '').trim();
     if (!dropped) return;
+    // Normalize uri-list comments (lines starting with #)
     dropped = dropped.split(/\r?\n/).filter(l => l && !l.startsWith('#')).join('\n');
     const cur = ta.value;
     ta.value = cur ? (cur.replace(/\s+$/, '') + '\n' + dropped) : dropped;
@@ -1725,6 +2180,7 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
     const inField = ae && ['INPUT', 'TEXTAREA', 'SELECT'].includes(ae.tagName) && ae !== ta;
     const mod = e.ctrlKey || e.metaKey;
 
+    // Cmd/Ctrl+Enter — Fetch Info (when textarea has content)
     if (mod && e.key === 'Enter' && ta.value.trim() && !inField) {
       e.preventDefault();
       const fb = document.getElementById('fetch-btn');
@@ -1732,12 +2188,14 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
       return;
     }
 
+    // Esc — clear textarea (only when textarea is focused)
     if (e.key === 'Escape' && ae === ta) {
       e.preventDefault();
       document.getElementById('clear-btn').click();
       return;
     }
 
+    // Cmd/Ctrl+V — paste & fetch (only when no input field is focused)
     if (mod && e.key.toLowerCase() === 'v' && !inField && ae !== ta) {
       e.preventDefault();
       document.getElementById('paste-fetch-btn').click();
@@ -1747,6 +2205,31 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
 })();
 
 // ── Settings ──────────────────────────────────────────────────────────────────
+document.getElementById('adv-shortcut-btn')?.addEventListener('click', async () => {
+  if (!confirm('Create a desktop shortcut for EGM Downloader?')) return;
+  const btn = document.getElementById('adv-shortcut-btn');
+  btn.disabled = true; btn.textContent = '…';
+  try {
+    const r = await window.electronAPI.createShortcut();
+    if (r.exists) {
+      toast('Desktop shortcut already exists', 'ok');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
+    } else if (r.success) {
+      toast('Desktop shortcut created ✓', 'ok');
+      btn.textContent = '✓ Done';
+    } else {
+      toast('Shortcut error: ' + r.error, 'err');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
+    }
+  } catch (e) {
+    toast('Shortcut error: ' + e.message, 'err');
+    btn.disabled = false;
+    btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
+  }
+});
+
 document.getElementById('browse-btn').addEventListener('click', async () => {
   const picked = await window.electronAPI.pickFolder(chosenPath || '');
   if (!picked) return;
@@ -1805,7 +2288,25 @@ function renderUpdGrid(data) {
     </div>`;
   grid.appendChild(ytEl);
 
-  // ── ffmpeg ────────────────────────────────────────────────────────────────
+  // ── mutagen ───────────────────────────────────────────────────────────────
+  const muD = data.mutagen || {};
+  const muBadge = muD.up_to_date === null || muD.up_to_date === undefined
+    ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
+    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+  const muEl = document.createElement('div');
+  muEl.className = 'upd-item';
+  muEl.innerHTML = `
+    <div class="upd-item-left">
+      <span class="upd-name">🏷 mutagen</span>
+      <span class="upd-ver">${esc(muD.current || 'checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
+    </div>
+    <div class="upd-item-right">
+      ${muBadge}
+      <label class="sw-wrap" style="margin:0">
+        <input type="checkbox" class="sw" id="sw-mutagen" ${muD.up_to_date===false?'checked':''}>
+      </label>
+    </div>`;
+  grid.appendChild(muEl);
   const ffD = data.ffmpeg;
   const ffBadge = ffD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
@@ -1848,8 +2349,9 @@ function renderUpdGrid(data) {
 function syncInstallBtn() {
   const ytOn = document.getElementById('sw-ytdlp')?.checked;
   const ffOn = document.getElementById('sw-ffmpeg')?.checked;
+  const muOn = document.getElementById('sw-mutagen')?.checked;
   const btn  = document.getElementById('run-update-btn');
-  if (btn) btn.style.display = (ytOn || ffOn) ? '' : 'none';
+  if (btn) btn.style.display = (ytOn || ffOn || muOn) ? '' : 'none';
 }
 
 // Re-sync after renderUpdGrid populates the grid (delegate via grid container)
@@ -1859,11 +2361,12 @@ document.getElementById('update-grid').addEventListener('change', e => {
 document.getElementById('run-update-btn').addEventListener('click', async () => {
   const doY = document.getElementById('sw-ytdlp')?.checked ?? true;
   const doF = document.getElementById('sw-ffmpeg')?.checked ?? false;
-  if (!doY && !doF) { toast('Select at least one item', 'err'); return; }
+  const doM = document.getElementById('sw-mutagen')?.checked ?? false;
+  if (!doY && !doF && !doM) { toast('Select at least one item', 'err'); return; }
   const log = document.getElementById('upd-log');
   log.textContent = ''; log.classList.add('show');
   document.getElementById('run-update-btn').disabled = true;
-  await post('/api/run-update', { ytdlp: doY, ffmpeg: doF });
+  await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM });
   log.textContent = 'Starting…\n';
   const iv = setInterval(async () => {
     const s = await fetch('/api/update-status').then(r => r.json());
@@ -1892,37 +2395,6 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
     }
   }, 800);
 });
-
-// ── Video quality modal ────────────────────────────────────────────────────────
-(function() {
-  const modal   = document.getElementById('video-quality-modal');
-  if (!modal) return;
-  const confirm = document.getElementById('video-quality-confirm-btn');
-  let selectedVQ = 'best';
-  modal.querySelectorAll('.quality-option').forEach(opt => {
-    opt.addEventListener('click', () => {
-      modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
-      opt.classList.add('selected');
-      selectedVQ = opt.dataset.vquality;
-    });
-  });
-  confirm.addEventListener('click', () => {
-    modal.style.display = 'none';
-    downloadAll('video', null, selectedVQ);
-  });
-})();
-
-function showVideoQualityModal() {
-  const modal = document.getElementById('video-quality-modal');
-  modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
-  const best = modal.querySelector('[data-vquality="best"]');
-  if (best) best.classList.add('selected');
-  modal.style.display = 'flex';
-}
-function videoQualityBgClick(e) {
-  if (e.target === document.getElementById('video-quality-modal'))
-    document.getElementById('video-quality-modal').style.display = 'none';
-}
 
 // ── Deno installer ───────────────────────────────────────────────────────────
 async function installDeno() {
@@ -2083,78 +2555,6 @@ refreshCookieCard();
     }, 1500);
   } catch {}
 })();
-
-// ── UI helpers (shared between fetch + bulk download flows) ─────────────────
-// Show/hide the bulk-download button row. Called by fetchAll, downloadAll,
-// clear, and remove-card paths. If undefined, fetchAll throws a ReferenceError
-// which becomes a swallowed promise rejection — Fetch silently does nothing.
-function setDlAllVisible(show) {
-  const el = document.getElementById('bulk-dl-buttons');
-  if (el) el.style.display = show ? 'flex' : 'none';
-}
-
-// Update a single card's status badge + progress bar from a polled job state.
-// Used by the bulk "Download All" polling loop. Returns nothing.
-function applyJobProgress(d, stEl, progEl) {
-  if (d.status === 'converting') {
-    setBadge(stEl, 'dl', 'Converting…');
-    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
-    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
-    if (progEl) progEl.style.display = '';
-  } else if (d.status === 'downloading' && d.progress >= 100) {
-    // Download finished but backend hasn't emitted [Merger]/[ExtractAudio] yet —
-    // keep the bar visible as Converting… so the UI doesn't appear frozen.
-    setBadge(stEl, 'dl', 'Converting…');
-    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
-    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
-    if (progEl) progEl.style.display = '';
-  } else if (d.status === 'downloading' && d.progress > 0) {
-    const spd = d.speed ? ` · ${d.speed}` : '';
-    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
-    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
-    if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
-  }
-}
-
-// Handle terminal job states (done/error/cancelled) for one card. Returns true
-// if the job is finished and the caller should stop polling, false otherwise.
-function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
-  if (d.status === 'done') {
-    item.status = 'done';
-    if (progEl) progEl.style.display = 'none';
-    if (cancelBtn) cancelBtn.style.display = 'none';
-    if (typeof minimizeDoneCard === 'function') {
-      minimizeDoneCard(item, d.filename, stEl, dlBtn);
-    } else {
-      setBadge(stEl, 'done', 'Done');
-      if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
-    }
-    toast('Saved: ' + d.filename, 'ok');
-    if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
-    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
-      const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
-      if (allFinished) setTimeout(() => window.electronAPI.quit(), (typeof QUIT_DELAY_MS !== 'undefined' ? QUIT_DELAY_MS : 1500));
-    }
-    return true;
-  }
-  if (d.status === 'error') {
-    item.status = 'error';
-    if (progEl) progEl.style.display = 'none';
-    if (cancelBtn) cancelBtn.style.display = 'none';
-    setBadge(stEl, 'error', d.error || 'Error');
-    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
-    return true;
-  }
-  if (d.status === 'cancelled') {
-    item.status = 'cancelled';
-    if (progEl) progEl.style.display = 'none';
-    if (cancelBtn) cancelBtn.style.display = 'none';
-    setBadge(stEl, 'cancel', 'Cancelled');
-    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
-    return true;
-  }
-  return false;
-}
 
 // ── Fetch ─────────────────────────────────────────────────────────────────────
 document.getElementById('fetch-btn').addEventListener('click', fetchAll);
@@ -2463,7 +2863,7 @@ async function startDl(item, n) {
   } catch (e) {
     item.status = 'error';
     setBadge(stEl, 'error', e.message);
-    dlBtn.disabled = false;
+    dlBtn.disabled = false; dlBtn.style.display = '';
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
   }
@@ -2486,13 +2886,71 @@ async function cancelDownload(item, n) {
   toast('Download cancelled');
 }
 
+// ── Shared job status handler — used by both individual and bulk pollers ──────
+function applyJobProgress(d, stEl, progEl) {
+  if (d.status === 'converting') {
+    setBadge(stEl, 'dl', 'Converting…');
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.progress >= 100) {
+    // Download complete but backend hasn't emitted a conversion tag yet —
+    // show Converting… as a fallback so the UI doesn't appear frozen
+    setBadge(stEl, 'dl', 'Converting…');
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.progress > 0) {
+    const spd = d.speed ? ` · ${d.speed}` : '';
+    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
+  }
+}
+
+function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
+  if (d.status === 'done') {
+    item.status = 'done';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    minimizeDoneCard(item, d.filename, stEl, dlBtn);
+    if (d.warning) {
+      toast(d.warning, 'warn');
+    } else {
+      toast('Saved: ' + d.filename, 'ok');
+    }
+    // Refresh mini history panel so new entry appears immediately
+    if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
+    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
+      const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
+      if (allFinished) setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
+    }
+    return true;
+  }
+  if (d.status === 'error') {
+    item.status = 'error';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    setBadge(stEl, 'error', d.error || 'Error');
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
+    return true;
+  }
+  if (d.status === 'cancelled') {
+    item.status = 'cancelled';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    setBadge(stEl, 'cancel', 'Cancelled');
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+    return true;
+  }
+  return false;
+}
+
 function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
   const iv = setInterval(async () => {
-    // Stop immediately if cancelled (bulk or individual)
     if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
       clearInterval(iv);
       bulkCancelledJobs.delete(item.jobId);
-      // Ensure UI reflects cancelled state — may have been overwritten
       setBadge(stEl, 'cancel', 'Cancelled');
       if (progEl) progEl.style.display = 'none';
       if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
@@ -2501,51 +2959,21 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
     }
     try {
       const d = await fetch(`/api/status/${item.jobId}`).then(r => r.json());
-      // Re-check after async fetch — cancel may have fired while waiting
       if (item.status === 'cancelled') return;
-      if (d.status === 'converting') {
-        setBadge(stEl, 'dl', 'Converting…');
-        const pi = progEl ? progEl.querySelector('.prog-inner') : null;
-        if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
-        if (progEl) progEl.style.display = '';
-      } else if (d.status === 'downloading' && d.progress > 0) {
-        const spd = d.speed ? ` · ${d.speed}` : '';
-        setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
-        const pi = progEl ? progEl.querySelector('.prog-inner') : null;
-        if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
-      }
-      if (d.status === 'done') {
-        clearInterval(iv); item.status = 'done';
-        if (progEl) progEl.style.display = 'none';
-        if (cancelBtn) cancelBtn.style.display = 'none';
-
-        minimizeDoneCard(item, d.filename, stEl, dlBtn);
-        toast('Saved: ' + d.filename, 'ok');
-        // Quit if enabled and every item is now finished
-        if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
-          const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
-          if (allFinished) setTimeout(() => window.electronAPI.quit(), 1500);
-        }
-      } else if (d.status === 'error') {
-        clearInterval(iv); item.status = 'error';
-        if (progEl) progEl.style.display = 'none';
-        setBadge(stEl, 'error', d.error || 'Error');
-        dlBtn.disabled = false; dlBtn.style.display = '';
-        if (cancelBtn) cancelBtn.style.display = 'none';
-      } else if (d.status === 'cancelled') {
-        clearInterval(iv); item.status = 'cancelled';
-        setBadge(stEl, 'cancel', 'Cancelled');
-        if (progEl) progEl.style.display = 'none';
-        if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
-        if (cancelBtn) cancelBtn.style.display = 'none';
-      }
+      applyJobProgress(d, stEl, progEl);
+      if (applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn)) clearInterval(iv);
     } catch {}
   }, 1000);
 }
 
 // ── Download All — best quality, no modal ─────────────────────────────────────
-document.getElementById('dl-all-video-btn').addEventListener('click', () => showVideoQualityModal());
-// dl-all-audio-btn handled by audio quality popup below
+// Helper: show/hide bulk download row together
+function setDlAllVisible(show) {
+  document.getElementById('bulk-actions').style.display = show ? 'flex' : 'none';
+}
+
+document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
+// dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
 async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
     toast('Please select a download folder first', 'err');
@@ -2566,6 +2994,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     document.getElementById('bulk-txt').textContent =
       `Downloading ${done} / ${pending.length} ${modeLabel} done  (${active} active)`;
   }
+  // downloadOne: starts one item's download and resolves when finished
   async function downloadOne(item) {
     if (bulkStop || item.status === 'cancelled') { active--; return; }
     const n       = item.id;
@@ -2574,6 +3003,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     const progEl  = document.getElementById('prog'   + n);
     if (!stEl || !dlBtn) { done++; updateBulkTxt(); return; }
 
+    // Lazy-fetch info if needed
     if (!item.info.formats?.length && !item.info.audio_formats?.length) {
       setBadge(stEl, 'dl', 'Fetching...'); dlBtn.disabled = true;
       try {
@@ -2592,7 +3022,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       cancelBtn = document.createElement('button');
       cancelBtn.id = 'cancel' + n;
       cancelBtn.className = 'btn btn-red btn-sm';
-      cancelBtn.textContent = '\u2715 Cancel';
+      cancelBtn.textContent = '✕ Cancel';
       dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
     }
     cancelBtn.style.display = '';
@@ -2602,13 +3032,14 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       if (bulkStop || item.status === 'cancelled') { active--; return; }
       setBadge(stEl, 'dl', 'Downloading...');
       const res = await post('/api/download', {
-        url: item.url, format: forceFormat,
+        url: item.url, format: forceFormat || item.selFmt,
         format_id: null,
         video_height: (forceFormat !== 'audio' && videoQuality && videoQuality !== 'best') ? parseInt(videoQuality) : null,
+        // audio_codec not sent — backend defaults to encode path (safe for unknown bestaudio)
         concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
         title: item.info.title || 'download',
         download_dir: dir,
-        audio_quality: audioQuality || '320',
+        audio_quality: audioQuality || document.getElementById('default-audio-fmt-sel')?.value || '320',
         subtitles: !!document.getElementById('subtitles-chk')?.checked,
         embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
         output_format: document.getElementById('output-format-sel')?.value || 'mp4',
@@ -2618,6 +3049,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
 
       await new Promise(resolve => {
         const wiv = setInterval(async () => {
+          // Check cancellation before any fetch
           if (item.status === 'cancelled' || bulkStop) {
             clearInterval(wiv);
             applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
@@ -2626,12 +3058,15 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
           }
           try {
             const d = await fetch('/api/status/' + item.jobId).then(r => r.json());
+            // Re-check after async fetch
             if (item.status === 'cancelled' || bulkStop) {
               clearInterval(wiv);
               applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
               done++; resolve();
               return;
             }
+            // Re-fetch live elements in case renderCard replaced the DOM
+            // (happens when playlist full info arrives while download is running)
             const liveStEl   = document.getElementById('st'   + n) || stEl;
             const liveDlBtn  = document.getElementById('dl'   + n) || dlBtn;
             const liveProgEl = document.getElementById('prog' + n) || progEl;
@@ -2646,14 +3081,17 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     } catch (e) {
       item.status = 'error';
       setBadge(stEl, 'error', e.message);
-      dlBtn.disabled = false;
+      dlBtn.disabled = false; dlBtn.style.display = '';
       if (progEl) progEl.style.display = 'none';
       if (cancelBtn) cancelBtn.style.display = 'none';
       done++;
     }
     active--;
+    // updateBulkTxt is called by pump() after it refills the slot,
+    // so the count shown reflects the new active count correctly.
   }
 
+  // Concurrency pump: keep up to CONCURRENCY downloads running at once
   await new Promise(resolve => {
     function pump() {
       if (bulkStop) { resolve(); return; }
@@ -2661,7 +3099,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         active++;
         downloadOne(pending[idx++]).then(pump);
       }
-      updateBulkTxt();
+      updateBulkTxt();  // update AFTER filling slots so count is accurate
       if (idx >= pending.length && active === 0) resolve();
     }
     pump();
@@ -2669,7 +3107,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
 
   bar.classList.remove('show');
   if (!bulkStop) {
-    toast('Done \u2014 ' + done + ' ' + modeLabel, 'ok');
+    toast('Done — ' + done + ' ' + modeLabel, 'ok');
     if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
       setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
     }
@@ -2695,7 +3133,7 @@ function cancelBulk() {
       const cancelBtn = document.getElementById('cancel' + n);
       if (stEl)      setBadge(stEl, 'cancel', 'Cancelled');
       if (progEl)    progEl.style.display = 'none';
-      if (dlBtn)     { dlBtn.disabled = false; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
     }
   });
@@ -2763,7 +3201,7 @@ function minimizeDoneCard(item, filename, stEl, dlBtn) {
   const card = stEl ? stEl.closest('.vcard') : null;
   if (!card) {
     if (stEl) setBadge(stEl, 'done', '\u2713 Done');
-    if (dlBtn) { dlBtn.textContent = '\u2b07 Again'; dlBtn.disabled = false; }
+    if (dlBtn) { dlBtn.textContent = '\u2b07 Again'; dlBtn.disabled = false; dlBtn.style.display = ''; }
     return;
   }
   card.classList.add('done-minimized');
@@ -2842,11 +3280,6 @@ function toast(msg, type='') {
   c.appendChild(t); setTimeout(()=>t.remove(), TOAST_DURATION);
 }
 
-
-
-
-
-
 // ── Hamburger panel — History + Themes tabs ────────────────────────────────────
 (function() {
   const btn   = document.getElementById('hamburger-btn');
@@ -2862,15 +3295,18 @@ function toast(msg, type='') {
   document.addEventListener('click', (e) => {
     if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
   });
+
   tabs.forEach(t => t.addEventListener('click', () => {
     tabs.forEach(x => x.classList.remove('active'));
     t.classList.add('active');
     const tab = t.dataset.tab;
     document.getElementById('hpanel-history').style.display = tab === 'history' ? '' : 'none';
     document.getElementById('hpanel-themes').style.display  = tab === 'themes'  ? '' : 'none';
+    // Re-trigger animation
     const el = document.getElementById(`hpanel-${tab}`);
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
   }));
+
   document.getElementById('open-history-window-btn').addEventListener('click', () => {
     panel.classList.remove('open');
     if (window.electronAPI?.openHistoryWindow) window.electronAPI.openHistoryWindow();
@@ -2884,7 +3320,9 @@ function toast(msg, type='') {
 })();
 
 // ── History panel state & render ──────────────────────────────────────────────
-let _historyPage = 1;
+let _historyPage = 1;         // current batch (1-based, newest first)
+let _historyTotal = 0;
+let _historyBatches = [];     // [{page, items}] — already loaded pages
 const HBATCH = 10;
 
 function _fmtSize(b) {
@@ -2896,12 +3334,16 @@ function _fmtSize(b) {
 }
 function _fmtDate(iso) {
   try {
-    const d = new Date(iso), now = new Date();
+    const d = new Date(iso);
+    const now = new Date();
     const diff = (now - d) / 1000;
     if (diff < 86400) return 'Today';
     if (diff < 172800) return 'Yesterday';
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   } catch { return ''; }
+}
+function _fmtFmt(f) {
+  return f ? f.toUpperCase() : '';
 }
 
 function _buildEntry(item) {
@@ -2912,7 +3354,7 @@ function _buildEntry(item) {
     <div class="hthumb">${isAudio ? '♫' : '▶'}</div>
     <div style="flex:1;min-width:0">
       <p class="htitle">${item.title || item.filename || '—'}</p>
-      <p class="hmeta">${(item.format||'').toUpperCase()}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
+      <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
     </div>
     <div class="hbtns">
       <button class="hbtn" title="Re-add URL">↺</button>
@@ -2937,27 +3379,43 @@ function _buildEntry(item) {
 
 async function loadHistoryPanel(page = 1) {
   _historyPage = page;
+  _historyBatches = [];
   const body  = document.getElementById('history-panel-body');
   const empty = document.getElementById('history-empty');
   body.innerHTML = '';
+
   try {
     const d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
+    _historyTotal = d.total;
     document.getElementById('history-panel-count').textContent = d.total + ' total';
     document.getElementById('history-total-info').textContent  = d.total + ' downloads';
+
     const badge = document.getElementById('history-badge');
-    if (d.total > 0) { badge.textContent = d.total > 99 ? '99+' : d.total; badge.style.display = 'flex'; }
-    else badge.style.display = 'none';
+    if (d.total > 0) {
+      badge.textContent = d.total > 99 ? '99+' : d.total;
+      badge.style.display = 'flex';
+    } else { badge.style.display = 'none'; }
+
     document.getElementById('history-tab-count').textContent = d.total || '';
-    if (!d.items || d.items.length === 0) { empty.style.display = ''; return; }
+
+    if (!d.items || d.items.length === 0) {
+      empty.style.display = '';
+      return;
+    }
     empty.style.display = 'none';
-    d.items.slice(0, 5).forEach(item => body.appendChild(_buildEntry(item)));
-    const hidden = d.items.length - Math.min(5, d.items.length);
+
+    // Render current batch items (max 5 shown, rest in "· · · N more · · ·")
+    const shown = d.items.slice(0, 5);
+    const hidden = d.items.length - shown.length;
+    shown.forEach(item => body.appendChild(_buildEntry(item)));
     if (hidden > 0) {
       const more = document.createElement('p');
       more.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:2px 0';
       more.textContent = `· · · ${hidden} more in this batch · · ·`;
       body.appendChild(more);
     }
+
+    // "Show older" button
     if (page < d.pages) {
       const btn = document.createElement('button');
       btn.className = 'hpill';
@@ -2971,17 +3429,26 @@ async function loadHistoryPanel(page = 1) {
 async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   const d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
   if (!d.items || !d.items.length) return;
-  const entries = [...parentBody.querySelectorAll('.hentry')];
-  if (entries.length > 0) {
+
+  // Collapse previous entries into a pill
+  const pills = parentBody.querySelectorAll('.hentry, p, .hpill');
+  const collapseCount = parentBody.querySelectorAll('.hentry').length;
+  if (collapseCount > 0) {
     const pill = document.createElement('button');
     pill.className = 'hpill';
-    pill.innerHTML = `↑ Show newer <span style="background:var(--surf2);border-radius:6px;padding:0 4px;font-size:8px;border:0.5px solid var(--border)">${entries.length}</span>`;
+    pill.innerHTML = `↑ Show newer <span style="background:var(--surf2);border-radius:6px;padding:0 4px;font-size:8px;border:0.5px solid var(--border)">${collapseCount}</span>`;
+    // On click: restore original page
     pill.addEventListener('click', () => loadHistoryPanel(_historyPage));
-    [...parentBody.children].forEach(el => el.remove());
-    parentBody.appendChild(pill);
+    [...pills].forEach(el => el.remove());
+    parentBody.insertBefore(pill, parentBody.firstChild);
   }
   oldBtn.remove();
-  d.items.slice(0, 5).forEach(item => parentBody.appendChild(_buildEntry(item)));
+
+  // Render new batch
+  const frag = document.createDocumentFragment();
+  d.items.slice(0, 5).forEach(item => frag.appendChild(_buildEntry(item)));
+  parentBody.appendChild(frag);
+
   if (page < totalPages) {
     const btn = document.createElement('button');
     btn.className = 'hpill';
@@ -2996,6 +3463,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   }
 }
 
+// Load badge count on startup
 (async () => {
   try {
     const d = await fetch('/api/history?page=1&per_page=1').then(r => r.json());
@@ -3055,7 +3523,6 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
       if (win && inRange(win[0], win[1])) row.style.display = '';
     });
   })();
-  const rows   = document.querySelectorAll('.theme-row');
 
   // ── Theme data — swatches + labels + categories ─────────────────────────────
   const THEME_DATA = {
@@ -3152,7 +3619,6 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     custom:           {label:'Custom',           bg:'#0b1120',surf:'#111c2e',acc:'#3b82f6',   cat:'custom'},
   };
 
-
   // ── Recent themes (up to 9, persisted in localStorage) ──────────────────────
   let recentThemes = [];
   try { recentThemes = JSON.parse(localStorage.getItem('egm-recent-themes') || '[]'); } catch {}
@@ -3185,6 +3651,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
         <div class="theme-check${key === current ? ' checked' : ''}"></div>
       </div>`;
     }).join('');
+    // Re-attach click handlers
     list.querySelectorAll('.theme-row').forEach(r => r.addEventListener('click', () => {
       applyTheme(r.dataset.theme);
       document.getElementById('hamburger-panel').classList.remove('open');
@@ -3203,10 +3670,12 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   const saved = localStorage.getItem('egm-theme') || 'void';
   applyTheme(saved);
 
+  // Listen for theme changes from themes window (via IPC)
   if (window.electronAPI && window.electronAPI.onThemeChanged) {
     window.electronAPI.onThemeChanged(theme => applyTheme(theme));
   }
 
+  // Open themes window
   window.openThemesWindow = function() {
     if (window.electronAPI && window.electronAPI.openThemesWindow) {
       window.electronAPI.openThemesWindow();
@@ -3215,7 +3684,8 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     }
     document.getElementById('hamburger-panel').classList.remove('open');
   };
-})();
+
+})(); // ── End theme picker IIFE ───────────────────────────────────────────────
 
 // ── Theme import / export ─────────────────────────────────────────────────────
 (function() {
@@ -3227,14 +3697,18 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
                          '--btn-primary-text','--btn-on-accent','--btn-red-border',
                          '--audio-btn-color','--dur-bg','--dur-text'];
 
+  // Restore custom theme from localStorage on load
   const saved = localStorage.getItem('egm-custom-theme');
-  if (saved) { try { _applyCustomTheme(JSON.parse(saved)); } catch {} }
+  if (saved) {
+    try { _applyCustomTheme(JSON.parse(saved)); } catch {}
+  }
 
   function _applyCustomTheme(theme) {
     let el = document.getElementById('custom-theme-style');
     if (!el) { el = document.createElement('style'); el.id = 'custom-theme-style'; document.head.appendChild(el); }
     const vars = Object.entries(theme.vars).map(([k,v]) => `${k}:${v}`).join(';');
     el.textContent = `body.custom{${vars}}`;
+    // Update custom row swatches + name
     const row = document.getElementById('custom-theme-row');
     if (row) {
       document.getElementById('csw1').style.background = theme.vars['--bg']   || '';
@@ -3245,9 +3719,10 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     }
   }
 
+  // Export — collect vars from getComputedStyle (reflects active theme)
   document.getElementById('theme-export-btn').addEventListener('click', async () => {
-    const cs   = getComputedStyle(document.body);
-    const vars = {};
+    const cs    = getComputedStyle(document.body);
+    const vars  = {};
     ALL_VARS.forEach(v => { const val = cs.getPropertyValue(v).trim(); if (val) vars[v] = val; });
     const activeTheme = localStorage.getItem('egm-theme') || 'void';
     const themeName   = activeTheme.charAt(0).toUpperCase() + activeTheme.slice(1);
@@ -3264,6 +3739,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     }
   });
 
+  // Import — validate → preview → apply
   document.getElementById('theme-import-btn').addEventListener('click', async () => {
     try {
       let text;
@@ -3279,18 +3755,21 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
       let theme;
       try { theme = JSON.parse(text); } catch { toast('✗ Not a valid JSON file', 'err'); return; }
 
-      if (!theme['egm-theme'])                                           { toast('✗ Not a valid EGM theme file', 'err'); return; }
-      if (typeof theme.name !== 'string')                                { toast('✗ Theme is missing a name', 'err'); return; }
-      if (typeof theme.vars !== 'object' || Array.isArray(theme.vars))  { toast('✗ Theme has no vars block', 'err'); return; }
+      // Validate structure
+      if (!theme['egm-theme']) { toast('✗ Not a valid EGM theme file', 'err'); return; }
+      if (typeof theme.name !== 'string') { toast('✗ Theme is missing a name', 'err'); return; }
+      if (typeof theme.vars !== 'object' || Array.isArray(theme.vars)) { toast('✗ Theme has no vars block', 'err'); return; }
 
+      // Validate required vars
       const missing = REQUIRED_VARS.filter(v => !theme.vars[v]);
       if (missing.length) { toast(`✗ Missing required vars: ${missing.slice(0,3).join(', ')}${missing.length>3?' …':''}`, 'err'); return; }
 
-      const bg = theme.vars['--bg']   || '#000';
-      const sf = theme.vars['--surf'] || '#111';
-      const ac = theme.vars['--acc']  || '#3b82f6';
-      const tx = theme.vars['--text'] || '#fff';
-      const nm = theme.name;
+      // Show preview modal
+      const bg  = theme.vars['--bg']   || '#000';
+      const sf  = theme.vars['--surf'] || '#111';
+      const ac  = theme.vars['--acc']  || '#3b82f6';
+      const tx  = theme.vars['--text'] || '#fff';
+      const nm  = theme.name;
 
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
@@ -3316,14 +3795,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
         backdrop.remove();
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
-        document.getElementById('theme-list').querySelectorAll('.theme-row').forEach(r => {
-          const active = r.dataset.theme === 'custom';
-          r.classList.toggle('active', active);
-          r.querySelector('.theme-check').classList.toggle('checked', active);
-        });
-        document.body.classList.remove('void','eclipse','ghost','frost','bone','haze');
-        document.body.classList.add('custom');
-        localStorage.setItem('egm-theme', 'custom');
+        applyTheme('custom');
         toast(`Theme "${theme.name}" applied ✓`, 'ok');
       });
 
@@ -3333,6 +3805,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Audio quality popup ───────────────────────────────────────────────────────
 let _selectedAudioQuality = '320';
+
 (function() {
   const modal   = document.getElementById('audio-quality-modal');
   const options = document.querySelectorAll('.quality-option');
@@ -3346,13 +3819,51 @@ let _selectedAudioQuality = '320';
     });
   });
 
-  document.getElementById('dl-all-audio-btn').addEventListener('click', () => { modal.style.display = 'flex'; });
-  confirm.addEventListener('click', () => { modal.style.display = 'none'; downloadAll('audio', _selectedAudioQuality); });
+  // Override dl-all-audio-btn to show quality picker first
+  document.getElementById('dl-all-audio-btn').addEventListener('click', () => {
+    modal.style.display = 'flex';
+  });
+
+  confirm.addEventListener('click', () => {
+    modal.style.display = 'none';
+    downloadAll('audio', _selectedAudioQuality);
+  });
 })();
 
 function audioQualityBgClick(e) {
   if (e.target === document.getElementById('audio-quality-modal'))
     document.getElementById('audio-quality-modal').style.display = 'none';
+}
+
+// ── Video quality popup ───────────────────────────────────────────────────────
+(function() {
+  const modal   = document.getElementById('video-quality-modal');
+  if (!modal) return;
+  const confirm = document.getElementById('video-quality-confirm-btn');
+  let selectedVQ = 'best';
+  modal.querySelectorAll('.quality-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      selectedVQ = opt.dataset.vquality;
+    });
+  });
+  confirm.addEventListener('click', () => {
+    modal.style.display = 'none';
+    downloadAll('video', null, selectedVQ);
+  });
+})();
+
+function showVideoQualityModal() {
+  const modal = document.getElementById('video-quality-modal');
+  modal.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+  const best = modal.querySelector('[data-vquality="best"]');
+  if (best) best.classList.add('selected');
+  modal.style.display = 'flex';
+}
+function videoQualityBgClick(e) {
+  if (e.target === document.getElementById('video-quality-modal'))
+    document.getElementById('video-quality-modal').style.display = 'none';
 }
 
 // ── What's New — show once per version ───────────────────────────────────────
@@ -3361,9 +3872,11 @@ function audioQualityBgClick(e) {
     const s = await fetch('/api/settings').then(r => r.json());
     const currentVersion = document.getElementById('version-badge')?.textContent?.trim() || '';
     if (currentVersion && s.last_seen_version !== currentVersion) {
+      // Show What's New modal immediately with loading state
       document.getElementById('whats-new-version').textContent = currentVersion;
       document.getElementById('whats-new-modal').style.display = 'flex';
 
+      // Fetch release notes from the platform JSON feed
       try {
         const wn = await fetch('/api/whats-new').then(r => r.json());
         const list = document.getElementById('whats-new-list');
@@ -3388,6 +3901,8 @@ function audioQualityBgClick(e) {
 
 // ── Advanced settings panel ───────────────────────────────────────────────────
 (function() {
+  // Toggle open/close
+  // Advanced panel toggle — used by sec-hdr onclick and button
   window.toggleAdvPanel = function() {
     const body = document.getElementById('adv-card-body');
     const btn  = document.getElementById('adv-card-toggle');
@@ -3396,6 +3911,7 @@ function audioQualityBgClick(e) {
     document.getElementById('adv-card-toggle').closest('.sec-hdr').classList.toggle('open', !open);
   };
 
+  // Load saved port on startup
   (async () => {
     try {
       const s = await fetch('/api/settings').then(r => r.json());
@@ -3404,42 +3920,49 @@ function audioQualityBgClick(e) {
     } catch {}
   })();
 
+  // Apply port change
   document.getElementById('adv-port-btn').addEventListener('click', async () => {
     const input = document.getElementById('adv-port-input');
     const port  = parseInt(input.value, 10);
     if (!port || port < 1024 || port > 65535) { toast('Port must be between 1024 and 65535', 'err'); return; }
-    if (!confirm('Change port to ' + port + '?\n\nOnly do this if port 8899 is already in use by another application. The app will need to restart.')) return;
+    if (port === 8899 && !confirm('Change port to ' + port + '?\n\nOnly do this if port 8899 is already in use. The app will need to restart.')) return;
+    if (port !== 8899 && !confirm('Change port to ' + port + '?\n\nOnly do this if port 8899 is already in use by another application.\n\nThe app will restart to apply the change.')) return;
     await post('/api/settings/save', { flask_port: port });
     toast('Port saved — restart the app to apply', 'warn');
   });
 
+  // Clear cache
   document.getElementById('adv-clear-cache-btn').addEventListener('click', async () => {
     const r = await post('/api/cache/clear', {});
     if (r.ok) toast('Cache cleared ✓', 'ok');
     else toast('Clear failed: ' + (r.error || 'unknown'), 'err');
   });
 
+  // Reset settings
   document.getElementById('adv-reset-btn').addEventListener('click', async () => {
     if (!confirm('Reset all settings to defaults?\n\nYour downloads and history are not affected.')) return;
     const r = await post('/api/settings/reset', {});
-    if (r.ok) toast('Settings reset — restart to see changes', 'ok');
+    if (r.ok) { toast('Settings reset — restart to see changes', 'ok'); }
     else toast('Reset failed: ' + (r.error || 'unknown'), 'err');
   });
 
+  // Reinstall ffmpeg
   document.getElementById('adv-ffmpeg-btn').addEventListener('click', async () => {
-    if (!confirm('Remove the current ffmpeg installation?\n\nA fresh copy will be downloaded on next launch.')) return;
+    if (!confirm('Remove the current ffmpeg installation?\n\nA fresh copy will be downloaded on next launch. Make sure you have an internet connection.')) return;
     const r = await post('/api/ffmpeg/reinstall', {});
     if (r.ok) toast('ffmpeg removed — will reinstall on next launch', 'ok');
     else toast('Failed: ' + (r.error || 'unknown'), 'err');
   });
 
+  // Reinstall Deno
   document.getElementById('adv-deno-btn').addEventListener('click', async () => {
-    if (!confirm('Remove the current Deno installation?\n\nDeno will reinstall on next launch.')) return;
+    if (!confirm('Remove the current Deno installation?\n\nDeno will reinstall on next launch. Make sure you have an internet connection.')) return;
     const r = await post('/api/deno/reinstall', {});
     if (r.ok) toast('Deno removed — will reinstall on next launch', 'ok');
     else toast('Failed: ' + (r.error || 'unknown'), 'err');
   });
 
+  // Export settings
   document.getElementById('adv-export-btn').addEventListener('click', async () => {
     try {
       const s = await fetch('/api/settings').then(r => r.json());
@@ -3456,6 +3979,7 @@ function audioQualityBgClick(e) {
     } catch { toast('Could not export settings', 'err'); }
   });
 
+  // Import settings
   document.getElementById('adv-import-btn').addEventListener('click', async () => {
     try {
       let text;
