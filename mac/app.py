@@ -981,6 +981,26 @@ def installed_versions():
         "deno":   {"installed": deno_installed, "version": deno_version},
     })
 
+
+@app.route("/api/whats-new")
+def whats_new():
+    """Return _version_notes from the platform JSON feed for the What's New modal.
+    Falls back to empty list gracefully — modal stays shown but with no bullets."""
+    try:
+        req = urllib.request.Request(APP_UPDATE_URL,
+                                     headers={"User-Agent": "EGM-Downloader"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            data = json.loads(r.read())
+        notes = data.get("_version_notes", [])
+        if not isinstance(notes, list):
+            notes = [str(notes)] if notes else []
+        return jsonify({
+            "version": data.get("version", APP_VERSION),
+            "notes_list": notes,
+        })
+    except Exception:
+        return jsonify({"version": APP_VERSION, "notes_list": []})
+
 @app.route("/api/check-app-update")
 def check_app_update():
     """Fetch egm-version.json and compare to running version."""
