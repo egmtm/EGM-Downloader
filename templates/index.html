@@ -1388,27 +1388,9 @@
     </div>
     <div class="path-hint" id="dir-hint" style="color:var(--yellow)">⚠ Select a download folder before downloading.</div>
 
-    <!-- Daily-use controls promoted from Advanced — toggles + format selectors -->
+    <!-- Daily-use controls promoted from Advanced — format selectors + toggles -->
     <div style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-top:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap;gap:8px">
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
-          <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
-          <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="subtitles-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="quit-on-done-chk">
-          <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
-        </div>
-      </div>
-      <div style="display:flex;align-items:center;gap:0">
+      <div style="display:flex;align-items:center;gap:0;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px">
         <div style="flex:1;display:flex;align-items:center;gap:8px">
           <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
           <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
@@ -1428,6 +1410,24 @@
             <option value="mp4" selected>MP4 (recommended)</option>
             <option value="mkv">MKV</option>
           </select>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
+          <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
+        </div>
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
+          <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
+        </div>
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="subtitles-chk">
+          <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
+        </div>
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="quit-on-done-chk">
+          <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
         </div>
       </div>
     </div>
