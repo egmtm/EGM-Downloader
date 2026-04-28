@@ -1626,14 +1626,7 @@
   <div class="modal" id="whats-new-modal-inner">
     <h3>🎉 What's New in <span id="whats-new-version">v0.97</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
-      <li>76 themes total — 66 permanent across 8 categories plus 10 seasonal easter eggs that auto-appear near their holiday</li>
-      <li>Brand new Themes window — browse all themes in a grid, filter by category, search by name, click to apply instantly</li>
-      <li>Theme picker always shows your 10 most recently used themes for quick switching</li>
-      <li>Download History and Themes windows now match your active theme and update live when you switch</li>
-      <li>Vertical video thumbnails (TikTok, Shorts, Reels) display with the correct portrait aspect ratio</li>
-      <li>Select video quality before bulk downloads — Best, 1080p, 720p, 480p, or 360p</li>
-      <li>Download history updates instantly in the panel when a download completes</li>
-      <li>Plugin update toggles control the Install Updates button — only appears when something needs updating</li>
+      <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
     </ul>
     <div class="modal-actions">
       <button class="btn btn-primary" id="whats-new-dismiss-btn">Got it</button>
@@ -3816,9 +3809,25 @@ function videoQualityBgClick(e) {
     const s = await fetch('/api/settings').then(r => r.json());
     const currentVersion = document.getElementById('version-badge')?.textContent?.trim() || '';
     if (currentVersion && s.last_seen_version !== currentVersion) {
-      // Show What's New modal
+      // Show What's New modal immediately with loading state
       document.getElementById('whats-new-version').textContent = currentVersion;
       document.getElementById('whats-new-modal').style.display = 'flex';
+
+      // Fetch release notes from the platform JSON feed
+      try {
+        const wn = await fetch('/api/whats-new').then(r => r.json());
+        const list = document.getElementById('whats-new-list');
+        const notes = wn.notes_list || [];
+        if (notes.length > 0) {
+          list.innerHTML = notes.map(n => `<li>${n}</li>`).join('');
+        } else {
+          list.innerHTML = '<li style="list-style:none;color:var(--muted);font-style:italic">See egerena.com for release notes.</li>';
+        }
+      } catch {
+        document.getElementById('whats-new-list').innerHTML =
+          '<li style="list-style:none;color:var(--muted);font-style:italic">See egerena.com for release notes.</li>';
+      }
+
       document.getElementById('whats-new-dismiss-btn').addEventListener('click', async () => {
         document.getElementById('whats-new-modal').style.display = 'none';
         await post('/api/settings/save', { last_seen_version: currentVersion });
