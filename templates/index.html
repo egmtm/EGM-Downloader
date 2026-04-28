@@ -754,6 +754,11 @@
     .toast.ok   { border-left-color: var(--green); }
     .toast.err  { border-left-color: var(--red); }
     .toast.warn { border-left-color: var(--yellow); }
+
+    /* ── Portable mode — hide update UI entirely ── */
+    body.portable-mode #footer-update-btn,
+    body.portable-mode .sec-hdr[onclick*="toggleUpdPanel"],
+    body.portable-mode #upd-body { display: none !important; }
     @keyframes sli { from { opacity:0; transform:translateX(32px); } }
 
     /* ── Update modal ── */
@@ -1972,6 +1977,16 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
   // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows)
   const sb = document.getElementById('adv-shortcut-btn');
   if (sb && typeof window.electronAPI?.createShortcut !== 'function') sb.style.display = 'none';
+
+// ── Portable mode detection — runs immediately, hides update UI if portable ───
+(async function() {
+  try {
+    const p = await fetch('/api/portable-status').then(r => r.json());
+    if (p.portable) {
+      document.body.classList.add('portable-mode');
+    }
+  } catch {}
+})();
 })();
 
 document.getElementById('quit-on-done-chk').addEventListener('change', function() {
