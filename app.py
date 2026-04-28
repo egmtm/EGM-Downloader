@@ -1269,6 +1269,19 @@ def clear_history():
         _save_history([])
     return jsonify({"ok": True})
 
+@app.route("/api/history/import", methods=["POST"])
+def import_history():
+    """Replace history with the provided list. Used by Import Settings flow."""
+    data = request.json or {}
+    items = data.get("items", [])
+    if not isinstance(items, list):
+        return jsonify({"error": "items must be a list"}), 400
+    # Light validation — keep only entries with the expected shape
+    cleaned = [i for i in items if isinstance(i, dict) and "id" in i]
+    with _history_lock:
+        _save_history(cleaned)
+    return jsonify({"ok": True, "count": len(cleaned)})
+
 @app.route("/history-page")
 def history_page(): return render_template("history.html")
 
