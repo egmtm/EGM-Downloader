@@ -445,8 +445,23 @@
     .quality-desc { font-size: .75rem; color: var(--text2); }
 
     /* ── What's New modal ── */
-    #whats-new-modal .modal { max-width: 420px; }
-    .whats-new-list { margin: 10px 0 14px; padding-left: 18px; }
+    #whats-new-modal .modal {
+      max-width: 420px;
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+    }
+    /* Header (h3) and footer (modal-actions) stay fixed; only the bullet list scrolls.
+       This keeps the modal usable on small / scaled / vertical screens. */
+    #whats-new-modal .modal h3 { flex: 0 0 auto; }
+    #whats-new-modal .modal-actions { flex: 0 0 auto; }
+    .whats-new-list {
+      margin: 10px 0 14px;
+      padding-left: 18px;
+      overflow-y: auto;
+      flex: 1 1 auto;
+      min-height: 0;
+    }
     .whats-new-list li { font-size: .82rem; color: var(--text2); margin-bottom: 6px; line-height: 1.5; }
 
     body {
