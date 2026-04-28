@@ -276,6 +276,54 @@ def check_mac_build_sh(v):
 
 
 # --------------------------------------------------------------------------
+# Item 5 — Portable file list drift check
+# --------------------------------------------------------------------------
+
+def check_portable_file_list():
+    """Verify the portable build's file copy list matches the NSIS installer file list.
+
+    Parses windows/setup.nsi for File directives and windows/BUILD.sh for the
+    portable stage cp commands — any drift means the portable zip would differ
+    from the installer in ways that are probably unintentional.
+
+    Opportunistic: skips gracefully if either file is missing or unparseable.
+    """
+    import re
+    errors = []
+
+    nsi_path = ROOT / 'windows' / 'setup.nsi'
+    sh_path  = ROOT / 'windows' / 'BUILD.sh'
+
+    if not nsi_path.exists() or not sh_path.exists():
+        return errors  # can't check — skip silently
+
+    nsi_text = nsi_path.read_text(encoding='utf-8', errors='replace')
+    sh_text  = sh_path.read_text(encoding='utf-8', errors='replace')
+
+    # Extract filenames from NSIS: File "${REPO_ROOT}/some/path/file.ext"
+    nsi_files = set(re.findall(r'File\s+"[^"]*?[\\/]([^\\/\\"]+)"', nsi_text))
+
+    # Extract filenames from portable stage cp block
+    portable_section = sh_text
+    start = sh_text.find('# ── Build portable variant')
+    end   = sh_text.find('# ── Push to GitHub', start) if start != -1 else -1
+    if start != -1 and end != -1:
+        portable_section = sh_text[start:end]
+
+    sh_files = set(re.findall(r'cp\s+"[^"]*?[\\/]([^\\/\\"]+)"\s+".*?PORTABLE_STAGE', portable_section))
+
+    missing_from_portable = nsi_files - sh_files - {'egm-setup.exe'}  # installer-only, not in portable
+    extra_in_portable     = sh_files  - nsi_files
+
+    if missing_from_portable:
+        errors.append(f"Portable build missing files that NSIS installs: {sorted(missing_from_portable)}")
+    if extra_in_portable:
+        errors.append(f"Portable build includes files not in NSIS installer: {sorted(extra_in_portable)}")
+
+    return errors
+
+
+# --------------------------------------------------------------------------
 # Item 2 — Merge conflict marker scanner
 # --------------------------------------------------------------------------
 
@@ -444,6 +492,10 @@ def main():
     for label, fn in checks:
         print(f"   Checking {label}...")
         all_errors.extend(fn())
+
+    # ── Item 5: Portable file list drift check ────────────────────────────────
+    print("   Checking portable file list sync with NSIS installer...")
+    all_errors.extend(check_portable_file_list())
 
     # ── Item 2: Merge conflict markers ────────────────────────────────────────
     print("   Scanning for merge conflict markers...")
