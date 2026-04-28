@@ -2020,6 +2020,25 @@ setTimeout(async () => {
     if (typeof syncInstallBtn === 'function') syncInstallBtn();
   } catch {}
 }, 2000);
+
+// ── Cross-window readd: receive URLs from full history window ─────────────────
+// History window in Electron has no window.opener (separate BrowserWindow),
+// so we use BroadcastChannel — works in Electron between same-origin windows.
+try {
+  const _readdChannel = new BroadcastChannel('egm-readd');
+  _readdChannel.addEventListener('message', (e) => {
+    if (!e.data || !e.data.url) return;
+    const urlsEl = document.getElementById('urls');
+    if (!urlsEl) return;
+    const existing = urlsEl.value.trim();
+    const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+    if (!lines.includes(e.data.url)) {
+      urlsEl.value = lines.length ? `${lines.join('\n')}\n${e.data.url}` : e.data.url;
+      urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    try { window.focus(); } catch {}
+  });
+} catch {}
 })();
 
 document.getElementById('quit-on-done-chk').addEventListener('change', function() {
@@ -3960,8 +3979,20 @@ function videoQualityBgClick(e) {
   document.getElementById('adv-reset-btn').addEventListener('click', async () => {
     if (!confirm('Reset all settings to defaults?\n\nYour downloads and history are not affected.')) return;
     const r = await post('/api/settings/reset', {});
-    if (r.ok) { toast('Settings reset — restart to see changes', 'ok'); }
-    else toast('Reset failed: ' + (r.error || 'unknown'), 'err');
+    if (r.ok) {
+      // Clear frontend-side localStorage that the backend doesn't manage
+      // (theme, recent themes, custom themes, transient flags). Preserves history.
+      try {
+        localStorage.removeItem('egm-theme');
+        localStorage.removeItem('egm-custom-theme');
+        localStorage.removeItem('egm-recent-themes');
+        sessionStorage.removeItem('egm_konami');
+      } catch {}
+      toast('Settings reset — reloading…', 'ok');
+      setTimeout(() => location.reload(), 800);
+    } else {
+      toast('Reset failed: ' + (r.error || 'unknown'), 'err');
+    }
   });
 
   // Reinstall ffmpeg
