@@ -22,18 +22,19 @@
 ## ✨ Features
 
 - 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
-- 🎬 **Video & Audio Downloads** - Download as MP4 video or extract MP3 audio
-- 📊 **Quality Selection** - Choose your preferred video quality and format
+- 🎬 **Video & Audio Downloads** - MP4 or MKV video; MP3, M4A, OPUS, or FLAC audio
+- 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 📋 **Playlist Support** - Download entire playlists with one click
-- ⚡ **Batch Downloads** - Queue multiple videos and audio files, download them all at once
-- 🎨 **Beautiful Dark Interface** - Sleek black and gold design
-- 🎨 **76 Themes** - 66 permanent across 8 categories + 10 seasonal easter eggs with smooth transitions
+- ⚡ **Batch Downloads** - Queue multiple URLs and download them all at once
+- 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V fetches, Ctrl+Enter starts, Esc clears
+- 🎨 **120 Themes** - 110 permanent across 10 categories + 10 seasonal easter eggs with smooth transitions
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
-- 🔄 **Auto-Updates** - Built-in update checker keeps you current (Windows/Mac)
+- 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
+- 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
 - 📝 **Custom Filenames** - Edit filenames before downloading
 - 🛠️ **Plugin Updates** - Update yt-dlp and ffmpeg without reinstalling
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
-- 📌 **System Tray** - Minimize to tray for background operation (Windows)
+- 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
 
 ---
