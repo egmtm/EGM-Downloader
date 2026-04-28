@@ -1388,6 +1388,10 @@
           <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
         </div>
         <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
+          <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
+        </div>
+        <div class="sw-wrap">
           <input type="checkbox" class="sw" id="subtitles-chk">
           <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
         </div>
@@ -1395,6 +1399,14 @@
           <input type="checkbox" class="sw" id="quit-on-done-chk">
           <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
         </div>
+      </div>
+      <!-- Output format row (4d: MKV support) -->
+      <div style="grid-column:1/-1;display:flex;align-items:center;gap:10px;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:4px">
+        <span style="font-size:.76rem;color:var(--text2);white-space:nowrap" title="Container format for video downloads">Output format</span>
+        <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
+          <option value="mp4" selected>MP4 (recommended)</option>
+          <option value="mkv">MKV (preserves chapters, multiple audio tracks)</option>
+        </select>
       </div>
 
       <button class="adv-btn-full" id="adv-shortcut-btn">
@@ -1461,6 +1473,11 @@
     <h3>♫ Audio Quality</h3>
     <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all audio downloads.</p>
     <div class="quality-options">
+      <div style="display:flex;align-items:center;gap:8px;margin:2px 0 6px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">MP3</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
       <div class="quality-option" data-quality="128">
         <div><div class="quality-label">128 kbps MP3</div><div class="quality-desc">Small files · streaming quality</div></div>
       </div>
@@ -1471,7 +1488,23 @@
         <div><div class="quality-label">320 kbps MP3</div><div class="quality-desc">CD quality · recommended</div></div>
       </div>
       <div class="quality-option" data-quality="flac">
-        <div><div class="quality-label">FLAC</div><div class="quality-desc">Lossless · large files</div></div>
+        <div><div class="quality-label">FLAC</div><div class="quality-desc">Lossless · largest files</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin:8px 0 6px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">M4A</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div class="quality-option" data-quality="m4a_256">
+        <div><div class="quality-label">256 kbps M4A</div><div class="quality-desc">Apple-friendly · efficient AAC</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin:8px 0 6px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">OPUS</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div class="quality-option" data-quality="opus_128">
+        <div><div class="quality-label">128 kbps OPUS</div><div class="quality-desc">High efficiency · best size/quality ratio</div></div>
       </div>
     </div>
     <div class="modal-actions">
@@ -1489,6 +1522,25 @@
     <div class="quality-options">
       <div class="quality-option selected" data-vquality="best">
         <div><div class="quality-label">Best available</div><div class="quality-desc">Highest quality per video</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0 4px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">High resolution</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+      </div>
+      <div class="quality-option" data-vquality="4320">
+        <div><div class="quality-label">8K (4320p)</div><div class="quality-desc">Maximum · very large files</div></div>
+      </div>
+      <div class="quality-option" data-vquality="2160">
+        <div><div class="quality-label">4K (2160p)</div><div class="quality-desc">Ultra HD · large files</div></div>
+      </div>
+      <div class="quality-option" data-vquality="1440">
+        <div><div class="quality-label">2K (1440p)</div><div class="quality-desc">Quad HD · sharp detail</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin:6px 0 4px">
+        <div style="flex:1;height:1px;background:var(--border)"></div>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">Standard</span>
+        <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-vquality="1080">
         <div><div class="quality-label">1080p</div><div class="quality-desc">Full HD · recommended</div></div>
@@ -1856,6 +1908,14 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       const chk = document.getElementById('subtitles-chk');
       if (chk) chk.checked = true;
     }
+    if (s.embed_metadata === false) {
+      const chk = document.getElementById('embed-metadata-chk');
+      if (chk) chk.checked = false;
+    }
+    if (s.output_format && s.output_format === 'mkv') {
+      const sel = document.getElementById('output-format-sel');
+      if (sel) sel.value = 'mkv';
+    }
   } catch {}
   // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows)
   const sb = document.getElementById('adv-shortcut-btn');
@@ -1870,6 +1930,12 @@ document.getElementById('check-updates-on-launch-chk').addEventListener('change'
 });
 document.getElementById('subtitles-chk').addEventListener('change', function() {
   post('/api/settings/save', { subtitles: this.checked });
+});
+document.getElementById('embed-metadata-chk').addEventListener('change', function() {
+  post('/api/settings/save', { embed_metadata: this.checked });
+});
+document.getElementById('output-format-sel').addEventListener('change', function() {
+  post('/api/settings/save', { output_format: this.value });
 });
 
 // Save concurrency and fragments whenever changed
@@ -2677,6 +2743,8 @@ async function startDl(item, n) {
       concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
       title: chosenName, download_dir: dir,
       subtitles: !!document.getElementById('subtitles-chk')?.checked,
+      embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
+      output_format: document.getElementById('output-format-sel')?.value || 'mp4',
     });
     if (res.error) throw new Error(res.error);
     item.jobId = res.job_id;
@@ -2858,6 +2926,8 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         download_dir: dir,
         audio_quality: audioQuality || '320',
         subtitles: !!document.getElementById('subtitles-chk')?.checked,
+        embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
+        output_format: document.getElementById('output-format-sel')?.value || 'mp4',
       });
       if (res.error) throw new Error(res.error);
       item.jobId = res.job_id;
