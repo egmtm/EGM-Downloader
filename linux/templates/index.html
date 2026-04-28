@@ -4065,24 +4065,35 @@ function videoQualityBgClick(e) {
   // Export settings
   document.getElementById('adv-export-btn').addEventListener('click', async () => {
     try {
-      // Bundle settings + history into a single envelope so import can restore both.
-      // Backwards compat: if import sees a plain settings dict (no _egm_export_version),
-      // it'll just import settings — no history change.
+      // Bundle settings + history + localStorage into a single envelope so import
+      // can restore everything including custom themes and recent-themes lists,
+      // which live only in localStorage and aren't tracked server-side.
       const [s, h] = await Promise.all([
         fetch('/api/settings').then(r => r.json()),
         fetch('/api/history?page=1&per_page=10000').then(r => r.json()),
       ]);
+      // Collect all egm-* localStorage keys (themes, custom theme, recents, etc.)
+      const lsKeys = {};
+      try {
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('egm-') || k.startsWith('egm_'))) {
+            lsKeys[k] = localStorage.getItem(k);
+          }
+        }
+      } catch {}
       const envelope = {
-        _egm_export_version: 1,
+        _egm_export_version: 2,
         exported_at: new Date().toISOString(),
         settings: s || {},
         history: (h && Array.isArray(h.items)) ? h.items : [],
+        localStorage: lsKeys,
       };
       const content = JSON.stringify(envelope, null, 2);
       if (window.electronAPI?.saveFile) {
         const r = await window.electronAPI.saveFile('egm-settings.json', content);
         if (r.canceled) return;
-        if (r.ok) toast(`Exported ✓  (${envelope.history.length} history entries included)`, 'ok');
+        if (r.ok) toast(`Exported ✓  (${envelope.history.length} history entries, ${Object.keys(lsKeys).length} preferences)`, 'ok');
         else toast('Export failed: ' + (r.error || 'unknown'), 'err');
       } else {
         await navigator.clipboard.writeText(content);
@@ -4105,17 +4116,37 @@ function videoQualityBgClick(e) {
       }
       const data = JSON.parse(text);
       if (typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid format');
-      // New envelope format: { _egm_export_version, settings, history }
-      // Old format: plain settings dict (no _egm_export_version key)
+      // Detect envelope format:
+      //   v2: { settings, history, localStorage }  ← current full export
+      //   v1: { settings, history }                ← legacy, no localStorage
+      //   plain: { ...settings }                   ← oldest format
       const isEnvelope = data._egm_export_version !== undefined;
       const settingsToImport = isEnvelope ? (data.settings || {}) : data;
       const historyToImport  = isEnvelope ? (data.history  || null) : null;
+      const lsToImport       = (isEnvelope && data.localStorage && typeof data.localStorage === 'object') ? data.localStorage : null;
+
       await post('/api/settings/save', settingsToImport);
       let msg = 'Settings imported';
       if (historyToImport && Array.isArray(historyToImport)) {
         const r = await post('/api/history/import', { items: historyToImport });
         if (r && r.ok) msg += ` + ${r.count} history entries`;
       }
+      // Restore localStorage keys (v2 envelopes) — captures custom themes, recents, etc.
+      try {
+        if (lsToImport) {
+          Object.entries(lsToImport).forEach(([k, v]) => {
+            if (typeof v === 'string' && (k.startsWith('egm-') || k.startsWith('egm_'))) {
+              localStorage.setItem(k, v);
+            }
+          });
+        }
+        // v1/plain compat: server-side settings.theme exists but no localStorage block.
+        // Write settings.theme to localStorage so the theme picker picks it up on reload.
+        if (settingsToImport && typeof settingsToImport.theme === 'string') {
+          localStorage.setItem('egm-theme', settingsToImport.theme);
+        }
+      } catch {}
+
       toast(`${msg} — reloading…`, 'ok');
       setTimeout(() => location.reload(), 800);
     } catch { toast('Could not import settings — file may not be valid settings JSON', 'err'); }
