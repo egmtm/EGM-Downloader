@@ -1693,7 +1693,7 @@ function showUpdateAvailableModal(d) {
         const dl = await fetch('/api/download-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ zip_url: d.zip_url }),
+          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
         }).then(r => r.json());
         if (dl.error) { toast(dl.error, 'err'); backdrop.remove(); return; }
         toast('Launching installer…', 'ok');
@@ -1802,7 +1802,7 @@ async function checkForUpdatesOnLaunch() {
         const dl = await fetch('/api/download-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ zip_url: d.zip_url }),
+          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
         }).then(r => r.json());
         if (dl.error) return; // silent fail
         const installerPath = dl.installer_path;
