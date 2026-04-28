@@ -455,6 +455,22 @@ ipcMain.handle('create-shortcut', async () => {
     const iconPath  = path.join(__dirname, '..', 'static', 'icon.ico');
     const tmpVbs    = path.join(os.tmpdir(), `egm_sc_${Date.now()}.vbs`);
 
+    // Check if shortcut already exists on Desktop
+    let desktopPath;
+    try {
+      const { execSync } = require('child_process');
+      desktopPath = execSync(
+        'powershell -command "[Environment]::GetFolderPath(\'Desktop\')"',
+        { windowsHide: true, timeout: 5000 }
+      ).toString().trim();
+    } catch {
+      desktopPath = path.join(os.homedir(), 'Desktop');
+    }
+    const lnkPath = path.join(desktopPath, 'EGM Downloader.lnk');
+    if (fs.existsSync(lnkPath)) {
+      return { exists: true };
+    }
+
     const vbs = [
       'Set ws   = CreateObject("WScript.Shell")',
       'desktop  = ws.SpecialFolders("Desktop")',
