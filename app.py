@@ -962,9 +962,10 @@ def check_app_update():
 
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
-    """Download EGMd.zip, extract egm-setup.exe using password, return installer path."""
+    """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe using password, return installer path."""
     data    = request.json or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
+    expected_checksum = data.get("expected_checksum", "").strip().lower()
     if not zip_url:
         return jsonify({"error": "No zip URL provided"}), 400
     # SSRF guard: only allow downloads from the official distribution server
@@ -984,6 +985,16 @@ def download_update():
         req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=60) as r, open(zip_path, "wb") as f:
             shutil.copyfileobj(r, f)
+
+        # Verify SHA256 checksum if provided in the update feed
+        if expected_checksum:
+            import hashlib
+            h = hashlib.sha256()
+            h.update(zip_path.read_bytes())
+            actual_checksum = h.hexdigest().lower()
+            if actual_checksum != expected_checksum:
+                zip_path.unlink(missing_ok=True)
+                return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
 
         # Extract egm-setup.exe using password
         with pyzipper.AESZipFile(zip_path, "r") as z:
