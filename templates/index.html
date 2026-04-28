@@ -2022,21 +2022,29 @@ setTimeout(async () => {
 }, 2000);
 
 // ── Cross-window readd: receive URLs from full history window ─────────────────
-// History window in Electron has no window.opener (separate BrowserWindow),
-// so we use BroadcastChannel — works in Electron between same-origin windows.
+// Two paths: Electron IPC (preferred, most reliable) and BroadcastChannel (web fallback).
+// History window in Electron has no window.opener (separate BrowserWindow).
+const _applyReaddUrl = (url) => {
+  if (!url || typeof url !== 'string') return;
+  const urlsEl = document.getElementById('urls');
+  if (!urlsEl) return;
+  const existing = urlsEl.value.trim();
+  const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+  if (!lines.includes(url)) {
+    urlsEl.value = lines.length ? `${lines.join('\n')}\n${url}` : url;
+    urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  try { window.focus(); } catch {}
+};
+// Path 1: Electron IPC — most reliable in Electron
+if (window.electronAPI && typeof window.electronAPI.onReceiveUrl === 'function') {
+  try { window.electronAPI.onReceiveUrl(_applyReaddUrl); } catch {}
+}
+// Path 2: BroadcastChannel — web/non-Electron fallback
 try {
   const _readdChannel = new BroadcastChannel('egm-readd');
   _readdChannel.addEventListener('message', (e) => {
-    if (!e.data || !e.data.url) return;
-    const urlsEl = document.getElementById('urls');
-    if (!urlsEl) return;
-    const existing = urlsEl.value.trim();
-    const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
-    if (!lines.includes(e.data.url)) {
-      urlsEl.value = lines.length ? `${lines.join('\n')}\n${e.data.url}` : e.data.url;
-      urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
-    }
-    try { window.focus(); } catch {}
+    if (e && e.data && e.data.url) _applyReaddUrl(e.data.url);
   });
 } catch {}
 })();
@@ -3383,8 +3391,19 @@ function _buildEntry(item) {
   const [btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
   btnReadd.addEventListener('click', () => {
     const ta = document.getElementById('urls');
-    if (ta) { ta.value = item.url; ta.focus(); }
-    document.getElementById('hamburger-panel').classList.remove('open');
+    if (!ta) return;
+    // Append (one URL per line) instead of overwriting — allows readding multiple in a row
+    const existing = ta.value.trim();
+    const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+    if (!lines.includes(item.url)) {
+      ta.value = lines.length ? `${lines.join('\n')}\n${item.url}` : item.url;
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    ta.focus();
+    // Visual feedback — flash the row briefly
+    div.style.transition = 'background .2s';
+    div.style.background = 'rgba(74,222,128,.15)';
+    setTimeout(() => { div.style.background = ''; }, 600);
   });
   btnOpen.addEventListener('click', () => {
     if (window.electronAPI?.openFolder) window.electronAPI.openFolder(item.download_dir);
@@ -3399,50 +3418,72 @@ function _buildEntry(item) {
 async function loadHistoryPanel(page = 1) {
   _historyPage = page;
   _historyBatches = [];
-  const body  = document.getElementById('history-panel-body');
-  const empty = document.getElementById('history-empty');
-  body.innerHTML = '';
+  const body = document.getElementById('history-panel-body');
+  if (!body) return;
 
+  // Fetch first; build the new content in a fragment; THEN swap atomically.
+  // No detached-element references, no "wipe then await" race window.
+  let d = null;
   try {
-    const d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
-    _historyTotal = d.total;
-    document.getElementById('history-panel-count').textContent = d.total + ' total';
-    document.getElementById('history-total-info').textContent  = d.total + ' downloads';
+    d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
+  } catch {
+    body.innerHTML = '<div id="history-empty" style="padding:12px 8px;font-size:10px;color:var(--text2);text-align:center">Could not load history</div>';
+    return;
+  }
 
-    const badge = document.getElementById('history-badge');
-    if (d.total > 0) {
-      badge.textContent = d.total > 99 ? '99+' : d.total;
+  // Update count displays — these always reflect the latest fetch
+  const total = (d && typeof d.total === 'number') ? d.total : 0;
+  _historyTotal = total;
+  const countEl = document.getElementById('history-panel-count');
+  const infoEl  = document.getElementById('history-total-info');
+  if (countEl) countEl.textContent = total + ' total';
+  if (infoEl)  infoEl.textContent  = total + ' downloads';
+
+  const badge = document.getElementById('history-badge');
+  if (badge) {
+    if (total > 0) {
+      badge.textContent = total > 99 ? '99+' : total;
       badge.style.display = 'flex';
-    } else { badge.style.display = 'none'; }
-
-    document.getElementById('history-tab-count').textContent = d.total || '';
-
-    if (!d.items || d.items.length === 0) {
-      empty.style.display = '';
-      return;
+    } else {
+      badge.style.display = 'none';
     }
-    empty.style.display = 'none';
+  }
+  const tabCount = document.getElementById('history-tab-count');
+  if (tabCount) tabCount.textContent = total || '';
 
-    // Render current batch items (max 5 shown, rest in "· · · N more · · ·")
-    const shown = d.items.slice(0, 5);
-    const hidden = d.items.length - shown.length;
-    shown.forEach(item => body.appendChild(_buildEntry(item)));
+  // Build the new body content into a fragment
+  const frag = document.createDocumentFragment();
+  const items = (d && Array.isArray(d.items)) ? d.items : [];
+
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.id = 'history-empty';
+    empty.style.cssText = 'padding:12px 8px;font-size:10px;color:var(--text2);text-align:center';
+    // Edge case: server reported total > 0 but returned no items — still inform the user
+    empty.textContent = total > 0 ? `${total} downloads (refresh to load)` : 'No downloads yet';
+    frag.appendChild(empty);
+  } else {
+    const shown = items.slice(0, 5);
+    const hidden = items.length - shown.length;
+    shown.forEach(item => frag.appendChild(_buildEntry(item)));
     if (hidden > 0) {
       const more = document.createElement('p');
       more.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:2px 0';
       more.textContent = `· · · ${hidden} more in this batch · · ·`;
-      body.appendChild(more);
+      frag.appendChild(more);
     }
-
-    // "Show older" button
-    if (page < d.pages) {
+    if (d && page < d.pages) {
       const btn = document.createElement('button');
       btn.className = 'hpill';
       btn.textContent = `↓ Show older (${(d.pages - page) * HBATCH} more)`;
       btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, d.pages, body, btn));
-      body.appendChild(btn);
+      frag.appendChild(btn);
     }
-  } catch { empty.style.display = ''; }
+  }
+
+  // Atomic swap: clear old, append new — single synchronous operation
+  body.innerHTML = '';
+  body.appendChild(frag);
 }
 
 async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
@@ -3982,13 +4023,21 @@ function videoQualityBgClick(e) {
     if (r.ok) {
       // Also clear download history (EGM design: reset means reset)
       try { await fetch('/api/history/clear', { method: 'POST' }); } catch {}
-      // Clear frontend-side localStorage that the backend doesn't manage
-      // (theme, recent themes, custom themes, transient flags).
+      // Aggressively sweep ALL egm-* keys from localStorage (themes, custom theme, recents, etc.)
       try {
-        localStorage.removeItem('egm-theme');
-        localStorage.removeItem('egm-custom-theme');
-        localStorage.removeItem('egm-recent-themes');
-        sessionStorage.removeItem('egm_konami');
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const k = localStorage.key(i);
+          if (k && (k.startsWith('egm-') || k.startsWith('egm_'))) keysToRemove.push(k);
+        }
+        keysToRemove.forEach(k => localStorage.removeItem(k));
+        sessionStorage.clear();
+      } catch {}
+      // Force body to default theme IMMEDIATELY (no waiting for reload to take effect)
+      try {
+        document.body.className = '';  // strip ALL theme classes (incl. 'custom')
+        const customStyle = document.getElementById('custom-theme-style');
+        if (customStyle) customStyle.remove();
       } catch {}
       toast('Reset complete — reloading…', 'ok');
       setTimeout(() => location.reload(), 800);
