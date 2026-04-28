@@ -11,6 +11,11 @@
       "downloadUrl": "https://egerena.com/apps/EGMd.zip",
       "updateJson": "egm-version.json"
     },
+    "windows-portable": {
+      "zip": "EGMd-portable.zip",
+      "downloadUrl": "https://egerena.com/apps/EGMd-portable.zip",
+      "updateJson": "egm-portable-version.json"
+    },
     "mac": {
       "zip": "EGMdM.zip",
       "downloadUrl": "https://egerena.com/apps/EGMdM.zip",
