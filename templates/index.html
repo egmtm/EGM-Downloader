@@ -1262,7 +1262,7 @@
   </div>
   <div class="card-body">
     <div class="url-wrap">
-      <textarea id="urls" placeholder="Paste one or more URLs here (one per line)"></textarea>
+      <textarea id="urls" placeholder="Paste or drag and drop one or more URLs here (one per line)"></textarea>
     </div>
     <div class="row" style="flex-wrap:nowrap">
       <button class="paste-fetch-btn" id="fetch-btn" style="display:inline-flex;align-items:center;gap:5px;height:28px">
@@ -1410,10 +1410,10 @@
         <span class="adv-btn-icon blue">↓</span>Import settings
       </button>
       <button class="adv-btn-full" id="adv-ffmpeg-btn">
-        <span class="adv-btn-icon green">↺</span>Reinstall ffmpeg
+        <span class="adv-btn-icon green">▶</span>Reinstall ffmpeg
       </button>
       <button class="adv-btn-full" id="adv-deno-btn">
-        <span class="adv-btn-icon green">↺</span>Reinstall Deno
+        <span class="adv-btn-icon green">⬡</span>Reinstall Deno
       </button>
       <button class="adv-btn-full" id="adv-reset-btn">
         <span class="adv-btn-icon red">↺</span>Reset settings
@@ -2049,20 +2049,27 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 document.getElementById('adv-shortcut-btn')?.addEventListener('click', async () => {
+  if (!confirm('Create a desktop shortcut for EGM Downloader?')) return;
   const btn = document.getElementById('adv-shortcut-btn');
   btn.disabled = true; btn.textContent = '…';
   try {
     const r = await window.electronAPI.createShortcut();
-    if (r.success) {
+    if (r.exists) {
+      toast('Desktop shortcut already exists', 'ok');
+      btn.disabled = false;
+      btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
+    } else if (r.success) {
       toast('Desktop shortcut created ✓', 'ok');
       btn.textContent = '✓ Done';
     } else {
       toast('Shortcut error: ' + r.error, 'err');
-      btn.disabled = false; btn.textContent = 'Create';
+      btn.disabled = false;
+      btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
     }
   } catch (e) {
     toast('Shortcut error: ' + e.message, 'err');
-    btn.disabled = false; btn.textContent = 'Create';
+    btn.disabled = false;
+    btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
   }
 });
 
