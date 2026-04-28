@@ -179,6 +179,139 @@ else
 fi
 echo ""
 
+# ── Build portable variant ────────────────────────────────────────────────────
+echo "📦 Building Windows portable variant..."
+PORTABLE_STAGE="$REPO_ROOT/dist/portable-stage"
+rm -rf "$PORTABLE_STAGE"
+mkdir -p "$PORTABLE_STAGE/templates" "$PORTABLE_STAGE/static" "$PORTABLE_STAGE/electron"
+
+# Root files — must exactly match what NSIS installs (validated by validate-version-sync.py)
+cp "$REPO_ROOT/windows/EGM Downloader.vbs"   "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/windows/launch.bat"            "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/windows/launch.py"             "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/windows/instructions.txt"      "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/app.py"                        "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/requirements.txt"              "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/patchnotes.txt"                "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/README.md"                     "$PORTABLE_STAGE/"
+
+# Templates
+cp "$REPO_ROOT/templates/index.html"          "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/history.html"        "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/themes.html"         "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/theme_styles.html"   "$PORTABLE_STAGE/templates/"
+
+# Static
+cp "$REPO_ROOT/static/icon.ico"               "$PORTABLE_STAGE/static/"
+cp "$REPO_ROOT/static/icon-512.png"           "$PORTABLE_STAGE/static/"
+cp "$REPO_ROOT/static/icon-256.png"           "$PORTABLE_STAGE/static/"
+cp "$REPO_ROOT/static/icon-128.png"           "$PORTABLE_STAGE/static/"
+cp "$REPO_ROOT/static/icon-64.png"            "$PORTABLE_STAGE/static/"
+cp "$REPO_ROOT/static/icon-32.png"            "$PORTABLE_STAGE/static/"
+cp "$REPO_ROOT/static/icon-16.png"            "$PORTABLE_STAGE/static/"
+
+# Electron
+cp "$REPO_ROOT/windows/electron/main.js"      "$PORTABLE_STAGE/electron/"
+cp "$REPO_ROOT/windows/electron/preload.js"   "$PORTABLE_STAGE/electron/"
+cp "$REPO_ROOT/windows/electron/package.json" "$PORTABLE_STAGE/electron/"
+
+# Languages (i18n — future picker)
+if [ -d "$REPO_ROOT/languages" ]; then
+    cp -r "$REPO_ROOT/languages" "$PORTABLE_STAGE/"
+fi
+
+# Portable marker — is_portable() in app.py detects this file
+echo "$VERSION-portable-build-$BUILD_NUM" > "$PORTABLE_STAGE/.portable"
+
+# Portable-specific README
+cat > "$PORTABLE_STAGE/PORTABLE_README.txt" << PORTDOC
+EGM Downloader v$VERSION (Build $BUILD_NUM) — Portable Edition
+www.egerena.com
+
+────────────────────────────────────────
+WHAT THIS IS
+────────────────────────────────────────
+Portable version of EGM Downloader. No installer, no registry
+entries, no system changes. Runs from any folder, USB stick,
+or network drive.
+
+────────────────────────────────────────
+HOW TO RUN
+────────────────────────────────────────
+1. Extract this zip to any folder.
+2. Double-click "EGM Downloader.vbs" to launch.
+3. On first launch, Node.js (~30 MB) and Electron (~250 MB)
+   download automatically into this folder. Internet required.
+4. Subsequent launches use the local copy — no downloads needed.
+
+────────────────────────────────────────
+DIFFERENCES FROM THE INSTALLER VERSION
+────────────────────────────────────────
+• Settings and history stay inside this folder (data/).
+• No Start Menu or Desktop shortcuts created automatically.
+• No entry in Windows "Add or Remove Programs".
+• Auto-update is disabled — download a new portable zip from
+  egerena.com/apps to update. Your data/ folder carries over.
+
+────────────────────────────────────────
+TO REMOVE
+────────────────────────────────────────
+Delete this folder. Nothing left behind on your system.
+
+────────────────────────────────────────
+PYTHON REQUIREMENT
+────────────────────────────────────────
+Python 3.10+ must be installed and on PATH.
+Download: https://python.org
+(Check "Add Python to PATH" during install.)
+
+────────────────────────────────────────
+SUPPORT
+────────────────────────────────────────
+egerena.com/apps  •  contact@egerena.com
+PORTDOC
+
+# Package into zip (no password — portable users don't expect one)
+echo "   Packaging EGMd-portable.zip..."
+python3 - <<PYZIP
+import zipfile, os
+from pathlib import Path
+
+stage    = Path("$PORTABLE_STAGE")
+zip_path = Path("$REPO_ROOT/dist/EGMd-portable.zip")
+
+with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+    for root, _, files in os.walk(stage):
+        for fname in files:
+            full = Path(root) / fname
+            arc  = full.relative_to(stage)
+            zf.write(full, arc)
+
+size_mb = zip_path.stat().st_size / 1024 / 1024
+print(f"   ✓ EGMd-portable.zip created ({size_mb:.2f} MB)")
+PYZIP
+
+# SHA256 for portable zip
+PORTABLE_CHECKSUM=$(python3 -c "
+import hashlib
+h = hashlib.sha256()
+h.update(open('$REPO_ROOT/dist/EGMd-portable.zip', 'rb').read())
+print(h.hexdigest())
+")
+echo "   ✓ SHA256: $PORTABLE_CHECKSUM"
+
+# Cleanup stage
+rm -rf "$PORTABLE_STAGE"
+
+# Generate portable update JSON
+echo "   Generating egm-portable-version.json..."
+if [ -n "$NOTES" ]; then
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows-portable --notes "$NOTES" --checksum "$PORTABLE_CHECKSUM"
+else
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows-portable --checksum "$PORTABLE_CHECKSUM"
+fi
+echo ""
+
 # ── Push to GitHub ───────────────────────────────────────────────────────────
 echo "🚀 Pushing to GitHub..."
 cd "$REPO_ROOT"
@@ -199,4 +332,6 @@ echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMd.zip"
 echo "   → dist/egm-version.json"
+echo "   → dist/EGMd-portable.zip"
+echo "   → dist/egm-portable-version.json"
 echo ""
