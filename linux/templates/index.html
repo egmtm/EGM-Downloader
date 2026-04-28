@@ -3939,11 +3939,13 @@ function audioQualityBgClick(e) {
   confirm.addEventListener('click', () => {
     modal.style.display = 'none';
     // 8K-maxed-out warning: if any pending video tops out below the requested quality,
-    // show a toast so the user knows they're getting the best available, not the requested
+    // show a toast so the user knows they're getting the best available, not the requested.
+    // Status filter is permissive — anything not actively downloading/cancelled counts.
     if (selectedVQ !== 'best') {
       const reqHeight = parseInt(selectedVQ, 10);
       if (reqHeight) {
-        const pending = items.filter(i => i.status === 'idle' || i.status === 'error');
+        const pending = items.filter(i =>
+          i.status !== 'downloading' && i.status !== 'cancelled');
         const cappedCount = pending.filter(item => {
           const fmts = item.info?.formats || [];
           if (!fmts.length) return false;
@@ -3952,7 +3954,11 @@ function audioQualityBgClick(e) {
         }).length;
         if (cappedCount > 0) {
           const word = cappedCount === 1 ? 'video tops' : 'videos top';
-          toast(`${cappedCount} ${word} out below ${reqHeight}p — using best available`, 'warn');
+          // Slight delay so the toast lands AFTER the download-start DOM churn
+          // and the user actually sees it instead of it being overwritten visually
+          setTimeout(() => {
+            toast(`${cappedCount} ${word} out below ${reqHeight}p — using best available`, 'warn');
+          }, 150);
         }
       }
     }
