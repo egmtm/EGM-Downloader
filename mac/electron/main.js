@@ -426,6 +426,17 @@ ipcMain.on('set-theme', (event, theme) => {
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('theme-changed', theme);
 });
 
+// ── IPC: forward URL from history window to main window's URL textarea ────────
+// History window is a separate BrowserWindow with no opener relationship,
+// so cross-window readd uses this IPC bridge.
+ipcMain.on('send-url-to-main', (event, url) => {
+  if (typeof url !== 'string' || !url.trim()) return;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('readd-url', url);
+    mainWindow.focus();
+  }
+});
+
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
