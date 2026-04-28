@@ -16,6 +16,16 @@ from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
+@app.after_request
+def _no_cache_html(response):
+    """Prevent Electron's Chromium from serving stale templates after app updates.
+    HTML routes only — API JSON responses can cache normally."""
+    if response.mimetype == "text/html":
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 # ── Paths ──────────────────────────────────────────────────────────────────────
 BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
