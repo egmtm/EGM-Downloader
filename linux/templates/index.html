@@ -319,11 +319,13 @@
     textarea#urls {
       width: 100%; background: var(--surf2); border: 1px solid var(--border);
       border-radius: var(--rs); color: var(--text); font-size: .88rem;
-      padding: 11px 13px; resize: vertical; min-height: 88px;
-      font-family: inherit; outline: none; transition: border-color var(--ease);
+      padding: 11px 13px; resize: vertical; min-height: 70px;
+      font-family: inherit; outline: none; transition: border-color var(--ease), box-shadow var(--ease);
+      overflow-y: auto;
     }
     textarea#urls::placeholder { color: var(--muted); }
     textarea#urls:focus { border-color: var(--acc); }
+    textarea#urls.drag-over { border-color: var(--acc); box-shadow: 0 0 0 2px var(--acc-dim); background: var(--surf3); }
     .paste-btn {
       background: var(--surf3); border: 1px solid var(--border2);
       border-radius: var(--rs); color: var(--text2);
@@ -1056,11 +1058,11 @@
   </div>
   <div class="card-body">
     <div class="url-wrap">
-      <textarea id="urls" placeholder="Paste one or more URLs here (one per line)&#10;https://www.youtube.com/watch?v=…&#10;https://www.youtube.com/playlist?list=…"></textarea>
+      <textarea id="urls" placeholder="Paste one or more URLs here (one per line)"></textarea>
     </div>
     <div class="row" style="flex-wrap:nowrap">
-      <button class="btn btn-primary" id="fetch-btn">
-        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <button class="paste-fetch-btn" id="fetch-btn" style="display:inline-flex;align-items:center;gap:5px;height:28px">
+        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Fetch Info
       </button>
       <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none">⏹ Stop Fetching</button>
@@ -1068,11 +1070,11 @@
         <button class="btn bulk-video-btn" id="dl-all-video-btn">📹 Download All Videos</button>
         <button class="btn bulk-audio-btn" id="dl-all-audio-btn">🎵 Download Audio</button>
       </div>
-      <button class="btn btn-ghost" id="clear-btn">✕ Clear</button>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:10px">
-        <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text2);white-space:nowrap" title="Max simultaneous video downloads">
-          Videos
-          <select id="concurrency-sel" class="qsel" style="padding:5px 8px;font-size:.75rem">
+      <button class="paste-btn" id="clear-btn" style="height:28px">✕ Clear</button>
+      <div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" title="Max simultaneous video downloads">
+          Max videos
+          <select id="concurrency-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
             <option value="2">2</option>
             <option value="4">4</option>
             <option value="6" selected>6</option>
@@ -1085,9 +1087,9 @@
             <option value="20">20</option>
           </select>
         </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:.75rem;color:var(--text2);white-space:nowrap" title="Parallel connections per video — higher = faster on fast connections">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" title="Parallel connections per video — higher = faster on fast connections">
           Fragments
-          <select id="fragments-sel" class="qsel" style="padding:5px 8px;font-size:.75rem">
+          <select id="fragments-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
             <option value="1">1</option>
             <option value="2">2</option>
             <option value="4" selected>4</option>
@@ -1538,6 +1540,7 @@ async function doPaste() {
     const ta = document.getElementById('urls');
     const c  = ta.value.trim();
     ta.value = c ? c + '\n' + t.trim() : t.trim();
+    ta.dispatchEvent(new Event('input'));
     return true;
   } catch { toast('Use Ctrl+V in the text box', 'err'); return false; }
 }
@@ -1549,6 +1552,70 @@ document.getElementById('paste-btn').addEventListener('click', async () => {
 document.getElementById('paste-fetch-btn').addEventListener('click', async () => {
   if (await doPaste()) fetchAll();
 });
+
+// ── URL textarea: auto-grow + drag-drop + keyboard shortcuts ────────────────
+(() => {
+  const ta = document.getElementById('urls');
+  if (!ta) return;
+
+  // Auto-grow: 70px floor (≈ 3 lines), 200px ceiling, then scroll inside
+  function autoGrow() {
+    ta.style.height = 'auto';
+    ta.style.height = Math.min(Math.max(ta.scrollHeight, 70), 200) + 'px';
+  }
+  ta.addEventListener('input', autoGrow);
+  ta.addEventListener('paste', () => setTimeout(autoGrow, 0));
+  setTimeout(autoGrow, 0);
+
+  // Drag & drop URLs into the textarea
+  ['dragenter', 'dragover'].forEach(ev => {
+    ta.addEventListener(ev, e => {
+      e.preventDefault(); e.stopPropagation();
+      ta.classList.add('drag-over');
+    });
+  });
+  ['dragleave', 'dragend'].forEach(ev => {
+    ta.addEventListener(ev, () => ta.classList.remove('drag-over'));
+  });
+  ta.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation();
+    ta.classList.remove('drag-over');
+    const dt = e.dataTransfer;
+    let dropped = (dt.getData('text/uri-list') || dt.getData('text/plain') || '').trim();
+    if (!dropped) return;
+    dropped = dropped.split(/\r?\n/).filter(l => l && !l.startsWith('#')).join('\n');
+    const cur = ta.value;
+    ta.value = cur ? (cur.replace(/\s+$/, '') + '\n' + dropped) : dropped;
+    autoGrow();
+    ta.focus();
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', e => {
+    const ae = document.activeElement;
+    const inField = ae && ['INPUT', 'TEXTAREA', 'SELECT'].includes(ae.tagName) && ae !== ta;
+    const mod = e.ctrlKey || e.metaKey;
+
+    if (mod && e.key === 'Enter' && ta.value.trim() && !inField) {
+      e.preventDefault();
+      const fb = document.getElementById('fetch-btn');
+      if (fb && !fb.disabled) fb.click();
+      return;
+    }
+
+    if (e.key === 'Escape' && ae === ta) {
+      e.preventDefault();
+      document.getElementById('clear-btn').click();
+      return;
+    }
+
+    if (mod && e.key.toLowerCase() === 'v' && !inField && ae !== ta) {
+      e.preventDefault();
+      document.getElementById('paste-fetch-btn').click();
+      return;
+    }
+  });
+})();
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 document.getElementById('browse-btn').addEventListener('click', async () => {
