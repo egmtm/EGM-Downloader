@@ -246,7 +246,29 @@
           <button class="rb red" title="Remove">✕</button>
         </div>`;
       const [btnReadd, btnOpen, btnDel] = row.querySelectorAll('.rb');
-      btnReadd.addEventListener('click', () => { window.opener && (window.opener.document.getElementById('urls').value = item.url); });
+      btnReadd.addEventListener('click', () => {
+        if (!window.opener || window.opener.closed) {
+          alert('Main window is no longer available.');
+          return;
+        }
+        const urlsEl = window.opener.document.getElementById('urls');
+        if (!urlsEl) return;
+        // Append to existing content (one URL per line) rather than overwriting.
+        // Allows readding multiple videos in a row from history.
+        const existing = urlsEl.value.trim();
+        // De-dupe: don't add the same URL twice if it's already in the textarea
+        const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+        if (!lines.includes(item.url)) {
+          urlsEl.value = lines.length ? `${lines.join('\n')}\n${item.url}` : item.url;
+          urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        // Bring the main window forward so the user sees the URL appeared
+        try { window.opener.focus(); } catch {}
+        // Visual feedback in history window — flash the row briefly
+        row.style.transition = 'background .2s';
+        row.style.background = 'rgba(74,222,128,.15)';
+        setTimeout(() => { row.style.background = ''; }, 600);
+      });
       btnOpen.addEventListener('click',  () => { window.electronAPI?.openFolder(item.download_dir); });
       btnDel.addEventListener('click',   async () => {
         await fetch(`/api/history/${item.id}`, { method: 'DELETE' });
