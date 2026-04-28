@@ -1184,6 +1184,10 @@
           <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
         </div>
         <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="subtitles-chk">
+          <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
+        </div>
+        <div class="sw-wrap">
           <input type="checkbox" class="sw" id="quit-on-done-chk">
           <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
         </div>
@@ -1437,6 +1441,10 @@ setTimeout(checkForUpdatesOnLaunch, 3000);
       // Trigger silent update check on launch
       if (typeof checkForUpdatesOnLaunch === 'function') checkForUpdatesOnLaunch();
     }
+    if (s.subtitles) {
+      const chk = document.getElementById('subtitles-chk');
+      if (chk) chk.checked = true;
+    }
   } catch {}
 })();
 
@@ -1445,6 +1453,9 @@ document.getElementById('quit-on-done-chk').addEventListener('change', function(
 });
 document.getElementById('check-updates-on-launch-chk').addEventListener('change', function() {
   post('/api/settings/save', { check_updates_on_launch: this.checked });
+});
+document.getElementById('subtitles-chk').addEventListener('change', function() {
+  post('/api/settings/save', { subtitles: this.checked });
 });
 
 // Save concurrency and fragments whenever changed
@@ -2324,6 +2335,7 @@ async function startDl(item, n) {
       })(),
       concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
       title: chosenName, download_dir: dir,
+      subtitles: !!document.getElementById('subtitles-chk')?.checked,
     });
     if (res.error) throw new Error(res.error);
     item.jobId = res.job_id;
@@ -2477,6 +2489,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         title: item.info.title || 'download',
         download_dir: dir,
         audio_quality: audioQuality || '320',
+        subtitles: !!document.getElementById('subtitles-chk')?.checked,
       });
       if (res.error) throw new Error(res.error);
       item.jobId = res.job_id;
