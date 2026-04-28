@@ -167,6 +167,9 @@ def gen_windows_portable(data, notes, dry_run, checksum=""):
         "zip":            "EGMd-portable.zip",
         **({"_checksums": {"sha256": checksum, "algorithm": "SHA-256", "file": "EGMd-portable.zip"}} if checksum else {}),
     }, dry_run, "Windows Portable")
+
+
+def gen_windows(data, notes, dry_run, checksum=""):
     p = data["platforms"]["windows"]
     payload = {
         "_comment":       "EGM Downloader Windows update feed. Upload to egerena.com/apps/egm-version.json",
