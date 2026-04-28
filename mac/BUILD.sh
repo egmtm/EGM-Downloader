@@ -220,8 +220,21 @@ zip -e -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt -P "
 echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
 echo ""
 
+# ── Compute SHA256 checksum ───────────────────────────────────────────────────
+echo "🔒 Computing SHA256 checksum..."
+MAC_CHECKSUM=$(python3 -c "
+import hashlib
+h = hashlib.sha256()
+h.update(open('$REPO_ROOT/dist/EGMdM.zip', 'rb').read())
+print(h.hexdigest())
+")
+echo "   ✓ SHA256: $MAC_CHECKSUM"
+echo "   → Provide this checksum to Claude when generating egmac-update.json"
+echo ""
+
 # ── Update JSON ───────────────────────────────────────────────────────────────
 # JSON feed (egmac-update.json) is provided by Claude directly — no local generation needed.
+# Pass the SHA256 above as the --checksum arg: gen-update-json.py --platform mac --checksum "$MAC_CHECKSUM"
 
 # ── GitHub push disabled — user pushes manually after verifying the build ─────
 # (Previous auto-push failed because the user's extracted source zip is not a
