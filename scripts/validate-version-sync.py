@@ -276,8 +276,133 @@ def check_mac_build_sh(v):
 
 
 # --------------------------------------------------------------------------
-# Main
+# Item 2 — Merge conflict marker scanner
 # --------------------------------------------------------------------------
+
+def check_merge_conflict_markers():
+    """Fail if any tracked source file contains unresolved Git merge conflict markers.
+
+    Uses git ls-files so gitignored directories (node_modules/, dist/, python/,
+    linux/python/, mac/python/) are automatically excluded — no false positives
+    from Chromium's LICENSES.chromium.html or pydoc_data/topics.py.
+    """
+    import subprocess
+    errors = []
+    EXTS = {'.py', '.js', '.json', '.sh', '.md', '.txt', '.html', '.nsi', '.yml', '.yaml'}
+    # Split marker strings so this file doesn't trigger its own scan
+    MARKERS = ('<' * 7 + ' ', '>' * 7 + ' ')
+
+    try:
+        result = subprocess.run(
+            ['git', 'ls-files'],
+            cwd=ROOT, capture_output=True, text=True, timeout=10
+        )
+        tracked = [p.strip() for p in result.stdout.splitlines() if p.strip()]
+    except Exception:
+        # git not available or not a repo — fall back to rglob with exclusions
+        tracked = [
+            str(p.relative_to(ROOT))
+            for p in ROOT.rglob('*')
+            if p.is_file()
+            and p.suffix in EXTS
+            and not any(part in ('node_modules', 'dist', 'python', '__pycache__') for part in p.parts)
+        ]
+
+    for rel in tracked:
+        path = ROOT / rel
+        if path.suffix not in EXTS:
+            continue
+        try:
+            content = path.read_text(encoding='utf-8', errors='replace')
+            for marker in MARKERS:
+                if marker in content:
+                    errors.append(f"{rel}: contains merge conflict marker '{marker.strip()}'")
+                    break  # one error per file is enough
+        except (OSError, PermissionError):
+            continue
+
+    return errors
+
+
+# --------------------------------------------------------------------------
+# Item 4 — JSON feed validation (parse + required keys + cross-platform purity)
+# --------------------------------------------------------------------------
+
+FEED_REQUIRED_KEYS = [
+    '_comment', '_version_notes', '_history', '_last_updated',
+    'version', 'build', 'label', 'downloadUrl', 'zip',
+]
+
+FEED_BANNED_TERMS = {
+    'egm-version.json':     ['mac update', 'macos', 'darwin', 'appimage', '.dmg', '.deb', '.rpm', 'snap install'],
+    'egmac-update.json':    ['windows', 'win32', 'nsis', '.msi', 'appimage', 'apt-get', 'yum', 'snap install'],
+    'egmlinux-update.json': ['windows', 'win32', '.exe', 'mac update', 'macos', 'darwin', '.dmg'],
+}
+
+
+def check_json_feeds_parse():
+    """Fail loudly if any dist/ feed contains invalid JSON.
+
+    Opportunistic: skips missing feeds (dist/ not present after non-build CI run).
+    """
+    errors = []
+    dist = ROOT / 'dist'
+    for feed in FEED_BANNED_TERMS:
+        path = dist / feed
+        if not path.exists():
+            continue
+        try:
+            json.loads(path.read_text(encoding='utf-8'))
+        except json.JSONDecodeError as e:
+            errors.append(f"dist/{feed}: invalid JSON — {e}")
+    return errors
+
+
+def check_json_feeds_keys():
+    """Fail if any dist/ feed is missing a required top-level key."""
+    errors = []
+    dist = ROOT / 'dist'
+    for feed in FEED_BANNED_TERMS:
+        path = dist / feed
+        if not path.exists():
+            continue
+        try:
+            d = json.loads(path.read_text(encoding='utf-8'))
+        except json.JSONDecodeError:
+            continue  # caught by check_json_feeds_parse
+        missing = [k for k in FEED_REQUIRED_KEYS if k not in d]
+        if missing:
+            errors.append(f"dist/{feed}: missing required keys: {missing}")
+    return errors
+
+
+def check_json_feeds_purity():
+    """Fail if a platform's _version_notes bullets contain language from other platforms.
+
+    Terms are matched case-insensitively. Conservative list — only clear OS-specific
+    language. Avoids terms that could legitimately appear in cross-platform bullets
+    (e.g. 'Windows' is banned from Linux/Mac feeds, but 'window' is not).
+    """
+    errors = []
+    dist = ROOT / 'dist'
+    for feed, banned in FEED_BANNED_TERMS.items():
+        path = dist / feed
+        if not path.exists():
+            continue
+        try:
+            d = json.loads(path.read_text(encoding='utf-8'))
+        except json.JSONDecodeError:
+            continue
+        for note in d.get('_version_notes', []):
+            note_lower = note.lower()
+            for term in banned:
+                if term in note_lower:
+                    errors.append(
+                        f"dist/{feed}: cross-platform leak — bullet contains '{term}': "
+                        f"'{note[:80]}{'...' if len(note) > 80 else ''}'"
+                    )
+                    break  # one error per bullet is enough
+    return errors
 
 def main():
     print("Validating version sync...")
@@ -319,6 +444,23 @@ def main():
     for label, fn in checks:
         print(f"   Checking {label}...")
         all_errors.extend(fn())
+
+    # ── Item 2: Merge conflict markers ────────────────────────────────────────
+    print("   Scanning for merge conflict markers...")
+    all_errors.extend(check_merge_conflict_markers())
+
+    # ── Item 4: JSON feed validation (opportunistic — skipped if dist/ absent) ─
+    dist = ROOT / "dist"
+    feeds_present = any((dist / f).exists() for f in FEED_BANNED_TERMS)
+    if feeds_present:
+        print("   Validating JSON feeds (parse validity)...")
+        all_errors.extend(check_json_feeds_parse())
+        print("   Validating JSON feeds (required keys)...")
+        all_errors.extend(check_json_feeds_keys())
+        print("   Validating JSON feeds (cross-platform purity)...")
+        all_errors.extend(check_json_feeds_purity())
+    else:
+        print("   JSON feeds: dist/ not present — skipping feed validation")
 
     print()
 
