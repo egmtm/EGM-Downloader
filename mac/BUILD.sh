@@ -98,16 +98,20 @@ rm -rf "$PYTHON_DIR/lib/python3.11/lib2to3"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtledemo"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
 
-# .dist-info metadata (not needed at runtime)
-find "$SITE" -maxdepth 1 -name "*.dist-info" -type d ! -name "yt_dlp*" -exec rm -rf {} + 2>/dev/null || true
+# DO NOT bulk-strip .dist-info directories — werkzeug calls
+# importlib.metadata.version('werkzeug') at server startup; flask 3.x and many
+# other packages do similar metadata lookups. Stripping their .dist-info breaks
+# Flask boot silently and the splash screen hangs forever waiting for the port.
+# Only pip/setuptools/wheel dist-info is safe to strip (done above by exact name).
 
 # Bytecache (regenerated on demand, wastes space in bundle)
 find "$PYTHON_DIR" -name "__pycache__" -type d -exec rm -rf {} + 2>/dev/null || true
 find "$PYTHON_DIR" -name "*.pyc" -delete 2>/dev/null || true
 
-# Test directories inside packages
+# Test directories inside packages — only plural 'tests/'.
+# Singular 'test/' is sometimes a runtime module name (e.g. unittest.test) —
+# don't risk stripping it.
 find "$SITE" -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
-find "$SITE" -type d -name "test" -exec rm -rf {} + 2>/dev/null || true
 
 echo "   ✓ Python bundle stripped"
 echo ""
