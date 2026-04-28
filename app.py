@@ -313,7 +313,7 @@ def _build_audio_formats(info):
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
 # ── Download worker ────────────────────────────────────────────────────────────
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
     job     = jobs[job_id]
     out_dir = Path(download_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -328,16 +328,26 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         args += ["--concurrent-fragments", str(concurrent_fragments)]
 
     if format_choice == "audio":
-        # audio_quality: "128", "192", "320" (kbps MP3) or "flac" (lossless)
+        # audio_quality: "128"/"192"/"320" (MP3 kbps), "flac", "m4a_256" (M4A), "opus_128" (OPUS)
         if audio_quality == "flac":
             args += ["-x", "--audio-format", "flac"]
+        elif audio_quality.startswith("m4a_"):
+            bitrate = audio_quality.split("_")[1]
+            args += ["-x", "--audio-format", "m4a",
+                     "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
+        elif audio_quality.startswith("opus_"):
+            bitrate = audio_quality.split("_")[1]
+            args += ["-x", "--audio-format", "opus",
+                     "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         else:
             q = audio_quality if audio_quality in ("128", "192", "320") else "320"
             args += ["-x", "--audio-format", "mp3",
                      "--postprocessor-args", f"ffmpeg:-b:a {q}k"]
         if format_id: args += ["-f", format_id]
     else:
-        args += ["--merge-output-format", "mp4"]
+        # 4d: MKV output support — default mp4
+        container = output_format if output_format in ("mp4", "mkv") else "mp4"
+        args += ["--merge-output-format", container]
         # If the selected format's paired audio is already AAC, remux with -c copy.
         # Otherwise (opus, vorbis, unknown) re-encode audio to AAC for mp4 compatibility.
         # Video is always stream-copied (-c:v copy) — never re-encoded.
@@ -352,6 +362,9 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
         else:
             args += ["-f", "bestvideo+bestaudio/best"]
+        # 4a: Metadata embedding — embed thumbnail, chapters, metadata into video
+        if embed_metadata:
+            args += ["--embed-thumbnail", "--embed-metadata", "--embed-chapters"]
         # Subtitles — embed English subs into the video (only meaningful for video downloads)
         if subtitles:
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
@@ -433,7 +446,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if not files:
             job["status"] = "error"; job["error"] = "No output file found."; return
 
-        want      = ".flac" if (format_choice == "audio" and audio_quality == "flac") else ".mp3" if format_choice == "audio" else ".mp4"
+        if format_choice == "audio":
+            if audio_quality == "flac":        want = ".flac"
+            elif audio_quality.startswith("m4a_"):  want = ".m4a"
+            elif audio_quality.startswith("opus_"): want = ".opus"
+            else:                              want = ".mp3"
+        else:
+            want = ".mkv" if output_format == "mkv" else ".mp4"
         preferred = [f for f in files if f.endswith(want)]
         chosen    = preferred[0] if preferred else files[0]
         for f in files:
@@ -552,8 +571,10 @@ def start_download():
                            data.get("audio_codec") or "",
                            min(max(int(data.get("concurrent_fragments") or 1), 1), 16),
                            data.get("audio_quality") or "320",
-                           (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160") else None),
-                           bool(data.get("subtitles", False))),
+                           (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
+                           bool(data.get("subtitles", False)),
+                           bool(data.get("embed_metadata", True)),
+                           data.get("output_format", "mp4")),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -611,7 +632,7 @@ def save_settings():
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
                "upd_open", "ck_open", "quit_on_done", "flask_port",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
-               "subtitles"}
+               "subtitles", "embed_metadata", "output_format"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
