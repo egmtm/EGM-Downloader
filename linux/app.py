@@ -17,6 +17,21 @@ from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
+# ── Defensive Host header check (DNS rebinding / CSRF protection) ─────────────
+# We bind only to 127.0.0.1, but a malicious page could still target this port
+# via a DNS-rebinding attack. Reject any request whose Host header isn't a
+# loopback address. Cheap belt-and-suspenders.
+_ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+
+@app.before_request
+def _verify_host_header():
+    from flask import request as _req, abort
+    host = _req.host or ""
+    # Strip port to match against allowlist
+    host_only = host.split(":", 1)[0].lower().strip()
+    if host_only and host_only not in _ALLOWED_HOSTS:
+        abort(403)
+
 @app.after_request
 def _no_cache_html(response):
     """Prevent Electron's Chromium from serving stale templates after app updates.
