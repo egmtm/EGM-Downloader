@@ -839,11 +839,18 @@ def _run_update(do_ytdlp, do_ffmpeg):
 def check_updates():
     cy, ly = _get_ytdlp_version(), _get_latest_ytdlp_version()
     cf, lf = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
+    cm     = _get_mutagen_version()
+    # Mutagen on Linux is informational-only — bundled Python has no pip,
+    # so we can't upgrade in-app. latest=None / up_to_date=None tells the UI
+    # to render the "—" badge instead of green/red, and prevents the slow
+    # endpoint from clobbering the fast endpoint's correct version with
+    # undefined → "checking…" placeholder.
     ytdlp_ok = cy != "unknown" and cy == ly
     return jsonify({
-        "ytdlp":  {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
-        "ffmpeg": {"current": cf, "latest": lf,
-                   "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
+        "ffmpeg":  {"current": cf, "latest": lf,
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+        "mutagen": {"current": cm, "latest": None, "up_to_date": None},
     })
 
 @app.route("/api/run-update", methods=["POST"])
