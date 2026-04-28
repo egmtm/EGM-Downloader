@@ -2,11 +2,11 @@
 # EGM Downloader — Windows Build Script
 # Run from repo root: bash windows/BUILD.sh
 # Or from the windows/ directory: bash BUILD.sh
-# Produces: dist/EGMd.zip (password-protected, AES-256) + dist/egm-version.json
+# Produces: dist/EGMd.zip + dist/egm-version.json
 #
 # Requirements (Linux/Mac/WSL):
 #   - makensis (sudo apt install nsis  OR  brew install makensis)
-#   - python3 with pyzipper (pip install pyzipper)
+#   - python3 (standard library only)
 
 set -e
 
@@ -35,14 +35,8 @@ if ! command -v python3 &> /dev/null; then
     echo "❌ python3 not found!"
     exit 1
 fi
-if ! python3 -c "import pyzipper" 2>/dev/null; then
-    echo "❌ pyzipper not installed!"
-    echo "   Install: pip3 install pyzipper"
-    exit 1
-fi
 echo "   ✓ makensis: $(makensis -VERSION)"
 echo "   ✓ Python:   $(python3 --version)"
-echo "   ✓ pyzipper: installed"
 echo ""
 
 # ── Read version from version.json (single source of truth) ──────────────────
@@ -97,10 +91,10 @@ SETUP_SIZE=$(du -h "$REPO_ROOT/dist/egm-setup.exe" | cut -f1)
 echo "   ✓ egm-setup.exe built ($SETUP_SIZE)"
 echo ""
 
-# ── Package into password-protected zip ──────────────────────────────────────
-echo "🔐 Packaging EGMd.zip (AES-256, password 'EGMsterling')..."
+# ── Package into zip ─────────────────────────────────────────────────────────
+echo "📦 Packaging EGMd.zip..."
 python3 - <<PYZIP
-import pyzipper
+import zipfile
 from pathlib import Path
 
 repo_root = Path("$REPO_ROOT")
@@ -108,10 +102,7 @@ zip_path  = repo_root / "dist" / "EGMd.zip"
 exe_path  = repo_root / "dist" / "egm-setup.exe"
 ins_path  = repo_root / "windows" / "instructions.txt"
 
-with pyzipper.AESZipFile(zip_path, "w",
-                         compression=pyzipper.ZIP_DEFLATED,
-                         encryption=pyzipper.WZ_AES) as zf:
-    zf.setpassword(b"EGMsterling")
+with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
     zf.write(exe_path, "egm-setup.exe")
     zf.write(ins_path, "instructions.txt")
 
@@ -122,25 +113,23 @@ echo ""
 # ── Verify zip contents ──────────────────────────────────────────────────────
 echo "🔍 Verifying EGMd.zip contents..."
 python3 - <<PYVER
-import pyzipper
+import zipfile
 from pathlib import Path
 
 zip_path = Path("$REPO_ROOT/dist/EGMd.zip")
-with pyzipper.AESZipFile(zip_path, "r") as zf:
-    zf.setpassword(b"EGMsterling")
+with zipfile.ZipFile(zip_path, "r") as zf:
     names = zf.namelist()
     print(f"   Files: {names}")
     expected = {"egm-setup.exe", "instructions.txt"}
     actual   = set(names)
     if expected != actual:
         raise SystemExit(f"❌ Unexpected zip contents. Expected {expected}, got {actual}")
-    # Verify the password actually works by reading the first bytes
     for name in names:
         with zf.open(name) as f:
             head = f.read(8)
             if not head:
-                raise SystemExit(f"❌ Could not read {name} — password issue?")
-print("   ✓ Verified — EGMd.zip is valid and password-decryptable")
+                raise SystemExit(f"❌ Could not read {name}")
+print("   ✓ Verified — EGMd.zip is valid")
 PYVER
 echo ""
 
