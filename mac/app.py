@@ -401,6 +401,12 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--postprocessor-args", "ffmpeg:-c copy"]
         else:
             args += ["--postprocessor-args", "ffmpeg:-c:v copy -c:a aac -b:a 192k"]
+        # Retry hardening for long/throttled video downloads — YouTube CDN throttles
+        # high-bitrate streams (4K HDR, 8K, 240fps) which causes default 5-retry
+        # tolerance to be exhausted on transient hiccups. 25 retries with linear
+        # backoff (1s, 2s, 3s, 4s, 5s) survives ~90s throttle windows gracefully.
+        args += ["--retries", "25", "--fragment-retries", "25",
+                 "--socket-timeout", "30", "--retry-sleep", "linear=1::5"]
         if format_id:
             args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"]
         elif video_height and video_height != 0:
