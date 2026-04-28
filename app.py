@@ -382,9 +382,12 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["-x", "--audio-format", "mp3",
                      "--postprocessor-args", f"ffmpeg:-b:a {q}k"]
         if format_id: args += ["-f", format_id]
+        # Audio thumbnail embedding via mutagen (handles MP3/M4A/OPUS)
+        if embed_metadata:
+            args += ["--embed-thumbnail", "--embed-metadata"]
     else:
         # 4d: MKV output support — default mp4
-        container = output_format if output_format in ("mp4", "mkv") else "mp4"
+        container = output_format if output_format in ("mp4", "mkv", "mov", "webm") else "mp4"
         args += ["--merge-output-format", container]
         # If the selected format's paired audio is already AAC, remux with -c copy.
         # Otherwise (opus, vorbis, unknown) re-encode audio to AAC for mp4 compatibility.
@@ -400,9 +403,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
         else:
             args += ["-f", "bestvideo+bestaudio/best"]
-        # 4a: Metadata embedding — embed thumbnail, chapters, metadata into video
+        # 4a: Metadata embedding — chapters + metadata into video
+        # Note: --embed-thumbnail removed; bundled ffmpeg lacks MP4 cover art muxer
         if embed_metadata:
-            args += ["--embed-thumbnail", "--embed-metadata", "--embed-chapters"]
+            args += ["--embed-metadata", "--embed-chapters"]
         # Subtitles — embed English subs into the video (only meaningful for video downloads)
         if subtitles:
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
@@ -472,6 +476,49 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             return
 
         if proc.returncode != 0:
+            # Determine the expected extension before cleanup
+            if format_choice == "audio":
+                if audio_quality == "flac":              _want = ".flac"
+                elif audio_quality.startswith("m4a_"):   _want = ".m4a"
+                elif audio_quality.startswith("opus_"):  _want = ".opus"
+                else:                                    _want = ".mp3"
+            else:
+                _want = {"mkv": ".mkv", "mov": ".mov", "webm": ".webm"}.get(output_format, ".mp4")
+
+            # Clean temp/intermediate files; look for a usable main file
+            _all = glob.glob(str(out_dir / f"{job_id}.*"))
+            _temp_exts = {".vt", ".webp", ".json", ".ytdl", ".part"}
+            _main_file = None
+            for _f in _all:
+                _p = Path(_f)
+                if _p.suffix in _temp_exts or ".temp." in _p.name:
+                    try: os.remove(_f)
+                    except Exception: pass
+                elif _p.suffix == _want and not _main_file:
+                    _main_file = _f
+
+            if _main_file and os.path.getsize(_main_file) > 0:
+                # Download succeeded — only postprocessing (thumbnail/metadata) failed
+                # Rename and deliver with a warning instead of hard error
+                _ext   = os.path.splitext(_main_file)[1]
+                _title = job.get("title", "").strip()
+                _fname = _safe_filename(_title, _ext) if _title else os.path.basename(_main_file)
+                _fpath = out_dir / _fname
+                _stem, _n = Path(_fname).stem, 1
+                while _fpath.exists() and str(_fpath) != _main_file:
+                    _fpath = out_dir / f"{_stem} ({_n}){_ext}"; _n += 1
+                try: os.rename(_main_file, _fpath)
+                except: _fpath = Path(_main_file)
+                job["file"]        = str(_fpath)
+                job["filename"]    = _fpath.name
+                job["warning"]     = "Download complete — metadata embedding skipped."
+                job["_finished_at"] = time.time()
+                _append_history(job, _fpath)
+                job["status"]      = "done"
+                return
+
+            # No usable file found — clean up and report error
+            _cleanup(job_id, out_dir)
             err = [l for l in stderr_data.strip().splitlines()
                    if l.strip() and not l.strip().startswith("WARNING")]
             raw_err = err[-1] if err else stderr_data.strip()
@@ -490,7 +537,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             elif audio_quality.startswith("opus_"): want = ".opus"
             else:                              want = ".mp3"
         else:
-            want = ".mkv" if output_format == "mkv" else ".mp4"
+            want = {"mkv": ".mkv", "mov": ".mov", "webm": ".webm"}.get(output_format, ".mp4")
         preferred = [f for f in files if f.endswith(want)]
         chosen    = preferred[0] if preferred else files[0]
         for f in files:
@@ -670,7 +717,8 @@ def save_settings():
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
                "upd_open", "ck_open", "quit_on_done", "flask_port",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
-               "subtitles", "embed_metadata", "output_format"}
+               "subtitles", "embed_metadata", "output_format",
+               "default_audio_format", "default_video_format"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -753,7 +801,24 @@ def _get_latest_ytdlp_version():
 
 update_status: dict = {}
 
-def _run_update(do_ytdlp, do_ffmpeg):
+def _get_mutagen_version() -> str:
+    try:
+        import importlib.metadata
+        return importlib.metadata.version("mutagen")
+    except Exception:
+        return "not installed"
+
+
+def _get_latest_mutagen_version() -> str:
+    try:
+        with urllib.request.urlopen("https://pypi.org/pypi/mutagen/json", timeout=8) as r:
+            import json as _json
+            return _json.loads(r.read())["info"]["version"]
+    except Exception:
+        return "unknown"
+
+
+def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
@@ -794,6 +859,15 @@ def _run_update(do_ytdlp, do_ffmpeg):
             try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
+        if do_mutagen:
+            log("Updating mutagen...")
+            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                     "mutagen", "--break-system-packages", timeout=60)
+            if r.returncode == 0:
+                log(f"mutagen -> {_get_mutagen_version()}")
+            else:
+                err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+                log(f"mutagen update failed: {err}")
         log("All done.")
         update_status["done"] = True
     except Exception as e:
@@ -805,14 +879,15 @@ def _run_update(do_ytdlp, do_ffmpeg):
 def check_updates():
     cy, ly  = _get_ytdlp_version(), _get_latest_ytdlp_version()
     cf, lf  = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
-    # Up to date only if installed matches latest stable exactly.
-    # Any other version (including newer nightlies) shows "Update available"
-    # so the user can install the correct stable release.
-    ytdlp_ok = cy != "unknown" and cy == ly
+    cm      = _get_mutagen_version()
+    lm      = _get_latest_mutagen_version()
+    ytdlp_ok   = cy != "unknown" and cy == ly
+    mutagen_ok = cm != "not installed" and lm != "unknown" and cm == lm
     return jsonify({
-        "ytdlp":  {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
-        "ffmpeg": {"current": cf, "latest": lf,
-                   "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
+        "ffmpeg":  {"current": cf, "latest": lf,
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+        "mutagen": {"current": cm, "latest": lm, "up_to_date": mutagen_ok},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -820,7 +895,9 @@ def run_update():
     if update_status.get("running"): return jsonify({"error": "Already running"}), 409
     data = request.json or {}
     threading.Thread(target=_run_update,
-                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False))),
+                     args=(bool(data.get("ytdlp", True)),
+                           bool(data.get("ffmpeg", False)),
+                           bool(data.get("mutagen", False))),
                      daemon=True).start()
     return jsonify({"started": True})
 
