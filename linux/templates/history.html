@@ -247,23 +247,36 @@
         </div>`;
       const [btnReadd, btnOpen, btnDel] = row.querySelectorAll('.rb');
       btnReadd.addEventListener('click', () => {
-        if (!window.opener || window.opener.closed) {
-          alert('Main window is no longer available.');
-          return;
+        let added = false;
+        // Path 1: Direct window.opener access (works when history is opened via window.open)
+        if (window.opener && !window.opener.closed) {
+          try {
+            const urlsEl = window.opener.document.getElementById('urls');
+            if (urlsEl) {
+              const existing = urlsEl.value.trim();
+              const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+              if (!lines.includes(item.url)) {
+                urlsEl.value = lines.length ? `${lines.join('\n')}\n${item.url}` : item.url;
+                urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
+              }
+              try { window.opener.focus(); } catch {}
+              added = true;
+            }
+          } catch {}
         }
-        const urlsEl = window.opener.document.getElementById('urls');
-        if (!urlsEl) return;
-        // Append to existing content (one URL per line) rather than overwriting.
-        // Allows readding multiple videos in a row from history.
-        const existing = urlsEl.value.trim();
-        // De-dupe: don't add the same URL twice if it's already in the textarea
-        const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
-        if (!lines.includes(item.url)) {
-          urlsEl.value = lines.length ? `${lines.join('\n')}\n${item.url}` : item.url;
-          urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
+        // Path 2: BroadcastChannel fallback — Electron separate BrowserWindow case
+        // Has no opener relationship, so we send the URL via same-origin channel
+        if (!added) {
+          try {
+            const ch = new BroadcastChannel('egm-readd');
+            ch.postMessage({ url: item.url });
+            ch.close();
+            added = true;
+          } catch (e) {
+            alert('Could not send URL to main window.');
+            return;
+          }
         }
-        // Bring the main window forward so the user sees the URL appeared
-        try { window.opener.focus(); } catch {}
         // Visual feedback in history window — flash the row briefly
         row.style.transition = 'background .2s';
         row.style.background = 'rgba(74,222,128,.15)';
