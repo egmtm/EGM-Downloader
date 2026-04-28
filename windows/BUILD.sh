@@ -223,53 +223,88 @@ fi
 # Portable marker — is_portable() in app.py detects this file
 echo "$VERSION-portable-build-$BUILD_NUM" > "$PORTABLE_STAGE/.portable"
 
-# Portable-specific README
-cat > "$PORTABLE_STAGE/PORTABLE_README.txt" << PORTDOC
+# Portable-specific instructions.txt — overwrites the installer version copied above
+# Portable users must see the correct steps, not "run egm-setup.exe"
+cat > "$PORTABLE_STAGE/instructions.txt" << PORTINS
 EGM Downloader v$VERSION (Build $BUILD_NUM) — Portable Edition
-www.egerena.com
+================================================================
+https://egerena.com/apps/egm.html
 
-────────────────────────────────────────
-WHAT THIS IS
-────────────────────────────────────────
-Portable version of EGM Downloader. No installer, no registry
-entries, no system changes. Runs from any folder, USB stick,
-or network drive.
+This is the portable edition. No installation required.
+Runs from any folder, USB stick, or network drive.
 
-────────────────────────────────────────
+
+REQUIREMENTS
+─────────────
+  • Windows 10 or 11 (64-bit)
+  • Python 3.10 or newer
+      Download: https://www.python.org/downloads/
+      IMPORTANT: During install, check "Add Python to PATH"
+
+  Everything else (Node.js, Electron, ffmpeg, Deno) is downloaded
+  automatically on first launch — no manual setup required.
+
+
 HOW TO RUN
-────────────────────────────────────────
-1. Extract this zip to any folder.
-2. Double-click "EGM Downloader.vbs" to launch.
-3. On first launch, Node.js (~30 MB) and Electron (~250 MB)
-   download automatically into this folder. Internet required.
-4. Subsequent launches use the local copy — no downloads needed.
+─────────────
+  1. Extract this zip to any folder (Desktop, USB stick, etc.)
+  2. Double-click "EGM Downloader.vbs" to launch
+  3. On first launch, the app downloads required components:
 
-────────────────────────────────────────
+       Node.js + Electron  ~280 MB  (one time only)
+       Deno                ~35 MB   (one time only, background)
+
+     This may take a few minutes. An internet connection is required.
+  4. Subsequent launches are near-instant.
+
+
+WHERE YOUR DATA IS STORED
+──────────────────────────
+  Settings, download history, and cookies are stored in:
+    data\  (inside this folder, next to EGM Downloader.vbs)
+
+  Moving or copying this entire folder preserves all your settings.
+
+
 DIFFERENCES FROM THE INSTALLER VERSION
 ────────────────────────────────────────
-• Settings and history stay inside this folder (data/).
-• No Start Menu or Desktop shortcuts created automatically.
-• No entry in Windows "Add or Remove Programs".
-• Auto-update is disabled — download a new portable zip from
-  egerena.com/apps to update. Your data/ folder carries over.
+  • No Start Menu or Desktop shortcuts are created.
+  • No entry in Windows "Add or Remove Programs".
+  • Auto-update is disabled. To update:
+      1. Download the latest EGMd-portable.zip from egerena.com/apps
+      2. Extract to a new folder
+      3. Copy your old data\ folder into the new folder
+      4. Delete the old folder
 
-────────────────────────────────────────
+
 TO REMOVE
-────────────────────────────────────────
-Delete this folder. Nothing left behind on your system.
+─────────────
+  Delete this folder. Nothing is left behind on your system.
+  No registry entries, no AppData files, no traces.
 
-────────────────────────────────────────
-PYTHON REQUIREMENT
-────────────────────────────────────────
-Python 3.10+ must be installed and on PATH.
-Download: https://python.org
-(Check "Add Python to PATH" during install.)
 
-────────────────────────────────────────
+TROUBLESHOOTING
+────────────────
+  "Python not found" on launch
+      → Install Python from python.org and check "Add to PATH"
+      → Restart your PC after installing Python
+
+  Downloads fail or show errors
+      → Open Update Plugins and update yt-dlp to the latest version
+      → For age-restricted content, use the Site Cookies feature
+
+  App won't start after moving the folder
+      → Delete the electron\node_modules folder inside this directory,
+        then relaunch — it will reinstall automatically
+
+  Blank screen on launch
+      → Right-click "EGM Downloader.vbs" → Run as administrator
+
+
 SUPPORT
-────────────────────────────────────────
-egerena.com/apps  •  contact@egerena.com
-PORTDOC
+────────
+  https://egerena.com/apps/egm.html  •  contact@egerena.com
+PORTINS
 
 # Package into zip (no password — portable users don't expect one)
 echo "   Packaging EGMd-portable.zip..."
