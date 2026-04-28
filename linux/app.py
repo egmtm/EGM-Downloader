@@ -348,7 +348,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     else:
         # 4d: Container — default mp4. --remux-video ensures final container even
         # when format selection picks a progressive stream that doesn't trigger merge.
-        container = output_format if output_format in ("mp4", "mkv", "mov") else "mp4"
+        container = output_format if output_format in ("mp4", "mkv") else "mp4"
         args += ["--merge-output-format", container, "--remux-video", container]
         audio_is_aac = audio_codec and ("mp4a" in audio_codec or audio_codec == "aac")
         if audio_is_aac:
@@ -433,7 +433,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 elif audio_quality.startswith("opus_"):  _want = ".opus"
                 else:                                    _want = ".mp3"
             else:
-                _want = {"mkv": ".mkv", "mov": ".mov"}.get(output_format, ".mp4")
+                _want = ".mkv" if output_format == "mkv" else ".mp4"
 
             # Clean temp/intermediate files; look for a usable main file
             _all = glob.glob(str(out_dir / f"{job_id}.*"))
@@ -487,7 +487,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             elif audio_quality.startswith("opus_"): want = ".opus"
             else:                              want = ".mp3"
         else:
-            want = {"mkv": ".mkv", "mov": ".mov"}.get(output_format, ".mp4")
+            want = ".mkv" if output_format == "mkv" else ".mp4"
         preferred = [f for f in files if f.endswith(want)]
         chosen    = preferred[0] if preferred else files[0]
         for f in files:
