@@ -144,6 +144,17 @@ print("   ✓ Verified — EGMd.zip is valid and password-decryptable")
 PYVER
 echo ""
 
+# ── Compute SHA256 checksum ───────────────────────────────────────────────────
+echo "🔒 Computing SHA256 checksum..."
+CHECKSUM=$(python3 -c "
+import hashlib
+h = hashlib.sha256()
+h.update(open('$REPO_ROOT/dist/EGMd.zip', 'rb').read())
+print(h.hexdigest())
+")
+echo "   ✓ SHA256: $CHECKSUM"
+echo ""
+
 # ── Generate update JSON ─────────────────────────────────────────────────────
 echo "📄 Generating Windows update JSON..."
 # Pull bullets from the most recent patchnotes.txt entry (matches current build).
@@ -172,10 +183,10 @@ for line in pn.splitlines():
 print('|||'.join(bullets))
 ")
 if [ -n "$NOTES" ]; then
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --notes "$NOTES"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --notes "$NOTES" --checksum "$CHECKSUM"
 else
     echo "   ⚠️  No [WINDOWS] or [ALL] bullets found in patchnotes.txt — generating with empty notes"
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --checksum "$CHECKSUM"
 fi
 echo ""
 
