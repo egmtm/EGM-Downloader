@@ -3977,18 +3977,20 @@ function videoQualityBgClick(e) {
 
   // Reset settings
   document.getElementById('adv-reset-btn').addEventListener('click', async () => {
-    if (!confirm('Reset all settings to defaults?\n\nYour downloads and history are not affected.')) return;
+    if (!confirm('Reset everything to defaults?\n\nThis clears all settings, themes, and download history.\nThe downloaded files themselves are NOT deleted.')) return;
     const r = await post('/api/settings/reset', {});
     if (r.ok) {
+      // Also clear download history (EGM design: reset means reset)
+      try { await fetch('/api/history/clear', { method: 'POST' }); } catch {}
       // Clear frontend-side localStorage that the backend doesn't manage
-      // (theme, recent themes, custom themes, transient flags). Preserves history.
+      // (theme, recent themes, custom themes, transient flags).
       try {
         localStorage.removeItem('egm-theme');
         localStorage.removeItem('egm-custom-theme');
         localStorage.removeItem('egm-recent-themes');
         sessionStorage.removeItem('egm_konami');
       } catch {}
-      toast('Settings reset — reloading…', 'ok');
+      toast('Reset complete — reloading…', 'ok');
       setTimeout(() => location.reload(), 800);
     } else {
       toast('Reset failed: ' + (r.error || 'unknown'), 'err');
@@ -4014,16 +4016,28 @@ function videoQualityBgClick(e) {
   // Export settings
   document.getElementById('adv-export-btn').addEventListener('click', async () => {
     try {
-      const s = await fetch('/api/settings').then(r => r.json());
-      const content = JSON.stringify(s, null, 2);
+      // Bundle settings + history into a single envelope so import can restore both.
+      // Backwards compat: if import sees a plain settings dict (no _egm_export_version),
+      // it'll just import settings — no history change.
+      const [s, h] = await Promise.all([
+        fetch('/api/settings').then(r => r.json()),
+        fetch('/api/history?page=1&per_page=10000').then(r => r.json()),
+      ]);
+      const envelope = {
+        _egm_export_version: 1,
+        exported_at: new Date().toISOString(),
+        settings: s || {},
+        history: (h && Array.isArray(h.items)) ? h.items : [],
+      };
+      const content = JSON.stringify(envelope, null, 2);
       if (window.electronAPI?.saveFile) {
         const r = await window.electronAPI.saveFile('egm-settings.json', content);
         if (r.canceled) return;
-        if (r.ok) toast('Settings exported ✓', 'ok');
+        if (r.ok) toast(`Exported ✓  (${envelope.history.length} history entries included)`, 'ok');
         else toast('Export failed: ' + (r.error || 'unknown'), 'err');
       } else {
         await navigator.clipboard.writeText(content);
-        toast('Settings copied to clipboard ✓', 'ok');
+        toast('Settings + history copied to clipboard ✓', 'ok');
       }
     } catch { toast('Could not export settings', 'err'); }
   });
@@ -4042,8 +4056,19 @@ function videoQualityBgClick(e) {
       }
       const data = JSON.parse(text);
       if (typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid format');
-      await post('/api/settings/save', data);
-      toast('Settings imported — restart to apply', 'ok');
+      // New envelope format: { _egm_export_version, settings, history }
+      // Old format: plain settings dict (no _egm_export_version key)
+      const isEnvelope = data._egm_export_version !== undefined;
+      const settingsToImport = isEnvelope ? (data.settings || {}) : data;
+      const historyToImport  = isEnvelope ? (data.history  || null) : null;
+      await post('/api/settings/save', settingsToImport);
+      let msg = 'Settings imported';
+      if (historyToImport && Array.isArray(historyToImport)) {
+        const r = await post('/api/history/import', { items: historyToImport });
+        if (r && r.ok) msg += ` + ${r.count} history entries`;
+      }
+      toast(`${msg} — reloading…`, 'ok');
+      setTimeout(() => location.reload(), 800);
     } catch { toast('Could not import settings — file may not be valid settings JSON', 'err'); }
   });
 })();
