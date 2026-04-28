@@ -2426,10 +2426,15 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
           fresh.deno = freshDeno;
           renderUpdGrid(fresh);
           // Reset toggles and hide Install button — job done
-          ['sw-ytdlp','sw-ffmpeg'].forEach(id => {
+          ['sw-ytdlp','sw-ffmpeg','sw-mutagen'].forEach(id => {
             const el = document.getElementById(id); if (el) el.checked = false;
           });
           syncInstallBtn();
+          // Auto-collapse the log panel after success — it served its purpose
+          setTimeout(() => {
+            log.classList.remove('show');
+            log.textContent = '';
+          }, 1500);
         } catch {}
       } else if (s.error) toast('Error: ' + s.error, 'err');
     }
