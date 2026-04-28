@@ -1482,7 +1482,6 @@
             <option value="mp4" selected>MP4 (recommended)</option>
             <option value="mkv">MKV</option>
             <option value="mov">MOV</option>
-            <option value="webm">WebM (may re-encode, slower)</option>
           </select>
         </div>
       </div>
@@ -2008,6 +2007,20 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
     }
   } catch {}
 })();
+
+// ── Silent plugin check on launch — populates Update Plugins grid in background ──
+// User sees real version data when expanding the panel instead of "checking…" placeholder
+setTimeout(async () => {
+  try {
+    const [data, deno] = await Promise.all([
+      fetch('/api/check-updates').then(r => r.json()),
+      fetch('/api/deno/status').then(r => r.json()),
+    ]);
+    data.deno = deno;
+    if (typeof renderUpdGrid === 'function') renderUpdGrid(data);
+    if (typeof syncInstallBtn === 'function') syncInstallBtn();
+  } catch {}
+}, 2000);
 })();
 
 document.getElementById('quit-on-done-chk').addEventListener('change', function() {
@@ -2909,6 +2922,13 @@ function applyJobProgress(d, stEl, progEl) {
 }
 
 function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
+  // Helper to hide bulk buttons once nothing is actionable anymore
+  const recheckBulkVisibility = () => {
+    const anyPending = items.some(i =>
+      i.status === 'idle' || i.status === 'fetching' || i.status === 'downloading'
+    );
+    if (!anyPending && items.length > 1) setDlAllVisible(false);
+  };
   if (d.status === 'done') {
     item.status = 'done';
     if (progEl) progEl.style.display = 'none';
@@ -2925,6 +2945,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
       const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
       if (allFinished) setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
     }
+    recheckBulkVisibility();
     return true;
   }
   if (d.status === 'error') {
@@ -2933,6 +2954,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'error', d.error || 'Error');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
+    recheckBulkVisibility();
     return true;
   }
   if (d.status === 'cancelled') {
@@ -2941,6 +2963,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'cancel', 'Cancelled');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+    recheckBulkVisibility();
     return true;
   }
   return false;
@@ -2968,8 +2991,19 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
 
 // ── Download All — best quality, no modal ─────────────────────────────────────
 // Helper: show/hide bulk download row together
+// Auto-hides when all items are in a finished state (done/error/cancelled)
+// to prevent the "Nothing to download" toast on repeat clicks
 function setDlAllVisible(show) {
-  document.getElementById('bulk-actions').style.display = show ? 'flex' : 'none';
+  // Force-hide overrides everything
+  if (!show) {
+    document.getElementById('bulk-actions').style.display = 'none';
+    return;
+  }
+  // Show requested — but only if at least one item is still actionable
+  const anyPending = items.some(i =>
+    i.status === 'idle' || i.status === 'fetching' || i.status === 'downloading'
+  );
+  document.getElementById('bulk-actions').style.display = anyPending ? 'flex' : 'none';
 }
 
 document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
@@ -3850,6 +3884,24 @@ function audioQualityBgClick(e) {
   });
   confirm.addEventListener('click', () => {
     modal.style.display = 'none';
+    // 8K-maxed-out warning: if any pending video tops out below the requested quality,
+    // show a toast so the user knows they're getting the best available, not the requested
+    if (selectedVQ !== 'best') {
+      const reqHeight = parseInt(selectedVQ, 10);
+      if (reqHeight) {
+        const pending = items.filter(i => i.status === 'idle' || i.status === 'error');
+        const cappedCount = pending.filter(item => {
+          const fmts = item.info?.formats || [];
+          if (!fmts.length) return false;
+          const maxH = Math.max(...fmts.map(f => f.height || 0));
+          return maxH > 0 && maxH < reqHeight;
+        }).length;
+        if (cappedCount > 0) {
+          const word = cappedCount === 1 ? 'video tops' : 'videos top';
+          toast(`${cappedCount} ${word} out below ${reqHeight}p — using best available`, 'warn');
+        }
+      }
+    }
     downloadAll('video', null, selectedVQ);
   });
 })();
