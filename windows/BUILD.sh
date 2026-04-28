@@ -275,6 +275,10 @@ DIFFERENCES FROM THE INSTALLER VERSION
       2. Extract to a new folder
       3. Copy your old data\ folder into the new folder
       4. Delete the old folder
+  • "Update Plugins" panel is hidden in portable mode.
+    To manually update yt-dlp or mutagen, open a command prompt
+    in this folder and run:
+        python -m pip install --upgrade yt-dlp mutagen
 
 
 TO REMOVE
