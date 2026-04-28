@@ -78,14 +78,24 @@ else
 fi
 echo ""
 
-# ── Strip terminfo from Python bundle ────────────────────────────────────────
-# The terminfo directory contains relative symlinks. electron-builder processes
-# extraResources in parallel and can hit ENOENT when a symlink target hasn't
-# been written yet. These files are unused by Flask/yt-dlp — safe to remove.
+# ── Strip terminfo + manpages from Python bundle ──────────────────────────────
+# The terminfo and share/man directories contain relative symlinks.
+# electron-builder processes extraResources in parallel and can hit ENOENT
+# when a symlink target hasn't been written yet. These files are unused by
+# Flask/yt-dlp at runtime — safe to remove.
 if [ -d "$PYTHON_DIR/share/terminfo" ]; then
     rm -rf "$PYTHON_DIR/share/terminfo"
     echo "   ✓ Stripped terminfo (unused, causes symlink race in packager)"
 fi
+if [ -d "$PYTHON_DIR/share/man" ]; then
+    rm -rf "$PYTHON_DIR/share/man"
+    echo "   ✓ Stripped manpages (unused, causes symlink race in packager)"
+fi
+# Strip any other share/ subdirs that might contain stale symlinks too.
+# Keep the directory itself — Python links some legitimate stuff here.
+find "$PYTHON_DIR/share" -mindepth 1 -maxdepth 1 -type d \
+    \( -name "doc" -o -name "info" -o -name "locale" \) \
+    -exec rm -rf {} + 2>/dev/null || true
 echo ""
 
 # ── Install Python deps ───────────────────────────────────────────────────────
