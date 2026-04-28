@@ -1,3 +1,33 @@
+v0.98 - Build 101 (4/28/2026 1:47 AM EST)
+-----------------------------------------
+  • [ALL] URL input pane redesigned — compact unified buttons (28px), textarea shrinks to 3 lines by default and auto-grows as URLs are added, "Max videos" caption replaces "Videos"
+  • [ALL] Drag and drop URLs directly into the URL textarea — visual drag-over feedback, filters comment lines, appends cleanly
+  • [ALL] Keyboard shortcuts — Ctrl+V pastes and fetches from anywhere on the page; Esc clears the textarea; Ctrl+Enter triggers Fetch Info
+  • [ALL] All Themes window redesigned — categories moved to left sidebar with collapsible sections (Style, Vibe, Culture, Other); search bar compact (expands on focus); category counts shown
+  • [ALL] Download subtitles toggle in Advanced panel — embeds English subtitles (manual preferred, auto-generated fallback) directly into video file; no separate .srt files
+  • [ALL] Embed metadata toggle in Advanced panel (ON by default) — embeds thumbnail, chapter markers, and title/artist/date metadata into downloaded videos
+  • [ALL] Output format selector in Advanced panel — switch between MP4 (default) and MKV container for video downloads
+  • [ALL] Video quality picker expanded — 8K (4320p), 4K (2160p), and 2K (1440p) added with High Resolution / Standard tier separators
+  • [ALL] Audio quality picker expanded — M4A (256 kbps) and OPUS (128 kbps, 192 kbps) formats added alongside MP3 and FLAC with format section dividers
+  • [ALL] Checksum verification for auto-updates — SHA256 computed during build, embedded in JSON feed, verified before extracting installer; tampering detected and blocked
+  • [ALL] Distribution zips are now unencrypted — EGMd.zip and EGMdM.zip are standard zips; pyzipper dependency removed; SHA256 replaces password as integrity mechanism
+  • [ALL] What's New modal now reads release notes live from the JSON feed — no more hardcoded bullets; shows "Loading…" while fetching, graceful fallback if offline
+  • [ALL] 14 new themes (120 total: 110 permanent + 10 seasonal) — Destiny characters (Cayde-6, Zavala, Savathûn, The Witness), Hyrule, Velvet Rose, Nocturnix, Hanami, Sugar Riot, Sundrop, Dream Dust, First Light, Neon Kiss, Prism
+  • [ALL] 6 Mood themes added — Melancholy, Euphoria, Tension, Serenity, Nostalgia, Focus
+  • [ALL] Theme CSS is now a single shared source — main app and themes window both include theme_styles.html; new themes apply everywhere automatically
+  • [ALL] Theme validation switched from static allowlist to regex — future themes work without code changes
+  • [ALL] Mac auto-update now opens the download page in the browser — no more confusing error on non-installer builds
+  • [ALL] Double update toast guard added — auto-check on launch no longer fires twice
+  • [ALL] Security hardening — URL scheme validation on all API endpoints, IPC input allowlists, concurrent_fragments clamped 1–16, video_height allowlisted, open-folder path safety
+  • [ALL] App size reduced ~40MB — Python bundle stripped of pip, setuptools, idlelib, tkinter, pycache on Mac and Linux builds
+  • [ALL] Desktop shortcut button shows confirmation dialog; detects if shortcut already exists and shows "already exists" toast instead of overwriting
+  • [ALL] Reinstall ffmpeg and Reinstall Deno now have distinct icons (▶ and ⬡) for quick visual identification
+  • [ALL] Advanced panel section labels removed — cleaner layout for power users; buttons are self-explanatory
+  • [ALL] Footer spacing tightened between Advanced panel and footer
+  • [WINDOWS] Windows portable edition — EGMd-portable.zip runs from any folder or USB stick; no installer, no registry, no system changes; settings and history stay in data/ inside the portable folder; auto-update disabled
+  • [WINDOWS] Portable variant has its own update feed (egm-portable-version.json) and update UI is hidden automatically when running portable
+  • [WINDOWS] Build pipeline now produces both installer and portable zips in one pass
+
 v0.97.5 - Build 100 (4/26/2026 10:25 PM EST)
 -----------------------------------------
   • [ALL] Mac auto-update — now opens download page in browser instead of attempting installer launch; no false error
