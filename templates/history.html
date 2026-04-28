@@ -247,25 +247,33 @@
         </div>`;
       const [btnReadd, btnOpen, btnDel] = row.querySelectorAll('.rb');
       btnReadd.addEventListener('click', () => {
-        let added = false;
-        // Path 1: Direct window.opener access (works when history is opened via window.open)
-        if (window.opener && !window.opener.closed) {
+        // Helper to apply append-with-dedup logic to a target window's textarea
+        const applyToTextarea = (targetWindow) => {
           try {
-            const urlsEl = window.opener.document.getElementById('urls');
-            if (urlsEl) {
-              const existing = urlsEl.value.trim();
-              const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
-              if (!lines.includes(item.url)) {
-                urlsEl.value = lines.length ? `${lines.join('\n')}\n${item.url}` : item.url;
-                urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
-              }
-              try { window.opener.focus(); } catch {}
-              added = true;
+            const urlsEl = targetWindow.document.getElementById('urls');
+            if (!urlsEl) return false;
+            const existing = urlsEl.value.trim();
+            const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+            if (!lines.includes(item.url)) {
+              urlsEl.value = lines.length ? `${lines.join('\n')}\n${item.url}` : item.url;
+              urlsEl.dispatchEvent(new Event('input', { bubbles: true }));
             }
-          } catch {}
+            try { targetWindow.focus(); } catch {}
+            return true;
+          } catch { return false; }
+        };
+
+        let added = false;
+        // Path 1: Electron IPC — bulletproof for cross-window in Electron
+        // Main process forwards the URL to mainWindow.webContents which appends it
+        if (window.electronAPI && typeof window.electronAPI.sendUrlToMain === 'function') {
+          try { window.electronAPI.sendUrlToMain(item.url); added = true; } catch {}
         }
-        // Path 2: BroadcastChannel fallback — Electron separate BrowserWindow case
-        // Has no opener relationship, so we send the URL via same-origin channel
+        // Path 2: Direct window.opener access (works when opened via window.open in browser)
+        if (!added && window.opener && !window.opener.closed) {
+          added = applyToTextarea(window.opener);
+        }
+        // Path 3: BroadcastChannel fallback (same-origin, browser fallback)
         if (!added) {
           try {
             const ch = new BroadcastChannel('egm-readd');
