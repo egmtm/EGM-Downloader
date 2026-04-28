@@ -273,6 +273,7 @@ async function createWindow() {
   try {
     await waitForFlask();
     updateSplash(90, 'Loading interface...');
+    try { await mainWindow.webContents.session.clearCache(); } catch {}
     mainWindow.loadURL(APP_URL);
   } catch (e) {
     closeSplash();

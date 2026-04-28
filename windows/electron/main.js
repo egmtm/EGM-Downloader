@@ -258,6 +258,10 @@ async function createWindow() {
   // Wait for Flask to be ready, then load the page
   try {
     await waitForFlask();
+    // Clear Chromium's HTTP cache before loading — guarantees fresh templates
+    // after an app update. Without this, stale index.html may persist across
+    // upgrades. Cheap on every launch (templates re-fetch from local Flask).
+    try { await mainWindow.webContents.session.clearCache(); } catch {}
     mainWindow.loadURL(APP_URL);
   } catch (e) {
     dialog.showErrorBox('EGM Downloader — Startup error', e.message);
