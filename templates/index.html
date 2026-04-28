@@ -1481,7 +1481,6 @@
           <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
             <option value="mp4" selected>MP4 (recommended)</option>
             <option value="mkv">MKV</option>
-            <option value="mov">MOV</option>
           </select>
         </div>
       </div>
@@ -2826,7 +2825,20 @@ async function startDl(item, n) {
     }
   }
 
-  const ext = item.selFmt === 'audio' ? '.mp3' : '.mp4';
+  // Compute extension to display in name modal — reflects current selector state
+  // Audio: default audio format selector (mp3/m4a/opus/flac variants)
+  // Video: output_format selector (mp4/mkv) — backend's --remux-video enforces this
+  let ext = '.mp4';
+  if (item.selFmt === 'audio') {
+    const audioFmt = item.audioQual || document.getElementById('default-audio-fmt-sel')?.value || '320';
+    if (audioFmt === 'flac')              ext = '.flac';
+    else if (audioFmt.startsWith('m4a_'))  ext = '.m4a';
+    else if (audioFmt.startsWith('opus_')) ext = '.opus';
+    else                                    ext = '.mp3';
+  } else {
+    const vfmt = document.getElementById('output-format-sel')?.value || 'mp4';
+    ext = vfmt === 'mkv' ? '.mkv' : '.mp4';
+  }
   const chosenName = await showModal(item.info.title || 'download', ext);
   if (!chosenName) return;   // cancelled
 
@@ -2933,11 +2945,24 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     item.status = 'done';
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
-    minimizeDoneCard(item, d.filename, stEl, dlBtn);
     if (d.warning) {
       toast(d.warning, 'warn');
     } else {
       toast('Saved: ' + d.filename, 'ok');
+    }
+    // Auto-remove the card — history panel is canonical record, toast is feedback
+    const card = stEl ? stEl.closest('.vcard') : null;
+    if (card) {
+      card.style.transition = 'opacity .25s ease, transform .25s ease, margin .25s ease, max-height .3s ease, padding .25s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(8px)';
+      setTimeout(() => {
+        card.remove();
+        items = items.filter(i => i.id !== item.id);
+        if (items.length <= 1) setDlAllVisible(false);
+      }, 250);
+    } else {
+      items = items.filter(i => i.id !== item.id);
     }
     // Refresh mini history panel so new entry appears immediately
     if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
@@ -3175,16 +3200,10 @@ function cancelBulk() {
 }
 
 function clearCompleted() {
+  // Done items are auto-removed on completion. This clears stuck error + cancelled cards.
   const before = items.length;
   items = items.filter(item => {
-    if (item.status === 'done') {
-      // After minimizeDoneCard, st+id is destroyed — use stored _card reference
-      const card = item._card;
-      if (card) card.remove();
-      return false;
-    }
-    if (item.status === 'cancelled') {
-      // Cancelled cards still have their full DOM (st+id exists)
+    if (item.status === 'error' || item.status === 'cancelled') {
       const stEl = document.getElementById('st' + item.id);
       const card = stEl ? stEl.closest('.vcard') : null;
       if (card) card.remove();
@@ -3231,59 +3250,6 @@ showEmptyState();
 })();
 
 // ── Minimize a completed download card ──────────────────────────────────────────
-function minimizeDoneCard(item, filename, stEl, dlBtn) {
-  const card = stEl ? stEl.closest('.vcard') : null;
-  if (!card) {
-    if (stEl) setBadge(stEl, 'done', '\u2713 Done');
-    if (dlBtn) { dlBtn.textContent = '\u2b07 Again'; dlBtn.disabled = false; dlBtn.style.display = ''; }
-    return;
-  }
-  card.classList.add('done-minimized');
-  item._card = card;  // store reference for clearCompleted lookup
-  const vbody = card.querySelector('.vbody');
-  if (!vbody) return;
-
-  const badge = document.createElement('span');
-  badge.className = 'badge b-done';
-  badge.style.flexShrink = '0';
-  badge.textContent = '\u2713 Done';
-
-  const nameEl = document.createElement('span');
-  nameEl.style.cssText = 'font-size:.82rem;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1';
-  nameEl.title = filename;
-  nameEl.textContent = filename;
-
-  // Clicking the row (except X) opens the download folder
-  vbody.style.cursor = 'pointer';
-  vbody.title = 'Click to open folder';
-  vbody.addEventListener('click', (e) => {
-    if (e.target.classList.contains('done-dismiss')) return;
-    const folder = item.download_dir || chosenPath || '';
-    if (folder) post('/api/open-folder', { folder }).catch(() => {});
-  });
-
-  const dismissBtn = document.createElement('button');
-  dismissBtn.className = 'done-dismiss';
-  dismissBtn.title = 'Dismiss';
-  dismissBtn.textContent = '\u2715';
-  dismissBtn.style.cssText = 'padding:4px 10px;font-size:.9rem;';
-  dismissBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    items = items.filter(i => i.id !== item.id);
-    card.remove();
-    if (items.length <= 1) setDlAllVisible(false);
-  });
-
-  vbody.innerHTML = '';
-  vbody.appendChild(badge);
-  vbody.appendChild(nameEl);
-  vbody.appendChild(dismissBtn);
-  const removeBtn = card.querySelector('.vcard-remove');
-  if (removeBtn) removeBtn.remove();
-  // Move completed card to top of results list
-  const resultsEl = document.getElementById('results');
-  if (resultsEl && card.parentNode === resultsEl) resultsEl.prepend(card);
-}
 
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
