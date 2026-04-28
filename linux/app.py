@@ -17,6 +17,16 @@ from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
 
+@app.after_request
+def _no_cache_html(response):
+    """Prevent Electron's Chromium from serving stale templates after app updates.
+    HTML routes only — API JSON responses can cache normally."""
+    if response.mimetype == "text/html":
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
+    return response
+
 # ── Paths ──────────────────────────────────────────────────────────────────────
 # APP_DIR: read-only — inside the AppImage squashfs mount.
 #          Safe to read files from here; never write here.
