@@ -313,7 +313,7 @@ def _build_audio_formats(info):
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
 # ── Download worker ────────────────────────────────────────────────────────────
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False):
     job     = jobs[job_id]
     out_dir = Path(download_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -352,6 +352,9 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
         else:
             args += ["-f", "bestvideo+bestaudio/best"]
+        # Subtitles — embed English subs into the video (only meaningful for video downloads)
+        if subtitles:
+            args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
     args.append(url)
 
     cmd = ["yt-dlp"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
@@ -549,7 +552,8 @@ def start_download():
                            data.get("audio_codec") or "",
                            min(max(int(data.get("concurrent_fragments") or 1), 1), 16),
                            data.get("audio_quality") or "320",
-                           (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160") else None)),
+                           (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160") else None),
+                           bool(data.get("subtitles", False))),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -606,7 +610,8 @@ def save_settings():
     data = request.json or {}
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
                "upd_open", "ck_open", "quit_on_done", "flask_port",
-               "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme"}
+               "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
+               "subtitles"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
