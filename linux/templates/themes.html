@@ -148,6 +148,14 @@
   </div>
 </div>
 
+<!-- Breadcrumb bar — visible when a category is selected -->
+<div id="breadcrumb-bar" style="display:none;padding:5px 14px;border-bottom:1px solid var(--border);background:var(--surf);font-size:.72rem;color:var(--text2);display:flex;align-items:center;gap:6px">
+  <span id="bc-all" style="color:var(--text2);cursor:pointer;opacity:.7">All Themes</span>
+  <span style="color:var(--border2);font-size:.65rem">›</span>
+  <span id="bc-current" style="color:var(--acc);font-weight:500"></span>
+  <span id="bc-count" style="font-size:.65rem;color:var(--text2);opacity:.6;margin-left:2px"></span>
+</div>
+
 <div class="body-row">
   <div class="sidebar" id="sidebar"></div>
   <div class="grid-area">
@@ -392,6 +400,7 @@ function buildSidebar() {
       sb.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
       tab.classList.add('active');
       render();
+      updateBreadcrumb();
     });
   });
 
@@ -419,6 +428,42 @@ function buildSidebar() {
 document.getElementById('search').addEventListener('input', e => {
   searchQ = e.target.value.toLowerCase();
   render();
+  updateBreadcrumb();
+});
+
+// ── Breadcrumb ────────────────────────────────────────────────────────────
+function updateBreadcrumb() {
+  const bar     = document.getElementById('breadcrumb-bar');
+  const bcCur   = document.getElementById('bc-current');
+  const bcCount = document.getElementById('bc-count');
+  if (activeCat === 'all' && !searchQ) {
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  if (searchQ) {
+    const hits = Object.values(THEME_DATA).filter(d =>
+      d.label.toLowerCase().includes(searchQ) || Object.keys(THEME_DATA).find(k => THEME_DATA[k] === d && k.includes(searchQ))
+    ).length;
+    bcCur.textContent   = `"${searchQ}"`;
+    bcCount.textContent = `${hits} result${hits !== 1 ? 's' : ''}`;
+  } else {
+    const label = CAT_LABELS[activeCat] || activeCat;
+    const count = Object.values(THEME_DATA).filter(d => d.cat === activeCat).length;
+    bcCur.textContent   = label;
+    bcCount.textContent = `${count} theme${count !== 1 ? 's' : ''}`;
+  }
+}
+
+document.getElementById('bc-all').addEventListener('click', () => {
+  activeCat = 'all';
+  searchQ   = '';
+  document.getElementById('search').value = '';
+  document.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+  const allTab = document.querySelector('.cat-tab.all-tab');
+  if (allTab) allTab.classList.add('active');
+  render();
+  updateBreadcrumb();
 });
 
 // ── Render grid ───────────────────────────────────────────────────────────
