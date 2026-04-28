@@ -578,7 +578,7 @@
     .path-row input {
       flex: 1; background: var(--surf2); border: 1px solid var(--border);
       border-radius: var(--rs); color: var(--text); font-size: .85rem;
-      padding: 8px 11px; outline: none; transition: border-color var(--ease); font-family: inherit;
+      padding: 6px 11px; outline: none; transition: border-color var(--ease); font-family: inherit;
     }
     .path-row input:focus { border-color: var(--acc); }
     .path-hint { font-size: .68rem; color: var(--muted); margin-top: 5px; }
@@ -1387,6 +1387,50 @@
       <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled>📁 Open</button>
     </div>
     <div class="path-hint" id="dir-hint" style="color:var(--yellow)">⚠ Select a download folder before downloading.</div>
+
+    <!-- Daily-use controls promoted from Advanced — toggles + format selectors -->
+    <div style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-top:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px;flex-wrap:wrap;gap:8px">
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
+          <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
+        </div>
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
+          <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
+        </div>
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="subtitles-chk">
+          <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
+        </div>
+        <div class="sw-wrap">
+          <input type="checkbox" class="sw" id="quit-on-done-chk">
+          <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:0">
+        <div style="flex:1;display:flex;align-items:center;gap:8px">
+          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
+          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+            <option value="320">MP3 320 kbps (default)</option>
+            <option value="192">MP3 192 kbps</option>
+            <option value="128">MP3 128 kbps</option>
+            <option value="flac">FLAC</option>
+            <option value="m4a_256">M4A 256 kbps</option>
+            <option value="opus_192">OPUS 192 kbps</option>
+            <option value="opus_128">OPUS 128 kbps</option>
+          </select>
+        </div>
+        <div style="width:1px;height:28px;background:var(--border);margin:0 14px;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;align-items:center;gap:8px">
+          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Video</span>
+          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+            <option value="mp4" selected>MP4 (recommended)</option>
+            <option value="mkv">MKV</option>
+          </select>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- Cookies section -->
@@ -1441,49 +1485,6 @@
   </div>
   <div class="sec-body collapsed" id="adv-card-body">
     <div class="adv-2col">
-
-      <!-- Toggles row (full width) -->
-      <div style="grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;padding:6px 0 8px;border-bottom:1px solid var(--border);margin-bottom:2px">
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
-          <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
-          <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="subtitles-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="quit-on-done-chk">
-          <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
-        </div>
-      </div>
-      <!-- Format row: Audio (default) + Video (container) — Option A compact -->
-      <div style="grid-column:1/-1;display:flex;align-items:center;gap:0;padding:6px 0 10px;border-bottom:1px solid var(--border);margin-bottom:4px">
-        <div style="flex:1;display:flex;align-items:center;gap:8px">
-          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
-          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
-            <option value="320">MP3 320 kbps (default)</option>
-            <option value="192">MP3 192 kbps</option>
-            <option value="128">MP3 128 kbps</option>
-            <option value="flac">FLAC</option>
-            <option value="m4a_256">M4A 256 kbps</option>
-            <option value="opus_192">OPUS 192 kbps</option>
-            <option value="opus_128">OPUS 128 kbps</option>
-          </select>
-        </div>
-        <div style="width:1px;height:28px;background:var(--border);margin:0 14px;flex-shrink:0"></div>
-        <div style="flex:1;display:flex;align-items:center;gap:8px">
-          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Video</span>
-          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
-            <option value="mp4" selected>MP4 (recommended)</option>
-            <option value="mkv">MKV</option>
-          </select>
-        </div>
-      </div>
 
       <button class="adv-btn-full" id="adv-shortcut-btn">
         <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
