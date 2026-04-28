@@ -215,8 +215,8 @@ full terms: https://github.com/egmtm/EGM-Downloader/blob/main/LICENSE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 EOF
 
-# ── Create password-protected ZIP with DMG + INSTRUCTIONS ─────────────────────
-zip -e -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt -P "EGMsterling"
+# ── Create zip with DMG + INSTRUCTIONS ────────────────────────────────────────
+zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt
 echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
 echo ""
 
