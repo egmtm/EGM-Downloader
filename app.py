@@ -1034,12 +1034,14 @@ def installed_versions():
     """Return only locally-installed versions — no network calls. Fast, for panel expand."""
     cy = _get_ytdlp_version()
     cf = _get_ffmpeg_version()
+    cm = _get_mutagen_version()
     deno_installed = DENO_EXE.exists()
     deno_version   = _get_deno_version() if deno_installed else "not installed"
     return jsonify({
-        "ytdlp":  {"current": cy, "latest": None, "up_to_date": None},
-        "ffmpeg": {"current": cf, "latest": None, "up_to_date": None},
-        "deno":   {"installed": deno_installed, "version": deno_version},
+        "ytdlp":   {"current": cy, "latest": None, "up_to_date": None},
+        "ffmpeg":  {"current": cf, "latest": None, "up_to_date": None},
+        "mutagen": {"current": cm, "latest": None, "up_to_date": None},
+        "deno":    {"installed": deno_installed, "version": deno_version},
     })
 
 
