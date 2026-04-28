@@ -153,9 +153,9 @@ def write_json(filename, payload, dry_run, label):
     return out
 
 
-def gen_windows(data, notes, dry_run):
+def gen_windows(data, notes, dry_run, checksum=""):
     p = data["platforms"]["windows"]
-    return write_json(p["updateJson"], {
+    payload = {
         "_comment":       "EGM Downloader Windows update feed. Upload to egerena.com/apps/egm-version.json",
         "_version_notes": notes,
         "_history":       parse_history("windows"),
@@ -166,12 +166,15 @@ def gen_windows(data, notes, dry_run):
         "downloadUrl":    p["downloadUrl"],
         "installer":      p["installer"],
         "zip":            p["zip"],
-    }, dry_run, "Windows")
+    }
+    if checksum:
+        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+    return write_json(p["updateJson"], payload, dry_run, "Windows")
 
 
-def gen_mac(data, notes, dry_run):
+def gen_mac(data, notes, dry_run, checksum=""):
     p = data["platforms"]["mac"]
-    return write_json(p["updateJson"], {
+    payload = {
         "_comment":       "EGM Downloader Mac update feed. Upload to egerena.com/apps/egmac-update.json",
         "_version_notes": notes,
         "_history":       parse_history("mac"),
@@ -181,12 +184,15 @@ def gen_mac(data, notes, dry_run):
         "label":          build_label(data),
         "downloadUrl":    p["downloadUrl"],
         "zip":            p["zip"],
-    }, dry_run, "Mac")
+    }
+    if checksum:
+        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+    return write_json(p["updateJson"], payload, dry_run, "Mac")
 
 
-def gen_linux(data, notes, dry_run):
+def gen_linux(data, notes, dry_run, checksum=""):
     p = data["platforms"]["linux"]
-    return write_json(p["updateJson"], {
+    payload = {
         "_comment":       "EGM Downloader Linux — informational, no auto-update. Upload to egerena.com/apps/egmlinux-update.json",
         "_version_notes": notes,
         "_history":       parse_history("linux"),
@@ -196,13 +202,17 @@ def gen_linux(data, notes, dry_run):
         "label":          build_label(data),
         "downloadUrl":    p["downloadUrl"],
         "zip":            p["zip"],
-    }, dry_run, "Linux")
+    }
+    if checksum:
+        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+    return write_json(p["updateJson"], payload, dry_run, "Linux")
 
 
 def main():
     parser = argparse.ArgumentParser(description="Generate platform update JSONs")
     parser.add_argument("--notes", default="", help="Change notes, '|||'-separated (triple pipe — chosen to avoid collision with natural punctuation)")
     parser.add_argument("--platform", choices=["windows", "mac", "linux"])
+    parser.add_argument("--checksum", default="", help="SHA-256 checksum of the distribution zip (hex string)")
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
 
@@ -213,9 +223,9 @@ def main():
     print(f"\n  Generating update JSONs — v{data['version']} Build {data['build']}\n")
 
     outputs = []
-    if "windows" in plats: outputs.append(gen_windows(data, notes, args.dry_run))
-    if "mac"     in plats: outputs.append(gen_mac(data, notes, args.dry_run))
-    if "linux"   in plats: outputs.append(gen_linux(data, notes, args.dry_run))
+    if "windows" in plats: outputs.append(gen_windows(data, notes, args.dry_run, args.checksum))
+    if "mac"     in plats: outputs.append(gen_mac(data, notes, args.dry_run, args.checksum))
+    if "linux"   in plats: outputs.append(gen_linux(data, notes, args.dry_run, args.checksum))
 
     if not args.dry_run:
         print(f"\n  Upload these to egerena.com/apps/:")
