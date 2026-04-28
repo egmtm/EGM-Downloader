@@ -11,6 +11,7 @@
       --bg:#0b1120;--surf:#111c2e;--surf2:#182338;--surf3:#1e2d47;
       --border:#243454;--border2:#2d4068;--acc:#3b82f6;--acc-h:#60a5fa;
       --text:#e2e8f6;--text2:#8faecf;--muted:#3d5470;
+      --acc-dim:rgba(59,130,246,.14);
       --r:10px;--rs:7px;
     }
     {% include 'theme_styles.html' %}
@@ -25,38 +26,87 @@
 
     /* ── Topbar ── */
     .topbar {
-      display:flex;align-items:center;gap:10px;padding:10px 14px;
+      display:flex;align-items:center;gap:10px;padding:9px 14px;
       background:var(--surf);border-bottom:1px solid var(--border);
       position:sticky;top:0;z-index:10;-webkit-app-region:drag;
+      flex-shrink:0;
     }
     .topbar-title { font-size:.9rem;font-weight:600;color:var(--text);flex:1; }
 
-    input[type=search] {
+    .search-wrap {
+      position:relative;display:flex;align-items:center;
       -webkit-app-region:no-drag;
-      background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);
-      color:var(--text);font-size:.78rem;padding:5px 10px;width:180px;outline:none;
     }
-    input[type=search]:focus { border-color:var(--acc); }
+    .search-icon {
+      position:absolute;left:8px;font-size:.7rem;color:var(--muted);
+      pointer-events:none;line-height:1;
+    }
+    input[type=search] {
+      background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);
+      color:var(--text);font-size:.7rem;padding:5px 10px 5px 24px;
+      width:140px;outline:none;transition:width .15s,border-color .15s;height:28px;
+    }
+    input[type=search]:focus { border-color:var(--acc);width:200px; }
     input[type=search]::placeholder { color:var(--muted); }
 
-    /* ── Category tabs ── */
-    .tabs {
-      display:flex;gap:3px;padding:8px 14px 0;
-      background:var(--surf);border-bottom:1px solid var(--border);
-      overflow-x:auto;-webkit-app-region:no-drag;
+    /* ── Body row: sidebar + grid ── */
+    .body-row {
+      display:flex;flex:1;min-height:0;overflow:hidden;
     }
-    .tab {
-      font-size:.72rem;padding:4px 10px;border-radius:5px 5px 0 0;cursor:pointer;
-      color:var(--text2);background:transparent;border:none;white-space:nowrap;
-      transition:background .1s,color .1s;
-    }
-    .tab:hover { color:var(--text);background:var(--surf2); }
-    .tab.on { color:#fff;background:var(--acc);font-weight:500; }
 
-    /* ── Theme grid ── */
+    /* ── Sidebar ── */
+    .sidebar {
+      width:135px;flex-shrink:0;
+      background:var(--surf);border-right:1px solid var(--border);
+      padding:8px 0;overflow-y:auto;
+      position:relative;z-index:1;
+    }
+
+    .cat-tab {
+      padding:6px 14px 6px 18px;font-size:.7rem;color:var(--text2);
+      cursor:pointer;border-left:2px solid transparent;
+      display:flex;align-items:center;gap:6px;user-select:none;
+      transition:background .1s,color .1s,border-color .1s;
+    }
+    .cat-tab:hover { background:var(--surf2);color:var(--text); }
+    .cat-tab.active {
+      background:var(--acc-dim);color:var(--acc);
+      border-left-color:var(--acc);font-weight:500;
+    }
+    .cat-tab.all-tab { font-weight:600; }
+    .cat-count {
+      margin-left:auto;font-size:.55rem;color:var(--muted);font-weight:400;
+    }
+    .cat-tab.active .cat-count { color:var(--acc); }
+
+    .cat-section {
+      font-size:.55rem;color:var(--muted);letter-spacing:.1em;
+      text-transform:uppercase;padding:10px 14px 4px;font-weight:600;
+      display:flex;align-items:center;justify-content:space-between;
+      cursor:pointer;user-select:none;
+      transition:color .1s;
+    }
+    .cat-section:hover { color:var(--text2); }
+    .section-caret {
+      font-size:.6rem;color:var(--muted);transition:transform .15s;
+    }
+    .cat-section.collapsed .section-caret { transform:rotate(-90deg); }
+
+    .cat-divider { height:1px;background:var(--border);margin:6px 14px; }
+
+    .cat-group {
+      max-height:600px;overflow:hidden;
+      transition:max-height .2s ease-out;
+    }
+    .cat-group.collapsed { max-height:0; }
+
+    /* ── Grid area ── */
+    .grid-area {
+      flex:1;overflow-y:auto;position:relative;z-index:1;
+    }
     .grid {
       display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
-      gap:8px;padding:14px;position:relative;z-index:1;
+      gap:8px;padding:14px;
     }
 
     .theme-card {
@@ -92,11 +142,18 @@
 
 <div class="topbar">
   <span class="topbar-title">All Themes</span>
-  <input type="search" id="search" placeholder="Search themes...">
+  <div class="search-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="search" id="search" placeholder="Search themes...">
+  </div>
 </div>
 
-<div class="tabs" id="tabs"></div>
-<div class="grid" id="grid"></div>
+<div class="body-row">
+  <div class="sidebar" id="sidebar"></div>
+  <div class="grid-area">
+    <div class="grid" id="grid"></div>
+  </div>
+</div>
 
 <script>
 {% raw %}
@@ -155,16 +212,16 @@ const THEME_DATA = {
   neogeo:             {label:'Neo Geo', bg:'#050a1a',surf:'#0a1428',acc:'#d4a017',  cat:'consoles'},
   chosenundead:             {label:'Chosen Undead', bg:'#0c0c0c',surf:'#181818',acc:'#e07010',  cat:'characters'},
   vaultdweller:             {label:'Vault Dweller', bg:'#030a03',surf:'#051005',acc:'#00ff41',  cat:'characters'},
-  n7:             {label:'N7', bg:'#050005',surf:'#0e000e',acc:'#cc0000',  cat:'characters'},
-  dragonborn:             {label:'Dragonborn', bg:'#0a1018',surf:'#121c26',acc:'#6888c0',  cat:'characters'},
-  bigboss:             {label:'Big Boss', bg:'#0c1008',surf:'#141a10',acc:'#6a8020',  cat:'characters'},
-  laracroft:             {label:'Lara Croft', bg:'#12080a',surf:'#1e100e',acc:'#c8780a',  cat:'characters'},
-  holographic:             {label:'Holographic', bg:'#04040e',surf:'#080812',acc:'#00e5ff',  cat:'experimental'},
-  y2k:             {label:'Y2K', bg:'#e8eef8',surf:'#dce4f4',acc:'#0044ff',  cat:'experimental'},
-  liminal:             {label:'Liminal', bg:'#f5f0e0',surf:'#ece6d0',acc:'#c8a060',  cat:'experimental'},
-  signal:             {label:'Signal', bg:'#030303',surf:'#0a0a0a',acc:'#ffffff',  cat:'experimental'},
-  corrupted:             {label:'Corrupted', bg:'#000500',surf:'#001000',acc:'#ff0080',  cat:'experimental'},
-  neonnoir:             {label:'Neon Noir', bg:'#020008',surf:'#06000e',acc:'#ff0090',  cat:'experimental'},
+  n7:             {label:'N7', bg:'#020610',surf:'#040c1c',acc:'#cc0000',  cat:'characters'},
+  dragonborn:             {label:'Dragonborn', bg:'#1a1208',surf:'#241a0c',acc:'#a01010',  cat:'characters'},
+  bigboss:             {label:'Big Boss', bg:'#0d100a',surf:'#181c12',acc:'#7a8a3a',  cat:'characters'},
+  laracroft:             {label:'Lara Croft', bg:'#0c1208',surf:'#16200c',acc:'#3a8a40',  cat:'characters'},
+  holographic:             {label:'Holographic', bg:'#020028',surf:'#04003c',acc:'#00f0ff',  cat:'experimental'},
+  y2k:             {label:'Y2K', bg:'#0a0a14',surf:'#141420',acc:'#c0c0c0',  cat:'experimental'},
+  liminal:             {label:'Liminal', bg:'#1a1810',surf:'#28241a',acc:'#a0a070',  cat:'experimental'},
+  signal:             {label:'Signal', bg:'#000000',surf:'#0a0a0a',acc:'#aaaaaa',  cat:'experimental'},
+  corrupted:             {label:'Corrupted', bg:'#0a0008',surf:'#180010',acc:'#ff00ff',  cat:'experimental'},
+  neonnoir:             {label:'Neon Noir', bg:'#000810',surf:'#001220',acc:'#00ddff',  cat:'experimental'},
   vinyl:         {label:'Vinyl', bg:'#1a0f00',surf:'#261600',acc:'#d4820a',  cat:'music'},
   lofi:          {label:'Lo-Fi', bg:'#111620',surf:'#181e2c',acc:'#7090b8',  cat:'music'},
   jazzclub:      {label:'Jazz Club', bg:'#0e0508',surf:'#180a10',acc:'#c8920a',  cat:'music'},
@@ -199,22 +256,20 @@ const THEME_DATA = {
   blanc:           {label:'Blanc',            bg:'#ffffff',surf:'#f5f5f5',acc:'#1a1a1a',  cat:'light'},
 };
 
-const CATS = [
-  {id:'all',       label:'All'},
-  {id:'dark',      label:'Dark'},
-  {id:'light',     label:'Light'},
-  {id:'nature',    label:'Nature'},
-  {id:'consoles',  label:'Consoles'},
-  {id:'characters',label:'Characters'},
-  {id:'movies',    label:'Movies'},
-  {id:'retro',     label:'Retro'},
-  {id:'experimental',label:'Experimental'},
-  {id:'music',     label:'Music'},
-  {id:'cities',    label:'Cities'},
-  {id:'moods',     label:'Moods'},
-  {id:'seasonal',  label:'Seasonal ✦'},
-  {id:'custom',    label:'Imported'},
+// Sidebar structure: ordered sections + categories per section
+const SECTIONS = [
+  { label: 'Style',   cats: ['dark', 'light'] },
+  { label: 'Vibe',    cats: ['music', 'nature', 'cities', 'moods'] },
+  { label: 'Culture', cats: ['movies', 'consoles', 'characters'] },
+  { label: 'Other',   cats: ['retro', 'experimental', 'seasonal', 'custom'] },
 ];
+
+const CAT_LABELS = {
+  dark:'Dark', light:'Light',
+  music:'Music', nature:'Nature', cities:'Cities', moods:'Moods',
+  movies:'Movies', consoles:'Consoles', characters:'Characters',
+  retro:'Retro', experimental:'Experimental', seasonal:'Seasonal ✦', custom:'Imported',
+};
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';
 
@@ -247,10 +302,11 @@ const SEASONAL_VISIBLE = (() => {
   Object.entries(windows).forEach(([key,win]) => { if (inRange(win[0],win[1])) visible.add(key); });
   return visible;
 })();
+
 let activeCat = 'all';
 let searchQ   = '';
 
-// Apply current theme CSS to this window
+// ── Apply current theme CSS to this window ─────────────────────────────────
 const ALL_THEME_KEYS = Object.keys(THEME_DATA);
 function applyBodyTheme(name) {
   document.body.classList.remove(...ALL_THEME_KEYS);
@@ -258,7 +314,6 @@ function applyBodyTheme(name) {
 }
 applyBodyTheme(currentTheme);
 
-// Listen for theme changes from main window
 if (window.electronAPI && window.electronAPI.onThemeChanged) {
   window.electronAPI.onThemeChanged(theme => {
     currentTheme = theme;
@@ -267,27 +322,92 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
   });
 }
 
-// Build tabs
-const tabsEl = document.getElementById('tabs');
-CATS.forEach(c => {
-  const btn = document.createElement('button');
-  btn.className = 'tab' + (c.id === 'all' ? ' on' : '');
-  btn.textContent = c.label;
-  btn.addEventListener('click', () => {
-    activeCat = c.id;
-    tabsEl.querySelectorAll('.tab').forEach(t => t.classList.remove('on'));
-    btn.classList.add('on');
-    render();
-  });
-  tabsEl.appendChild(btn);
-});
+// ── Counts per category (respects seasonal visibility) ────────────────────
+function countForCat(cat) {
+  if (cat === 'custom') return 0; // imported themes — none built-in
+  return Object.entries(THEME_DATA).filter(([key, d]) => {
+    if (d.cat !== cat) return false;
+    if (cat === 'seasonal' && !SEASONAL_VISIBLE.has(key)) return false;
+    return true;
+  }).length;
+}
+function countTotal() {
+  return Object.entries(THEME_DATA).filter(([key, d]) => {
+    if (d.cat === 'seasonal' && !SEASONAL_VISIBLE.has(key)) return false;
+    return true;
+  }).length;
+}
 
-// Search
+// ── Collapsed-section state (persisted in localStorage) ───────────────────
+function getCollapsed() {
+  try { return new Set(JSON.parse(localStorage.getItem('egm-themes-collapsed') || '[]')); }
+  catch { return new Set(); }
+}
+function saveCollapsed(set) {
+  localStorage.setItem('egm-themes-collapsed', JSON.stringify([...set]));
+}
+
+// ── Build sidebar ─────────────────────────────────────────────────────────
+function buildSidebar() {
+  const sb = document.getElementById('sidebar');
+  const collapsed = getCollapsed();
+
+  let html = `<div class="cat-tab all-tab${activeCat === 'all' ? ' active' : ''}" data-cat="all">All<span class="cat-count">${countTotal()}</span></div>`;
+  html += `<div class="cat-divider"></div>`;
+
+  SECTIONS.forEach(sec => {
+    const isCollapsed = collapsed.has(sec.label);
+    html += `<div class="cat-section${isCollapsed ? ' collapsed' : ''}" data-section="${sec.label}">
+      <span>${sec.label}</span>
+      <span class="section-caret">▾</span>
+    </div>`;
+    html += `<div class="cat-group${isCollapsed ? ' collapsed' : ''}" data-group="${sec.label}">`;
+    sec.cats.forEach(cat => {
+      const count = countForCat(cat);
+      html += `<div class="cat-tab${activeCat === cat ? ' active' : ''}" data-cat="${cat}">${CAT_LABELS[cat]}<span class="cat-count">${count}</span></div>`;
+    });
+    html += `</div>`;
+  });
+
+  sb.innerHTML = html;
+
+  // Wire category clicks
+  sb.querySelectorAll('.cat-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      activeCat = tab.dataset.cat;
+      sb.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      render();
+    });
+  });
+
+  // Wire section collapse toggles
+  sb.querySelectorAll('.cat-section').forEach(sec => {
+    sec.addEventListener('click', () => {
+      const label = sec.dataset.section;
+      const group = sb.querySelector(`.cat-group[data-group="${label}"]`);
+      const cur = getCollapsed();
+      if (cur.has(label)) {
+        cur.delete(label);
+        sec.classList.remove('collapsed');
+        if (group) group.classList.remove('collapsed');
+      } else {
+        cur.add(label);
+        sec.classList.add('collapsed');
+        if (group) group.classList.add('collapsed');
+      }
+      saveCollapsed(cur);
+    });
+  });
+}
+
+// ── Search ────────────────────────────────────────────────────────────────
 document.getElementById('search').addEventListener('input', e => {
   searchQ = e.target.value.toLowerCase();
   render();
 });
 
+// ── Render grid ───────────────────────────────────────────────────────────
 function render() {
   const grid = document.getElementById('grid');
   const entries = Object.entries(THEME_DATA).filter(([key, d]) => {
@@ -319,7 +439,6 @@ function render() {
       currentTheme = theme;
       localStorage.setItem('egm-theme', theme);
       applyBodyTheme(theme);
-      // Notify main window via IPC
       if (window.electronAPI && window.electronAPI.setTheme) {
         window.electronAPI.setTheme(theme);
       }
@@ -328,6 +447,7 @@ function render() {
   });
 }
 
+buildSidebar();
 render();
 {% endraw %}
 </script>
