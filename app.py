@@ -962,7 +962,7 @@ def check_app_update():
 
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
-    """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe using password, return installer path."""
+    """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe, return installer path."""
     data    = request.json or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     expected_checksum = data.get("expected_checksum", "").strip().lower()
@@ -971,10 +971,6 @@ def download_update():
     # SSRF guard: only allow downloads from the official distribution server
     if not zip_url.startswith("https://egerena.com/"):
         return jsonify({"error": "Invalid update URL"}), 400
-    try:
-        import pyzipper
-    except ImportError:
-        return jsonify({"error": "pyzipper not installed — restart the app to install it"}), 500
 
     UPDATE_TMP_DIR.mkdir(parents=True, exist_ok=True)
     zip_path       = UPDATE_TMP_DIR / "EGMd.zip"
@@ -996,9 +992,9 @@ def download_update():
                 zip_path.unlink(missing_ok=True)
                 return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
 
-        # Extract egm-setup.exe using password
-        with pyzipper.AESZipFile(zip_path, "r") as z:
-            z.setpassword(APP_UPDATE_PASSWORD.encode("utf-8"))
+        # Extract egm-setup.exe using standard zipfile
+        import zipfile as _zf
+        with _zf.ZipFile(zip_path, "r") as z:
             names = z.namelist()
             if "egm-setup.exe" not in names:
                 zip_path.unlink(missing_ok=True)
