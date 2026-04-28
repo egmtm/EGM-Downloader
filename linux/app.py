@@ -648,16 +648,23 @@ def check_status(job_id):
 def get_settings():
     s = _load_settings()
     return jsonify({
-        "last_folder":       s.get("last_folder", ""),
-        "concurrency":       s.get("concurrency", 6),
-        "fragments":         s.get("fragments", 4),
-        "settings_open":     s.get("settings_open", True),
-        "upd_open":          s.get("upd_open", False),
-        "ck_open":           s.get("ck_open", False),
-        "quit_on_done":              s.get("quit_on_done", False),
+        "last_folder":             s.get("last_folder", ""),
+        "concurrency":             s.get("concurrency", 6),
+        "fragments":               s.get("fragments", 4),
+        "settings_open":           s.get("settings_open", True),
+        "upd_open":                s.get("upd_open", False),
+        "ck_open":                 s.get("ck_open", False),
+        "quit_on_done":            s.get("quit_on_done", False),
         "check_updates_on_launch": s.get("check_updates_on_launch", False),
-        "flask_port":        s.get("flask_port", 8899),
-        "last_seen_version": s.get("last_seen_version", ""),
+        "flask_port":              s.get("flask_port", 8899),
+        "last_seen_version":       s.get("last_seen_version", ""),
+        # Promoted UI controls — must be returned so frontend can restore on init.
+        # Without these, defaults always win regardless of what was saved.
+        "subtitles":               s.get("subtitles", False),
+        "embed_metadata":          s.get("embed_metadata", True),
+        "output_format":           s.get("output_format", "mp4"),
+        "default_audio_format":    s.get("default_audio_format", "320"),
+        "theme":                   s.get("theme", ""),
     })
 
 @app.route("/api/settings/save", methods=["POST"])
