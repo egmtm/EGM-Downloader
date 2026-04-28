@@ -385,9 +385,12 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["-x", "--audio-format", "mp3",
                      "--postprocessor-args", f"ffmpeg:-b:a {q}k"]
         if format_id: args += ["-f", format_id]
+        # Audio thumbnail embedding via mutagen (handles MP3/M4A/OPUS)
+        if embed_metadata:
+            args += ["--embed-thumbnail", "--embed-metadata"]
     else:
         # 4d: MKV output support — default mp4
-        container = output_format if output_format in ("mp4", "mkv") else "mp4"
+        container = output_format if output_format in ("mp4", "mkv", "mov", "webm") else "mp4"
         args += ["--merge-output-format", container]
         # If the selected format's paired audio is already AAC, remux with -c copy.
         # Otherwise (opus, vorbis, unknown) re-encode audio to AAC for mp4 compatibility.
@@ -403,9 +406,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
         else:
             args += ["-f", "bestvideo+bestaudio/best"]
-        # 4a: Metadata embedding — embed thumbnail, chapters, metadata into video
+        # 4a: Metadata embedding — chapters + metadata into video
+        # Note: --embed-thumbnail removed; bundled ffmpeg lacks MP4 cover art muxer
         if embed_metadata:
-            args += ["--embed-thumbnail", "--embed-metadata", "--embed-chapters"]
+            args += ["--embed-metadata", "--embed-chapters"]
         # Subtitles — embed English subs into the video (only meaningful for video downloads)
         if subtitles:
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
@@ -475,6 +479,49 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             return
 
         if proc.returncode != 0:
+            # Determine the expected extension before cleanup
+            if format_choice == "audio":
+                if audio_quality == "flac":              _want = ".flac"
+                elif audio_quality.startswith("m4a_"):   _want = ".m4a"
+                elif audio_quality.startswith("opus_"):  _want = ".opus"
+                else:                                    _want = ".mp3"
+            else:
+                _want = {"mkv": ".mkv", "mov": ".mov", "webm": ".webm"}.get(output_format, ".mp4")
+
+            # Clean temp/intermediate files; look for a usable main file
+            _all = glob.glob(str(out_dir / f"{job_id}.*"))
+            _temp_exts = {".vt", ".webp", ".json", ".ytdl", ".part"}
+            _main_file = None
+            for _f in _all:
+                _p = Path(_f)
+                if _p.suffix in _temp_exts or ".temp." in _p.name:
+                    try: os.remove(_f)
+                    except Exception: pass
+                elif _p.suffix == _want and not _main_file:
+                    _main_file = _f
+
+            if _main_file and os.path.getsize(_main_file) > 0:
+                # Download succeeded — only postprocessing (thumbnail/metadata) failed
+                # Rename and deliver with a warning instead of hard error
+                _ext   = os.path.splitext(_main_file)[1]
+                _title = job.get("title", "").strip()
+                _fname = _safe_filename(_title, _ext) if _title else os.path.basename(_main_file)
+                _fpath = out_dir / _fname
+                _stem, _n = Path(_fname).stem, 1
+                while _fpath.exists() and str(_fpath) != _main_file:
+                    _fpath = out_dir / f"{_stem} ({_n}){_ext}"; _n += 1
+                try: os.rename(_main_file, _fpath)
+                except: _fpath = Path(_main_file)
+                job["file"]        = str(_fpath)
+                job["filename"]    = _fpath.name
+                job["warning"]     = "Download complete — metadata embedding skipped."
+                job["_finished_at"] = time.time()
+                _append_history(job, _fpath)
+                job["status"]      = "done"
+                return
+
+            # No usable file found — clean up and report error
+            _cleanup(job_id, out_dir)
             err = [l for l in stderr_data.strip().splitlines()
                    if l.strip() and not l.strip().startswith("WARNING")]
             raw_err = err[-1] if err else stderr_data.strip()
@@ -493,7 +540,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             elif audio_quality.startswith("opus_"): want = ".opus"
             else:                              want = ".mp3"
         else:
-            want = ".mkv" if output_format == "mkv" else ".mp4"
+            want = {"mkv": ".mkv", "mov": ".mov", "webm": ".webm"}.get(output_format, ".mp4")
         preferred = [f for f in files if f.endswith(want)]
         chosen    = preferred[0] if preferred else files[0]
         for f in files:
