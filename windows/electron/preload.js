@@ -13,6 +13,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openThemesWindow:   ()               => ipcRenderer.invoke('open-themes-window'),
   setTheme:           (theme)          => ipcRenderer.send('set-theme', theme),
   onThemeChanged:     (cb)             => ipcRenderer.on('theme-changed', (e, theme) => cb(theme)),
+  sendUrlToMain:      (url)            => ipcRenderer.send('send-url-to-main', url),
+  onReceiveUrl:       (cb)             => ipcRenderer.on('readd-url', (e, url) => cb(url)),
   isElectron: true,
   platform: 'win',
 });
