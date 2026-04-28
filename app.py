@@ -20,6 +20,44 @@ app = Flask(__name__)
 BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
 
+# ── Portable mode detection ────────────────────────────────────────────────────
+def is_portable():
+    """Return True if running as a portable installation.
+
+    Detection logic (Windows):
+      1. If a .portable marker file exists next to app.py → portable.
+      2. If running from %LOCALAPPDATA%\\EGM Downloader → installed (not portable).
+      3. Otherwise → installed (defensive default).
+    """
+    app_dir = Path(__file__).parent.resolve()
+    if (app_dir / ".portable").exists():
+        return True
+    if sys.platform == "win32":
+        local_appdata = os.environ.get("LOCALAPPDATA", "")
+        if local_appdata:
+            installed_path = Path(local_appdata) / "EGM Downloader"
+            try:
+                if app_dir.resolve() == installed_path.resolve():
+                    return False
+            except (OSError, ValueError):
+                pass
+    return False
+
+PORTABLE_MODE = is_portable()
+
+def get_data_dir() -> Path:
+    """Return the directory used for settings, history, cookies, and downloads list.
+
+    Portable installs keep data inside the portable folder (./data/) so the
+    entire app can be moved or run from USB without leaving traces elsewhere.
+    Installed builds use the standard BASE_DIR (beside app.py inside $INSTDIR).
+    """
+    if PORTABLE_MODE:
+        d = Path(__file__).parent.resolve() / "data"
+        d.mkdir(exist_ok=True)
+        return d
+    return BASE_DIR
+
 # ── App version — keep in sync with index.html build stamp ───────────────────
 APP_VERSION           = "0.97.5"
 APP_BUILD             = 100
@@ -30,12 +68,12 @@ APP_UPDATE_PASSWORD   = "EGMsterling"
 # ── Update temp dir — cleaned up on startup if present ───────────────────────
 UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "egm-update"
 
-# Settings file: persists last used folder
-SETTINGS_FILE = BASE_DIR / "egm_settings.json"
-HISTORY_FILE  = BASE_DIR / "egm_history.json"
+# Settings / history / cookies — routed through get_data_dir() for portable support
+SETTINGS_FILE = get_data_dir() / "egm_settings.json"
+HISTORY_FILE  = get_data_dir() / "egm_history.json"
 
 # ── Cookies: path to cookies.txt — managed via Settings UI ───────────────────
-COOKIES_FILE = BASE_DIR / "cookies.txt"
+COOKIES_FILE = get_data_dir() / "cookies.txt"
 
 _settings_cache: dict = {}
 _settings_lock  = threading.Lock()
@@ -927,6 +965,15 @@ def installed_versions():
     })
 
 
+@app.route("/api/portable-status")
+def portable_status():
+    """Return whether the app is running in portable mode and its data directory."""
+    return jsonify({
+        "portable": PORTABLE_MODE,
+        "data_dir": str(get_data_dir()),
+    })
+
+
 @app.route("/api/whats-new")
 def whats_new():
     """Return _version_notes from the platform JSON feed for the What's New modal.
@@ -948,7 +995,16 @@ def whats_new():
 
 @app.route("/api/check-app-update")
 def check_app_update():
-    """Fetch egm-version.json and compare to running version."""
+    """Fetch egm-version.json and compare to running version.
+    Returns portable:True and suppresses update in portable mode."""
+    if PORTABLE_MODE:
+        return jsonify({
+            "portable": True,
+            "up_to_date": True,
+            "current_version": APP_VERSION,
+            "current_build": APP_BUILD,
+            "notes": "",
+        })
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
                                      headers={"User-Agent": "EGM-Downloader"})
@@ -983,6 +1039,8 @@ def check_app_update():
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
     """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe, return installer path."""
+    if PORTABLE_MODE:
+        return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps."}), 400
     data    = request.json or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     expected_checksum = data.get("expected_checksum", "").strip().lower()
