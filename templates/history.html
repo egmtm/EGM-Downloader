@@ -233,7 +233,7 @@
       const isAudio = AUDIO_FMTS.includes((item.format||'').toLowerCase());
       row.innerHTML = `
         <div class="rthumb">${isAudio ? '♫' : '▶'}</div>
-        <div>
+        <div style="min-width:0;overflow:hidden">
           <div class="rt">${item.title || item.filename || '—'}</div>
           <div class="rm">${item.url || ''}</div>
         </div>
