@@ -104,6 +104,12 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (~75 MB)  
 **Requirements:** Windows 10/11 (64-bit)
 
+### Windows Portable
+**Latest:** v0.98 Build 101  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (~75 MB)  
+**Requirements:** Windows 10/11 (64-bit)  
+**No installer, no registry** — runs from any folder or USB drive
+
 ### macOS
 **Latest:** v0.98 Build 101  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (~120 MB)  
@@ -125,6 +131,13 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 1. Extract `EGMd.zip`
 2. Run `EGM Downloader.vbs` (or see `instructions.txt` for alternatives)
 3. Paste a video URL and click Download!
+
+### Windows Portable
+1. Extract `EGMd-portable.zip` to any folder or USB drive
+2. Run `EGM Downloader.vbs`
+3. Paste a video URL and click Download!
+
+> Settings and data stay in the same folder — take it anywhere.
 
 ### macOS
 1. Extract `EGMdM.zip`
