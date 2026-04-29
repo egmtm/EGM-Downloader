@@ -106,14 +106,14 @@ Deno provides the secure runtime environment needed for bgutil-ytdlp-pot-provide
 
 ---
 
-### PyZipper
-**AES-encrypted ZIP file handling**
+### mutagen
+**Audio metadata tagging**
 
-- **License:** MIT
-- **Repository:** https://github.com/danifus/pyzipper
-- **Purpose:** Creates password-protected distribution files (Windows/Mac)
+- **License:** GPL-2.0
+- **Repository:** https://github.com/quodlibet/mutagen
+- **Purpose:** Embeds thumbnail, chapter markers, and title/artist/date metadata into downloaded files
 
-**Thank you** to danifus for providing secure ZIP encryption capabilities.
+**Thank you** to the quodlibet team for a robust and well-maintained metadata library.
 
 ---
 
@@ -206,17 +206,6 @@ Deno provides the secure runtime environment needed for bgutil-ytdlp-pot-provide
 
 ---
 
-## 🎓 Original Inspiration
-
-### ReClip
-**Original project foundation**
-
-EGM Downloader began as a customization of the ReClip project, which provided the initial architecture for a desktop video downloader. While the codebase has been significantly modified and expanded, we acknowledge the foundation ReClip provided.
-
-**Thank you** to the original ReClip developers for the inspiration and starting point.
-
----
-
 ## 🌟 Special Thanks
 
 ### Open Source Community
@@ -240,8 +229,9 @@ To everyone who contributes to open source software - from bug reports to docume
 EGM Downloader is released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, which is compatible with all the dependencies listed above.
 
 ### License Summary:
-- **MIT License:** Electron, Flask, Deno, bgutil, PyZipper, electron-builder, flake8, isort, ESLint, Node.js
+- **MIT License:** Electron, Deno, bgutil-ytdlp-pot-provider, electron-builder, flake8, isort, ESLint, Node.js
 - **BSD-3-Clause:** Flask (Pallets)
+- **GPL-2.0:** mutagen
 - **Unlicense (Public Domain):** yt-dlp
 - **LGPL/GPL:** FFmpeg (dynamically linked, separate binary)
 - **Python Software Foundation License:** Python
@@ -274,6 +264,6 @@ We strive to properly credit all contributions to this project.
 
 ---
 
-**Last Updated:** April 24, 2026
+**Last Updated:** April 28, 2026
 
 **Thank you to everyone who makes open source possible!** ❤️
