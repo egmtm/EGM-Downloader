@@ -2,7 +2,7 @@ v0.98 - Build 101 (4/28/2026 1:47 AM EST)
 -----------------------------------------
   • [ALL] URL input pane redesigned — compact unified buttons (28px), textarea shrinks to 3 lines by default and auto-grows as URLs are added, "Max videos" caption replaces "Videos"
   • [ALL] Drag and drop URLs directly into the URL textarea — visual drag-over feedback, filters comment lines, appends cleanly
-  • [ALL] Keyboard shortcuts — Ctrl+V pastes and fetches from anywhere on the page; Esc clears the textarea; Ctrl+Enter triggers Fetch Info
+  • [ALL] Keyboard shortcuts — paste-and-fetch (Ctrl+V / ⌘V), clear textarea (Esc), trigger Fetch Info (Ctrl+Enter / ⌘Return)
   • [ALL] All Themes window redesigned — categories moved to left sidebar with collapsible sections (Style, Vibe, Culture, Other); search bar compact (expands on focus); category counts shown
   • [ALL] Download subtitles toggle in Advanced panel — embeds English subtitles (manual preferred, auto-generated fallback) directly into video file; no separate .srt files
   • [ALL] Embed metadata toggle in Advanced panel (ON by default) — embeds thumbnail, chapter markers, and title/artist/date metadata into downloaded videos
@@ -20,7 +20,7 @@ v0.98 - Build 101 (4/28/2026 1:47 AM EST)
   • [ALL] Double update toast guard added — auto-check on launch no longer fires twice
   • [ALL] Security hardening — URL scheme validation on all API endpoints, IPC input allowlists, concurrent_fragments clamped 1–16, video_height allowlisted, open-folder path safety
   • [ALL] App size reduced ~40MB — Python bundle stripped of pip, setuptools, idlelib, tkinter, pycache on Mac and Linux builds
-  • [ALL] Desktop shortcut button shows confirmation dialog; detects if shortcut already exists and shows "already exists" toast instead of overwriting
+  • [WINDOWS] Desktop shortcut button shows confirmation dialog; detects if shortcut already exists and shows "already exists" toast instead of overwriting
   • [ALL] Reinstall ffmpeg and Reinstall Deno now have distinct icons (▶ and ⬡) for quick visual identification
   • [ALL] Advanced panel section labels removed — cleaner layout for power users; buttons are self-explanatory
   • [ALL] Footer spacing tightened between Advanced panel and footer
