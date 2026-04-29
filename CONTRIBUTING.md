@@ -62,7 +62,7 @@ Steps:
 Expected: All videos download
 Actual: Only first 50 videos download
 
-Environment: Windows 11, EGM Downloader v0.91 Build 88
+Environment: Windows 11, EGM Downloader v0.98 Build 101
 ```
 
 ### Suggesting Features
@@ -169,8 +169,8 @@ python scripts/gen-update-json.py --notes "Your change 1; Your change 2"
 # Increment build number only (most common)
 python scripts/bump-version.py
 
-# Increment version string (e.g., v0.91 → v0.92)
-python scripts/bump-version.py --version 0.92
+# Increment version string (e.g., v0.98 → v0.99)
+python scripts/bump-version.py --version 0.99
 
 # Preview changes without writing
 python scripts/bump-version.py --dry-run
@@ -396,9 +396,9 @@ EGM-Downloader/
 - `requirements.txt` - Python dependencies
 
 **Linux-Specific:**
-- `linux/app.py` - No password protection, AppImage paths
+- `linux/app.py` - Linux-specific backend, AppImage paths
 - `linux/templates/` - Slightly different UI
-- `linux/requirements.txt` - No pyzipper
+- `linux/requirements.txt` - Linux-specific dependencies
 
 **Platform Directories:**
 - `windows/electron/` - Windows Electron configuration
@@ -420,7 +420,7 @@ EGM-Downloader/
 - **General questions** - Open a discussion
 - **Bug reports** - Open an issue
 - **Feature requests** - Open an issue
-- **Security concerns** - Email [your contact]
+- **Security concerns** - Email contact@egerena.com
 
 ---
 
