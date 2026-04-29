@@ -157,8 +157,8 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 💡 Usage
 
 1. **Paste URL** - Copy any video URL and paste it into the app
-2. **Select Format** - Choose MP4 (video) or MP3 (audio)
-3. **Select Quality** - Choose your preferred resolution and format
+2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
+3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
 4. **Edit Filename** (Optional) - Click the filename to customize it
 5. **Download** - Click the download button and wait for completion
 6. **Open Folder** - Click "Open Folder" to view your downloaded files
@@ -265,9 +265,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows  | ✅ Live | Build 96 | EGMd.zip | ✅ Yes |
-| macOS    | ✅ Live | Build 96 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 96 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 101 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 101 | EGMd-portable.zip | ✅ Yes |
+| macOS    | ✅ Live | Build 101 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 101 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
@@ -282,6 +283,7 @@ EGM Downloader is powered by incredible open source projects:
 - **[Electron](https://www.electronjs.org/)** - Cross-platform desktop wrapper
 - **[FFmpeg](https://ffmpeg.org/)** - Video/audio processing
 - **[Deno](https://deno.com/)** - JavaScript runtime for YouTube tokens
+- **[mutagen](https://mutagen.readthedocs.io/)** - Audio metadata tagging (thumbnail, chapters, title/artist/date)
 
 See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
 
@@ -424,7 +426,6 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 **Planned Features:**
 - 🌍 Multi-language support
-- 📊 Download statistics/history
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
