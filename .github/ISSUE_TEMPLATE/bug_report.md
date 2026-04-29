@@ -33,7 +33,7 @@ assignees: ''
 
 **Platform:** (Windows / macOS / Linux)  
 **Version:** (e.g., Windows 11, macOS 14.2, Ubuntu 22.04)  
-**EGM Downloader Version:** (e.g., v0.91 Build 92)  
+**EGM Downloader Version:** (e.g., v0.98 Build 101)  
 **Installation Method:** (Installer / ZIP extraction / AppImage)
 
 ## Additional Context
