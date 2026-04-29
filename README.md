@@ -266,7 +266,7 @@ All pull requests are automatically tested via GitHub Actions.
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
 | Windows (Installer) | ✅ Live | Build 101 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 101 | EGMd-portable.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 101 | EGMd-portable.zip | ❌ Manual |
 | macOS    | ✅ Live | Build 101 | EGMdM.zip | ✅ Yes |
 | Linux    | ✅ Live | Build 101 | EGMdL.zip | ❌ Manual |
 
