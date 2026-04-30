@@ -9,7 +9,6 @@
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"/>
-    <img src="https://img.shields.io/badge/Electron-29.0+-47848F?logo=electron&logoColor=white" alt="Electron"/>
   </p>
 
   <p><strong>A powerful, multi-platform video and audio downloader for 1000+ websites.</strong></p>
