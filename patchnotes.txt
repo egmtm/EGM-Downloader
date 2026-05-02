@@ -1,3 +1,15 @@
+v0.98.5 - Build 102 (5/2/2026 2:25 AM EST)
+-----------------------------------------
+  • [ALL] Electron runtime upgraded to v41.5.0 (security and compatibility improvements; v29 line is end-of-life with no security backports — this upgrade incorporates accumulated Chromium security fixes and backported CVEs from the Electron security advisory line)
+  • [ALL] electron-builder updated to v26.8.1 (build toolchain compatibility with Electron 41)
+  • [LINUX] Improved window initialization reliability — main window now appears consistently when launched from file manager or application launcher on GNOME/Mutter compositors (Ubuntu 24 and similar distros)
+
+  Known issues:
+  • [ALL] Open folder from the expanded download history panel does not work — use the hamburger menu’s open folder action instead. Fix planned for next release.
+  • [LINUX] Splash window and certain secondary panels (themes, expanded history, footer link popups) may appear off-center (typically top-left) on first display. Functional behavior unaffected. Targeted fix planned for next release.
+  • [LINUX] Cookies browse dialog does not open on Linux. Linux-specific issue, fix planned for upcoming release.
+
+
 v0.98 - Build 101 (4/28/2026 1:47 AM EST)
 -----------------------------------------
   • [ALL] URL input pane redesigned — compact unified buttons (28px), textarea shrinks to 3 lines by default and auto-grows as URLs are added, "Max videos" caption replaces "Videos"
