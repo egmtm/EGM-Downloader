@@ -1,4 +1,4 @@
-EGM Downloader v0.98 — Linux
+EGM Downloader v0.98.5 — Linux
 www.egerena.com
 ────────────────────────────────────────
 
