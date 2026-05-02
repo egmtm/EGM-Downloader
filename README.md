@@ -9,6 +9,7 @@
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"/>
+    <img src="https://img.shields.io/badge/Electron-41+-47848F?logo=electron&logoColor=white" alt="Electron"/>
   </p>
 
   <p><strong>A powerful, multi-platform video and audio downloader for 1000+ websites.</strong></p>
@@ -99,28 +100,28 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.98 Build 101  
+**Latest:** v0.98.5 Build 102  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (302 KB · ~800 MB after install)  
-**SHA256:** `0c8d412dee5d87d4e871add51bf5b6bd438ac667a54eb10751950e857cbd4860`  
+**SHA256:** `612ddb4763d924371b8080ebd947efceeca0fab1210f7c75e9eebb8773eaaf20`  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### Windows Portable
-**Latest:** v0.98 Build 101  
+**Latest:** v0.98.5 Build 102  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (260 KB · ~800 MB after first run)  
-**SHA256:** `0c579d6465dab0f0aabf5123b427cbe2941b06b86a6c48cfd87a7fb458f5555c`  
+**SHA256:** `ce80634e410ee0dd0064f1ab782c9918d0cada065137f88e261664861847455b`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
-**Latest:** v0.98 Build 101  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (104 MB · ~300 MB after install)  
-**SHA256:** `68ec6ef00353540cfdc5b68418be5c99b24472c102d098281114834b976f194a`  
+**Latest:** v0.98.5 Build 102  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (110 MB · ~300 MB after install)  
+**SHA256:** `60361914a28f530f88213914540ea4f771c51e52e13614af96756af6d2a0ef45`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 
 ### Linux
-**Latest:** v0.98 Build 101  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (115 MB · ~300 MB after install)  
-**SHA256:** `56cde675c8e934e9795823ae28037c2b70a96661597641ee1c12fccc6b361773`  
+**Latest:** v0.98.5 Build 102  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (128 MB · ~300 MB after install)  
+**SHA256:** `d683348a1f16fa2c86c0a74f6071965113b05db10d4713c781ea053a643e8a42`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -268,14 +269,20 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 101 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 101 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 101 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 101 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 102 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 102 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 102 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 102 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
 ---
+
+## ⚠️ Known Issues (v0.98.5)
+
+- **All platforms:** Open Folder from the *expanded* Download History panel does not work — use the hamburger menu's Open Folder action instead. Fix planned for next release.
+- **Linux:** Splash window and secondary panels (themes, expanded history, footer links) may appear off-center on first display. Functional behavior unaffected. Fix planned for next release.
+- **Linux:** Cookies browse dialog does not open. Fix planned for an upcoming release.
 
 ## 🏗️ Built With
 
