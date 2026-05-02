@@ -112,7 +112,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ### macOS
 **Latest:** v0.98 Build 101  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (~120 MB)  
-**Requirements:** macOS 11.0 (Big Sur) or later
+**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 
 ### Linux
 **Latest:** v0.98 Build 101  
