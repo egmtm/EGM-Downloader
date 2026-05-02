@@ -100,23 +100,23 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ### Windows
 **Latest:** v0.98 Build 101  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (~75 MB)  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (302 KB · ~800 MB after install)  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### Windows Portable
 **Latest:** v0.98 Build 101  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (~75 MB)  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (260 KB · ~800 MB after first run)  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
 **Latest:** v0.98 Build 101  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (~120 MB)  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (104 MB · ~300 MB after install)  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 
 ### Linux
 **Latest:** v0.98 Build 101  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (~130 MB)  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (115 MB · ~300 MB after install)  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
