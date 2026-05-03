@@ -1,10 +1,33 @@
 name: Validate Version Sync
 
+# Triggers only on changes to files the validator actually checks.
+# Skips noise from STATE.md, README.md, CREDITS.md, .github/, etc.
+# IMPORTANT: linux/templates/** and linux/requirements.txt MUST be included
+# to preserve the drift guard (added 2026-04-28).
+
 on:
   push:
     branches: [ main ]
+    paths:
+      - 'version.json'
+      - '**/package.json'
+      - '**/app.py'
+      - '**/templates/**'
+      - 'linux/INSTRUCTIONS.txt'
+      - 'linux/requirements.txt'
+      - 'mac/BUILD.sh'
+      - 'scripts/validate-version-sync.py'
   pull_request:
     branches: [ main ]
+    paths:
+      - 'version.json'
+      - '**/package.json'
+      - '**/app.py'
+      - '**/templates/**'
+      - 'linux/INSTRUCTIONS.txt'
+      - 'linux/requirements.txt'
+      - 'mac/BUILD.sh'
+      - 'scripts/validate-version-sync.py'
 
 jobs:
   check-version-sync:
@@ -18,6 +41,7 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.11'
+        cache: 'pip'
         
     - name: Run version validation
       run: python scripts/validate-version-sync.py
