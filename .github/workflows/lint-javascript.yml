@@ -42,9 +42,10 @@ jobs:
     - name: Lint Electron JavaScript
       run: |
         # Lint electron main process files
-        eslint windows/electron/main.js windows/electron/preload.js || true
-        eslint mac/electron/main.js mac/electron/preload.js || true
-        eslint linux/electron/main.js linux/electron/preload.js || true
+        # --quiet suppresses style warnings; only critical errors surface
+        eslint --quiet windows/electron/main.js windows/electron/preload.js || true
+        eslint --quiet mac/electron/main.js mac/electron/preload.js || true
+        eslint --quiet linux/electron/main.js linux/electron/preload.js || true
         echo ""
         echo "Note: ESLint suggestions above are informational only"
         echo "Manual review recommended for HTML-embedded JavaScript"
