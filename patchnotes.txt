@@ -1,3 +1,15 @@
+v0.98.6 - Build 103 (5/4/2026 11:10 PM EST)
+-----------------------------------------
+  • [LINUX] Window centering fixed — main window and secondary panels now appear centered on first launch on GNOME/Mutter compositors (forced X11 backend restores reliable window positioning lost in Electron 41's Wayland auto-detection change)
+  • [ALL] Open folder from expanded download history panel now works correctly (history window was missing API bridge that prevented folder actions)
+  • [ALL] Video thumbnail aspect ratio corrected — widescreen (16:9) videos now display at proper proportions instead of appearing stretched vertically
+  • [ALL] Version references corrected — footer version pill and What's New header now update correctly during version bumps (scripts coverage gap fixed)
+  • [WINDOWS] Portable: Update Plugins pane now accessible in portable mode with safety disclaimer for plugin recovery
+
+  Known issues:
+  • [LINUX] Cookies browse dialog does not open on Linux. Linux-specific fix planned for upcoming release.
+  • [LINUX] Virtual machine environments (VMware, VirtualBox, etc.) may experience display rendering issues. The app is primarily designed and tested for bare-metal Linux installations.
+
 v0.98.5 - Build 102 (5/2/2026 2:25 AM EST)
 -----------------------------------------
   • [ALL] Electron runtime upgraded to v41.5.0 (security and compatibility improvements; v29 line is end-of-life with no security backports — this upgrade incorporates accumulated Chromium security fixes and backported CVEs from the Electron security advisory line)
@@ -5,7 +17,7 @@ v0.98.5 - Build 102 (5/2/2026 2:25 AM EST)
   • [LINUX] Improved window initialization reliability — main window now appears consistently when launched from file manager or application launcher on GNOME/Mutter compositors (Ubuntu 24 and similar distros)
 
   Known issues:
-  • [ALL] Open folder from the expanded download history panel does not work — use the hamburger menu’s open folder action instead. Fix planned for next release.
+  • [ALL] Open folder from the expanded download history panel does not work — use the hamburger menu's open folder action instead. Fix planned for next release.
   • [LINUX] Splash window and certain secondary panels (themes, expanded history, footer link popups) may appear off-center (typically top-left) on first display. Functional behavior unaffected. Targeted fix planned for next release.
   • [LINUX] Cookies browse dialog does not open on Linux. Linux-specific issue, fix planned for upcoming release.
 
