@@ -133,7 +133,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ### Windows
 1. Extract `EGMd.zip`
-2. Run `EGM Downloader.vbs` (or see `instructions.txt` for alternatives)
+2. Run `egm-setup.exe` and follow the installer
 3. Paste a video URL and click Download!
 
 ### Windows Portable
