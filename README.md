@@ -100,28 +100,28 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.98.5 Build 102  
+**Latest:** v0.98.6 Build 103  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (302 KB · ~800 MB after install)  
-**SHA256:** `612ddb4763d924371b8080ebd947efceeca0fab1210f7c75e9eebb8773eaaf20`  
+**SHA256:** `83db704418ac4415b4bee087cda7a84ee5a50e3dcfe9b251a5a66192d5318fd3`  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### Windows Portable
-**Latest:** v0.98.5 Build 102  
+**Latest:** v0.98.6 Build 103  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (260 KB · ~800 MB after first run)  
-**SHA256:** `ce80634e410ee0dd0064f1ab782c9918d0cada065137f88e261664861847455b`  
+**SHA256:** `9d0998090bcf05510464d6092e43e7d09034f32cae8ae193b35186e7ef8c0bc4`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
-**Latest:** v0.98.5 Build 102  
+**Latest:** v0.98.6 Build 103  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (110 MB · ~300 MB after install)  
-**SHA256:** `60361914a28f530f88213914540ea4f771c51e52e13614af96756af6d2a0ef45`  
+**SHA256:** `d15e16144d91d3a9a933f5042860e2ddf3c9358602cd9add6699a58aba8767c0`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 
 ### Linux
-**Latest:** v0.98.5 Build 102  
+**Latest:** v0.98.6 Build 103  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (128 MB · ~300 MB after install)  
-**SHA256:** `d683348a1f16fa2c86c0a74f6071965113b05db10d4713c781ea053a643e8a42`  
+**SHA256:** `f0a692fbd5934aa4c3b9cd1c959bb3f7b7cb8bd0e495d7143533007be0873bc5`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -269,20 +269,19 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 102 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 102 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 102 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 102 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 103 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 103 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 103 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 103 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
 ---
 
-## ⚠️ Known Issues (v0.98.5)
+## ⚠️ Known Issues (v0.98.6)
 
-- **All platforms:** Open Folder from the *expanded* Download History panel does not work — use the hamburger menu's Open Folder action instead. Fix planned for next release.
-- **Linux:** Splash window and secondary panels (themes, expanded history, footer links) may appear off-center on first display. Functional behavior unaffected. Fix planned for next release.
 - **Linux:** Cookies browse dialog does not open. Fix planned for an upcoming release.
+- **Linux:** Virtual machine environments (VMware, VirtualBox) are not officially supported. The app is designed and tested for bare-metal Linux installations.
 
 ## 🏗️ Built With
 
