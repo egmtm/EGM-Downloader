@@ -101,13 +101,13 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ### Windows
 **Latest:** v0.98.6 Build 103  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (302 KB · ~800 MB after install)  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (303 KB · ~800 MB after install)  
 **SHA256:** `83db704418ac4415b4bee087cda7a84ee5a50e3dcfe9b251a5a66192d5318fd3`  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### Windows Portable
 **Latest:** v0.98.6 Build 103  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (260 KB · ~800 MB after first run)  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (261 KB · ~800 MB after first run)  
 **SHA256:** `9d0998090bcf05510464d6092e43e7d09034f32cae8ae193b35186e7ef8c0bc4`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
