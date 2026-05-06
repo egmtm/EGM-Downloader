@@ -280,6 +280,7 @@ All pull requests are automatically tested via GitHub Actions.
 
 ## ⚠️ Known Issues (v0.98.6)
 
+- **Linux:** Window position is not remembered between sessions on Wayland compositors. Cosmetic only — app launches centered on each start.
 - **Linux:** Cookies browse dialog does not open. Fix planned for an upcoming release.
 - **Linux:** Virtual machine environments (VMware, VirtualBox) are not officially supported. The app is designed and tested for bare-metal Linux installations.
 
