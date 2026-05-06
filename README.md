@@ -121,7 +121,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ### Linux
 **Latest:** v0.98.6 Build 103  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (128 MB · ~300 MB after install)  
-**SHA256:** `f0a692fbd5934aa4c3b9cd1c959bb3f7b7cb8bd0e495d7143533007be0873bc5`  
+**SHA256:** `6b6b5f05b9d960889277a20c6064380bdc90f3d43e2ba9db646605df01af707e`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
