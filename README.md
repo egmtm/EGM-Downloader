@@ -282,7 +282,6 @@ All pull requests are automatically tested via GitHub Actions.
 ## ⚠️ Known Issues
 
 - **Linux:** Window position is not remembered between sessions on Wayland compositors. Cosmetic only — app launches centered on each start.
-- **Linux:** Virtual machine environments (VMware, VirtualBox) are not officially supported. The app is designed and tested for bare-metal Linux installations.
 
 ## 🏗️ Built With
 
