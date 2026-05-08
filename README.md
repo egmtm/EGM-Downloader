@@ -115,13 +115,13 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ### macOS
 **Latest:** v0.98.6 Build 103  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (110 MB · ~300 MB after install)  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (115 MB · ~300 MB after install)  
 **SHA256:** `d15e16144d91d3a9a933f5042860e2ddf3c9358602cd9add6699a58aba8767c0`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 
 ### Linux
 **Latest:** v0.98.6 Build 103  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (128 MB · ~300 MB after install)  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (133 MB · ~300 MB after install)  
 **SHA256:** `6b6b5f05b9d960889277a20c6064380bdc90f3d43e2ba9db646605df01af707e`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
