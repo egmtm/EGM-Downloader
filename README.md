@@ -433,8 +433,11 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 🗺️ Roadmap
 
-**Planned Features:**
-- 🌍 Multi-language support
+**v0.99 (Next Release):**
+- 📡 Subscriptions feature — automated channel monitoring
+
+**v1.0 (Future):**
+- 🌍 Multi-language support — global interface
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
