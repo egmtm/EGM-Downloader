@@ -15,6 +15,7 @@ from pathlib import Path
 from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body limit
 
 # ── Defensive Host header check (DNS rebinding / CSRF protection) ─────────────
 # We bind only to 127.0.0.1, but a malicious page could still target this port
@@ -88,7 +89,6 @@ APP_VERSION           = "0.98.7"
 APP_BUILD             = 104
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
-APP_UPDATE_PASSWORD   = "EGMsterling"
 
 # ── Update temp dir — cleaned up on startup if present ───────────────────────
 UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "egm-update"
@@ -955,6 +955,8 @@ def cookies_save():
     text = data.get("content", "").strip()
     if not text:
         return jsonify({"error": "No content provided"}), 400
+    if len(text) > 1 * 1024 * 1024:  # 1 MB cap for cookies content
+        return jsonify({"error": "Cookies file too large (max 1 MB)"}), 413
     try:
         COOKIES_FILE.write_text(text, encoding="utf-8")
         return jsonify({"ok": True})
@@ -1164,6 +1166,8 @@ def download_update():
     expected_checksum = data.get("expected_checksum", "").strip().lower()
     if not zip_url:
         return jsonify({"error": "No zip URL provided"}), 400
+    if not expected_checksum:
+        return jsonify({"error": "Checksum required for update verification"}), 400
     # SSRF guard: only allow downloads from the official distribution server
     if not zip_url.startswith("https://egerena.com/"):
         return jsonify({"error": "Invalid update URL"}), 400
@@ -1178,15 +1182,14 @@ def download_update():
         with urllib.request.urlopen(req, timeout=60) as r, open(zip_path, "wb") as f:
             shutil.copyfileobj(r, f)
 
-        # Verify SHA256 checksum if provided in the update feed
-        if expected_checksum:
-            import hashlib
-            h = hashlib.sha256()
-            h.update(zip_path.read_bytes())
-            actual_checksum = h.hexdigest().lower()
-            if actual_checksum != expected_checksum:
-                zip_path.unlink(missing_ok=True)
-                return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
+        # Verify SHA256 checksum (required — fail-closed)
+        import hashlib
+        h = hashlib.sha256()
+        h.update(zip_path.read_bytes())
+        actual_checksum = h.hexdigest().lower()
+        if actual_checksum != expected_checksum:
+            zip_path.unlink(missing_ok=True)
+            return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
 
         # Extract egm-setup.exe using standard zipfile
         import zipfile as _zf
