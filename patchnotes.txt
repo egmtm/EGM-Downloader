@@ -10,6 +10,10 @@ v0.98.7 - Build 104 (5/7/2026 8:38 PM EST) — THE POLISH
   • [LINUX] [MAC] Fixed yt-dlp update mechanism — Python bundle's pip module (required for runtime plugin updates) was inadvertently stripped during the v0.98 size optimization. Restored selectively to enable plugin updates without losing size benefits
   • [LINUX] [MAC] YouTube downloads using latest yt-dlp version (2026.03.17) — extractor fixes for recent YouTube changes now apply automatically through the restored update path. Other sites were unaffected by the previous issue
 
+  Known issues (v0.98.7):
+  • [LINUX] Window position is not remembered between sessions on Wayland compositors. Cosmetic only — app launches centered on each start.
+  • [LINUX] Virtual machine environments (VMware, VirtualBox, etc.) may experience display rendering issues. The app is primarily designed and tested for bare-metal Linux installations.
+
 v0.98.6 - Build 103 (5/4/2026 11:10 PM EST)
 -----------------------------------------
   • [ALL] Open folder from expanded download history panel now works correctly (history window was missing API bridge that prevented folder actions)
