@@ -635,7 +635,7 @@
     .vcard-remove:hover { color: var(--red); background: rgba(239,68,68,.1); }
 
     .thumb {
-      width: 150px; aspect-ratio: 16/9; flex-shrink: 0;
+      width: 150px; aspect-ratio: 16/9; flex-shrink: 0; align-self: center;
       background: var(--thumb-bg); position: relative; overflow: hidden;
     }
     .thumb.portrait { width: 85px; aspect-ratio: 9/16; }
@@ -770,10 +770,10 @@
     .toast.err  { border-left-color: var(--red); }
     .toast.warn { border-left-color: var(--yellow); }
 
-    /* ── Portable mode — hide update UI entirely ── */
-    body.portable-mode #footer-update-btn,
-    body.portable-mode .sec-hdr[onclick*="toggleUpdPanel"],
-    body.portable-mode #upd-body { display: none !important; }
+    /* ── Portable mode — hide app auto-update (portable manages itself) ── */
+    body.portable-mode #footer-update-btn { display: none !important; }
+    .portable-plugins-note { display: none; font-size: .68rem; color: var(--muted); margin-top: 6px; padding: 4px 8px; border-left: 2px solid var(--border); }
+    body.portable-mode .portable-plugins-note { display: block; }
     @keyframes sli { from { opacity:0; transform:translateX(32px); } }
 
     /* ── Update modal ── */
@@ -832,7 +832,7 @@
     </svg>
   </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle;cursor:help;border-bottom:1px dotted var(--border2)" title="v0.98.7" data-build-title="v0.98.7">v0.98.7</span></h1>
+    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v0.98.7</span></h1>
     <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
   </div>
   <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
@@ -1401,7 +1401,6 @@
       <button class="btn btn-ghost btn-sm" id="browse-btn">📂 Browse</button>
       <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled>📁 Open</button>
     </div>
-    <div class="path-hint" id="dir-hint" style="color:var(--yellow)">⚠ Select a download folder before downloading.</div>
 
     <!-- Daily-use controls promoted from Advanced — format selectors + toggles -->
     <div style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-top:10px">
@@ -1448,29 +1447,19 @@
     </div>
   </div>
 
-  <!-- Cookies section -->
-  <div class="sec-hdr" onclick="toggleCookiePanel()">
-    <span class="sec-title">🍪 Site Cookies</span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px">Cookies: not loaded</span>
-      <button class="card-toggle" id="ck-toggle" onclick="event.stopPropagation();toggleCookiePanel()">▶ Show</button>
+  <!-- Cookies — single row, always visible -->
+  <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--border);flex-wrap:wrap">
+    <span class="sec-title" title="For age-restricted or login-required content" style="cursor:help;flex-shrink:0">🍪 Site Cookies</span>
+    <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+    <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+    <div style="flex:1"></div>
+    <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0">Cookies: not loaded</span>
+    <div id="ck-not-loaded" style="display:flex;align-items:center;flex-shrink:0">
+      <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()">📂 Browse</button>
     </div>
-  </div>
-  <div class="sec-body collapsed" id="ck-body">
-    <div id="ck-not-loaded" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px">
-      <div style="display:flex;gap:4px;align-items:center;flex-wrap:wrap">
-        <span style="font-size:.65rem;color:var(--muted);white-space:nowrap">For age-restricted or login-required content</span>
-        <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
-        <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
-      </div>
-      <label class="btn btn-ghost btn-sm" style="cursor:pointer;flex-shrink:0">📂 Browse<input type="file" id="ck-file-input" accept=".txt" style="display:none" onchange="uploadCookies(this)"></label>
-    </div>
-    <div id="ck-loaded" style="display:none;align-items:center;justify-content:space-between;gap:6px">
-      <span id="ck-status-text" style="font-size:.72rem;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">cookies.txt · active</span>
-      <div style="display:flex;gap:4px;flex-shrink:0">
-        <label class="btn btn-ghost btn-sm" style="cursor:pointer">📂 Replace<input type="file" id="ck-replace-input" accept=".txt" style="display:none" onchange="uploadCookies(this)"></label>
-        <button class="btn btn-red btn-sm" id="ck-clear-btn">✕ Unload</button>
-      </div>
+    <div id="ck-loaded" style="display:none;align-items:center;gap:4px;flex-shrink:0">
+      <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()">📂 Replace</button>
+      <button class="btn btn-red btn-sm" id="ck-clear-btn">✕ Unload</button>
     </div>
   </div>
 
@@ -1479,18 +1468,18 @@
     <span class="sec-title">🔌 Update Plugins</span>
     <div style="display:flex;align-items:center;gap:8px">
       <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
+      <button class="btn btn-ghost btn-sm" id="check-updates-btn" onclick="event.stopPropagation()" style="font-size:.68rem;padding:2px 8px">🔍 Check for Updates</button>
       <button class="card-toggle" id="upd-toggle" onclick="event.stopPropagation();toggleUpdPanel()">▶ Show</button>
     </div>
   </div>
   <div class="sec-body collapsed" id="upd-body">
     <div class="update-grid" id="update-grid">
-      <div style="color:var(--text2);font-size:.82rem;grid-column:1/-1">Click <b>Check for Updates</b> to see installed versions.</div>
     </div>
     <div class="row" style="margin-top:6px">
-      <button class="btn btn-ghost btn-sm" id="check-updates-btn">🔍 Check for Updates</button>
       <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none">⬆ Install Updates</button>
     </div>
     <div class="upd-log" id="upd-log"></div>
+    <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
   </div>
 
   <!-- Advanced section -->
@@ -1501,25 +1490,25 @@
   <div class="sec-body collapsed" id="adv-card-body">
     <div class="adv-2col">
 
-      <button class="adv-btn-full" id="adv-shortcut-btn">
+      <button class="adv-btn-full" id="adv-shortcut-btn" title="Creates a shortcut on your desktop for easier access">
         <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
       </button>
-      <button class="adv-btn-full" id="adv-clear-cache-btn">
+      <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
         <span class="adv-btn-icon amber">⌫</span>Clear cache
       </button>
-      <button class="adv-btn-full" id="adv-export-btn">
+      <button class="adv-btn-full" id="adv-export-btn" title="Export your settings to a file">
         <span class="adv-btn-icon blue">↑</span>Export settings
       </button>
-      <button class="adv-btn-full" id="adv-import-btn">
+      <button class="adv-btn-full" id="adv-import-btn" title="Import settings from a file to restore your preferences">
         <span class="adv-btn-icon blue">↓</span>Import settings
       </button>
-      <button class="adv-btn-full" id="adv-ffmpeg-btn">
+      <button class="adv-btn-full" id="adv-ffmpeg-btn" title="Reinstalls ffmpeg — app will restart to apply changes">
         <span class="adv-btn-icon green">▶</span>Reinstall ffmpeg
       </button>
-      <button class="adv-btn-full" id="adv-deno-btn">
+      <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls Deno runtime — app will restart to apply changes">
         <span class="adv-btn-icon green">⬡</span>Reinstall Deno
       </button>
-      <button class="adv-btn-full" id="adv-reset-btn">
+      <button class="adv-btn-full" id="adv-reset-btn" title="Resets the application to its default settings">
         <span class="adv-btn-icon red">↺</span>Reset settings
       </button>
       <div class="adv-port-wrap">
@@ -1550,7 +1539,7 @@
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <a href="https://egerena.com/apps/egm.html" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
-    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.98.5</span>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.98.7</span>
     <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
   </div>
   <div style="margin-top:7px;text-align:center">
@@ -1660,7 +1649,7 @@
 <!-- What's New modal — shown once per version -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3>🎉 What's New in <span id="whats-new-version">v0.98.5</span></h3>
+    <h3>🎉 What's New in <span id="whats-new-version">v0.98.7</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
     </ul>
@@ -1942,8 +1931,8 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       document.getElementById('dl-dir').value = s.last_folder;
       const fh = document.getElementById('settings-folder-hint'); if (fh) fh.textContent = s.last_folder.split(/[\\/]/).pop() || s.last_folder;
       document.getElementById('open-folder-btn').disabled = false;
-      document.getElementById('dir-hint').textContent = 'Files saved to: ' + s.last_folder;
-      document.getElementById('dir-hint').style.color = '';
+      const dirHint = document.getElementById('dir-hint');
+      if (dirHint) { dirHint.textContent = 'Files saved to: ' + s.last_folder; dirHint.style.color = ''; }
     }
     if (s.concurrency) {
       const sel = document.getElementById('concurrency-sel');
@@ -1978,9 +1967,7 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       })();
     }
     if (s.ck_open === true) {
-      ckOpen = true;
-      document.getElementById('ck-body').classList.remove('collapsed');
-      document.getElementById('ck-toggle').textContent = '▼ Hide';
+      // No-op: cookies section is always visible (single-row layout)
     }
     if (s.quit_on_done) {
       const chk = document.getElementById('quit-on-done-chk');
@@ -2152,10 +2139,7 @@ function toggleSettingsPanel() {
 // ── Cookies sub-panel toggle ──────────────────────────────────────────────────
 let ckOpen = false;
 function toggleCookiePanel() {
-  ckOpen = !ckOpen;
-  document.getElementById('ck-body').classList.toggle('collapsed', !ckOpen);
-  document.getElementById('ck-toggle').textContent = ckOpen ? '▼ Hide' : '▶ Show';
-  post('/api/settings/save', { ck_open: ckOpen });
+  // No-op: cookies section is always visible (single-row layout since v0.98.7)
 }
 
 // Clicking anywhere on the cookies sub-row label also toggles it
@@ -2292,8 +2276,8 @@ document.getElementById('browse-btn').addEventListener('click', async () => {
   document.getElementById('dl-dir').value = picked;
   const fh2 = document.getElementById('settings-folder-hint'); if (fh2) fh2.textContent = picked.split(/[\\/]/).pop() || picked;
   document.getElementById('open-folder-btn').disabled = false;
-  document.getElementById('dir-hint').textContent = 'Files will be saved to: ' + picked;
-  document.getElementById('dir-hint').style.color = '';
+  const dirH = document.getElementById('dir-hint');
+  if (dirH) { dirH.textContent = 'Files will be saved to: ' + picked; dirH.style.color = ''; }
   await post('/api/settings/save', { last_folder: picked });
   toast('Folder selected', 'ok');
 });
@@ -2305,6 +2289,9 @@ document.getElementById('open-folder-btn').addEventListener('click', async () =>
 
 // ── Update panel ──────────────────────────────────────────────────────────────
 document.getElementById('check-updates-btn').addEventListener('click', async () => {
+  // Auto-expand panel if collapsed
+  const body = document.getElementById('upd-body');
+  if (body.classList.contains('collapsed')) toggleUpdPanel();
   const btn = document.getElementById('check-updates-btn');
   btn.disabled = true; btn.textContent = '⏳ Checking…';
   try {
@@ -2530,6 +2517,28 @@ async function refreshCookieCard() {
   } catch {}
 }
 
+// ── IPC-based cookies file browse (native dialog, more reliable than HTML file input) ─
+async function browseCookiesIPC() {
+  if (!window.electronAPI?.openFile) {
+    toast('File browse not available — try restarting the app', 'err');
+    return;
+  }
+  try {
+    const result = await window.electronAPI.openFile({ type: 'cookies' });
+    if (!result || result.canceled) return;
+    if (result.error) { toast('Failed to read file: ' + result.error, 'err'); return; }
+    const text = result.content;
+    if (!text.includes('# Netscape') && !text.trim().startsWith('#')) {
+      toast('This does not look like a valid cookies.txt file', 'err');
+      return;
+    }
+    const r = await post('/api/cookies/save', { content: text });
+    if (r.error) { toast('Failed to save cookies: ' + r.error, 'err'); return; }
+    toast('cookies.txt loaded — authenticated downloads enabled', 'ok');
+    await refreshCookieCard();
+  } catch (e) { toast('Browse error: ' + e.message, 'err'); }
+}
+
 async function uploadCookies(input) {
   const file = input.files[0];
   if (!file) return;
@@ -2566,7 +2575,7 @@ async function refreshUpdGrid() {
     ]);
     data.deno = deno;
     renderUpdGrid(data);
-    document.getElementById('run-update-btn').style.display = '';
+    syncInstallBtn();
   } catch {}
 }
 
@@ -2853,10 +2862,10 @@ async function startDl(item, n) {
   if (!chosenPath) {
     toast('Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
-    document.getElementById('dir-hint').style.color = 'var(--red)';
-    document.getElementById('dir-hint').textContent = '⚠ Select a download folder before downloading.';
+    const dH = document.getElementById('dir-hint');
+    if (dH) { dH.style.color = 'var(--red)'; dH.textContent = '⚠ Select a download folder before downloading.'; }
     setTimeout(() => {
-      document.getElementById('dir-hint').style.color = 'var(--yellow)';
+      const dH2 = document.getElementById('dir-hint'); if (dH2) dH2.style.color = 'var(--yellow)';
     }, 3000);
     return;
   }
