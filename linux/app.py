@@ -16,6 +16,7 @@ from pathlib import Path
 from flask import Flask, request, jsonify, render_template
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body limit
 
 # ── Defensive Host header check (DNS rebinding / CSRF protection) ─────────────
 # We bind only to 127.0.0.1, but a malicious page could still target this port
@@ -903,6 +904,8 @@ def cookies_save():
     text = data.get("content", "").strip()
     if not text:
         return jsonify({"error": "No content provided"}), 400
+    if len(text) > 1 * 1024 * 1024:  # 1 MB cap for cookies content
+        return jsonify({"error": "Cookies file too large (max 1 MB)"}), 413
     try:
         COOKIES_FILE.write_text(text, encoding="utf-8")
         return jsonify({"ok": True})
