@@ -246,11 +246,54 @@ async function createWindow() {
 
   mainWindow.setMenuBarVisibility(false);
 
-  mainWindow.once('ready-to-show', () => {
+  // ── Show main window: defensive fallback chain ──────────────────────────────
+  // Electron 41 on Ubuntu 24 X11/Mutter does not reliably fire ready-to-show
+  // for our BrowserWindow configuration when the app is launched from a file
+  // manager or via in-app restart. Backend reaches HTTP 200 normally, but the
+  // renderer event never fires, so the splash stays forever and main window
+  // never appears.
+  //
+  // Validated against electron/electron issues #25253 ("ready-to-show event is
+  // not fired and app window doesn't show"), #7779 ("ready-to-show never
+  // fires", 17 reactions, workaround = use webContents.dom-ready / did-finish-
+  // load), and Electron's own docs which acknowledge "ready-to-show could be
+  // emitted too late, making the app feel slow."
+  //
+  // Strategy: try ready-to-show first (fastest, no visual flash). If that
+  // doesn't fire, did-finish-load fires when the renderer finishes loading
+  // (more reliable). If both fail, a 5s hard timeout forces the window to
+  // show anyway. Idempotent via mainWindowShown flag — whichever path fires
+  // first wins, others no-op.
+  let mainWindowShown = false;
+  const showMainWindow = (source) => {
+    if (mainWindowShown) return;
+    mainWindowShown = true;
+    console.log(`[EGM] Main window shown via: ${source}`);
     updateSplash(100, 'Ready!');
     closeSplash();
     mainWindow.show();
+    mainWindow.focus();
+  };
+
+  // Primary path: ready-to-show (fastest, most semantically correct)
+  mainWindow.once('ready-to-show', () => showMainWindow('ready-to-show'));
+
+  // Fallback 1: did-finish-load (more reliable across Linux compositors).
+  // Small 100ms delay lets ready-to-show fire first if it's going to,
+  // preserving primary path's optimal no-flash behavior.
+  mainWindow.webContents.once('did-finish-load', () => {
+    setTimeout(() => showMainWindow('did-finish-load'), 100);
   });
+
+  // Fallback 2: hard 5s timeout. Defense against both events failing.
+  // Flask backend reaches 100% Ready well before 5s under normal conditions
+  // (typical: ~1-2s). Only triggers if the event chain is genuinely broken.
+  setTimeout(() => {
+    if (!mainWindowShown) {
+      console.warn('[EGM] Window show timeout reached after 5s — forcing show');
+      showMainWindow('timeout-fallback');
+    }
+  }, 5000);
 
   // Save window state on resize/move — debounced 500ms
   const debouncedSave = debounce(saveWindowState, 500);
@@ -320,11 +363,29 @@ ipcMain.handle('save-file', async (event, defaultName, content) => {
   }
 });
 
-// ── IPC: open file dialog (settings import) ───────────────────────────────────
-ipcMain.handle('open-file', async () => {
+// ── IPC: open file dialog (settings import + cookies browse) ─────────────────
+ipcMain.handle('open-file', async (event, options) => {
+  const isCookies = options && options.type === 'cookies';
+  const dialogOpts = {
+    title:      isCookies ? 'Select cookies.txt' : 'Import Settings',
+    properties: ['openFile'],
+  };
+  if (!isCookies) dialogOpts.filters = [{ name: 'JSON', extensions: ['json'] }];
+  const result = await dialog.showOpenDialog(mainWindow, dialogOpts);
+  if (result.canceled || !result.filePaths.length) return { canceled: true };
+  try {
+    const content = require('fs').readFileSync(result.filePaths[0], 'utf8');
+    return { ok: true, content };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+// ── IPC: open cookies file dialog (kept for backward compat) ─────────────────
+ipcMain.handle('open-cookies-file', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title:      'Import Settings',
-    filters:    [{ name: 'JSON', extensions: ['json'] }],
+    title:      'Select cookies.txt',
+    filters:    [{ name: 'Text files', extensions: ['txt'] }, { name: 'All files', extensions: ['*'] }],
     properties: ['openFile'],
   });
   if (result.canceled || !result.filePaths.length) return { canceled: true };
@@ -363,7 +424,7 @@ ipcMain.handle('open-history-window', async () => {
   historyWindow = new BrowserWindow({
     ...bounds, minWidth: 600, minHeight: 420,
     title: 'Download History',
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   historyWindow.loadURL(`${APP_URL}/history-page`);
