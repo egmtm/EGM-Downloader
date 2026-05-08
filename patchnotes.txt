@@ -1,3 +1,15 @@
+v0.98.7 - Build 104 (5/7/2026 8:38 PM EST) — THE POLISH
+-----------------------------------------
+  • [ALL] Cookies browse now uses native file dialog instead of browser file picker — fixes cookies browse on Linux and improves reliability on all platforms
+  • [ALL] Cookies section condensed to single always-visible row with extension tooltips — no more expand/collapse needed
+  • [ALL] Download folder section condensed — removed redundant "Files saved to" line
+  • [ALL] Check for Updates button moved to Update Plugins header — auto-expands panel when clicked
+  • [ALL] Advanced panel: added descriptive tooltips to all action buttons (Desktop shortcut, Clear cache, Export/Import settings, Reinstall ffmpeg/Deno, Reset settings)
+  • [ALL] Version tooltip removed from header badge — cleaner look
+  • [ALL] Dead code cleanup: removed legacy password-protected zip support (APP_UPDATE_PASSWORD, pyzipper dependency) from all platforms — codebase now reflects v0.98 unencrypted distribution model with SHA256 verification
+  • [LINUX] [MAC] Fixed yt-dlp update mechanism — Python bundle's pip module (required for runtime plugin updates) was inadvertently stripped during the v0.98 size optimization. Restored selectively to enable plugin updates without losing size benefits
+  • [LINUX] [MAC] YouTube downloads using latest yt-dlp version (2026.03.17) — extractor fixes for recent YouTube changes now apply automatically through the restored update path. Other sites were unaffected by the previous issue
+
 v0.98.6 - Build 103 (5/4/2026 11:10 PM EST)
 -----------------------------------------
   • [ALL] Open folder from expanded download history panel now works correctly (history window was missing API bridge that prevented folder actions)
