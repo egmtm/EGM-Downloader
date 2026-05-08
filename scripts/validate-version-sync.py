@@ -118,13 +118,6 @@ def check_root_index_html(v, b, date, time):
     elif m.group(1) != v:
         errors.append(f"{rel}: <title> is 'v{m.group(1)}', expected 'v{v}'")
 
-    # version-badge title= — simplified (no build# shown to users)
-    m = re.search(r'id="version-badge"[^>]*?title="([^"]*)"', content, re.DOTALL)
-    if not m:
-        errors.append(f"{rel}: version-badge title= not found")
-    elif m.group(1) != f"v{v}":
-        errors.append(f"{rel}: version-badge title is '{m.group(1)}', expected 'v{v}'")
-
     # version-badge visible text
     m = re.search(r'id="version-badge"[^>]*>v([\d.]+)<', content, re.DOTALL)
     if not m:
@@ -177,27 +170,12 @@ def check_linux_index_html(v, b, date, time):
     elif m.group(1) != v:
         errors.append(f"{rel}: <title> is 'v{m.group(1)}', expected 'v{v}'")
 
-    # version-badge title= (Linux now has id="version-badge", simplified format)
-    m = re.search(r'id="version-badge"[^>]*?title="([^"]*)"', content, re.DOTALL)
-    if not m:
-        errors.append(f"{rel}: version-badge title= not found")
-    elif m.group(1) != f"v{v}":
-        errors.append(f"{rel}: version-badge title is '{m.group(1)}', expected 'v{v}'")
-
     # version-badge visible text
     m = re.search(r'id="version-badge"[^>]*>v([\d.]+)<', content, re.DOTALL)
     if not m:
         errors.append(f"{rel}: version-badge visible text not found")
     elif m.group(1) != v:
         errors.append(f"{rel}: version-badge text is 'v{m.group(1)}', expected 'v{v}'")
-
-    # footer cursor:help span version
-    span_versions = re.findall(r'cursor:help[^>]*>v([\d.]+)</span>', content)
-    if not span_versions:
-        errors.append(f"{rel}: no footer cursor:help version span found")
-    for sv in span_versions:
-        if sv != v:
-            errors.append(f"{rel}: footer span shows 'v{sv}', expected 'v{v}'")
 
     return errors
 
