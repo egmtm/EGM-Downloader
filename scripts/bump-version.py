@@ -161,29 +161,20 @@ def update_root_index_html(v, b, date, time_str, dry_run):
           r'(<title>EGM Downloader )v[\d.]+(</title>)',
           rf'\g<1>v{v}\g<2>', dry_run)
 
-    # version-badge title attr — simplified (no build# shown to users)
-    patch(path, "templates/index.html -> version-badge title=",
-          r'(id="version-badge"[^>]*?title=")[^"]*(")',
-          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
-
-    # data-build-title attr
-    patch(path, "templates/index.html -> data-build-title=",
-          r'(data-build-title=")[^"]*(")',
-          rf'\g<1>v{v}\g<2>', dry_run)
 
     # version-badge visible text
     patch(path, "templates/index.html -> version-badge text",
           r'(id="version-badge"[^>]*>)v[\d.]+(<)',
           rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
-    # footer span title attr — matches simplified title="vX.XX" or old long format
-    patch(path, "templates/index.html -> footer span title=",
-          r'(cursor:help[^>]*title=")[^"]*(")',
-          rf'\g<1>v{v}\g<2>', dry_run)
+    # footer-version-pill text
+    patch(path, "templates/index.html -> footer-version-pill text",
+          r'(id="footer-version-pill"[^>]*>)v[\d.]+(</span>)',
+          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
-    # footer span visible text
-    patch(path, "templates/index.html -> footer span text",
-          r'(cursor:help[^>]*>[^<]*)v[\d.]+(</span>)',
+    # whats-new-version text
+    patch(path, "templates/index.html -> whats-new-version text",
+          r'(id="whats-new-version">)v[\d.]+(</span>)',
           rf'\g<1>v{v}\g<2>', dry_run)
 
 
@@ -215,24 +206,20 @@ def update_linux_index_html(v, b, date, time_str, dry_run):
           r'(<title>EGM Downloader )v[\d.]+(</title>)',
           rf'\g<1>v{v}\g<2>', dry_run)
 
-    # version-badge title attr (Linux now has id="version-badge")
-    patch(path, "linux/templates/index.html -> version-badge title=",
-          r'(id="version-badge"[^>]*?title=")[^"]*(")',
-          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
     # version-badge visible text
     patch(path, "linux/templates/index.html -> version-badge text",
           r'(id="version-badge"[^>]*>)v[\d.]+(<)',
           rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
-    # footer span title attr
-    patch(path, "linux/templates/index.html -> footer span title=",
-          r'(cursor:help[^>]*title=")[^"]*(")',
-          rf'\g<1>v{v}\g<2>', dry_run)
+    # footer-version-pill text
+    patch(path, "linux/templates/index.html -> footer-version-pill text",
+          r'(id="footer-version-pill"[^>]*>)v[\d.]+(</span>)',
+          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
-    # footer span visible text
-    patch(path, "linux/templates/index.html -> footer span text",
-          r'(cursor:help[^>]*>[^<]*)v[\d.]+(</span>)',
+    # whats-new-version text
+    patch(path, "linux/templates/index.html -> whats-new-version text",
+          r'(id="whats-new-version">)v[\d.]+(</span>)',
           rf'\g<1>v{v}\g<2>', dry_run)
 
 
