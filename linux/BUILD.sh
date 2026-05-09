@@ -110,13 +110,13 @@ echo ""
 echo "🗜  Stripping unused Python packages and bytecache..."
 SITE="$PYTHON_DIR/lib/python3.11/site-packages"
 
-# Package managers — never needed at runtime
-rm -rf "$SITE/pip" "$SITE/pip-"*.dist-info
+# Package managers — kept for runtime yt-dlp updates via Update Plugins
+# rm -rf "$SITE/pip" "$SITE/pip-"*.dist-info  # DO NOT STRIP — needed at runtime
 rm -rf "$SITE/setuptools" "$SITE/setuptools-"*.dist-info
 rm -rf "$SITE/pkg_resources" "$SITE/_distutils_hack"
 
 # Stdlib modules unused at runtime
-rm -rf "$PYTHON_DIR/lib/python3.11/ensurepip"
+# rm -rf "$PYTHON_DIR/lib/python3.11/ensurepip"  # DO NOT STRIP — needed for pip
 rm -rf "$PYTHON_DIR/lib/python3.11/idlelib"
 rm -rf "$PYTHON_DIR/lib/python3.11/tkinter"
 rm -rf "$PYTHON_DIR/lib/python3.11/lib2to3"
