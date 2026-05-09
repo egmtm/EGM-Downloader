@@ -279,10 +279,6 @@ All pull requests are automatically tested via GitHub Actions.
 
 ---
 
-## ⚠️ Known Issues
-
-- **Linux:** Window position is not remembered between sessions on Wayland compositors. Cosmetic only — app launches centered on each start.
-
 ## 🏗️ Built With
 
 EGM Downloader is powered by incredible open source projects:
