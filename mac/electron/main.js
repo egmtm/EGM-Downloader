@@ -328,10 +328,28 @@ ipcMain.handle('save-file', async (event, defaultName, content) => {
 });
 
 // ── IPC: open file dialog (settings import) ───────────────────────────────────
-ipcMain.handle('open-file', async () => {
+ipcMain.handle('open-file', async (event, options) => {
+  const isCookies = options && options.type === 'cookies';
+  const dialogOpts = {
+    title:      isCookies ? 'Select cookies.txt' : 'Import Settings',
+    properties: ['openFile'],
+  };
+  if (!isCookies) dialogOpts.filters = [{ name: 'JSON', extensions: ['json'] }];
+  const result = await dialog.showOpenDialog(mainWindow, dialogOpts);
+  if (result.canceled || !result.filePaths.length) return { canceled: true };
+  try {
+    const content = require('fs').readFileSync(result.filePaths[0], 'utf8');
+    return { ok: true, content };
+  } catch (e) {
+    return { error: e.message };
+  }
+});
+
+// ── IPC: open cookies file dialog ────────────────────────────────────────────
+ipcMain.handle('open-cookies-file', async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
-    title:      'Import Settings',
-    filters:    [{ name: 'JSON', extensions: ['json'] }],
+    title:      'Select cookies.txt',
+    filters:    [{ name: 'Text files', extensions: ['txt'] }, { name: 'All files', extensions: ['*'] }],
     properties: ['openFile'],
   });
   if (result.canceled || !result.filePaths.length) return { canceled: true };
@@ -370,7 +388,7 @@ ipcMain.handle('open-history-window', async () => {
   historyWindow = new BrowserWindow({
     ...bounds, minWidth: 600, minHeight: 420,
     title: 'Download History',
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   historyWindow.loadURL(`${APP_URL}/history-page`);
