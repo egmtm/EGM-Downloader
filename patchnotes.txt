@@ -1,3 +1,11 @@
+v0.98.8 - Build 105 (5/9/2026 12:26 PM EST) — ...the one about security
+-----------------------------------------
+  • [ALL] API token gate — every /api/* request now requires a per-session cryptographic token (X-EGM-Token header). Token generated fresh by Electron at startup, passed to Flask via environment variable, injected into pages via Jinja. Prevents drive-by localhost requests from malicious websites or local processes
+  • [ALL] Fail-closed update verification — checksum parameter is now required on /api/download-update. Returns 400 if missing, ensuring no update can proceed without SHA256 verification
+  • [ALL] Request body size limits — global 2 MB cap (MAX_CONTENT_LENGTH) on all requests. Cookies endpoint capped at 1 MB specifically. Oversized requests return 413
+  • [ALL] Thread safety — jobs dictionary mutations (creation, deletion) now wrapped with _jobs_lock. Job read in download worker uses .get() with early return guard. Prevents race conditions between concurrent downloads and cleanup worker
+  • [ALL] Scripts security audit — all 4 build/validation scripts reviewed: no eval/exec, subprocess limited to read-only git ls-files, all paths relative to repo root, no user-controlled path construction. Clean bill of health
+
 v0.98.7 - Build 104 (5/7/2026 8:38 PM EST) — THE POLISH
 -----------------------------------------
   • [ALL] Cookies browse now uses native file dialog instead of browser file picker — fixes cookies browse on Linux and improves reliability on all platforms
