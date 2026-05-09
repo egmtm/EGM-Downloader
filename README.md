@@ -101,28 +101,28 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.98.7 Build 104  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (303 KB · ~800 MB after install)  
-**SHA256:** `83db704418ac4415b4bee087cda7a84ee5a50e3dcfe9b251a5a66192d5318fd3`  
+**Latest:** v0.98.8 Build 105  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (305 KB · ~800 MB after install)  
+**SHA256:** `d85bd43c033af3998df8c868f7eb8770e87c2b6359a2f97d589955bff6242b99`  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### Windows Portable
-**Latest:** v0.98.7 Build 104  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (261 KB · ~800 MB after first run)  
-**SHA256:** `9d0998090bcf05510464d6092e43e7d09034f32cae8ae193b35186e7ef8c0bc4`  
+**Latest:** v0.98.8 Build 105  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (264 KB · ~800 MB after first run)  
+**SHA256:** `b02df01071b436c7e8bb1d687552b8292b0581bf200819e86a0f600ae108c988`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
-**Latest:** v0.98.7 Build 104  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (115 MB · ~300 MB after install)  
-**SHA256:** `d15e16144d91d3a9a933f5042860e2ddf3c9358602cd9add6699a58aba8767c0`  
+**Latest:** v0.98.8 Build 105  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (109 MB · ~300 MB after install)  
+**SHA256:** `7c5d788d0604da746c56c99dd3552816b54b2915faef1cb46754136c8e9d84ba`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 
 ### Linux
-**Latest:** v0.98.7 Build 104  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (133 MB · ~300 MB after install)  
-**SHA256:** `6b6b5f05b9d960889277a20c6064380bdc90f3d43e2ba9db646605df01af707e`  
+**Latest:** v0.98.8 Build 105  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (120 MB · ~300 MB after install)  
+**SHA256:** `900f219446fabbf1d866fcd1ff73cfc9178669565dd635cee528a9585a2aaab8`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
