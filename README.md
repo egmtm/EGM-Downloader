@@ -270,10 +270,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 103 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 103 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 103 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 103 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 105 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 105 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 105 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 105 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
