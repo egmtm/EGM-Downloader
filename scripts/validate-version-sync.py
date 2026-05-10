@@ -186,7 +186,7 @@ def check_linux_package_json(v):
     data = _read_json_or_miss(ROOT / rel, rel, errors)
     if data is None:
         return errors
-    expected = f"{v}.0"
+    expected = v
     if data.get("version") != expected:
         errors.append(f"{rel}: version is '{data.get('version')}', expected '{expected}'")
     return errors
@@ -218,7 +218,7 @@ def check_mac_package_json(v):
     if data is None:
         return errors
 
-    expected = f"{v}.0"
+    expected = v
     if data.get("version") != expected:
         errors.append(f"{rel}: version is '{data.get('version')}', expected '{expected}'")
 
@@ -246,7 +246,7 @@ def check_mac_build_sh(v):
         errors.append(f"{rel}: VERSION banner is 'v{m.group(1)}', expected 'v{v}'")
 
     m = re.search(r'EGM Downloader-([\d.]+)-arm64\.dmg', content)
-    expected_dmg = f"{v}.0"
+    expected_dmg = v
     if m and m.group(1) != expected_dmg:
         errors.append(f"{rel}: DMG filename has '{m.group(1)}', expected '{expected_dmg}'")
 
