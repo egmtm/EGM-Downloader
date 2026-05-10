@@ -284,6 +284,7 @@ All pull requests are automatically tested via GitHub Actions.
 EGM Downloader is powered by incredible open source projects:
 
 - **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - Download engine (1000+ sites)
+- **[bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider)** - YouTube PO Token generation (proof-of-origin)
 - **[Flask](https://flask.palletsprojects.com/)** - Web framework
 - **[Electron](https://www.electronjs.org/)** - Cross-platform desktop wrapper
 - **[FFmpeg](https://ffmpeg.org/)** - Video/audio processing
