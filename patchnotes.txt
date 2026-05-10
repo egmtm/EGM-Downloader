@@ -1,3 +1,23 @@
+v0.98.9 - Build 106 (5/10/2026 9:43 AM EST) — Fit & Finish
+-----------------------------------------
+  • [ALL] Theme improvements — four themes renamed for broader appeal. CSS class names unchanged (existing preferences preserved)
+  • [ALL] Header description updated — site list replaced with "Your personal media downloader for 1000+ sites" with linked site directory
+  • [ALL] Clear Completed button removed from download queue — downloads auto-move to history on completion
+  • [ALL] Format toggle label changed from "MP3" to "Audio" across all views — static settings toggle and per-video format selector both updated
+  • [ALL] Footer egerena.com link now points to each platform's specific page (Windows/Mac/Linux)
+  • [ALL] Header alignment — logo and hamburger button now sit on the same visual line
+  • [ALL] Quality picker labels restructured — "4320p - 8K", "2160p - 4K", "1440p - 2K" format in both settings and per-video selectors. Removed "may be slower" from descriptions
+  • [ALL] Throttle tooltip generalized — no longer references YouTube specifically; now reads "source throttling on high-bitrate streams is normal"
+  • [ALL] Tooltips added to all section headers — Settings, Update Plugins, Advanced now match Cookies with descriptive hover text
+  • [ALL] Tooltips added to Check for Updates button, Quit when done, and Check updates on launch toggles
+  • [ALL] Cookies section cursor:help removed — tooltip preserved, question-mark cursor gone
+  • [ALL] Flask port field auto-centers when alone on its row (Mac/Linux where desktop shortcut is hidden)
+  • [ALL] Update Plugins panel auto-collapses after 3 seconds when no updates are found
+  • [ALL] Deno tooltip in Update Plugins — "To update Deno, go to Advanced → Reinstall Deno"
+  • [ALL] Scrollbar theming — custom scrollbars adapt to current theme colors via CSS variables
+  • [WINDOWS] [MAC] Cookies browse dialog now filters for .txt files. Linux remains filterless for GTK compatibility
+  • [LINUX] Window position is now remembered between sessions (resolved in v0.98.8, noted here for completeness)
+
 v0.98.8 - Build 105 (5/9/2026 12:26 PM EST) — ...the one about security
 -----------------------------------------
   • [ALL] API token gate — every /api/* request now requires a per-session cryptographic token (X-EGM-Token header). Token generated fresh by Electron at startup, passed to Flask via environment variable, injected into pages via Jinja. Prevents drive-by localhost requests from malicious websites or local processes
