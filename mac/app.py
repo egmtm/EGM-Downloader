@@ -23,6 +23,8 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # via a DNS-rebinding attack. Reject any request whose Host header isn't a
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+_API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
+_TOKEN_EXEMPT    = {"/api/show-window", "/api/show-window-check"}
 
 @app.before_request
 def _verify_host_header():
@@ -32,6 +34,10 @@ def _verify_host_header():
     host_only = host.split(":", 1)[0].lower().strip()
     if host_only and host_only not in _ALLOWED_HOSTS:
         abort(403)
+    # 2. API token check (per-session Electron token)
+    if _API_TOKEN and _req.path.startswith("/api/") and _req.path not in _TOKEN_EXEMPT:
+        if _req.headers.get("X-EGM-Token") != _API_TOKEN:
+            abort(403)
 
 @app.after_request
 def _no_cache_html(response):
@@ -380,7 +386,9 @@ def _build_audio_formats(info):
 
 # ── Download worker ────────────────────────────────────────────────────────────
 def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
-    job     = jobs[job_id]
+    job     = jobs.get(job_id)
+    if not job:
+        return  # Job was removed before worker started
     out_dir = Path(download_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
@@ -610,7 +618,7 @@ def _cleanup(job_id, out_dir):
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
 @app.route("/")
-def index(): return render_template("index.html")
+def index(): return render_template("index.html", egm_token=_API_TOKEN, platform_url="https://egerena.com/apps/egmac.html")
 
 @app.route("/api/info", methods=["POST"])
 def get_info():
@@ -682,9 +690,10 @@ def start_download():
         if dl_str.lower().startswith(root.lower()):
             return jsonify({"error": f"Download directory '{dl_dir}' looks like a system path. Please choose a different folder."}), 400
 
-    jobs[job_id] = {"status": "queued", "url": url,
-                    "title": data.get("title",""), "proc": None, "cancelled": False,
-                    "download_dir": dl_dir, "format": data.get("format", "video")}
+    with _jobs_lock:
+        jobs[job_id] = {"status": "queued", "url": url,
+                        "title": data.get("title",""), "proc": None, "cancelled": False,
+                        "download_dir": dl_dir, "format": data.get("format", "video")}
     threading.Thread(target=run_download,
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
@@ -725,7 +734,8 @@ def check_status(job_id):
             "filesize": job.get("filesize", "")}
     # Remove completed jobs from memory once the UI has consumed the result.
     if status in ("done", "error", "cancelled") and job.get("_ack"):
-        jobs.pop(job_id, None)
+        with _jobs_lock:
+            jobs.pop(job_id, None)
     elif status in ("done", "error", "cancelled"):
         job["_ack"] = True   # mark — will be removed on next poll
     return jsonify(resp)
@@ -1318,7 +1328,7 @@ def import_history():
     return jsonify({"ok": True, "count": len(cleaned)})
 
 @app.route("/history-page")
-def history_page(): return render_template("history.html")
+def history_page(): return render_template("history.html", egm_token=_API_TOKEN)
 
 @app.route("/themes-page")
 def themes_page(): return render_template("themes.html")
