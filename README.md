@@ -206,21 +206,28 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ```
 EGM-Downloader/
 │
-├── app.py                      ← Flask backend         [shared — all platforms]
-├── templates/index.html        ← UI                    [shared — Windows + Mac]
-├── static/                     ← CSS, JS, icons        [shared — all platforms]
+├── app.py                          ← Flask backend         [shared — all platforms]
+├── templates/                      ← UI templates          [shared — Windows + Mac]
+│   ├── index.html                  ← Main UI
+│   ├── history.html                ← Version history
+│   ├── themes.html                 ← Theme picker
+│   └── theme_styles.html           ← Theme CSS definitions
+├── static/                         ← App icons             [shared — all platforms]
+├── languages/                      ← i18n language files   [shared — all platforms]
+│   └── en.json, es.json, fr.json, pt.json, de.json, it.json, ...
 │
-├── windows/                    ← Windows platform files
-├── mac/                        ← macOS platform files
-├── linux/                      ← Linux platform files
-├── scripts/                    ← Build automation
-│   ├── bump-version.py         ← Version management
-│   ├── gen-update-json.py      ← Update JSON generation
-│   └── add-patchnote.py        ← Changelog management
+├── windows/                        ← Windows platform files
+├── mac/                            ← macOS platform files
+├── linux/                          ← Linux platform files
+├── scripts/                        ← Build automation
+│   ├── bump-version.py             ← Version management
+│   ├── validate-version-sync.py    ← Version sync validator (CI)
+│   ├── gen-update-json.py          ← Update JSON generation
+│   └── add-patchnote.py            ← Changelog management
 │
-├── version.json                ← Single source of truth
-├── requirements.txt            ← Python dependencies
-└── patchnotes.txt             ← Version history
+├── version.json                    ← Single source of truth
+├── requirements.txt                ← Python dependencies
+└── patchnotes.txt                  ← Version history
 ```
 
 ### Build Workflow
