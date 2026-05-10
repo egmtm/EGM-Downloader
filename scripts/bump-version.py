@@ -226,8 +226,8 @@ def update_linux_index_html(v, b, date, time_str, dry_run):
 def update_linux_package_json(v, dry_run):
     # Mac & Linux electron package.json use "X.Y.Z" semver (extra ".0" suffix).
     path = ROOT / "linux" / "electron" / "package.json"
-    patch_json(path, f"linux/electron/package.json -> version {v}.0",
-               lambda d: d.__setitem__("version", f"{v}.0"), dry_run)
+    patch_json(path, f"linux/electron/package.json -> version {v}",
+               lambda d: d.__setitem__("version", v), dry_run)
 
 
 def update_linux_instructions(v, dry_run):
