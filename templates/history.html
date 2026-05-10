@@ -120,6 +120,20 @@
 </div>
 
 <script>
+// ── API token interceptor ────────────────────────────────────────────────────
+(function() {
+  const _t = '{{ egm_token }}';
+  if (!_t) return;
+  const _f = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+      opts = opts || {};
+      opts.headers = opts.headers || {};
+      opts.headers['X-EGM-Token'] = _t;
+    }
+    return _f.call(this, url, opts);
+  };
+})();
 (function() {
   // Apply saved theme
   // Apply saved theme and listen for changes
