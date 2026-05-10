@@ -334,7 +334,8 @@ ipcMain.handle('open-file', async (event, options) => {
     title:      isCookies ? 'Select cookies.txt' : 'Import Settings',
     properties: ['openFile'],
   };
-  if (!isCookies) dialogOpts.filters = [{ name: 'JSON', extensions: ['json'] }];
+  if (isCookies)  dialogOpts.filters = [{ name: 'Text files', extensions: ['txt'] }, { name: 'All files', extensions: ['*'] }];
+  else            dialogOpts.filters = [{ name: 'JSON', extensions: ['json'] }];
   const result = await dialog.showOpenDialog(mainWindow, dialogOpts);
   if (result.canceled || !result.filePaths.length) return { canceled: true };
   try {
