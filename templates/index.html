@@ -207,7 +207,7 @@
       --dur-text:          #e2e8f6;
     }
 
-    /* ── Kush theme ── */
+    /* ── Evergreen theme ── */
     body.kush {
       --bg:      #0d1a0f;
       --surf:    #152015;
@@ -238,7 +238,7 @@
       --dur-text:          #c8e0c4;
     }
 
-    /* ── Purple Haze theme ── */
+    /* ── Amethyst theme ── */
     body.purplehaze {
       --bg:      #0e0818;
       --surf:    #170e28;
@@ -269,7 +269,7 @@
       --dur-text:          #e8d8f8;
     }
 
-    /* ── Sativa theme ── */
+    /* ── Meadow theme ── */
     body.sativa {
       --bg:      #edf5e8;
       --surf:    #e2eedb;
@@ -300,7 +300,7 @@
       --dur-text:          #e8f5e0;
     }
 
-    /* ── OG Cream theme ── */
+    /* ── Parchment theme ── */
     body.ogcream {
       --bg:      #f5f0e5;
       --surf:    #ede6d8;
@@ -336,7 +336,6 @@
 
     /* ── Hamburger button (B4 grid) ── */
     #hamburger-btn {
-      position: absolute; right: 0; top: 50%; transform: translateY(-50%);
       background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--rs); width: 34px; height: 34px;
       display: flex; align-items: center; justify-content: center;
@@ -474,7 +473,7 @@
 
     /* ── Header ── */
     header {
-      width: 100%; max-width: 760px; padding: 28px 0 20px;
+      width: 100%; max-width: 760px; padding: 24px 0;
       display: flex; align-items: center; gap: 14px;
       position: relative; z-index: 10;
     }
@@ -490,6 +489,12 @@
     header p { font-size: .74rem; color: var(--text2); margin-top: 3px; line-height: 1.6; }
 
     /* ── Card ── */
+    /* ── Scrollbar theming ── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+
     .card {
       width: 100%; max-width: 760px;
       background: var(--surf); border: 1px solid var(--border);
@@ -833,10 +838,10 @@
   </div>
   <div class="header-text">
     <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v0.98.9</span></h1>
-    <p>YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo &amp; <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ more sites</a></p>
+    <p>Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
   </div>
   <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
-  <div style="position:absolute;right:0;top:50%;transform:translateY(-50%)">
+  <div style="margin-left:auto;flex-shrink:0;position:relative">
     <button id="hamburger-btn" title="History &amp; Themes" aria-label="History and Themes" style="position:relative">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
         <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
@@ -898,19 +903,19 @@
             </div>
             <div class="theme-row" data-theme="kush">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0d1a0f"></div><div class="theme-sw" style="background:#152015"></div><div class="theme-sw" style="background:#5a9e3a"></div></div>
-              <span class="theme-name">Kush</span><div class="theme-check"></div>
+              <span class="theme-name">Evergreen</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="purplehaze">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0e0818"></div><div class="theme-sw" style="background:#170e28"></div><div class="theme-sw" style="background:#9b5de5"></div></div>
-              <span class="theme-name">Purple Haze</span><div class="theme-check"></div>
+              <span class="theme-name">Amethyst</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="sativa">
               <div class="theme-swatches"><div class="theme-sw" style="background:#edf5e8"></div><div class="theme-sw" style="background:#e2eedb"></div><div class="theme-sw" style="background:#2e7d32"></div></div>
-              <span class="theme-name">Sativa</span><div class="theme-check"></div>
+              <span class="theme-name">Meadow</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="ogcream">
               <div class="theme-swatches"><div class="theme-sw" style="background:#f5f0e5"></div><div class="theme-sw" style="background:#ede6d8"></div><div class="theme-sw" style="background:#8b6914"></div></div>
-              <span class="theme-name">OG Cream</span><div class="theme-check"></div>
+              <span class="theme-name">Parchment</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="abyssal">
               <div class="theme-swatches"><div class="theme-sw" style="background:#010d18"></div><div class="theme-sw" style="background:#021525"></div><div class="theme-sw" style="background:#00b4d8"></div></div>
@@ -1388,7 +1393,7 @@
 
   <!-- Settings section — collapsed by default -->
   <div class="sec-hdr" id="settings-sec-hdr" onclick="toggleSettingsPanel()">
-    <span class="sec-title">⚙ Settings</span>
+    <span class="sec-title" title="Download folder, quality, format, and output preferences">⚙ Settings</span>
     <div style="display:flex;align-items:center;gap:8px">
       <span id="settings-folder-hint" style="font-size:.68rem;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px"></span>
       <button class="card-toggle" id="settings-toggle" onclick="event.stopPropagation();toggleSettingsPanel()">▶ Show</button>
@@ -1429,7 +1434,7 @@
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div class="sw-wrap">
           <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
-          <span style="font-size:.76rem;color:var(--text2)">Check updates on launch</span>
+          <span style="font-size:.76rem;color:var(--text2)" title="Silently check for app and plugin updates when the app starts">Check updates on launch</span>
         </div>
         <div class="sw-wrap">
           <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
@@ -1441,7 +1446,7 @@
         </div>
         <div class="sw-wrap">
           <input type="checkbox" class="sw" id="quit-on-done-chk">
-          <span style="font-size:.76rem;color:var(--text2)">Quit when done</span>
+          <span style="font-size:.76rem;color:var(--text2)" title="Automatically close the app when all downloads finish">Quit when done</span>
         </div>
       </div>
     </div>
@@ -1449,7 +1454,7 @@
 
   <!-- Cookies — single row, always visible -->
   <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--border);flex-wrap:wrap">
-    <span class="sec-title" title="For age-restricted or login-required content" style="cursor:help;flex-shrink:0">🍪 Site Cookies</span>
+    <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0">🍪 Site Cookies</span>
     <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
     <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
     <div style="flex:1"></div>
@@ -1465,10 +1470,10 @@
 
   <!-- Update Plugins section -->
   <div class="sec-hdr" onclick="toggleUpdPanel()">
-    <span class="sec-title">🔌 Update Plugins</span>
+    <span class="sec-title" title="Check and install updates for yt-dlp, ffmpeg, mutagen, and Deno">🔌 Update Plugins</span>
     <div style="display:flex;align-items:center;gap:8px">
       <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
-      <button class="btn btn-ghost btn-sm" id="check-updates-btn" onclick="event.stopPropagation()" style="font-size:.68rem;padding:2px 8px">🔍 Check for Updates</button>
+      <button class="btn btn-ghost btn-sm" id="check-updates-btn" onclick="event.stopPropagation()" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates" style="font-size:.68rem;padding:2px 8px">🔍 Check for Updates</button>
       <button class="card-toggle" id="upd-toggle" onclick="event.stopPropagation();toggleUpdPanel()">▶ Show</button>
     </div>
   </div>
@@ -1484,7 +1489,7 @@
 
   <!-- Advanced section -->
   <div class="sec-hdr" onclick="toggleAdvPanel()">
-    <span class="sec-title">⚙ Advanced</span>
+    <span class="sec-title" title="Shortcuts, cache, settings backup, runtime tools, and port configuration">⚙ Advanced</span>
     <button class="card-toggle" id="adv-card-toggle" onclick="event.stopPropagation();toggleAdvPanel()">▶ Show</button>
   </div>
   <div class="sec-body collapsed" id="adv-card-body">
@@ -1526,7 +1531,7 @@
 <!-- Bulk bar -->
 <div id="bulk-bar">
   <span id="bulk-txt">Downloading…</span>
-  <button class="btn btn-ghost btn-sm" onclick="clearCompleted()">✓ Clear Completed</button>
+
   <button class="btn btn-red btn-sm" onclick="cancelBulk()">✕ Cancel All</button>
 </div>
 
@@ -1537,7 +1542,7 @@
 
 <footer>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
-    <a href="https://egerena.com/apps/egm.html" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
+    <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
     <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.98.9</span>
     <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
@@ -1556,7 +1561,7 @@
     <div class="quality-options">
       <div style="display:flex;align-items:center;gap:8px;margin:2px 0 6px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
-        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">MP3</span>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">Audio</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-quality="128">
@@ -1613,13 +1618,13 @@
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-vquality="4320">
-        <div><div class="quality-label">8K (4320p)</div><div class="quality-desc">Maximum · very large files · may be slower</div></div>
+        <div><div class="quality-label">4320p - 8K</div><div class="quality-desc">Maximum resolution · very large files</div></div>
       </div>
       <div class="quality-option" data-vquality="2160">
-        <div><div class="quality-label">4K (2160p)</div><div class="quality-desc">Ultra HD · large files · may be slower</div></div>
+        <div><div class="quality-label">2160p - 4K</div><div class="quality-desc">Ultra HD · large files</div></div>
       </div>
       <div class="quality-option" data-vquality="1440">
-        <div><div class="quality-label">2K (1440p)</div><div class="quality-desc">Quad HD · sharp detail · may be slower</div></div>
+        <div><div class="quality-label">1440p - 2K</div><div class="quality-desc">Quad HD · sharp detail</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin:6px 0 4px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -1678,6 +1683,22 @@
 <button id="scroll-top" title="Back to top">↑</button>
 
 <script>
+// ── API token interceptor — adds X-EGM-Token to all /api/* requests ──────────
+// Token is generated per-session by Electron, passed to Flask via env var,
+// and injected here via Jinja. Prevents drive-by localhost requests.
+(function() {
+  const _t = '{{ egm_token }}';
+  if (!_t) return;  // dev mode — no token, no interception
+  const _f = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+      opts = opts || {};
+      opts.headers = opts.headers || {};
+      opts.headers['X-EGM-Token'] = _t;
+    }
+    return _f.call(this, url, opts);
+  };
+})();
 'use strict';
 
 // ── State ─────────────────────────────────────────────────────────────────────
@@ -1998,7 +2019,12 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
   } catch {}
   // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows)
   const sb = document.getElementById('adv-shortcut-btn');
-  if (sb && typeof window.electronAPI?.createShortcut !== 'function') sb.style.display = 'none';
+  if (sb && typeof window.electronAPI?.createShortcut !== 'function') {
+    sb.style.display = 'none';
+    // Center Flask port when it's alone on its row (odd item count after hiding shortcut)
+    const portWrap = document.querySelector('.adv-port-wrap');
+    if (portWrap) { portWrap.style.gridColumn = '1 / -1'; portWrap.style.justifySelf = 'center'; portWrap.style.maxWidth = 'calc(50% - 6px)'; }
+  }
 
 // ── Portable mode detection — runs immediately, hides update UI if portable ───
 (async function() {
@@ -2304,6 +2330,14 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
     syncInstallBtn();
   } catch (e) { toast('Check failed: ' + e.message, 'err'); }
   btn.disabled = false; btn.textContent = '🔍 Check for Updates';
+  // Auto-collapse panel after 3s if no updates available
+  const installBtn = document.getElementById('run-update-btn');
+  if (installBtn && installBtn.style.display === 'none') {
+    setTimeout(() => {
+      const b = document.getElementById('upd-body');
+      if (b && !b.classList.contains('collapsed')) toggleUpdPanel();
+    }, 3000);
+  }
 });
 
 function renderUpdGrid(data) {
@@ -2376,7 +2410,7 @@ function renderUpdGrid(data) {
   deEl.className = 'upd-item';
   deEl.innerHTML = `
     <div class="upd-item-left">
-      <span class="upd-name">🦕 Deno</span>
+      <span class="upd-name" title="To update Deno, go to Advanced → Reinstall Deno">🦕 Deno</span>
       <span class="upd-ver">${deVer} · ${deInstalled ? 'bundled' : 'required for YouTube'}</span>
     </div>
     <div class="upd-item-right">
@@ -2746,12 +2780,14 @@ function renderCard(el, item) {
   const info = item.info, n = item.id;
   const dur  = info.duration ? fmtDur(info.duration) : '';
   // Add a "may be slower" tooltip on high-resolution options (≥1440p)
-  // since YouTube CDN throttling on those streams is common but legitimate.
-  const SLOW_HINT = '4K/8K downloads may be slower — YouTube throttles high-bitrate streams. This is normal.';
+  // since CDN throttling on high-res streams is common but legitimate.
+  const SLOW_HINT = '4K/8K downloads may be slower — source throttling on high-bitrate streams is normal.';
+  const _resSuffix = h => h >= 4320 ? ' - 8K' : h >= 2160 ? ' - 4K' : h >= 1440 ? ' - 2K' : '';
   const vOpts = (info.formats||[]).map(f => {
     const slow = (f.height || 0) >= 1440;
     const titleAttr = slow ? ` title="${esc(SLOW_HINT)}"` : '';
-    return `<option value="${esc(f.id)}"${titleAttr}>${esc(f.label)}${slow ? ' · may be slower' : ''}</option>`;
+    const suffix = _resSuffix(f.height || 0);
+    return `<option value="${esc(f.id)}"${titleAttr}>${esc(f.label)}${suffix}</option>`;
   }).join('');
   const aOpts = (info.audio_formats||[]).map(f => `<option value="${esc(f.id)}">${esc(f.label)}</option>`).join('');
   const hasQ  = (info.formats||[]).length > 0 || (info.audio_formats||[]).length > 0;
@@ -2772,7 +2808,7 @@ function renderCard(el, item) {
             <input type="radio" name="fmt${n}" id="fv${n}" value="video" checked>
             <label for="fv${n}">🎬 Video</label>
             <input type="radio" name="fmt${n}" id="fa${n}" value="audio">
-            <label for="fa${n}">🎵 MP3</label>
+            <label for="fa${n}">🎵 Audio</label>
           </div>
         </div>
         <div class="qual-group" id="vqg${n}" ${!hasQ?'style="display:none"':''}>
@@ -3629,10 +3665,10 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     frost:            {label:'Frost',            bg:'#cdd2da',surf:'#c2c8d2',acc:'#2563eb',   cat:'light'},
     bone:             {label:'Bone',             bg:'#f5f0e8',surf:'#ede7d9',acc:'#2563eb',   cat:'light'},
     haze:             {label:'Haze',             bg:'#d4d9d0',surf:'#c9d0c4',acc:'#2563eb',   cat:'light'},
-    kush:             {label:'Kush',             bg:'#0d1a0f',surf:'#152015',acc:'#5a9e3a',   cat:'dark'},
-    purplehaze:       {label:'Purple Haze',      bg:'#0e0818',surf:'#170e28',acc:'#9b5de5',   cat:'dark'},
-    sativa:           {label:'Sativa',           bg:'#edf5e8',surf:'#e2eedb',acc:'#2e7d32',   cat:'light'},
-    ogcream:          {label:'OG Cream',         bg:'#f5f0e5',surf:'#ede6d8',acc:'#8b6914',   cat:'light'},
+    kush:             {label:'Evergreen',             bg:'#0d1a0f',surf:'#152015',acc:'#5a9e3a',   cat:'dark'},
+    purplehaze:       {label:'Amethyst',      bg:'#0e0818',surf:'#170e28',acc:'#9b5de5',   cat:'dark'},
+    sativa:           {label:'Meadow',           bg:'#edf5e8',surf:'#e2eedb',acc:'#2e7d32',   cat:'light'},
+    ogcream:          {label:'Parchment',         bg:'#f5f0e5',surf:'#ede6d8',acc:'#8b6914',   cat:'light'},
     abyssal:          {label:'Abyssal',          bg:'#010d18',surf:'#021525',acc:'#00b4d8',   cat:'nature'},
     wildfire:         {label:'Wildfire',         bg:'#100600',surf:'#1c0a00',acc:'#f4511e',   cat:'nature'},
     permafrost:       {label:'Permafrost',       bg:'#e8f4fb',surf:'#daeef8',acc:'#0277bd',   cat:'nature'},
