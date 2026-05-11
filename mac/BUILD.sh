@@ -123,7 +123,7 @@ npm run build --quiet
 echo "   ✓ App built"
 echo ""
 
-# ── Package into password-protected zip ──────────────────────────────────────
+# ── Package into zip ─────────────────────────────────────────────────────────
 echo "📦 Packaging EGMdM.zip..."
 mkdir -p "$REPO_ROOT/dist"
 DMG=$(ls "$ELECTRON_DIR/dist/"*.dmg 2>/dev/null | head -1)
