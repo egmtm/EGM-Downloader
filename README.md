@@ -251,6 +251,10 @@ python scripts/gen-update-json.py --notes "Fixed X; Added Y"
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for complete development guide.
 
+### Build Artifacts
+
+EGM Downloader desktop app build artifacts (`EGMd.zip`, `EGMdM.zip`, `EGMdL.zip`, `EGMd-portable.zip`) and their JSON update feeds (`egm-version.json`, `egmac-update.json`, `egmlinux-update.json`, `egm-portable-version.json`) are uploaded to the server manually by EGM after each release build. They are **NOT** in this repo and **NOT** touched by the auto-deploy pipeline.
+
 ---
 
 ## 🤝 Contributing
@@ -442,11 +446,15 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 🗺️ Roadmap
 
-**v0.99 (Next Release):**
-- 📡 Subscriptions feature — automated channel monitoring
+**v0.98.X (Next — 2-4 releases):**
+- 🔒 Security audit + Apple code signing
+- 🪄 Polish + bug fixes as surfaced
 
-**v1.0 (Future):**
-- 🌍 Multi-language support — global interface
+**v1.0 (Major Milestone):**
+- 📡 Subscriptions — automated channel monitoring
+
+**v1.1 (Future):**
+- 🌍 Multi-language support — EN / ES / PT / FR
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
