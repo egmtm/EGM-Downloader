@@ -160,7 +160,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 2. Make executable: `chmod +x "EGM Downloader.AppImage"`
 3. Double-click to launch (or run from terminal)
 
-**First launch:** App will download required components (Node.js, Electron, ffmpeg) - this is normal and only happens once.
+**Linux only — first launch:** The AppImage downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory. Windows and macOS bundle these dependencies — no first-launch download required.
 
 ---
 
