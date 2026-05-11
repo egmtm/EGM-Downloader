@@ -359,10 +359,18 @@ Why is this change needed? What problem does it solve?
 EGM-Downloader/
 │
 ├── app.py                    # Flask backend (Windows + Mac)
-├── templates/index.html      # UI (Windows + Mac)
+├── templates/                # UI templates (Windows + Mac)
+│   ├── index.html            # Main UI
+│   ├── history.html          # Version history
+│   ├── themes.html           # Theme picker
+│   └── theme_styles.html     # Theme CSS definitions
 ├── static/                   # Icons, assets (all platforms)
+├── languages/                # i18n language files (all platforms)
+│   └── en.json, es.json, fr.json, pt.json, de.json, it.json, ...
+├── screenshots/              # App screenshots
 ├── scripts/                  # Build automation
 │   ├── bump-version.py       # Version management
+│   ├── validate-version-sync.py # Version sync validator (CI)
 │   ├── gen-update-json.py    # Update JSON generator
 │   └── add-patchnote.py      # Changelog helper
 │
