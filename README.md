@@ -195,7 +195,72 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots will be added when repository goes public*
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/main-ui-ghost-theme.png">
+        <img src="screenshots/main-ui-ghost-theme.png" width="340" alt="Main UI — Ghost Theme"/>
+      </a>
+      <br/><sub><b>Main UI — Ghost Theme</b></sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/main-ui-expanded.png">
+        <img src="screenshots/main-ui-expanded.png" width="340" alt="Main UI — Expanded"/>
+      </a>
+      <br/><sub><b>Main UI — Expanded</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/theme-switcher-famicom.png">
+        <img src="screenshots/theme-switcher-famicom.png" width="340" alt="Theme Switcher — Famicom Theme"/>
+      </a>
+      <br/><sub><b>Theme Switcher — Famicom Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/themes-window.png">
+        <img src="screenshots/themes-window.png" width="340" alt="Themes Window"/>
+      </a>
+      <br/><sub><b>Themes Window</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/video-quality-selector.png">
+        <img src="screenshots/video-quality-selector.png" width="340" alt="Video Quality Selector"/>
+      </a>
+      <br/><sub><b>Video Quality Selector</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/downloading-videos.png">
+        <img src="screenshots/downloading-videos.png" width="340" alt="Fetched Videos Downloading"/>
+      </a>
+      <br/><sub><b>Fetched Videos — Downloading</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/batch-download-quality-picker.png">
+        <img src="screenshots/batch-download-quality-picker.png" width="340" alt="Batch Download Quality Picker"/>
+      </a>
+      <br/><sub><b>Batch Download Quality Picker</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/download-history-expanded.png">
+        <img src="screenshots/download-history-expanded.png" width="340" alt="Download History — Expanded"/>
+      </a>
+      <br/><sub><b>Download History — Expanded</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <a href="screenshots/video-output.png">
+        <img src="screenshots/video-output.png" width="340" alt="Video Output"/>
+      </a>
+      <br/><sub><b>Video Output</b></sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
