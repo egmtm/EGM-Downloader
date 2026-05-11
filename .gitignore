@@ -80,3 +80,6 @@ desktop.ini
 
 # ── Icon staging ──────────────────────────────────────────────
 static/icon-new.ico
+
+# ── Internal operational documents (never commit) ─────────────
+STATE.md
