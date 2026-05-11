@@ -195,6 +195,8 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ## 🖼️ Screenshots
 
+> 📸 *Screenshots captured on v0.98.9 "Fit & Finish". As EGM Downloader evolves, new screenshots and video walkthroughs will be added with each release.*
+
 <table>
   <tr>
     <td align="center" width="50%">
