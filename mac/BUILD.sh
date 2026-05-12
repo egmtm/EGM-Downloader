@@ -153,12 +153,6 @@ MINIMUM MACOS: 11.0 (Big Sur) or later
 
 3. Open Applications folder and launch "EGM Downloader"
 
-4. If you see "App can't be opened" security warning:
-   - Open System Settings → Privacy & Security
-   - Scroll down to Security section
-   - Click "Open Anyway" next to EGM Downloader
-   - Click "Open" in the confirmation dialog
-
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   FIRST RUN
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
