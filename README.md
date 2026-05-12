@@ -511,8 +511,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 ## 🗺️ Roadmap
 
 **v0.99.X (Next):**
-- 🔒 Security audit + Apple code signing
-- 🪄 Polish + bug fixes as surfaced
+- 🔒 Security audit + polish
+- 🪄 Bug fixes as surfaced
 
 **v1.0 (Major Milestone):**
 - 📡 Subscriptions — automated channel monitoring
