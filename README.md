@@ -22,9 +22,12 @@
   <p><strong>A powerful, multi-platform video and audio downloader for 1000+ websites.</strong></p>
   
   <p>Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.</p>
+  <p><em>Powered by yt-dlp · runs locally · no telemetry · no accounts</em></p>
 </div>
 
 ---
+
+<p align="center"><a href="#-download">⬇ Jump to Downloads</a></p>
 
 ## ✨ Features
 
@@ -124,6 +127,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (109 MB · ~300 MB after install)  
 **SHA256:** `831832c6856205833aa94d81e10aa4a8a8b2fcb30c9a6b78b5ec721543df590e`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
+**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v0.98.9 Build 106  
@@ -191,6 +195,11 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 - Click "Update Plugins" in settings
 - Update yt-dlp for newest site support
 - Update ffmpeg for latest codecs
+
+**Cookies / Login-Required Content:**
+- Some sites require browser cookies for premium or age-restricted content
+- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
+- Cookies are stored locally on your machine and are never transmitted
 
 ---
 
