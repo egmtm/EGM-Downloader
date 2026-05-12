@@ -305,6 +305,8 @@ In your PR description:
 
 ## 🔄 Pull Request Process
 
+> **Important:** For large changes (new features, architecture refactors, or anything touching multiple platforms), please open a discussion or issue first. This helps avoid unreviewable PRs and ensures the change aligns with the project direction.
+
 ### Before Submitting
 
 - [ ] Run on your platform - No crashes or errors
@@ -408,6 +410,8 @@ EGM-Downloader/
 - `linux/templates/` - Slightly different UI
 - `linux/requirements.txt` - Linux-specific dependencies
 
+> **Why does Linux have its own `app.py` and `templates/`?** The AppImage distribution model requires self-contained runtime bootstrapping (downloading Node.js, Electron, and ffmpeg on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations.
+
 **Platform Directories:**
 - `windows/electron/` - Windows Electron configuration
 - `mac/electron/` - Mac Electron configuration
@@ -428,7 +432,7 @@ EGM-Downloader/
 - **General questions** - Open a discussion
 - **Bug reports** - Open an issue
 - **Feature requests** - Open an issue
-- **Security concerns** - Email contact@egerena.com
+- **Security concerns** - Please do not file security issues publicly. See [SECURITY.md](SECURITY.md) for responsible disclosure instructions
 
 ---
 
