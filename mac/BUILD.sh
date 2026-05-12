@@ -201,7 +201,7 @@ FEATURES:
 
 Website: https://egerena.com/apps/egmac.html
 GitHub: https://github.com/egmtm/EGM-Downloader
-Email: enrique@egerena.com
+Email: contact@egerena.com
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   LICENSE
