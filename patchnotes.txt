@@ -1,5 +1,6 @@
 v0.98.9 - Build 106 (5/10/2026 9:43 AM EST) — Fit & Finish
 -----------------------------------------
+  • [MAC] App is now signed and notarized with Apple Developer ID — no Gatekeeper security warnings on launch
   • [ALL] Theme improvements — four themes renamed for broader appeal. CSS class names unchanged (existing preferences preserved)
   • [ALL] Header description updated — site list replaced with "Your personal media downloader for 1000+ sites" with linked site directory
   • [ALL] Clear Completed button removed from download queue — downloads auto-move to history on completion
