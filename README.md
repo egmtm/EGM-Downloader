@@ -513,7 +513,7 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 🗺️ Roadmap
 
-**v0.98.X (Next — 2-4 releases):**
+**v0.99.X (Next):**
 - 🔒 Security audit + Apple code signing
 - 🪄 Polish + bug fixes as surfaced
 
