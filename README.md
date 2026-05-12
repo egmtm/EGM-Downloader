@@ -444,10 +444,6 @@ Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 
 - Try different quality/format
 
 ### macOS
-**"App can't be opened" error:**
-- Right-click app → Open → confirm
-- Or: System Settings → Privacy → Allow from Identified Developers
-
 **Download stuck:**
 - Update plugins
 - Restart the app
