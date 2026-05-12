@@ -4,6 +4,8 @@
 
 The EGM Downloader team takes security seriously. We appreciate your efforts to responsibly disclose your findings.
 
+**Scope:** This policy applies to the official EGM Downloader application and its official distribution channels (egerena.com and this GitHub repository). Third-party forks or unofficial distributions are not covered.
+
 ### How to Report
 
 **Please do NOT open a public issue for security vulnerabilities.**
