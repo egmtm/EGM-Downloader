@@ -513,7 +513,7 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 🗺️ Roadmap
 
-**v0.98.X (Next — 2-4 releases):**
+**v0.99.X (Next):**
 - 🔒 Security audit + Apple code signing
 - 🪄 Polish + bug fixes as surfaced
 
@@ -521,7 +521,7 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 - 📡 Subscriptions — automated channel monitoring
 
 **v1.1 (Future):**
-- 🌍 Multi-language support — EN / ES / PT / FR
+- 🌍 Multi-language support — 10 languages (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
@@ -551,4 +551,4 @@ If you find EGM Downloader useful, please consider:
 
 ---
 
-**Made with ❤️ by the open source community**
+**Built brick by brick by egmtm**
