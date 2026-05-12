@@ -13,6 +13,7 @@
     <img src="https://img.shields.io/badge/Electron-41+-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/macOS-Big_Sur+-000000?logo=apple&logoColor=white" alt="macOS"/>
+    <img src="https://img.shields.io/badge/macOS-Notarized-000000?logo=apple&logoColor=white" alt="macOS Notarized"/>
     <img src="https://img.shields.io/badge/Linux-AppImage-FCC624?logo=linux&logoColor=black" alt="Linux"/>
     <img src="https://img.shields.io/badge/Flask-3.x-000000?logo=flask&logoColor=white" alt="Flask"/>
     <img src="https://img.shields.io/badge/yt--dlp-latest-FF0000?logo=youtube&logoColor=white" alt="yt-dlp"/>
