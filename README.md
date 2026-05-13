@@ -12,6 +12,7 @@
     <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"/>
     <img src="https://img.shields.io/badge/Electron-41+-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
+    <img src="https://img.shields.io/badge/Windows-EV_Signed-0078D6?logo=windows&logoColor=white" alt="Windows EV Signed"/>
     <img src="https://img.shields.io/badge/macOS-Big_Sur+-000000?logo=apple&logoColor=white" alt="macOS"/>
     <img src="https://img.shields.io/badge/macOS-Notarized-000000?logo=apple&logoColor=white" alt="macOS Notarized"/>
     <img src="https://img.shields.io/badge/Linux-AppImage-FCC624?logo=linux&logoColor=black" alt="Linux"/>
@@ -112,7 +113,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ### Windows
 **Latest:** v0.98.9 Build 106  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (306 KB · ~800 MB after install)  
-**SHA256:** `36d8e2b925b996a898fe10a5fe7f000f1e310daea041ce3d305abe23ca923490`  
+**SHA256:** `fa0d4fe172df728d8ba20c16254d8cd6cad83eccd59027f0bea03782aedf64c1`  
 **Requirements:** Windows 10/11 (64-bit)
 
 ### Windows Portable
