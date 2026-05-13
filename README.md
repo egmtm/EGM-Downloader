@@ -12,7 +12,7 @@
     <img src="https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white" alt="Python"/>
     <img src="https://img.shields.io/badge/Electron-41+-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
-    <img src="https://img.shields.io/badge/Windows-EV_Signed-0078D6?logo=windows&logoColor=white" alt="Windows EV Signed"/>
+    <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Big_Sur+-000000?logo=apple&logoColor=white" alt="macOS"/>
     <img src="https://img.shields.io/badge/macOS-Notarized-000000?logo=apple&logoColor=white" alt="macOS Notarized"/>
     <img src="https://img.shields.io/badge/Linux-AppImage-FCC624?logo=linux&logoColor=black" alt="Linux"/>
@@ -445,7 +445,6 @@ Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 
 ### Windows
 **App won't start:**
 - Run `launch.bat` to see error messages
-- Ensure Windows Defender isn't blocking
 - Check `logs/` folder for details
 
 **Download fails:**
