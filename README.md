@@ -441,6 +441,12 @@ Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 
 
 ---
 
+## ⚠️ Known Issues
+
+- **Cookie age display** — The cookie file age counter shows 0 days regardless of actual file age. Cosmetic only — cookie functionality is unaffected. Fix scheduled for a future release.
+
+---
+
 ## 🐛 Troubleshooting
 
 ### Windows
