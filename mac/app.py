@@ -9,8 +9,8 @@ import time
 import threading
 import urllib.request
 import zipfile
-import shutil
 import hashlib
+import shutil
 import platform as _platform
 from collections import deque
 from pathlib import Path
