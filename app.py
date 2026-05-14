@@ -9,10 +9,11 @@ import time
 import threading
 import urllib.request
 import zipfile
+import hashlib
 import shutil
 from collections import deque
 from pathlib import Path
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, abort
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body limit
@@ -22,20 +23,36 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # via a DNS-rebinding attack. Reject any request whose Host header isn't a
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+def _chmod_owner_only(path):
+    """Set sensitive file to owner read/write only (POSIX). No-op on Windows."""
+    if sys.platform != "win32":
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
-_TOKEN_EXEMPT    = {"/api/show-window", "/api/show-window-check"}
+# /api/show-window is exempt because launch.py (second-instance signaler) has no token access
+_TOKEN_EXEMPT    = {"/api/show-window"}
+_IS_DEV          = os.environ.get("EGM_DEV_MODE") == "1"
+if not _API_TOKEN and not _IS_DEV:
+    raise RuntimeError("EGM_API_TOKEN is required — set EGM_DEV_MODE=1 for local development")
+
+def _extract_host(host):
+    """IPv6-aware host extraction: [::1]:8899 → [::1], 127.0.0.1:8899 → 127.0.0.1"""
+    host = (host or "").strip().lower()
+    if host.startswith("["):
+        end = host.find("]")
+        return host[:end + 1] if end != -1 else host
+    return host.split(":", 1)[0]
 
 @app.before_request
 def _verify_host_header():
-    from flask import request as _req, abort
-    host = _req.host or ""
-    # Strip port to match against allowlist
-    host_only = host.split(":", 1)[0].lower().strip()
+    host_only = _extract_host(request.host)
     if host_only and host_only not in _ALLOWED_HOSTS:
         abort(403)
     # 2. API token check (per-session Electron token)
-    if _API_TOKEN and _req.path.startswith("/api/") and _req.path not in _TOKEN_EXEMPT:
-        if _req.headers.get("X-EGM-Token") != _API_TOKEN:
+    if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT:
+        if request.headers.get("X-EGM-Token") != _API_TOKEN:
             abort(403)
 
 @app.after_request
@@ -124,6 +141,7 @@ def _load_history() -> list:
 def _save_history(items: list):
     try:
         HISTORY_FILE.write_text(json.dumps(items, indent=2), encoding="utf-8")
+        _chmod_owner_only(HISTORY_FILE)
     except Exception:
         pass
 
@@ -132,7 +150,7 @@ def _append_history(job: dict, final_path):
     try:
         size_bytes = 0
         try: size_bytes = final_path.stat().st_size
-        except: pass
+        except Exception: pass
         entry = {
             "id":           str(uuid.uuid4()),
             "url":          job.get("url", ""),
@@ -168,6 +186,7 @@ def _save_settings(data: dict):
         try:
             _settings_cache.update(data)
             SETTINGS_FILE.write_text(json.dumps(_settings_cache, indent=2), encoding="utf-8")
+            _chmod_owner_only(SETTINGS_FILE)
         except Exception:
             pass
 
@@ -292,7 +311,9 @@ def ensure_ffmpeg():
     FFMPEG_DIR.mkdir(exist_ok=True)
     tmp = FFMPEG_DIR / "ffmpeg_tmp.zip"
     try:
-        urllib.request.urlretrieve(FFMPEG_URL, tmp)
+        req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+        with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
+            shutil.copyfileobj(r, f)
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
                 fn = Path(m).name
@@ -548,7 +569,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 while _fpath.exists() and str(_fpath) != _main_file:
                     _fpath = out_dir / f"{_stem} ({_n}){_ext}"; _n += 1
                 try: os.rename(_main_file, _fpath)
-                except: _fpath = Path(_main_file)
+                except OSError: _fpath = Path(_main_file)
                 job["file"]        = str(_fpath)
                 job["filename"]    = _fpath.name
                 job["warning"]     = "Download complete — metadata embedding skipped."
@@ -593,8 +614,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         while final_path.exists() and str(final_path) != chosen:
             final_path = out_dir / f"{stem} ({n}){ext}"; n += 1
         try: os.rename(chosen, final_path)
-        except: final_path = Path(chosen)
+        except OSError: final_path = Path(chosen)
 
+        # Safety net — clean up any leftover subtitle temp files yt-dlp didn't remove after --embed-subs
+        for ext in (".vtt", ".srt"):
+            for sub in out_dir.glob(f"{job_id}*{ext}"):
+                try: sub.unlink()
+                except OSError: pass
         job["file"]     = str(final_path)
         job["filename"] = final_path.name
         job["_finished_at"] = time.time()
@@ -619,7 +645,7 @@ def index(): return render_template("index.html", egm_token=_API_TOKEN, platform
 
 @app.route("/api/info", methods=["POST"])
 def get_info():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     url  = data.get("url", "").strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
@@ -642,7 +668,7 @@ def get_info():
 
 @app.route("/api/playlist", methods=["POST"])
 def get_playlist():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     url  = data.get("url", "").strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
@@ -660,7 +686,7 @@ def get_playlist():
                 entries.append({"url": eu, "title": e.get("title") or e.get("id") or "Unknown",
                                  "thumbnail": th, "duration": e.get("duration"),
                                  "uploader": e.get("uploader") or e.get("channel") or ""})
-            except: continue
+            except Exception: continue
         if not entries: return jsonify({"is_playlist": False}), 200
         pl = ""
         for l in r.stderr.splitlines():
@@ -671,7 +697,7 @@ def get_playlist():
 
 @app.route("/api/download", methods=["POST"])
 def start_download():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     url  = data.get("url","").strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
@@ -706,12 +732,14 @@ def start_download():
 
 @app.route("/api/cancel/<job_id>", methods=["POST"])
 def cancel_download(job_id):
-    job = jobs.get(job_id)
-    if not job: return jsonify({"error": "Job not found"}), 404
-    if job.get("status") not in ("downloading", "queued"):
-        return jsonify({"error": "Not downloading"}), 400
-    job["cancelled"] = True
-    proc = job.get("proc")
+    with _jobs_lock:
+        job = jobs.get(job_id)
+        if not job: return jsonify({"error": "Job not found"}), 404
+        if job.get("status") not in ("downloading", "queued"):
+            return jsonify({"error": "Not downloading"}), 400
+        job["cancelled"] = True
+        proc = job.get("proc")
+    # Release lock before kill — _kill_proc is slow and shouldn't hold the lock
     if proc:
         _kill_proc(proc)
     # Don't set status here — the worker thread sets it to "cancelled"
@@ -722,19 +750,19 @@ def cancel_download(job_id):
 
 @app.route("/api/status/<job_id>")
 def check_status(job_id):
-    job = jobs.get(job_id)
-    if not job: return jsonify({"error": "Job not found"}), 404
-    status = job["status"]
-    resp = {"status": status, "error": job.get("error"),
-            "filename": job.get("filename"), "progress": job.get("progress", 0),
-            "speed": job.get("speed", ""), "eta": job.get("eta", ""),
-            "filesize": job.get("filesize", "")}
-    # Remove completed jobs from memory once the UI has consumed the result.
-    if status in ("done", "error", "cancelled") and job.get("_ack"):
-        with _jobs_lock:
+    with _jobs_lock:
+        job = jobs.get(job_id)
+        if not job: return jsonify({"error": "Job not found"}), 404
+        status = job["status"]
+        resp = {"status": status, "error": job.get("error"),
+                "filename": job.get("filename"), "progress": job.get("progress", 0),
+                "speed": job.get("speed", ""), "eta": job.get("eta", ""),
+                "filesize": job.get("filesize", "")}
+        # Remove completed jobs from memory once the UI has consumed the result.
+        if status in ("done", "error", "cancelled") and job.get("_ack"):
             jobs.pop(job_id, None)
-    elif status in ("done", "error", "cancelled"):
-        job["_ack"] = True   # mark — will be removed on next poll
+        elif status in ("done", "error", "cancelled"):
+            job["_ack"] = True   # mark — will be removed on next poll
     return jsonify(resp)
 
 @app.route("/api/settings")
@@ -762,7 +790,7 @@ def get_settings():
 
 @app.route("/api/settings/save", methods=["POST"])
 def save_settings():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
                "upd_open", "ck_open", "quit_on_done", "flask_port",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
@@ -778,7 +806,7 @@ def save_settings():
 
 @app.route("/api/open-folder", methods=["POST"])
 def open_folder():
-    data   = request.json or {}
+    data   = request.get_json(silent=True) or {}
     folder = data.get("folder", _get_last_folder() or str(Path.home()))
     path   = Path(folder)
     if not path.exists() or not path.is_dir():
@@ -792,7 +820,7 @@ def open_folder():
 
 @app.route("/api/rename", methods=["POST"])
 def rename_file():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     job_id, new_name = data.get("job_id","").strip(), data.get("name","").strip()
     if not job_id or not new_name: return jsonify({"error": "job_id and name required"}), 400
     job = jobs.get(job_id)
@@ -814,7 +842,7 @@ def rename_file():
 # ── Update system ──────────────────────────────────────────────────────────────
 def _get_ytdlp_version():
     try: return _run("yt-dlp", "--version", timeout=10).stdout.strip()
-    except: return "unknown"
+    except Exception: return "unknown"
 
 def _get_ffmpeg_version():
     exe = FFMPEG_DIR / "ffmpeg.exe"
@@ -825,11 +853,11 @@ def _get_ffmpeg_version():
         r = _run(str(exe), "-version", timeout=10)
         parts = (r.stdout.splitlines()[0] if r.stdout else "").split()
         return parts[2] if len(parts) > 2 else "unknown"
-    except: return "unknown"
+    except Exception: return "unknown"
 
 def _get_ffmpeg_installed_tag():
     try: return FFMPEG_TAG_FILE.read_text().strip()
-    except: return ""
+    except Exception: return ""
 
 def _get_latest_ffmpeg_tag():
     try:
@@ -837,7 +865,7 @@ def _get_latest_ffmpeg_tag():
                                      headers={"User-Agent":"EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=10) as r:
             return json.loads(r.read()).get("tag_name","unknown")
-    except: return "unknown"
+    except Exception: return "unknown"
 
 def _get_latest_ytdlp_version():
     try:
@@ -846,7 +874,7 @@ def _get_latest_ytdlp_version():
             headers={"User-Agent":"EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=10) as r:
             return json.loads(r.read()).get("tag_name","unknown")
-    except: return "unknown"
+    except Exception: return "unknown"
 
 update_status: dict = {}
 
@@ -861,8 +889,7 @@ def _get_mutagen_version() -> str:
 def _get_latest_mutagen_version() -> str:
     try:
         with urllib.request.urlopen("https://pypi.org/pypi/mutagen/json", timeout=8) as r:
-            import json as _json
-            return _json.loads(r.read())["info"]["version"]
+            return json.loads(r.read())["info"]["version"]
     except Exception:
         return "unknown"
 
@@ -896,7 +923,9 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
             log("Downloading latest ffmpeg...")
             FFMPEG_DIR.mkdir(exist_ok=True)
             tmp = FFMPEG_DIR / "ffmpeg_update.zip"
-            urllib.request.urlretrieve(FFMPEG_URL, tmp)
+            req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+            with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
+                shutil.copyfileobj(r, f)
             log("Extracting...")
             with zipfile.ZipFile(tmp, "r") as z:
                 for m in z.namelist():
@@ -942,7 +971,7 @@ def check_updates():
 @app.route("/api/run-update", methods=["POST"])
 def run_update():
     if update_status.get("running"): return jsonify({"error": "Already running"}), 409
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
                      args=(bool(data.get("ytdlp", True)),
                            bool(data.get("ffmpeg", False)),
@@ -956,12 +985,13 @@ def cookies_status():
     exists = COOKIES_FILE.exists() and COOKIES_FILE.stat().st_size > 0
     age_days = None
     if exists:
-        age_days = int((time.time() - COOKIES_FILE.stat().st_mtime) / 86400)
+        saved_at = _load_settings().get("cookies_saved_at")
+        age_days = int((time.time() - saved_at) / 86400) if saved_at else None
     return jsonify({"active": exists, "path": str(COOKIES_FILE), "age_days": age_days})
 
 @app.route("/api/cookies/save", methods=["POST"])
 def cookies_save():
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     text = data.get("content", "").strip()
     if not text:
         return jsonify({"error": "No content provided"}), 400
@@ -969,6 +999,8 @@ def cookies_save():
         return jsonify({"error": "Cookies file too large (max 1 MB)"}), 413
     try:
         COOKIES_FILE.write_text(text, encoding="utf-8")
+        _chmod_owner_only(COOKIES_FILE)
+        _save_settings({"cookies_saved_at": int(time.time())})
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -978,6 +1010,7 @@ def cookies_clear():
     try:
         if COOKIES_FILE.exists():
             COOKIES_FILE.unlink()
+        _save_settings({"cookies_saved_at": None})
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1171,7 +1204,7 @@ def download_update():
     """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe, return installer path."""
     if PORTABLE_MODE:
         return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps."}), 400
-    data    = request.json or {}
+    data    = request.get_json(silent=True) or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     expected_checksum = data.get("expected_checksum", "").strip().lower()
     if not zip_url:
@@ -1193,7 +1226,6 @@ def download_update():
             shutil.copyfileobj(r, f)
 
         # Verify SHA256 checksum (required — fail-closed)
-        import hashlib
         h = hashlib.sha256()
         h.update(zip_path.read_bytes())
         actual_checksum = h.hexdigest().lower()
@@ -1202,8 +1234,7 @@ def download_update():
             return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
 
         # Extract egm-setup.exe using standard zipfile
-        import zipfile as _zf
-        with _zf.ZipFile(zip_path, "r") as z:
+        with zipfile.ZipFile(zip_path, "r") as z:
             names = z.namelist()
             if "egm-setup.exe" not in names:
                 zip_path.unlink(missing_ok=True)
@@ -1232,7 +1263,7 @@ def cache_clear():
         if last_folder:
             dl_path = Path(last_folder)
             if dl_path.is_dir():
-                for pattern in ("*.part", "*.ytdl", "*.f*.mp4", "*.f*.webm"):
+                for pattern in ("*.part", "*.ytdl"):  # *.f*.mp4 and *.f*.webm removed — too broad for user download folder
                     for f in dl_path.glob(pattern):
                         try: f.unlink(); cleared.append(f.name)
                         except Exception: pass
@@ -1244,6 +1275,7 @@ def settings_reset():
     """Reset all settings to defaults — keeps downloads and history."""
     try:
         SETTINGS_FILE.write_text("{}", encoding="utf-8")
+        _chmod_owner_only(SETTINGS_FILE)
         global _settings_cache
         with _settings_lock:
             _settings_cache = {}
@@ -1323,7 +1355,7 @@ def clear_history():
 @app.route("/api/history/import", methods=["POST"])
 def import_history():
     """Replace history with the provided list. Used by Import Settings flow."""
-    data = request.json or {}
+    data = request.get_json(silent=True) or {}
     items = data.get("items", [])
     if not isinstance(items, list):
         return jsonify({"error": "items must be a list"}), 400
@@ -1371,7 +1403,7 @@ if __name__ == "__main__":
         if last_folder:
             dl_path = Path(last_folder)
             if dl_path.is_dir():
-                for pattern in ("*.part", "*.ytdl", "*.f*.mp4", "*.f*.webm"):
+                for pattern in ("*.part", "*.ytdl"):  # *.f*.mp4 and *.f*.webm removed — too broad for user download folder
                     for f in dl_path.glob(pattern):
                         try: f.unlink()
                         except Exception: pass
