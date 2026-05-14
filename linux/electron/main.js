@@ -515,7 +515,7 @@ app.on('before-quit', () => {
 
   // Ask Flask to shut down cleanly
   try {
-    const req = http.request({ host: HOST, port: PORT, path: '/api/shutdown', method: 'POST' });
+    const req = http.request({ host: HOST, port: PORT, path: '/api/shutdown', method: 'POST', headers: { 'X-EGM-Token': EGM_TOKEN } });
     req.on('error', () => {});
     req.end();
   } catch {}
