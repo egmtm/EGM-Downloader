@@ -1,3 +1,15 @@
+v0.98.10 - Build 107 (5/13/2026 7:38 PM EST) — Spectrum
+-----------------------------------------
+  • [ALL] New COLORS theme category — 10 gradient themes: Ocean, Peach, Mint, Lavender, Sand (light); Ember, Aurora, Midnight, Forest, Crimson (dark)
+  • [ALL] Cookies age tracking fixed — date now stored reliably in settings instead of filesystem metadata
+  • [ALL] Cache clear safety — removed overly broad file patterns that could match legitimate files in download folder
+  • [ALL] Download timeout protection — ffmpeg and plugin update downloads now have 120-second timeout (previously could hang indefinitely)
+  • [ALL] Code quality — bare except clauses replaced with specific exception types across all platforms
+  • [ALL] Code quality — deferred imports moved to top-level for clarity and consistency
+  • [WINDOWS] Desktop and Start Menu shortcuts no longer flash a console window on launch
+  • [LINUX] AppImage icon now displays correctly in AppImageLauncher and system menus
+  • [MAC] DMG volume icon configuration added to build
+
 v0.98.9 - Build 106 (5/10/2026 9:43 AM EST) — Fit & Finish
 -----------------------------------------
   • [MAC] App is now signed and notarized with Apple Developer ID — no Gatekeeper security warnings on launch

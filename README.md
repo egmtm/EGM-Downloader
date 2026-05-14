@@ -111,30 +111,30 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.98.9 Build 106  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (306 KB · ~800 MB after install)  
-**SHA256:** `fa0d4fe172df728d8ba20c16254d8cd6cad83eccd59027f0bea03782aedf64c1`  
+**Latest:** v0.98.10 Build 107  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (316 KB · ~800 MB after install)  
+**SHA256:** `400386d7b9533b2f25e3d976137b61f4870c6f6dd54035352bb2fbbd696ff47c`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — no SmartScreen warnings
 
 ### Windows Portable
-**Latest:** v0.98.9 Build 106  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (265 KB · ~800 MB after first run)  
-**SHA256:** `93d52debc0da3bb0ac7fd9ab7a5183b20457f5a02b9d5d9aec6a9c9840d76f76`  
+**Latest:** v0.98.10 Build 107  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (268 KB · ~800 MB after first run)  
+**SHA256:** `6bd8eb9ad0a660b0b23b4cec1df1b7be931a2d9fd48cbc04d2b4e12d26ab7090`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
-**Latest:** v0.98.9 Build 106  
+**Latest:** v0.98.10 Build 107  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (109 MB · ~300 MB after install)  
-**SHA256:** `831832c6856205833aa94d81e10aa4a8a8b2fcb30c9a6b78b5ec721543df590e`  
+**SHA256:** `ddd3686c0280dc2c1a82e783ab08a64bf36ee827256a959d433c5de7c2ab2fbf`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v0.98.9 Build 106  
+**Latest:** v0.98.10 Build 107  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (120 MB · ~300 MB after install)  
-**SHA256:** `1f8125d9d64a8dcddccbc4c40ef624c5fd72e3be07b2a2fa807079ce6288195f`  
+**SHA256:** `69a81925c4e6c9483a0f9bcd7ce11b56fb8f719641b85d393f3663f453d3691c`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -365,10 +365,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 106 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 106 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 106 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 106 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 107 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 107 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 107 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 107 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
@@ -438,12 +438,6 @@ View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions
 Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
 
 > Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
-
----
-
-## ⚠️ Known Issues
-
-- **Cookie age display** — The cookie file age counter shows 0 days regardless of actual file age. Cosmetic only — cookie functionality is unaffected. Fix scheduled for a future release.
 
 ---
 
@@ -542,8 +536,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 0.98.9
-- **Build:** 106
+- **Version:** 0.98.10
+- **Build:** 107
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** AGPL-3.0
