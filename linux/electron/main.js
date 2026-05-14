@@ -4,6 +4,7 @@ const path = require('path');
 const fs   = require('fs');
 const http = require('http');
 const os   = require('os');
+const crypto = require('crypto');
 
 // ── Sandbox: AppImages cannot set SUID on chrome-sandbox — disable sandbox ────
 // Safe here because we only load a local Flask server (127.0.0.1), never
@@ -13,6 +14,7 @@ app.commandLine.appendSwitch('no-sandbox');
 // ── Config ────────────────────────────────────────────────────────────────────
 const PORT    = 8899;
 const HOST    = '127.0.0.1';
+const EGM_TOKEN = crypto.randomBytes(32).toString('hex');
 const APP_URL = `http://${HOST}:${PORT}`;
 
 // ── Settings file (~/.local/share/egm-downloader/) ───────────────────────────
@@ -127,7 +129,7 @@ async function startFlask() {
 
   flaskProc = spawn(python, [appPy], {
     cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1' },
+    env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN },
     stdio: 'inherit',
     detached: false,
   });
