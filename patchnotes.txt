@@ -1,5 +1,6 @@
 v0.99.0 - Build 108 (5/14/2026 11:33 AM EST) — Security Hardening
 -----------------------------------------
+  • [ALL] Electron shutdown handler now sends the API token — fixes orphan Python process on quit (Windows-visible, latent on Mac/Linux)
   • [ALL] API token authentication now fail-closed — Electron generates a per-session 32-byte token; Flask refuses to start without it
   • [ALL] IPv6 localhost host parsing fixed — [::1] now correctly recognized
   • [ALL] Token exemption tightened — /api/show-window-check now requires the token (was previously exempt for no reason)
