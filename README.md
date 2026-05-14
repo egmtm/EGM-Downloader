@@ -113,28 +113,28 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ### Windows
 **Latest:** v0.99.0 Build 108  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (317 KB · ~800 MB after install)  
-**SHA256:** `231dcc863dd0b79474e378ed95d3f8250e4596ef5f2819620b9ae58ae9074fd0`  
+**SHA256:** `be5bb28afe1c2ba11a9627cbda635a2352574b587f354c90d4886887ee37dbae`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — no SmartScreen warnings
 
 ### Windows Portable
 **Latest:** v0.99.0 Build 108  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (269 KB · ~800 MB after first run)  
-**SHA256:** `58f9a1ae05ea8be1f4c3539ed6c816a57ebed1e4d8a895185f42dc27ceb195a0`  
+**SHA256:** `297c0f6b1eaaf075b726befe53c96bd8fa7390f0e3c4984c006a5413b8e39c29`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
 **Latest:** v0.99.0 Build 108  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (109 MB · ~300 MB after install)  
-**SHA256:** `11b46144842e6466ebb472bdbedd19a7a699e95e79581570ec1ea31827da9f2b`  
+**SHA256:** `dda92d61854e5c94e2aa23bf4ff102f3ea4e0842e7853cd9e9364cbdf9d40073`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v0.99.0 Build 108  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (120 MB · ~300 MB after install)  
-**SHA256:** `48bba79ddf97e6507e96e8f0fd9d184e577233e85cb45fece0bbbc878d7a4317`  
+**SHA256:** `4625c4a3a30d46aec61ce2ebf286465f9286d44a7dbbcae9c7f3cc7c8f0f08b0`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
