@@ -4,10 +4,12 @@ const path = require('path');
 const fs   = require('fs');
 const http = require('http');
 const os   = require('os');
+const crypto = require('crypto');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const PORT    = 8899;
 const HOST    = '127.0.0.1';
+const EGM_TOKEN = crypto.randomBytes(32).toString('hex');
 const APP_URL = `http://${HOST}:${PORT}`;
 
 // ── Settings file (same location as app.py BASE_DIR) ─────────────────────────
@@ -129,7 +131,7 @@ async function startFlask() {
 
   flaskProc = spawn(python, [appPy], {
     cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1' },
+    env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN },
     windowsHide: true,
     stdio: 'ignore',
     detached: false,
@@ -532,7 +534,7 @@ ipcMain.handle('create-shortcut', async () => {
 function startShowWindowPoller() {
   setInterval(() => {
     if (!mainWindow) return;
-    const req = http.get(`${APP_URL}/api/show-window-check`, (res) => {
+    const req = http.get(`${APP_URL}/api/show-window-check`, { headers: { 'X-EGM-Token': EGM_TOKEN } }, (res) => {
       let body = '';
       res.on('data', d => body += d);
       res.on('end', () => {
