@@ -255,6 +255,16 @@ const THEME_DATA = {
   savathun:        {label:'Savathûn', bg:'#080c08',surf:'#101810',acc:'#a0c840',  cat:'characters'},
   thewitness:      {label:'The Witness', bg:'#050506',surf:'#0a0a0c',acc:'#d8d4c8',  cat:'characters'},
   hyrule:          {label:'Hyrule', bg:'#0e0816',surf:'#180f24',acc:'#d4a820',  cat:'characters'},
+  ocean:           {label:'Ocean',    bg:'linear-gradient(135deg,#e0f2fe,#e0e7ff)',surf:'#f0f7ff',acc:'#0369a1',  cat:'colors'},
+  peach:           {label:'Peach',    bg:'linear-gradient(135deg,#fff1eb,#fce4ec)',surf:'#fff5f0',acc:'#c2410c',  cat:'colors'},
+  mint:            {label:'Mint',     bg:'linear-gradient(135deg,#d1fae5,#ccfbf1)',surf:'#ecfdf5',acc:'#047857',  cat:'colors'},
+  lavender:        {label:'Lavender', bg:'linear-gradient(135deg,#ede7f6,#f3e5f5)',surf:'#f5f0fa',acc:'#6d28d9',  cat:'colors'},
+  sand:            {label:'Sand',     bg:'linear-gradient(135deg,#fef3c7,#fde8d0)',surf:'#fffbf0',acc:'#92400e',  cat:'colors'},
+  ember:           {label:'Ember',    bg:'linear-gradient(135deg,#1c0a00,#2d0800)',surf:'#1c1412',acc:'#ea580c',  cat:'colors'},
+  aurora:          {label:'Aurora',   bg:'linear-gradient(135deg,#041620,#0d0a20)',surf:'#0e1a28',acc:'#06b6d4',  cat:'colors'},
+  midnight:        {label:'Midnight', bg:'linear-gradient(135deg,#020818,#0a0e2e)',surf:'#0c1028',acc:'#6366f1',  cat:'colors'},
+  forest:          {label:'Forest',   bg:'linear-gradient(135deg,#021208,#081810)',surf:'#0c1e12',acc:'#22c55e',  cat:'colors'},
+  crimson:         {label:'Crimson',  bg:'linear-gradient(135deg,#180404,#200808)',surf:'#1e0c0c',acc:'#dc2626',  cat:'colors'},
   velvetrose:      {label:'Velvet Rose', bg:'#120810',surf:'#1e1018',acc:'#e8607a',  cat:'dark'},
   nocturnix:       {label:'Nocturnix', bg:'#090610',surf:'#140c1e',acc:'#cc44cc',  cat:'dark'},
   hanami:          {label:'Hanami', bg:'#160e12',surf:'#221418',acc:'#f0a0b8',  cat:'nature'},
@@ -280,14 +290,14 @@ const THEME_DATA = {
 
 // Sidebar structure: ordered sections + categories per section
 const SECTIONS = [
-  { label: 'Style',   cats: ['dark', 'light'] },
+  { label: 'Style',   cats: ['dark', 'light', 'colors'] },
   { label: 'Vibe',    cats: ['music', 'nature', 'cities', 'moods'] },
   { label: 'Culture', cats: ['movies', 'consoles', 'characters'] },
   { label: 'Other',   cats: ['retro', 'experimental', 'seasonal', 'custom'] },
 ];
 
 const CAT_LABELS = {
-  dark:'Dark', light:'Light',
+  dark:'Dark', light:'Light', colors:'COLORS',
   music:'Music', nature:'Nature', cities:'Cities', moods:'Moods',
   movies:'Movies', consoles:'Consoles', characters:'Characters',
   retro:'Retro', experimental:'Experimental', seasonal:'Seasonal ✦', custom:'Imported',

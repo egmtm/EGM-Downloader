@@ -82,7 +82,7 @@ Var PreviousInstDir
 ; ── Desktop shortcut — created only if user checks the box on finish page ────
 Function FinishPage_CreateDesktopShortcut
   CreateShortCut "$DESKTOP\EGM Downloader.lnk" \
-    "$INSTDIR\launch.bat" "" \
+    "$INSTDIR\EGM Downloader.vbs" "" \
     "$INSTDIR\static\icon.ico" 0
 FunctionEnd
 
@@ -182,7 +182,7 @@ Section "Install"
   ; ── Start Menu shortcuts ──
   CreateDirectory "$SMPROGRAMS\${APPNAME}"
   CreateShortcut  "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" \
-                  "$INSTDIR\launch.bat" "" "$INSTDIR\static\icon.ico"
+                  "$INSTDIR\EGM Downloader.vbs" "" "$INSTDIR\static\icon.ico"
   CreateShortcut  "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk" \
                   "$INSTDIR\uninstall.exe"
 
