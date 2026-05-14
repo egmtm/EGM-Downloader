@@ -74,6 +74,12 @@
     },
     "electronLanguages": [
       "en"
+    ],
+    "extraFiles": [
+      {
+        "from": "../../static/icon-512.png",
+        "to": "usr/share/icons/hicolor/512x512/apps/egm-downloader.png"
+      }
     ]
   }
 }

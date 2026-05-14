@@ -97,7 +97,8 @@
       "window": {
         "width": 540,
         "height": 380
-      }
+      },
+      "icon": "../../static/icon.icns"
     },
     "electronLanguages": [
       "en"
