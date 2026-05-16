@@ -108,9 +108,11 @@ def parse_history(platform, max_versions=5):
     header_re = re.compile(
         r'^v(\d+\.\d+(?:\.\d+)?)\s+-\s+Build\s+\d+\s+\(([^)]+)\)'
     )
+    # Match one or more consecutive tags, then the note text
     bullet_re = re.compile(
-        r'^\s+•\s+\[(ALL|WINDOWS|MAC|LINUX)\]\s+(.+)$'
+        r'^\s+•\s+((?:\[(?:ALL|WINDOWS|MAC|LINUX)\]\s*)+)(.+)$'
     )
+    tag_re = re.compile(r'\[(ALL|WINDOWS|MAC|LINUX)\]')
 
     blocks   = []
     current  = None
@@ -128,9 +130,9 @@ def parse_history(platform, max_versions=5):
         if current is not None:
             bm = bullet_re.match(line)
             if bm:
-                tag  = bm.group(1)   # ALL | WINDOWS | MAC | LINUX
+                tags = set(tag_re.findall(bm.group(1)))
                 note = bm.group(2).strip()
-                if tag in ("ALL", platform_tag):
+                if "ALL" in tags or platform_tag in tags:
                     current["notes"].append(note)
 
     # Flush the last block
