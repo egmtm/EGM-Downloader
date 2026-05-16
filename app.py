@@ -30,6 +30,30 @@ def _chmod_owner_only(path):
             os.chmod(path, 0o600)
         except OSError:
             pass
+
+def _verify_upstream_checksum(local_path: Path, checksum_url: str, filename: str) -> tuple:
+    """Fetch upstream checksum file, parse for filename, verify local download.
+    Returns (ok: bool, message: str).
+    On confirmed mismatch: ok=False. On any fetch/parse error: ok=True (fail-open)."""
+    try:
+        req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            lines = r.read().decode().splitlines()
+        expected = None
+        for line in lines:
+            parts = line.split()
+            if len(parts) >= 2 and parts[-1].lstrip("*") == filename:
+                expected = parts[0].lower()
+                break
+        if not expected:
+            return True, f"No checksum entry for {filename} — skipping verification"
+        actual = hashlib.sha256(local_path.read_bytes()).hexdigest().lower()
+        if actual != expected:
+            return False, (f"WARN Checksum mismatch for {filename}. "
+                           "The download may be corrupted or tampered — update aborted.")
+        return True, f"OK Checksum verified ({filename})"
+    except Exception as e:
+        return True, f"Could not fetch upstream checksum ({e}) — proceeding without verification"
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
 # /api/show-window is exempt because launch.py (second-instance signaler) has no token access
 _TOKEN_EXEMPT    = {"/api/show-window"}
@@ -314,6 +338,11 @@ def ensure_ffmpeg():
         req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
+        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-win64-gpl.zip")
+        print(f"[EGM] {msg}")
+        if not ok:
+            tmp.unlink(missing_ok=True)
+            return
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
                 fn = Path(m).name
@@ -926,6 +955,13 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
             req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
             with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
                 shutil.copyfileobj(r, f)
+            ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-win64-gpl.zip")
+            log(msg)
+            if not ok:
+                tmp.unlink(missing_ok=True)
+                update_status["error"] = "Checksum mismatch — update aborted"
+                update_status["done"]  = True
+                return
             log("Extracting...")
             with zipfile.ZipFile(tmp, "r") as z:
                 for m in z.namelist():
@@ -1047,6 +1083,8 @@ def _run_deno_install():
             DENO_ZIP_URL)  # fallback to latest redirect URL
         version_label = tag or "latest"
         log(f"Downloading Deno {version_label} (~35 MB)...")
+        deno_filename = url.split("/")[-1]
+        deno_checksum_url = url + ".sha256"
 
         # Stream download with progress logging every 5 MB
         downloaded = 0
@@ -1069,6 +1107,13 @@ def _run_deno_install():
                         log(f"  {mb:.0f} MB downloaded...")
                     next_report += 5 * 1024 * 1024
 
+        ok, msg = _verify_upstream_checksum(tmp, deno_checksum_url, deno_filename)
+        log(msg)
+        if not ok:
+            tmp.unlink(missing_ok=True)
+            deno_install_status["error"] = "Checksum mismatch — install aborted"
+            deno_install_status["done"]  = True
+            return
         log("Extracting deno.exe...")
         with zipfile.ZipFile(tmp, "r") as z:
             if "deno.exe" not in z.namelist():
@@ -1193,6 +1238,7 @@ def check_app_update():
             "notes":           notes,
             "download":        download,
             "zip_url":         zip_url,
+            "_checksums":      data.get("_checksums"),
         })
     except urllib.error.URLError:
         return jsonify({"error": "Could not reach update server"}), 503
