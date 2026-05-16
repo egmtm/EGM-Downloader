@@ -24,6 +24,30 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # via a DNS-rebinding attack. Reject any request whose Host header isn't a
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+
+def _verify_upstream_checksum(local_path, checksum_url, filename):
+    """Fetch upstream checksum file, parse for filename, verify local download.
+    Returns (ok: bool, message: str). Fail-open on fetch/parse errors."""
+    try:
+        req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            lines = r.read().decode().splitlines()
+        expected = None
+        for line in lines:
+            parts = line.split()
+            if len(parts) >= 2 and parts[-1].lstrip("*") == filename:
+                expected = parts[0].lower()
+                break
+        if not expected:
+            return True, f"No checksum entry for {filename} — skipping verification"
+        actual = hashlib.sha256(local_path.read_bytes()).hexdigest().lower()
+        if actual != expected:
+            return False, (f"WARN Checksum mismatch for {filename}. "
+                           "The download may be corrupted or tampered — update aborted.")
+        return True, f"OK Checksum verified ({filename})"
+    except Exception as e:
+        return True, f"Could not fetch upstream checksum ({e}) — proceeding without verification"
+
 def _chmod_owner_only(path):
     """Set sensitive file to owner read/write only (POSIX). No-op on Windows."""
     if sys.platform != "win32":
@@ -272,10 +296,11 @@ def _popen_yt(*cmd, **kw):
     return subprocess.Popen(list(cmd), env=_yt_env(),
                             creationflags=_NO_WINDOW, **kw)
 
-# ── ffmpeg: Mac ARM/Intel builds from evermeet.cx ─────────────────────────────
+# ── ffmpeg: Mac Apple Silicon builds from ffmpeg.martin-riedl.de ─────────────
 # Mac delivers ffmpeg and ffprobe as SEPARATE zip downloads (unlike Windows' single zip)
-FFMPEG_URL      = "https://evermeet.cx/ffmpeg/getrelease/ffmpeg/zip"
-FFPROBE_URL     = "https://evermeet.cx/ffmpeg/getrelease/ffprobe/zip"
+_MARTIN_BASE = "https://ffmpeg.martin-riedl.de"
+_MARTIN_ARCH = "arm64"
+
 FFMPEG_TAG_FILE = FFMPEG_DIR / "build_tag.txt"
 
 # ── Deno: bundled JS runtime required for YouTube (no admin, no PATH needed) ──
@@ -295,26 +320,43 @@ def ensure_ffmpeg():
         print("[EGM] ffmpeg ready.")
         return True
     print("[EGM] Downloading ffmpeg and ffprobe (first run only)...")
-    FFMPEG_DIR.mkdir(exist_ok=True)
+    FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
     tmp_ffmpeg  = FFMPEG_DIR / "ffmpeg_tmp.zip"
     tmp_ffprobe = FFMPEG_DIR / "ffprobe_tmp.zip"
     try:
-        # evermeet.cx delivers two separate zips, each containing the single binary
-        req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=120) as r, open(tmp_ffmpeg, "wb") as f:
-            shutil.copyfileobj(r, f)
+        # Download + verify ffmpeg
+        ffmpeg_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffmpeg.zip"
+        req = urllib.request.Request(ffmpeg_redirect, headers={"User-Agent": "EGM-Downloader"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            final_url = r.url
+            with open(tmp_ffmpeg, "wb") as f:
+                shutil.copyfileobj(r, f)
+        ok, msg = _verify_upstream_checksum(tmp_ffmpeg, final_url + ".sha256", "ffmpeg.zip")
+        print(f"[EGM] {msg}")
+        if not ok:
+            tmp_ffmpeg.unlink(missing_ok=True)
+            return False
         with zipfile.ZipFile(tmp_ffmpeg, "r") as z:
             if "ffmpeg" not in z.namelist():
-                raise RuntimeError("ffmpeg binary not found in evermeet zip")
+                raise RuntimeError("ffmpeg binary not found in zip")
             z.extract("ffmpeg", FFMPEG_DIR)
         tmp_ffmpeg.unlink(missing_ok=True)
 
-        req = urllib.request.Request(FFPROBE_URL, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=120) as r, open(tmp_ffprobe, "wb") as f:
-            shutil.copyfileobj(r, f)
+        # Download + verify ffprobe
+        ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffprobe.zip"
+        req = urllib.request.Request(ffprobe_redirect, headers={"User-Agent": "EGM-Downloader"})
+        with urllib.request.urlopen(req, timeout=120) as r:
+            final_url = r.url
+            with open(tmp_ffprobe, "wb") as f:
+                shutil.copyfileobj(r, f)
+        ok, msg = _verify_upstream_checksum(tmp_ffprobe, final_url + ".sha256", "ffprobe.zip")
+        print(f"[EGM] {msg}")
+        if not ok:
+            tmp_ffprobe.unlink(missing_ok=True)
+            return False
         with zipfile.ZipFile(tmp_ffprobe, "r") as z:
             if "ffprobe" not in z.namelist():
-                raise RuntimeError("ffprobe binary not found in evermeet zip")
+                raise RuntimeError("ffprobe binary not found in zip")
             z.extract("ffprobe", FFMPEG_DIR)
         tmp_ffprobe.unlink(missing_ok=True)
 
@@ -864,14 +906,15 @@ def _get_ffmpeg_installed_tag():
     except Exception: return ""
 
 def _get_latest_ffmpeg_tag():
-    """Mac: use evermeet.cx release info endpoint."""
+    """Mac: resolve build ID from martin-riedl.de redirect."""
     try:
-        req = urllib.request.Request("https://evermeet.cx/ffmpeg/info/ffmpeg/release",
-                                     headers={"User-Agent":"EGM-Downloader"})
+        import re as _re
+        req = urllib.request.Request(
+            "https://ffmpeg.martin-riedl.de/redirect/latest/macos/arm64/snapshot/ffmpeg.zip",
+            headers={"User-Agent": "EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=10) as r:
-            data = json.loads(r.read())
-        # evermeet returns {"version":"...", "download":{...}, ...}
-        return data.get("version","unknown")
+            m = _re.search(r"/download/macos/[^/]+/([^/]+)/", r.url)
+            return m.group(1) if m else "unknown"
     except Exception: return "unknown"
 
 def _get_latest_ytdlp_version():
@@ -912,18 +955,40 @@ def _run_update(do_ytdlp, do_ffmpeg):
                 log(f"yt-dlp update failed: {err}")
         if do_ffmpeg:
             log("Downloading latest ffmpeg + ffprobe...")
-            FFMPEG_DIR.mkdir(exist_ok=True)
+            FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
             tmp_ffmpeg  = FFMPEG_DIR / "ffmpeg_update.zip"
             tmp_ffprobe = FFMPEG_DIR / "ffprobe_update.zip"
             ffmpeg_bin  = FFMPEG_DIR / "ffmpeg"
             ffprobe_bin = FFMPEG_DIR / "ffprobe"
             try:
-                req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
-                with urllib.request.urlopen(req, timeout=120) as r, open(tmp_ffmpeg, "wb") as f:
-                    shutil.copyfileobj(r, f)
-                req = urllib.request.Request(FFPROBE_URL, headers={"User-Agent": "EGM-Downloader"})
-                with urllib.request.urlopen(req, timeout=120) as r, open(tmp_ffprobe, "wb") as f:
-                    shutil.copyfileobj(r, f)
+                ffmpeg_redirect  = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffmpeg.zip"
+                ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffprobe.zip"
+                # ffmpeg
+                req = urllib.request.Request(ffmpeg_redirect, headers={"User-Agent": "EGM-Downloader"})
+                with urllib.request.urlopen(req, timeout=120) as r:
+                    final_url = r.url
+                    with open(tmp_ffmpeg, "wb") as f:
+                        shutil.copyfileobj(r, f)
+                ok, msg = _verify_upstream_checksum(tmp_ffmpeg, final_url + ".sha256", "ffmpeg.zip")
+                log(msg)
+                if not ok:
+                    tmp_ffmpeg.unlink(missing_ok=True)
+                    update_status["error"] = "Checksum mismatch — update aborted"
+                    update_status["done"]  = True
+                    return
+                # ffprobe
+                req = urllib.request.Request(ffprobe_redirect, headers={"User-Agent": "EGM-Downloader"})
+                with urllib.request.urlopen(req, timeout=120) as r:
+                    final_url = r.url
+                    with open(tmp_ffprobe, "wb") as f:
+                        shutil.copyfileobj(r, f)
+                ok, msg = _verify_upstream_checksum(tmp_ffprobe, final_url + ".sha256", "ffprobe.zip")
+                log(msg)
+                if not ok:
+                    tmp_ffprobe.unlink(missing_ok=True)
+                    update_status["error"] = "Checksum mismatch — update aborted"
+                    update_status["done"]  = True
+                    return
                 log("Extracting...")
                 with zipfile.ZipFile(tmp_ffmpeg, "r") as z:
                     z.extract("ffmpeg", FFMPEG_DIR)
@@ -1183,6 +1248,7 @@ def check_app_update():
             "download":        download,
             "zip_url":         zip_url,
             "download_url":    zip_url,
+            "_checksums":      data.get("_checksums"),
         })
     except urllib.error.URLError:
         return jsonify({"error": "Could not reach update server"}), 503
