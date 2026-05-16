@@ -111,30 +111,30 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.99.0 Build 108  
+**Latest:** v0.99.1 Build 109  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (317 KB · ~800 MB after install)  
-**SHA256:** `be5bb28afe1c2ba11a9627cbda635a2352574b587f354c90d4886887ee37dbae`  
+**SHA256:** `80c9bbc9850543ff8e7f039bf5884d33104ca8ea4f7e1a5e8ddcd4bb532c1f9e`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — no SmartScreen warnings
 
 ### Windows Portable
-**Latest:** v0.99.0 Build 108  
+**Latest:** v0.99.1 Build 109  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (269 KB · ~800 MB after first run)  
-**SHA256:** `297c0f6b1eaaf075b726befe53c96bd8fa7390f0e3c4984c006a5413b8e39c29`  
+**SHA256:** `f6c3d383b0f08c2650c4cdfe60291fbbdd380a25a8ae1d2b9adbf8a44e9683f7`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
-**Latest:** v0.99.0 Build 108  
+**Latest:** v0.99.1 Build 109  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (109 MB · ~300 MB after install)  
-**SHA256:** `dda92d61854e5c94e2aa23bf4ff102f3ea4e0842e7853cd9e9364cbdf9d40073`  
+**SHA256:** `9aa19c34af53fc764fa3cf6c271fb9057544d5ebc4fa16377ecd16c8c45a67a3`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v0.99.0 Build 108  
+**Latest:** v0.99.1 Build 109  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (120 MB · ~300 MB after install)  
-**SHA256:** `4625c4a3a30d46aec61ce2ebf286465f9286d44a7dbbcae9c7f3cc7c8f0f08b0`  
+**SHA256:** `00bf7b5b604cdd16be504f6a7a435c6544685fbc6839398dd6d463d8cc88be34`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -365,10 +365,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 108 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 108 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 108 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 108 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 109 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 109 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 109 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 109 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
@@ -536,8 +536,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 0.99.0
-- **Build:** 108
+- **Version:** 0.99.1
+- **Build:** 109
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** AGPL-3.0

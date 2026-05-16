@@ -1,3 +1,12 @@
+v0.99.1 - Build 109 (5/15/2026 7:11 PM EST)
+-----------------------------------------
+  • [ALL] ffmpeg and Deno downloads now verified against upstream SHA256 checksums — protects against tampered or corrupted dependency binaries
+  • [WINDOWS] [LINUX] ffmpeg checksum verification uses BtbN's published checksums.sha256
+  • [WINDOWS] Deno installation now verified against Deno's published .sha256 file
+  • [MAC] Switched ffmpeg source from evermeet.cx to ffmpeg.martin-riedl.de — native Apple Silicon (ARM64) builds, significantly faster downloads, with proper SHA256 verification
+  • [ALL] Auto-update dialog now correctly passes feed checksum to download verification — fixes "Checksum required" error blocking app updates
+  • [ALL] Subtitle temp file cleanup safety net — leftover .vtt/.srt files now reliably removed after embedded subtitle downloads
+
 v0.99.0 - Build 108 (5/14/2026 11:33 AM EST) — Security Hardening
 -----------------------------------------
   • [ALL] Electron shutdown handler now sends the API token — fixes orphan Python process on quit (Windows-visible, latent on Mac/Linux)
