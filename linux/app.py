@@ -24,6 +24,30 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # via a DNS-rebinding attack. Reject any request whose Host header isn't a
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+
+def _verify_upstream_checksum(local_path, checksum_url, filename):
+    """Fetch upstream checksum file, parse for filename, verify local download.
+    Returns (ok: bool, message: str). Fail-open on fetch/parse errors."""
+    try:
+        req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
+        with urllib.request.urlopen(req, timeout=8) as r:
+            lines = r.read().decode().splitlines()
+        expected = None
+        for line in lines:
+            parts = line.split()
+            if len(parts) >= 2 and parts[-1].lstrip("*") == filename:
+                expected = parts[0].lower()
+                break
+        if not expected:
+            return True, f"No checksum entry for {filename} — skipping verification"
+        actual = hashlib.sha256(local_path.read_bytes()).hexdigest().lower()
+        if actual != expected:
+            return False, (f"WARN Checksum mismatch for {filename}. "
+                           "The download may be corrupted or tampered — update aborted.")
+        return True, f"OK Checksum verified ({filename})"
+    except Exception as e:
+        return True, f"Could not fetch upstream checksum ({e}) — proceeding without verification"
+
 def _chmod_owner_only(path):
     """Set sensitive file to owner read/write only (POSIX). No-op on Windows."""
     if sys.platform != "win32":
@@ -274,6 +298,11 @@ def ensure_ffmpeg():
         req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
+        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-linux64-gpl.tar.xz")
+        print(f"[EGM] {msg}")
+        if not ok:
+            tmp.unlink(missing_ok=True)
+            return
         print("[EGM] Extracting ffmpeg...")
         with tarfile.open(tmp, "r:xz") as t:
             for member in t.getmembers():
@@ -854,6 +883,15 @@ def _run_update(do_ytdlp, do_ffmpeg):
             req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
             with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
                 shutil.copyfileobj(r, f)
+            ok, msg = _verify_upstream_checksum(tmp,
+                "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256",
+                "ffmpeg-master-latest-linux64-gpl.tar.xz")
+            log(msg)
+            if not ok:
+                tmp.unlink(missing_ok=True)
+                update_status["error"] = "Checksum mismatch — update aborted"
+                update_status["done"]  = True
+                return
             log("Extracting...")
             with tarfile.open(tmp, "r:xz") as t:
                 for member in t.getmembers():
@@ -1147,6 +1185,7 @@ def check_app_update():
             "latest_build":    latest_build,
             "notes":           notes,
             "download_url":    download_url,
+            "_checksums":      data.get("_checksums"),
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 200

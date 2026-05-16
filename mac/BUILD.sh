@@ -132,6 +132,34 @@ if [ -z "$DMG" ]; then
     exit 1
 fi
 
+# ── Code signing verification ─────────────────────────────────────────────────
+echo "🔐 Verifying code signature..."
+APP_PATH="$ELECTRON_DIR/dist/mac-arm64/EGM Downloader.app"
+if codesign --verify --deep --strict "$APP_PATH" 2>/dev/null; then
+    SIGNING_ID=$(codesign -dvv "$APP_PATH" 2>&1 | grep "Authority=" | head -1 | sed 's/Authority=//')
+    echo "   ✓ App is code-signed: $SIGNING_ID"
+else
+    echo "   ⚠ App signature not found — skipping notarization"
+fi
+echo ""
+
+# ── Notarization + Stapling ───────────────────────────────────────────────────
+if codesign --verify --deep --strict "$APP_PATH" 2>/dev/null; then
+    echo "📤 Submitting DMG for Apple notarization (this takes 2-5 min)..."
+    xcrun notarytool submit "$DMG" \
+        --keychain-profile "EGM-Notarize" \
+        --wait
+    if [ $? -eq 0 ]; then
+        echo "   ✓ Notarization accepted"
+        echo "📌 Stapling notarization ticket to DMG..."
+        xcrun stapler staple "$DMG"
+        echo "   ✓ Ticket stapled — app will pass Gatekeeper without warnings"
+    else
+        echo "   ⚠ Notarization failed — DMG is signed but not notarized"
+    fi
+    echo ""
+fi
+
 # ── Create end-user INSTRUCTIONS.txt ──────────────────────────────────────────
 cd "$ELECTRON_DIR/dist"
 cat > INSTRUCTIONS.txt << 'EOF'
