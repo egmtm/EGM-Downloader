@@ -272,10 +272,12 @@ async function createWindow() {
 }
 
 // ── IPC: launch installer (for auto-update) ──────────────────────────────────
+const EXPECTED_INSTALLER = path.join(os.tmpdir(), 'egm-update', 'egm-setup.exe');
 ipcMain.handle('launch-installer', async (event, installerPath) => {
   try {
     if (!installerPath || typeof installerPath !== 'string') return { error: 'Invalid installer path' };
-    if (!installerPath.includes('egm-update') && !installerPath.includes('egm-setup')) return { error: 'Unexpected installer name' };
+    // Exact path match — only the path our own download-update endpoint writes is allowed
+    if (path.resolve(installerPath) !== EXPECTED_INSTALLER) return { error: 'Unexpected installer path' };
     if (!fs.existsSync(installerPath)) return { error: 'Installer not found: ' + installerPath };
     // Spawn installer detached so it outlives Electron
     // spawn is already imported at the top of this file
@@ -313,7 +315,12 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
   try {
     if (!folderPath || typeof folderPath !== 'string') return { error: 'Invalid path' };
     if (folderPath.startsWith('http') || folderPath.startsWith('javascript')) return { error: 'Invalid path' };
-    await shell.openPath(folderPath);
+    // Must be an existing directory — prevents shell.openPath from launching arbitrary files
+    const resolved = path.resolve(folderPath);
+    let stat;
+    try { stat = fs.statSync(resolved); } catch { return { error: 'Path not found' }; }
+    if (!stat.isDirectory()) return { error: 'Not a directory' };
+    await shell.openPath(resolved);
     return { success: true };
   } catch (e) {
     return { error: e.message };

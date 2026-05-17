@@ -27,7 +27,8 @@ _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 
 def _verify_upstream_checksum(local_path, checksum_url, filename):
     """Fetch upstream checksum file, parse for filename, verify local download.
-    Returns (ok: bool, message: str). Fail-open on fetch/parse errors."""
+    Returns (ok: bool, message: str).
+    Fail-closed: any fetch failure, parse error, missing entry, or mismatch returns False."""
     try:
         req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=8) as r:
@@ -39,14 +40,14 @@ def _verify_upstream_checksum(local_path, checksum_url, filename):
                 expected = parts[0].lower()
                 break
         if not expected:
-            return True, f"No checksum entry for {filename} — skipping verification"
+            return False, f"No checksum entry found for {filename} — install aborted (try again later)"
         actual = hashlib.sha256(local_path.read_bytes()).hexdigest().lower()
         if actual != expected:
-            return False, (f"WARN Checksum mismatch for {filename}. "
-                           "The download may be corrupted or tampered — update aborted.")
+            return False, (f"Checksum mismatch for {filename}. "
+                           "The download may be corrupted or tampered — install aborted.")
         return True, f"OK Checksum verified ({filename})"
     except Exception as e:
-        return True, f"Could not fetch upstream checksum ({e}) — proceeding without verification"
+        return False, f"Could not verify checksum ({e}) — install aborted (check network and retry)"
 
 def _chmod_owner_only(path):
     """Set sensitive file to owner read/write only (POSIX). No-op on Windows."""
@@ -101,8 +102,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "0.99.1"
-APP_BUILD             = 109
+APP_VERSION           = "0.99.2"
+APP_BUILD             = 111
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
