@@ -103,7 +103,7 @@ FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
 APP_VERSION           = "0.99.2"
-APP_BUILD             = 111
+APP_BUILD             = 110
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
