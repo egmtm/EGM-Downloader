@@ -31,29 +31,56 @@ def _chmod_owner_only(path):
         except OSError:
             pass
 
-def _verify_upstream_checksum(local_path: Path, checksum_url: str, filename: str) -> tuple:
+def _verify_upstream_checksum(local_path, checksum_url, filename):
     """Fetch upstream checksum file, parse for filename, verify local download.
     Returns (ok: bool, message: str).
-    On confirmed mismatch: ok=False. On any fetch/parse error: ok=True (fail-open)."""
+    Fail-closed: any fetch failure, parse error, missing entry, or mismatch returns False.
+
+    Handles two checksum file formats:
+      1. Standard:    <hash>  <filename>           (BtbN, martin-riedl.de, sha256sum tool)
+      2. PowerShell:  Algorithm : SHA256           (Deno's Windows builds)
+                      Hash      : <hash>
+                      Path      : ...\\<filename>
+    """
     try:
         req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
         with urllib.request.urlopen(req, timeout=8) as r:
-            lines = r.read().decode().splitlines()
+            text = r.read().decode()
         expected = None
-        for line in lines:
-            parts = line.split()
-            if len(parts) >= 2 and parts[-1].lstrip("*") == filename:
-                expected = parts[0].lower()
-                break
+
+        # Try PowerShell Get-FileHash format first (Algorithm/Hash/Path block)
+        if "Hash" in text and "Path" in text:
+            hash_val = None
+            path_val = None
+            for line in text.splitlines():
+                if ":" in line:
+                    key, _, val = line.partition(":")
+                    key = key.strip()
+                    val = val.strip()
+                    if key == "Hash":   hash_val = val.lower()
+                    elif key == "Path": path_val = val
+            if hash_val and path_val:
+                # Match by trailing filename
+                if path_val.replace("\\", "/").split("/")[-1] == filename:
+                    expected = hash_val
+
+        # Fall back to standard format
         if not expected:
-            return True, f"No checksum entry for {filename} — skipping verification"
+            for line in text.splitlines():
+                parts = line.split()
+                if len(parts) >= 2 and parts[-1].lstrip("*") == filename:
+                    expected = parts[0].lower()
+                    break
+
+        if not expected:
+            return False, f"No checksum entry found for {filename} — install aborted (try again later)"
         actual = hashlib.sha256(local_path.read_bytes()).hexdigest().lower()
         if actual != expected:
-            return False, (f"WARN Checksum mismatch for {filename}. "
-                           "The download may be corrupted or tampered — update aborted.")
+            return False, (f"Checksum mismatch for {filename}. "
+                           "The download may be corrupted or tampered — install aborted.")
         return True, f"OK Checksum verified ({filename})"
     except Exception as e:
-        return True, f"Could not fetch upstream checksum ({e}) — proceeding without verification"
+        return False, f"Could not verify checksum ({e}) — install aborted (check network and retry)"
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
 # /api/show-window is exempt because launch.py (second-instance signaler) has no token access
 _TOKEN_EXEMPT    = {"/api/show-window"}
@@ -132,8 +159,8 @@ def get_data_dir() -> Path:
     return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.99.1"
-APP_BUILD             = 109
+APP_VERSION           = "0.99.2"
+APP_BUILD             = 111
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
@@ -1084,7 +1111,7 @@ def _run_deno_install():
         version_label = tag or "latest"
         log(f"Downloading Deno {version_label} (~35 MB)...")
         deno_filename = url.split("/")[-1]
-        deno_checksum_url = url + ".sha256"
+        deno_checksum_url = url + ".sha256sum"
 
         # Stream download with progress logging every 5 MB
         downloaded = 0

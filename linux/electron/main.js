@@ -342,7 +342,12 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
   try {
     if (!folderPath || typeof folderPath !== 'string') return { error: 'Invalid path' };
     if (folderPath.startsWith('http') || folderPath.startsWith('javascript')) return { error: 'Invalid path' };
-    await shell.openPath(folderPath);
+    // Must be an existing directory — prevents shell.openPath from launching arbitrary files
+    const resolved = path.resolve(folderPath);
+    let stat;
+    try { stat = fs.statSync(resolved); } catch { return { error: 'Path not found' }; }
+    if (!stat.isDirectory()) return { error: 'Not a directory' };
+    await shell.openPath(resolved);
     return { success: true };
   } catch (e) {
     return { error: e.message };
