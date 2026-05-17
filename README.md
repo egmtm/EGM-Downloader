@@ -119,7 +119,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ### Windows Portable
 **Latest:** v0.99.2 Build 111  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (270 KB · ~800 MB after first run)  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (271 KB · ~800 MB after first run)  
 **SHA256:** `5181ea1a218ecb677536b522c199c3c2f7a7de769e49c852a3cf6e969c715212`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
