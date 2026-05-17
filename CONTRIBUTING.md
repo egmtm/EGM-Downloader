@@ -450,3 +450,15 @@ Every contribution helps make EGM Downloader better. Whether it's:
 ---
 
 **Happy Contributing!** 🚀
+
+---
+
+## 🔒 CI Policy — SHA-Pinned Actions
+
+All GitHub Actions in this repo are pinned to specific commit SHAs (not version tags) to protect against supply chain attacks. When adding new actions or updating existing ones, pin to the commit SHA and keep the version as a trailing comment:
+
+```yaml
+- uses: actions/checkout@93cb6efe18208431cddfb8368fd83d5badbf9bfd  # v5
+```
+
+Dependabot is configured to open weekly PRs proposing updated SHA pins when actions release new versions. Review the PR, verify the new SHA points to a legitimate release, then merge.
