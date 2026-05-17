@@ -113,28 +113,28 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ### Windows
 **Latest:** v0.99.2 Build 111  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (318 KB · ~800 MB after install)  
-**SHA256:** `80c9bbc9850543ff8e7f039bf5884d33104ca8ea4f7e1a5e8ddcd4bb532c1f9e`  
+**SHA256:** `eaa330295f80176d1cfc1990bbf0c60e5034c75d0363d789beae09ad9e31322f`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — no SmartScreen warnings
 
 ### Windows Portable
 **Latest:** v0.99.2 Build 111  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (270 KB · ~800 MB after first run)  
-**SHA256:** `f6c3d383b0f08c2650c4cdfe60291fbbdd380a25a8ae1d2b9adbf8a44e9683f7`  
+**SHA256:** `5181ea1a218ecb677536b522c199c3c2f7a7de769e49c852a3cf6e969c715212`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
 **Latest:** v0.99.2 Build 111  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (109 MB · ~300 MB after install)  
-**SHA256:** `9aa19c34af53fc764fa3cf6c271fb9057544d5ebc4fa16377ecd16c8c45a67a3`  
+**SHA256:** `82c0280f0cdf87974dea6990e707247a0a5155bb7e3ab485cde1bbb07459e93e`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v0.99.2 Build 111  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (120 MB · ~300 MB after install)  
-**SHA256:** `00bf7b5b604cdd16be504f6a7a435c6544685fbc6839398dd6d463d8cc88be34`  
+**SHA256:** `5f7370631fe08ac1f59043f5f53c85d909a05474544bd4af9bb6a034762a72d3`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -365,10 +365,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 109 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 109 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 109 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 109 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 110 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 110 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 110 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 110 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
