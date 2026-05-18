@@ -111,28 +111,28 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.99.3 Build 112  
+**Latest:** v0.99.3 Build 111  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (319 KB · ~800 MB after install)  
 **SHA256:** `476ab9fd55dffb3cf7ca2a7cb7f3e64649a790d1c3692ce14ecdc382374f43e4`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — no SmartScreen warnings
 
 ### Windows Portable
-**Latest:** v0.99.3 Build 112  
+**Latest:** v0.99.3 Build 111  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (273 KB · ~800 MB after first run)  
 **SHA256:** `bf92cebdd714dc33a73e5b04c908cc481a236b9ea2d6246f1e83406c209dcd00`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
-**Latest:** v0.99.3 Build 112  
+**Latest:** v0.99.3 Build 111  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (115 MB · ~300 MB after install)  
 **SHA256:** `1903baf2658c7b8525a3919903849dd536e5feebd5edaa254a94f36303752f40`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v0.99.3 Build 112  
+**Latest:** v0.99.3 Build 111  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (133 MB · ~300 MB after install)  
 **SHA256:** `b3a78964659da4cefa3e024fbf492b17ceca79124e5c6a5977f44c46b5a8a0ed`  
 **Format:** AppImage (Universal)  
