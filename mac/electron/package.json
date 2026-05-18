@@ -1,6 +1,6 @@
 {
   "name": "egm-downloader",
-  "version": "0.99.2",
+  "version": "0.99.3",
   "description": "EGM Downloader \u2014 download videos from 1000+ sites",
   "main": "main.js",
   "author": "www.egerena.com",
@@ -12,8 +12,8 @@
     "pack": "electron-builder --dir"
   },
   "devDependencies": {
-    "electron": "^29.0.0",
-    "electron-builder": "^24.0.0"
+    "electron": "^41.0.0",
+    "electron-builder": "^26.0.0"
   },
   "build": {
     "appId": "com.egerena.egm-downloader",
@@ -104,6 +104,6 @@
       "en"
     ],
     "generateUpdatesFilesForAllChannels": false,
-    "buildVersion": "0.99.2"
+    "buildVersion": "0.99.3"
   }
 }
