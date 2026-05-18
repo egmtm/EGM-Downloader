@@ -182,6 +182,29 @@ We'd like to thank the following individuals for responsibly disclosing security
 
 ---
 
+## Platform Security Posture
+
+EGM Downloader runs on Windows, macOS, and Linux. Each platform has slightly different security characteristics worth knowing about.
+
+### Windows + macOS — Full sandbox
+
+The Electron renderer process runs in an OS-level sandbox. If a renderer process is compromised (e.g., via a Chromium vulnerability), the sandbox prevents the compromised process from reading arbitrary files, writing arbitrary files, or making arbitrary network connections.
+
+### Linux — Limited sandbox (AppImage limitation)
+
+The Linux build ships as an AppImage. AppImage cannot set SUID on the `chrome-sandbox` helper binary, so the OS-level sandbox layer is disabled (`--no-sandbox` flag is set at startup). Other security layers remain active:
+
+- Navigation handlers prevent in-window navigation to external URLs
+- Content-Security-Policy enforced via Electron session
+- Token authentication on all API calls
+- Checksum verification on all downloaded binaries
+
+We're tracking this gap. Two paths forward:
+- Ship `.deb` / Flatpak alongside AppImage (sandbox works in both) — v1.0+ packaging decision
+- Continue documenting honestly until usage volume justifies the packaging work
+
+---
+
 ## Legal & Responsible Use
 
 EGM Downloader is a tool designed for lawful purposes. Users are responsible for ensuring their use complies with copyright laws, platform terms of service, and applicable regulations.
