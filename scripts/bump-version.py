@@ -317,12 +317,23 @@ def main():
 
     data = load_version()
     new_version = args.version or data["version"]
-    new_build   = data["build"] + 1
+    # Idempotent: if the requested --version matches the current version,
+    # don't auto-increment the build (allows safe re-runs, fixes drift).
+    # Build only increments when truly bumping the version, or when --version
+    # is omitted (legacy "build only" workflow).
+    same_version_requested = args.version is not None and args.version == data["version"]
+    if same_version_requested:
+        new_build = data["build"]
+    else:
+        new_build = data["build"] + 1
     date, time_str = now_est()
 
     print(f"\n{'='*62}")
     print(f"  EGM Downloader Build Bump -- ALL PLATFORMS")
-    print(f"  v{data['version']} Build {data['build']}  ->  v{new_version} Build {new_build}")
+    if same_version_requested:
+        print(f"  v{data['version']} Build {data['build']} (no change — version matches current)")
+    else:
+        print(f"  v{data['version']} Build {data['build']}  ->  v{new_version} Build {new_build}")
     print(f"  {date} {time_str}")
     if args.dry_run:
         print(f"  *** DRY RUN -- nothing will be written ***")
