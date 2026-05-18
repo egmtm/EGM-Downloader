@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, screen } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, screen, session } = require('electron');
 const { spawn, execSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -21,6 +21,32 @@ const APP_URL = `http://${HOST}:${PORT}`;
 const SETTINGS_FILE = path.join(
   os.homedir(), '.local', 'share', 'egm-downloader', 'egm_settings.json'
 );
+
+// ── Window hardening: route external links to default browser, block navigation ─
+function hardenWindow(win) {
+  // External links → user's default browser (http/https only, never in-app)
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+  // Block in-window navigation away from Flask origin (127.0.0.1 / localhost only)
+  win.webContents.on('will-navigate', (event, url) => {
+    try {
+      const u = new URL(url);
+      if (u.hostname !== '127.0.0.1' && u.hostname !== 'localhost') {
+        event.preventDefault();
+      }
+    } catch {
+      event.preventDefault();
+    }
+  });
+  // Block webview attachment — we don't use webviews
+  win.webContents.on('will-attach-webview', (event) => {
+    event.preventDefault();
+  });
+}
 
 function loadSettings() {
   try { return JSON.parse(fs.readFileSync(SETTINGS_FILE, 'utf8')); }
@@ -190,6 +216,7 @@ function createSplash() {
     webPreferences: {
       nodeIntegration:  false,
       contextIsolation: true,
+      sandbox:          true,
     },
   });
   const splashPath = path.join(__dirname, 'splash.html');
@@ -238,6 +265,7 @@ async function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
       nodeIntegration:  false,
+      sandbox:          true,
     },
     backgroundColor: '#0b1120',
     show: false,
@@ -313,6 +341,7 @@ async function createWindow() {
     updateSplash(90, 'Loading interface...');
     try { await mainWindow.webContents.session.clearCache(); } catch {}
     mainWindow.loadURL(APP_URL);
+    hardenWindow(mainWindow);
   } catch (e) {
     closeSplash();
     dialog.showErrorBox('EGM Downloader — Startup error', e.message);
@@ -431,10 +460,11 @@ ipcMain.handle('open-history-window', async () => {
   historyWindow = new BrowserWindow({
     ...bounds, minWidth: 600, minHeight: 420,
     title: 'Download History',
-    webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   historyWindow.loadURL(`${APP_URL}/history-page`);
+  hardenWindow(historyWindow);
   let saveTimer = null;
   const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveHistoryBounds(historyWindow), 500); };
   historyWindow.on('resize', debouncedSave);
@@ -469,10 +499,11 @@ ipcMain.handle('open-themes-window', async () => {
     ...bounds, minWidth: 480, minHeight: 400,
     title: 'All Themes — EGM Downloader',
     icon: path.join(__dirname, '..', 'app', 'static', 'icon-512.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, preload: path.join(__dirname, 'preload.js') },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   themesWindow.loadURL(`${APP_URL}/themes-page`);
+  hardenWindow(themesWindow);
   let saveTimer = null;
   const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveThemesBounds(themesWindow), 500); };
   themesWindow.on('resize', debouncedSave);
@@ -502,6 +533,29 @@ ipcMain.on('send-url-to-main', (event, url) => {
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
+  // Content-Security-Policy: applied to all responses from Flask
+  // 'unsafe-inline' for scripts/styles required because templates use inline JS/CSS.
+  // External scripts, frames, objects, plugins, non-self connections all blocked.
+  session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; " +
+          "script-src 'self' 'unsafe-inline'; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "img-src 'self' data: blob: https:; " +
+          "font-src 'self' data:; " +
+          "connect-src 'self'; " +
+          "frame-src 'none'; " +
+          "object-src 'none'; " +
+          "base-uri 'self'; " +
+          "form-action 'self'"
+        ]
+      }
+    });
+  });
+
   createSplash();
   startFlask();
   await createWindow();
