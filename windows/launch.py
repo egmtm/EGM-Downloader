@@ -163,9 +163,36 @@ def _clear_npm_cache(npm, env):
                        capture_output=True, timeout=60, creationflags=NO_WIN)
     except Exception: pass
 
+def _electron_needs_reinstall():
+    """Return True if installed Electron major version doesn't match the major declared in package.json.
+    Used to trigger a fresh install when we ship a new Electron major (e.g. 29 -> 41)."""
+    installed_pkg = ELECTRON_DIR / "node_modules" / "electron" / "package.json"
+    declared_pkg  = ELECTRON_DIR / "package.json"
+    if not installed_pkg.exists():
+        return True
+    try:
+        installed = json.loads(installed_pkg.read_text(encoding="utf-8"))
+        declared  = json.loads(declared_pkg.read_text(encoding="utf-8"))
+        installed_major = int(installed["version"].split(".")[0])
+        spec = (declared.get("dependencies", {}).get("electron")
+                or declared.get("devDependencies", {}).get("electron")
+                or "")
+        declared_major = int(spec.lstrip("^~ ").split(".")[0])
+        return installed_major != declared_major
+    except Exception:
+        # On any parse error, don't force reinstall — let existing install proceed normally
+        return False
+
 def ensure_npm(node_exe):
-    if (ELECTRON_DIR / "node_modules" / "electron").exists(): return
-    _gui_msg("Installing Electron (first run, ~250 MB)…")
+    if (ELECTRON_DIR / "node_modules" / "electron").exists() and not _electron_needs_reinstall():
+        return
+    # Either fresh install, or Electron major version changed — wipe node_modules and reinstall
+    nm = ELECTRON_DIR / "node_modules"
+    if nm.exists():
+        _gui_msg("Updating Electron to new major version…")
+        shutil.rmtree(nm, ignore_errors=True)
+    else:
+        _gui_msg("Installing Electron (first run, ~250 MB)…")
     npm = _find_npm(node_exe)
     env = {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
     r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
