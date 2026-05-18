@@ -167,7 +167,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 2. Make executable: `chmod +x "EGM Downloader.AppImage"`
 3. Double-click to launch (or run from terminal)
 
-**Linux only — first launch:** The AppImage downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory. Windows and macOS bundle these dependencies — no first-launch download required.
+**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
 
 ---
 
@@ -426,13 +426,11 @@ View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions
 - macOS 11.0 (Big Sur) or later
 - Apple Silicon (M1/M2/M3/M4/M5)
 - 250 MB free disk space
-- Internet connection (first launch only)
 
 ### Linux
 - 64-bit distribution (see supported list below)
 - 300 MB free disk space
 - FUSE support (pre-installed on most distros)
-- Internet connection (first launch only)
 
 **Supported Linux Distributions:**
 Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
