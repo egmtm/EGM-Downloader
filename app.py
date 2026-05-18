@@ -159,8 +159,8 @@ def get_data_dir() -> Path:
     return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.99.2"
-APP_BUILD             = 110
+APP_VERSION           = "0.99.3"
+APP_BUILD             = 111
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
