@@ -115,7 +115,7 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (319 KB · ~800 MB after install)  
 **SHA256:** `476ab9fd55dffb3cf7ca2a7cb7f3e64649a790d1c3692ce14ecdc382374f43e4`  
 **Requirements:** Windows 10/11 (64-bit)  
-**Code Signed:** Installer is signed with an IV certificate (SSL.com) — no SmartScreen warnings
+**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v0.99.3 Build 111  
