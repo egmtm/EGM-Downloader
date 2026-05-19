@@ -50,61 +50,76 @@
 
 ---
 
-## ⚖️ Legal & Responsible Use
+## 🖼️ Screenshots
 
-EGM Downloader is a tool for downloading video content from the internet. While the software itself is legal, **you are responsible for how you use it.**
+> 📸 *Screenshots were captured on v0.98.8. The core UI remains consistent with the current release — updated screenshots will be added in a future update.*
 
-### Legitimate Uses
-
-This tool is designed for lawful purposes, including:
-- Downloading your own content
-- Downloading Creative Commons or public domain content
-- Fair use purposes (education, research, criticism, commentary)
-- Archiving content you have permission to download
-- Backing up content you own or have rights to
-- Offline viewing in jurisdictions where personal downloading is legal
-
-### Your Responsibilities
-
-When using this tool, you must:
-- **Respect copyright laws** - Only download content you have the right to download
-- **Follow Terms of Service** - Many platforms prohibit downloading; check their policies
-- **Obtain permission** - When required by law or platform rules
-- **Use responsibly** - Do not redistribute, sell, or commercially exploit downloaded content without proper rights
-
-### Disclaimer
-
-**This tool is provided "as-is" for personal, lawful use only.**
-
-The developers:
-- Do not encourage or condone copyright infringement
-- Are not responsible for how users choose to use this software
-- Do not provide legal advice regarding what you can or cannot download
-- Assume no liability for user actions or violations of third-party terms
-
-**You are solely responsible for ensuring your use complies with applicable laws, regulations, and terms of service.**
-
-If you're unsure whether your use case is legal, consult a legal professional in your jurisdiction.
-
----
-
-## 💡 The Origin Story
-
-EGM Downloader was born from inspiration and a desire to make video downloading accessible to everyone.
-
-**The inspiration:** [ReClip](https://github.com/averygan/reclip) by [@averygan](https://github.com/averygan) beautifully demonstrated what's possible with yt-dlp and a clean web interface.
-
-**The challenge:** ReClip's self-hosted approach is perfect for developers, but I wanted to share this with friends and family who don't use the terminal. Setting up Python, yt-dlp, ffmpeg, and Flask isn't everyone's cup of tea.
-
-**The solution:** What if you could just download an app and go? No terminal. No dependencies. No setup. Just double-click and start downloading.
-
-That's EGM Downloader—native desktop apps for Windows, macOS, and Linux with professional installers, auto-updates, and zero technical knowledge required.
-
-We've taken the concept in a different direction (native apps vs. web-based, end-users vs. developers), but the core inspiration came from ReClip's elegant simplicity.
-
-**Big thanks to [@averygan](https://github.com/averygan) for ReClip—you sparked the idea that became this project!** 🙏
-
-**This is my first major project, and I'm excited to keep learning and building more tools that make technology accessible to everyone.** 🚀
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/main-ui-ghost-theme.png">
+        <img src="screenshots/main-ui-ghost-theme.png" width="340" alt="Main UI — Ghost Theme"/>
+      </a>
+      <br/><sub><b>Main UI — Ghost Theme</b></sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/main-ui-expanded.png">
+        <img src="screenshots/main-ui-expanded.png" width="340" alt="Main UI — Expanded"/>
+      </a>
+      <br/><sub><b>Main UI — Expanded</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/theme-switcher-famicom.png">
+        <img src="screenshots/theme-switcher-famicom.png" width="340" alt="Theme Switcher — Famicom Theme"/>
+      </a>
+      <br/><sub><b>Theme Switcher — Famicom Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/themes-window.png">
+        <img src="screenshots/themes-window.png" width="340" alt="Themes Window"/>
+      </a>
+      <br/><sub><b>Themes Window</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/video-quality-selector.png">
+        <img src="screenshots/video-quality-selector.png" width="340" alt="Video Quality Selector"/>
+      </a>
+      <br/><sub><b>Video Quality Selector</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/downloading-videos.png">
+        <img src="screenshots/downloading-videos.png" width="340" alt="Fetched Videos Downloading"/>
+      </a>
+      <br/><sub><b>Fetched Videos — Downloading</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/batch-download-quality-picker.png">
+        <img src="screenshots/batch-download-quality-picker.png" width="340" alt="Batch Download Quality Picker"/>
+      </a>
+      <br/><sub><b>Batch Download Quality Picker</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/download-history-expanded.png">
+        <img src="screenshots/download-history-expanded.png" width="340" alt="Download History — Expanded"/>
+      </a>
+      <br/><sub><b>Download History — Expanded</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
+      <a href="screenshots/video-output.png">
+        <img src="screenshots/video-output.png" width="340" alt="Video Output"/>
+      </a>
+      <br/><sub><b>Video Output</b></sub>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -205,76 +220,61 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ---
 
-## 🖼️ Screenshots
+## 📖 The Origin Story
 
-> 📸 *Screenshots were captured on v0.98.8. The core UI remains consistent with the current release — updated screenshots will be added in a future update.*
+EGM Downloader was born from inspiration and a desire to make video downloading accessible to everyone.
 
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/main-ui-ghost-theme.png">
-        <img src="screenshots/main-ui-ghost-theme.png" width="340" alt="Main UI — Ghost Theme"/>
-      </a>
-      <br/><sub><b>Main UI — Ghost Theme</b></sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/main-ui-expanded.png">
-        <img src="screenshots/main-ui-expanded.png" width="340" alt="Main UI — Expanded"/>
-      </a>
-      <br/><sub><b>Main UI — Expanded</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/theme-switcher-famicom.png">
-        <img src="screenshots/theme-switcher-famicom.png" width="340" alt="Theme Switcher — Famicom Theme"/>
-      </a>
-      <br/><sub><b>Theme Switcher — Famicom Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/themes-window.png">
-        <img src="screenshots/themes-window.png" width="340" alt="Themes Window"/>
-      </a>
-      <br/><sub><b>Themes Window</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/video-quality-selector.png">
-        <img src="screenshots/video-quality-selector.png" width="340" alt="Video Quality Selector"/>
-      </a>
-      <br/><sub><b>Video Quality Selector</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/downloading-videos.png">
-        <img src="screenshots/downloading-videos.png" width="340" alt="Fetched Videos Downloading"/>
-      </a>
-      <br/><sub><b>Fetched Videos — Downloading</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/batch-download-quality-picker.png">
-        <img src="screenshots/batch-download-quality-picker.png" width="340" alt="Batch Download Quality Picker"/>
-      </a>
-      <br/><sub><b>Batch Download Quality Picker</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/download-history-expanded.png">
-        <img src="screenshots/download-history-expanded.png" width="340" alt="Download History — Expanded"/>
-      </a>
-      <br/><sub><b>Download History — Expanded</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center" colspan="2">
-      <a href="screenshots/video-output.png">
-        <img src="screenshots/video-output.png" width="340" alt="Video Output"/>
-      </a>
-      <br/><sub><b>Video Output</b></sub>
-    </td>
-  </tr>
-</table>
+**The inspiration:** [ReClip](https://github.com/averygan/reclip) by [@averygan](https://github.com/averygan) beautifully demonstrated what's possible with yt-dlp and a clean web interface.
+
+**The challenge:** ReClip's self-hosted approach is perfect for developers, but I wanted to share this with friends and family who don't use the terminal. Setting up Python, yt-dlp, ffmpeg, and Flask isn't everyone's cup of tea.
+
+**The solution:** What if you could just download an app and go? No terminal. No dependencies. No setup. Just double-click and start downloading.
+
+That's EGM Downloader—native desktop apps for Windows, macOS, and Linux with professional installers, auto-updates, and zero technical knowledge required.
+
+We've taken the concept in a different direction (native apps vs. web-based, end-users vs. developers), but the core inspiration came from ReClip's elegant simplicity.
+
+**Big thanks to [@averygan](https://github.com/averygan) for ReClip—you sparked the idea that became this project!** 🙏
+
+**This is my first major project, and I'm excited to keep learning and building more tools that make technology accessible to everyone.** 🚀
+
+---
+
+## ⚖️ Legal & Responsible Use
+
+EGM Downloader is a tool for downloading video content from the internet. While the software itself is legal, **you are responsible for how you use it.**
+
+### Legitimate Uses
+
+This tool is designed for lawful purposes, including:
+- Downloading your own content
+- Downloading Creative Commons or public domain content
+- Fair use purposes (education, research, criticism, commentary)
+- Archiving content you have permission to download
+- Backing up content you own or have rights to
+- Offline viewing in jurisdictions where personal downloading is legal
+
+### Your Responsibilities
+
+When using this tool, you must:
+- **Respect copyright laws** - Only download content you have the right to download
+- **Follow Terms of Service** - Many platforms prohibit downloading; check their policies
+- **Obtain permission** - When required by law or platform rules
+- **Use responsibly** - Do not redistribute, sell, or commercially exploit downloaded content without proper rights
+
+### Disclaimer
+
+**This tool is provided "as-is" for personal, lawful use only.**
+
+The developers:
+- Do not encourage or condone copyright infringement
+- Are not responsible for how users choose to use this software
+- Do not provide legal advice regarding what you can or cannot download
+- Assume no liability for user actions or violations of third-party terms
+
+**You are solely responsible for ensuring your use complies with applicable laws, regulations, and terms of service.**
+
+If you're unsure whether your use case is legal, consult a legal professional in your jurisdiction.
 
 ---
 
@@ -419,13 +419,13 @@ View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions
 
 ### Windows
 - Windows 10 (64-bit) or Windows 11
-- 200 MB free disk space
+- ~800 MB free disk space (after first run)
 - Internet connection (first launch only)
 
 ### macOS
 - macOS 11.0 (Big Sur) or later
 - Apple Silicon (M1/M2/M3/M4/M5)
-- 250 MB free disk space
+- 300 MB free disk space
 
 ### Linux
 - 64-bit distribution (see supported list below)
@@ -433,7 +433,7 @@ View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions
 - FUSE support (pre-installed on most distros)
 
 **Supported Linux Distributions:**
-Ubuntu 20.04/22.04/24.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
+Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
 
 > Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
 
