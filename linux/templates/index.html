@@ -208,7 +208,7 @@
     }
 
     /* ── Evergreen theme ── */
-    body.kush {
+    body.evergreen {
       --bg:      #0d1a0f;
       --surf:    #152015;
       --surf2:   #1c2c1c;
@@ -270,7 +270,7 @@
     }
 
     /* ── Meadow theme ── */
-    body.sativa {
+    body.meadow {
       --bg:      #edf5e8;
       --surf:    #e2eedb;
       --surf2:   #d6e6ce;
@@ -901,7 +901,7 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#d4d9d0"></div><div class="theme-sw" style="background:#c9d0c4"></div><div class="theme-sw" style="background:#2563eb"></div></div>
               <span class="theme-name">Haze</span><div class="theme-check"></div>
             </div>
-            <div class="theme-row" data-theme="kush">
+            <div class="theme-row" data-theme="evergreen">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0d1a0f"></div><div class="theme-sw" style="background:#152015"></div><div class="theme-sw" style="background:#5a9e3a"></div></div>
               <span class="theme-name">Evergreen</span><div class="theme-check"></div>
             </div>
@@ -909,7 +909,7 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#0e0818"></div><div class="theme-sw" style="background:#170e28"></div><div class="theme-sw" style="background:#9b5de5"></div></div>
               <span class="theme-name">Amethyst</span><div class="theme-check"></div>
             </div>
-            <div class="theme-row" data-theme="sativa">
+            <div class="theme-row" data-theme="meadow">
               <div class="theme-swatches"><div class="theme-sw" style="background:#edf5e8"></div><div class="theme-sw" style="background:#e2eedb"></div><div class="theme-sw" style="background:#2e7d32"></div></div>
               <span class="theme-name">Meadow</span><div class="theme-check"></div>
             </div>
@@ -981,7 +981,7 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#000a2e"></div><div class="theme-sw" style="background:#001040"></div><div class="theme-sw" style="background:#2979ff"></div></div>
               <span class="theme-name">Cobalt Rush</span><div class="theme-check"></div>
             </div>
-            <div class="theme-row" data-theme="ghostofspartа">
+            <div class="theme-row" data-theme="ghostofsparta">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0e0202"></div><div class="theme-sw" style="background:#180404"></div><div class="theme-sw" style="background:#cc0000"></div></div>
               <span class="theme-name">Ghost of Sparta</span><div class="theme-check"></div>
             </div>
@@ -3611,7 +3611,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','pitch','blanc','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','pitch','blanc','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson'];
 
   // ── Seasonal theme visibility ────────────────────────────────────────────────
   (function() {
@@ -3665,9 +3665,9 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     frost:            {label:'Frost',            bg:'#cdd2da',surf:'#c2c8d2',acc:'#2563eb',   cat:'light'},
     bone:             {label:'Bone',             bg:'#f5f0e8',surf:'#ede7d9',acc:'#2563eb',   cat:'light'},
     haze:             {label:'Haze',             bg:'#d4d9d0',surf:'#c9d0c4',acc:'#2563eb',   cat:'light'},
-    kush:             {label:'Evergreen',             bg:'#0d1a0f',surf:'#152015',acc:'#5a9e3a',   cat:'dark'},
+    evergreen:             {label:'Evergreen',             bg:'#0d1a0f',surf:'#152015',acc:'#5a9e3a',   cat:'dark'},
     purplehaze:       {label:'Amethyst',      bg:'#0e0818',surf:'#170e28',acc:'#9b5de5',   cat:'dark'},
-    sativa:           {label:'Meadow',           bg:'#edf5e8',surf:'#e2eedb',acc:'#2e7d32',   cat:'light'},
+    meadow:           {label:'Meadow',           bg:'#edf5e8',surf:'#e2eedb',acc:'#2e7d32',   cat:'light'},
     ogcream:          {label:'Parchment',         bg:'#f5f0e5',surf:'#ede6d8',acc:'#8b6914',   cat:'light'},
     abyssal:          {label:'Abyssal',          bg:'#010d18',surf:'#021525',acc:'#00b4d8',   cat:'nature'},
     wildfire:         {label:'Wildfire',         bg:'#100600',surf:'#1c0a00',acc:'#f4511e',   cat:'nature'},
@@ -3685,7 +3685,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     hylian:           {label:'Hylian',           bg:'#0c1a08',surf:'#142410',acc:'#d4a012',   cat:'characters'},
     varia:            {label:'Varia',            bg:'#0e0a04',surf:'#1a1208',acc:'#f4a020',   cat:'characters'},
     cobaltrush:       {label:'Cobalt Rush',      bg:'#000a2e',surf:'#001040',acc:'#2979ff',   cat:'characters'},
-    'ghostofspartа':  {label:'Ghost of Sparta',  bg:'#0e0202',surf:'#180404',acc:'#cc0000',   cat:'characters'},
+    'ghostofsparta':  {label:'Ghost of Sparta',  bg:'#0e0202',surf:'#180404',acc:'#cc0000',   cat:'characters'},
     whitewolf:        {label:'White Wolf',       bg:'#0a0a0a',surf:'#141414',acc:'#c8c8c8',   cat:'characters'},
     zion:             {label:'Zion',             bg:'#000800',surf:'#001000',acc:'#00ff41',   cat:'movies'},
     twentyfortynine:  {label:'2049',             bg:'#080410',surf:'#10081c',acc:'#e8a020',   cat:'movies'},
@@ -3731,6 +3731,15 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     acoustic:          {label:'Acoustic', bg:'#1e1208',surf:'#281a0c',acc:'#d4962a',   cat:'music'},
     bioluminescent:    {label:'Bioluminescent', bg:'#000d12',surf:'#001820',acc:'#00f5d4',   cat:'nature'},
     aurora:            {label:'Aurora', bg:'#040e10',surf:'#081a1c',acc:'#00e5a0',   cat:'nature'},
+    'ocean':      {label:'Ocean',    bg:'linear-gradient(135deg,#e0f2fe,#bae6fd)',surf:'#f0f7ff',acc:'#0369a1',   cat:'colors'},
+    'peach':      {label:'Peach',    bg:'linear-gradient(135deg,#fff1eb,#ffe4d6)',surf:'#fff5f0',acc:'#c2410c',   cat:'colors'},
+    'mint':       {label:'Mint',     bg:'linear-gradient(135deg,#d1fae5,#a7f3d0)',surf:'#ecfdf5',acc:'#047857',   cat:'colors'},
+    'lavender':   {label:'Lavender', bg:'linear-gradient(135deg,#ede7f6,#ddd6fe)',surf:'#f5f0fa',acc:'#6d28d9',   cat:'colors'},
+    'sand':       {label:'Sand',     bg:'linear-gradient(135deg,#fef3c7,#fde68a)',surf:'#fffbf0',acc:'#92400e',   cat:'colors'},
+    'ember':      {label:'Ember',    bg:'linear-gradient(135deg,#1c0a00,#2d1200)',surf:'#1c1412',acc:'#ea580c',   cat:'colors'},
+    'forest':     {label:'Forest',   bg:'linear-gradient(135deg,#021208,#0a1e0e)',surf:'#0c1e12',acc:'#22c55e',   cat:'colors'},
+    'crimson':    {label:'Crimson',  bg:'linear-gradient(135deg,#180404,#280808)',surf:'#1e0c0c',acc:'#dc2626',   cat:'colors'},
+    'aurora-deep':     {label:'Aurora', bg:'linear-gradient(135deg,#041620,#0d0a20)',surf:'#0e1a28',acc:'#06b6d4', cat:'colors'},
     desertdusk:        {label:'Desert Dusk', bg:'#0e0808',surf:'#1c1008',acc:'#e05818',   cat:'nature'},
     volcanic:          {label:'Volcanic', bg:'#0a0602',surf:'#140c04',acc:'#ff4800',   cat:'nature'},
     tokyoneon:         {label:'Tokyo Neon', bg:'#030010',surf:'#060020',acc:'#ff0088',   cat:'cities'},
