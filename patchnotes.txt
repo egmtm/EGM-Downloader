@@ -1,8 +1,15 @@
+v0.99.4 - Build 112 (5/18/2026 8:29 PM EST)
+-----------------------------------------
+  • [ALL] Security: API token comparison hardened to constant-time (hmac.compare_digest) — closes theoretical timing-attack vector on the per-session token check
+  • [ALL] Security: audio bitrate values validated before use in yt-dlp postprocessor args — invalid values now rejected cleanly (was: unvalidated interpolation)
+  • [ALL] Security: format_id values validated against allowed character set before use in yt-dlp format selector — prevents unexpected selector injection
+
 v0.99.3 - Build 111 (5/17/2026 1:44 PM EST)
 -----------------------------------------
   • [ALL] Electron runtime upgraded from v29 to v41 — brings 12 major versions of Chromium security fixes and performance improvements
   • [WINDOWS] First launch after update reinstalls Electron (~250 MB) to apply the runtime upgrade — shown as "Updating Electron to new major version…"
-  • [ALL] Security: renderer processes now run in OS-level sandbox (hardware-enforced isolation from filesystem and system resources)
+  • [WINDOWS] [MAC] Security: renderer processes now run in OS-level sandbox (hardware-enforced isolation from filesystem and system resources)
+  • [LINUX] Security: renderer process sandbox hardened where supported — AppImage runs without OS-level sandbox (AppImage SUID limitation); all other security layers active (CSP, token auth, navigation handlers, checksum verification)
   • [ALL] Security: external links always open in your default browser; in-window navigation locked to the local app origin
   • [ALL] Security: Content-Security-Policy enforced on all app pages — blocks external scripts, iframes, and plugins
   • [ALL] Security: HTML escape helper strengthened with single-quote handling (defensive — no current vulnerability, eliminates future foot-gun)
