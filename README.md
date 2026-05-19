@@ -125,29 +125,29 @@
 
 ### Windows
 **Latest:** v0.99.5 Build 113  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (320 KB · ~800 MB after install)  
-**SHA256:** `02df05fb61c7acc3c27786f7a69fcb5d5a21f02e5f29c9c4c2e04e699ba1a26b`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (321 KB · ~800 MB after install)  
+**SHA256:** `4d35596049c0c6496e63376286323225fd94009caac93af5c9f8d61580bda46e`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v0.99.5 Build 113  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (273 KB · ~800 MB after first run)  
-**SHA256:** `c4b8c42eba272312db708fb627bb19bc71d2aef99dde2b168656590489717d32`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (275 KB · ~800 MB after first run)  
+**SHA256:** `999b89892ecc4847d6cb8410bb90d762f0e74a6adbb4b0f68c796f7806702035`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
 **Latest:** v0.99.5 Build 113  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (115 MB · ~300 MB after install)  
-**SHA256:** `be460279b5b5d2ff38d7e652b62395119a4301b9b3f996b4ae7fb2324b83b573`  
+**SHA256:** `46338f703d4d38d419d3eb045818193d00dbfd48fde666339ab6d52995b6dfb4`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v0.99.5 Build 113  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (133 MB · ~300 MB after install)  
-**SHA256:** `cc88afde28f413b6d99f60a5d2db27fe4c63d787bf46e6655e07ecb501586bbf`  
+**SHA256:** `55ad05cb37fdc7ed17fc4af3b1eb6c29b31285d0e6a6f324f5c118f820bdbcfc`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -365,10 +365,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 112 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 112 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 112 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 112 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 113 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 113 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 113 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 113 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
