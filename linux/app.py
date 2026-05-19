@@ -3,6 +3,7 @@ import sys
 import uuid
 import glob
 import json
+import hmac
 import subprocess
 import re as _re
 import time
@@ -78,7 +79,9 @@ def _verify_host_header():
         abort(403)
     # 2. API token check (per-session Electron token)
     if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT:
-        if request.headers.get("X-EGM-Token") != _API_TOKEN:
+        if not hmac.compare_digest(
+            request.headers.get("X-EGM-Token", ""), _API_TOKEN
+        ):
             abort(403)
 
 @app.after_request
@@ -102,8 +105,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "0.99.3"
-APP_BUILD             = 111
+APP_VERSION           = "0.99.4"
+APP_BUILD             = 112
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
@@ -692,6 +695,18 @@ def start_download():
     for root in _SYSTEM_ROOTS:
         if dl_str.lower().startswith(root.lower()):
             return jsonify({"error": f"Download directory '{dl_dir}' looks like a system path. Please choose a different folder."}), 400
+
+    # #13 — format_id validation: only safe yt-dlp selector characters allowed
+    raw_format_id = data.get("format_id") or ""
+    if raw_format_id and not _re.fullmatch(r'[A-Za-z0-9_+\-]+', raw_format_id):
+        return jsonify({"error": "Invalid format_id"}), 400
+
+    # #12 — bitrate validation: extract bitrate from m4a_NNN / opus_NNN and range-check
+    audio_quality = data.get("audio_quality") or "320"
+    if audio_quality.startswith(("m4a_", "opus_")):
+        _bitrate_str = audio_quality.split("_", 1)[1]
+        if not (_bitrate_str.isdigit() and 32 <= int(_bitrate_str) <= 320):
+            return jsonify({"error": "Invalid audio bitrate"}), 400
 
     with _jobs_lock:
         jobs[job_id] = {"status": "queued", "url": url,
