@@ -7,7 +7,7 @@ name: Validate Version Sync
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, testing/* ]
     paths:
       - 'version.json'
       - '**/package.json'
@@ -18,7 +18,7 @@ on:
       - 'mac/BUILD.sh'
       - 'scripts/validate-version-sync.py'
   pull_request:
-    branches: [ main ]
+    branches: [ main, testing/* ]
     paths:
       - 'version.json'
       - '**/package.json'

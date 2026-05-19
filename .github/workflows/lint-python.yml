@@ -2,13 +2,13 @@ name: Lint Python
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, testing/* ]
     paths:
       - '**.py'
       - 'requirements.txt'
       - 'linux/requirements.txt'
   pull_request:
-    branches: [ main ]
+    branches: [ main, testing/* ]
     paths:
       - '**.py'
       - 'requirements.txt'
