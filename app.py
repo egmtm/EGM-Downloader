@@ -9,6 +9,7 @@ import re as _re
 import time
 import threading
 import urllib.request
+import urllib.parse
 import zipfile
 import hashlib
 import shutil
@@ -24,6 +25,58 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # via a DNS-rebinding attack. Reject any request whose Host header isn't a
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
+
+# Outbound HTTP whitelist — every external host this app contacts must be listed.
+# Enforced before urlopen() and after redirect resolution. When adding a new host,
+# document why it's needed alongside the entry.
+_ALLOWED_DOWNLOAD_HOSTS = {
+    "api.github.com",                        # GitHub API — release metadata (BtbN ffmpeg, Deno)
+    "github.com",                            # GitHub release download URLs (pre-redirect)
+    "objects.githubusercontent.com",         # GitHub release CDN (typical redirect target)
+    "release-assets.githubusercontent.com",  # Newer GitHub release CDN
+    "pypi.org",                              # mutagen version check (JSON API)
+    "ffmpeg.martin-riedl.de",                # Mac ffmpeg downloads + checksum
+    "egerena.com",                           # App update feed + binary downloads
+}
+
+# Outbound HTTP timeouts — applied via _safe_urlopen
+HTTP_TIMEOUT_SHORT = 15   # metadata, API calls, checksums, redirect resolution
+HTTP_TIMEOUT_LONG  = 120  # binary downloads (ffmpeg, deno, app installer)
+
+# Bound jobs dict growth to keep memory predictable over long sessions
+MAX_JOBS = 1000
+
+def _is_allowed_host(url):
+    """Return True if the URL's hostname is in the outbound whitelist."""
+    try:
+        return (urllib.parse.urlparse(url).hostname or "") in _ALLOWED_DOWNLOAD_HOSTS
+    except Exception:
+        return False
+
+def _safe_urlopen(req_or_url, timeout):
+    """urlopen with host whitelist enforcement (pre-request and post-redirect).
+    Raises RuntimeError if the URL or its redirect target isn't whitelisted."""
+    url = req_or_url if isinstance(req_or_url, str) else req_or_url.full_url
+    if not _is_allowed_host(url):
+        host = urllib.parse.urlparse(url).hostname or "?"
+        raise RuntimeError(f"Outbound request blocked — non-whitelisted host: {host}")
+    resp = urllib.request.urlopen(req_or_url, timeout=timeout)
+    if not _is_allowed_host(resp.url):
+        host = urllib.parse.urlparse(resp.url).hostname or "?"
+        resp.close()
+        raise RuntimeError(f"Redirect blocked — non-whitelisted target host: {host}")
+    return resp
+
+def _safe_extract(z, member, target_dir):
+    """Extract a named zip member, asserting it has no path traversal.
+    Python's zipfile already sanitizes by default; this makes the assumption explicit
+    and guards against accidental future use of extractall() or raw namelist iteration."""
+    if member not in z.namelist():
+        raise RuntimeError(f"{member!r} not found in archive")
+    name = z.getinfo(member).filename
+    if ".." in name or name.startswith(("/", "\\")):
+        raise RuntimeError(f"Suspicious archive member path: {name!r}")
+    z.extract(member, target_dir)
 def _chmod_owner_only(path):
     """Set sensitive file to owner read/write only (POSIX). No-op on Windows."""
     if sys.platform != "win32":
@@ -45,7 +98,7 @@ def _verify_upstream_checksum(local_path, checksum_url, filename):
     """
     try:
         req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=8) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             text = r.read().decode()
         expected = None
 
@@ -162,8 +215,8 @@ def get_data_dir() -> Path:
     return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.99.4"
-APP_BUILD             = 112
+APP_VERSION           = "0.99.5"
+APP_BUILD             = 113
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
@@ -366,7 +419,7 @@ def ensure_ffmpeg():
     tmp = FFMPEG_DIR / "ffmpeg_tmp.zip"
     try:
         req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
+        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
         ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-win64-gpl.zip")
         print(f"[EGM] {msg}")
@@ -375,6 +428,9 @@ def ensure_ffmpeg():
             return
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
+                # Zip slip guard: skip any entry with path traversal or absolute path
+                if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
+                    continue
                 fn = Path(m).name
                 if fn in ("ffmpeg.exe", "ffprobe.exe"):
                     with z.open(m) as src, open(FFMPEG_DIR / fn, "wb") as dst:
@@ -483,11 +539,15 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if audio_quality == "flac":
             args += ["-x", "--audio-format", "flac"]
         elif audio_quality.startswith("m4a_"):
-            bitrate = audio_quality.split("_")[1]
+            bitrate = audio_quality.split("_", 1)[1]
+            if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
+                bitrate = "192"  # defense in depth — endpoint already validates, this guards future callers
             args += ["-x", "--audio-format", "m4a",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         elif audio_quality.startswith("opus_"):
-            bitrate = audio_quality.split("_")[1]
+            bitrate = audio_quality.split("_", 1)[1]
+            if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
+                bitrate = "192"
             args += ["-x", "--audio-format", "opus",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         else:
@@ -785,6 +845,8 @@ def start_download():
             return jsonify({"error": "Invalid audio bitrate"}), 400
 
     with _jobs_lock:
+        if len(jobs) >= MAX_JOBS:
+            return jsonify({"error": "Too many jobs — please restart the app to clear history"}), 429
         jobs[job_id] = {"status": "queued", "url": url,
                         "title": data.get("title",""), "proc": None, "cancelled": False,
                         "download_dir": dl_dir, "format": data.get("format", "video")}
@@ -934,7 +996,7 @@ def _get_latest_ffmpeg_tag():
     try:
         req = urllib.request.Request("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest",
                                      headers={"User-Agent":"EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
@@ -943,7 +1005,7 @@ def _get_latest_ytdlp_version():
         req = urllib.request.Request(
             "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
             headers={"User-Agent":"EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
@@ -959,7 +1021,7 @@ def _get_mutagen_version() -> str:
 
 def _get_latest_mutagen_version() -> str:
     try:
-        with urllib.request.urlopen("https://pypi.org/pypi/mutagen/json", timeout=8) as r:
+        with _safe_urlopen("https://pypi.org/pypi/mutagen/json", HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read())["info"]["version"]
     except Exception:
         return "unknown"
@@ -995,7 +1057,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
             FFMPEG_DIR.mkdir(exist_ok=True)
             tmp = FFMPEG_DIR / "ffmpeg_update.zip"
             req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
-            with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
+            with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
                 shutil.copyfileobj(r, f)
             ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-win64-gpl.zip")
             log(msg)
@@ -1007,6 +1069,8 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
             log("Extracting...")
             with zipfile.ZipFile(tmp, "r") as z:
                 for m in z.namelist():
+                    if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
+                        continue
                     fn = Path(m).name
                     if fn in ("ffmpeg.exe","ffprobe.exe"):
                         with z.open(m) as src, open(FFMPEG_DIR/fn,"wb") as dst:
@@ -1115,7 +1179,7 @@ def _run_deno_install():
         req = urllib.request.Request(
             "https://api.github.com/repos/denoland/deno/releases/latest",
             headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=15) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             release = json.loads(r.read())
         tag = release.get("tag_name", "")
         assets = release.get("assets", [])
@@ -1131,7 +1195,7 @@ def _run_deno_install():
         # Stream download with progress logging every 5 MB
         downloaded = 0
         chunk = 1024 * 256  # 256 KB chunks
-        with urllib.request.urlopen(url, timeout=120) as resp, open(tmp, "wb") as f:
+        with _safe_urlopen(url, HTTP_TIMEOUT_LONG) as resp, open(tmp, "wb") as f:
             total = int(resp.headers.get("Content-Length", 0))
             next_report = 5 * 1024 * 1024  # report every 5 MB
             while True:
@@ -1160,7 +1224,7 @@ def _run_deno_install():
         with zipfile.ZipFile(tmp, "r") as z:
             if "deno.exe" not in z.namelist():
                 raise RuntimeError("deno.exe not found in zip archive")
-            z.extract("deno.exe", DENO_DIR)
+            _safe_extract(z, "deno.exe", DENO_DIR)
         tmp.unlink(missing_ok=True)
 
         # Verify it actually runs
@@ -1231,7 +1295,7 @@ def whats_new():
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
                                      headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=8) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
         notes = data.get("_version_notes", [])
         if not isinstance(notes, list):
@@ -1258,7 +1322,7 @@ def check_app_update():
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
                                      headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
         latest_ver   = str(data.get("version", "")).strip()
         latest_build = int(data.get("build", 0))
@@ -1310,7 +1374,7 @@ def download_update():
     try:
         # Download zip
         req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=60) as r, open(zip_path, "wb") as f:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r, open(zip_path, "wb") as f:
             shutil.copyfileobj(r, f)
 
         # Verify SHA256 checksum (required — fail-closed)
@@ -1327,7 +1391,7 @@ def download_update():
             if "egm-setup.exe" not in names:
                 zip_path.unlink(missing_ok=True)
                 return jsonify({"error": "egm-setup.exe not found in zip"}), 500
-            z.extract("egm-setup.exe", UPDATE_TMP_DIR)
+            _safe_extract(z, "egm-setup.exe", UPDATE_TMP_DIR)
 
         zip_path.unlink(missing_ok=True)
         return jsonify({"success": True, "installer_path": str(installer_path)})
