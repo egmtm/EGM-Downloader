@@ -9,6 +9,7 @@ import re as _re
 import time
 import threading
 import urllib.request
+import urllib.parse
 import zipfile
 import hashlib
 import tarfile
@@ -26,13 +27,65 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 
+# Outbound HTTP whitelist — every external host this app contacts must be listed.
+# Enforced before urlopen() and after redirect resolution. When adding a new host,
+# document why it's needed alongside the entry.
+_ALLOWED_DOWNLOAD_HOSTS = {
+    "api.github.com",                        # GitHub API — release metadata (BtbN ffmpeg, Deno)
+    "github.com",                            # GitHub release download URLs (pre-redirect)
+    "objects.githubusercontent.com",         # GitHub release CDN (typical redirect target)
+    "release-assets.githubusercontent.com",  # Newer GitHub release CDN
+    "pypi.org",                              # mutagen version check (JSON API)
+    "ffmpeg.martin-riedl.de",                # Mac ffmpeg downloads + checksum
+    "egerena.com",                           # App update feed + binary downloads
+}
+
+# Outbound HTTP timeouts — applied via _safe_urlopen
+HTTP_TIMEOUT_SHORT = 15   # metadata, API calls, checksums, redirect resolution
+HTTP_TIMEOUT_LONG  = 120  # binary downloads (ffmpeg, deno, app installer)
+
+# Bound jobs dict growth to keep memory predictable over long sessions
+MAX_JOBS = 1000
+
+def _is_allowed_host(url):
+    """Return True if the URL\'s hostname is in the outbound whitelist."""
+    try:
+        return (urllib.parse.urlparse(url).hostname or "") in _ALLOWED_DOWNLOAD_HOSTS
+    except Exception:
+        return False
+
+def _safe_urlopen(req_or_url, timeout):
+    """urlopen with host whitelist enforcement (pre-request and post-redirect).
+    Raises RuntimeError if the URL or its redirect target isn\'t whitelisted."""
+    url = req_or_url if isinstance(req_or_url, str) else req_or_url.full_url
+    if not _is_allowed_host(url):
+        host = urllib.parse.urlparse(url).hostname or "?"
+        raise RuntimeError(f"Outbound request blocked — non-whitelisted host: {host}")
+    resp = urllib.request.urlopen(req_or_url, timeout=timeout)
+    if not _is_allowed_host(resp.url):
+        host = urllib.parse.urlparse(resp.url).hostname or "?"
+        resp.close()
+        raise RuntimeError(f"Redirect blocked — non-whitelisted target host: {host}")
+    return resp
+
+def _safe_extract(z, member, target_dir):
+    """Extract a named zip member, asserting it has no path traversal.
+    Python\'s zipfile already sanitizes by default; this makes the assumption explicit
+    and guards against accidental future use of extractall() or raw namelist iteration."""
+    if member not in z.namelist():
+        raise RuntimeError(f"{member!r} not found in archive")
+    name = z.getinfo(member).filename
+    if ".." in name or name.startswith(("/", "\\")):
+        raise RuntimeError(f"Suspicious archive member path: {name!r}")
+    z.extract(member, target_dir)
+
 def _verify_upstream_checksum(local_path, checksum_url, filename):
     """Fetch upstream checksum file, parse for filename, verify local download.
     Returns (ok: bool, message: str).
     Fail-closed: any fetch failure, parse error, missing entry, or mismatch returns False."""
     try:
         req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=8) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             lines = r.read().decode().splitlines()
         expected = None
         for line in lines:
@@ -105,8 +158,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "0.99.4"
-APP_BUILD             = 112
+APP_VERSION           = "0.99.5"
+APP_BUILD             = 113
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
@@ -300,7 +353,7 @@ def ensure_ffmpeg():
     tmp = FFMPEG_DIR / "ffmpeg_tmp.tar.xz"
     try:
         req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
+        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
         ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-linux64-gpl.tar.xz")
         print(f"[EGM] {msg}")
@@ -310,6 +363,9 @@ def ensure_ffmpeg():
         print("[EGM] Extracting ffmpeg...")
         with tarfile.open(tmp, "r:xz") as t:
             for member in t.getmembers():
+                # Tar slip guard: skip path traversal / absolute paths
+                if ".." in member.name.split("/") or member.name.startswith("/"):
+                    continue
                 # BtbN archive has a top-level dir: ffmpeg-master-latest-linux64-gpl/bin/ffmpeg
                 fn = Path(member.name).name
                 if fn in ("ffmpeg", "ffprobe") and member.isfile():
@@ -418,11 +474,15 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if audio_quality == "flac":
             args += ["-x", "--audio-format", "flac"]
         elif audio_quality.startswith("m4a_"):
-            bitrate = audio_quality.split("_")[1]
+            bitrate = audio_quality.split("_", 1)[1]
+            if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
+                bitrate = "192"  # defense in depth — endpoint already validates, this guards future callers
             args += ["-x", "--audio-format", "m4a",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         elif audio_quality.startswith("opus_"):
-            bitrate = audio_quality.split("_")[1]
+            bitrate = audio_quality.split("_", 1)[1]
+            if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
+                bitrate = "192"
             args += ["-x", "--audio-format", "opus",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         else:
@@ -709,6 +769,8 @@ def start_download():
             return jsonify({"error": "Invalid audio bitrate"}), 400
 
     with _jobs_lock:
+        if len(jobs) >= MAX_JOBS:
+            return jsonify({"error": "Too many jobs — please restart the app to clear history"}), 429
         jobs[job_id] = {"status": "queued", "url": url,
                         "title": data.get("title",""), "proc": None, "cancelled": False,
                         "download_dir": dl_dir, "format": data.get("format", "video")}
@@ -854,7 +916,7 @@ def _get_latest_ffmpeg_tag():
     try:
         req = urllib.request.Request("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest",
                                      headers={"User-Agent":"EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
@@ -863,7 +925,7 @@ def _get_latest_ytdlp_version():
         req = urllib.request.Request(
             "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
             headers={"User-Agent":"EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
@@ -897,7 +959,7 @@ def _run_update(do_ytdlp, do_ffmpeg):
             FFMPEG_DIR.mkdir(exist_ok=True)
             tmp = FFMPEG_DIR / "ffmpeg_update.tar.xz"
             req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
-            with urllib.request.urlopen(req, timeout=120) as r, open(tmp, "wb") as f:
+            with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
                 shutil.copyfileobj(r, f)
             ok, msg = _verify_upstream_checksum(tmp,
                 "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256",
@@ -911,6 +973,8 @@ def _run_update(do_ytdlp, do_ffmpeg):
             log("Extracting...")
             with tarfile.open(tmp, "r:xz") as t:
                 for member in t.getmembers():
+                    if ".." in member.name.split("/") or member.name.startswith("/"):
+                        continue
                     fn = Path(member.name).name
                     if fn in ("ffmpeg", "ffprobe") and member.isfile():
                         member.name = fn
@@ -1039,7 +1103,7 @@ def _run_deno_install():
         req = urllib.request.Request(
             "https://api.github.com/repos/denoland/deno/releases/latest",
             headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=15) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             release = json.loads(r.read())
         tag    = release.get("tag_name", "")
         assets = release.get("assets", [])
@@ -1052,7 +1116,7 @@ def _run_deno_install():
 
         downloaded = 0
         chunk = 1024 * 256
-        with urllib.request.urlopen(url, timeout=120) as resp, open(tmp, "wb") as f:
+        with _safe_urlopen(url, HTTP_TIMEOUT_LONG) as resp, open(tmp, "wb") as f:
             total = int(resp.headers.get("Content-Length", 0))
             next_report = 5 * 1024 * 1024
             while True:
@@ -1073,7 +1137,7 @@ def _run_deno_install():
         with zipfile.ZipFile(tmp, "r") as z:
             if "deno" not in z.namelist():
                 raise RuntimeError("deno binary not found in zip archive")
-            z.extract("deno", DENO_DIR)
+            _safe_extract(z, "deno", DENO_DIR)
         tmp.unlink(missing_ok=True)
 
         log("Setting executable permissions...")
@@ -1167,7 +1231,7 @@ def whats_new():
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
                                      headers={"User-Agent": "EGM-Downloader"})
-        with urllib.request.urlopen(req, timeout=8) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
         notes = data.get("_version_notes", [])
         if not isinstance(notes, list):
@@ -1184,7 +1248,7 @@ def check_app_update():
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
             headers={"User-Agent": f"EGMDownloader/{APP_VERSION}"})
-        with urllib.request.urlopen(req, timeout=5) as r:
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read().decode())
         latest_ver   = str(data.get("version", "")).strip()
         latest_build = int(data.get("build", 0))
