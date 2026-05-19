@@ -10,13 +10,13 @@ name: Lint JavaScript
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, testing/* ]
     paths:
       - 'templates/**.html'
       - 'linux/templates/**.html'
       - '**/electron/*.js'
   pull_request:
-    branches: [ main ]
+    branches: [ main, testing/* ]
     paths:
       - 'templates/**.html'
       - 'linux/templates/**.html'
