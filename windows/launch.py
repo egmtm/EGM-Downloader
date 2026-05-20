@@ -199,6 +199,16 @@ def ensure_npm(node_exe):
                        capture_output=True, timeout=600, creationflags=NO_WIN)
     if r.returncode != 0:
         _gui_msg("npm install failed"); time.sleep(4); sys.exit(1)
+    # Electron 42+ removed the postinstall auto-download of the binary.
+    # Explicitly run install.js to download it if missing. Idempotent —
+    # install.js exits immediately if the binary already exists (Electron 41).
+    electron_exe = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "electron.exe"
+    install_js   = ELECTRON_DIR / "node_modules" / "electron" / "install.js"
+    if not electron_exe.exists() and install_js.exists():
+        _gui_msg("Downloading Electron runtime…")
+        subprocess.run([node_exe, str(install_js)],
+                       cwd=str(ELECTRON_DIR / "node_modules" / "electron"),
+                       env=env, capture_output=True, timeout=300, creationflags=NO_WIN)
     # First-time cleanup: remove non-English Electron locales (~15 MB saved)
     _clean_electron_locales()
     # Clear npm's global download cache (~50-200 MB) — not needed after install
