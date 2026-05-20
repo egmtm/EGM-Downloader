@@ -59,8 +59,9 @@ Var PreviousInstDir
 
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Choose the folder where EGM Downloader will be installed."
 
-!define MUI_FINISHPAGE_RUN      "$INSTDIR\launch.bat"
+!define MUI_FINISHPAGE_RUN      "$INSTDIR\EGM Downloader.vbs"
 !define MUI_FINISHPAGE_RUN_TEXT "Launch ${APPNAME}"
+!define MUI_FINISHPAGE_RUN_FUNCTION FinishPage_LaunchApp
 !define MUI_FINISHPAGE_TITLE    "Installation Complete"
 !define MUI_FINISHPAGE_TEXT     "EGM Downloader v${VERSION} (Build ${BUILD}) has been installed.$\r$\n$\r$\nOn first launch, required components will be downloaded in the background. This is a one-time process."
 !define MUI_FINISHPAGE_SHOWREADME        ""
@@ -84,6 +85,11 @@ Function FinishPage_CreateDesktopShortcut
   CreateShortCut "$DESKTOP\EGM Downloader.lnk" \
     "$INSTDIR\EGM Downloader.vbs" "" \
     "$INSTDIR\static\icon.ico" 0
+FunctionEnd
+
+; ── Launch app from finish page — uses ShellExecute to avoid CMD flash ────────
+Function FinishPage_LaunchApp
+  ExecShell "open" "$INSTDIR\EGM Downloader.vbs"
 FunctionEnd
 
 ; ── Startup: detect existing install ─────────────────────────
@@ -158,6 +164,7 @@ Section "Install"
   SetOutPath "$INSTDIR\electron"
   File "${REPO_ROOT}/windows/electron/main.js"
   File "${REPO_ROOT}/windows/electron/preload.js"
+  File "${REPO_ROOT}/windows/electron/splash.html"
   File "${REPO_ROOT}/windows/electron/package.json"
 
   ; Reset path back to install dir for the rest
@@ -208,6 +215,7 @@ Section "Uninstall"
   ; Electron app files (but preserve node_modules unless user opts in below)
   Delete "$INSTDIR\electron\main.js"
   Delete "$INSTDIR\electron\preload.js"
+  Delete "$INSTDIR\electron\splash.html"
   Delete "$INSTDIR\electron\package.json"
 
   ; Python __pycache__ (created at runtime)
