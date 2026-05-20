@@ -140,7 +140,7 @@ function findPython() {
 
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
-  updateSplash(10, 'Starting backend...');
+  updateSplash(10, 'Starting up...');
 
   const python = findPython();
   const appPy  = path.join(__dirname, '..', 'app', 'app.py');
@@ -151,7 +151,7 @@ async function startFlask() {
     return;
   }
 
-  updateSplash(20, 'Launching Python backend...');
+  updateSplash(20, 'Initializing...');
 
   flaskProc = spawn(python, [appPy], {
     cwd: path.join(__dirname, '..'),
@@ -178,7 +178,7 @@ async function startFlask() {
     }
   });
 
-  updateSplash(30, 'Backend launched, waiting for response...');
+  updateSplash(30, 'Preparing application...');
 }
 
 // ── Wait for Flask ────────────────────────────────────────────────────────────
@@ -188,7 +188,7 @@ function waitForFlask(retries = 180, delay = 1000) {
     const try_ = (n) => {
       attemptCount++;
       const progress = 30 + Math.min(60, (attemptCount / retries) * 60);
-      updateSplash(progress, `Waiting for backend... (${attemptCount}/${retries})`);
+      updateSplash(progress, 'Loading...');
 
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
@@ -228,19 +228,24 @@ function createSplash() {
 function updateSplash(progress, message) {
   console.log(`[EGM] ${progress}% - ${message}`);
   if (splashWindow && !splashWindow.isDestroyed()) {
-    splashWindow.webContents.send('splash-progress', { progress, message });
+    const safeMsg = String(message).replace(/'/g, "\\'").replace(/\n/g, ' ');
+    splashWindow.webContents.executeJavaScript(`
+      document.getElementById('progressBar').style.width = '${progress}%';
+      const s = document.getElementById('status');
+      s.textContent = '${safeMsg}';
+      s.classList.add('active');
+    `).catch(() => {});
   }
 }
 
 function closeSplash() {
   if (splashWindow && !splashWindow.isDestroyed()) {
-    splashWindow.webContents.send('splash-complete');
     setTimeout(() => {
       if (splashWindow) {
         splashWindow.close();
         splashWindow = null;
       }
-    }, 500);
+    }, 300);
   }
 }
 
@@ -315,15 +320,9 @@ async function createWindow() {
     setTimeout(() => showMainWindow('did-finish-load'), 100);
   });
 
-  // Fallback 2: hard 5s timeout. Defense against both events failing.
-  // Flask backend reaches 100% Ready well before 5s under normal conditions
-  // (typical: ~1-2s). Only triggers if the event chain is genuinely broken.
-  setTimeout(() => {
-    if (!mainWindowShown) {
-      console.warn('[EGM] Window show timeout reached after 5s — forcing show');
-      showMainWindow('timeout-fallback');
-    }
-  }, 5000);
+  // Fallback 2 (5s hard timeout) is set AFTER loadURL below — not here.
+  // Setting it here would fire during ffmpeg/Deno downloads (which block
+  // Flask startup), closing the splash before the backend is ready.
 
   // Save window state on resize/move — debounced 500ms
   const debouncedSave = debounce(saveWindowState, 500);
@@ -342,6 +341,17 @@ async function createWindow() {
     try { await mainWindow.webContents.session.clearCache(); } catch {}
     mainWindow.loadURL(APP_URL);
     hardenWindow(mainWindow);
+
+    // Fallback 2: hard 5s timeout AFTER loadURL. Defense against both
+    // ready-to-show and did-finish-load failing on some Linux compositors.
+    // Starts counting only after Flask is confirmed ready and the page is
+    // loading — never fires during ffmpeg/Deno downloads.
+    setTimeout(() => {
+      if (!mainWindowShown) {
+        console.warn('[EGM] Window show timeout reached after 5s — forcing show');
+        showMainWindow('timeout-fallback');
+      }
+    }, 5000);
   } catch (e) {
     closeSplash();
     dialog.showErrorBox('EGM Downloader — Startup error', e.message);

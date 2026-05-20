@@ -158,8 +158,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "0.99.6"
-APP_BUILD             = 114
+APP_VERSION           = "0.99.7"
+APP_BUILD             = 115
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
@@ -1060,7 +1060,11 @@ def cookies_status():
     age_days = None
     if exists:
         saved_at = _load_settings().get("cookies_saved_at")
-        age_days = int((time.time() - saved_at) / 86400) if saved_at else None
+        if saved_at is None:
+            # Fallback: use file mtime when settings don't have the timestamp
+            # (fresh install or settings reset while cookies are loaded)
+            saved_at = int(COOKIES_FILE.stat().st_mtime)
+        age_days = int((time.time() - saved_at) / 86400)
     return jsonify({"active": exists, "path": str(COOKIES_FILE), "age_days": age_days})
 
 @app.route("/api/cookies/save", methods=["POST"])
