@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v0.99.6</title>
+  <title>EGM Downloader v0.99.7</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -711,12 +711,11 @@
     .upd-item {
       background: var(--surf2); border: 1px solid var(--border);
       border-radius: var(--rs); padding: 5px 8px;
-      display: flex; align-items: center; justify-content: space-between; gap: 8px;
+      display: flex; flex-direction: column; gap: 3px;
     }
-    .upd-item-left { display: flex; align-items: center; gap: 7px; min-width: 0; }
+    .upd-row { display: flex; align-items: center; justify-content: space-between; width: 100%; }
     .upd-name { font-weight: 600; font-size: .82rem; white-space: nowrap; }
-    .upd-ver  { font-size: .68rem; color: var(--text2); white-space: nowrap; }
-    .upd-item-right { display: flex; align-items: center; gap: 7px; flex-shrink: 0; }
+    .upd-ver  { font-size: .68rem; color: var(--text2); overflow: hidden; text-overflow: ellipsis; }
     .vbadge { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .66rem; font-weight: 700; }
     .vb-ok  { background: rgba(34,197,94,.12);  color: var(--green); }
     .vb-upd { background: rgba(245,158,11,.12); color: var(--yellow); }
@@ -837,7 +836,7 @@
     </svg>
   </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v0.99.6</span></h1>
+    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v0.99.7</span></h1>
     <p>Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
   </div>
   <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
@@ -1544,7 +1543,7 @@
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
-    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.99.6</span>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.99.7</span>
     <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
   </div>
   <div style="margin-top:7px;text-align:center">
@@ -1654,7 +1653,7 @@
 <!-- What's New modal — shown once per version -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3>🎉 What's New in <span id="whats-new-version">v0.99.6</span></h3>
+    <h3>🎉 What's New in <span id="whats-new-version">v0.99.7</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
     </ul>
@@ -2352,15 +2351,15 @@ function renderUpdGrid(data) {
   const ytEl = document.createElement('div');
   ytEl.className = 'upd-item';
   ytEl.innerHTML = `
-    <div class="upd-item-left">
+    <div class="upd-row">
       <span class="upd-name">⚡ yt-dlp</span>
-      <span class="upd-ver">${esc(ytD.current)}${ytD.latest && !ytD.up_to_date ? ` → ${esc(ytD.latest)}` : ''}</span>
-    </div>
-    <div class="upd-item-right">
-      ${ytBadge}
       <label class="sw-wrap" style="margin:0">
         <input type="checkbox" class="sw" id="sw-ytdlp" ${ytD.up_to_date===false?'checked':''}>
       </label>
+    </div>
+    <div class="upd-row">
+      <span class="upd-ver">${esc(ytD.current)}${ytD.latest && !ytD.up_to_date ? ` → ${esc(ytD.latest)}` : ''}</span>
+      ${ytBadge}
     </div>`;
   grid.appendChild(ytEl);
 
@@ -2372,15 +2371,15 @@ function renderUpdGrid(data) {
   const muEl = document.createElement('div');
   muEl.className = 'upd-item';
   muEl.innerHTML = `
-    <div class="upd-item-left">
+    <div class="upd-row">
       <span class="upd-name">🏷 mutagen</span>
-      <span class="upd-ver">${esc(muD.current || 'checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
-    </div>
-    <div class="upd-item-right">
-      ${muBadge}
       <label class="sw-wrap" style="margin:0">
         <input type="checkbox" class="sw" id="sw-mutagen" ${muD.up_to_date===false?'checked':''}>
       </label>
+    </div>
+    <div class="upd-row">
+      <span class="upd-ver">${esc(muD.current || 'checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
+      ${muBadge}
     </div>`;
   grid.appendChild(muEl);
   const ffD = data.ffmpeg;
@@ -2390,15 +2389,15 @@ function renderUpdGrid(data) {
   const ffEl = document.createElement('div');
   ffEl.className = 'upd-item';
   ffEl.innerHTML = `
-    <div class="upd-item-left">
+    <div class="upd-row">
       <span class="upd-name">🎬 ffmpeg</span>
-      <span class="upd-ver">${esc(ffD.current)}${ffD.latest && !ffD.up_to_date ? ` → ${esc(ffD.latest)}` : ''}</span>
-    </div>
-    <div class="upd-item-right">
-      ${ffBadge}
       <label class="sw-wrap" style="margin:0">
         <input type="checkbox" class="sw" id="sw-ffmpeg" ${ffD.up_to_date===false?'checked':''}>
       </label>
+    </div>
+    <div class="upd-row">
+      <span class="upd-ver">${esc(ffD.current)}${ffD.latest && !ffD.up_to_date ? ` → ${esc(ffD.latest)}` : ''}</span>
+      ${ffBadge}
     </div>`;
   grid.appendChild(ffEl);
 
@@ -2409,13 +2408,15 @@ function renderUpdGrid(data) {
   const deEl = document.createElement('div');
   deEl.className = 'upd-item';
   deEl.innerHTML = `
-    <div class="upd-item-left">
+    <div class="upd-row">
       <span class="upd-name" title="To update Deno, go to Advanced → Reinstall Deno">🦕 Deno</span>
-      <span class="upd-ver">${deVer} · ${deInstalled ? 'bundled' : 'required for YouTube'}</span>
+      ${deInstalled
+        ? `<span style="font-size:.68rem;color:var(--text2)">bundled</span>`
+        : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">⬇ Install</button>`}
     </div>
-    <div class="upd-item-right">
+    <div class="upd-row">
+      <span class="upd-ver">${deInstalled ? deVer : 'required for YouTube'}</span>
       <span class="vbadge ${deInstalled?'vb-ok':'vb-upd'}">${deInstalled?'✓ Installed':'✗ Not installed'}</span>
-      ${!deInstalled ? `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()">⬇ Install</button>` : ''}
     </div>`;
   grid.appendChild(deEl);
 }

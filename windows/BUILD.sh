@@ -213,6 +213,7 @@ cp "$REPO_ROOT/static/icon-16.png"            "$PORTABLE_STAGE/static/"
 # Electron
 cp "$REPO_ROOT/windows/electron/main.js"      "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/preload.js"   "$PORTABLE_STAGE/electron/"
+cp "$REPO_ROOT/windows/electron/splash.html"  "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/package.json" "$PORTABLE_STAGE/electron/"
 
 # Languages (i18n — future picker)

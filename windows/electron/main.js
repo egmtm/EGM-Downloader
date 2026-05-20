@@ -100,6 +100,7 @@ function debounce(fn, delay) {
 }
 
 let mainWindow  = null;
+let splashWindow = null;
 let flaskProc   = null;
 let tray        = null;
 
@@ -143,17 +144,66 @@ function findPython() {
   return null;
 }
 
+// ── Splash window ────────────────────────────────────────────────────────────
+function createSplash() {
+  splashWindow = new BrowserWindow({
+    width: 500,
+    height: 350,
+    frame: false,
+    transparent: true,
+    alwaysOnTop: true,
+    resizable: false,
+    skipTaskbar: true,
+    webPreferences: {
+      nodeIntegration:  false,
+      contextIsolation: true,
+      sandbox:          true,
+    },
+  });
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  splashWindow.center();
+  splashWindow.show();
+}
+
+function updateSplash(progress, message) {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    // Use executeJavaScript instead of IPC — works with sandbox: true
+    const safeMsg = String(message).replace(/'/g, "\\'").replace(/\n/g, ' ');
+    splashWindow.webContents.executeJavaScript(`
+      document.getElementById('progressBar').style.width = '${progress}%';
+      const s = document.getElementById('status');
+      s.textContent = '${safeMsg}';
+      s.classList.add('active');
+    `).catch(() => {});
+  }
+}
+
+function closeSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) {
+    setTimeout(() => {
+      if (splashWindow) {
+        splashWindow.close();
+        splashWindow = null;
+      }
+    }, 300);
+  }
+}
+
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
+  updateSplash(10, 'Starting up...');
   const python = findPython();
   const appPy  = path.join(__dirname, '..', 'app.py');
 
   if (!python) {
+    closeSplash();
     dialog.showErrorBox('Python not found',
       'Python 3.10+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
     app.quit();
     return;
   }
+
+  updateSplash(20, 'Initializing...');
 
   flaskProc = spawn(python, [appPy], {
     cwd: path.join(__dirname, '..'),
@@ -175,21 +225,29 @@ async function startFlask() {
   flaskProc.on('error', (err) => {
     if (!app.isQuitting) {
       app.isQuitting = true;
+      closeSplash();
       dialog.showErrorBox('EGM Downloader — Startup error',
         `Failed to start backend:\n${err.message}`);
       app.quit();
     }
   });
+
+  updateSplash(30, 'Preparing application...');
 }
 
 // ── Fix 4: Single waitForFlask, no double retry ───────────────────────────────
-function waitForFlask(retries = 60, delay = 1000) {
+function waitForFlask(retries = 180, delay = 1000) {
   return new Promise((resolve, reject) => {
+    let attemptCount = 0;
     const try_ = (n) => {
+      attemptCount++;
+      const progress = 30 + Math.min(60, (attemptCount / retries) * 60);
+      updateSplash(progress, 'Loading...');
+
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
         if (n <= 0) {
-          reject(new Error('The backend did not start within 60 seconds.\n\nTry launching the app again.'));
+          reject(new Error('The backend did not start within 3 minutes.\n\nTry launching the app again.'));
           return;
         }
         setTimeout(() => try_(n - 1), delay);
@@ -266,8 +324,12 @@ async function createWindow() {
 
   mainWindow.setMenuBarVisibility(false);
 
-  // Show window only when Flask page is ready — no blank loading screen
-  mainWindow.once('ready-to-show', () => mainWindow.show());
+  // Show window only when Flask page is ready — close splash, show main window
+  mainWindow.once('ready-to-show', () => {
+    updateSplash(100, 'Ready!');
+    closeSplash();
+    mainWindow.show();
+  });
 
   // Save window state on resize/move — debounced 500ms to avoid hammering disk
   const debouncedSave = debounce(saveWindowState, 500);
@@ -287,6 +349,7 @@ async function createWindow() {
   // Wait for Flask to be ready, then load the page
   try {
     await waitForFlask();
+    updateSplash(90, 'Loading interface...');
     // Clear Chromium's HTTP cache before loading — guarantees fresh templates
     // after an app update. Without this, stale index.html may persist across
     // upgrades. Cheap on every launch (templates re-fetch from local Flask).
@@ -294,6 +357,7 @@ async function createWindow() {
     mainWindow.loadURL(APP_URL);
     hardenWindow(mainWindow);
   } catch (e) {
+    closeSplash();
     dialog.showErrorBox('EGM Downloader — Startup error', e.message);
     app.quit();
   }
@@ -615,6 +679,7 @@ app.whenReady().then(async () => {
   });
 
   createTray();         // tray first — visible immediately
+  createSplash();       // show splash — visible during Flask/ffmpeg startup
   startFlask();         // spawn backend (non-blocking — createWindow waits for it)
   await createWindow(); // window polls until Flask responds, then loads
   startShowWindowPoller(); // start after window is ready — listens for show signals
