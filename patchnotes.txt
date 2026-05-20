@@ -1,3 +1,12 @@
+v0.99.7 - Build 115 (5/20/2026 10:38 AM EST)
+-----------------------------------------
+  • [WINDOWS] New: splash screen with progress bar during startup — shows backend initialization and ffmpeg download status instead of a blank gap after the launcher closes
+  • [LINUX] Fix: splash screen no longer closes prematurely during ffmpeg/Deno downloads — the 5-second timeout fallback now starts after the page loads, not before the backend is ready
+  • [ALL] Fix: cookies age display now shows "0d old" on fresh installs and after settings reset — falls back to file modification time when the saved timestamp is missing from settings
+  • [ALL] Polish: plugin version display now uses a stacked layout (name above, version below) — prevents long version strings from overlapping adjacent UI elements
+  • [WINDOWS] Fix: CMD window no longer flashes briefly when launching from the installer finish page — NSIS now invokes the VBS launcher directly instead of through a batch file
+  • [MAC] Polish: app icon updated with full Retina (@2x) icon set — fixes pixelated/blurry icon in Applications folder, DMG title bar, and Dock
+
 v0.99.6 - Build 114 (5/19/2026 9:48 PM EST)
 -----------------------------------------
   • [ALL] Security: format_id validation added at run_download use site (was endpoint-only) — defense in depth against future callers that might bypass the /api/download endpoint validation
