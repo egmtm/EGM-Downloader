@@ -1,5 +1,5 @@
 {
-  "_comment": "EGM Downloader Linux \u2014 informational, no auto-update. Upload to egerena.com/apps/egmlinux-update.json",
+  "_comment": "EGM Downloader Mac update feed. Upload to egerena.com/apps/egmac-update.json",
   "_version_notes": [
     "Security: format_id validation added at run_download use site (was endpoint-only) \u2014 defense in depth against future callers that might bypass the /api/download endpoint validation",
     "Diagnostic: invalid bitrate at the postprocessor use site now raises explicitly instead of silently substituting 192 \u2014 surfaces upstream validation gaps loudly rather than quietly"
@@ -21,8 +21,7 @@
         "Security: redirect targets verified against the same whitelist \u2014 blocks redirects that lead off-list, even from legitimate hosts",
         "Security: archive extractions (ffmpeg, Deno, app installer) now explicitly guard against path traversal \u2014 defense in depth alongside Python's existing zipfile sanitization",
         "Security: job queue bounded to prevent unbounded memory growth in long sessions \u2014 returns 429 if a session ever accumulates 1000+ jobs",
-        "Polish: HTTP timeouts centralized into two named constants (15s for metadata, 120s for downloads) \u2014 consistent behavior across every outbound request",
-        "Theme files synchronized with canonical definitions \u2014 corrects rendering of Ghost of Sparta (Cyrillic character typo) and Neo Geo (malformed color value), aligns naming with current branding (Evergreen, Meadow, Aurora Deep), brings Linux theme picker in line with Windows/Mac"
+        "Polish: HTTP timeouts centralized into two named constants (15s for metadata, 120s for downloads) \u2014 consistent behavior across every outbound request"
       ]
     },
     {
@@ -39,7 +38,7 @@
       "date": "5/17/2026 1:44 PM EST",
       "notes": [
         "Electron runtime upgraded from v29 to v41 \u2014 brings 12 major versions of Chromium security fixes and performance improvements",
-        "Security: renderer process sandbox hardened where supported \u2014 AppImage runs without OS-level sandbox (AppImage SUID limitation); all other security layers active (CSP, token auth, navigation handlers, checksum verification)",
+        "Security: renderer processes now run in OS-level sandbox (hardware-enforced isolation from filesystem and system resources)",
         "Security: external links always open in your default browser; in-window navigation locked to the local app origin",
         "Security: Content-Security-Policy enforced on all app pages \u2014 blocks external scripts, iframes, and plugins",
         "Security: HTML escape helper strengthened with single-quote handling (defensive \u2014 no current vulnerability, eliminates future foot-gun)"
@@ -59,12 +58,12 @@
   "version": "0.99.6",
   "build": 114,
   "label": "v0.99.6 - Build 114 - 5/19/2026 9:48 PM EST",
-  "downloadUrl": "https://egerena.com/apps/EGMdL.zip",
-  "zip": "EGMdL.zip",
+  "downloadUrl": "https://egerena.com/apps/EGMdM.zip",
+  "zip": "EGMdM.zip",
   "_checksums": {
-    "sha256": "8d3b579b0efd36ac9563f53b50e60df6e9bafe8c3a6e5c6af19d4a5384bfd9f5",
+    "sha256": "5f9fd3a63509757a98522df9fb81d4ebf8f2a973959ee929c472677228dae57b",
     "algorithm": "SHA-256",
-    "file": "EGMdL.zip"
+    "file": "EGMdM.zip"
   },
-  "size_bytes": 139560720
+  "size_bytes": 120586240
 }
