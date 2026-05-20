@@ -135,7 +135,7 @@ function findPython() {
 
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
-  updateSplash(10, 'Starting backend...');
+  updateSplash(10, 'Starting up...');
   
   const python = findPython();
   const appPy  = path.join(__dirname, '..', 'app', 'app.py');
@@ -147,7 +147,7 @@ async function startFlask() {
     return;
   }
 
-  updateSplash(20, 'Launching Python backend...');
+  updateSplash(20, 'Initializing...');
 
   flaskProc = spawn(python, [appPy], {
     cwd: path.join(__dirname, '..'),
@@ -174,7 +174,7 @@ async function startFlask() {
     }
   });
   
-  updateSplash(30, 'Backend launched, waiting for response...');
+  updateSplash(30, 'Preparing application...');
 }
 
 // ── Fix 4: Single waitForFlask, no double retry ───────────────────────────────
@@ -184,7 +184,7 @@ function waitForFlask(retries = 180, delay = 1000) {
     const try_ = (n) => {
       attemptCount++;
       const progress = 30 + Math.min(60, (attemptCount / retries) * 60);
-      updateSplash(progress, `Waiting for backend... (${attemptCount}/${retries})`);
+      updateSplash(progress, 'Loading...');
       
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
@@ -227,25 +227,26 @@ function createSplash() {
 
 // ── Send progress to splash ───────────────────────────────────────────────────
 function updateSplash(progress, message) {
-  console.log(`[EGM] Splash progress: ${progress}% - ${message}`);
+  console.log(`[EGM] ${progress}% - ${message}`);
   if (splashWindow && !splashWindow.isDestroyed()) {
-    splashWindow.webContents.send('splash-progress', { progress, message });
-  } else {
-    console.log('[EGM] WARNING: Splash window not available for update');
+    const safeMsg = String(message).replace(/'/g, "\\'").replace(/\n/g, ' ');
+    splashWindow.webContents.executeJavaScript(`
+      document.getElementById('progressBar').style.width = '${progress}%';
+      const s = document.getElementById('status');
+      s.textContent = '${safeMsg}';
+      s.classList.add('active');
+    `).catch(() => {});
   }
 }
 
 function closeSplash() {
-  console.log('[EGM] Closing splash window...');
   if (splashWindow && !splashWindow.isDestroyed()) {
-    splashWindow.webContents.send('splash-complete');
     setTimeout(() => {
       if (splashWindow) {
         splashWindow.close();
         splashWindow = null;
-        console.log('[EGM] Splash window closed');
       }
-    }, 500);
+    }, 300);
   }
 }
 
