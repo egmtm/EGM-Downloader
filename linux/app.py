@@ -158,8 +158,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "0.99.5"
-APP_BUILD             = 113
+APP_VERSION           = "0.99.6"
+APP_BUILD             = 114
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
@@ -469,6 +469,12 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     if concurrent_fragments > 1:
         args += ["--concurrent-fragments", str(concurrent_fragments)]
 
+    # Defense in depth — endpoint validates format_id at /api/download.
+    # This guards future callers that might construct run_download invocations
+    # without going through that endpoint.
+    if format_id and not _re.fullmatch(r'[A-Za-z0-9_+\-]+', format_id):
+        raise ValueError(f"invalid format_id reached run_download: {format_id!r}")
+
     if format_choice == "audio":
         # audio_quality: "128"/"192"/"320" (MP3 kbps), "flac", "m4a_256" (M4A), "opus_128" (OPUS)
         if audio_quality == "flac":
@@ -476,13 +482,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         elif audio_quality.startswith("m4a_"):
             bitrate = audio_quality.split("_", 1)[1]
             if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
-                bitrate = "192"  # defense in depth — endpoint already validates, this guards future callers
+                raise ValueError(f"invalid bitrate reached run_download: {audio_quality!r}")
             args += ["-x", "--audio-format", "m4a",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         elif audio_quality.startswith("opus_"):
             bitrate = audio_quality.split("_", 1)[1]
             if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
-                bitrate = "192"
+                raise ValueError(f"invalid bitrate reached run_download: {audio_quality!r}")
             args += ["-x", "--audio-format", "opus",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         else:
