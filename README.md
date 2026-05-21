@@ -230,7 +230,7 @@
 - 🎵 Expanded audio quality options for single downloads
 - 🎨 +10 new themes
 
-**v0.99.11 — VAULT:**
+**v0.99.11+ — VAULT:**
 - 🔒 Signed update manifests — cryptographically verified before any update installs
 - 🧪 Security test suite covering all critical paths
 
