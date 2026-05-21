@@ -83,3 +83,9 @@ static/icon-new.ico
 
 # ── Internal operational documents (never commit) ─────────────
 STATE.md
+
+# ── Platform JSON feeds (live on egerena-website repo, not here) ──
+egm-version.json
+egm-portable-version.json
+egmac-update.json
+egmlinux-update.json
