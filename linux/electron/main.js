@@ -228,9 +228,13 @@ function createSplash() {
 function updateSplash(progress, message) {
   console.log(`[EGM] ${progress}% - ${message}`);
   if (splashWindow && !splashWindow.isDestroyed()) {
-    const safeMsg = String(message).replace(/'/g, "\\'").replace(/\n/g, ' ');
+    const p = Math.max(0, Math.min(100, Number(progress) || 0));
+    const safeMsg = String(message)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/[\n\r\u2028\u2029]/g, ' ');
     splashWindow.webContents.executeJavaScript(`
-      document.getElementById('progressBar').style.width = '${progress}%';
+      document.getElementById('progressBar').style.width = '${p}%';
       const s = document.getElementById('status');
       s.textContent = '${safeMsg}';
       s.classList.add('active');
