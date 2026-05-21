@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v0.99.8</title>
+  <title>EGM Downloader v0.99.9</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -401,14 +401,7 @@
       border-right: 1.5px solid #fff; border-bottom: 1.5px solid #fff;
       transform: rotate(45deg) translate(-1px,-1px); }
 
-    /* ── Advanced panel ── */
-    .adv-section { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 12px; }
-    .adv-toggle-row { display: flex; align-items: center; justify-content: space-between; cursor: pointer; user-select: none; margin-bottom: 0; }
-    .adv-toggle-row:hover .adv-label { color: var(--text); }
-    .adv-label { font-size: .78rem; color: var(--text2); font-weight: 500; }
-    .adv-body { display: none; margin-top: 10px; }
-    .adv-body.open { display: block; }
-    /* ── Advanced panel redesign ── */
+    /* ── Advanced panel (hamburger tab) ── */
     .adv-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
     .adv-row:last-child { border-bottom: none; }
     .adv-row-label { font-size: .8rem; color: var(--text); }
@@ -522,9 +515,7 @@
     .sec-body.collapsed { display: none; }
     .sec-body .adv-row { padding: 4px 0; }
     .sec-body .update-grid { grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
-    .adv-2col { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 12px; }
-    .adv-2col .adv-row { border-bottom: 0.5px solid var(--border); }
-    .adv-2col .adv-row:nth-last-child(-n+2) { border-bottom: none; }
+
     .card-header {
       display: flex; justify-content: space-between; align-items: center;
       margin-bottom: 14px;
@@ -836,12 +827,12 @@
     </svg>
   </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v0.99.8</span></h1>
+    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v0.99.9</span></h1>
     <p>Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
   </div>
   <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
   <div style="margin-left:auto;flex-shrink:0;position:relative">
-    <button id="hamburger-btn" title="History &amp; Themes" aria-label="History and Themes" style="position:relative">
+    <button id="hamburger-btn" title="History, Themes &amp; Advanced" aria-label="History, Themes and Advanced" style="position:relative">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
         <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
         <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
@@ -855,6 +846,7 @@
       <div class="hpanel-tabs">
         <button class="hpanel-tab active" data-tab="history">History <span id="history-tab-count" style="background:rgba(255,255,255,.2);border-radius:8px;padding:0 5px;font-size:8px"></span></button>
         <button class="hpanel-tab" data-tab="themes">Themes</button>
+        <button class="hpanel-tab" data-tab="advanced">Advanced</button>
       </div>
       <!-- History tab -->
       <div class="hpanel-content" id="hpanel-history">
@@ -1320,10 +1312,122 @@
               <div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div>
               <span class="theme-name" id="custom-theme-name">Custom</span><div class="theme-check"></div>
             </div>
+            <div class="theme-row" data-theme="espresso">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0e0a07"></div><div class="theme-sw" style="background:#1a1209"></div><div class="theme-sw" style="background:#c87820"></div></div>
+              <span class="theme-name">Espresso</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="matcha">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#080f08"></div><div class="theme-sw" style="background:#101e10"></div><div class="theme-sw" style="background:#6a9a50"></div></div>
+              <span class="theme-name">Matcha</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="honey">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#100c00"></div><div class="theme-sw" style="background:#1c1400"></div><div class="theme-sw" style="background:#f0b800"></div></div>
+              <span class="theme-name">Honey</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="merlot">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0e0208"></div><div class="theme-sw" style="background:#1a0410"></div><div class="theme-sw" style="background:#c01840"></div></div>
+              <span class="theme-name">Merlot</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="saffron">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#140800"></div><div class="theme-sw" style="background:#201000"></div><div class="theme-sw" style="background:#e05810"></div></div>
+              <span class="theme-name">Saffron</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="goldenhour">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#100810"></div><div class="theme-sw" style="background:#1a1020"></div><div class="theme-sw" style="background:#f07830"></div></div>
+              <span class="theme-name">Golden Hour</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="overcast">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0c0e12"></div><div class="theme-sw" style="background:#141620"></div><div class="theme-sw" style="background:#6888a8"></div></div>
+              <span class="theme-name">Overcast</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="northernlights">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#040610"></div><div class="theme-sw" style="background:#08101e"></div><div class="theme-sw" style="background:#38e890"></div></div>
+              <span class="theme-name">Northern Lights</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="thunderstorm">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#080a10"></div><div class="theme-sw" style="background:#0e1018"></div><div class="theme-sw" style="background:#e8d020"></div></div>
+              <span class="theme-name">Thunderstorm</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="sirocco">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#120c04"></div><div class="theme-sw" style="background:#1e1408"></div><div class="theme-sw" style="background:#c8a050"></div></div>
+              <span class="theme-name">Sirocco</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="nebula">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#080412"></div><div class="theme-sw" style="background:#100820"></div><div class="theme-sw" style="background:#d040e0"></div></div>
+              <span class="theme-name">Nebula</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="pulsar">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#020408"></div><div class="theme-sw" style="background:#060c14"></div><div class="theme-sw" style="background:#00d8ff"></div></div>
+              <span class="theme-name">Pulsar</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="solarflare">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0c0400"></div><div class="theme-sw" style="background:#180800"></div><div class="theme-sw" style="background:#ff6020"></div></div>
+              <span class="theme-name">Solar Flare</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="eventhorizon">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#020306"></div><div class="theme-sw" style="background:#06080e"></div><div class="theme-sw" style="background:#8090c8"></div></div>
+              <span class="theme-name">Event Horizon</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="andromeda">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#04081a"></div><div class="theme-sw" style="background:#080e26"></div><div class="theme-sw" style="background:#6070e8"></div></div>
+              <span class="theme-name">Andromeda</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="brutalist">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0e0f10"></div><div class="theme-sw" style="background:#18191c"></div><div class="theme-sw" style="background:#8090a0"></div></div>
+              <span class="theme-name">Brutalist</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="artdeco">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#080600"></div><div class="theme-sw" style="background:#120e00"></div><div class="theme-sw" style="background:#d4a820"></div></div>
+              <span class="theme-name">Art Deco</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="blueprint">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#021020"></div><div class="theme-sw" style="background:#041828"></div><div class="theme-sw" style="background:#4090e0"></div></div>
+              <span class="theme-name">Blueprint</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="marble">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#f4f2f0"></div><div class="theme-sw" style="background:#ece8e4"></div><div class="theme-sw" style="background:#4a4040"></div></div>
+              <span class="theme-name">Marble</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="gothic">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0a0c10"></div><div class="theme-sw" style="background:#12141a"></div><div class="theme-sw" style="background:#7080a8"></div></div>
+              <span class="theme-name">Gothic</span><div class="theme-check"></div>
+            </div>
           </div><!-- end theme-list-static -->
           <div style="display:flex;gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
             <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬆ Import</button>
             <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬇ Export</button>
+          </div>
+        </div>
+      </div>
+      <!-- Advanced tab -->
+      <div class="hpanel-content" id="hpanel-advanced" style="display:none">
+        <div style="padding:5px;display:flex;flex-direction:column;gap:4px">
+          <button class="adv-btn-full" id="adv-shortcut-btn" title="Creates a shortcut on your desktop for easier access">
+            <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
+          </button>
+          <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
+            <span class="adv-btn-icon amber">⌫</span>Clear cache
+          </button>
+          <button class="adv-btn-full" id="adv-export-btn" title="Export your settings to a file">
+            <span class="adv-btn-icon blue">↑</span>Export settings
+          </button>
+          <button class="adv-btn-full" id="adv-import-btn" title="Import settings from a file to restore your preferences">
+            <span class="adv-btn-icon blue">↓</span>Import settings
+          </button>
+          <button class="adv-btn-full" id="adv-ffmpeg-btn" title="Reinstalls ffmpeg — app will restart to apply changes">
+            <span class="adv-btn-icon green">▶</span>Reinstall ffmpeg
+          </button>
+          <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls Deno runtime — app will restart to apply changes">
+            <span class="adv-btn-icon green">⬡</span>Reinstall Deno
+          </button>
+          <button class="adv-btn-full" id="adv-reset-btn" title="Resets the application to its default settings">
+            <span class="adv-btn-icon red">↺</span>Reset settings
+          </button>
+          <div class="adv-port-wrap">
+            <span class="adv-btn-icon teal">⌥</span>
+            <span class="adv-port-label">Flask port</span>
+            <input type="number" class="adv-port-input" id="adv-port-input" value="8899" min="1024" max="65535" style="background:transparent;border:none;color:var(--text);font-size:.72rem;width:60px;outline:none;margin-left:4px"/>
+            <button class="btn-adv" id="adv-port-btn" style="flex-shrink:0">Apply</button>
           </div>
         </div>
       </div>
@@ -1486,45 +1590,6 @@
     <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
   </div>
 
-  <!-- Advanced section -->
-  <div class="sec-hdr" onclick="toggleAdvPanel()">
-    <span class="sec-title" title="Shortcuts, cache, settings backup, runtime tools, and port configuration">⚙ Advanced</span>
-    <button class="card-toggle" id="adv-card-toggle" onclick="event.stopPropagation();toggleAdvPanel()">▶ Show</button>
-  </div>
-  <div class="sec-body collapsed" id="adv-card-body">
-    <div class="adv-2col">
-
-      <button class="adv-btn-full" id="adv-shortcut-btn" title="Creates a shortcut on your desktop for easier access">
-        <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
-      </button>
-      <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
-        <span class="adv-btn-icon amber">⌫</span>Clear cache
-      </button>
-      <button class="adv-btn-full" id="adv-export-btn" title="Export your settings to a file">
-        <span class="adv-btn-icon blue">↑</span>Export settings
-      </button>
-      <button class="adv-btn-full" id="adv-import-btn" title="Import settings from a file to restore your preferences">
-        <span class="adv-btn-icon blue">↓</span>Import settings
-      </button>
-      <button class="adv-btn-full" id="adv-ffmpeg-btn" title="Reinstalls ffmpeg — app will restart to apply changes">
-        <span class="adv-btn-icon green">▶</span>Reinstall ffmpeg
-      </button>
-      <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls Deno runtime — app will restart to apply changes">
-        <span class="adv-btn-icon green">⬡</span>Reinstall Deno
-      </button>
-      <button class="adv-btn-full" id="adv-reset-btn" title="Resets the application to its default settings">
-        <span class="adv-btn-icon red">↺</span>Reset settings
-      </button>
-      <div class="adv-port-wrap">
-        <span class="adv-btn-icon teal">⌥</span>
-        <span class="adv-port-label">Flask port</span>
-        <input type="number" class="adv-port-input" id="adv-port-input" value="8899" min="1024" max="65535" style="background:transparent;border:none;color:var(--text);font-size:.72rem;width:60px;outline:none;margin-left:4px"/>
-        <button class="btn-adv" id="adv-port-btn" style="flex-shrink:0">Apply</button>
-      </div>
-
-    </div>
-  </div>
-
 </div>
 
 <!-- Bulk bar -->
@@ -1543,7 +1608,7 @@
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
-    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.99.8</span>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v0.99.9</span>
     <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
   </div>
   <div style="margin-top:7px;text-align:center">
@@ -1653,7 +1718,7 @@
 <!-- What's New modal — shown once per version -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3>🎉 What's New in <span id="whats-new-version">v0.99.8</span></h3>
+    <h3>🎉 What's New in <span id="whats-new-version">v0.99.9</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
     </ul>
@@ -1936,8 +2001,8 @@ async function checkForUpdatesOnLaunch() {
   } catch { /* silent — network error on launch is expected */ }
 }
 
-// Fire 3s after page loads — backend is ready, user has settled in
-setTimeout(checkForUpdatesOnLaunch, 3000);
+// Update check fires from settings init (line ~2000) only when toggle is on.
+// No unconditional setTimeout — respects the user's check_updates_on_launch setting.
 
 
 document.getElementById('footer-update-btn').addEventListener('click', checkForUpdates);
@@ -3401,8 +3466,9 @@ function toast(msg, type='') {
     tabs.forEach(x => x.classList.remove('active'));
     t.classList.add('active');
     const tab = t.dataset.tab;
-    document.getElementById('hpanel-history').style.display = tab === 'history' ? '' : 'none';
-    document.getElementById('hpanel-themes').style.display  = tab === 'themes'  ? '' : 'none';
+    document.getElementById('hpanel-history').style.display  = tab === 'history'  ? '' : 'none';
+    document.getElementById('hpanel-themes').style.display   = tab === 'themes'   ? '' : 'none';
+    document.getElementById('hpanel-advanced').style.display  = tab === 'advanced' ? '' : 'none';
     // Re-trigger animation
     const el = document.getElementById(`hpanel-${tab}`);
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
@@ -3612,7 +3678,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','pitch','blanc','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','espresso','matcha','honey','merlot','saffron','goldenhour','overcast','northernlights','thunderstorm','sirocco','nebula','pulsar','solarflare','eventhorizon','andromeda','brutalist','artdeco','blueprint','marble','gothic','pitch','blanc','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson'];
 
   // ── Seasonal theme visibility ────────────────────────────────────────────────
   (function() {
@@ -3758,6 +3824,30 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     newyear:          {label:'New Year',         bg:'#08040e',surf:'#100818',acc:'#ffd700',   cat:'seasonal'},
     diwali:           {label:'Diwali',           bg:'#0e0800',surf:'#1a1000',acc:'#ffaa00',   cat:'seasonal'},
     hanukkah:         {label:'Hanukkah',         bg:'#020814',surf:'#040e20',acc:'#4488ff',   cat:'seasonal'},
+    /* ── Food & Drink ── */
+    espresso:         {label:'Espresso',       bg:'#0e0a07', surf:'#1a1209', acc:'#c87820',   cat:'food'},
+    matcha:           {label:'Matcha',         bg:'#080f08', surf:'#101e10', acc:'#6a9a50',   cat:'food'},
+    honey:            {label:'Honey',          bg:'#100c00', surf:'#1c1400', acc:'#f0b800',   cat:'food'},
+    merlot:           {label:'Merlot',         bg:'#0e0208', surf:'#1a0410', acc:'#c01840',   cat:'food'},
+    saffron:          {label:'Saffron',        bg:'#140800', surf:'#201000', acc:'#e05810',   cat:'food'},
+    /* ── Weather ── */
+    goldenhour:       {label:'Golden Hour',    bg:'#100810', surf:'#1a1020', acc:'#f07830',   cat:'weather'},
+    overcast:         {label:'Overcast',       bg:'#0c0e12', surf:'#141620', acc:'#6888a8',   cat:'weather'},
+    northernlights:   {label:'Northern Lights',bg:'#040610', surf:'#08101e', acc:'#38e890',   cat:'weather'},
+    thunderstorm:     {label:'Thunderstorm',   bg:'#080a10', surf:'#0e1018', acc:'#e8d020',   cat:'weather'},
+    sirocco:          {label:'Sirocco',        bg:'#120c04', surf:'#1e1408', acc:'#c8a050',   cat:'weather'},
+    /* ── Space ── */
+    nebula:           {label:'Nebula',         bg:'#080412', surf:'#100820', acc:'#d040e0',   cat:'space'},
+    pulsar:           {label:'Pulsar',         bg:'#020408', surf:'#060c14', acc:'#00d8ff',   cat:'space'},
+    solarflare:       {label:'Solar Flare',    bg:'#0c0400', surf:'#180800', acc:'#ff6020',   cat:'space'},
+    eventhorizon:     {label:'Event Horizon',  bg:'#020306', surf:'#06080e', acc:'#8090c8',   cat:'space'},
+    andromeda:        {label:'Andromeda',      bg:'#04081a', surf:'#080e26', acc:'#6070e8',   cat:'space'},
+    /* ── Architecture ── */
+    brutalist:        {label:'Brutalist',      bg:'#0e0f10', surf:'#18191c', acc:'#8090a0',   cat:'architecture'},
+    artdeco:          {label:'Art Deco',       bg:'#080600', surf:'#120e00', acc:'#d4a820',   cat:'architecture'},
+    blueprint:        {label:'Blueprint',      bg:'#021020', surf:'#041828', acc:'#4090e0',   cat:'architecture'},
+    marble:           {label:'Marble',         bg:'#f4f2f0', surf:'#ece8e4', acc:'#4a4040',   cat:'architecture'},
+    gothic:           {label:'Gothic',         bg:'#0a0c10', surf:'#12141a', acc:'#7080a8',   cat:'architecture'},
     pitch:            {label:'Pitch',            bg:'#000000',surf:'#0a0a0a',acc:'#d0d0d0',   cat:'dark'},
     blanc:            {label:'Blanc',            bg:'#ffffff',surf:'#f5f5f5',acc:'#1a1a1a',   cat:'light'},
     custom:           {label:'Custom',           bg:'#0b1120',surf:'#111c2e',acc:'#3b82f6',   cat:'custom'},
@@ -4083,14 +4173,6 @@ function videoQualityBgClick(e) {
 (function() {
   // Toggle open/close
   // Advanced panel toggle — used by sec-hdr onclick and button
-  window.toggleAdvPanel = function() {
-    const body = document.getElementById('adv-card-body');
-    const btn  = document.getElementById('adv-card-toggle');
-    const open = body.classList.toggle('collapsed');
-    btn.textContent = open ? '▶ Show' : '▼ Hide';
-    document.getElementById('adv-card-toggle').closest('.sec-hdr').classList.toggle('open', !open);
-  };
-
   // Load saved port on startup
   (async () => {
     try {
