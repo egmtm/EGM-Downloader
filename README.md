@@ -125,29 +125,29 @@
 
 ### Windows
 **Latest:** v0.99.9 Build 117  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (323 KB · ~800 MB after install)  
-**SHA256:** `3eecf4f9e0bdf68c705027eeae05eb291fe5ae82687e8ba769b7eafbc36fd145`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (328 KB · ~800 MB after install)  
+**SHA256:** `5a821f47065ed671b800fff1db3e47d579a6777d0b522edad09830534937dd56`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v0.99.9 Build 117  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (277 KB · ~800 MB after first run)  
-**SHA256:** `f389f409c5f340f492ac374f2422b76c7f25a30bfb6411723f7843ca07f5396d`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (284 KB · ~800 MB after first run)  
+**SHA256:** `09b6a83c6ba513a3e7c18e0970efcb7d6af8fcfd3828156fb3b872b4cfa7cb91`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
 **Latest:** v0.99.9 Build 117  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (118 MB · ~300 MB after install)  
-**SHA256:** `9c8606e18ceeaa58a3fef4b1dea3aa6b92ec541fc19af9cbb58544cca2aff056`  
+**SHA256:** `06067edeb77a31d337d3ad11af9c8c7b98f0b6946e7b873681c3beba5ff1e332`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v0.99.9 Build 117  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (135 MB · ~300 MB after install)  
-**SHA256:** `8fcfc290efeb27db51575f707c4857f95a8d1108f3061802a1f5754c91431fbb`  
+**SHA256:** `9384496f22540101279ab8bf54d28113303146b3b8d7489f1be47d309d2534a9`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -220,10 +220,11 @@
 
 ## 🗺️ Roadmap
 
-**v0.99.9 — COMMAND CENTER:**
+**v0.99.9 — COMMAND CENTER:** ✅ Shipped
 - 🎛️ Advanced panel moves to dedicated hamburger tab — History | Themes | Advanced
 - 🖥️ Splash screen polish and escape fix
 - 🎨 +20 new themes
+- 🔍 Windows tray menu density research deferred to v0.99.10
 
 **v0.99.10 — DIRECTOR'S CUT:**
 - 🖼️ Video thumbnails in download history
@@ -393,10 +394,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 116 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 116 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 116 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 116 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 117 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 117 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 117 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 117 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
