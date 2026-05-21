@@ -223,12 +223,12 @@
 **v0.99.9 — COMMAND CENTER:**
 - 🎛️ Advanced panel moves to dedicated hamburger tab — History | Themes | Advanced
 - 🖥️ Splash screen polish and escape fix
-- 🎨 +10 new themes
+- 🎨 +20 new themes
 
 **v0.99.10 — DIRECTOR'S CUT:**
 - 🖼️ Video thumbnails in download history
 - 🎵 Expanded audio quality options for single downloads
-- 🎨 +10 new themes
+- 🎨 +20 new themes
 
 **v0.99.11+ — VAULT:**
 - 🔒 Signed update manifests — cryptographically verified before any update installs
