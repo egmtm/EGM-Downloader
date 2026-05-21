@@ -286,13 +286,37 @@ const THEME_DATA = {
   hanukkah:        {label:'Hanukkah',        bg:'#020814',surf:'#040e20',acc:'#4488ff',  cat:'seasonal'},
   pitch:           {label:'Pitch',            bg:'#000000',surf:'#0a0a0a',acc:'#d0d0d0',  cat:'dark'},
   blanc:           {label:'Blanc',            bg:'#ffffff',surf:'#f5f5f5',acc:'#1a1a1a',  cat:'light'},
+  /* ── Food & Drink ── */
+  espresso:      {label:'Espresso',       bg:'#0e0a07', surf:'#1a1209', acc:'#c87820', cat:'food'},
+  matcha:        {label:'Matcha',         bg:'#080f08', surf:'#101e10', acc:'#6a9a50', cat:'food'},
+  honey:         {label:'Honey',          bg:'#100c00', surf:'#1c1400', acc:'#f0b800', cat:'food'},
+  merlot:        {label:'Merlot',         bg:'#0e0208', surf:'#1a0410', acc:'#c01840', cat:'food'},
+  saffron:       {label:'Saffron',        bg:'#140800', surf:'#201000', acc:'#e05810', cat:'food'},
+  /* ── Weather ── */
+  goldenhour:    {label:'Golden Hour',    bg:'#100810', surf:'#1a1020', acc:'#f07830', cat:'weather'},
+  overcast:      {label:'Overcast',       bg:'#0c0e12', surf:'#141620', acc:'#6888a8', cat:'weather'},
+  northernlights:{label:'Northern Lights',bg:'#040610', surf:'#08101e', acc:'#38e890', cat:'weather'},
+  thunderstorm:  {label:'Thunderstorm',   bg:'#080a10', surf:'#0e1018', acc:'#e8d020', cat:'weather'},
+  sirocco:       {label:'Sirocco',        bg:'#120c04', surf:'#1e1408', acc:'#c8a050', cat:'weather'},
+  /* ── Space ── */
+  nebula:        {label:'Nebula',         bg:'#080412', surf:'#100820', acc:'#d040e0', cat:'space'},
+  pulsar:        {label:'Pulsar',         bg:'#020408', surf:'#060c14', acc:'#00d8ff', cat:'space'},
+  solarflare:    {label:'Solar Flare',    bg:'#0c0400', surf:'#180800', acc:'#ff6020', cat:'space'},
+  eventhorizon:  {label:'Event Horizon',  bg:'#020306', surf:'#06080e', acc:'#8090c8', cat:'space'},
+  andromeda:     {label:'Andromeda',      bg:'#04081a', surf:'#080e26', acc:'#6070e8', cat:'space'},
+  /* ── Architecture ── */
+  brutalist:     {label:'Brutalist',      bg:'#0e0f10', surf:'#18191c', acc:'#8090a0', cat:'architecture'},
+  artdeco:       {label:'Art Deco',       bg:'#080600', surf:'#120e00', acc:'#d4a820', cat:'architecture'},
+  blueprint:     {label:'Blueprint',      bg:'#021020', surf:'#041828', acc:'#4090e0', cat:'architecture'},
+  marble:        {label:'Marble',         bg:'#f4f2f0', surf:'#ece8e4', acc:'#4a4040', cat:'architecture'},
+  gothic:        {label:'Gothic',         bg:'#0a0c10', surf:'#12141a', acc:'#7080a8', cat:'architecture'},
 };
 
 // Sidebar structure: ordered sections + categories per section
 const SECTIONS = [
-  { label: 'Style',   cats: ['dark', 'light', 'colors'] },
-  { label: 'Vibe',    cats: ['music', 'nature', 'cities', 'moods'] },
-  { label: 'Culture', cats: ['movies', 'consoles', 'characters'] },
+  { label: 'Style',   cats: ['dark', 'light', 'colors', 'space'] },
+  { label: 'Vibe',    cats: ['music', 'nature', 'cities', 'moods', 'food', 'weather'] },
+  { label: 'Culture', cats: ['movies', 'consoles', 'characters', 'architecture'] },
   { label: 'Other',   cats: ['retro', 'experimental', 'seasonal', 'custom'] },
 ];
 
@@ -301,6 +325,8 @@ const CAT_LABELS = {
   music:'Music', nature:'Nature', cities:'Cities', moods:'Moods',
   movies:'Movies', consoles:'Consoles', characters:'Characters',
   retro:'Retro', experimental:'Experimental', seasonal:'Seasonal ✦', custom:'Imported',
+  food:'Food & Drink', weather:'Weather',
+  space:'Space', architecture:'Architecture',
 };
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';

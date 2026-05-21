@@ -124,28 +124,28 @@
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.99.8 Build 116  
+**Latest:** v0.99.9 Build 117  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (323 KB · ~800 MB after install)  
 **SHA256:** `3eecf4f9e0bdf68c705027eeae05eb291fe5ae82687e8ba769b7eafbc36fd145`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
-**Latest:** v0.99.8 Build 116  
+**Latest:** v0.99.9 Build 117  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (277 KB · ~800 MB after first run)  
 **SHA256:** `f389f409c5f340f492ac374f2422b76c7f25a30bfb6411723f7843ca07f5396d`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
-**Latest:** v0.99.8 Build 116  
+**Latest:** v0.99.9 Build 117  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (118 MB · ~300 MB after install)  
 **SHA256:** `9c8606e18ceeaa58a3fef4b1dea3aa6b92ec541fc19af9cbb58544cca2aff056`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v0.99.8 Build 116  
+**Latest:** v0.99.9 Build 117  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (135 MB · ~300 MB after install)  
 **SHA256:** `8fcfc290efeb27db51575f707c4857f95a8d1108f3061802a1f5754c91431fbb`  
 **Format:** AppImage (Universal)  
@@ -546,8 +546,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 0.99.8
-- **Build:** 116
+- **Version:** 0.99.9
+- **Build:** 117
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** AGPL-3.0
