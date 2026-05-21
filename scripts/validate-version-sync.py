@@ -473,7 +473,14 @@ def check_json_feeds_purity():
         for note in d.get('_version_notes', []):
             note_lower = note.lower()
             for term in banned:
-                if term in note_lower:
+                if term.startswith('.'):
+                    # File extension — substring match is appropriate (.dmg, .exe, etc.)
+                    hit = term in note_lower
+                else:
+                    # Word — use word boundary to avoid false positives
+                    # (e.g. "nsis" inside "consistent", "win" inside "window")
+                    hit = bool(re.search(r'\b' + re.escape(term) + r'\b', note_lower))
+                if hit:
                     errors.append(
                         f"dist/{feed}: cross-platform leak — bullet contains '{term}': "
                         f"'{note[:80]}{'...' if len(note) > 80 else ''}'"

@@ -26,6 +26,16 @@
             height: 100%; width: 0%; border-radius: 2px;
             background: linear-gradient(90deg, #3b82f6, #60a5fa);
             transition: width 0.3s ease;
+            position: relative; overflow: hidden;
+        }
+        .progress-bar::after {
+            content: ''; position: absolute; inset: 0;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            animation: shimmer 1.5s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
         }
         .status {
             margin-top: 16px; font-size: 12px; color: #64748b;
