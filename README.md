@@ -518,15 +518,27 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 🗺️ Roadmap
 
-**v0.99.X (Next):**
-- 🔒 Security audit + polish
-- 🪄 Bug fixes as surfaced
+**v0.99.9 — COMMAND CENTER:**
+- 🎛️ Advanced panel moves to dedicated hamburger tab — History | Themes | Advanced
+- 🖥️ Splash screen polish and escape fix
+- 🎨 +10 new themes
 
-**v1.0 (Major Milestone):**
-- 📡 Subscriptions — automated channel monitoring
+**v0.99.10 — DIRECTOR'S CUT:**
+- 🖼️ Video thumbnails in download history
+- 🎵 Expanded audio quality options for single downloads
+- 🎨 +10 new themes
 
-**v1.1 (Future):**
-- 🌍 Multi-language support — 10 languages (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
+**v0.99.11 — VAULT:**
+- 🔒 Signed update manifests — cryptographically verified before any update installs
+- 🧪 Security test suite covering all critical paths
+
+**v1.0 — IGNITION:**
+- 📡 Subscriptions — save any channel or playlist, check for new content automatically
+- ⬇️ Download what's new in one click
+
+**v1.1 — POLYGLOT:**
+- 🌍 In-app language picker — 10 languages at launch (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
+- 🤝 Community translation system
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
