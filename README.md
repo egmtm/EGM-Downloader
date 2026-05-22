@@ -86,7 +86,7 @@
       <a href="screenshots/05-all-themes.png">
         <img src="screenshots/05-all-themes.png" width="340" alt="All Themes — 140 Themes"/>
       </a>
-      <br/><sub><b>All Themes — 140 Available</b></sub>
+      <br/><sub><b>All Themes — 140 Total (130 Permanent + 10 Seasonal)</b></sub>
     </td>
     <td align="center">
       <a href="screenshots/06-download-videos-window.png">
