@@ -131,6 +131,14 @@
   </tr>
   <tr>
     <td align="center" colspan="2">
+      <a href="screenshots/11-themes-from-hamburger.png">
+        <img src="screenshots/11-themes-from-hamburger.png" width="340" alt="Themes Tab — Hamburger Panel"/>
+      </a>
+      <br/><sub><b>Themes Tab — Hamburger Panel</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center" colspan="2">
       <a href="screenshots/11-video-output.png">
         <img src="screenshots/11-video-output.png" width="340" alt="Video Output"/>
       </a>
