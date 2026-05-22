@@ -26,7 +26,13 @@
 
 ---
 
-<p align="center"><a href="#-download">⬇ Jump to Downloads</a></p>
+<p align="center">
+  <a href="#-download">⬇ Downloads</a> ·
+  <a href="#️-screenshots">📸 Screenshots</a> ·
+  <a href="#-quick-start">🚀 Quick Start</a> ·
+  <a href="#️-roadmap">🗺️ Roadmap</a> ·
+  <a href="#-system-requirements">📋 Requirements</a>
+</p>
 
 ## ✨ Features
 
