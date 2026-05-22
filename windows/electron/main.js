@@ -101,6 +101,8 @@ function debounce(fn, delay) {
 
 let mainWindow  = null;
 let splashWindow = null;
+let _splashReady = false;
+let _splashPending = null;
 let flaskProc   = null;
 let tray        = null;
 
@@ -161,6 +163,14 @@ function createSplash() {
     },
   });
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  _splashReady = false;
+  splashWindow.webContents.once('did-finish-load', () => {
+    _splashReady = true;
+    if (_splashPending) {
+      _applySplashUpdate(_splashPending.progress, _splashPending.message);
+      _splashPending = null;
+    }
+  });
   splashWindow.center();
   splashWindow.show();
 }
@@ -244,7 +254,8 @@ function waitForFlask(retries = 180, delay = 1000) {
     let attemptCount = 0;
     const try_ = (n) => {
       attemptCount++;
-      const progress = 30 + Math.min(60, (attemptCount / retries) * 60);
+      // Exponential curve: visible movement early, slows as it approaches 90%
+      const progress = 30 + 60 * (1 - Math.exp(-attemptCount / 30));
       updateSplash(progress, 'Loading...');
 
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });

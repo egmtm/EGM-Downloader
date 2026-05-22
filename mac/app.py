@@ -131,7 +131,7 @@ def _verify_host_header():
     if host_only and host_only not in _ALLOWED_HOSTS:
         abort(403)
     # 2. API token check (per-session Electron token)
-    if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT:
+    if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT and not request.path.startswith("/api/thumbnail/"):
         if not hmac.compare_digest(
             request.headers.get("X-EGM-Token", ""), _API_TOKEN
         ):
@@ -170,8 +170,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.99.9"
-APP_BUILD             = 117
+APP_VERSION           = "0.99.10"
+APP_BUILD             = 118
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
@@ -192,6 +192,8 @@ _settings_lock  = threading.Lock()
 # ── History ────────────────────────────────────────────────────────────────────
 _history_lock = threading.Lock()
 _HISTORY_MAX  = 500
+THUMBNAILS_DIR = DATA_DIR / "thumbnails"
+THUMBNAILS_DIR.mkdir(exist_ok=True)
 
 def _load_history() -> list:
     try:
@@ -208,13 +210,35 @@ def _save_history(items: list):
     except Exception:
         pass
 
+def _download_thumbnail(url: str, entry_id: str) -> str:
+    """Download a thumbnail image and save it locally. Returns filename or empty string."""
+    if not url:
+        return ""
+    try:
+        req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
+        data = req.read(512_000)
+        req.close()
+        ext = ".jpg"
+        if b"PNG" in data[:8]:
+            ext = ".png"
+        elif b"WEBP" in data[:12] or b"RIFF" in data[:4]:
+            ext = ".webp"
+        fname = f"{entry_id}{ext}"
+        thumb_path = THUMBNAILS_DIR / fname
+        thumb_path.write_bytes(data)
+        return fname
+    except Exception:
+        return ""
+
 def _append_history(job: dict, final_path):
     try:
         size_bytes = 0
         try: size_bytes = final_path.stat().st_size
         except Exception: pass
+        entry_id = str(uuid.uuid4())
+        thumb = _download_thumbnail(job.get("thumbnail", ""), entry_id)
         entry = {
-            "id":           str(uuid.uuid4()),
+            "id":           entry_id,
             "url":          job.get("url", ""),
             "title":        job.get("title", ""),
             "filename":     final_path.name,
@@ -844,7 +868,8 @@ def start_download():
             return jsonify({"error": "Too many jobs — please restart the app to clear history"}), 429
         jobs[job_id] = {"status": "queued", "url": url,
                         "title": data.get("title",""), "proc": None, "cancelled": False,
-                        "download_dir": dl_dir, "format": data.get("format", "video")}
+                        "download_dir": dl_dir, "format": data.get("format", "video"),
+                        "thumbnail": data.get("thumbnail", "")}
     threading.Thread(target=run_download,
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
@@ -1492,6 +1517,10 @@ def get_history():
 def delete_history_entry(entry_id):
     with _history_lock:
         items = _load_history()
+        for i in items:
+            if i.get("id") == entry_id and i.get("thumbnail"):
+                try: (THUMBNAILS_DIR / i["thumbnail"]).unlink(missing_ok=True)
+                except Exception: pass
         items = [i for i in items if i.get("id") != entry_id]
         _save_history(items)
     return jsonify({"ok": True})
@@ -1500,7 +1529,25 @@ def delete_history_entry(entry_id):
 def clear_history():
     with _history_lock:
         _save_history([])
+    try:
+        for f in THUMBNAILS_DIR.iterdir():
+            try: f.unlink()
+            except Exception: pass
+    except Exception: pass
     return jsonify({"ok": True})
+
+@app.route("/api/thumbnail/<filename>")
+def serve_thumbnail(filename):
+    if not _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', filename):
+        return "Not found", 404
+    thumb_path = THUMBNAILS_DIR / filename
+    if not thumb_path.exists():
+        return "Not found", 404
+    ext = thumb_path.suffix.lower()
+    mime = {"jpg": "image/jpeg", "png": "image/png", "webp": "image/webp"}.get(ext.lstrip("."), "image/jpeg")
+    resp = app.response_class(thumb_path.read_bytes(), mimetype=mime)
+    resp.headers["Cache-Control"] = "max-age=86400"
+    return resp
 
 @app.route("/api/history/import", methods=["POST"])
 def import_history():
