@@ -177,7 +177,7 @@
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
-> **Note:** Distributions available on [egerena.com](https://egerena.com)
+> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
 
 ---
 
