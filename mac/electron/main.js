@@ -92,6 +92,8 @@ function debounce(fn, delay) {
 
 let mainWindow  = null;
 let splashWindow = null;
+let _splashReady = false;
+let _splashPending = null;
 let flaskProc   = null;
 
 // ── Fix 1: Single-instance lock ───────────────────────────────────────────────
@@ -183,7 +185,8 @@ function waitForFlask(retries = 180, delay = 1000) {
     let attemptCount = 0;
     const try_ = (n) => {
       attemptCount++;
-      const progress = 30 + Math.min(60, (attemptCount / retries) * 60);
+      // Exponential curve: visible movement early, slows as it approaches 90%
+      const progress = 30 + 60 * (1 - Math.exp(-attemptCount / 30));
       updateSplash(progress, 'Loading...');
       
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
@@ -220,6 +223,14 @@ function createSplash() {
   const splashPath = path.join(__dirname, 'splash.html');
   console.log('[EGM] Loading splash from:', splashPath);
   splashWindow.loadFile(splashPath);
+  _splashReady = false;
+  splashWindow.webContents.once('did-finish-load', () => {
+    _splashReady = true;
+    if (_splashPending) {
+      _applySplashUpdate(_splashPending.progress, _splashPending.message);
+      _splashPending = null;
+    }
+  });
   splashWindow.center();
   splashWindow.show();
   console.log('[EGM] Splash window created and shown');
@@ -227,22 +238,28 @@ function createSplash() {
 
 // ── Send progress to splash ───────────────────────────────────────────────────
 function updateSplash(progress, message) {
-  console.log(`[EGM] ${progress}% - ${message}`);
-  if (splashWindow && !splashWindow.isDestroyed()) {
-    const p = Math.max(0, Math.min(100, Number(progress) || 0));
-    const safeMsg = String(message)
-      .replace(/\\/g, '\\\\')
-      .replace(/'/g, "\\'")
-      .replace(/[\n\r\u2028\u2029]/g, ' ');
-    splashWindow.webContents.executeJavaScript(`
-      document.getElementById('progressBar').style.width = '${p}%';
-      const s = document.getElementById('status');
-      s.textContent = '${safeMsg}';
-      s.classList.add('active');
-    `).catch(() => {});
+  if (!splashWindow || splashWindow.isDestroyed()) return;
+  if (!_splashReady) {
+    _splashPending = { progress, message };
+    return;
   }
+  _applySplashUpdate(progress, message);
 }
 
+function _applySplashUpdate(progress, message) {
+  if (!splashWindow || splashWindow.isDestroyed()) return;
+  const p = Math.max(0, Math.min(100, Number(progress) || 0));
+  const safeMsg = String(message)
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/[\n\r\u2028\u2029]/g, ' ');
+  splashWindow.webContents.executeJavaScript(`
+    document.getElementById('progressBar').style.width = '${p}%';
+    const s = document.getElementById('status');
+    s.textContent = '${safeMsg}';
+    s.classList.add('active');
+  `).catch(() => {});
+}
 function closeSplash() {
   if (splashWindow && !splashWindow.isDestroyed()) {
     setTimeout(() => {
