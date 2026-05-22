@@ -137,8 +137,8 @@
       <br/><sub><b>Themes Tab — Hamburger Panel</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/11-video-output.png">
-        <img src="screenshots/11-video-output.png" width="340" alt="Video Output"/>
+      <a href="screenshots/12-video-output.png">
+        <img src="screenshots/12-video-output.png" width="340" alt="Video Output"/>
       </a>
       <br/><sub><b>Video Output</b></sub>
     </td>
