@@ -50,69 +50,83 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots were captured on v0.98.8. The core UI remains consistent with the current release — updated screenshots will be added in a future update.*
+> 📸 *Screenshots captured on v0.99.9 — Command Center.*
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/main-ui-ghost-theme.png">
-        <img src="screenshots/main-ui-ghost-theme.png" width="340" alt="Main UI — Ghost Theme"/>
+      <a href="screenshots/01-main-ui-condensed.png">
+        <img src="screenshots/01-main-ui-condensed.png" width="340" alt="Main UI — Northern Lights Theme"/>
       </a>
-      <br/><sub><b>Main UI — Ghost Theme</b></sub>
+      <br/><sub><b>Main UI — Northern Lights Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/main-ui-expanded.png">
-        <img src="screenshots/main-ui-expanded.png" width="340" alt="Main UI — Expanded"/>
+      <a href="screenshots/02-main-ui-expanded.png">
+        <img src="screenshots/02-main-ui-expanded.png" width="340" alt="Main UI — Expanded"/>
       </a>
       <br/><sub><b>Main UI — Expanded</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/theme-switcher-famicom.png">
-        <img src="screenshots/theme-switcher-famicom.png" width="340" alt="Theme Switcher — Famicom Theme"/>
+      <a href="screenshots/03-fetching.png">
+        <img src="screenshots/03-fetching.png" width="340" alt="Fetching Videos"/>
       </a>
-      <br/><sub><b>Theme Switcher — Famicom Theme</b></sub>
+      <br/><sub><b>Fetching Videos</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/themes-window.png">
-        <img src="screenshots/themes-window.png" width="340" alt="Themes Window"/>
+      <a href="screenshots/04-advanced-settings-tab.png">
+        <img src="screenshots/04-advanced-settings-tab.png" width="340" alt="Advanced Settings — Hamburger Tab"/>
       </a>
-      <br/><sub><b>Themes Window</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/video-quality-selector.png">
-        <img src="screenshots/video-quality-selector.png" width="340" alt="Video Quality Selector"/>
-      </a>
-      <br/><sub><b>Video Quality Selector</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/downloading-videos.png">
-        <img src="screenshots/downloading-videos.png" width="340" alt="Fetched Videos Downloading"/>
-      </a>
-      <br/><sub><b>Fetched Videos — Downloading</b></sub>
+      <br/><sub><b>Advanced Settings — Hamburger Tab</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/batch-download-quality-picker.png">
-        <img src="screenshots/batch-download-quality-picker.png" width="340" alt="Batch Download Quality Picker"/>
+      <a href="screenshots/05-all-themes.png">
+        <img src="screenshots/05-all-themes.png" width="340" alt="All Themes — 140 Themes"/>
       </a>
-      <br/><sub><b>Batch Download Quality Picker</b></sub>
+      <br/><sub><b>All Themes — 140 Available</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/download-history-expanded.png">
-        <img src="screenshots/download-history-expanded.png" width="340" alt="Download History — Expanded"/>
+      <a href="screenshots/06-download-videos-window.png">
+        <img src="screenshots/06-download-videos-window.png" width="340" alt="Download All Videos Window"/>
       </a>
-      <br/><sub><b>Download History — Expanded</b></sub>
+      <br/><sub><b>Download All Videos</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/07-download-audio-window.png">
+        <img src="screenshots/07-download-audio-window.png" width="340" alt="Download All Audio Window"/>
+      </a>
+      <br/><sub><b>Download All Audio</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/08-downloading-videos.png">
+        <img src="screenshots/08-downloading-videos.png" width="340" alt="Downloading Videos"/>
+      </a>
+      <br/><sub><b>Downloading Videos</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/09-download-history.png">
+        <img src="screenshots/09-download-history.png" width="340" alt="Download History"/>
+      </a>
+      <br/><sub><b>Download History</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/10-hamburger-history.png">
+        <img src="screenshots/10-hamburger-history.png" width="340" alt="Hamburger — History Tab"/>
+      </a>
+      <br/><sub><b>Hamburger — History Tab</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center" colspan="2">
-      <a href="screenshots/video-output.png">
-        <img src="screenshots/video-output.png" width="340" alt="Video Output"/>
+      <a href="screenshots/11-video-output.png">
+        <img src="screenshots/11-video-output.png" width="340" alt="Video Output"/>
       </a>
       <br/><sub><b>Video Output</b></sub>
     </td>
