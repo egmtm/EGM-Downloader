@@ -101,8 +101,6 @@ function debounce(fn, delay) {
 
 let mainWindow  = null;
 let splashWindow = null;
-let _splashReady = false;
-let _splashPending = null;
 let flaskProc   = null;
 let tray        = null;
 
@@ -163,32 +161,8 @@ function createSplash() {
     },
   });
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
-  _splashReady = false;
-  splashWindow.webContents.once('did-finish-load', () => {
-    _splashReady = true;
-    if (_splashPending) {
-      _applySplashUpdate(_splashPending.progress, _splashPending.message);
-      _splashPending = null;
-    }
-  });
   splashWindow.center();
   splashWindow.show();
-}
-
-function updateSplash(progress, message) {
-  if (splashWindow && !splashWindow.isDestroyed()) {
-    const p = Math.max(0, Math.min(100, Number(progress) || 0));
-    const safeMsg = String(message)
-      .replace(/\\/g, '\\\\')
-      .replace(/'/g, "\\'")
-      .replace(/[\n\r\u2028\u2029]/g, ' ');
-    splashWindow.webContents.executeJavaScript(`
-      document.getElementById('progressBar').style.width = '${p}%';
-      const s = document.getElementById('status');
-      s.textContent = '${safeMsg}';
-      s.classList.add('active');
-    `).catch(() => {});
-  }
 }
 
 function closeSplash() {
@@ -204,7 +178,6 @@ function closeSplash() {
 
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
-  updateSplash(10, 'Starting up...');
   const python = findPython();
   const appPy  = path.join(__dirname, '..', 'app.py');
 
@@ -215,9 +188,6 @@ async function startFlask() {
     app.quit();
     return;
   }
-
-  updateSplash(20, 'Initializing...');
-
   flaskProc = spawn(python, [appPy], {
     cwd: path.join(__dirname, '..'),
     env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN },
@@ -244,8 +214,6 @@ async function startFlask() {
       app.quit();
     }
   });
-
-  updateSplash(30, 'Preparing application...');
 }
 
 // ── Fix 4: Single waitForFlask, no double retry ───────────────────────────────
@@ -256,8 +224,6 @@ function waitForFlask(retries = 180, delay = 1000) {
       attemptCount++;
       // Exponential curve: visible movement early, slows as it approaches 90%
       const progress = 30 + 60 * (1 - Math.exp(-attemptCount / 30));
-      updateSplash(progress, 'Loading...');
-
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
         if (n <= 0) {
@@ -340,7 +306,6 @@ async function createWindow() {
 
   // Show window only when Flask page is ready — close splash, show main window
   mainWindow.once('ready-to-show', () => {
-    updateSplash(100, 'Ready!');
     closeSplash();
     mainWindow.show();
   });
@@ -363,7 +328,6 @@ async function createWindow() {
   // Wait for Flask to be ready, then load the page
   try {
     await waitForFlask();
-    updateSplash(90, 'Loading interface...');
     // Clear Chromium's HTTP cache before loading — guarantees fresh templates
     // after an app update. Without this, stale index.html may persist across
     // upgrades. Cheap on every launch (templates re-fetch from local Flask).
@@ -579,7 +543,7 @@ ipcMain.handle('open-themes-window', async () => {
 
 // Theme key validation — alphanumeric only, prevents IPC injection while
 // supporting any future theme without allowlist maintenance
-const VALID_THEME_RE = /^[a-z0-9]+$/;
+const VALID_THEME_RE = /^[a-z0-9-]+$/;
 ipcMain.on('set-theme', (event, theme) => {
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return; // reject malformed theme keys
   if (mainWindow && !mainWindow.isDestroyed()) {
