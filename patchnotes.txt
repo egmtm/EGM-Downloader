@@ -1,3 +1,12 @@
+v0.99.11 - Build 119 (5/23/2026 10:05 AM EST) — FOUNDER'S EDITION
+-----------------------------------------
+  • [ALL] New: 67 themes added — Puerto Rico Collection (22 themes celebrating Ponce, the island, holidays, icons, and culture), Team Easter Eggs (5 themes named after the team behind EGM), and category expansion (cities, space, movies, retro, music, moods, architecture, food, weather)
+  • [ALL] New: dedicated Puerto Rico section in the themes sidebar with flag identifier
+  • [ALL] Polish: 36 themes received contrast readability improvements (text2 and log-text bumps; Savathûn identity rework; Valhalla palette differentiation from N64)
+  • [ALL] Fix: themes window sidebar no longer scrolls away with the page — sidebar and grid scroll independently at any theme count
+  • [ALL] Security: thumbnail fetching restricted to HTTPS-only; rejects file://, ftp://, http:// schemes (defense-in-depth, documented in SECURITY.md)
+  • [ALL] Docs: SECURITY.md updated with documented threat-model decision for thumbnail CDN fetching
+
 v0.99.10 - Build 118 (5/22/2026 7:09 PM EST)
 -----------------------------------------
   • [ALL] New: video thumbnails on download history — locally cached, shown in hamburger list (cropped) and expanded history (blurred fill for vertical videos); fallback icons for audio and pre-thumbnail entries
