@@ -170,8 +170,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.99.10"
-APP_BUILD             = 118
+APP_VERSION           = "0.99.11"
+APP_BUILD             = 119
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
@@ -212,7 +212,7 @@ def _save_history(items: list):
 
 def _download_thumbnail(url: str, entry_id: str) -> str:
     """Download a thumbnail image and save it locally. Returns filename or empty string."""
-    if not url:
+    if not url or not url.startswith("https://"):
         return ""
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
