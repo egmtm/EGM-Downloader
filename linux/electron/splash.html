@@ -16,41 +16,39 @@
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
             object-fit: cover;
         }
-        .title { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
-        .subtitle { font-size: 13px; color: #94a3b8; margin-bottom: 40px; }
-        .progress-container {
-            width: 280px; height: 4px; background: rgba(255,255,255,0.1);
-            border-radius: 2px; overflow: hidden;
+        .title { font-size: 28px; font-weight: 600; margin-bottom: 36px; }
+        .spinner {
+            width: 36px; height: 36px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+            margin-bottom: 20px;
         }
-        .progress-bar {
-            height: 100%; width: 0%; border-radius: 2px;
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-            transition: width 0.3s ease;
-            position: relative; overflow: hidden;
-        }
-        .progress-bar::after {
-            content: ''; position: absolute; inset: 0;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            animation: shimmer 1.5s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
         .status {
-            margin-top: 16px; font-size: 12px; color: #64748b;
-            transition: color 0.3s ease;
+            font-size: 13px; color: #94a3b8;
+            display: inline-flex; align-items: baseline; gap: 1px;
         }
-        .status.active { color: #94a3b8; }
+        .status .dot {
+            display: inline-block;
+            opacity: 0.3;
+            animation: pulse 1.4s infinite ease-in-out;
+        }
+        .status .dot:nth-child(2) { animation-delay: 0s; }
+        .status .dot:nth-child(3) { animation-delay: 0.2s; }
+        .status .dot:nth-child(4) { animation-delay: 0.4s; }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; }
+            50%      { opacity: 1; }
+        }
     </style>
 </head>
 <body>
     <img class="logo" src="../app/static/icon-128.png" alt="EGM">
     <div class="title">EGM Downloader</div>
-    <div class="subtitle">Loading application...</div>
-    <div class="progress-container">
-        <div class="progress-bar" id="progressBar"></div>
-    </div>
-    <div class="status active" id="status">Starting up...</div>
+    <div class="spinner"></div>
+    <div class="status">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
 </body>
 </html>
