@@ -97,8 +97,6 @@ function debounce(fn, delay) {
 
 let mainWindow  = null;
 let splashWindow = null;
-let _splashReady = false;
-let _splashPending = null;
 let flaskProc   = null;
 
 // ── Single-instance lock ──────────────────────────────────────────────────────
@@ -142,8 +140,6 @@ function findPython() {
 
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
-  updateSplash(10, 'Starting up...');
-
   const python = findPython();
   const appPy  = path.join(__dirname, '..', 'app', 'app.py');
   if (!python) {
@@ -152,9 +148,6 @@ async function startFlask() {
     app.quit();
     return;
   }
-
-  updateSplash(20, 'Initializing...');
-
   flaskProc = spawn(python, [appPy], {
     cwd: path.join(__dirname, '..'),
     env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN },
@@ -179,8 +172,6 @@ async function startFlask() {
       app.quit();
     }
   });
-
-  updateSplash(30, 'Preparing application...');
 }
 
 // ── Wait for Flask ────────────────────────────────────────────────────────────
@@ -191,8 +182,6 @@ function waitForFlask(retries = 180, delay = 1000) {
       attemptCount++;
       // Exponential curve: visible movement early, slows as it approaches 90%
       const progress = 30 + 60 * (1 - Math.exp(-attemptCount / 30));
-      updateSplash(progress, 'Loading...');
-
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
         if (n <= 0) {
@@ -224,41 +213,10 @@ function createSplash() {
   });
   const splashPath = path.join(__dirname, 'splash.html');
   splashWindow.loadFile(splashPath);
-  _splashReady = false;
-  splashWindow.webContents.once('did-finish-load', () => {
-    _splashReady = true;
-    if (_splashPending) {
-      _applySplashUpdate(_splashPending.progress, _splashPending.message);
-      _splashPending = null;
-    }
-  });
   splashWindow.center();
   splashWindow.show();
 }
 
-function updateSplash(progress, message) {
-  if (!splashWindow || splashWindow.isDestroyed()) return;
-  if (!_splashReady) {
-    _splashPending = { progress, message };
-    return;
-  }
-  _applySplashUpdate(progress, message);
-}
-
-function _applySplashUpdate(progress, message) {
-  if (!splashWindow || splashWindow.isDestroyed()) return;
-  const p = Math.max(0, Math.min(100, Number(progress) || 0));
-  const safeMsg = String(message)
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/[\n\r\u2028\u2029]/g, ' ');
-  splashWindow.webContents.executeJavaScript(`
-    document.getElementById('progressBar').style.width = '${p}%';
-    const s = document.getElementById('status');
-    s.textContent = '${safeMsg}';
-    s.classList.add('active');
-  `).catch(() => {});
-}
 function closeSplash() {
   if (splashWindow && !splashWindow.isDestroyed()) {
     setTimeout(() => {
@@ -325,7 +283,6 @@ async function createWindow() {
     if (mainWindowShown) return;
     mainWindowShown = true;
     console.log(`[EGM] Main window shown via: ${source}`);
-    updateSplash(100, 'Ready!');
     closeSplash();
     mainWindow.show();
     mainWindow.focus();
@@ -358,7 +315,6 @@ async function createWindow() {
 
   try {
     await waitForFlask();
-    updateSplash(90, 'Loading interface...');
     try { await mainWindow.webContents.session.clearCache(); } catch {}
     mainWindow.loadURL(APP_URL);
     hardenWindow(mainWindow);
@@ -544,7 +500,7 @@ ipcMain.handle('open-themes-window', async () => {
 
 // Theme key validation — alphanumeric only, prevents IPC injection while
 // supporting any future theme without allowlist maintenance
-const VALID_THEME_RE = /^[a-z0-9]+$/;
+const VALID_THEME_RE = /^[a-z0-9-]+$/;
 ipcMain.on('set-theme', (event, theme) => {
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return;
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('theme-changed', theme);
