@@ -1,3 +1,13 @@
+v0.99.10 - Build 118 (5/22/2026 7:09 PM EST)
+-----------------------------------------
+  • [ALL] New: video thumbnails on download history — locally cached, shown in hamburger list (cropped) and expanded history (blurred fill for vertical videos); fallback icons for audio and pre-thumbnail entries
+  • [ALL] New: per-video thumbnail cleanup on history delete, bulk cleanup on cache clear
+  • [ALL] Fix: single-download audio quality selector now offers full format options (MP3 128/192/320, FLAC, M4A 256, OPUS 128/192) matching the Download All modal — respects saved default
+  • [ALL] Note: audio quality is the target output — actual quality is bounded by source. Selecting MP3 320 kbps from a source that only offers 128 kbps gives you an MP3 file at the source's actual quality. Format conversion (MP3/FLAC/OPUS) always works as selected.
+  • [ALL] New: splash redesign — replaced progress bar with spinning indicator and pulsing dots; visually consistent across all startup scenarios including ffmpeg/Deno reinstall
+  • [ALL] Polish: settings folder hint label removed from header
+  • [ALL] New: 30 themes added — Eras & Decades (10), Mythology (10), International Seasonal (10); 29 contrast readability fixes; alphabetical sort in themes window
+
 v0.99.9 - Build 117 (5/21/2026 3:45 PM EST)
 -----------------------------------------
   • [ALL] New: Advanced panel moved to dedicated third tab on hamburger menu — main window decluttered, all settings accessible via History/Themes/Advanced tabs
