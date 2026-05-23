@@ -19,7 +19,7 @@
     body {
       font-family:'Segoe UI',system-ui,sans-serif;
       background:var(--bg);color:var(--text);
-      min-height:100vh;display:flex;flex-direction:column;
+      height:100vh;display:flex;flex-direction:column;overflow:hidden;
       transition:background .2s,color .2s;
       -webkit-app-region:no-drag;
     }
@@ -343,14 +343,92 @@ const THEME_DATA = {
   kwanzaa:       {label:'Kwanzaa',              bg:'#040002', surf:'#0c0006', acc:'#20a040', cat:'seasonal'},
   midsummer:     {label:'Midsummer',            bg:'#100e00', surf:'#1c1800', acc:'#f0d030', cat:'seasonal'},
   oktoberfest:   {label:'Oktoberfest',          bg:'#0c0800', surf:'#181200', acc:'#e09020', cat:'seasonal'},
+
+  /* ── CITIES & SPACE ── */
+  montmartre:    {label:'Montmartre',      bg:'#0c0e14', surf:'#141620', acc:'#d4881e', cat:'cities'},
+  niledusk:      {label:'Nile Dusk',       bg:'#120c04', surf:'#1e1408', acc:'#d4a020', cat:'cities'},
+  hangang:       {label:'Hangang',         bg:'#04060e', surf:'#080c18', acc:'#ff3899', cat:'cities'},
+  londonfog:     {label:'London Fog',      bg:'#0c0e12', surf:'#141618', acc:'#7090a8', cat:'cities'},
+  carnivalcity:  {label:'Carnival City',   bg:'#041410', surf:'#081e18', acc:'#20d870', cat:'cities'},
+  lagospulse:    {label:'Lagos Pulse',     bg:'#100800', surf:'#1c1000', acc:'#f06020', cat:'cities'},
+  redplanet:     {label:'Red Planet',      bg:'#0e0400', surf:'#1c0800', acc:'#e04818', cat:'space'},
+  icegiant:      {label:'Ice Giant',       bg:'#020a18', surf:'#040e22', acc:'#2060f0', cat:'space'},
+  theringedone:  {label:'The Ringed One',  bg:'#0a0800', surf:'#161000', acc:'#e8b040', cat:'space'},
+  io:            {label:'Io',              bg:'#0c0800', surf:'#181200', acc:'#e8c000', cat:'space'},
+  europa:        {label:'Europa',          bg:'#040810', surf:'#080e18', acc:'#80d0f8', cat:'space'},
+
+  /* ── MOVIES / RETRO / MUSIC / MOODS ── */
+  alien:               {label:'Alien',                bg:'#020604', surf:'#060e08', acc:'#40e820', cat:'movies'},
+  lostintranslation:   {label:'Lost in Translation',  bg:'#060410', surf:'#0c0818', acc:'#e870c0', cat:'movies'},
+  theshining:          {label:'The Shining',           bg:'#060000', surf:'#0e0000', acc:'#cc0000', cat:'movies'},
+  scream:              {label:'Scream',                bg:'#020202', surf:'#080808', acc:'#e8e8e8', cat:'movies'},
+  pager:         {label:'Pager',          bg:'#010401', surf:'#030803', acc:'#88ff00', cat:'retro'},
+  floppy:        {label:'Floppy',         bg:'#e8e0d0', surf:'#ddd5c5', acc:'#000080', cat:'light'},
+  laserdisc:     {label:'Laserdisc',      bg:'#080808', surf:'#121212', acc:'#c0c8d0', cat:'retro'},
+  betamax:       {label:'Betamax',        bg:'#0a0800', surf:'#161000', acc:'#d4a040', cat:'retro'},
+  opera:         {label:'Opera',          bg:'#0a0002', surf:'#160006', acc:'#d4a020', cat:'music'},
+  punk:          {label:'Punk',           bg:'#020202', surf:'#080808', acc:'#d4f000', cat:'music'},
+  reggae:        {label:'Reggae',         bg:'#060e00', surf:'#0e1800', acc:'#e8c000', cat:'music'},
+  flamenco:      {label:'Flamenco',       bg:'#080000', surf:'#140000', acc:'#e82020', cat:'music'},
+  solitude:      {label:'Solitude',       bg:'#0c0e10', surf:'#141618', acc:'#8898a8', cat:'moods'},
+  rage:          {label:'Rage',           bg:'#040000', surf:'#0c0000', acc:'#ff0000', cat:'moods'},
+
+  /* ── ARCHITECTURE / FOOD / WEATHER ── */
+  bauhaus:       {label:'Bauhaus',        bg:'#0c0c0c', surf:'#161616', acc:'#cc2200', cat:'architecture'},
+  pagoda:        {label:'Pagoda',         bg:'#0c0602', surf:'#180e06', acc:'#cc2808', cat:'architecture'},
+  pantheon:      {label:'Pantheon',       bg:'#100e08', surf:'#1c1a12', acc:'#c8a840', cat:'architecture'},
+  mudejar:       {label:'Mudejar',        bg:'#100800', surf:'#1c1000', acc:'#d05818', cat:'architecture'},
+  mosaic:        {label:'Mosaic',         bg:'#060810', surf:'#0c1018', acc:'#d4a020', cat:'architecture'},
+  burgerjoint:   {label:'Burger Joint',   bg:'#0e0400', surf:'#1a0800', acc:'#e82020', cat:'food'},
+  takoyaki:      {label:'Takoyaki',       bg:'#100800', surf:'#1c1000', acc:'#e87020', cat:'food'},
+  jerkshack:     {label:'Jerk Shack',     bg:'#080808', surf:'#121210', acc:'#e84020', cat:'food'},
+  nightmarket:   {label:'Night Market',   bg:'#06040e', surf:'#0c0818', acc:'#ff8020', cat:'food'},
+  shawarma:      {label:'Shawarma',       bg:'#0e0a00', surf:'#1a1400', acc:'#d4a020', cat:'food'},
+  blizzard:      {label:'Blizzard',       bg:'#060810', surf:'#0c1018', acc:'#c0d8f8', cat:'weather'},
+  downpour:       {label:'Downpour',        bg:'#060e08', surf:'#0c1610', acc:'#40a8d0', cat:'weather'},
+  heatwave:      {label:'Heat Wave',      bg:'#1a1000', surf:'#261800', acc:'#ff9000', cat:'weather'},
+  fogbank:       {label:'Fogbank',        bg:'#d0d4d8', surf:'#c4c8cc', acc:'#4a6878', cat:'weather'},
+  hurricane:     {label:'Hurricane',      bg:'#030610', surf:'#070c1a', acc:'#e8f0ff', cat:'weather'},
+
+  /* ── TEAM EASTER EGGS ── */
+  codemaster:  {label:'CODEMASTER',   bg:'#020810', surf:'#060e1c', acc:'#0080ff',  cat:'experimental'},
+  overseer:    {label:'OVERSEER',     bg:'#0a0a0a', surf:'#141414', acc:'#c8a840',  cat:'experimental'},
+  gittymaster: {label:'Gitty Master', bg:'#f4f6f8', surf:'#eceef2', acc:'#1a2a3a',  cat:'experimental'},
+  webwizard:   {label:'Web Wizard',   bg:'#060412', surf:'#0c0820', acc:'#c060ff',  cat:'experimental'},
+  artist:      {label:'Artist',       bg:'#04020a', surf:'#0a0614', acc:'#ff6090',  cat:'experimental'},
+
+  /* ── PUERTO RICO ── */
+  sansebastian:      {label:'San Sebastián',        bg:'#040210', surf:'#080418', acc:'#ff4088', cat:'puerto_rico'},
+  nochedesanjuan:    {label:'Noche de San Juan',     bg:'#020810', surf:'#040e1a', acc:'#40c8e8', cat:'puerto_rico'},
+  lasparrandas:      {label:'Las Parrandas',         bg:'#0a0400', surf:'#160800', acc:'#e85020', cat:'puerto_rico'},
+  elyunque:          {label:'El Yunque',             bg:'#021006', surf:'#041c0a', acc:'#28c860', cat:'puerto_rico'},
+  laparguera:        {label:'La Parguera',           bg:'#020810', surf:'#030e18', acc:'#00d8c0', cat:'puerto_rico'},
+  coqui:             {label:'Coquí',                 bg:'#040e04', surf:'#081808', acc:'#68e828', cat:'puerto_rico'},
+  flamboyan:         {label:'Flamboyán',             bg:'#100400', surf:'#1c0800', acc:'#ff5010', cat:'puerto_rico'},
+  conejomalo:        {label:'Conejo Malo 1.0',       bg:'#020202', surf:'#080808', acc:'#e81040', cat:'puerto_rico'},
+  titotrinidad:      {label:'Tito Trinidad',         bg:'#0a0000', surf:'#160000', acc:'#e8a000', cat:'puerto_rico'},
+  parquedebombas:    {label:'Parque de Bombas',      bg:'#080000', surf:'#120000', acc:'#cc0808', cat:'puerto_rico'},
+  lacruceta:         {label:'La Cruceta del Vigía',  bg:'#081018', surf:'#101828', acc:'#e8e8ff', cat:'puerto_rico'},
+  laguancha:         {label:'La Guancha',            bg:'#040e10', surf:'#081a1c', acc:'#20b8e0', cat:'puerto_rico'},
+  lasletras:         {label:'Las Letras de Ponce',   bg:'#080600', surf:'#141000', acc:'#e8b800', cat:'puerto_rico'},
+  plazalasdelicias:  {label:'Plaza Las Delicias',    bg:'#100a00', surf:'#1c1400', acc:'#d07830', cat:'puerto_rico'},
+  sananton:          {label:'San Antón',             bg:'#0e0800', surf:'#1a1200', acc:'#f05830', cat:'puerto_rico'},
+  oldsanjuan:        {label:'Old San Juan',          bg:'#060814', surf:'#0c1020', acc:'#4878e8', cat:'puerto_rico'},
+  laperla:           {label:'La Perla',              bg:'#080410', surf:'#0e0818', acc:'#e84050', cat:'puerto_rico'},
+  islaculebra:       {label:'Isla Culebra',          bg:'#021814', surf:'#042420', acc:'#00e8c8', cat:'puerto_rico'},
+  elmorro:           {label:'El Morro',              bg:'#080e0c', surf:'#101a16', acc:'#4888c8', cat:'puerto_rico'},
+  plena:             {label:'Plena',                 bg:'#100600', surf:'#1c0e00', acc:'#e87820', cat:'puerto_rico'},
+  vejigante:         {label:'Vejigante',             bg:'#06020e', surf:'#0e0618', acc:'#ff3088', cat:'puerto_rico'},
+  mofongo:           {label:'Mofongo',               bg:'#100800', surf:'#1c1200', acc:'#c88028', cat:'puerto_rico'},
 };
 
 // Sidebar structure: ordered sections + categories per section
 const SECTIONS = [
-  { label: 'Style',   cats: ['dark', 'light', 'colors', 'space'] },
-  { label: 'Vibe',    cats: ['music', 'nature', 'cities', 'moods', 'food', 'weather'] },
-  { label: 'Culture', cats: ['movies', 'consoles', 'characters', 'architecture', 'eras', 'mythology'] },
-  { label: 'Other',   cats: ['retro', 'experimental', 'seasonal', 'custom'] },
+  { label: 'Style',         cats: ['dark', 'light', 'colors', 'space'] },
+  { label: 'Vibe',          cats: ['music', 'nature', 'cities', 'moods', 'food', 'weather'] },
+  { label: 'Culture',       cats: ['movies', 'consoles', 'characters', 'architecture', 'eras', 'mythology'] },
+  { label: 'Puerto Rico 🇵🇷', cats: ['puerto_rico'] },
+  { label: 'Other',         cats: ['retro', 'experimental', 'seasonal', 'custom'] },
 ];
 
 const CAT_LABELS = {
@@ -359,6 +437,7 @@ const CAT_LABELS = {
   movies:'Movies', consoles:'Consoles', characters:'Characters',
   retro:'Retro', experimental:'Experimental', seasonal:'Seasonal ✦', custom:'Imported',
   food:'Food & Drink', weather:'Weather',
+  puerto_rico:'Puerto Rico 🇵🇷',
   space:'Space', architecture:'Architecture',
   eras:'Eras & Decades', mythology:'Mythology',
 };

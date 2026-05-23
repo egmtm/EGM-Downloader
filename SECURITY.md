@@ -131,8 +131,20 @@ EGM Downloader makes network requests to:
 - **Video hosting sites** - To download requested content
 - **egerena.com** - To check for updates (Windows/Mac only)
 - **Package managers** - To download yt-dlp and FFmpeg updates
+- **Video thumbnail CDNs** - To cache thumbnails for the download history view (HTTPS-only, 500 KB cap per image)
 
 All network activity is related to core functionality. We do not send telemetry or analytics.
+
+#### Thumbnail Fetching — Design Decision
+
+Thumbnail URLs come from yt-dlp metadata and point to arbitrary content delivery networks (YouTube, Vimeo, SoundCloud, etc.) — no fixed allowlist is feasible because the set of video platforms is open-ended. We deliberately allow these unrestricted hosts, with the following safeguards:
+
+- **HTTPS-only**: `http://`, `file://`, `ftp://`, and other schemes are rejected at the fetch boundary
+- **Size cap**: 500 KB hard limit on any thumbnail download (prevents abuse via large files)
+- **Storage safety**: filenames are derived from `uuid.uuid4()` with whitelist-selected extensions (`.jpg`/`.png`/`.webp`); no path-traversal is possible at write time
+- **Serve-side validation**: the `/api/thumbnail/<filename>` endpoint enforces a strict regex (`^[a-f0-9\-]+\.(jpg|png|webp)$`) and serves only files that exist in the thumbnails directory
+
+This is the same threat-model decision other download-manager apps make (e.g., Downie) when handling arbitrary video sources.
 
 ### File System Access
 
