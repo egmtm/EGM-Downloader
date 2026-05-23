@@ -228,6 +228,7 @@ def _append_history(job: dict, final_path):
             "file_path":    str(final_path),
             "size_bytes":   size_bytes,
             "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+            "thumbnail":    thumb,
         }
         with _history_lock:
             items = _load_history()
@@ -881,7 +882,8 @@ def save_settings():
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
                "upd_open", "ck_open", "quit_on_done", "flask_port",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
-               "subtitles", "embed_metadata", "output_format"}
+               "subtitles", "embed_metadata", "output_format",
+               "default_audio_format", "default_video_format"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
