@@ -42,7 +42,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and download them all at once
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
-- 🎨 **140 Themes** - 130 permanent across 14 categories + 10 seasonal easter eggs with smooth transitions
+- 🎨 **170 Themes** - 160 permanent across 18 categories + 10 seasonal easter eggs with smooth transitions
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
 - 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
@@ -151,29 +151,29 @@
 
 ### Windows
 **Latest:** v0.99.10 Build 118  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (328 KB · ~800 MB after install)  
-**SHA256:** `5a821f47065ed671b800fff1db3e47d579a6777d0b522edad09830534937dd56`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (335 KB · ~800 MB after install)  
+**SHA256:** `24c2c03f7491910cbdd10736c863e2205a71937fa95599e245fd60880c11223d`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v0.99.10 Build 118  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (284 KB · ~800 MB after first run)  
-**SHA256:** `09b6a83c6ba513a3e7c18e0970efcb7d6af8fcfd3828156fb3b872b4cfa7cb91`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (295 KB · ~800 MB after first run)  
+**SHA256:** `a68d170d342de509d669bb7209edd4b06ec62947ab5aa457752b4b0e512ede7b`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
 **Latest:** v0.99.10 Build 118  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (118 MB · ~300 MB after install)  
-**SHA256:** `06067edeb77a31d337d3ad11af9c8c7b98f0b6946e7b873681c3beba5ff1e332`  
+**SHA256:** `b4b36f4675a6b2e9eac5cde10f559f682a8d18400b744f9bb7c69e8ca0ed2dbc`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v0.99.10 Build 118  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (135 MB · ~300 MB after install)  
-**SHA256:** `9384496f22540101279ab8bf54d28113303146b3b8d7489f1be47d309d2534a9`  
+**SHA256:** `3991143608dce92835a37352c501761b2571375e61fe56581a4811f63de6cb0f`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -252,7 +252,7 @@
 - 🎨 +20 new themes
 - 🔍 Windows tray menu density research deferred to v0.99.10
 
-**v0.99.10 — DIRECTOR'S CUT:** ⏳ Coming soon
+**v0.99.10 — DIRECTOR'S CUT:** ✅ Shipped
 - 🖼️ Video thumbnails in download history
 - 🎵 Expanded audio quality options
 - 🎨 +20 new themes
@@ -422,10 +422,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 117 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 117 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 117 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 117 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 118 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 118 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 118 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 118 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
