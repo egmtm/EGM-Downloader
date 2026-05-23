@@ -252,12 +252,14 @@
 - 🎨 +20 new themes
 - 🔍 Windows tray menu density research deferred to v0.99.10
 
-**v0.99.10 — DIRECTOR'S CUT:**
+**v0.99.10 — DIRECTOR'S CUT:** ⏳ Coming soon
 - 🖼️ Video thumbnails in download history
-- 🎵 Expanded audio quality options for single downloads
+- 🎵 Expanded audio quality options
 - 🎨 +20 new themes
 
-**v0.99.11+ — VAULT:**
+**v0.99.11 — SURPRISE:** 🤫 Stay tuned
+
+**v0.99.12+ — VAULT:**
 - 🔒 Signed update manifests — cryptographically verified before any update installs
 - 🧪 Security test suite covering all critical paths
 
