@@ -35,8 +35,15 @@ if ! command -v python3 &> /dev/null; then
     echo "❌ python3 not found!"
     exit 1
 fi
+if ! command -v x86_64-w64-mingw32-gcc &> /dev/null; then
+    echo "❌ mingw-w64 not found! (required for compiling the launcher EXE)"
+    echo "   Install: sudo apt install mingw-w64   (Linux)"
+    echo "            brew install mingw-w64       (macOS)"
+    exit 1
+fi
 echo "   ✓ makensis: $(makensis -VERSION)"
 echo "   ✓ Python:   $(python3 --version)"
+echo "   ✓ mingw-w64: $(x86_64-w64-mingw32-gcc --version | head -1)"
 echo ""
 
 # ── Read version from version.json (single source of truth) ──────────────────
@@ -50,7 +57,7 @@ echo ""
 # ── Verify all source files present ─────────────────────────────────────────
 echo "📋 Verifying source files..."
 MISSING=0
-for f in "windows/EGM Downloader.vbs" windows/launch.bat windows/launch.py \
+for f in windows/launcher.c windows/launcher.rc windows/launch.bat windows/launch.py \
          windows/instructions.txt app.py requirements.txt patchnotes.txt README.md \
          templates/index.html templates/history.html static/icon.ico static/icon-512.png \
          windows/electron/main.js windows/electron/preload.js windows/electron/package.json; do
@@ -72,6 +79,17 @@ echo "🧹 Cleaning old Windows build artifacts..."
 mkdir -p "$REPO_ROOT/dist"
 rm -f "$REPO_ROOT/dist/egm-setup.exe" "$REPO_ROOT/dist/EGMd.zip"
 echo "   ✓ Cleaned"
+echo ""
+
+# ── Compile launcher EXE (replaces .vbs) ─────────────────────────────────────
+echo "🔨 Compiling launcher EXE (EGM Downloader.exe)..."
+cd "$REPO_ROOT/windows"
+x86_64-w64-mingw32-windres launcher.rc -O coff -o launcher.res
+x86_64-w64-mingw32-gcc -O2 -mwindows -municode -s launcher.c launcher.res -o "EGM Downloader.exe"
+LAUNCHER_SIZE=$(stat -c %s "EGM Downloader.exe")
+echo "   ✓ EGM Downloader.exe — $LAUNCHER_SIZE bytes"
+rm -f launcher.res
+cd "$REPO_ROOT"
 echo ""
 
 # ── Compile NSIS installer ───────────────────────────────────────────────────
@@ -186,7 +204,7 @@ rm -rf "$PORTABLE_STAGE"
 mkdir -p "$PORTABLE_STAGE/templates" "$PORTABLE_STAGE/static" "$PORTABLE_STAGE/electron"
 
 # Root files — must exactly match what NSIS installs (validated by validate-version-sync.py)
-cp "$REPO_ROOT/windows/EGM Downloader.vbs"   "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/windows/EGM Downloader.exe"   "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/launch.bat"            "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/launch.py"             "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/instructions.txt"      "$PORTABLE_STAGE/"
@@ -249,7 +267,7 @@ REQUIREMENTS
 HOW TO RUN
 ─────────────
   1. Extract this zip to any folder (Desktop, USB stick, etc.)
-  2. Double-click "EGM Downloader.vbs" to launch
+  2. Double-click "EGM Downloader.exe" to launch
   3. On first launch, the app downloads required components:
 
        Node.js + Electron  ~280 MB  (one time only)
@@ -262,7 +280,7 @@ HOW TO RUN
 WHERE YOUR DATA IS STORED
 ──────────────────────────
   Settings, download history, and cookies are stored in:
-    data\  (inside this folder, next to EGM Downloader.vbs)
+    data\  (inside this folder, next to EGM Downloader.exe)
 
   Moving or copying this entire folder preserves all your settings.
 
@@ -303,7 +321,7 @@ TROUBLESHOOTING
         then relaunch — it will reinstall automatically
 
   Blank screen on launch
-      → Right-click "EGM Downloader.vbs" → Run as administrator
+      → Right-click "EGM Downloader.exe" → Run as administrator
 
 
 SUPPORT
