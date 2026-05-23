@@ -151,21 +151,21 @@
 
 ### Windows
 **Latest:** v0.99.11 Build 119  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (349 KB · ~800 MB after install)  
-**SHA256:** `b30d6fe8ce379318822754e6c0ed1609eec42ef7bc9f9f1eeba49c6cb0d950cd`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (355 KB · ~800 MB after install)  
+**SHA256:** `b5d86bdce7004dd9b8f0dff768a7735e1b5d189eb07d2b8f302bacc6141c4a95`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v0.99.11 Build 119  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (315 KB · ~800 MB after first run)  
-**SHA256:** `3bb3642173bf9f1e351fcf9b5bac8de7681717ab4ebe392a56073ebeba4e4d40`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (358 KB · ~800 MB after first run)  
+**SHA256:** `11d1bfdbd73a719a855537428361f887aa685582fe5622426e97c77b0768ce26`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive
 
 ### macOS
 **Latest:** v0.99.11 Build 119  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (118 MB · ~300 MB after install)  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (119 MB · ~300 MB after install)  
 **SHA256:** `fafc2c7c04b44085cfa1eb63f064cfbe94869aa4183e5231a88abf500591b77d`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -190,7 +190,7 @@
 
 ### Windows Portable
 1. Extract `EGMd-portable.zip` to any folder or USB drive
-2. Run `EGM Downloader.vbs`
+2. Run `EGM Downloader.exe`
 3. Paste a video URL and click Download!
 
 > Settings and data stay in the same folder — take it anywhere.

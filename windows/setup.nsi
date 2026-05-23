@@ -59,7 +59,7 @@ Var PreviousInstDir
 
 !define MUI_DIRECTORYPAGE_TEXT_TOP "Choose the folder where EGM Downloader will be installed."
 
-!define MUI_FINISHPAGE_RUN      "$INSTDIR\EGM Downloader.vbs"
+!define MUI_FINISHPAGE_RUN      "$INSTDIR\EGM Downloader.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "Launch ${APPNAME}"
 !define MUI_FINISHPAGE_RUN_FUNCTION FinishPage_LaunchApp
 !define MUI_FINISHPAGE_TITLE    "Installation Complete"
@@ -83,13 +83,13 @@ Var PreviousInstDir
 ; ── Desktop shortcut — created only if user checks the box on finish page ────
 Function FinishPage_CreateDesktopShortcut
   CreateShortCut "$DESKTOP\EGM Downloader.lnk" \
-    "$INSTDIR\EGM Downloader.vbs" "" \
+    "$INSTDIR\EGM Downloader.exe" "" \
     "$INSTDIR\static\icon.ico" 0
 FunctionEnd
 
 ; ── Launch app from finish page — uses ShellExecute to avoid CMD flash ────────
 Function FinishPage_LaunchApp
-  ExecShell "open" "$INSTDIR\EGM Downloader.vbs"
+  ExecShell "open" "$INSTDIR\EGM Downloader.exe"
 FunctionEnd
 
 ; ── Startup: detect existing install ─────────────────────────
@@ -134,7 +134,7 @@ Section "Install"
   SetOutPath "$INSTDIR"
 
   ; ── Root files ──
-  File "${REPO_ROOT}/windows/EGM Downloader.vbs"
+  File "${REPO_ROOT}/windows/EGM Downloader.exe"
   File "${REPO_ROOT}/windows/launch.bat"
   File "${REPO_ROOT}/windows/launch.py"
   File "${REPO_ROOT}/windows/instructions.txt"
@@ -189,7 +189,7 @@ Section "Install"
   ; ── Start Menu shortcuts ──
   CreateDirectory "$SMPROGRAMS\${APPNAME}"
   CreateShortcut  "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" \
-                  "$INSTDIR\EGM Downloader.vbs" "" "$INSTDIR\static\icon.ico"
+                  "$INSTDIR\EGM Downloader.exe" "" "$INSTDIR\static\icon.ico"
   CreateShortcut  "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk" \
                   "$INSTDIR\uninstall.exe"
 
@@ -200,7 +200,7 @@ SectionEnd
 ; ── Uninstall Section ────────────────────────────────────────
 Section "Uninstall"
   ; ── Remove app files ──
-  Delete "$INSTDIR\EGM Downloader.vbs"
+  Delete "$INSTDIR\EGM Downloader.exe"
   Delete "$INSTDIR\launch.bat"
   Delete "$INSTDIR\launch.py"
   Delete "$INSTDIR\instructions.txt"
