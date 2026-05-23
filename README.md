@@ -161,7 +161,8 @@
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (358 KB · ~800 MB after first run)  
 **SHA256:** `11d1bfdbd73a719a855537428361f887aa685582fe5622426e97c77b0768ce26`  
 **Requirements:** Windows 10/11 (64-bit)  
-**No installer, no registry** — runs from any folder or USB drive
+**No installer, no registry** — runs from any folder or USB drive  
+**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
 **Latest:** v0.99.11 Build 119  
