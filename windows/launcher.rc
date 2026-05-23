@@ -1,0 +1,35 @@
+/* Resource file for EGM Downloader launcher
+ * Embeds the icon and version metadata into the EXE.
+ */
+
+#include <winver.h>
+
+/* App icon — uses the same icon.ico as the main app */
+1 ICON "../static/icon.ico"
+
+/* Version info block — shows up in Properties → Details */
+1 VERSIONINFO
+FILEVERSION     0,99,11,0
+PRODUCTVERSION  0,99,11,0
+FILEOS          0x40004L
+FILETYPE        0x1L
+{
+    BLOCK "StringFileInfo"
+    {
+        BLOCK "040904b0"
+        {
+            VALUE "CompanyName",      "EGM"
+            VALUE "FileDescription",  "EGM Downloader Launcher"
+            VALUE "FileVersion",      "0.99.11"
+            VALUE "InternalName",     "EGM Downloader"
+            VALUE "LegalCopyright",   "Copyright (C) EGM"
+            VALUE "OriginalFilename", "EGM Downloader.exe"
+            VALUE "ProductName",      "EGM Downloader"
+            VALUE "ProductVersion",   "0.99.11"
+        }
+    }
+    BLOCK "VarFileInfo"
+    {
+        VALUE "Translation", 0x0409, 0x04b0
+    }
+}
