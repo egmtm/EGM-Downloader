@@ -7,6 +7,7 @@ v0.99.11 - Build 119 (5/23/2026 10:05 AM EST) — FOUNDER'S EDITION
   • [ALL] Security: thumbnail fetching restricted to HTTPS-only; rejects file://, ftp://, http:// schemes (defense-in-depth, documented in SECURITY.md)
   • [ALL] Docs: SECURITY.md updated with documented threat-model decision for thumbnail CDN fetching
   • [WINDOWS] Trust: .vbs launcher removed; portable now code-signed alongside installer — fewer SmartScreen warnings, no antivirus false positives.
+  • [ALL] Known Issues: Some placeholder text and section labels may have low contrast on certain themes. A fix is ready and will ship in the next release.
 
 v0.99.10 - Build 118 (5/22/2026 7:09 PM EST)
 -----------------------------------------
