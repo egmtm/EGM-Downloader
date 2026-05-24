@@ -266,12 +266,12 @@
 - 🔒 Thumbnail fetching restricted to HTTPS-only
 
 **v0.99.12 — VAULT:**
+- 🔧 Theme placeholder + section label contrast fix — as promised from v0.99.11 known issues
 - 🔒 Signed update manifests — cryptographically verified (ed25519) before any update installs
 - 📋 Structured security event logging — all security-relevant events logged to rotating `security.log`
 - 🧪 Unit test suite — ~13 tests covering Tier 1 parity, Tier 2 security, and historical regressions; wired into CI
 
 **v0.99.13 — SOLID:**
-- 🔧 Theme placeholder + section label contrast fix — as promised from v0.99.11 known issues
 - ⚛️ Atomic file writes — history, settings, cookies and reset paths hardened against corruption
 - 🔍 Strict image magic byte detection — canonical pattern matching replaces loose checks
 - 🛡️ Content-Type header validation on thumbnail fetches — defense-in-depth on top of existing HTTPS-only + size cap stack
