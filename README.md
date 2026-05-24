@@ -51,6 +51,7 @@
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
+- 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, no data transmitted anywhere. Site cookies are handled locally and never pass through our servers or any other network.
 
 ---
 
