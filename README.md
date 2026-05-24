@@ -56,85 +56,85 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v0.99.9 — Command Center.*
+> 📸 *Screenshots captured on v0.99.11 running on Linux. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/01-main-ui-condensed.png">
-        <img src="screenshots/01-main-ui-condensed.png" width="340" alt="Main UI — Northern Lights Theme"/>
+      <a href="screenshots/01-loading.png">
+        <img src="screenshots/01-loading.png" width="340" alt="Loading Screen"/>
       </a>
-      <br/><sub><b>Main UI — Northern Lights Theme</b></sub>
+      <br/><sub><b>Loading Screen</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-expanded.png">
-        <img src="screenshots/02-main-ui-expanded.png" width="340" alt="Main UI — Expanded"/>
+      <a href="screenshots/02-main-ui-ghost-theme.png">
+        <img src="screenshots/02-main-ui-ghost-theme.png" width="340" alt="Main UI — Ghost Theme"/>
       </a>
-      <br/><sub><b>Main UI — Expanded</b></sub>
+      <br/><sub><b>Main UI — Ghost Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/03-fetching.png">
-        <img src="screenshots/03-fetching.png" width="340" alt="Fetching Videos"/>
+      <a href="screenshots/03-themes-window.png">
+        <img src="screenshots/03-themes-window.png" width="340" alt="Themes Window — 230+ Themes"/>
+      </a>
+      <br/><sub><b>Themes Window — 230+ Themes</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/04-fetching-videos.png">
+        <img src="screenshots/04-fetching-videos.png" width="340" alt="Fetching Videos"/>
       </a>
       <br/><sub><b>Fetching Videos</b></sub>
     </td>
-    <td align="center">
-      <a href="screenshots/04-advanced-settings-tab.png">
-        <img src="screenshots/04-advanced-settings-tab.png" width="340" alt="Advanced Settings — Hamburger Tab"/>
-      </a>
-      <br/><sub><b>Advanced Settings — Hamburger Tab</b></sub>
-    </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/05-all-themes.png">
-        <img src="screenshots/05-all-themes.png" width="340" alt="All Themes — 140 Themes"/>
+      <a href="screenshots/05-fetched-videos.png">
+        <img src="screenshots/05-fetched-videos.png" width="340" alt="Fetched Videos — Ready to Download"/>
       </a>
-      <br/><sub><b>All Themes — 140 Total (130 Permanent + 10 Seasonal)</b></sub>
+      <br/><sub><b>Fetched Videos — Ready to Download</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/06-download-videos-window.png">
-        <img src="screenshots/06-download-videos-window.png" width="340" alt="Download All Videos Window"/>
-      </a>
-      <br/><sub><b>Download All Videos</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/07-download-audio-window.png">
-        <img src="screenshots/07-download-audio-window.png" width="340" alt="Download All Audio Window"/>
-      </a>
-      <br/><sub><b>Download All Audio</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/08-downloading-videos.png">
-        <img src="screenshots/08-downloading-videos.png" width="340" alt="Downloading Videos"/>
+      <a href="screenshots/06-downloading-videos.png">
+        <img src="screenshots/06-downloading-videos.png" width="340" alt="Downloading Videos"/>
       </a>
       <br/><sub><b>Downloading Videos</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/09-download-history.png">
-        <img src="screenshots/09-download-history.png" width="340" alt="Download History"/>
+      <a href="screenshots/07-hamburger-history.png">
+        <img src="screenshots/07-hamburger-history.png" width="340" alt="Hamburger Panel — Download History"/>
       </a>
-      <br/><sub><b>Download History</b></sub>
+      <br/><sub><b>Hamburger — Download History</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/10-hamburger-history.png">
-        <img src="screenshots/10-hamburger-history.png" width="340" alt="Hamburger — History Tab"/>
+      <a href="screenshots/08-hamburger-themes.png">
+        <img src="screenshots/08-hamburger-themes.png" width="340" alt="Hamburger Panel — Themes"/>
       </a>
-      <br/><sub><b>Hamburger — History Tab</b></sub>
+      <br/><sub><b>Hamburger — Themes Tab</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/11-themes-from-hamburger.png">
-        <img src="screenshots/11-themes-from-hamburger.png" width="340" alt="Themes Tab — Hamburger Panel"/>
+      <a href="screenshots/09-hamburger-advanced.png">
+        <img src="screenshots/09-hamburger-advanced.png" width="340" alt="Hamburger Panel — Advanced Settings"/>
       </a>
-      <br/><sub><b>Themes Tab — Hamburger Panel</b></sub>
+      <br/><sub><b>Hamburger — Advanced Settings</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/10-expanded-history.png">
+        <img src="screenshots/10-expanded-history.png" width="340" alt="Expanded Download History"/>
+      </a>
+      <br/><sub><b>Expanded Download History</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/11-plugins-panel.png">
+        <img src="screenshots/11-plugins-panel.png" width="340" alt="Plugins Update Panel"/>
+      </a>
+      <br/><sub><b>Plugins Update Panel</b></sub>
     </td>
     <td align="center">
       <a href="screenshots/12-video-output.png">
