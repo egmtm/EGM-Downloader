@@ -21,7 +21,7 @@
   <p><strong>A powerful, multi-platform video and audio downloader for 1000+ websites.</strong></p>
   
   <p>Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.</p>
-  <p><em>Powered by yt-dlp · runs locally · no telemetry · no accounts</em></p>
+  <p><em>Powered by yt-dlp · runs locally · no cloud · no tracking · no accounts</em></p>
 </div>
 
 ---
