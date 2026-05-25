@@ -420,6 +420,29 @@ const THEME_DATA = {
   plena:             {label:'Plena',                 bg:'#100600', surf:'#1c0e00', acc:'#e87820', cat:'puerto_rico'},
   vejigante:         {label:'Vejigante',             bg:'#06020e', surf:'#0e0618', acc:'#ff3088', cat:'puerto_rico'},
   mofongo:           {label:'Mofongo',               bg:'#100800', surf:'#1c1200', acc:'#c88028', cat:'puerto_rico'},
+
+  /* ── Operating Systems ── */
+  windows95:     {label:'Windows 95',      bg:'#008080', surf:'#c0c0c0', acc:'#000080', cat:'os'},
+  windowsxp:     {label:'Windows XP',      bg:'#1c4a8a', surf:'#2458a8', acc:'#3a8a30', cat:'os'},
+  windowsvista:  {label:'Windows Vista',   bg:'#04102a', surf:'#081828', acc:'#4090e8', cat:'os'},
+  windows7:      {label:'Windows 7',       bg:'#06141e', surf:'#0c1e2e', acc:'#1e78d8', cat:'os'},
+  windows11:     {label:'Windows 11',      bg:'#0a0c10', surf:'#141618', acc:'#0078d4', cat:'os'},
+  macos9:        {label:'Mac OS 9',        bg:'#c8c8c8', surf:'#d8d8d8', acc:'#004080', cat:'os'},
+  macosxaqua:    {label:'Mac OS X Aqua',   bg:'#082060', surf:'#102878', acc:'#60b8f8', cat:'os'},
+  macosbigsur:   {label:'macOS Big Sur',   bg:'#e8eef8', surf:'#f0f4fc', acc:'#0060d0', cat:'os'},
+  macossequoia:  {label:'macOS Sequoia',   bg:'#0e1014', surf:'#161820', acc:'#0a84ff', cat:'os'},
+  ubuntu:        {label:'Ubuntu',          bg:'#1a0a1e', surf:'#2a1030', acc:'#e95420', cat:'os'},
+  archlinux:     {label:'Arch Linux',      bg:'#040810', surf:'#080e1a', acc:'#1793d1', cat:'os'},
+  kalilinux:     {label:'Kali Linux',      bg:'#020408', surf:'#060810', acc:'#367bf0', cat:'os'},
+  fedora:        {label:'Fedora',          bg:'#060c1a', surf:'#0c1428', acc:'#3c6eb4', cat:'os'},
+  beos:          {label:'BeOS',            bg:'#0a0e18', surf:'#121824', acc:'#4888d8', cat:'os'},
+  amiga:         {label:'Amiga',           bg:'#0050a0', surf:'#0060b8', acc:'#ff8800', cat:'os'},
+  dos:           {label:'DOS',             bg:'#000000', surf:'#080800', acc:'#ffaa00', cat:'os'},
+  nextstep:      {label:'NeXTSTEP',        bg:'#080808', surf:'#141414', acc:'#a0a0a0', cat:'os'},
+  os2warp:       {label:'OS/2 Warp',       bg:'#000060', surf:'#000080', acc:'#e8e800', cat:'os'},
+  solaris:       {label:'Solaris',         bg:'#0e0800', surf:'#1a1000', acc:'#e87820', cat:'os'},
+  unix:          {label:'Unix',            bg:'#000000', surf:'#040804', acc:'#00cc00', cat:'os'},
+  bsd:           {label:'BSD',             bg:'#060002', surf:'#0e0006', acc:'#cc0020', cat:'os'},
 };
 
 // Sidebar structure: ordered sections + categories per section
@@ -428,6 +451,7 @@ const SECTIONS = [
   { label: 'Vibe',          cats: ['music', 'nature', 'cities', 'moods', 'food', 'weather'] },
   { label: 'Culture',       cats: ['movies', 'consoles', 'characters', 'architecture', 'eras', 'mythology'] },
   { label: 'Puerto Rico 🇵🇷', cats: ['puerto_rico'] },
+  { label: 'OS',            cats: ['os'] },
   { label: 'Other',         cats: ['retro', 'experimental', 'seasonal', 'custom'] },
 ];
 
@@ -438,6 +462,7 @@ const CAT_LABELS = {
   retro:'Retro', experimental:'Experimental', seasonal:'Seasonal ✦', custom:'Imported',
   food:'Food & Drink', weather:'Weather',
   puerto_rico:'Puerto Rico 🇵🇷',
+  os:'Operating Systems',
   space:'Space', architecture:'Architecture',
   eras:'Eras & Decades', mythology:'Mythology',
 };
