@@ -1,3 +1,10 @@
+v0.99.12 - Build 120 (5/25/2026 11:59 AM EST) — VAULT
+-----------------------------------------
+  • [ALL] Fix: placeholder text and section labels now use theme-aware color across all 238 themes — closes v0.99.11 known issue
+  • [ALL] Security: signed update manifests — ed25519 signature verified on every update check before any content is trusted; unsigned or tampered manifests silently rejected
+  • [ALL] Security: structured security event logging — all security-relevant events (token mismatch, host rejection, checksum failure, path traversal, thumbnail URL rejection, manifest verification failure) logged to console and rotating DATA_DIR/logs/security.log
+  • [ALL] Quality: unit test suite — 17 tests covering cross-platform parity, security boundaries, and historical regressions; wired into GitHub Actions CI (runs on every push to main)
+
 v0.99.11 - Build 119 (5/23/2026 10:05 AM EST) — FOUNDER'S EDITION
 -----------------------------------------
   • [ALL] New: 67 themes added — Puerto Rico Collection (22 themes celebrating Ponce, the island, holidays, icons, and culture), Team Easter Eggs (5 themes named after the team behind EGM), and category expansion (cities, space, movies, retro, music, moods, architecture, food, weather)
