@@ -276,13 +276,19 @@
 - 🔍 Strict image magic byte detection — canonical pattern matching replaces loose checks
 - 🛡️ Content-Type header validation on thumbnail fetches — defense-in-depth on top of existing HTTPS-only + size cap stack
 
-**v1.0 — IGNITION:**
-- 📡 Subscriptions — save any channel or playlist, check for new content automatically
-- ⬇️ Download what's new in one click
+**v1.0 — CORNERSTONE:**
+- 🧱 The foundation release — everything built since v0.93 comes together here
+- Stability, polish, and trust. Not a feature drop — a statement of maturity
 
-**v1.1 — POLYGLOT:**
-- 🌍 In-app language picker — 10 languages at launch (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
-- 🤝 Community translation system
+**v1.1 — IGNITION:**
+- 📡 Subscriptions — save any channel or playlist once, automatically download what's new
+- The engine fires here. Subscriptions touch backend, UI, and update flow — given room to land right
+
+**v1.2 — [TBD]:**
+- 🔭 Next chapter — details after v1.1 ships
+
+**v1.3 — POLYGLOT:**
+- 🌍 In-app language picker — multi-language support, clean and unhurried
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
