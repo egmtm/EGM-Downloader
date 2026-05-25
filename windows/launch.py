@@ -69,7 +69,7 @@ def ensure_python_deps():
     except ImportError: pass
     _gui_msg("Installing Python packages…")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "pyzipper"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "pyzipper", "cryptography"],
                    check=True, timeout=300, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
