@@ -55,7 +55,7 @@ def _sec_event(event: str) -> None:
     line = f"[{ts}] [SECURITY] {event}"
     print(line, flush=True)
     try:
-        log_dir  = DATA_DIR / 'logs'
+        log_dir  = get_data_dir() / "logs"
         log_dir.mkdir(exist_ok=True)
         log_path = log_dir / 'security.log'
         if log_path.exists() and log_path.stat().st_size > 5 * 1024 * 1024:
