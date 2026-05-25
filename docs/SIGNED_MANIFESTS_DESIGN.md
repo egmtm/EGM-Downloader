@@ -91,7 +91,7 @@ The app fetches the JSON, extracts the `signature` field, verifies the remaining
 
 **How to rotate:**
 1. Generate a new keypair
-2. Update `MANIFEST_PUBLIC_KEY` constant in all 3 `main.js` files
+2. Update the `_MANIFEST_PUBLIC_KEY_PEM` constant in all 3 `app.py` files (root for Windows, `mac/app.py`, `linux/app.py`) — this is the PEM-encoded ed25519 public key embedded at build time
 3. Ship an app update with the new public key embedded — **this update must be signed with the OLD private key** so existing users' apps accept it
 4. After the update reaches users (allow 2-4 weeks), switch signing to the new private key
 5. Retire and securely delete the old private key
