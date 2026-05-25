@@ -46,6 +46,53 @@ HTTP_TIMEOUT_LONG  = 120  # binary downloads (ffmpeg, deno, app installer)
 # Bound jobs dict growth to keep memory predictable over long sessions
 MAX_JOBS = 1000
 
+# ── Structured security event logging ────────────────────────────────────────
+def _sec_event(event: str) -> None:
+    """Emit a structured security log entry to stdout and a rotating file.
+    Never raises — logging must never crash the app."""
+    import time as _time
+    ts   = _time.strftime('%Y-%m-%dT%H:%M:%S')
+    line = f"[{ts}] [SECURITY] {event}"
+    print(line, flush=True)
+    try:
+        log_dir  = DATA_DIR / 'logs'
+        log_dir.mkdir(exist_ok=True)
+        log_path = log_dir / 'security.log'
+        if log_path.exists() and log_path.stat().st_size > 5 * 1024 * 1024:
+            for i in range(2, 0, -1):
+                src = log_dir / f'security.log.{i}'
+                if src.exists(): src.rename(log_dir / f'security.log.{i + 1}')
+            log_path.rename(log_dir / 'security.log.1')
+        with log_path.open('a', encoding='utf-8') as _f:
+            _f.write(line + '\n')
+    except Exception:
+        pass
+
+# ── Signed manifest public key + verification ─────────────────────────────────
+_MANIFEST_PUBLIC_KEY_PEM = (
+    b"-----BEGIN PUBLIC KEY-----\n"
+    b"MCowBQYDK2VwAyEAFiI0KygA+dzE3dAFiL2jYFg5XDtkLHpY5WAX0GgC+xM=\n"
+    b"-----END PUBLIC KEY-----\n"
+)
+
+def _verify_manifest(data: dict) -> bool:
+    """Verify the ed25519 signature on an update manifest.
+    Returns True if signature is present and valid, False otherwise."""
+    try:
+        from cryptography.hazmat.primitives.serialization import load_pem_public_key
+        from cryptography.exceptions import InvalidSignature
+        import base64, json as _json
+        sig_b64 = data.get('signature', '')
+        if not sig_b64:
+            return False
+        payload_dict = {k: v for k, v in data.items() if k != 'signature'}
+        payload  = _json.dumps(payload_dict, sort_keys=True, separators=(',', ':')).encode('utf-8')
+        pub_key  = load_pem_public_key(_MANIFEST_PUBLIC_KEY_PEM)
+        pub_key.verify(base64.b64decode(sig_b64), payload)
+        return True
+    except Exception:
+        return False
+
 def _is_allowed_host(url):
     """Return True if the URL's hostname is in the outbound whitelist."""
     try:
@@ -127,13 +174,16 @@ def _verify_upstream_checksum(local_path, checksum_url, filename):
                     break
 
         if not expected:
+            _sec_event(f"Checksum: no entry found for {filename!r} in {checksum_url}")
             return False, f"No checksum entry found for {filename} — install aborted (try again later)"
         actual = hashlib.sha256(local_path.read_bytes()).hexdigest().lower()
         if actual != expected:
+            _sec_event(f"Checksum mismatch for {filename!r}: expected {expected}, got {actual}")
             return False, (f"Checksum mismatch for {filename}. "
                            "The download may be corrupted or tampered — install aborted.")
         return True, f"OK Checksum verified ({filename})"
     except Exception as e:
+        _sec_event(f"Checksum verification error for {filename!r}: {e}")
         return False, f"Could not verify checksum ({e}) — install aborted (check network and retry)"
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
 # /api/show-window is exempt because launch.py (second-instance signaler) has no token access
@@ -154,12 +204,14 @@ def _extract_host(host):
 def _verify_host_header():
     host_only = _extract_host(request.host)
     if host_only and host_only not in _ALLOWED_HOSTS:
+        _sec_event(f"Host header rejected: {request.host!r} on {request.path}")
         abort(403)
     # 2. API token check (per-session Electron token)
     if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT and not request.path.startswith("/api/thumbnail/"):
         if not hmac.compare_digest(
             request.headers.get("X-EGM-Token", ""), _API_TOKEN
         ):
+            _sec_event(f"Token mismatch on {request.path}")
             abort(403)
 
 @app.after_request
@@ -215,8 +267,8 @@ def get_data_dir() -> Path:
     return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.99.11"
-APP_BUILD             = 119
+APP_VERSION           = "0.99.12"
+APP_BUILD             = 120
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
@@ -257,6 +309,8 @@ def _save_history(items: list):
 def _download_thumbnail(url: str, entry_id: str) -> str:
     """Download a thumbnail image and save it locally. Returns filename or empty string."""
     if not url or not url.startswith("https://"):
+        if url:
+            _sec_event(f"Thumbnail URL rejected (non-HTTPS): scheme={url.split(':')[0]!r}")
         return ""
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
@@ -510,7 +564,7 @@ def _bgutil_args() -> list:
     return []
 
 def _ytdlp(*extra, timeout=None):
-    return _run_yt("yt-dlp", *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
+    return _run_yt(sys.executable, "-m", "yt_dlp", *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
                    *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -623,7 +677,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
     args.append(url)
 
-    cmd = ["yt-dlp"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
+    cmd = [sys.executable, "-m", "yt_dlp"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
     try:
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace")
@@ -1006,7 +1060,7 @@ def rename_file():
 
 # ── Update system ──────────────────────────────────────────────────────────────
 def _get_ytdlp_version():
-    try: return _run("yt-dlp", "--version", timeout=10).stdout.strip()
+    try: return _run(sys.executable, "-m", "yt_dlp", "--version", timeout=10).stdout.strip()
     except Exception: return "unknown"
 
 def _get_ffmpeg_version():
@@ -1360,6 +1414,10 @@ def check_app_update():
                                      headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
+        # Verify manifest signature before trusting any content
+        if not _verify_manifest(data):
+            _sec_event("Manifest signature INVALID or MISSING — update check aborted")
+            return jsonify({"error": "Manifest verification failed"}), 502
         latest_ver   = str(data.get("version", "")).strip()
         latest_build = int(data.get("build", 0))
         # _version_notes (new format) is a list; old "notes" was a plain string — handle both
@@ -1556,6 +1614,7 @@ def serve_thumbnail(filename):
     """Serve a cached thumbnail image."""
     # Validate filename — only allow safe characters
     if not _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', filename):
+        _sec_event(f"Thumbnail filename rejected (invalid pattern): {filename!r}")
         return "Not found", 404
     thumb_path = THUMBNAILS_DIR / filename
     if not thumb_path.exists():
