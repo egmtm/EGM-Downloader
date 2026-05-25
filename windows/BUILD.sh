@@ -209,9 +209,7 @@ cp "$REPO_ROOT/windows/launch.bat"            "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/launch.py"             "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/instructions.txt"      "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/app.py"                        "$PORTABLE_STAGE/"
-cp "$REPO_ROOT/requirements.txt"              "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/patchnotes.txt"                "$PORTABLE_STAGE/"
-cp "$REPO_ROOT/README.md"                     "$PORTABLE_STAGE/"
 
 # Templates
 cp "$REPO_ROOT/templates/index.html"          "$PORTABLE_STAGE/templates/"
