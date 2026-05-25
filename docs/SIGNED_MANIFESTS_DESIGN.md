@@ -45,15 +45,13 @@ Passphrase stored in EGM's password manager (same discipline as other credential
 
 ## Public key
 
-**Location:** Compiled into the app binary at build time — hardcoded constant in `app.py` (root, for Windows), `mac/app.py`, and `linux/app.py`
+**Location:** Compiled into the app binary at build time — hardcoded constant in `windows/electron/main.js`, `mac/electron/main.js`, `linux/electron/main.js`
 
-**Format:** PEM bytes, embedded as a Python constant:
-```python
-_MANIFEST_PUBLIC_KEY_PEM = (
-    b"-----BEGIN PUBLIC KEY-----\n"
-    b"MCowBQYDK2VwAyEA...\n"
-    b"-----END PUBLIC KEY-----\n"
-)
+**Format:** PEM string, embedded as a JS constant:
+```js
+const MANIFEST_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEA...
+-----END PUBLIC KEY-----`;
 ```
 
 **Not secret** — anyone can read it. Useless for forging signatures. Safe to commit to the public repo.
@@ -80,7 +78,7 @@ The script reads `egm_manifest_private.pem` (path configured once, stored outsid
 
 ## Verification procedure (automatic, every update check)
 
-The app fetches the JSON, extracts the `signature` field, verifies the remaining content against `_MANIFEST_PUBLIC_KEY_PEM`. If verification fails for any reason, the update is silently ignored — no error shown to the user, structured security log entry written.
+The app fetches the JSON, extracts the `signature` field, verifies the remaining content against `MANIFEST_PUBLIC_KEY`. If verification fails for any reason, the update is silently ignored — no error shown to the user, structured security log entry written.
 
 ---
 
@@ -93,7 +91,7 @@ The app fetches the JSON, extracts the `signature` field, verifies the remaining
 
 **How to rotate:**
 1. Generate a new keypair
-2. Update the `_MANIFEST_PUBLIC_KEY_PEM` constant in all 3 `app.py` files (root for Windows, `mac/app.py`, `linux/app.py`) — this is the PEM-encoded ed25519 public key embedded at build time
+2. Update `MANIFEST_PUBLIC_KEY` constant in all 3 `main.js` files
 3. Ship an app update with the new public key embedded — **this update must be signed with the OLD private key** so existing users' apps accept it
 4. After the update reaches users (allow 2-4 weeks), switch signing to the new private key
 5. Retire and securely delete the old private key
@@ -119,7 +117,7 @@ The app fetches the JSON, extracts the `signature` field, verifies the remaining
 - [ ] Extract public key: `openssl pkey -in egm_manifest_private.pem -pubout -out egm_manifest_public.pem`
 - [ ] Store `egm_manifest_private.pem` on encrypted drive
 - [ ] Verify Backblaze backup includes the new file
-- [ ] Embed `_MANIFEST_PUBLIC_KEY_PEM` in all 3 `app.py` files (root for Windows, `mac/app.py`, `linux/app.py`)
+- [ ] Embed public key string in all 3 `main.js` files
 - [ ] Write `scripts/sign-manifest.py` with private key path configured
 - [ ] Test sign → verify round-trip before first release
 
