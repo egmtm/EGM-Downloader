@@ -152,30 +152,30 @@
 
 ### Windows
 **Latest:** v0.99.12 Build 120  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (355 KB · ~800 MB after install)  
-**SHA256:** `b5d86bdce7004dd9b8f0dff768a7735e1b5d189eb07d2b8f302bacc6141c4a95`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (356 KB · ~800 MB after install)  
+**SHA256:** `0b0e40524cba76ea35dfad2768f3c7cb01fad6997409ea9dfd1e9a6d638e52dc`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v0.99.12 Build 120  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (358 KB · ~800 MB after first run)  
-**SHA256:** `11d1bfdbd73a719a855537428361f887aa685582fe5622426e97c77b0768ce26`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
+**SHA256:** `42f7433456064a69a3242e1996f5d7cadecace0526b87e00f9b061aa547cd551`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
 **Latest:** v0.99.12 Build 120  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (119 MB · ~300 MB after install)  
-**SHA256:** `fafc2c7c04b44085cfa1eb63f064cfbe94869aa4183e5231a88abf500591b77d`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
+**SHA256:** `b1036987ecf937cd43e1489c36035445a32f9d3c8e77e3c5c3680bbad72618ba`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v0.99.12 Build 120  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (135 MB · ~300 MB after install)  
-**SHA256:** `06e704b3041e4c2674c3fdb75c3f37a9f7ca0adea3a95e0b2142b26301309177`  
+**SHA256:** `a5fa2122d04bc49bd5a2dedef47f8a66b342b4ad9d5d91133b0b8c1d95c4fad2`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -265,7 +265,7 @@
 - 🖼️ Dedicated Puerto Rico section in the themes sidebar
 - 🔒 Thumbnail fetching restricted to HTTPS-only
 
-**v0.99.12 — VAULT:**
+**v0.99.12 — VAULT:** ✅ Shipped
 - 🔧 Theme placeholder + section label contrast fix — as promised from v0.99.11 known issues
 - 🔒 Signed update manifests — cryptographically verified (ed25519) before any update installs
 - 📋 Structured security event logging — all security-relevant events logged to rotating `security.log`
@@ -442,10 +442,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 119 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 119 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 119 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 119 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 120 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 120 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 120 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 120 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
