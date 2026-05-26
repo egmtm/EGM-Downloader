@@ -1154,7 +1154,11 @@
             </div>
             <div class="theme-row" data-theme="aurora">
               <div class="theme-swatches"><div class="theme-sw" style="background:#040e10"></div><div class="theme-sw" style="background:#081a1c"></div><div class="theme-sw" style="background:#00e5a0"></div></div>
-              <span class="theme-name">Aurora</span><div class="theme-check"></div>
+
+            <div class="theme-row" data-theme="aurora-deep">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#041620"></div><div class="theme-sw" style="background:#0e1a28"></div><div class="theme-sw" style="background:#06b6d4"></div></div>
+              <span class="theme-name">Aurora Deep</span><div class="theme-check"></div>
+            </div>              <span class="theme-name">Aurora</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="desertdusk">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0e0808"></div><div class="theme-sw" style="background:#1c1008"></div><div class="theme-sw" style="background:#e05818"></div></div>
@@ -4230,7 +4234,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
   // ── Theme data — swatches + labels + categories ─────────────────────────────
   const THEME_DATA = {
-    void:             {label:'Void',             bg:'#0b1120',surf:'#111c2e',acc:'#3b82f6',   cat:'dark'},
+    void:             {label:'Void',             bg:'#010101', surf:'#080808', acc:'#d0d8e8',   cat:'dark'},
     eclipse:          {label:'Eclipse',          bg:'#18161a',surf:'#241f28',acc:'#a855f7',   cat:'dark'},
     ghost:            {label:'Ghost',            bg:'#0d1117',surf:'#161b22',acc:'#238636',   cat:'dark'},
     frost:            {label:'Frost',            bg:'#cdd2da',surf:'#c2c8d2',acc:'#2563eb',   cat:'light'},
@@ -4302,24 +4306,24 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     acoustic:          {label:'Acoustic', bg:'#1e1208',surf:'#281a0c',acc:'#d4962a',   cat:'music'},
     bioluminescent:    {label:'Bioluminescent', bg:'#000d12',surf:'#001820',acc:'#00f5d4',   cat:'nature'},
     aurora:            {label:'Aurora', bg:'#040e10',surf:'#081a1c',acc:'#00e5a0',   cat:'nature'},
-    'midnight':    {label:'Midnight',  bg:'linear-gradient(135deg,#020818,#0a0e2e,#060a1e)', surf:'#0c1028', acc:'#6366f1', cat:'colors'},
-    'ocean':      {label:'Ocean',    bg:'linear-gradient(135deg,#e0f2fe,#bae6fd)',surf:'#f0f7ff',acc:'#0369a1',   cat:'colors'},
-    'peach':      {label:'Peach',    bg:'linear-gradient(135deg,#fff1eb,#ffe4d6)',surf:'#fff5f0',acc:'#c2410c',   cat:'colors'},
-    'mint':       {label:'Mint',     bg:'linear-gradient(135deg,#d1fae5,#a7f3d0)',surf:'#ecfdf5',acc:'#047857',   cat:'colors'},
-    'lavender':   {label:'Lavender', bg:'linear-gradient(135deg,#ede7f6,#ddd6fe)',surf:'#f5f0fa',acc:'#6d28d9',   cat:'colors'},
-    'sand':       {label:'Sand',     bg:'linear-gradient(135deg,#fef3c7,#fde68a)',surf:'#fffbf0',acc:'#92400e',   cat:'colors'},
-    'ember':      {label:'Ember',    bg:'linear-gradient(135deg,#1c0a00,#2d1200)',surf:'#1c1412',acc:'#ea580c',   cat:'colors'},
-    'forest':     {label:'Forest',   bg:'linear-gradient(135deg,#021208,#0a1e0e)',surf:'#0c1e12',acc:'#22c55e',   cat:'colors'},
-    'crimson':    {label:'Crimson',  bg:'linear-gradient(135deg,#180404,#280808)',surf:'#1e0c0c',acc:'#dc2626',   cat:'colors'},
-    'aurora-deep':     {label:'Aurora Veil', bg:'linear-gradient(135deg,#041620,#0d0a20)',surf:'#0e1a28',acc:'#06b6d4', cat:'colors'},
+    'midnight':    {label:'Midnight',  bg:'linear-gradient(135deg,#020818,#0a0e2e,#060a1e)', surf:'#0c1028', acc:'#6366f1', cat:'nature'},
+    'ocean':      {label:'Ocean',    bg:'linear-gradient(135deg,#e0f2fe,#bae6fd)',surf:'#f0f7ff',acc:'#0369a1',   cat:'nature'},
+    'peach':      {label:'Peach',    bg:'linear-gradient(135deg,#fff1eb,#ffe4d6)',surf:'#fff5f0',acc:'#c2410c',   cat:'nature'},
+    'mint':       {label:'Mint',     bg:'linear-gradient(135deg,#d1fae5,#a7f3d0)',surf:'#ecfdf5',acc:'#047857',   cat:'nature'},
+    'lavender':   {label:'Lavender', bg:'linear-gradient(135deg,#ede7f6,#ddd6fe)',surf:'#f5f0fa',acc:'#6d28d9',   cat:'nature'},
+    'sand':       {label:'Sand',     bg:'linear-gradient(135deg,#fef3c7,#fde68a)',surf:'#fffbf0',acc:'#92400e',   cat:'nature'},
+    'ember':      {label:'Ember',    bg:'linear-gradient(135deg,#1c0a00,#2d1200)',surf:'#1c1412',acc:'#ea580c',   cat:'nature'},
+    'forest':     {label:'Forest',   bg:'linear-gradient(135deg,#021208,#0a1e0e)',surf:'#0c1e12',acc:'#22c55e',   cat:'nature'},
+    'crimson':    {label:'Crimson',  bg:'linear-gradient(135deg,#180404,#280808)',surf:'#1e0c0c',acc:'#dc2626',   cat:'nature'},
+    'aurora-deep':     {label:'Aurora Deep', bg:'linear-gradient(135deg,#041620,#0d0a20)',surf:'#0e1a28',acc:'#06b6d4', cat:'nature'},
     desertdusk:        {label:'Desert Dusk', bg:'#0e0808',surf:'#1c1008',acc:'#e05818',   cat:'nature'},
     volcanic:          {label:'Volcanic', bg:'#0a0602',surf:'#140c04',acc:'#ff4800',   cat:'nature'},
     tokyoneon:         {label:'Tokyo Neon', bg:'#030010',surf:'#060020',acc:'#ff0088',   cat:'cities'},
     havana:            {label:'Havana', bg:'#0c1a14',surf:'#122010',acc:'#e05030',   cat:'cities'},
     dubaimidnight:     {label:'Dubai Midnight', bg:'#040302',surf:'#090704',acc:'#d4aa00',   cat:'cities'},
     favelasunset:      {label:'Favela Sunset', bg:'#1a0808',surf:'#280e0a',acc:'#ff4800',   cat:'cities'},
-    valentines:       {label:"Valentine's",      bg:'#1a0008',surf:'#260010',acc:'#ff4488',   cat:'seasonal'},
-    stpatricks:       {label:"St. Patrick's",    bg:'#021008',surf:'#041c0e',acc:'#1aaa44',   cat:'seasonal'},
+    valentines:       {label:"Valentine's Day",      bg:'#1a0008',surf:'#260010',acc:'#ff4488',   cat:'seasonal'},
+    stpatricks:       {label:"St. Patrick's Day",    bg:'#021008',surf:'#041c0e',acc:'#1aaa44',   cat:'seasonal'},
     easter:           {label:'Easter',           bg:'#f8eef8',surf:'#f0e4f4',acc:'#9b4dca',   cat:'seasonal'},
     fourthofjuly:     {label:'4th of July',      bg:'#020a1e',surf:'#04122e',acc:'#ee2233',   cat:'seasonal'},
     halloween:        {label:'Halloween',        bg:'#080400',surf:'#120800',acc:'#ff6600',   cat:'seasonal'},
