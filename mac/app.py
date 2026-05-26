@@ -160,6 +160,22 @@ def _chmod_owner_only(path):
             os.chmod(path, 0o600)
         except OSError:
             pass
+
+def _atomic_write_text(path: Path, content: str, *, owner_only: bool = False) -> None:
+    """Write text atomically via tmp + os.replace — prevents truncated files on crash or kill -9.
+    Sets permissions on tmp before rename so the final file has correct perms from the moment
+    it exists (no race window). Cleans up the tmp file on failure and re-raises."""
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    try:
+        tmp.write_text(content, encoding="utf-8")
+        if owner_only:
+            _chmod_owner_only(tmp)
+        tmp.replace(path)
+    except Exception:
+        try: tmp.unlink(missing_ok=True)
+        except Exception: pass
+        raise
+
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
 # /api/show-window is exempt because launch.py (second-instance signaler) has no token access
 _TOKEN_EXEMPT    = {"/api/show-window"}
