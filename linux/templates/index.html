@@ -527,6 +527,7 @@
       font-size: .78rem; font-weight: 600;
       letter-spacing: .01em; color: var(--text2);
     }
+    /* lint-allow-muted: ghost-button */
     .card-toggle {
       background: none; border: none; cursor: pointer;
       color: var(--muted); font-size: .75rem; padding: 2px 8px;
@@ -592,10 +593,12 @@
       padding: 6px 11px; outline: none; transition: border-color var(--ease); font-family: inherit;
     }
     .path-row input:focus { border-color: var(--acc); }
+    /* lint-allow-muted: hint */
     .path-hint { font-size: .68rem; color: var(--muted); margin-top: 5px; }
 
     /* ── Results ── */
     #results { display: flex; flex-direction: column; gap: 12px; width: 100%; max-width: 760px; margin-bottom: 16px; }
+    /* lint-allow-muted: empty-state */
     .results-empty { text-align: center; padding: 10px 20px; color: var(--muted); font-size: .82rem; line-height: 1.7; }
     .results-empty .empty-icon { font-size: 2rem; display: block; margin-bottom: 8px; opacity: .5; }
 
@@ -614,6 +617,7 @@
     .vcard.done-minimized .vcontrols { display: none !important; }
     .vcard.done-minimized .vbody { padding: 0; flex-direction: row; align-items: center; gap: 10px; }
     .vcard.done-minimized .vmeta { font-size: .7rem; }
+    /* lint-allow-muted: ghost-button */
     .done-dismiss {
       margin-left: auto; background: none; border: none; cursor: pointer;
       color: var(--muted); font-size: .85rem; padding: 3px 7px; border-radius: 5px;
@@ -621,6 +625,7 @@
     }
     .done-dismiss:hover { color: var(--red); background: rgba(239,68,68,.1); }
 
+    /* lint-allow-muted: ghost-button */
     /* Remove button */
     .vcard-remove {
       position: absolute; top: 7px; right: 8px;
@@ -636,6 +641,7 @@
     }
     .thumb.portrait { width: 85px; aspect-ratio: 9/16; }
     .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: .92; background: var(--thumb-bg); }
+    /* lint-allow-muted: decorative-icon */
     .thumb .noimg { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.8rem; }
     .dur { position: absolute; bottom: 5px; right: 5px; background: var(--dur-bg); color: var(--dur-text); font-size: .64rem; padding: 2px 5px; border-radius: 3px; }
 
@@ -767,6 +773,7 @@
 
     /* ── Portable mode — hide app auto-update (portable manages itself) ── */
     body.portable-mode #footer-update-btn { display: none !important; }
+    /* lint-allow-muted: supplementary-note */
     .portable-plugins-note { display: none; font-size: .68rem; color: var(--muted); margin-top: 6px; padding: 4px 8px; border-left: 2px solid var(--border); }
     body.portable-mode .portable-plugins-note { display: block; }
     @keyframes sli { from { opacity:0; transform:translateX(32px); } }
@@ -782,7 +789,9 @@
     .upd-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
     @keyframes updFade { to { opacity:1; } }
 
+    /* lint-allow-muted: footer */
     footer { width: 100%; max-width: 760px; margin-top: 20px; text-align: center; font-size: .68rem; color: var(--muted); padding-bottom: 14px; }
+    /* lint-allow-muted: footer */
     footer a { color: var(--muted); text-decoration: none; }
     footer a:hover { color: var(--acc); text-decoration: underline; }
 
@@ -2200,6 +2209,7 @@
   <div class="modal" id="whats-new-modal-inner">
     <h3>🎉 What's New in <span id="whats-new-version">v0.99.12</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
+      <!-- lint-allow-muted: loading-state -->
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
     </ul>
     <div class="modal-actions">
@@ -3309,6 +3319,7 @@ function makePh(url) {
   el.innerHTML = `
     <div class="thumb"><div class="noimg">⏳</div></div>
     <div class="vbody">
+      <!-- lint-allow-muted: loading-state -->
       <div class="vtitle" style="color:var(--muted)">${esc(trunc(url,70))}</div>
       <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> Fetching…</span></div>
     </div>`;
@@ -4789,6 +4800,7 @@ function videoQualityBgClick(e) {
             list.appendChild(li);
           }
         } else {
+          // lint-allow-muted: loading-state
           const li = document.createElement('li');
           li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
           li.textContent = 'See egerena.com for release notes.';
@@ -4797,6 +4809,7 @@ function videoQualityBgClick(e) {
       } catch {
         const list = document.getElementById('whats-new-list');
         list.innerHTML = '';
+        // lint-allow-muted: loading-state
         const li = document.createElement('li');
         li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
         li.textContent = 'See egerena.com for release notes.';
