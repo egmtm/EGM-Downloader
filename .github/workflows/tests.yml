@@ -23,6 +23,9 @@ jobs:
         run: |
           pip install flask mutagen cryptography pytest
 
+      - name: Lint CSS — --muted discipline
+        run: bash scripts/lint-css-muted.sh
+
       - name: Run tests
         run: |
           cd tests
