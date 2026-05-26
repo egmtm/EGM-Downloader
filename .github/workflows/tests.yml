@@ -29,6 +29,6 @@ jobs:
       - name: Run tests
         run: |
           cd tests
-          python -m pytest test_parity.py test_security.py -v --tb=short
+          python -m pytest -v --tb=short
         env:
           EGM_API_TOKEN: ci-test-token-not-secret
