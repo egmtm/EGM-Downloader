@@ -222,8 +222,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "0.99.12"
-APP_BUILD             = 120
+APP_VERSION           = "0.99.13"
+APP_BUILD             = 121
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
@@ -257,8 +257,7 @@ def _load_history() -> list:
 
 def _save_history(items: list):
     try:
-        HISTORY_FILE.write_text(json.dumps(items, indent=2), encoding="utf-8")
-        _chmod_owner_only(HISTORY_FILE)
+        _atomic_write_text(HISTORY_FILE, json.dumps(items, indent=2), owner_only=True)
     except Exception:
         pass
 
@@ -270,13 +269,22 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
         return ""
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
-        data = req.read(512_000)
+        # Reject non-image responses before reading the body
+        ctype = req.headers.get("Content-Type", "").split(";")[0].strip().lower()
+        if ctype not in ("image/jpeg", "image/png", "image/webp"):
+            req.close()
+            return ""
+        data = req.read(512_000)  # cap at 500KB
         req.close()
-        ext = ".jpg"
-        if b"PNG" in data[:8]:
+        # Strict magic byte detection at exact offset
+        if data.startswith(b'\x89PNG\r\n\x1a\n'):
             ext = ".png"
-        elif b"WEBP" in data[:12] or b"RIFF" in data[:4]:
+        elif data.startswith(b'RIFF') and len(data) >= 12 and data[8:12] == b'WEBP':
             ext = ".webp"
+        elif data[:3] == b'\xff\xd8\xff':
+            ext = ".jpg"
+        else:
+            return ""  # Unknown format — reject rather than mis-tag
         fname = f"{entry_id}{ext}"
         thumb_path = THUMBNAILS_DIR / fname
         thumb_path.write_bytes(data)
@@ -326,8 +334,7 @@ def _save_settings(data: dict):
     with _settings_lock:
         try:
             _settings_cache.update(data)
-            SETTINGS_FILE.write_text(json.dumps(_settings_cache, indent=2), encoding="utf-8")
-            _chmod_owner_only(SETTINGS_FILE)
+            _atomic_write_text(SETTINGS_FILE, json.dumps(_settings_cache, indent=2), owner_only=True)
         except Exception:
             pass
 
@@ -1225,8 +1232,7 @@ def cookies_save():
     if len(text) > 1 * 1024 * 1024:  # 1 MB cap for cookies content
         return jsonify({"error": "Cookies file too large (max 1 MB)"}), 413
     try:
-        COOKIES_FILE.write_text(text, encoding="utf-8")
-        _chmod_owner_only(COOKIES_FILE)
+        _atomic_write_text(COOKIES_FILE, text, owner_only=True)
         _save_settings({"cookies_saved_at": int(time.time())})
         return jsonify({"ok": True})
     except Exception as e:
@@ -1530,8 +1536,7 @@ def cache_clear():
 def settings_reset():
     """Reset all settings to defaults — keeps downloads and history."""
     try:
-        SETTINGS_FILE.write_text("{}", encoding="utf-8")
-        _chmod_owner_only(SETTINGS_FILE)
+        _atomic_write_text(SETTINGS_FILE, "{}", owner_only=True)
         global _settings_cache
         with _settings_lock:
             _settings_cache = {}
