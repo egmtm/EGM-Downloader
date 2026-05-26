@@ -1,5 +1,8 @@
 v0.99.13 - Build 121 (5/26/2026 11:06 AM EST) — SOLID
 -----------------------------------------
+  • [ALL] New: 22 Operating System themes — Windows (95, 98, XP, Vista, 7, 11), macOS (9, X Aqua, Big Sur, Sequoia), Linux (Ubuntu, Arch, Kali, Fedora), and retro OS (BeOS, Amiga, DOS, NeXTSTEP, OS/2 Warp, Solaris, Unix, BSD) — total now 260 themes
+  • [ALL] Fix: theme registry corrections — void, aurora-deep, St. Patrick's Day, and Valentine's Day now correctly registered with proper labels and categories
+  • [ALL] Polish: sidebar category labels and search placeholders now readable across all themes — contrast audit resolved 4 additional surfaces using the same fix pattern as v0.99.11
   • [ALL] Robustness: settings, history, and cookies now written atomically — no file corruption on crash or power loss mid-write
   • [ALL] Fix: strict image format detection on cached thumbnails — unknown formats rejected instead of mis-tagged as JPG; WAV-tagged-as-WebP stops happening
   • [ALL] Fix: Content-Type header validated before reading thumbnail body — non-image responses close immediately without consuming bandwidth
