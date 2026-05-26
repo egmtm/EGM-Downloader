@@ -152,14 +152,14 @@
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.99.12 Build 120  
+**Latest:** v0.99.13 Build 121  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (356 KB · ~800 MB after install)  
 **SHA256:** `0b0e40524cba76ea35dfad2768f3c7cb01fad6997409ea9dfd1e9a6d638e52dc`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
-**Latest:** v0.99.12 Build 120  
+**Latest:** v0.99.13 Build 121  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
 **SHA256:** `42f7433456064a69a3242e1996f5d7cadecace0526b87e00f9b061aa547cd551`  
 **Requirements:** Windows 10/11 (64-bit)  
@@ -167,14 +167,14 @@
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
-**Latest:** v0.99.12 Build 120  
+**Latest:** v0.99.13 Build 121  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
 **SHA256:** `b1036987ecf937cd43e1489c36035445a32f9d3c8e77e3c5c3680bbad72618ba`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v0.99.12 Build 120  
+**Latest:** v0.99.13 Build 121  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (135 MB · ~300 MB after install)  
 **SHA256:** `a5fa2122d04bc49bd5a2dedef47f8a66b342b4ad9d5d91133b0b8c1d95c4fad2`  
 **Format:** AppImage (Universal)  
@@ -596,8 +596,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 0.99.12
-- **Build:** 120
+- **Version:** 0.99.13
+- **Build:** 121
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** AGPL-3.0
