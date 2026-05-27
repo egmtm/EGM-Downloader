@@ -409,6 +409,10 @@ const THEME_DATA = {
   coqui:             {label:'Coquí',                 bg:'#040e04', surf:'#081808', acc:'#68e828', cat:'puerto_rico'},
   flamboyan:         {label:'Flamboyán',             bg:'#100400', surf:'#1c0800', acc:'#ff5010', cat:'puerto_rico'},
   conejomalo:        {label:'Conejo Malo 1.0',       bg:'#020202', surf:'#080808', acc:'#e81040', cat:'puerto_rico'},
+  conejomalo2:       {label:'Conejo Malo 2.0',       bg:'#080010', surf:'#100020', acc:'#ff2080', cat:'puerto_rico'},
+  conejomalo3:       {label:'Conejo Malo 3.0',       bg:'#020408', surf:'#060c12', acc:'#20e8d8', cat:'puerto_rico'},
+  conejomalo4:       {label:'Conejo Malo 4.0',       bg:'#041c18', surf:'#083028', acc:'#f8d000', cat:'puerto_rico'},
+  conejomalo5:       {label:'Conejo Malo 5.0',       bg:'#0e0a00', surf:'#1a1400', acc:'#e8a830', cat:'puerto_rico'},
   titotrinidad:      {label:'Tito Trinidad',         bg:'#0a0000', surf:'#160000', acc:'#e8a000', cat:'puerto_rico'},
   parquedebombas:    {label:'Parque de Bombas',      bg:'#080000', surf:'#120000', acc:'#cc0808', cat:'puerto_rico'},
   lacruceta:         {label:'La Cruceta del Vigía',  bg:'#081018', surf:'#101828', acc:'#e8e8ff', cat:'puerto_rico'},
@@ -447,6 +451,50 @@ const THEME_DATA = {
   solaris:       {label:'Solaris',         bg:'#0e0800', surf:'#1a1000', acc:'#e87820', cat:'os'},
   unix:          {label:'Unix',            bg:'#000000', surf:'#040804', acc:'#00cc00', cat:'os'},
   bsd:           {label:'BSD',             bg:'#060002', surf:'#0e0006', acc:'#cc0020', cat:'os'},
+    /* ── Mythology ── */
+    shiva:         {label:'Shiva',         bg:'#020818', surf:'#040e28', acc:'#3858e8', cat:'mythology'},
+    kali:          {label:'Kali',          bg:'#060000', surf:'#100000', acc:'#cc0020', cat:'mythology'},
+    amaterasu:     {label:'Amaterasu',     bg:'#100800', surf:'#1c1400', acc:'#f8d020', cat:'mythology'},
+    susanoo:       {label:'Susanoo',       bg:'#020e18', surf:'#041828', acc:'#20c8e8', cat:'mythology'},
+    quetzalcoatl:  {label:'Quetzalcoatl', bg:'#021006', surf:'#041c0c', acc:'#20d840', cat:'mythology'},
+    tezcatlipoca:  {label:'Tezcatlipoca', bg:'#040206', surf:'#0c0610', acc:'#8040c0', cat:'mythology'},
+    perun:         {label:'Perun',         bg:'#060810', surf:'#0c1020', acc:'#a0c0ff', cat:'mythology'},
+    morrigan:      {label:'Morrigan',      bg:'#060002', surf:'#0e0006', acc:'#980028', cat:'mythology'},
+    osiris:        {label:'Osiris',        bg:'#040200', surf:'#0c0800', acc:'#c8a020', cat:'mythology'},
+    ogun:          {label:'Ogun',          bg:'#080808', surf:'#141412', acc:'#e86020', cat:'mythology'},
+    /* ── Sports ── */
+    boxing:      {label:'Boxing',      bg:'#080000', surf:'#140000', acc:'#cc0808', cat:'sports'},
+    basketball:  {label:'Basketball',  bg:'#0e0600', surf:'#1a0e00', acc:'#e86820', cat:'sports'},
+    soccer:      {label:'Soccer',      bg:'#041008', surf:'#081c10', acc:'#28d858', cat:'sports'},
+    baseball:    {label:'Baseball',    bg:'#100800', surf:'#1c1200', acc:'#c87830', cat:'sports'},
+    mma:         {label:'MMA',         bg:'#040404', surf:'#0c0c0c', acc:'#f8a000', cat:'sports'},
+    tennis:      {label:'Tennis',      bg:'#140800', surf:'#201200', acc:'#d85818', cat:'sports'},
+    hockey:      {label:'Hockey',      bg:'#060810', surf:'#0c1018', acc:'#60c0f0', cat:'sports'},
+    surfing:     {label:'Surfing',     bg:'#020e18', surf:'#041828', acc:'#20a8e8', cat:'sports'},
+    athletics:   {label:'Athletics',   bg:'#080400', surf:'#140800', acc:'#e83820', cat:'sports'},
+    aew:         {label:'AEW',         bg:'#020202', surf:'#080808', acc:'#d4a820', cat:'sports'},
+    /* ── Decades ── */
+    twenties:       {label:'The 20s',       bg:'#08060a', surf:'#14101a', acc:'#e8c840', cat:'decades'},
+    forties:        {label:'The 40s',       bg:'#080604', surf:'#121008', acc:'#c8a060', cat:'decades'},
+    fifties:        {label:'The 50s',       bg:'#040e0c', surf:'#081c18', acc:'#48e8c8', cat:'decades'},
+    sixties:        {label:'The 60s',       bg:'#080010', surf:'#100020', acc:'#e840e8', cat:'decades'},
+    seventies:      {label:'The 70s',       bg:'#120a00', surf:'#1e1400', acc:'#d87020', cat:'decades'},
+    eighties:       {label:'The 80s',       bg:'#060412', surf:'#0e0820', acc:'#f020c0', cat:'decades'},
+    nineties:       {label:'The 90s',       bg:'#060e10', surf:'#0c1820', acc:'#20c8a8', cat:'decades'},
+    twothousands:   {label:'The 00s',       bg:'#060808', surf:'#0e1010', acc:'#80f020', cat:'decades'},
+    tens:           {label:'The 10s',       bg:'#0c0e12', surf:'#141618', acc:'#2196f3', cat:'decades'},
+    twentytwenties: {label:'The 20s (2020s)', bg:'#0e0e10', surf:'#161618', acc:'#a0a8b8', cat:'decades'},
+    /* ── Memes ── */
+    doge:        {label:'Doge',          bg:'#100e00', surf:'#1c1a00', acc:'#e8c820', cat:'memes'},
+    thisisfine:  {label:'This is Fine',  bg:'#100400', surf:'#1c0800', acc:'#ff6020', cat:'memes'},
+    drake:       {label:'Drake',         bg:'#080808', surf:'#141414', acc:'#c8a040', cat:'memes'},
+    trollface:   {label:'Trollface',     bg:'#060606', surf:'#101010', acc:'#c0c0c0', cat:'memes'},
+    nyancat:     {label:'Nyan Cat',      bg:'#04020e', surf:'#080418', acc:'#ff60c0', cat:'memes'},
+    sixseven:    {label:'6/7',           bg:'#040402', surf:'#0c0c08', acc:'#e8d800', cat:'memes'},
+
+
+
+
 };
 
 // Sidebar structure: ordered sections + categories per section
@@ -456,6 +504,10 @@ const SECTIONS = [
   { label: 'Culture',       cats: ['movies', 'consoles', 'characters', 'architecture', 'eras', 'mythology'] },
   { label: 'Puerto Rico 🇵🇷', cats: ['puerto_rico'] },
   { label: 'OS',            cats: ['os'] },
+  { label: 'Mythology',      cats: ['mythology'] },
+  { label: 'Sports',         cats: ['sports'] },
+  { label: 'Decades',        cats: ['decades'] },
+  { label: 'Memes',           cats: ['memes'] },
   { label: 'Other',         cats: ['retro', 'experimental', 'seasonal', 'custom'] },
 ];
 
@@ -467,6 +519,10 @@ const CAT_LABELS = {
   food:'Food & Drink', weather:'Weather',
   puerto_rico:'Puerto Rico 🇵🇷',
   os:'Operating Systems',
+  mythology:'Mythology',
+  sports:'Sports',
+  decades:'Decades',
+  memes:'Memes',
   space:'Space', architecture:'Architecture',
   eras:'Eras & Decades', mythology:'Mythology',
 };
