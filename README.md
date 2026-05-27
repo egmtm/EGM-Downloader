@@ -277,9 +277,14 @@
 - 🔍 Strict image magic byte detection — canonical pattern matching replaces loose checks
 - 🛡️ Content-Type header validation on thumbnail fetches — defense-in-depth on top of existing HTTPS-only + size cap stack
 
-**v1.0 — CORNERSTONE:**
+**v1.0 — CORNERSTONE:** 🔨 In progress
 - 🧱 The foundation release — everything built since v0.93 comes together here
-- Stability, polish, and trust. Not a feature drop — a statement of maturity
+- 🪟 Windows portable fully isolated — state, themes, and cache stay in the portable folder, never leak to `%APPDATA%`
+- 🪟 Windows app identity — shows as EGM Downloader across all system views (Task Manager, taskbar, notifications)
+- ⭐ Theme Favorites — mark your favorites and optionally launch with a random theme
+- 🎨 300 themes milestone
+- ✨ Startup and interface polish
+- *More items TBD*
 
 **v1.1 — IGNITION:**
 - 📡 Subscriptions — save any channel or playlist once, automatically download what's new
