@@ -12,6 +12,12 @@ const HOST    = '127.0.0.1';
 const EGM_TOKEN = crypto.randomBytes(32).toString('hex');
 const APP_URL = `http://${HOST}:${PORT}`;
 
+// ── Windows shell identity (Task Manager, taskbar, notifications) ─────────────
+app.setName('EGM Downloader');
+if (process.platform === 'win32') {
+  app.setAppUserModelId('com.egerena.egm-downloader');
+}
+
 // ── Settings file (same location as app.py BASE_DIR) ─────────────────────────
 const SETTINGS_FILE = path.join(__dirname, '..', 'egm_settings.json');
 
