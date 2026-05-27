@@ -848,7 +848,7 @@
         <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
         <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
       </div>
-      <span id="history-badge" style="display:none;position:absolute;top:-4px;right:-4px;width:14px;height:14px;background:var(--acc);border-radius:50%;font-size:8px;color:#fff;align-items:center;justify-content:center;border:1.5px solid var(--bg)">0</span>
+      
     </button>
     <div id="hamburger-panel">
       <!-- Tabs -->
@@ -4088,15 +4088,6 @@ async function loadHistoryPanel(page = 1) {
   if (countEl) countEl.textContent = total + ' total';
   if (infoEl)  infoEl.textContent  = total + ' downloads';
 
-  const badge = document.getElementById('history-badge');
-  if (badge) {
-    if (total > 0) {
-      badge.textContent = total > 99 ? '99+' : total;
-      badge.style.display = 'flex';
-    } else {
-      badge.style.display = 'none';
-    }
-  }
   const tabCount = document.getElementById('history-tab-count');
   if (tabCount) tabCount.textContent = total || '';
 
@@ -4171,19 +4162,6 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     parentBody.appendChild(end);
   }
 }
-
-// Load badge count on startup
-(async () => {
-  try {
-    const d = await fetch('/api/history?page=1&per_page=1').then(r => r.json());
-    if (d.total > 0) {
-      const badge = document.getElementById('history-badge');
-      badge.textContent = d.total > 99 ? '99+' : d.total;
-      badge.style.display = 'flex';
-      document.getElementById('history-tab-count').textContent = d.total;
-    }
-  } catch {}
-})();
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
