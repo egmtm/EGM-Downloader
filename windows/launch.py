@@ -261,6 +261,25 @@ if __name__ == "__main__":
         sys.exit(0)
 
     _gui_init()
+
+    # In portable mode, hide internal files so users only see the launcher + instructions
+    _portable_marker = Path(__file__).parent / ".portable"
+    if _portable_marker.exists():
+        _to_hide = [
+            "app.py", "launch.bat", "launch.py", ".portable",
+            "electron", "static", "templates",
+        ]
+        for _name in _to_hide:
+            _p = Path(__file__).parent / _name
+            if _p.exists():
+                try:
+                    subprocess.run(
+                        ["attrib", "+h", str(_p)],
+                        creationflags=0x08000000, check=False
+                    )
+                except Exception:
+                    pass
+
     ensure_python_deps()
     node_exe = ensure_node()
     ensure_npm(node_exe)
