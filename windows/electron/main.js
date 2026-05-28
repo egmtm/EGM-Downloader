@@ -177,13 +177,6 @@ function createSplash() {
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
   splashWindow.center();
   splashWindow.show();
-  // Signal launch.py that the splash is visible — eliminates the flash
-  // between the Python loading window closing and Electron rendering
-  splashWindow.once('show', () => {
-    try {
-      fs.writeFileSync(path.join(__dirname, '..', '.electron-ready'), '1');
-    } catch {}
-  });
 }
 
 function closeSplash() {
