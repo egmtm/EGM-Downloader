@@ -164,6 +164,7 @@ Section "Install"
   File "${REPO_ROOT}/windows/electron/preload.js"
   File "${REPO_ROOT}/windows/electron/splash.html"
   File "${REPO_ROOT}/windows/electron/package.json"
+  File "${REPO_ROOT}/windows/electron/package-lock.json"
 
   ; Reset path back to install dir for the rest
   SetOutPath "$INSTDIR"
@@ -213,6 +214,7 @@ Section "Uninstall"
   Delete "$INSTDIR\electron\preload.js"
   Delete "$INSTDIR\electron\splash.html"
   Delete "$INSTDIR\electron\package.json"
+  Delete "$INSTDIR\electron\package-lock.json"
 
   ; Python __pycache__ (created at runtime)
   RMDir /r "$INSTDIR\__pycache__"
