@@ -231,6 +231,7 @@ cp "$REPO_ROOT/windows/electron/main.js"      "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/preload.js"   "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/splash.html"  "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/package.json" "$PORTABLE_STAGE/electron/"
+cp "$REPO_ROOT/windows/electron/package-lock.json" "$PORTABLE_STAGE/electron/"
 
 # Languages folder intentionally excluded until POLYGLOT (v1.3) lands
 
