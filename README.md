@@ -292,6 +292,7 @@
 
 **v1.2 — [TBD]:**
 - 🔭 Next chapter — details after v1.1 ships
+- 🧩 *Browser extension in the works — send URLs straight to EGM Downloader without leaving your browser. Details TBD.*
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
