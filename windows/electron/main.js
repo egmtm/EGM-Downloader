@@ -18,6 +18,14 @@ if (process.platform === 'win32') {
   app.setAppUserModelId('com.egerena.egm-downloader');
 }
 
+// ── Portable mode: redirect Electron userData into the portable folder ─────────
+// Must be called BEFORE app ready — Chromium locks userData path on startup.
+// Prevents localStorage/theme state leaking to %APPDATA% in portable builds.
+const _portableMarker = path.join(__dirname, '..', '.portable');
+if (fs.existsSync(_portableMarker)) {
+  app.setPath('userData', path.join(process.cwd(), 'electron-data'));
+}
+
 // ── Settings file (same location as app.py BASE_DIR) ─────────────────────────
 const SETTINGS_FILE = path.join(__dirname, '..', 'egm_settings.json');
 
@@ -169,6 +177,13 @@ function createSplash() {
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
   splashWindow.center();
   splashWindow.show();
+  // Signal launch.py that the splash is visible — eliminates the flash
+  // between the Python loading window closing and Electron rendering
+  splashWindow.once('show', () => {
+    try {
+      fs.writeFileSync(path.join(__dirname, '..', '.electron-ready'), '1');
+    } catch {}
+  });
 }
 
 function closeSplash() {
