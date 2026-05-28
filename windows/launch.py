@@ -226,23 +226,15 @@ def launch_electron():
     exe = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "electron.exe"
     if not exe.exists():
         _gui_msg("ERROR: electron.exe not found"); time.sleep(4); sys.exit(1)
+    _gui_close()
     env = {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
     subprocess.Popen(
         [str(exe), str(ELECTRON_DIR)], cwd=str(ELECTRON_DIR), env=env,
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL, creationflags=NO_WIN,
     )
-    # Wait for Electron splash to signal it's visible before closing the Python
-    # loading window — eliminates the ~1s blank gap between the two windows.
-    _ready = Path(__file__).parent / ".electron-ready"
-    _deadline = time.time() + 5
-    while not _ready.exists() and time.time() < _deadline:
-        time.sleep(0.05)
-    _gui_close()
-    try: _ready.unlink(missing_ok=True)
-    except Exception: pass
-    # Don't wait — launcher exits immediately after closing, removing the
-    # idle pythonw.exe process from the process list.
+    # Don't wait — launcher exits immediately after spawning Electron,
+    # removing the idle pythonw.exe process from the process list.
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 def _signal_running_instance():
@@ -269,8 +261,12 @@ if __name__ == "__main__":
         sys.exit(0)
 
     _gui_init()
+    ensure_python_deps()
+    node_exe = ensure_node()
+    ensure_npm(node_exe)
 
-    # In portable mode, hide internal files so users only see the launcher + instructions
+    # In portable mode, hide internal files so users only see the launcher + instructions.
+    # Done AFTER all installs complete so npm can access electron/ without any risk.
     _portable_marker = Path(__file__).parent / ".portable"
     if _portable_marker.exists():
         _to_hide = [
@@ -288,8 +284,5 @@ if __name__ == "__main__":
                 except Exception:
                     pass
 
-    ensure_python_deps()
-    node_exe = ensure_node()
-    ensure_npm(node_exe)
     _gui_msg("Launching...")
     launch_electron()
