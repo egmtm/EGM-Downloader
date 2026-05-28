@@ -12,8 +12,7 @@ const HOST    = '127.0.0.1';
 const EGM_TOKEN = crypto.randomBytes(32).toString('hex');
 const APP_URL = `http://${HOST}:${PORT}`;
 
-// ── Windows shell identity (Task Manager, taskbar, notifications) ─────────────
-app.setName('EGM Downloader');
+// ── Windows shell identity (taskbar, notifications) ──────────────────────────
 if (process.platform === 'win32') {
   app.setAppUserModelId('com.egerena.egm-downloader');
 }

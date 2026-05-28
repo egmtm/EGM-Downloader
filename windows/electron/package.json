@@ -14,10 +14,7 @@
   "dependencies": {
     "electron": "^42.1.0"
   },
-  "productName": "EGM Downloader",
   "build": {
-    "appId": "com.egerena.egm-downloader",
-    "productName": "EGM Downloader",
-    "executableName": "EGM Downloader"
+    "appId": "com.egerena.egm-downloader"
   }
 }
