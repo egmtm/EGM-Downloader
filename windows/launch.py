@@ -1,5 +1,5 @@
 """EGM Downloader — launcher (no console window)"""
-import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib
+import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib, re
 from pathlib import Path
 
 ROOT         = Path(__file__).parent.resolve()
@@ -277,6 +277,110 @@ def _find_npm(node_exe):
     if js.exists(): return [node_exe, str(js)]
     return ["npm"]
 
+# ── Electron process naming (Task Manager) ────────────────────────────────────
+# Renaming electron.exe only changes the *filename* (Task Manager → Details tab).
+# The Processes tab shows the EXE's PE FileDescription resource, which still reads
+# "Electron". rcedit (electron/rcedit, MIT) rewrites that resource. Because every
+# Electron sub-process (main, GPU, renderer, utility, crashpad) runs from this one
+# shared binary, stamping it once renames the whole tree in both views.
+#
+# rcedit is downloaded once at runtime (same model as Node/ffmpeg/Deno) and pinned
+# + SHA-256 verified, fail-closed. The whole feature is cosmetic: any failure here
+# just skips the rename and the app launches normally.
+RCEDIT_VERSION = "2.0.0"
+RCEDIT_URL     = f"https://github.com/electron/rcedit/releases/download/v{RCEDIT_VERSION}/rcedit-x64.exe"
+RCEDIT_SHA256  = "3e7801db1a5edbec91b49a24a094aad776cb4515488ea5a4ca2289c400eade2a"
+RCEDIT         = ROOT / "rcedit-x64.exe"
+
+def _sha256_file(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest().lower()
+
+def _ensure_rcedit():
+    """Return a path to a verified rcedit-x64.exe, or None. Downloads once and
+    SHA-256-verifies against the pinned hash; fail-closed on any error/mismatch."""
+    expected = (RCEDIT_SHA256 or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        return None  # hash not configured → feature disabled, never guessed
+    if RCEDIT.exists():
+        # Trust a previously-verified copy; re-verify cheaply to catch corruption.
+        try:
+            if _sha256_file(RCEDIT) == expected:
+                return RCEDIT
+            RCEDIT.unlink(missing_ok=True)
+        except Exception:
+            return None
+    tmp = ROOT / "rcedit_tmp.exe"
+    try:
+        _gui_msg("Setting up app identity…")
+        urllib.request.urlretrieve(RCEDIT_URL, tmp)
+        if _sha256_file(tmp) != expected:
+            tmp.unlink(missing_ok=True)
+            return None
+        tmp.replace(RCEDIT)
+        return RCEDIT
+    except Exception:
+        try: tmp.unlink(missing_ok=True)
+        except Exception: pass
+        return None
+
+def _icon_path():
+    for p in (ROOT / "static" / "icon.ico", ROOT.parent / "static" / "icon.ico"):
+        if p.exists():
+            return p
+    return None
+
+def _app_version_tuple():
+    """Best-effort APP_VERSION/APP_BUILD read from app.py for the version resource.
+    Cosmetic numbers only — falls back to a static value if app.py isn't found."""
+    for cand in (ROOT / "app.py", ROOT.parent / "app.py"):
+        try:
+            txt = cand.read_text(encoding="utf-8", errors="replace")
+            ver = re.search(r'APP_VERSION\s*=\s*["\']([\\d.]+)["\']', txt)
+            bld = re.search(r'APP_BUILD\s*=\s*(\d+)', txt)
+            if ver:
+                return ver.group(1), (bld.group(1) if bld else "0")
+        except Exception:
+            pass
+    return "0.99.13", "121"
+
+def _stamp_electron_metadata(exe_path):
+    """Rewrite the Electron binary's version resource so all its processes show
+    'EGM Downloader'. Idempotent via a version-keyed marker; only re-stamps when the
+    version changes or Electron was reinstalled. The exe must be idle — always
+    called BEFORE spawning Electron."""
+    ver, bld = _app_version_tuple()
+    stamp_id = f"{ver}.{bld}"
+    marker = exe_path.with_suffix(".stamped")   # inside node_modules → reset on Electron reinstall
+    try:
+        if marker.exists() and marker.read_text(encoding="utf-8").strip() == stamp_id:
+            return
+    except Exception:
+        pass
+    rcedit = _ensure_rcedit()
+    if not rcedit:
+        return
+    args = [str(rcedit), str(exe_path),
+            "--set-version-string", "FileDescription",  "EGM Downloader",
+            "--set-version-string", "ProductName",      "EGM Downloader",
+            "--set-version-string", "CompanyName",      "egerena.com",
+            "--set-version-string", "InternalName",     "EGM Downloader",
+            "--set-version-string", "OriginalFilename", "EGM Downloader.exe",
+            "--set-file-version",    stamp_id,
+            "--set-product-version", ver]
+    icon = _icon_path()
+    if icon:
+        args += ["--set-icon", str(icon)]
+    try:
+        r = subprocess.run(args, capture_output=True, timeout=60, creationflags=NO_WIN)
+        if r.returncode == 0:
+            marker.write_text(stamp_id, encoding="utf-8")
+    except Exception:
+        pass
+
 # ── Launch Electron ───────────────────────────────────────────────────────────
 def launch_electron():
     dist = ELECTRON_DIR / "node_modules" / "electron" / "dist"
@@ -291,6 +395,9 @@ def launch_electron():
     exe = renamed if renamed.exists() else original
     if not exe.exists():
         _gui_msg("ERROR: electron.exe not found"); time.sleep(4); sys.exit(1)
+
+    # Stamp the version resource (Processes-tab name) while the exe is still idle.
+    _stamp_electron_metadata(exe)
     env = {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
     subprocess.Popen(
         [str(exe), str(ELECTRON_DIR)], cwd=str(ELECTRON_DIR), env=env,
@@ -335,7 +442,7 @@ if __name__ == "__main__":
     _portable_marker = Path(__file__).parent / ".portable"
     if _portable_marker.exists():
         _to_hide = [
-            "app.py", "launch.bat", "launch.py", ".portable",
+            "app.py", "launch.bat", "launch.py", ".portable", "rcedit-x64.exe",
             "electron", "static", "templates",
             "data", "ffmpeg_bin", "node_bin", "runtime", "electron-data",
         ]
