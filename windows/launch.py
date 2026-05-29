@@ -242,10 +242,9 @@ def launch_electron():
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL, creationflags=NO_WIN,
     )
-    # Tkinter "Launching..." stays visible while Electron initializes in the
-    # background. When this function returns, the script ends, Python exits,
-    # and Tkinter closes automatically — by then Electron's splash is rendering.
-    # This eliminates the visible gap between the two windows.
+    # Brief pause lets Electron begin rendering before Python/Tkinter exits —
+    # bridges the visual gap between the two windows
+    time.sleep(0.5)
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 def _signal_running_instance():
