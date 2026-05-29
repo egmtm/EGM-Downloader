@@ -272,6 +272,7 @@ if __name__ == "__main__":
         _to_hide = [
             "app.py", "launch.bat", "launch.py", ".portable",
             "electron", "static", "templates",
+            "data", "ffmpeg_bin", "node_bin", "runtime", "electron-data",
         ]
         for _name in _to_hide:
             _p = Path(__file__).parent / _name
