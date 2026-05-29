@@ -233,7 +233,11 @@ Choose No to keep them for faster reinstall." \
   RMDir /r "$INSTDIR\runtime"
   RMDir /r "$INSTDIR\electron\node_modules"
   Delete "$INSTDIR\egm_settings.json"
+  Delete "$INSTDIR\egm_history.json"
   Delete "$INSTDIR\cookies.txt"
+  RMDir /r "$INSTDIR\thumbnails"
+  RMDir /r "$INSTDIR\data"
+  RMDir /r "$INSTDIR\logs"
 
   skip_components:
   RMDir "$INSTDIR\electron"
