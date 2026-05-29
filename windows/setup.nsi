@@ -198,6 +198,11 @@ SectionEnd
 
 ; ── Uninstall Section ────────────────────────────────────────
 Section "Uninstall"
+  ; ── Close the app if it's still running, so files aren't locked ──
+  ; Both the launcher and the renamed Electron runtime use this image name.
+  nsExec::Exec 'taskkill /F /T /IM "EGM Downloader.exe"'
+  Sleep 500
+
   ; ── Remove app files ──
   Delete "$INSTDIR\EGM Downloader.exe"
   Delete "$INSTDIR\launch.bat"
@@ -218,45 +223,50 @@ Section "Uninstall"
 
   ; Python __pycache__ (created at runtime)
   RMDir /r "$INSTDIR\__pycache__"
-  RMDir /r "$INSTDIR\ffmpeg_bin"
 
   Delete "$INSTDIR\uninstall.exe"
 
-  ; ── Optional: ask about downloaded components ──
+  ; ── Prompt 1: downloaded RUNTIME COMPONENTS only (no user data here) ──
   MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Also remove downloaded components (Node.js, Electron, Deno)?$\r$\n$\r$\n\
+    "Also remove downloaded components (Node.js, Electron, ffmpeg, Deno)?$\r$\n$\r$\n\
 This will free ~350 MB but means re-downloading on next install.$\r$\n\
 Choose No to keep them for faster reinstall." \
     /SD IDNO IDNO skip_components
 
   RMDir /r "$INSTDIR\node_bin"
   RMDir /r "$INSTDIR\runtime"
+  RMDir /r "$INSTDIR\ffmpeg_bin"
   RMDir /r "$INSTDIR\electron\node_modules"
+
+  skip_components:
+
+  ; ── Prompt 2: USER DATA (settings, history, cookies, thumbnails, logs) ──
+  MessageBox MB_YESNO|MB_ICONQUESTION \
+    "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\n\
+Choose No to keep them for a faster setup on next install." \
+    /SD IDNO IDNO skip_userdata
+
   Delete "$INSTDIR\egm_settings.json"
   Delete "$INSTDIR\egm_history.json"
   Delete "$INSTDIR\cookies.txt"
   RMDir /r "$INSTDIR\thumbnails"
   RMDir /r "$INSTDIR\data"
   RMDir /r "$INSTDIR\logs"
-
-  skip_components:
-  RMDir "$INSTDIR\electron"
-  RMDir "$INSTDIR"
-
-  ; ── Optional: remove Electron userData (themes, download history, thumbnails) ──
-  MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Also remove saved preferences (theme selection, download history)?$\r$\n$\r$\n\
-Choose No to keep them for a faster setup on next install." \
-    /SD IDNO IDNO skip_userdata
-
+  RMDir /r "$INSTDIR\electron-data"
+  ; Installed-build Electron userData (package.json "name" = egm-downloader)
   RMDir /r "$APPDATA\egm-downloader"
 
   skip_userdata:
 
-  ; ── Start Menu ──
+  ; ── Remove now-empty install dirs (no-op if components/data were kept) ──
+  RMDir "$INSTDIR\electron"
+  RMDir "$INSTDIR"
+
+  ; ── Start Menu + Desktop shortcuts ──
   Delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
   Delete "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk"
   RMDir  "$SMPROGRAMS\${APPNAME}"
+  Delete "$DESKTOP\EGM Downloader.lnk"
 
   ; ── Registry ──
   DeleteRegKey HKCU "${REGKEY}"
