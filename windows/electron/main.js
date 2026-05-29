@@ -34,18 +34,25 @@ const SETTINGS_FILE = path.join(__dirname, '..', 'egm_settings.json');
 
 // ── Window hardening: route external links to default browser, block navigation ─
 function hardenWindow(win) {
-  // External links → user's default browser (http/https only, never in-app)
+  // External links → user's default browser. Parse with URL() (not startsWith) and
+  // open https only — never hand shell.openExternal an unvalidated string, which
+  // could otherwise be coaxed into other URL schemes.
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      shell.openExternal(url);
-    }
+    try {
+      const u = new URL(url);
+      if (u.protocol === 'https:') {
+        shell.openExternal(u.toString());
+      }
+    } catch {}
     return { action: 'deny' };
   });
-  // Block in-window navigation away from Flask origin (127.0.0.1 / localhost only)
+  // Block in-window navigation away from the exact Flask origin (scheme+host+PORT).
+  // Matching only the hostname would allow navigation to any other local service
+  // on a different port; origin equality pins it to our own backend.
   win.webContents.on('will-navigate', (event, url) => {
     try {
       const u = new URL(url);
-      if (u.hostname !== '127.0.0.1' && u.hostname !== 'localhost') {
+      if (u.origin !== APP_URL) {
         event.preventDefault();
       }
     } catch {
@@ -63,12 +70,32 @@ function loadSettings() {
   catch { return {}; }
 }
 
+// Atomic JSON write (tmp + rename) — mirrors app.py's atomic settings writes so a
+// kill mid-write can't leave a truncated/corrupt egm_settings.json.
+function atomicWriteJson(file, data) {
+  const tmp = `${file}.tmp`;
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
+  fs.renameSync(tmp, file);
+}
+
 function saveSettings(patch) {
   try {
     const s = loadSettings();
     Object.assign(s, patch);
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2), 'utf8');
+    atomicWriteJson(SETTINGS_FILE, s);
   } catch {}
+}
+
+// Validate that an IPC message originated from our own Flask-origin pages.
+// Every window shares one preload, so without this check any renderer content
+// (e.g. a hijacked page) could invoke sensitive IPC. Fail-closed on any error.
+function isTrustedSender(event) {
+  try {
+    const url = (event.senderFrame && event.senderFrame.url) || event.sender.getURL();
+    return new URL(url).origin === APP_URL;
+  } catch {
+    return false;
+  }
 }
 
 // ── Window state helpers ──────────────────────────────────────────────────────
@@ -154,7 +181,8 @@ function findPython() {
   ];
   for (const c of candidates) {
     try {
-      execSync(`"${c}" --version`, { stdio: 'ignore', windowsHide: true });
+      // execFileSync passes args as a real argv array — no shell string to quote/escape.
+      execFileSync(c, ['--version'], { stdio: 'ignore', windowsHide: true });
       return c;
     } catch {}
   }
@@ -362,9 +390,11 @@ async function createWindow() {
 const EXPECTED_INSTALLER = path.join(os.tmpdir(), 'egm-update', 'egm-setup.exe');
 ipcMain.handle('launch-installer', async (event, installerPath) => {
   try {
+    if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
     if (!installerPath || typeof installerPath !== 'string') return { error: 'Invalid installer path' };
-    // Exact path match — only the path our own download-update endpoint writes is allowed
-    if (path.resolve(installerPath) !== EXPECTED_INSTALLER) return { error: 'Unexpected installer path' };
+    // Exact path match — only the path our own download-update endpoint writes is
+    // allowed. Resolve BOTH sides so normalization can't cause a false mismatch.
+    if (path.resolve(installerPath) !== path.resolve(EXPECTED_INSTALLER)) return { error: 'Unexpected installer path' };
     if (!fs.existsSync(installerPath)) return { error: 'Installer not found: ' + installerPath };
     // Spawn installer detached so it outlives Electron
     // spawn is already imported at the top of this file
@@ -388,6 +418,7 @@ ipcMain.handle('quit-app', () => {
 
 // ── IPC: folder picker ────────────────────────────────────────────────────────
 ipcMain.handle('pick-folder', async (event, defaultPath) => {
+  if (!isTrustedSender(event)) return null;
   const result = await dialog.showOpenDialog(mainWindow, {
     title:       'Select download folder',
     defaultPath: defaultPath,
@@ -400,6 +431,7 @@ ipcMain.handle('pick-folder', async (event, defaultPath) => {
 // ── IPC: open folder in Explorer ──────────────────────────────────────────────
 ipcMain.handle('open-folder', async (event, folderPath) => {
   try {
+    if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
     if (!folderPath || typeof folderPath !== 'string') return { error: 'Invalid path' };
     if (folderPath.startsWith('http') || folderPath.startsWith('javascript')) return { error: 'Invalid path' };
     // Must be an existing directory — prevents shell.openPath from launching arbitrary files
@@ -416,6 +448,7 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 
 // ── IPC: save file dialog (settings export) ───────────────────────────────────
 ipcMain.handle('save-file', async (event, defaultName, content) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
   const result = await dialog.showSaveDialog(mainWindow, {
     title:       'Export Settings',
     defaultPath: defaultName || 'egm-settings.json',
@@ -431,7 +464,17 @@ ipcMain.handle('save-file', async (event, defaultName, content) => {
 });
 
 // ── IPC: open file dialog (settings import) ───────────────────────────────────
+// Read a user-picked text file, rejecting oversized selections client-side so we
+// never pull a huge file into memory (Flask also caps cookies at 1 MB on submit).
+const MAX_IMPORT_BYTES = 2 * 1024 * 1024; // 2 MB
+function readFileCapped(filePath) {
+  const { size } = fs.statSync(filePath);
+  if (size > MAX_IMPORT_BYTES) return { error: 'File too large (max 2 MB)' };
+  return { ok: true, content: fs.readFileSync(filePath, 'utf8') };
+}
+
 ipcMain.handle('open-file', async (event, options) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
   const isCookies = options && options.type === 'cookies';
   const dialogOpts = {
     title:      isCookies ? 'Select cookies.txt' : 'Import Settings',
@@ -442,15 +485,15 @@ ipcMain.handle('open-file', async (event, options) => {
   const result = await dialog.showOpenDialog(mainWindow, dialogOpts);
   if (result.canceled || !result.filePaths.length) return { canceled: true };
   try {
-    const content = require('fs').readFileSync(result.filePaths[0], 'utf8');
-    return { ok: true, content };
+    return readFileCapped(result.filePaths[0]);
   } catch (e) {
     return { error: e.message };
   }
 });
 
 // ── IPC: open cookies file dialog ────────────────────────────────────────────
-ipcMain.handle('open-cookies-file', async () => {
+ipcMain.handle('open-cookies-file', async (event) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
   const result = await dialog.showOpenDialog(mainWindow, {
     title:      'Select cookies.txt',
     filters:    [{ name: 'Text files', extensions: ['txt'] }, { name: 'All files', extensions: ['*'] }],
@@ -458,16 +501,21 @@ ipcMain.handle('open-cookies-file', async () => {
   });
   if (result.canceled || !result.filePaths.length) return { canceled: true };
   try {
-    const content = require('fs').readFileSync(result.filePaths[0], 'utf8');
-    return { ok: true, content };
+    return readFileCapped(result.filePaths[0]);
   } catch (e) {
     return { error: e.message };
   }
 });
 
+// Window-bounds files live in userData (which is redirected to the portable folder
+// in portable mode). Storing them next to the exe leaked install-location state and
+// wrote them deep inside node_modules/electron/dist, where they're wiped on every
+// Electron reinstall. userData keeps them with the rest of per-user state.
+const WINDOW_STATE_DIR = app.getPath('userData');
+
 // ── IPC: open full history window ─────────────────────────────────────────────
 let historyWindow = null;
-const HISTORY_BOUNDS_FILE = path.join(path.dirname(app.getPath('exe')), 'egm_history_window.json');
+const HISTORY_BOUNDS_FILE = path.join(WINDOW_STATE_DIR, 'egm_history_window.json');
 
 function loadHistoryBounds() {
   try {
@@ -490,7 +538,8 @@ function saveHistoryBounds(win) {
   } catch {}
 }
 
-ipcMain.handle('open-history-window', async () => {
+ipcMain.handle('open-history-window', async (event) => {
+  if (!isTrustedSender(event)) return;
   if (historyWindow && !historyWindow.isDestroyed()) {
     historyWindow.focus();
     return;
@@ -518,7 +567,7 @@ ipcMain.handle('open-history-window', async () => {
 
 // ── IPC: open themes window ───────────────────────────────────────────────────
 let themesWindow = null;
-const THEMES_BOUNDS_FILE = path.join(path.dirname(app.getPath('exe')), 'egm_themes_window.json');
+const THEMES_BOUNDS_FILE = path.join(WINDOW_STATE_DIR, 'egm_themes_window.json');
 
 function loadThemesBounds() {
   try {
@@ -537,7 +586,8 @@ function saveThemesBounds(win) {
   try { fs.writeFileSync(THEMES_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
 }
 
-ipcMain.handle('open-themes-window', async () => {
+ipcMain.handle('open-themes-window', async (event) => {
+  if (!isTrustedSender(event)) return;
   if (themesWindow && !themesWindow.isDestroyed()) { themesWindow.focus(); return; }
   const bounds = loadThemesBounds();
   themesWindow = new BrowserWindow({
@@ -562,6 +612,7 @@ ipcMain.handle('open-themes-window', async () => {
 // supporting any future theme without allowlist maintenance
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
 ipcMain.on('set-theme', (event, theme) => {
+  if (!isTrustedSender(event)) return;
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return; // reject malformed theme keys
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('theme-changed', theme);
@@ -572,7 +623,14 @@ ipcMain.on('set-theme', (event, theme) => {
 // History window is a separate BrowserWindow with no opener relationship,
 // so cross-window readd uses this IPC bridge.
 ipcMain.on('send-url-to-main', (event, url) => {
+  if (!isTrustedSender(event)) return;
   if (typeof url !== 'string' || !url.trim()) return;
+  // Only forward http(s) URLs — this value lands in the main window's URL box.
+  try {
+    if (!['http:', 'https:'].includes(new URL(url).protocol)) return;
+  } catch {
+    return;
+  }
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('readd-url', url);
     mainWindow.focus();
@@ -580,8 +638,9 @@ ipcMain.on('send-url-to-main', (event, url) => {
 });
 
 // ── IPC: create desktop shortcut ─────────────────────────────────────────────
-ipcMain.handle('create-shortcut', async () => {
+ipcMain.handle('create-shortcut', async (event) => {
   try {
+    if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
     const lnkTarget = path.join(__dirname, '..', 'EGM Downloader.vbs');
     const workDir   = path.join(__dirname, '..');
     const iconPath  = path.join(__dirname, '..', 'static', 'icon.ico');
