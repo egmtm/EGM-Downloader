@@ -1,12 +1,30 @@
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
-  • [ALL] New: 40 new themes — mythology (10), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6) — total now 300 themes
+  • [ALL] New: 60 new themes — mythology (10), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (20) — total now 320 themes
   • [ALL] Fix: ffmpeg downloads in background — app loads immediately even on slow connections, no frozen splash
+  • [ALL] Fix: ffmpeg readiness gate — downloads return clear message while ffmpeg is still downloading instead of failing silently
+  • [ALL] Fix: atomic file writes now use fsync — prevents empty files on power loss
+  • [ALL] Fix: thumbnail download hardened — SSRF guard blocks internal hosts, Content-Length pre-check rejects oversized images
+  • [ALL] Fix: whats-new feed now verified against signed manifest before displaying
+  • [ALL] Fix: history API validates pagination params — prevents 500 errors on bad input, caps per_page at 500
+  • [ALL] Fix: flask_port precedence — Electron's PORT env always wins over stale settings, prevents stuck-on-loading
+  • [ALL] Fix: DST-aware timestamps in update feeds — no longer hardcodes -05:00
   • [WINDOWS] Polish: download count badge removed from hamburger button — redundant with history
   • [WINDOWS] Fix: portable mode isolates Electron data — no settings leak between installed and portable versions
   • [WINDOWS] Polish: portable internal files hidden in Explorer — only launcher, instructions, and patchnotes visible
-  • [WINDOWS] Fix: uninstaller fully cleans up all app data (history, thumbnails, logs) when user chooses to remove everything
-  • [WINDOWS] Polish: deterministic Electron install via bundled package-lock.json
+  • [WINDOWS] Fix: uninstaller restructured — separate dialogs for runtime components vs user data, closes app before uninstall, cleans desktop shortcut
+  • [WINDOWS] Polish: deterministic Electron install via bundled package-lock.json, prefers npm ci
+  • [WINDOWS] Security: IPC sender validation on all Electron handlers — prevents untrusted renderer from invoking sensitive operations
+  • [WINDOWS] Security: external links restricted to HTTPS only, navigation pinned to Flask origin
+  • [WINDOWS] Security: Node.js download verified against official SHASUMS256.txt before extraction
+  • [WINDOWS] Security: zip-slip guard on Node.js extraction — rejects path traversal
+  • [WINDOWS] Security: preload bridge validates inputs before sending IPC
+  • [WINDOWS] Fix: window state files (history/themes bounds) moved to userData — survives Electron reinstall
+  • [WINDOWS] Fix: Electron settings writes now atomic (tmp + rename)
+  • [WINDOWS] Fix: file imports capped at 2MB — prevents memory issues on large files
+  • [WINDOWS] Fix: update installer download uses correct timeout for large files
+  • [WINDOWS] Fix: Aurora/Aurora Deep theme picker HTML structure corrected
+  • [WINDOWS] Polish: gen-update-json validates checksum format, documents signing workflow
 
 v0.99.13 - Build 121 (5/26/2026 11:06 AM EST) — SOLID
 -----------------------------------------
