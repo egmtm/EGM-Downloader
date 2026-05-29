@@ -853,6 +853,10 @@ def start_download():
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
+    # Gate: ffmpeg must be ready before downloads can start (it runs in a
+    # background thread on first launch — see ensure_ffmpeg).
+    if not (FFMPEG_DIR / "ffmpeg").exists():
+        return jsonify({"error": "ffmpeg is still downloading — please wait a moment and try again"}), 503
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
 
