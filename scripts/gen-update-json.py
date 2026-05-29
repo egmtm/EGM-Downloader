@@ -58,7 +58,7 @@ import json
 import re
 import argparse
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 
 try:
     from zoneinfo import ZoneInfo
@@ -78,9 +78,14 @@ def load_version():
 
 def now_iso():
     if _tz:
-        dt = datetime.now(_tz)
-        return dt.strftime("%Y-%m-%dT%H:%M:%S-05:00")
-    return datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+        # Use the real UTC offset for the date — America/New_York is -04:00 during
+        # daylight saving time, not always -05:00. strftime("%z") emits the
+        # correct offset; reformat as ±HH:MM for valid ISO 8601.
+        dt  = datetime.now(_tz)
+        off = dt.strftime("%z")  # e.g. "-0400"
+        off = f"{off[:3]}:{off[3:]}" if len(off) == 5 else "-05:00"
+        return dt.strftime("%Y-%m-%dT%H:%M:%S") + off
+    return datetime.now(tz=timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
 
 def build_label(data):
