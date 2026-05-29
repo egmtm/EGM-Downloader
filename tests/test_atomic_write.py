@@ -75,12 +75,16 @@ def test_atomic_write_chmod_applied_before_rename(_write_fn, tmp_path):
 
 
 def test_atomic_write_cleans_up_tmp_on_failure(_write_fn, tmp_path):
-    """(c) On write failure the .tmp file is cleaned up — no .tmp accumulation."""
+    """(c) On write failure the .tmp file is cleaned up — no .tmp accumulation.
+
+    The helper now writes to tmp, fsyncs, then renames. We inject the failure at
+    os.fsync — so the .tmp file has actually been created and written by the time
+    the error fires, which exercises the cleanup-and-reraise path more directly
+    than failing before the file ever exists."""
     target = tmp_path / "history.json"
     tmp = target.with_suffix(target.suffix + ".tmp")
 
-    # Force an error during write by making write_text raise
-    with patch.object(Path, "write_text", side_effect=OSError("disk full")):
+    with patch("os.fsync", side_effect=OSError("disk full")):
         with pytest.raises(OSError):
             _write_fn(target, '{"items": []}')
 
