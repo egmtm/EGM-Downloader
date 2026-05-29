@@ -226,15 +226,16 @@ def launch_electron():
     exe = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "electron.exe"
     if not exe.exists():
         _gui_msg("ERROR: electron.exe not found"); time.sleep(4); sys.exit(1)
-    _gui_close()
     env = {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
     subprocess.Popen(
         [str(exe), str(ELECTRON_DIR)], cwd=str(ELECTRON_DIR), env=env,
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL, creationflags=NO_WIN,
     )
-    # Don't wait — launcher exits immediately after spawning Electron,
-    # removing the idle pythonw.exe process from the process list.
+    # Tkinter "Launching..." stays visible while Electron initializes in the
+    # background. When this function returns, the script ends, Python exits,
+    # and Tkinter closes automatically — by then Electron's splash is rendering.
+    # This eliminates the visible gap between the two windows.
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 def _signal_running_instance():
