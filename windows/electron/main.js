@@ -646,6 +646,8 @@ function startShowWindowPoller() {
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
+  // Set display name AFTER ready so userData path is already locked to 'egm-downloader'
+  app.setName('EGM Downloader');
   // Content-Security-Policy: applied to all responses from Flask
   // 'unsafe-inline' for scripts/styles required because templates use inline JS/CSS.
   // External scripts, frames, objects, plugins, non-self connections all blocked.
