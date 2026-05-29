@@ -203,8 +203,9 @@ def ensure_npm(node_exe):
     # Explicitly run install.js to download it if missing. Idempotent —
     # install.js exits immediately if the binary already exists (Electron 41).
     electron_exe = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "electron.exe"
+    electron_renamed = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "EGM Downloader.exe"
     install_js   = ELECTRON_DIR / "node_modules" / "electron" / "install.js"
-    if not electron_exe.exists() and install_js.exists():
+    if not electron_exe.exists() and not electron_renamed.exists() and install_js.exists():
         _gui_msg("Downloading Electron runtime…")
         subprocess.run([node_exe, str(install_js)],
                        cwd=str(ELECTRON_DIR / "node_modules" / "electron"),
@@ -223,7 +224,16 @@ def _find_npm(node_exe):
 
 # ── Launch Electron ───────────────────────────────────────────────────────────
 def launch_electron():
-    exe = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "electron.exe"
+    dist = ELECTRON_DIR / "node_modules" / "electron" / "dist"
+    original = dist / "electron.exe"
+    renamed  = dist / "EGM Downloader.exe"
+
+    # Rename so Task Manager shows "EGM Downloader" instead of "electron"
+    if original.exists() and not renamed.exists():
+        try: original.rename(renamed)
+        except Exception: pass
+
+    exe = renamed if renamed.exists() else original
     if not exe.exists():
         _gui_msg("ERROR: electron.exe not found"); time.sleep(4); sys.exit(1)
     env = {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
