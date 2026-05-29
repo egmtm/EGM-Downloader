@@ -8121,3 +8121,669 @@ body.sixseven {
   --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ctext x='10' y='55' font-size='48' fill='%23e8d800' opacity='0.06' font-family='serif' font-weight='bold'%3E7%3C/text%3E%3Ctext x='42' y='35' font-size='28' fill='%23e8d800' opacity='0.05' font-family='serif'%3E8%3C/text%3E%3C/svg%3E");
   --bg-texture-opacity: 1;
 }
+
+/* === Cities of the World === */
+/* ══ CITIES — GLOBAL BATCH ════════════════════════════════════ */
+
+/* New York — concrete grey, yellow cab, midnight skyline */
+body.newyork {
+  --bg:      #060608;
+  --surf:    #0e1018;
+  --surf2:   #161820;
+  --surf3:   #1e2028;
+  --border:  #303040;
+  --border2: #404058;
+  --acc:     #f8c000;
+  --acc-h:   #ffd020;
+  --acc-dim: rgba(248,192,0,.14);
+  --green:   #40a060;
+  --red:     #e04040;
+  --yellow:  #f8c000;
+  --text:    #e8eef8;
+  --text2:   #7888a8;
+  --muted:   #141620;
+  --shadow:  0 4px 32px rgba(0,0,0,.92);
+  --thumb-bg:          #0e1018;
+  --log-bg:            #030306;
+  --log-text:          #7888a8;
+  --modal-overlay:     rgba(0,0,0,.92);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.98);
+  --btn-primary-text:  #060608;
+  --btn-on-accent:     #060608;
+  --btn-red-border:    #3a1a1a;
+  --audio-btn-color:   #f8c000;
+  --dur-bg:            rgba(0,0,0,.94);
+  --dur-text:          #e8eef8;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cline x1='0' y1='0' x2='0' y2='60' stroke='%23f8c000' stroke-width='0.3' opacity='0.08'/%3E%3Cline x1='20' y1='0' x2='20' y2='60' stroke='%23f8c000' stroke-width='0.3' opacity='0.08'/%3E%3Cline x1='40' y1='0' x2='40' y2='60' stroke='%23f8c000' stroke-width='0.3' opacity='0.08'/%3E%3Cline x1='60' y1='0' x2='60' y2='60' stroke='%23f8c000' stroke-width='0.3' opacity='0.08'/%3E%3Cline x1='0' y1='0' x2='60' y2='0' stroke='%23f8c000' stroke-width='0.3' opacity='0.06'/%3E%3Cline x1='0' y1='20' x2='60' y2='20' stroke='%23f8c000' stroke-width='0.3' opacity='0.06'/%3E%3Cline x1='0' y1='40' x2='60' y2='40' stroke='%23f8c000' stroke-width='0.3' opacity='0.06'/%3E%3Cline x1='0' y1='60' x2='60' y2='60' stroke='%23f8c000' stroke-width='0.3' opacity='0.06'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Mumbai — monsoon warmth, chaos and life, vivid orange energy */
+body.mumbai {
+  --bg:      #0e0800;
+  --surf:    #1a1200;
+  --surf2:   #261c00;
+  --surf3:   #322600;
+  --border:  #6a3800;
+  --border2: #8a5000;
+  --acc:     #e86020;
+  --acc-h:   #f07838;
+  --acc-dim: rgba(232,96,32,.14);
+  --green:   #60a040;
+  --red:     #e82020;
+  --yellow:  #f0c000;
+  --text:    #f8e8d0;
+  --text2:   #c07030;
+  --muted:   #4a2800;
+  --shadow:  0 4px 32px rgba(0,0,0,.86);
+  --thumb-bg:          #1a1200;
+  --log-bg:            #080500;
+  --log-text:          #c07030;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #0e0800;
+  --btn-on-accent:     #0e0800;
+  --btn-red-border:    #3a1a00;
+  --audio-btn-color:   #f0c000;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #f8e8d0;
+  --bg-texture: repeating-linear-gradient(
+    95deg, transparent, transparent 2px,
+    rgba(232,96,32,.04) 2px, rgba(232,96,32,.04) 3px
+  ), url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='30'%3E%3Cellipse cx='25' cy='15' rx='22' ry='8' fill='none' stroke='%23e86020' stroke-width='0.3' opacity='0.1'/%3E%3Cellipse cx='75' cy='10' rx='20' ry='7' fill='none' stroke='%23e86020' stroke-width='0.3' opacity='0.08'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Istanbul — Ottoman gold, Bosphorus, ancient meets modern */
+body.istanbul {
+  --bg:      #080608;
+  --surf:    #141010;
+  --surf2:   #201a18;
+  --surf3:   #2c2420;
+  --border:  #584028;
+  --border2: #785838;
+  --acc:     #c89830;
+  --acc-h:   #d8a840;
+  --acc-dim: rgba(200,152,48,.14);
+  --green:   #608050;
+  --red:     #b04030;
+  --yellow:  #c89830;
+  --text:    #f0e8d0;
+  --text2:   #a08030;
+  --muted:   #3c2c18;
+  --shadow:  0 4px 32px rgba(0,0,0,.88);
+  --thumb-bg:          #141010;
+  --log-bg:            #040304;
+  --log-text:          #a08030;
+  --modal-overlay:     rgba(0,0,0,.90);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.97);
+  --btn-primary-text:  #080608;
+  --btn-on-accent:     #080608;
+  --btn-red-border:    #3a1a10;
+  --audio-btn-color:   #c89830;
+  --dur-bg:            rgba(0,0,0,.92);
+  --dur-text:          #f0e8d0;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='30' r='18' fill='none' stroke='%23c89830' stroke-width='0.4' opacity='0.12'/%3E%3Cpath d='M32 20 Q40 10 48 20' fill='none' stroke='%23c89830' stroke-width='0.4' opacity='0.14'/%3E%3Cline x1='40' y1='48' x2='40' y2='65' stroke='%23c89830' stroke-width='0.4' opacity='0.1'/%3E%3Cline x1='32' y1='58' x2='48' y2='58' stroke='%23c89830' stroke-width='0.3' opacity='0.09'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Mexico City — Casa Barragán vivid pink, Aztec roots, megacity */
+body.mexicocity {
+  --bg:      #0e0600;
+  --surf:    #1a1000;
+  --surf2:   #261a00;
+  --surf3:   #322400;
+  --border:  #6a3000;
+  --border2: #8a4400;
+  --acc:     #e83880;
+  --acc-h:   #f050a0;
+  --acc-dim: rgba(232,56,128,.14);
+  --green:   #60a040;
+  --red:     #e02020;
+  --yellow:  #f0b820;
+  --text:    #f8e8f0;
+  --text2:   #c83878;
+  --muted:   #4a2000;
+  --shadow:  0 4px 32px rgba(0,0,0,.88);
+  --thumb-bg:          #1a1000;
+  --log-bg:            #080400;
+  --log-text:          #c83878;
+  --modal-overlay:     rgba(0,0,0,.90);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.97);
+  --btn-primary-text:  #0e0600;
+  --btn-on-accent:     #0e0600;
+  --btn-red-border:    #3a0028;
+  --audio-btn-color:   #f0b820;
+  --dur-bg:            rgba(0,0,0,.92);
+  --dur-text:          #f8e8f0;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='30' fill='none' stroke='%23e83880' stroke-width='0.3' opacity='0.1'/%3E%3Ccircle cx='40' cy='40' r='22' fill='none' stroke='%23e83880' stroke-width='0.3' opacity='0.08'/%3E%3Ccircle cx='40' cy='40' r='14' fill='none' stroke='%23f0b820' stroke-width='0.3' opacity='0.08'/%3E%3Ccircle cx='40' cy='40' r='6' fill='none' stroke='%23e83880' stroke-width='0.3' opacity='0.1'/%3E%3Cline x1='40' y1='10' x2='40' y2='70' stroke='%23e83880' stroke-width='0.2' opacity='0.07'/%3E%3Cline x1='10' y1='40' x2='70' y2='40' stroke='%23e83880' stroke-width='0.2' opacity='0.07'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* São Paulo — urban concrete, vivid street art, megacity cyan */
+body.saopaulo {
+  --bg:      #080808;
+  --surf:    #121212;
+  --surf2:   #1c1c1c;
+  --surf3:   #262626;
+  --border:  #303040;
+  --border2: #404058;
+  --acc:     #20d8f8;
+  --acc-h:   #38e8ff;
+  --acc-dim: rgba(32,216,248,.13);
+  --green:   #40d060;
+  --red:     #f04040;
+  --yellow:  #f8e020;
+  --text:    #e0f8ff;
+  --text2:   #3098b8;
+  --muted:   #1c1c28;
+  --shadow:  0 4px 32px rgba(0,0,0,.92);
+  --thumb-bg:          #121212;
+  --log-bg:            #040404;
+  --log-text:          #3098b8;
+  --modal-overlay:     rgba(0,0,0,.92);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.98);
+  --btn-primary-text:  #080808;
+  --btn-on-accent:     #080808;
+  --btn-red-border:    #3a1a1a;
+  --audio-btn-color:   #f8e020;
+  --dur-bg:            rgba(0,0,0,.94);
+  --dur-text:          #e0f8ff;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cline x1='0' y1='80' x2='60' y2='20' stroke='%2320d8f8' stroke-width='0.5' opacity='0.1'/%3E%3Cline x1='20' y1='100' x2='80' y2='40' stroke='%2320d8f8' stroke-width='0.4' opacity='0.08'/%3E%3Cline x1='50' y1='90' x2='100' y2='40' stroke='%23f8e020' stroke-width='0.4' opacity='0.07'/%3E%3Ccircle cx='30' cy='50' r='8' fill='none' stroke='%2320d8f8' stroke-width='0.3' opacity='0.08'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Shanghai — Pudong skyline, electric deep blue, neon river */
+body.shanghai {
+  --bg:      #040810;
+  --surf:    #080e1a;
+  --surf2:   #0c1424;
+  --surf3:   #101a2e;
+  --border:  #182848;
+  --border2: #203460;
+  --acc:     #3860f8;
+  --acc-h:   #5078ff;
+  --acc-dim: rgba(56,96,248,.14);
+  --green:   #30c0a0;
+  --red:     #e04060;
+  --yellow:  #f0d020;
+  --text:    #d0e0ff;
+  --text2:   #5878d8;
+  --muted:   #0c1830;
+  --shadow:  0 4px 32px rgba(0,0,0,.92);
+  --thumb-bg:          #080e1a;
+  --log-bg:            #020408;
+  --log-text:          #5878d8;
+  --modal-overlay:     rgba(0,0,0,.92);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.98);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #3a1a2a;
+  --audio-btn-color:   #f0d020;
+  --dur-bg:            rgba(0,0,0,.94);
+  --dur-text:          #d0e0ff;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cpath d='M20 100 L20 40 L28 20 L36 40 L36 100' fill='none' stroke='%233860f8' stroke-width='0.4' opacity='0.12'/%3E%3Cpath d='M50 100 L50 30 L60 5 L70 30 L70 100' fill='none' stroke='%233860f8' stroke-width='0.5' opacity='0.12'/%3E%3Cpath d='M80 100 L80 50 L86 35 L92 50 L92 100' fill='none' stroke='%233860f8' stroke-width='0.4' opacity='0.1'/%3E%3Cline x1='0' y1='70' x2='100' y2='70' stroke='%233860f8' stroke-width='0.3' opacity='0.1'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Nairobi — savanna gold, Maasai energy, modern East Africa */
+body.nairobi {
+  --bg:      #0a0800;
+  --surf:    #161200;
+  --surf2:   #221c00;
+  --surf3:   #2e2600;
+  --border:  #6a4800;
+  --border2: #8a6000;
+  --acc:     #d87820;
+  --acc-h:   #e88830;
+  --acc-dim: rgba(216,120,32,.14);
+  --green:   #70a040;
+  --red:     #c03020;
+  --yellow:  #d8a820;
+  --text:    #f8e8c0;
+  --text2:   #c07828;
+  --muted:   #4a3400;
+  --shadow:  0 4px 32px rgba(0,0,0,.84);
+  --thumb-bg:          #161200;
+  --log-bg:            #060500;
+  --log-text:          #c07828;
+  --modal-overlay:     rgba(0,0,0,.86);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.94);
+  --btn-primary-text:  #0a0800;
+  --btn-on-accent:     #0a0800;
+  --btn-red-border:    #3a1a00;
+  --audio-btn-color:   #d8a820;
+  --dur-bg:            rgba(0,0,0,.88);
+  --dur-text:          #f8e8c0;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Crect x='20' y='5' width='20' height='20' fill='none' stroke='%23d87820' stroke-width='0.4' opacity='0.12' transform='rotate(45 30 15)'/%3E%3Crect x='20' y='35' width='20' height='20' fill='none' stroke='%23d87820' stroke-width='0.4' opacity='0.12' transform='rotate(45 30 45)'/%3E%3Crect x='5' y='20' width='20' height='20' fill='none' stroke='%23d87820' stroke-width='0.3' opacity='0.09' transform='rotate(45 15 30)'/%3E%3Crect x='35' y='20' width='20' height='20' fill='none' stroke='%23d87820' stroke-width='0.3' opacity='0.09' transform='rotate(45 45 30)'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Moscow — cold imperial red, snow and grandeur, Kremlin */
+body.moscow {
+  --bg:      #06060e;
+  --surf:    #0e0e18;
+  --surf2:   #161622;
+  --surf3:   #1e1e2c;
+  --border:  #302030;
+  --border2: #442844;
+  --acc:     #b80020;
+  --acc-h:   #cc0030;
+  --acc-dim: rgba(184,0,32,.14);
+  --green:   #407060;
+  --red:     #b80020;
+  --yellow:  #c89830;
+  --text:    #f0e8ee;
+  --text2:   #8060a0;
+  --muted:   #1c1828;
+  --shadow:  0 4px 32px rgba(0,0,0,.92);
+  --thumb-bg:          #0e0e18;
+  --log-bg:            #030306;
+  --log-text:          #8060a0;
+  --modal-overlay:     rgba(0,0,0,.92);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.98);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #580020;
+  --audio-btn-color:   #c89830;
+  --dur-bg:            rgba(0,0,0,.94);
+  --dur-text:          #f0e8ee;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='100'%3E%3Cpath d='M40 10 L40 40 Q40 50 30 55 Q20 60 20 70 L60 70 Q60 60 50 55 Q40 50 40 40' fill='none' stroke='%23b80020' stroke-width='0.4' opacity='0.12'/%3E%3Ccircle cx='40' cy='8' r='5' fill='none' stroke='%23c89830' stroke-width='0.4' opacity='0.12'/%3E%3Ccircle cx='40' cy='3' r='2.5' fill='%23c89830' opacity='0.1'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Buenos Aires — tango passion, rose red, European elegance */
+body.buenosaires {
+  --bg:      #080008;
+  --surf:    #120010;
+  --surf2:   #1c0018;
+  --surf3:   #260020;
+  --border:  #580030;
+  --border2: #780040;
+  --acc:     #d82848;
+  --acc-h:   #e83858;
+  --acc-dim: rgba(216,40,72,.14);
+  --green:   #407060;
+  --red:     #d82848;
+  --yellow:  #c89830;
+  --text:    #f8d8e8;
+  --text2:   #a03058;
+  --muted:   #3a0028;
+  --shadow:  0 4px 32px rgba(0,0,0,.90);
+  --thumb-bg:          #120010;
+  --log-bg:            #040004;
+  --log-text:          #a03058;
+  --modal-overlay:     rgba(0,0,0,.90);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.97);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #580030;
+  --audio-btn-color:   #c89830;
+  --dur-bg:            rgba(0,0,0,.92);
+  --dur-text:          #f8d8e8;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Cpath d='M20 60 Q30 30 50 40 Q70 50 60 20' fill='none' stroke='%23d82848' stroke-width='0.5' opacity='0.14'/%3E%3Cpath d='M15 65 Q28 32 48 44 Q68 55 58 22' fill='none' stroke='%23d82848' stroke-width='0.3' opacity='0.08'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Athens — deep Aegean classical blue, white marble, ancient light */
+body.athens {
+  --bg:      #060c14;
+  --surf:    #0c1420;
+  --surf2:   #121c2c;
+  --surf3:   #182438;
+  --border:  #203450;
+  --border2: #2c4468;
+  --acc:     #2850b8;
+  --acc-h:   #3860c8;
+  --acc-dim: rgba(40,80,184,.14);
+  --green:   #40a070;
+  --red:     #c05050;
+  --yellow:  #d0a840;
+  --text:    #e0eeff;
+  --text2:   #5878c0;
+  --muted:   #101e30;
+  --shadow:  0 4px 32px rgba(0,0,0,.88);
+  --thumb-bg:          #0c1420;
+  --log-bg:            #030608;
+  --log-text:          #5878c0;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #3a1a2a;
+  --audio-btn-color:   #d0a840;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #e0eeff;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='80'%3E%3Crect x='12' y='0' width='16' height='70' fill='none' stroke='%232850b8' stroke-width='0.4' opacity='0.12'/%3E%3Cellipse cx='20' cy='4' rx='10' ry='5' fill='none' stroke='%232850b8' stroke-width='0.4' opacity='0.12'/%3E%3Crect x='4' y='70' width='32' height='6' fill='none' stroke='%232850b8' stroke-width='0.3' opacity='0.1'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Marrakech — spice market terracotta, Moroccan warmth, souk */
+body.marrakech {
+  --bg:      #100600;
+  --surf:    #1c1000;
+  --surf2:   #281a00;
+  --surf3:   #342400;
+  --border:  #6a3400;
+  --border2: #8a4800;
+  --acc:     #d04020;
+  --acc-h:   #e05030;
+  --acc-dim: rgba(208,64,32,.14);
+  --green:   #608040;
+  --red:     #d04020;
+  --yellow:  #d0a020;
+  --text:    #f8e0c8;
+  --text2:   #b06030;
+  --muted:   #4a2800;
+  --shadow:  0 4px 32px rgba(0,0,0,.86);
+  --thumb-bg:          #1c1000;
+  --log-bg:            #080400;
+  --log-text:          #b06030;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #3a1a00;
+  --audio-btn-color:   #d0a020;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #f8e0c8;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Cpolygon points='30,4 36,16 48,16 39,24 42,36 30,29 18,36 21,24 12,16 24,16' fill='none' stroke='%23d04020' stroke-width='0.4' opacity='0.14'/%3E%3Cpolygon points='30,12 34,20 42,20 36,25 38,33 30,28 22,33 24,25 18,20 26,20' fill='none' stroke='%23d0a020' stroke-width='0.3' opacity='0.09'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Kyoto — torii gate vermillion, bamboo green, serene ancient Japan */
+body.kyoto {
+  --bg:      #0c0400;
+  --surf:    #180a00;
+  --surf2:   #241000;
+  --surf3:   #301600;
+  --border:  #6a2808;
+  --border2: #8a3810;
+  --acc:     #cc2808;
+  --acc-h:   #e03818;
+  --acc-dim: rgba(204,40,8,.14);
+  --green:   #508040;
+  --red:     #cc2808;
+  --yellow:  #c89830;
+  --text:    #f0d8c8;
+  --text2:   #a06040;
+  --muted:   #3c1800;
+  --shadow:  0 4px 32px rgba(0,0,0,.88);
+  --thumb-bg:          #180a00;
+  --log-bg:            #060300;
+  --log-text:          #a06040;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #3a1a00;
+  --audio-btn-color:   #c89830;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #f0d8c8;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='80'%3E%3Crect x='24' y='20' width='12' height='55' fill='none' stroke='%23cc2808' stroke-width='0.4' opacity='0.12'/%3E%3Crect x='10' y='22' width='40' height='8' fill='none' stroke='%23cc2808' stroke-width='0.4' opacity='0.12'/%3E%3Crect x='4' y='28' width='52' height='4' fill='none' stroke='%23cc2808' stroke-width='0.3' opacity='0.09'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Amsterdam — canal dark, Dutch tulip vivid pink-red, bicycle city */
+body.amsterdam {
+  --bg:      #040e08;
+  --surf:    #081a10;
+  --surf2:   #0c2418;
+  --surf3:   #102e20;
+  --border:  #184830;
+  --border2: #206040;
+  --acc:     #e83858;
+  --acc-h:   #f04868;
+  --acc-dim: rgba(232,56,88,.14);
+  --green:   #30b860;
+  --red:     #e83858;
+  --yellow:  #f8e020;
+  --text:    #d0f8e8;
+  --text2:   #c03050;
+  --muted:   #0c2818;
+  --shadow:  0 4px 32px rgba(0,0,0,.86);
+  --thumb-bg:          #081a10;
+  --log-bg:            #020806;
+  --log-text:          #c03050;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #3a0020;
+  --audio-btn-color:   #f8e020;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #d0f8e8;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Ccircle cx='40' cy='40' r='20' fill='none' stroke='%23e83858' stroke-width='0.4' opacity='0.12'/%3E%3Ccircle cx='40' cy='40' r='8' fill='none' stroke='%23e83858' stroke-width='0.3' opacity='0.09'/%3E%3Cline x1='40' y1='20' x2='40' y2='60' stroke='%23e83858' stroke-width='0.3' opacity='0.1'/%3E%3Cpath d='M0 55 Q40 45 80 55' fill='none' stroke='%2320b860' stroke-width='0.3' opacity='0.1'/%3E%3Cpath d='M0 65 Q40 55 80 65' fill='none' stroke='%2320b860' stroke-width='0.2' opacity='0.08'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Sydney — Opera House sails, harbour bright blue, sunlit */
+body.sydney {
+  --bg:      #040c18;
+  --surf:    #081824;
+  --surf2:   #0c2030;
+  --surf3:   #10283c;
+  --border:  #184058;
+  --border2: #205870;
+  --acc:     #50b8f0;
+  --acc-h:   #68c8ff;
+  --acc-dim: rgba(80,184,240,.14);
+  --green:   #40b070;
+  --red:     #e05050;
+  --yellow:  #f0d040;
+  --text:    #d8f0ff;
+  --text2:   #4090c0;
+  --muted:   #0e2030;
+  --shadow:  0 4px 32px rgba(0,0,0,.86);
+  --thumb-bg:          #081824;
+  --log-bg:            #020608;
+  --log-text:          #4090c0;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #040c18;
+  --btn-on-accent:     #040c18;
+  --btn-red-border:    #2a1828;
+  --audio-btn-color:   #f0d040;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #d8f0ff;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='80'%3E%3Cpath d='M20 70 Q35 30 50 70' fill='none' stroke='%2350b8f0' stroke-width='0.5' opacity='0.14'/%3E%3Cpath d='M50 70 Q65 20 80 70' fill='none' stroke='%2350b8f0' stroke-width='0.5' opacity='0.14'/%3E%3Cpath d='M30 70 Q45 40 60 70' fill='none' stroke='%2350b8f0' stroke-width='0.3' opacity='0.09'/%3E%3Cline x1='0' y1='70' x2='120' y2='70' stroke='%2350b8f0' stroke-width='0.4' opacity='0.1'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Berlin — industrial dark, techno underground, neon magenta */
+body.berlin {
+  --bg:      #040404;
+  --surf:    #0c0c0c;
+  --surf2:   #141414;
+  --surf3:   #1c1c1c;
+  --border:  #282828;
+  --border2: #383838;
+  --acc:     #e020a0;
+  --acc-h:   #f030b8;
+  --acc-dim: rgba(224,32,160,.14);
+  --green:   #20e0a0;
+  --red:     #e02020;
+  --yellow:  #e0e000;
+  --text:    #f0e0f0;
+  --text2:   #c020a0;
+  --muted:   #1c1c1c;
+  --shadow:  0 4px 32px rgba(0,0,0,.97);
+  --thumb-bg:          #0c0c0c;
+  --log-bg:            #020202;
+  --log-text:          #c020a0;
+  --modal-overlay:     rgba(0,0,0,.96);
+  --modal-shadow:      0 20px 60px rgba(224,32,160,.1);
+  --btn-primary-text:  #040404;
+  --btn-on-accent:     #040404;
+  --btn-red-border:    #3a0028;
+  --audio-btn-color:   #20e0a0;
+  --dur-bg:            rgba(0,0,0,.97);
+  --dur-text:          #f0e0f0;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80'%3E%3Crect x='0' y='30' width='80' height='20' fill='%23e020a0' opacity='0.04'/%3E%3Cline x1='0' y1='30' x2='80' y2='30' stroke='%23e020a0' stroke-width='0.4' opacity='0.12'/%3E%3Cline x1='0' y1='50' x2='80' y2='50' stroke='%23e020a0' stroke-width='0.4' opacity='0.12'/%3E%3Ccircle cx='40' cy='40' r='4' fill='%23e020a0' opacity='0.12'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Lisbon — Azulejo blue tile, warm Atlantic, fado melancholy */
+body.lisbon {
+  --bg:      #060a12;
+  --surf:    #0c1020;
+  --surf2:   #12182e;
+  --surf3:   #18203c;
+  --border:  #243050;
+  --border2: #304068;
+  --acc:     #5888d0;
+  --acc-h:   #6898e0;
+  --acc-dim: rgba(88,136,208,.14);
+  --green:   #408060;
+  --red:     #c05050;
+  --yellow:  #d0a840;
+  --text:    #e0e8ff;
+  --text2:   #6888c8;
+  --muted:   #101828;
+  --shadow:  0 4px 32px rgba(0,0,0,.86);
+  --thumb-bg:          #0c1020;
+  --log-bg:            #030508;
+  --log-text:          #6888c8;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #3a1a2a;
+  --audio-btn-color:   #d0a840;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #e0e8ff;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='30' height='30'%3E%3Crect x='1' y='1' width='13' height='13' rx='1' fill='none' stroke='%235888d0' stroke-width='0.4' opacity='0.14'/%3E%3Crect x='16' y='1' width='13' height='13' rx='1' fill='none' stroke='%235888d0' stroke-width='0.4' opacity='0.14'/%3E%3Crect x='1' y='16' width='13' height='13' rx='1' fill='none' stroke='%235888d0' stroke-width='0.4' opacity='0.14'/%3E%3Crect x='16' y='16' width='13' height='13' rx='1' fill='none' stroke='%235888d0' stroke-width='0.4' opacity='0.14'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Tehran — Persian rose gold, ancient carpet, deep warmth */
+body.tehran {
+  --bg:      #0a0408;
+  --surf:    #160810;
+  --surf2:   #220c18;
+  --surf3:   #2e1020;
+  --border:  #601838;
+  --border2: #802050;
+  --acc:     #c86898;
+  --acc-h:   #d878a8;
+  --acc-dim: rgba(200,104,152,.14);
+  --green:   #508060;
+  --red:     #c04060;
+  --yellow:  #c09030;
+  --text:    #f8d8e8;
+  --text2:   #a05878;
+  --muted:   #3a0828;
+  --shadow:  0 4px 32px rgba(0,0,0,.90);
+  --thumb-bg:          #160810;
+  --log-bg:            #050204;
+  --log-text:          #a05878;
+  --modal-overlay:     rgba(0,0,0,.90);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.97);
+  --btn-primary-text:  #0a0408;
+  --btn-on-accent:     #0a0408;
+  --btn-red-border:    #3a0020;
+  --audio-btn-color:   #c09030;
+  --dur-bg:            rgba(0,0,0,.92);
+  --dur-text:          #f8d8e8;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='60'%3E%3Ccircle cx='30' cy='30' r='24' fill='none' stroke='%23c86898' stroke-width='0.3' opacity='0.12'/%3E%3Cpolygon points='30,6 34,26 54,30 34,34 30,54 26,34 6,30 26,26' fill='none' stroke='%23c86898' stroke-width='0.3' opacity='0.1'/%3E%3Ccircle cx='30' cy='30' r='6' fill='none' stroke='%23c09030' stroke-width='0.3' opacity='0.1'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Singapore — Gardens by the Bay, tropical modern, vivid green */
+body.singapore {
+  --bg:      #041008;
+  --surf:    #081c10;
+  --surf2:   #0c2818;
+  --surf3:   #103420;
+  --border:  #185030;
+  --border2: #206840;
+  --acc:     #38d868;
+  --acc-h:   #50f080;
+  --acc-dim: rgba(56,216,104,.13);
+  --green:   #38d868;
+  --red:     #e04050;
+  --yellow:  #f0e020;
+  --text:    #c8f8d8;
+  --text2:   #30a858;
+  --muted:   #0c2818;
+  --shadow:  0 4px 32px rgba(0,0,0,.86);
+  --thumb-bg:          #081c10;
+  --log-bg:            #020806;
+  --log-text:          #30a858;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #041008;
+  --btn-on-accent:     #041008;
+  --btn-red-border:    #3a1a1a;
+  --audio-btn-color:   #f0e020;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #c8f8d8;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='100'%3E%3Cpath d='M20 100 L20 40 Q20 20 28 10 Q36 20 36 40 L36 100' fill='none' stroke='%2338d868' stroke-width='0.4' opacity='0.12'/%3E%3Cpath d='M50 100 L50 35 Q50 15 60 5 Q70 15 70 35 L70 100' fill='none' stroke='%2338d868' stroke-width='0.5' opacity='0.12'/%3E%3Cellipse cx='28' cy='10' rx='14' ry='8' fill='none' stroke='%2338d868' stroke-width='0.3' opacity='0.1'/%3E%3Cellipse cx='60' cy='5' rx='16' ry='9' fill='none' stroke='%2338d868' stroke-width='0.4' opacity='0.1'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Kinshasa — Congo River deep green, soukous energy, vivid Africa */
+body.kinshasa {
+  --bg:      #021006;
+  --surf:    #041c0a;
+  --surf2:   #062810;
+  --surf3:   #083416;
+  --border:  #0e5020;
+  --border2: #126828;
+  --acc:     #20b858;
+  --acc-h:   #30d068;
+  --acc-dim: rgba(32,184,88,.13);
+  --green:   #20b858;
+  --red:     #e04040;
+  --yellow:  #f0c020;
+  --text:    #c0f8d0;
+  --text2:   #28a048;
+  --muted:   #062818;
+  --shadow:  0 4px 32px rgba(0,0,0,.88);
+  --thumb-bg:          #041c0a;
+  --log-bg:            #010804;
+  --log-text:          #28a048;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #021006;
+  --btn-on-accent:     #021006;
+  --btn-red-border:    #3a1a1a;
+  --audio-btn-color:   #f0c020;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #c0f8d0;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='60'%3E%3Cpath d='M0 30 Q50 10 100 32 Q150 54 200 28' fill='none' stroke='%2320b858' stroke-width='0.5' opacity='0.14'/%3E%3Cpath d='M0 42 Q50 22 100 44 Q150 66 200 40' fill='none' stroke='%2320b858' stroke-width='0.4' opacity='0.09'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
+
+/* Toronto — CN Tower, multicultural modern, clean Canadian blue */
+body.toronto {
+  --bg:      #060a10;
+  --surf:    #0c1018;
+  --surf2:   #121820;
+  --surf3:   #182028;
+  --border:  #203040;
+  --border2: #2c4058;
+  --acc:     #4090f0;
+  --acc-h:   #58a0ff;
+  --acc-dim: rgba(64,144,240,.14);
+  --green:   #40b060;
+  --red:     #d84040;
+  --yellow:  #f0c020;
+  --text:    #e0eeff;
+  --text2:   #6090d0;
+  --muted:   #101828;
+  --shadow:  0 4px 32px rgba(0,0,0,.86);
+  --thumb-bg:          #0c1018;
+  --log-bg:            #030508;
+  --log-text:          #6090d0;
+  --modal-overlay:     rgba(0,0,0,.88);
+  --modal-shadow:      0 20px 60px rgba(0,0,0,.96);
+  --btn-primary-text:  #fff;
+  --btn-on-accent:     #fff;
+  --btn-red-border:    #2a1828;
+  --audio-btn-color:   #f0c020;
+  --dur-bg:            rgba(0,0,0,.90);
+  --dur-text:          #e0eeff;
+  --bg-texture: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='60' height='100'%3E%3Crect x='24' y='20' width='12' height='70' fill='none' stroke='%234090f0' stroke-width='0.4' opacity='0.12'/%3E%3Ccircle cx='30' cy='18' r='5' fill='none' stroke='%234090f0' stroke-width='0.4' opacity='0.12'/%3E%3Cline x1='30' y1='5' x2='30' y2='13' stroke='%234090f0' stroke-width='0.4' opacity='0.12'/%3E%3Crect x='18' y='55' width='24' height='12' fill='none' stroke='%234090f0' stroke-width='0.3' opacity='0.09'/%3E%3C/svg%3E");
+  --bg-texture-opacity: 1;
+}
