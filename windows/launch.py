@@ -164,7 +164,16 @@ def ensure_node():
             for m in z.namelist():
                 rel  = m[len(NODE_ZIP_DIR):].lstrip("/\\")
                 if not rel: continue
+                # Zip-slip guard: reject traversal / absolute paths, and confirm the
+                # resolved destination stays inside NODE_DIR before writing.
+                rel_path = Path(rel)
+                if ".." in rel_path.parts or rel_path.is_absolute():
+                    continue
                 dest = NODE_DIR / rel
+                try:
+                    dest.resolve().relative_to(NODE_DIR.resolve())
+                except ValueError:
+                    continue
                 if m.endswith("/"):
                     dest.mkdir(parents=True, exist_ok=True)
                 else:
@@ -229,8 +238,20 @@ def ensure_npm(node_exe):
         _gui_msg("Installing Electron (first run, ~250 MB)…")
     npm = _find_npm(node_exe)
     env = {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
-    r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
-                       capture_output=True, timeout=600, creationflags=NO_WIN)
+    # Prefer `npm ci` for deterministic installs straight from package-lock.json
+    # (we now ship the lockfile). `ci` requires a lockfile that is present and in
+    # sync; if it's missing/out-of-sync it errors, so fall back to `install`.
+    lockfile = ELECTRON_DIR / "package-lock.json"
+    if lockfile.exists():
+        r = subprocess.run(npm + ["ci", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
+                           capture_output=True, timeout=600, creationflags=NO_WIN)
+        if r.returncode != 0:
+            _gui_msg("Lockfile out of sync — falling back to npm install…")
+            r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
+                               capture_output=True, timeout=600, creationflags=NO_WIN)
+    else:
+        r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
+                           capture_output=True, timeout=600, creationflags=NO_WIN)
     if r.returncode != 0:
         _gui_msg("npm install failed"); time.sleep(4); sys.exit(1)
     # Electron 42+ removed the postinstall auto-download of the binary.

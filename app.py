@@ -26,9 +26,21 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 
-# Outbound HTTP whitelist — every external host this app contacts must be listed.
-# Enforced before urlopen() and after redirect resolution. When adding a new host,
-# document why it's needed alongside the entry.
+# Outbound HTTP whitelist for *app maintenance/update* traffic only.
+#
+# Scope — what this whitelist DOES and DOES NOT cover (keep this accurate):
+#   • COVERED: every request made through _safe_urlopen() — update feed, GitHub
+#     release metadata/binaries (ffmpeg, Deno), PyPI version checks, app installer.
+#     Enforced both before urlopen() AND after redirect resolution.
+#   • NOT COVERED by host allowlist, by design:
+#       - yt-dlp subprocesses: contact arbitrary user-supplied sites/CDNs — that is
+#         the app's core function, so they cannot be host-restricted.
+#       - pip installs (yt-dlp/ffmpeg-deps/mutagen updates): pip talks to PyPI/CDNs
+#         on its own; not routed through _safe_urlopen.
+#       - thumbnail fetches: come from third-party metadata, so they use a separate
+#         guard (_is_internal_host below: HTTPS-only + private/loopback IP blocking)
+#         rather than this allowlist, since thumbnail CDNs are open-ended.
+# When adding a new maintenance host, document why it's needed alongside the entry.
 _ALLOWED_DOWNLOAD_HOSTS = {
     "api.github.com",                        # GitHub API — release metadata (BtbN ffmpeg, Deno)
     "github.com",                            # GitHub release download URLs (pre-redirect)
@@ -133,12 +145,17 @@ def _chmod_owner_only(path):
             pass
 
 def _atomic_write_text(path: Path, content: str, *, owner_only: bool = False) -> None:
-    """Write text atomically via tmp + os.replace — prevents truncated files on crash or kill -9.
-    Sets permissions on tmp before rename so the final file has correct perms from the moment
-    it exists (no race window). Cleans up the tmp file on failure and re-raises."""
+    """Write text atomically via tmp + fsync + os.replace — prevents truncated files
+    on crash or kill -9. fsync forces the tmp file's bytes to disk before the rename,
+    so a power loss can't leave a renamed-but-empty file (matters on Linux/macOS).
+    Sets permissions on tmp before rename so the final file has correct perms from the
+    moment it exists (no race window). Cleans up the tmp file on failure and re-raises."""
     tmp = path.with_suffix(path.suffix + ".tmp")
     try:
-        tmp.write_text(content, encoding="utf-8")
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
         if owner_only:
             _chmod_owner_only(tmp)
         tmp.replace(path)
@@ -354,6 +371,7 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
     if _is_internal_host(_thumb_host):
         _sec_event(f"Thumbnail URL rejected (internal/unresolvable host): {_thumb_host!r}")
         return ""
+    CAP = 512_000  # 500 KB hard cap on thumbnail size
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
         # Reject non-image responses before reading the body
@@ -361,8 +379,20 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
         if ctype not in ("image/jpeg", "image/png", "image/webp"):
             req.close()
             return ""
-        data = req.read(512_000)  # cap at 500KB
+        # Reject early if the server advertises a size over the cap.
+        try:
+            clen = int(req.headers.get("Content-Length", "0"))
+        except (TypeError, ValueError):
+            clen = 0
+        if clen > CAP:
+            req.close()
+            return ""
+        # Read one byte past the cap: if we get more than CAP the source lied about
+        # (or omitted) its length, so reject rather than save a truncated image.
+        data = req.read(CAP + 1)
         req.close()
+        if len(data) > CAP:
+            return ""
         # Strict magic byte detection at exact offset
         if data.startswith(b"\x89PNG\r\n\x1a\n"):
             ext = ".png"
@@ -1440,6 +1470,12 @@ def whats_new():
                                      headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
+        # Verify the signed manifest before trusting any of its content — keeps the
+        # trust model consistent with /api/check-app-update. On failure, fall back to
+        # showing no notes rather than rendering unverified feed data.
+        if not _verify_manifest(data):
+            _sec_event("whats-new: manifest signature INVALID or MISSING — notes suppressed")
+            return jsonify({"version": APP_VERSION, "notes_list": []})
         notes = data.get("_version_notes", [])
         if not isinstance(notes, list):
             notes = [str(notes)] if notes else []
@@ -1749,7 +1785,19 @@ if __name__ == "__main__":
     # stale or hand-edited setting binds Flask to a port Electron never connects
     # to, bricking the app with no visible error. Settings value is the fallback
     # only when launched outside Electron (e.g. bare `python app.py`).
-    port = int(os.environ.get("PORT") or _load_settings().get("flask_port", 8899))
+    # Safe port resolution: env PORT (from Electron) wins; persisted flask_port is
+    # the fallback. Parse defensively and validate the range so a corrupted or
+    # hand-edited setting can never crash startup — fall back to 8899 if invalid.
+    def _resolve_port():
+        for candidate in (os.environ.get("PORT"), _load_settings().get("flask_port")):
+            try:
+                p = int(candidate)
+            except (TypeError, ValueError):
+                continue
+            if 1024 <= p <= 65535:
+                return p
+        return 8899
+    port = _resolve_port()
     host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host,port=port,use_reloader=False),
                      daemon=True, name="flask").start()
