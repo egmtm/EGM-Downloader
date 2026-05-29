@@ -22,7 +22,11 @@ if (process.platform === 'win32') {
 // Prevents localStorage/theme state leaking to %APPDATA% in portable builds.
 const _portableMarker = path.join(__dirname, '..', '.portable');
 if (fs.existsSync(_portableMarker)) {
-  app.setPath('userData', path.join(process.cwd(), 'electron-data'));
+  // Anchor to the install folder (parent of electron/), NOT process.cwd().
+  // cwd depends on how the process was launched and is not guaranteed to be the
+  // portable root; using __dirname makes this deterministic and keeps the path
+  // in sync with launch.py's portable hide-list (which hides <root>/electron-data).
+  app.setPath('userData', path.join(__dirname, '..', 'electron-data'));
 }
 
 // ── Settings file (same location as app.py BASE_DIR) ─────────────────────────
