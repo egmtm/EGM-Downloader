@@ -1483,7 +1483,7 @@ if __name__ == "__main__":
     except Exception:
         pass
 
-    ensure_ffmpeg()
+    threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
     port = int(_load_settings().get("flask_port", os.environ.get("PORT", 8899)))
     host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host, port=port, use_reloader=False),
