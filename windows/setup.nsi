@@ -209,6 +209,7 @@ Section "Uninstall"
   Delete "$INSTDIR\launch.py"
   Delete "$INSTDIR\instructions.txt"
   Delete "$INSTDIR\app.py"
+  Delete "$INSTDIR\rcedit-x64.exe"
   Delete "$INSTDIR\patchnotes.txt"
 
   RMDir /r "$INSTDIR\templates"
