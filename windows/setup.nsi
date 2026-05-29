@@ -239,6 +239,16 @@ Choose No to keep them for faster reinstall." \
   RMDir "$INSTDIR\electron"
   RMDir "$INSTDIR"
 
+  ; ── Optional: remove Electron userData (themes, download history, thumbnails) ──
+  MessageBox MB_YESNO|MB_ICONQUESTION \
+    "Also remove saved preferences (theme selection, download history)?$\r$\n$\r$\n\
+Choose No to keep them for a faster setup on next install." \
+    /SD IDNO IDNO skip_userdata
+
+  RMDir /r "$APPDATA\egm-downloader"
+
+  skip_userdata:
+
   ; ── Start Menu ──
   Delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
   Delete "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk"
