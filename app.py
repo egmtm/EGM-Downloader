@@ -320,11 +320,39 @@ def _save_history(items: list):
     except Exception:
         pass
 
+def _is_internal_host(host: str) -> bool:
+    """Return True if host resolves to a loopback/private/link-local/reserved
+    address. Thumbnail URLs come from extractor metadata (and are accepted from
+    the /api/download caller), so a hostile value could otherwise make the
+    backend fetch internal services (SSRF). Fail-closed: resolution failure → internal."""
+    import socket, ipaddress
+    if not host:
+        return True
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except Exception:
+        return True
+    for info in infos:
+        addr = info[4][0].split("%")[0]  # strip IPv6 zone id
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            return True
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            return True
+    return False
+
 def _download_thumbnail(url: str, entry_id: str) -> str:
     """Download a thumbnail image and save it locally. Returns filename or empty string."""
     if not url or not url.startswith("https://"):
         if url:
             _sec_event(f"Thumbnail URL rejected (non-HTTPS): scheme={url.split(':')[0]!r}")
+        return ""
+    # SSRF guard: never let a thumbnail URL point the backend at an internal host.
+    _thumb_host = urllib.parse.urlparse(url).hostname or ""
+    if _is_internal_host(_thumb_host):
+        _sec_event(f"Thumbnail URL rejected (internal/unresolvable host): {_thumb_host!r}")
         return ""
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
@@ -1487,9 +1515,10 @@ def download_update():
     installer_path = UPDATE_TMP_DIR / "egm-setup.exe"
 
     try:
-        # Download zip
+        # Download zip — LONG timeout: this is a multi-MB installer payload, not
+        # a metadata call. SHORT (15s) would spuriously fail on slow connections.
         req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r, open(zip_path, "wb") as f:
+        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(zip_path, "wb") as f:
             shutil.copyfileobj(r, f)
 
         # Verify SHA256 checksum (required — fail-closed)
@@ -1593,8 +1622,15 @@ def show_window_check():
 # ── History routes ────────────────────────────────────────────────────────────
 @app.route("/api/history")
 def get_history():
-    page     = int(request.args.get("page", 1))
-    per_page = int(request.args.get("per_page", 10))
+    # Robust parse — bad query params must not 500. Clamp per_page to a sane
+    # ceiling so a huge value can't force a giant response payload.
+    def _int_arg(name, default, lo, hi):
+        try:
+            return max(lo, min(int(request.args.get(name, default)), hi))
+        except (TypeError, ValueError):
+            return default
+    page     = _int_arg("page", 1, 1, 10_000_000)
+    per_page = _int_arg("per_page", 10, 1, 500)
     with _history_lock:
         items = _load_history()
     total = len(items)
@@ -1704,7 +1740,12 @@ if __name__ == "__main__":
         pass
 
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
-    port = int(_load_settings().get("flask_port", os.environ.get("PORT", 8899)))
+    # Electron launches Flask with PORT in the env and then polls that exact port.
+    # The env value MUST win over the persisted flask_port setting — otherwise a
+    # stale or hand-edited setting binds Flask to a port Electron never connects
+    # to, bricking the app with no visible error. Settings value is the fallback
+    # only when launched outside Electron (e.g. bare `python app.py`).
+    port = int(os.environ.get("PORT") or _load_settings().get("flask_port", 8899))
     host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host,port=port,use_reloader=False),
                      daemon=True, name="flask").start()

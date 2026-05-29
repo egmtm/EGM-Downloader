@@ -1,5 +1,5 @@
 """EGM Downloader — launcher (no console window)"""
-import os, sys, shutil, zipfile, subprocess, urllib.request, json, time
+import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib
 from pathlib import Path
 
 ROOT         = Path(__file__).parent.resolve()
@@ -7,10 +7,38 @@ NODE_DIR     = ROOT / "node_bin"
 ELECTRON_DIR = ROOT / "electron"
 NODE_MIN     = (18, 0, 0)   # minimum Node.js version
 NODE_VERSION = "20.19.1"    # version to download if not found / outdated
-NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/node-v{NODE_VERSION}-win-x64.zip"
+NODE_ZIP_NAME = f"node-v{NODE_VERSION}-win-x64.zip"
+NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
+# Official per-release checksum manifest. We download this over TLS and match the
+# zip's SHA-256 before extracting, so a tampered/corrupted mirror response can
+# never produce the node.exe that ends up running Electron (and our whole app).
+NODE_SHASUMS_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/SHASUMS256.txt"
 NODE_ZIP_DIR = f"node-v{NODE_VERSION}-win-x64"
 NODE_EXE     = NODE_DIR / "node.exe"
 NO_WIN       = 0x08000000 if sys.platform == "win32" else 0
+
+
+def _verify_node_zip(zip_path):
+    """Return True if zip_path's SHA-256 matches the official SHASUMS256.txt entry.
+    Fail-closed: any network/parse error or mismatch returns False."""
+    try:
+        with urllib.request.urlopen(NODE_SHASUMS_URL, timeout=30) as r:
+            sums = r.read().decode("utf-8", "replace")
+        expected = None
+        for line in sums.splitlines():
+            parts = line.split()
+            if len(parts) >= 2 and parts[-1].lstrip("*") == NODE_ZIP_NAME:
+                expected = parts[0].lower()
+                break
+        if not expected:
+            return False
+        h = hashlib.sha256()
+        with open(zip_path, "rb") as f:
+            for chunk in iter(lambda: f.read(1024 * 1024), b""):
+                h.update(chunk)
+        return h.hexdigest().lower() == expected
+    except Exception:
+        return False
 
 # Re-exec under pythonw.exe (no console) if not already silent
 if sys.platform == "win32" and not os.environ.get("EGM_SILENT"):
@@ -125,6 +153,12 @@ def ensure_node():
     tmp = NODE_DIR / "node_tmp.zip"
     try:
         urllib.request.urlretrieve(NODE_ZIP_URL, tmp, reporthook=_progress)
+        _gui_msg("Verifying Node.js download…")
+        if not _verify_node_zip(tmp):
+            _gui_msg("ERROR: Node.js checksum verification failed")
+            try: tmp.unlink(missing_ok=True)
+            except Exception: pass
+            time.sleep(4); sys.exit(1)
         _gui_msg("Extracting Node.js…")
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
