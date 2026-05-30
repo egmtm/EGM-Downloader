@@ -1031,7 +1031,8 @@ def save_settings():
                "upd_open", "ck_open", "quit_on_done", "flask_port",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
-               "default_audio_format", "default_video_format"}
+               "default_audio_format", "default_video_format",
+               "yt_dlp_channel", "ffmpeg_channel"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1107,10 +1108,13 @@ def _get_latest_ffmpeg_tag():
             return m.group(1) if m else "unknown"
     except Exception: return "unknown"
 
-def _get_latest_ytdlp_version():
+def _get_latest_ytdlp_version(channel=None):
+    if channel is None:
+        channel = _load_settings().get("yt_dlp_channel", "stable")
+    repo = "yt-dlp/yt-dlp-nightly-builds" if channel == "nightly" else "yt-dlp/yt-dlp"
     try:
         req = urllib.request.Request(
-            "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
+            f"https://api.github.com/repos/{repo}/releases/latest",
             headers={"User-Agent":"EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
@@ -1124,19 +1128,24 @@ def _run_update(do_ytdlp, do_ffmpeg):
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
     try:
         if do_ytdlp:
-            # Fetch the exact stable version tag first, then pin to it.
-            # --upgrade alone skips this if installed version is newer
-            # --force-reinstall with an exact version always works.
-            stable_ver = _get_latest_ytdlp_version()
-            if stable_ver and stable_ver != "unknown":
-                log(f"Installing yt-dlp stable {stable_ver}...")
-                r = _run(sys.executable, "-m", "pip", "install",
-                         f"yt-dlp=={stable_ver}", "--force-reinstall",
+            channel = _load_settings().get("yt_dlp_channel", "stable")
+            if channel == "nightly":
+                log("Installing yt-dlp nightly...")
+                r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                         "--force-reinstall",
+                         "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
                          timeout=120)
             else:
-                log("Installing yt-dlp stable (latest)...")
-                r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
-                         "--force-reinstall", "yt-dlp", timeout=120)
+                latest_ver = _get_latest_ytdlp_version("stable")
+                if latest_ver and latest_ver != "unknown":
+                    log(f"Installing yt-dlp stable {latest_ver}...")
+                    r = _run(sys.executable, "-m", "pip", "install",
+                             f"yt-dlp=={latest_ver}", "--force-reinstall",
+                             timeout=120)
+                else:
+                    log("Installing yt-dlp stable (latest)...")
+                    r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                             "--force-reinstall", "yt-dlp", timeout=120)
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
@@ -1215,7 +1224,7 @@ def check_updates():
     # so the user can install the correct stable release.
     ytdlp_ok = cy != "unknown" and cy == ly
     return jsonify({
-        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
+        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
                     "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
