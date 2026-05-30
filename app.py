@@ -219,7 +219,8 @@ def _verify_upstream_checksum(local_path, checksum_url, filename):
         return False, f"Could not verify checksum ({e}) — install aborted (check network and retry)"
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
 # /api/show-window is exempt because launch.py (second-instance signaler) has no token access
-_TOKEN_EXEMPT    = {"/api/show-window"}
+_TOKEN_EXEMPT        = {"/api/show-window"}
+_TOKEN_EXEMPT_PREFIX = ("/api/thumbnail/",)
 _IS_DEV          = os.environ.get("EGM_DEV_MODE") == "1"
 if not _API_TOKEN and not _IS_DEV:
     raise RuntimeError("EGM_API_TOKEN is required — set EGM_DEV_MODE=1 for local development")
@@ -239,7 +240,7 @@ def _verify_host_header():
         _sec_event(f"Host header rejected: {request.host!r} on {request.path}")
         abort(403)
     # 2. API token check (per-session Electron token)
-    if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT and not request.path.startswith("/api/thumbnail/"):
+    if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT and not request.path.startswith(_TOKEN_EXEMPT_PREFIX):
         if not hmac.compare_digest(
             request.headers.get("X-EGM-Token", ""), _API_TOKEN
         ):
