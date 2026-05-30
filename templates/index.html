@@ -5246,7 +5246,7 @@ function videoQualityBgClick(e) {
     if (!confirm(warn)) { e.target.value = ch === 'nightly' ? 'stable' : 'nightly'; return; }
     await post('/api/settings/save', { yt_dlp_channel: ch });
     toast(`yt-dlp channel → ${ch} — updating now…`, 'ok');
-    await post('/api/run-update', { ytdlp: true, ffmpeg: false, mutagen: false });
+    post('/api/run-update', { ytdlp: true, ffmpeg: false, mutagen: false });
   });
 
   // ffmpeg channel switch
@@ -5258,7 +5258,7 @@ function videoQualityBgClick(e) {
     if (!confirm(warn)) { e.target.value = ch === 'nightly' ? 'stable' : 'nightly'; return; }
     await post('/api/settings/save', { ffmpeg_channel: ch });
     toast(`ffmpeg channel → ${ch} — updating now…`, 'ok');
-    await post('/api/run-update', { ytdlp: false, ffmpeg: true, mutagen: false });
+    post('/api/run-update', { ytdlp: false, ffmpeg: true, mutagen: false });
   });
 
   // Export settings
