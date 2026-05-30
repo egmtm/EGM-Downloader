@@ -5256,7 +5256,7 @@ function videoQualityBgClick(e) {
       let msg = 'Settings imported';
       if (historyToImport && Array.isArray(historyToImport)) {
         const r = await post('/api/history/import', { items: historyToImport });
-        if (r && r.ok) msg += ` + ${r.count} history entries`;
+        if (r && r.ok) msg += ` + ${r.count} history entries (thumbnails not included)`;
       }
       // Restore localStorage keys (v2 envelopes) — captures custom themes, recents, etc.
       try {
