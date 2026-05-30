@@ -1224,6 +1224,7 @@ def check_updates():
     # Up to date only if installed matches latest stable exactly.
     # Any other version (including newer nightlies) shows "Update available"
     # so the user can install the correct stable release.
+    ytdlp_ch = _load_settings().get("yt_dlp_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
