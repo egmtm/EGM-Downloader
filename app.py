@@ -1639,6 +1639,16 @@ def deno_reinstall():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/electron/reinstall", methods=["POST"])
+def electron_reinstall():
+    """Create marker so launch.py strips Electron on next restart."""
+    try:
+        marker = BASE_DIR / ".electron-update"
+        marker.write_text("reinstall", encoding="utf-8")
+        return jsonify({"ok": True, "message": "Electron will reinstall on next restart"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 # ── Show-window signal (Windows tray) ────────────────────────────────────────
 # launch.py POSTs /api/show-window when the user launches the shortcut while
 # the app is already running. main.js polls /api/show-window-check every 500ms
