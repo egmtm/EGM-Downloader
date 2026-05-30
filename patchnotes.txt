@@ -25,6 +25,12 @@ v1.0 - CORNERSTONE (in progress)
   • [WINDOWS] Fix: update installer download uses correct timeout for large files
   • [WINDOWS] Fix: Aurora/Aurora Deep theme picker HTML structure corrected
   • [WINDOWS] Polish: gen-update-json validates checksum format, documents signing workflow
+  • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
+  • [WINDOWS] New: ffmpeg update channel toggle (Stable / Nightly) in Advanced panel — Stable uses release branch, Nightly uses git master
+  • [WINDOWS] New: Electron reinstall button in Advanced panel — creates marker, reinstalls on next restart without full app reinstall
+  • [WINDOWS] Polish: Task Manager shows "EGM Downloader" on all processes — rcedit stamps Electron binary's PE version resource (SHA-256 verified)
+  • [ALL] Polish: settings import notes thumbnails are not included after reinstall
+  • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
 
 v0.99.13 - Build 121 (5/26/2026 11:06 AM EST) — SOLID
 -----------------------------------------
