@@ -562,7 +562,7 @@ def _popen_yt(*cmd, **kw):
 FFMPEG_URL_NIGHTLY = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
                      "ffmpeg-master-latest-win64-gpl.zip")
 FFMPEG_URL_STABLE  = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
-                      "ffmpeg-n8.1-latest-win64-gpl.zip")
+                      "ffmpeg-n8.1-latest-win64-gpl-8.1.zip")
 
 def _get_ffmpeg_url():
     ch = _load_settings().get("ffmpeg_channel", "stable")

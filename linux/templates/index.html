@@ -5240,25 +5240,31 @@ function videoQualityBgClick(e) {
   // yt-dlp channel switch
   document.getElementById('adv-ytdlp-channel').addEventListener('change', async (e) => {
     const ch = e.target.value;
+    const prev = ch === 'nightly' ? 'stable' : 'nightly';
     const warn = ch === 'nightly'
       ? 'Switch to Nightly?\n\nNightly builds may break downloads unexpectedly. If something stops working, switch back to Stable.'
       : 'Switch to Stable?\n\nyt-dlp will be force-reinstalled to the latest stable release.';
-    if (!confirm(warn)) { e.target.value = ch === 'nightly' ? 'stable' : 'nightly'; return; }
-    await post('/api/settings/save', { yt_dlp_channel: ch });
-    toast(`yt-dlp channel → ${ch} — updating now…`, 'ok');
-    post('/api/run-update', { ytdlp: true, ffmpeg: false, mutagen: false });
+    if (!confirm(warn)) { e.target.value = prev; return; }
+    try {
+      await post('/api/settings/save', { yt_dlp_channel: ch });
+      toast(`yt-dlp channel → ${ch} — updating now…`, 'ok');
+      post('/api/run-update', { ytdlp: true, ffmpeg: false, mutagen: false }).catch(() => {});
+    } catch { e.target.value = prev; toast('Failed to save channel setting', 'err'); }
   });
 
   // ffmpeg channel switch
   document.getElementById('adv-ffmpeg-channel').addEventListener('change', async (e) => {
     const ch = e.target.value;
+    const prev = ch === 'nightly' ? 'stable' : 'nightly';
     const warn = ch === 'nightly'
       ? 'Switch to Nightly?\n\nNightly uses git master — may have regressions. Switch back to Stable if issues occur.'
       : 'Switch to Stable?\n\nffmpeg will be force-reinstalled from the release branch.';
-    if (!confirm(warn)) { e.target.value = ch === 'nightly' ? 'stable' : 'nightly'; return; }
-    await post('/api/settings/save', { ffmpeg_channel: ch });
-    toast(`ffmpeg channel → ${ch} — updating now…`, 'ok');
-    post('/api/run-update', { ytdlp: false, ffmpeg: true, mutagen: false });
+    if (!confirm(warn)) { e.target.value = prev; return; }
+    try {
+      await post('/api/settings/save', { ffmpeg_channel: ch });
+      toast(`ffmpeg channel → ${ch} — updating now…`, 'ok');
+      post('/api/run-update', { ytdlp: false, ffmpeg: true, mutagen: false }).catch(() => {});
+    } catch { e.target.value = prev; toast('Failed to save channel setting', 'err'); }
   });
 
   // Export settings
