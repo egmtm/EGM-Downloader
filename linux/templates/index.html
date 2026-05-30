@@ -5242,9 +5242,8 @@ function videoQualityBgClick(e) {
     const ch = e.target.value;
     try {
       await post('/api/settings/save', { yt_dlp_channel: ch });
-      const note = ch === 'nightly' ? ' ⚠ nightly may have regressions' : '';
-      toast(`yt-dlp channel → ${ch}${note} — updating…`, 'ok');
-      post('/api/run-update', { ytdlp: true, ffmpeg: false, mutagen: false }).catch(() => {});
+      const note = ch === 'nightly' ? ' — ⚠ nightly may have regressions' : '';
+      toast(`yt-dlp channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
     } catch { toast('Failed to save channel setting', 'err'); }
   });
 
@@ -5253,9 +5252,8 @@ function videoQualityBgClick(e) {
     const ch = e.target.value;
     try {
       await post('/api/settings/save', { ffmpeg_channel: ch });
-      const note = ch === 'nightly' ? ' ⚠ nightly may have regressions' : '';
-      toast(`ffmpeg channel → ${ch}${note} — updating…`, 'ok');
-      post('/api/run-update', { ytdlp: false, ffmpeg: true, mutagen: false }).catch(() => {});
+      const note = ch === 'nightly' ? ' — ⚠ nightly may have regressions' : '';
+      toast(`ffmpeg channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
     } catch { toast('Failed to save channel setting', 'err'); }
   });
 
