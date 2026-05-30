@@ -144,6 +144,8 @@ Section "Install"
   ; ── templates\ ──
   SetOutPath "$INSTDIR\templates"
   File "${REPO_ROOT}/templates/index.html"
+  File "${REPO_ROOT}/templates/index_styles.html"
+  File "${REPO_ROOT}/templates/index_scripts.html"
   File "${REPO_ROOT}/templates/history.html"
   File "${REPO_ROOT}/templates/themes.html"
   File "${REPO_ROOT}/templates/theme_styles.html"
