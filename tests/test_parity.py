@@ -91,7 +91,7 @@ def test_frontend_settings_keys_accepted_by_backend():
     Every settings key the frontend sends via /api/settings/save must be in
     the backend ALLOWED set, or it will be silently dropped.
     """
-    index_src  = read_source("templates/index.html")
+    index_src  = read_source("templates/index_scripts.html")  # JS extracted from index.html
     backend_src = read_source("app.py")
 
     # Extract keys from JS save calls: post('/api/settings/save', { key: value })
@@ -121,7 +121,7 @@ def test_theme_data_matches_themes_array():
     (excluding 'custom' which is handled specially).
     Regression: new theme batches added to one structure but not the other.
     """
-    source = read_source("templates/index.html")
+    source = read_source("templates/index_scripts.html")  # JS extracted from index.html
 
     # Extract THEMES array
     m = re.search(r"const THEMES\s*=\s*\[([^\]]+)\]", source)
@@ -155,7 +155,7 @@ def test_no_duplicate_theme_labels():
     No two themes may share the same display label.
     Regression: 'Aurora' label collision between aurora and aurora-deep.
     """
-    source = read_source("templates/index.html")
+    source = read_source("templates/index_scripts.html")  # JS extracted from index.html
     m = re.search(r"const THEME_DATA\s*=\s*\{(.*?)\n\s*\};", source, re.DOTALL)
     assert m, "THEME_DATA block not found"
 
