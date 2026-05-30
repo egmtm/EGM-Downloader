@@ -559,8 +559,17 @@ def _popen_yt(*cmd, **kw):
                             creationflags=_NO_WINDOW, **kw)
 
 # ── ffmpeg: auto-download on first run ────────────────────────────────────────
-FFMPEG_URL      = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
-                   "ffmpeg-master-latest-win64-gpl.zip")
+FFMPEG_URL_NIGHTLY = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                     "ffmpeg-master-latest-win64-gpl.zip")
+FFMPEG_URL_STABLE  = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                      "ffmpeg-n8.1-latest-win64-gpl.zip")
+
+def _get_ffmpeg_url():
+    ch = _load_settings().get("ffmpeg_channel", "stable")
+    return FFMPEG_URL_NIGHTLY if ch == "nightly" else FFMPEG_URL_STABLE
+
+# Keep FFMPEG_URL as the default for ensure_ffmpeg (first-run uses stable)
+FFMPEG_URL = FFMPEG_URL_STABLE
 FFMPEG_TAG_FILE = FFMPEG_DIR / "build_tag.txt"
 
 # ── Deno: bundled JS runtime required for YouTube (no admin, no PATH needed) ──
@@ -578,10 +587,11 @@ def ensure_ffmpeg():
     FFMPEG_DIR.mkdir(exist_ok=True)
     tmp = FFMPEG_DIR / "ffmpeg_tmp.zip"
     try:
-        req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+        ffmpeg_url = _get_ffmpeg_url()
+        req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
-        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-win64-gpl.zip")
+        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
         print(f"[EGM] {msg}")
         if not ok:
             tmp.unlink(missing_ok=True)
@@ -1099,7 +1109,8 @@ def save_settings():
                "upd_open", "ck_open", "quit_on_done", "flask_port",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
-               "default_audio_format", "default_video_format"}
+               "default_audio_format", "default_video_format",
+               "yt_dlp_channel", "ffmpeg_channel"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1171,10 +1182,13 @@ def _get_latest_ffmpeg_tag():
             return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
-def _get_latest_ytdlp_version():
+def _get_latest_ytdlp_version(channel=None):
+    if channel is None:
+        channel = _load_settings().get("yt_dlp_channel", "stable")
+    repo = "yt-dlp/yt-dlp-nightly-builds" if channel == "nightly" else "yt-dlp/yt-dlp"
     try:
         req = urllib.request.Request(
-            "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
+            f"https://api.github.com/repos/{repo}/releases/latest",
             headers={"User-Agent":"EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
@@ -1204,19 +1218,24 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
     try:
         if do_ytdlp:
-            # Fetch the exact stable version tag first, then pin to it.
-            # --upgrade alone skips this if installed version is newer
-            # --force-reinstall with an exact version always works.
-            stable_ver = _get_latest_ytdlp_version()
-            if stable_ver and stable_ver != "unknown":
-                log(f"Installing yt-dlp stable {stable_ver}...")
-                r = _run(sys.executable, "-m", "pip", "install",
-                         f"yt-dlp=={stable_ver}", "--force-reinstall",
+            channel = _load_settings().get("yt_dlp_channel", "stable")
+            if channel == "nightly":
+                log("Installing yt-dlp nightly...")
+                r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                         "--force-reinstall",
+                         "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
                          timeout=120)
             else:
-                log("Installing yt-dlp stable (latest)...")
-                r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
-                         "--force-reinstall", "yt-dlp", timeout=120)
+                latest_ver = _get_latest_ytdlp_version("stable")
+                if latest_ver and latest_ver != "unknown":
+                    log(f"Installing yt-dlp stable {latest_ver}...")
+                    r = _run(sys.executable, "-m", "pip", "install",
+                             f"yt-dlp=={latest_ver}", "--force-reinstall",
+                             timeout=120)
+                else:
+                    log("Installing yt-dlp stable (latest)...")
+                    r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                             "--force-reinstall", "yt-dlp", timeout=120)
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
@@ -1227,10 +1246,11 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
             log("Downloading latest ffmpeg...")
             FFMPEG_DIR.mkdir(exist_ok=True)
             tmp = FFMPEG_DIR / "ffmpeg_update.zip"
-            req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+            ffmpeg_url = _get_ffmpeg_url()
+            req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
             with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
                 shutil.copyfileobj(r, f)
-            ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-win64-gpl.zip")
+            ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
             log(msg)
             if not ok:
                 tmp.unlink(missing_ok=True)
@@ -1272,12 +1292,15 @@ def check_updates():
     cf, lf  = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
     cm      = _get_mutagen_version()
     lm      = _get_latest_mutagen_version()
+    settings = _load_settings()
+    ytdlp_ch  = settings.get("yt_dlp_channel", "stable")
+    ffmpeg_ch = settings.get("ffmpeg_channel", "stable")
     ytdlp_ok   = cy != "unknown" and cy == ly
     mutagen_ok = cm != "not installed" and lm != "unknown" and cm == lm
     return jsonify({
-        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
+        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": lm, "up_to_date": mutagen_ok},
     })
 
