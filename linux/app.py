@@ -956,6 +956,8 @@ def get_settings():
         "output_format":           s.get("output_format", "mp4"),
         "default_audio_format":    s.get("default_audio_format", "320"),
         "theme":                   s.get("theme", ""),
+        "yt_dlp_channel":          s.get("yt_dlp_channel", "stable"),
+        "ffmpeg_channel":          s.get("ffmpeg_channel", "stable"),
     })
 
 @app.route("/api/settings/save", methods=["POST"])
