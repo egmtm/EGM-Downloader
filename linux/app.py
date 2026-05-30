@@ -965,7 +965,8 @@ def save_settings():
                "upd_open", "ck_open", "quit_on_done", "flask_port",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
-               "default_audio_format", "default_video_format"}
+               "default_audio_format", "default_video_format",
+               "yt_dlp_channel", "ffmpeg_channel"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1035,10 +1036,13 @@ def _get_latest_ffmpeg_tag():
             return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
-def _get_latest_ytdlp_version():
+def _get_latest_ytdlp_version(channel=None):
+    if channel is None:
+        channel = _load_settings().get("yt_dlp_channel", "stable")
+    repo = "yt-dlp/yt-dlp-nightly-builds" if channel == "nightly" else "yt-dlp/yt-dlp"
     try:
         req = urllib.request.Request(
-            "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
+            f"https://api.github.com/repos/{repo}/releases/latest",
             headers={"User-Agent":"EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
@@ -1121,7 +1125,7 @@ def check_updates():
     # undefined → "checking…" placeholder.
     ytdlp_ok = cy != "unknown" and cy == ly
     return jsonify({
-        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
+        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
                     "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
