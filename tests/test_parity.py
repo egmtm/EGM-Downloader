@@ -34,6 +34,7 @@ WIN_ONLY_ROUTES = {
     "/api/portable-status",   # portable mode detection — Windows install only
     "/api/show-window",       # second-instance signal — Windows launch.py only
     "/api/show-window-check", # second-instance poll   — Windows launch.py only
+    "/api/electron/reinstall", # Electron reinstall marker — Windows only (Mac/Linux bundle)
 }
 # Auto-update: Windows + Mac have it; Linux does not (AppImage = manual update)
 NO_LINUX_ROUTES = WIN_ONLY_ROUTES | {"/api/download-update"}
