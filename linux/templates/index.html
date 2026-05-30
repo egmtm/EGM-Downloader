@@ -5238,41 +5238,25 @@ function videoQualityBgClick(e) {
   })();
 
   // yt-dlp channel switch
-  document.getElementById('adv-ytdlp-channel').addEventListener('change', (e) => {
-    const sel = e.target;
-    const ch = sel.value;
-    const prev = ch === 'nightly' ? 'stable' : 'nightly';
-    // Defer confirm so the select's change event fully completes first —
-    // calling confirm() synchronously inside change locks the dropdown in Electron.
-    setTimeout(async () => {
-      const warn = ch === 'nightly'
-        ? 'Switch to Nightly?\n\nNightly builds may break downloads unexpectedly. If something stops working, switch back to Stable.'
-        : 'Switch to Stable?\n\nyt-dlp will be force-reinstalled to the latest stable release.';
-      if (!confirm(warn)) { sel.value = prev; return; }
-      try {
-        await post('/api/settings/save', { yt_dlp_channel: ch });
-        toast(`yt-dlp channel → ${ch} — updating now…`, 'ok');
-        post('/api/run-update', { ytdlp: true, ffmpeg: false, mutagen: false }).catch(() => {});
-      } catch { sel.value = prev; toast('Failed to save channel setting', 'err'); }
-    }, 0);
+  document.getElementById('adv-ytdlp-channel').addEventListener('change', async (e) => {
+    const ch = e.target.value;
+    try {
+      await post('/api/settings/save', { yt_dlp_channel: ch });
+      const note = ch === 'nightly' ? ' ⚠ nightly may have regressions' : '';
+      toast(`yt-dlp channel → ${ch}${note} — updating…`, 'ok');
+      post('/api/run-update', { ytdlp: true, ffmpeg: false, mutagen: false }).catch(() => {});
+    } catch { toast('Failed to save channel setting', 'err'); }
   });
 
   // ffmpeg channel switch
-  document.getElementById('adv-ffmpeg-channel').addEventListener('change', (e) => {
-    const sel = e.target;
-    const ch = sel.value;
-    const prev = ch === 'nightly' ? 'stable' : 'nightly';
-    setTimeout(async () => {
-      const warn = ch === 'nightly'
-        ? 'Switch to Nightly?\n\nNightly uses git master — may have regressions. Switch back to Stable if issues occur.'
-        : 'Switch to Stable?\n\nffmpeg will be force-reinstalled from the release branch.';
-      if (!confirm(warn)) { sel.value = prev; return; }
-      try {
-        await post('/api/settings/save', { ffmpeg_channel: ch });
-        toast(`ffmpeg channel → ${ch} — updating now…`, 'ok');
-        post('/api/run-update', { ytdlp: false, ffmpeg: true, mutagen: false }).catch(() => {});
-      } catch { sel.value = prev; toast('Failed to save channel setting', 'err'); }
-    }, 0);
+  document.getElementById('adv-ffmpeg-channel').addEventListener('change', async (e) => {
+    const ch = e.target.value;
+    try {
+      await post('/api/settings/save', { ffmpeg_channel: ch });
+      const note = ch === 'nightly' ? ' ⚠ nightly may have regressions' : '';
+      toast(`ffmpeg channel → ${ch}${note} — updating…`, 'ok');
+      post('/api/run-update', { ytdlp: false, ffmpeg: true, mutagen: false }).catch(() => {});
+    } catch { toast('Failed to save channel setting', 'err'); }
   });
 
   // Export settings
