@@ -435,6 +435,16 @@ if __name__ == "__main__":
     _gui_init()
     ensure_python_deps()
     node_exe = ensure_node()
+
+    # Check for Electron reinstall marker (set by Advanced → Reinstall Electron)
+    _electron_marker = Path(__file__).parent / ".electron-update"
+    if _electron_marker.exists():
+        _gui_msg("Reinstalling Electron…")
+        try: shutil.rmtree(ELECTRON_DIR / "node_modules", ignore_errors=True)
+        except Exception: pass
+        try: _electron_marker.unlink(missing_ok=True)
+        except Exception: pass
+
     ensure_npm(node_exe)
 
     # In portable mode, hide internal files so users only see the launcher + instructions.
