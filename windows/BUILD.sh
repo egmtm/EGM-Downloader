@@ -213,6 +213,8 @@ cp "$REPO_ROOT/patchnotes.txt"                "$PORTABLE_STAGE/"
 
 # Templates
 cp "$REPO_ROOT/templates/index.html"          "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/index_styles.html"   "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/index_scripts.html"  "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/history.html"        "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/themes.html"         "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/theme_styles.html"   "$PORTABLE_STAGE/templates/"

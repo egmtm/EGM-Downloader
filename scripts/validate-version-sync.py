@@ -274,8 +274,12 @@ def check_linux_drift_from_root():
     errors = []
     root = ROOT
 
-    # Templates that must stay in lock-step
-    template_files = ['index.html', 'history.html', 'themes.html', 'theme_styles.html']
+    # Templates that must stay in lock-step. index_styles.html / index_scripts.html
+    # were split out of index.html (the CSS + the JS, incl. the THEMES array), so
+    # they must be drift-checked too — otherwise a theme added to root but not linux
+    # would slip through.
+    template_files = ['index.html', 'index_styles.html', 'index_scripts.html',
+                      'history.html', 'themes.html', 'theme_styles.html']
     for name in template_files:
         root_path = root / 'templates' / name
         linux_path = root / 'linux' / 'templates' / name
