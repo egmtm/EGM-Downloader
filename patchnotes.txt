@@ -1,6 +1,6 @@
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
-  • [ALL] New: 60 new themes — mythology (10), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (20) — total now 320 themes
+  • [ALL] New: 70 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (20) — total now 320 themes
   • [ALL] Fix: ffmpeg downloads in background — app loads immediately even on slow connections, no frozen splash
   • [ALL] Fix: ffmpeg readiness gate — downloads return clear message while ffmpeg is still downloading instead of failing silently
   • [ALL] Fix: atomic file writes now use fsync — prevents empty files on power loss
@@ -9,6 +9,13 @@ v1.0 - CORNERSTONE (in progress)
   • [ALL] Fix: history API validates pagination params — prevents 500 errors on bad input, caps per_page at 500
   • [ALL] Fix: flask_port precedence — Electron's PORT env always wins over stale settings, prevents stuck-on-loading
   • [ALL] Fix: DST-aware timestamps in update feeds — no longer hardcodes -05:00
+  • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
+  • [ALL] New: ffmpeg update channel toggle (Stable / Nightly) in Advanced panel — Mac uses martin-riedl.de snapshot/release, Linux uses BtbN master/n8.1, Windows uses BtbN master/n8.1
+  • [ALL] Fix: yt-dlp nightly install uses download-first approach — bundled pip can't handle GitHub URLs directly
+  • [ALL] Refactor: index.html split into index + index_scripts + index_styles — source maintainability, rendered output byte-identical
+  • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
+  • [ALL] Polish: settings import notes thumbnails are not included after reinstall
+  • [ALL] Polish: ffmpeg reinstall button removed — redundant with channel toggles
   • [WINDOWS] Polish: download count badge removed from hamburger button — redundant with history
   • [WINDOWS] Fix: portable mode isolates Electron data — no settings leak between installed and portable versions
   • [WINDOWS] Polish: portable internal files hidden in Explorer — only launcher, instructions, and patchnotes visible
@@ -25,12 +32,8 @@ v1.0 - CORNERSTONE (in progress)
   • [WINDOWS] Fix: update installer download uses correct timeout for large files
   • [WINDOWS] Fix: Aurora/Aurora Deep theme picker HTML structure corrected
   • [WINDOWS] Polish: gen-update-json validates checksum format, documents signing workflow
-  • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
-  • [WINDOWS] New: ffmpeg update channel toggle (Stable / Nightly) in Advanced panel — Stable uses release branch, Nightly uses git master
   • [WINDOWS] New: Electron reinstall button in Advanced panel — creates marker, reinstalls on next restart without full app reinstall
   • [WINDOWS] Polish: Task Manager shows "EGM Downloader" on all processes — rcedit stamps Electron binary's PE version resource (SHA-256 verified)
-  • [ALL] Polish: settings import notes thumbnails are not included after reinstall
-  • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
 
 v0.99.13 - Build 121 (5/26/2026 11:06 AM EST) — SOLID
 -----------------------------------------
