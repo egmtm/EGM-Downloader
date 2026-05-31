@@ -461,6 +461,11 @@ def _popen_yt(*cmd, **kw):
 _MARTIN_BASE = "https://ffmpeg.martin-riedl.de"
 _MARTIN_ARCH = "arm64"
 
+def _get_ffmpeg_build():
+    """Return 'snapshot' (nightly) or 'release' (stable) based on ffmpeg_channel setting."""
+    ch = _load_settings().get("ffmpeg_channel", "stable")
+    return "snapshot" if ch == "nightly" else "release"
+
 FFMPEG_TAG_FILE = FFMPEG_DIR / "build_tag.txt"
 
 # ── Deno: bundled JS runtime required for YouTube (no admin, no PATH needed) ──
@@ -485,7 +490,7 @@ def ensure_ffmpeg():
     tmp_ffprobe = FFMPEG_DIR / "ffprobe_tmp.zip"
     try:
         # Download + verify ffmpeg
-        ffmpeg_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffmpeg.zip"
+        ffmpeg_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffmpeg.zip"
         req = urllib.request.Request(ffmpeg_redirect, headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
             final_url = r.url
@@ -503,7 +508,7 @@ def ensure_ffmpeg():
         tmp_ffmpeg.unlink(missing_ok=True)
 
         # Download + verify ffprobe
-        ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffprobe.zip"
+        ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffprobe.zip"
         req = urllib.request.Request(ffprobe_redirect, headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
             final_url = r.url
@@ -1162,8 +1167,8 @@ def _run_update(do_ytdlp, do_ffmpeg):
             ffmpeg_bin  = FFMPEG_DIR / "ffmpeg"
             ffprobe_bin = FFMPEG_DIR / "ffprobe"
             try:
-                ffmpeg_redirect  = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffmpeg.zip"
-                ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/snapshot/ffprobe.zip"
+                ffmpeg_redirect  = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffmpeg.zip"
+                ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffprobe.zip"
                 # ffmpeg
                 req = urllib.request.Request(ffmpeg_redirect, headers={"User-Agent": "EGM-Downloader"})
                 with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
