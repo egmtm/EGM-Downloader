@@ -2696,9 +2696,9 @@ function videoQualityBgClick(e) {
 
   // Reinstall ffmpeg
   document.getElementById('adv-ffmpeg-btn').addEventListener('click', async () => {
-    if (!confirm('Remove the current ffmpeg installation?\n\nA fresh copy will be downloaded on next launch. Make sure you have an internet connection.')) return;
+    if (!confirm('Reinstall ffmpeg?\n\nA fresh copy will be downloaded immediately. Make sure you have an internet connection.')) return;
     const r = await post('/api/ffmpeg/reinstall', {});
-    if (r.ok) toast('ffmpeg removed — will reinstall on next launch', 'ok');
+    if (r.ok) toast('ffmpeg removed — re-downloading now', 'ok');
     else toast('Failed: ' + (r.error || 'unknown'), 'err');
   });
 
