@@ -2721,11 +2721,6 @@ function videoQualityBgClick(e) {
   if (navigator.platform.startsWith('Win')) {
     document.getElementById('adv-electron-btn').style.display = '';
   }
-  // Hide ffmpeg channel toggle on non-Windows (Mac/Linux have different ffmpeg sources)
-  if (!navigator.platform.startsWith('Win')) {
-    const fw = document.getElementById('adv-ffmpeg-channel-wrap');
-    if (fw) fw.style.display = 'none';
-  }
 
   // ── Channel toggles (yt-dlp + ffmpeg) ──────────────────────────────────────
   // Load current channel settings
