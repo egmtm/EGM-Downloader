@@ -425,8 +425,16 @@ def _popen_yt(*cmd, **kw):
     return subprocess.Popen(list(cmd), env=_yt_env(), **kw)
 
 # ── ffmpeg: BtbN Linux x64 build ─────────────────────────────────────────────
-FFMPEG_URL      = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
-                   "ffmpeg-master-latest-linux64-gpl.tar.xz")
+FFMPEG_URL_NIGHTLY = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                     "ffmpeg-master-latest-linux64-gpl.tar.xz")
+FFMPEG_URL_STABLE  = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                      "ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz")
+
+def _get_ffmpeg_url():
+    ch = _load_settings().get("ffmpeg_channel", "stable")
+    return FFMPEG_URL_NIGHTLY if ch == "nightly" else FFMPEG_URL_STABLE
+
+FFMPEG_URL = FFMPEG_URL_STABLE
 FFMPEG_TAG_FILE = FFMPEG_DIR / "build_tag.txt"
 
 # ── Deno: stored in DATA_DIR (downloaded on first use) ───────────────────────
@@ -455,10 +463,11 @@ def ensure_ffmpeg():
     FFMPEG_DIR.mkdir(exist_ok=True)
     tmp = FFMPEG_DIR / "ffmpeg_tmp.tar.xz"
     try:
-        req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+        ffmpeg_url = _get_ffmpeg_url()
+        req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
-        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-linux64-gpl.tar.xz")
+        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
         print(f"[EGM] {msg}")
         if not ok:
             tmp.unlink(missing_ok=True)
@@ -1079,12 +1088,13 @@ def _run_update(do_ytdlp, do_ffmpeg):
             log("Downloading latest ffmpeg...")
             FFMPEG_DIR.mkdir(exist_ok=True)
             tmp = FFMPEG_DIR / "ffmpeg_update.tar.xz"
-            req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+            ffmpeg_url = _get_ffmpeg_url()
+            req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
             with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
                 shutil.copyfileobj(r, f)
             ok, msg = _verify_upstream_checksum(tmp,
                 "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256",
-                "ffmpeg-master-latest-linux64-gpl.tar.xz")
+                os.path.basename(ffmpeg_url))
             log(msg)
             if not ok:
                 tmp.unlink(missing_ok=True)
@@ -1130,7 +1140,7 @@ def check_updates():
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
     })
 
