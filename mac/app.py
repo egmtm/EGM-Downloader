@@ -1229,12 +1229,13 @@ def check_updates():
     # Up to date only if installed matches latest stable exactly.
     # Any other version (including newer nightlies) shows "Update available"
     # so the user can install the correct stable release.
-    ytdlp_ch = _load_settings().get("yt_dlp_channel", "stable")
+    ytdlp_ch  = _load_settings().get("yt_dlp_channel", "stable")
+    ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
     })
 
