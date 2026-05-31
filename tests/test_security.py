@@ -29,7 +29,7 @@ def app_mod():
 
 
 @pytest.fixture(scope="module")
-def test_keypair():
+def signing_keypair():
     """Generate a throwaway ed25519 keypair for manifest signing tests."""
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
@@ -127,13 +127,13 @@ def test_verify_manifest_rejects_empty_signature(app_mod):
     assert app_mod._verify_manifest(data) is False, "Empty signature should be rejected"
 
 
-def test_verify_manifest_rejects_tampered_content(app_mod, test_keypair):
+def test_verify_manifest_rejects_tampered_content(app_mod, signing_keypair):
     """
     A manifest signed with a valid key but then tampered must be rejected.
     Any byte change to the payload invalidates the ed25519 signature.
     """
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-    private, public = test_keypair
+    private, public = signing_keypair
 
     # Sign a manifest
     data = {"version": "0.99.12", "build": 120}
@@ -149,13 +149,13 @@ def test_verify_manifest_rejects_tampered_content(app_mod, test_keypair):
     assert app_mod._verify_manifest(tampered) is False, "Tampered manifest should be rejected"
 
 
-def test_verify_manifest_rejects_wrong_key(app_mod, test_keypair):
+def test_verify_manifest_rejects_wrong_key(app_mod, signing_keypair):
     """
     A manifest signed with an unknown private key must be rejected.
     Guards against attackers who generate their own keypair.
     """
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-    private, _ = test_keypair
+    private, _ = signing_keypair
 
     data = {"version": "0.99.12", "build": 120}
     payload = json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
