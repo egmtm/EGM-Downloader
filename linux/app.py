@@ -1071,10 +1071,23 @@ def _run_update(do_ytdlp, do_ffmpeg):
             channel = _load_settings().get("yt_dlp_channel", "stable")
             if channel == "nightly":
                 log("Installing yt-dlp nightly...")
+                # Download tar.gz first — bundled pip may not handle GitHub URLs/redirects
+                nightly_url = "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz"
+                tmp_tar = PACKAGES_DIR / "yt-dlp-nightly.tar.gz"
+                try:
+                    req = urllib.request.Request(nightly_url, headers={"User-Agent": "EGM-Downloader"})
+                    with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as resp, open(tmp_tar, "wb") as f:
+                        shutil.copyfileobj(resp, f)
+                except Exception as e:
+                    log(f"yt-dlp nightly download failed: {e}")
+                    try: tmp_tar.unlink(missing_ok=True)
+                    except Exception: pass
+                    return
                 r = _run(sys.executable, "-m", "pip", "install",
-                         "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
-                         "--target", str(PACKAGES_DIR),
+                         str(tmp_tar), "--target", str(PACKAGES_DIR),
                          "--upgrade", "--force-reinstall", timeout=120)
+                try: tmp_tar.unlink(missing_ok=True)
+                except Exception: pass
             else:
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
