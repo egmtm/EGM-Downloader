@@ -1068,16 +1068,24 @@ def _run_update(do_ytdlp, do_ffmpeg):
     try:
         if do_ytdlp:
             PACKAGES_DIR.mkdir(parents=True, exist_ok=True)
-            stable_ver = _get_latest_ytdlp_version()
-            if stable_ver and stable_ver != "unknown":
-                log(f"Installing yt-dlp stable {stable_ver}...")
+            channel = _load_settings().get("yt_dlp_channel", "stable")
+            if channel == "nightly":
+                log("Installing yt-dlp nightly...")
                 r = _run(sys.executable, "-m", "pip", "install",
-                         f"yt-dlp=={stable_ver}", "--target", str(PACKAGES_DIR),
-                         "--upgrade", timeout=120)
+                         "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
+                         "--target", str(PACKAGES_DIR),
+                         "--upgrade", "--force-reinstall", timeout=120)
             else:
-                log("Installing yt-dlp stable (latest)...")
-                r = _run(sys.executable, "-m", "pip", "install", "yt-dlp",
-                         "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
+                latest_ver = _get_latest_ytdlp_version("stable")
+                if latest_ver and latest_ver != "unknown":
+                    log(f"Installing yt-dlp stable {latest_ver}...")
+                    r = _run(sys.executable, "-m", "pip", "install",
+                             f"yt-dlp=={latest_ver}", "--target", str(PACKAGES_DIR),
+                             "--upgrade", timeout=120)
+                else:
+                    log("Installing yt-dlp stable (latest)...")
+                    r = _run(sys.executable, "-m", "pip", "install", "yt-dlp",
+                             "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
