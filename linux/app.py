@@ -1358,18 +1358,6 @@ def settings_reset():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/ffmpeg/reinstall", methods=["POST"])
-def ffmpeg_reinstall():
-    """Delete ffmpeg binaries and re-download immediately in background."""
-    try:
-        for f in FFMPEG_DIR.glob("*"):
-            try: f.unlink()
-            except Exception: pass
-        threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-reinstall").start()
-        return jsonify({"ok": True, "message": "ffmpeg removed — re-downloading now"})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/api/deno/reinstall", methods=["POST"])
 def deno_reinstall():
     """Delete Deno binary so it is reinstalled on next launch."""
