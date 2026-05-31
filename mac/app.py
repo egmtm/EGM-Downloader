@@ -1107,8 +1107,9 @@ def _get_latest_ffmpeg_tag():
     """Mac: resolve build ID from martin-riedl.de redirect."""
     try:
         import re as _re
+        build = _get_ffmpeg_build()
         req = urllib.request.Request(
-            "https://ffmpeg.martin-riedl.de/redirect/latest/macos/arm64/snapshot/ffmpeg.zip",
+            f"https://ffmpeg.martin-riedl.de/redirect/latest/macos/arm64/{build}/ffmpeg.zip",
             headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             m = _re.search(r"/download/macos/[^/]+/([^/]+)/", r.url)
