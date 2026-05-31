@@ -1125,6 +1125,7 @@ def check_updates():
     # to render the "—" badge instead of green/red, and prevents the slow
     # endpoint from clobbering the fast endpoint's correct version with
     # undefined → "checking…" placeholder.
+    ytdlp_ch = _load_settings().get("yt_dlp_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
