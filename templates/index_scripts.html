@@ -2694,14 +2694,6 @@ function videoQualityBgClick(e) {
     }
   });
 
-  // Reinstall ffmpeg
-  document.getElementById('adv-ffmpeg-btn').addEventListener('click', async () => {
-    if (!confirm('Reinstall ffmpeg?\n\nA fresh copy will be downloaded immediately. Make sure you have an internet connection.')) return;
-    const r = await post('/api/ffmpeg/reinstall', {});
-    if (r.ok) toast('ffmpeg removed — re-downloading now', 'ok');
-    else toast('Failed: ' + (r.error || 'unknown'), 'err');
-  });
-
   // Reinstall Deno
   document.getElementById('adv-deno-btn').addEventListener('click', async () => {
     if (!confirm('Remove the current Deno installation?\n\nDeno will reinstall on next launch. Make sure you have an internet connection.')) return;
