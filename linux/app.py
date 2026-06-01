@@ -695,7 +695,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--embed-metadata", "--embed-chapters"]
         # Subtitles — embed English subs into the video (only meaningful for video downloads)
         if subtitles:
-            args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
+            args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs", "--remux-video", "mp4"]
     args.append(url)
 
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
