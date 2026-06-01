@@ -278,27 +278,83 @@ def _save_history(items: list):
     except Exception:
         pass
 
+def _is_internal_host(host: str) -> bool:
+    """Return True if host resolves to a loopback/private/link-local/reserved
+    address. Thumbnail URLs come from extractor metadata (and are accepted from
+    the /api/download caller), so a hostile value could otherwise make the
+    backend fetch internal services (SSRF). Fail-closed: resolution failure -> internal."""
+    import socket, ipaddress
+    if not host:
+        return True
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except Exception:
+        return True
+    for info in infos:
+        addr = info[4][0].split("%")[0]  # strip IPv6 zone id
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            return True
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            return True
+    return False
+
+def _clamp_int(value, default, lo, hi):
+    """Parse value to int and clamp to [lo, hi]; return default on bad/empty input.
+    Prevents a malformed request field from raising and 500-ing the route."""
+    try:
+        return max(lo, min(int(value), hi))
+    except (TypeError, ValueError):
+        return default
+
 def _download_thumbnail(url: str, entry_id: str) -> str:
     """Download a thumbnail image and save it locally. Returns filename or empty string."""
     if not url or not url.startswith("https://"):
         if url:
             _sec_event(f"Thumbnail URL rejected (non-HTTPS): scheme={url.split(':')[0]!r}")
         return ""
+    # SSRF guard: never let a thumbnail URL point the backend at an internal host.
+    _thumb_host = urllib.parse.urlparse(url).hostname or ""
+    if _is_internal_host(_thumb_host):
+        _sec_event(f"Thumbnail URL rejected (internal/unresolvable host): {_thumb_host!r}")
+        return ""
+    CAP = 512_000  # 500 KB hard cap on thumbnail size
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
+        # Re-check the FINAL host after any redirects — a whitelisted host could
+        # 302 to an internal address (mirrors _safe_urlopen's redirect guard).
+        final_host = urllib.parse.urlparse(req.url).hostname or ""
+        if _is_internal_host(final_host):
+            _sec_event(f"Thumbnail redirect rejected (internal host): {final_host!r}")
+            req.close()
+            return ""
         # Reject non-image responses before reading the body
         ctype = req.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if ctype not in ("image/jpeg", "image/png", "image/webp"):
             req.close()
             return ""
-        data = req.read(512_000)  # cap at 500KB
+        # Reject early if the server advertises a size over the cap.
+        try:
+            clen = int(req.headers.get("Content-Length", "0"))
+        except (TypeError, ValueError):
+            clen = 0
+        if clen > CAP:
+            req.close()
+            return ""
+        # Read one byte past the cap: if we get more than CAP the source lied about
+        # (or omitted) its length, so reject rather than save a truncated image.
+        data = req.read(CAP + 1)
         req.close()
+        if len(data) > CAP:
+            return ""
         # Strict magic byte detection at exact offset
-        if data.startswith(b'\x89PNG\r\n\x1a\n'):
+        if data.startswith(b"\x89PNG\r\n\x1a\n"):
             ext = ".png"
-        elif data.startswith(b'RIFF') and len(data) >= 12 and data[8:12] == b'WEBP':
+        elif data.startswith(b"RIFF") and len(data) >= 12 and data[8:12] == b"WEBP":
             ext = ".webp"
-        elif data[:3] == b'\xff\xd8\xff':
+        elif data[:3] == b"\xff\xd8\xff":
             ext = ".jpg"
         else:
             return ""  # Unknown format — reject rather than mis-tag
@@ -962,7 +1018,7 @@ def start_download():
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
-                           min(max(int(data.get("concurrent_fragments") or 1), 1), 16),
+                           _clamp_int(data.get("concurrent_fragments"), 1, 1, 16),
                            data.get("audio_quality") or "320",
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
