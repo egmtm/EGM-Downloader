@@ -589,7 +589,7 @@ def _bgutil_args() -> list:
 
 def _ytdlp(*extra, timeout=None):
     # Use python -m yt_dlp so PYTHONPATH-installed updates take precedence over bundled
-    return _run_yt(sys.executable, "-m", "yt_dlp", *_ffmpeg_args(), *_deno_args(),
+    return _run_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github", *_ffmpeg_args(), *_deno_args(),
                    *_cookies_args(), *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -1077,7 +1077,7 @@ def rename_file():
 
 # ── Update system (yt-dlp + ffmpeg only — no app self-update on Linux) ─────────
 def _get_ytdlp_version():
-    try: return _run_yt(sys.executable, "-m", "yt_dlp", "--version", timeout=10).stdout.strip()
+    try: return _run_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github", "--version", timeout=10).stdout.strip()
     except Exception: return "unknown"
 
 def _get_ffmpeg_version():
