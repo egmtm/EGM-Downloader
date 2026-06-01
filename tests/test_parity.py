@@ -233,3 +233,17 @@ def test_security_markers_in_all_main_js():
         source = read_source(path)
         missing = [m for m in REQUIRED if m not in source]
         assert not missing, f"{name}/main.js missing security markers: {missing}"
+
+
+def test_ejs_remote_components_in_download_path():
+    """run_download() must invoke yt-dlp with --remote-components ejs:github on
+    EVERY platform (YouTube signature solving). Regression: in RC4 this was applied
+    to the info path on all 3 but to the download path on Windows only."""
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        m = re.search(r'cmd = \[sys\.executable, "-m", "yt_dlp".*?\] \+ ', source)
+        assert m, f"{name}/app.py: run_download cmd line not found"
+        assert "ejs:github" in m.group(0), (
+            f"{name}/app.py: run_download missing --remote-components ejs:github "
+            f"(signature solving would fail on this platform)"
+        )
