@@ -268,7 +268,6 @@ function waitForFlask(retries = 180, delay = 1000) {
     const try_ = (n) => {
       attemptCount++;
       // Exponential curve: visible movement early, slows as it approaches 90%
-      const progress = 30 + 60 * (1 - Math.exp(-attemptCount / 30));
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
         if (n <= 0) {
@@ -411,9 +410,11 @@ ipcMain.handle('launch-installer', async (event, installerPath) => {
 });
 
 // ── IPC: quit app ─────────────────────────────────────────────────────────────
-ipcMain.handle('quit-app', () => {
+ipcMain.handle('quit-app', (event) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
   app.isQuitting = true;
   app.quit();
+  return { success: true };
 });
 
 // ── IPC: folder picker ────────────────────────────────────────────────────────
