@@ -751,7 +751,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
     args.append(url)
 
-    cmd = [sys.executable, "-m", "yt_dlp"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
+    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
     try:
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace")
@@ -1140,7 +1140,7 @@ def rename_file():
 
 # ── Update system ──────────────────────────────────────────────────────────────
 def _get_ytdlp_version():
-    try: return _run(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github", "--version", timeout=10).stdout.strip()
+    try: return _run(sys.executable, "-m", "yt_dlp", "--version", timeout=10).stdout.strip()
     except Exception: return "unknown"
 
 def _get_ffmpeg_version():
