@@ -1108,7 +1108,6 @@ def get_settings():
         "ck_open":                 s.get("ck_open", False),
         "quit_on_done":            s.get("quit_on_done", False),
         "check_updates_on_launch": s.get("check_updates_on_launch", False),
-        "flask_port":              s.get("flask_port", 8899),
         "last_seen_version":       s.get("last_seen_version", ""),
         # Promoted UI controls — must be returned so frontend can restore on init.
         # Without these, defaults always win regardless of what was saved.
@@ -1125,7 +1124,7 @@ def get_settings():
 def save_settings():
     data = request.get_json(silent=True) or {}
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
-               "upd_open", "ck_open", "quit_on_done", "flask_port",
+               "upd_open", "ck_open", "quit_on_done",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",

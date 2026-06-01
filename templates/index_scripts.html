@@ -2637,26 +2637,6 @@ function videoQualityBgClick(e) {
 (function() {
   // Toggle open/close
   // Advanced panel toggle — used by sec-hdr onclick and button
-  // Load saved port on startup
-  (async () => {
-    try {
-      const s = await fetch('/api/settings').then(r => r.json());
-      const input = document.getElementById('adv-port-input');
-      if (input && s.flask_port) input.value = s.flask_port;
-    } catch {}
-  })();
-
-  // Apply port change
-  document.getElementById('adv-port-btn').addEventListener('click', async () => {
-    const input = document.getElementById('adv-port-input');
-    const port  = parseInt(input.value, 10);
-    if (!port || port < 1024 || port > 65535) { toast('Port must be between 1024 and 65535', 'err'); return; }
-    if (port === 8899 && !confirm('Change port to ' + port + '?\n\nOnly do this if port 8899 is already in use. The app will need to restart.')) return;
-    if (port !== 8899 && !confirm('Change port to ' + port + '?\n\nOnly do this if port 8899 is already in use by another application.\n\nThe app will restart to apply the change.')) return;
-    await post('/api/settings/save', { flask_port: port });
-    toast('Port saved — restart the app to apply', 'warn');
-  });
-
   // Clear cache
   document.getElementById('adv-clear-cache-btn').addEventListener('click', async () => {
     const r = await post('/api/cache/clear', {});

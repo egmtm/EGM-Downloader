@@ -1012,7 +1012,6 @@ def get_settings():
         "ck_open":                 s.get("ck_open", False),
         "quit_on_done":            s.get("quit_on_done", False),
         "check_updates_on_launch": s.get("check_updates_on_launch", False),
-        "flask_port":              s.get("flask_port", 8899),
         "last_seen_version":       s.get("last_seen_version", ""),
         # Promoted UI controls — must be returned so frontend can restore on init.
         # Without these, defaults always win regardless of what was saved.
@@ -1029,7 +1028,7 @@ def get_settings():
 def save_settings():
     data = request.get_json(silent=True) or {}
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
-               "upd_open", "ck_open", "quit_on_done", "flask_port",
+               "upd_open", "ck_open", "quit_on_done",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",
@@ -1573,7 +1572,7 @@ if __name__ == "__main__":
         pass
 
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
-    port = int(_load_settings().get("flask_port", os.environ.get("PORT", 8899)))
+    port = int(_load_settings().get(os.environ.get("PORT", 8899)))
     host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host, port=port, use_reloader=False),
                      daemon=True, name="flask").start()
