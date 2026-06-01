@@ -638,7 +638,7 @@ def _ytdlp(*extra, timeout=None):
     # Invoke via `sys.executable -m yt_dlp` so we use the bundled Python and its
     # installed yt-dlp, not relying on PATH. On Mac, Resources/python/bin/ is not
     # on PATH when Electron spawns Python, so bare `yt-dlp` would fail.
-    return _run_yt(sys.executable, "-m", "yt_dlp", *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
+    return _run_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github", *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
                    *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -1141,7 +1141,7 @@ def rename_file():
 
 # ── Update system ──────────────────────────────────────────────────────────────
 def _get_ytdlp_version():
-    try: return _run(sys.executable, "-m", "yt_dlp", "--version", timeout=10).stdout.strip()
+    try: return _run(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github", "--version", timeout=10).stdout.strip()
     except Exception: return "unknown"
 
 def _get_ffmpeg_version():
