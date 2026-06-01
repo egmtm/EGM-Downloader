@@ -1572,7 +1572,16 @@ if __name__ == "__main__":
         pass
 
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
-    port = int(_load_settings().get(os.environ.get("PORT", 8899)))
+    def _resolve_port():
+        for candidate in (os.environ.get("PORT"), _load_settings().get("flask_port")):
+            try:
+                p = int(candidate)
+            except (TypeError, ValueError):
+                continue
+            if 1024 <= p <= 65535:
+                return p
+        return 8899
+    port = _resolve_port()
     host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host, port=port, use_reloader=False),
                      daemon=True, name="flask").start()
