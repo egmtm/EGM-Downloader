@@ -194,5 +194,42 @@ def test_all_theme_css_blocks_have_required_vars():
 
     assert not incomplete, (
         f"{len(incomplete)} theme(s) missing required CSS vars:\n" +
-        "\n".join(f"  {name}: missing {vars_}" for name, vars_ in list(incomplete.items())[:10])
-    )
+        "\n".join(f"  {name}: missing {vars_}" for name, vars_ in list(incomplete.items())[:10]))
+
+
+# ── Security parity — required markers on every platform ──────────────────────
+# Prevents security fixes from silently landing Windows-only. If a marker is
+# missing on any platform, it means a hardening patch wasn't ported.
+
+def test_security_markers_in_all_app_py():
+    """Every platform app.py must contain the same security patterns."""
+    REQUIRED = [
+        "_is_internal_host",         # SSRF guard on thumbnail downloads
+        "Content-Length",            # pre-check rejects oversized images
+        "_clamp_int",               # safe int parsing (prevents 500 on bad input)
+        "_TOKEN_EXEMPT_PREFIX",     # consolidated token exemption
+        "_safe_urlopen",            # timeout-enforced HTTP opens
+        "_atomic_write_text",       # crash-safe file writes
+    ]
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        missing = [m for m in REQUIRED if m not in source]
+        assert not missing, f"{name}/app.py missing security markers: {missing}"
+
+
+def test_security_markers_in_all_main_js():
+    """Every platform main.js must contain the same Electron hardening."""
+    REQUIRED = [
+        "isTrustedSender",          # IPC sender validation
+        "atomicWriteJson",          # crash-safe settings write
+        "readFileCapped",           # import size cap (2MB)
+    ]
+    main_files = [
+        ("windows", "windows/electron/main.js"),
+        ("linux",   "linux/electron/main.js"),
+        ("mac",     "mac/electron/main.js"),
+    ]
+    for name, path in main_files:
+        source = read_source(path)
+        missing = [m for m in REQUIRED if m not in source]
+        assert not missing, f"{name}/main.js missing security markers: {missing}"
