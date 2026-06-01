@@ -361,6 +361,14 @@ def _is_internal_host(host: str) -> bool:
             return True
     return False
 
+def _clamp_int(value, default, lo, hi):
+    """Parse value to int and clamp to [lo, hi]; return default on bad/empty input.
+    Prevents a malformed request field from raising and 500-ing the route."""
+    try:
+        return max(lo, min(int(value), hi))
+    except (TypeError, ValueError):
+        return default
+
 def _download_thumbnail(url: str, entry_id: str) -> str:
     """Download a thumbnail image and save it locally. Returns filename or empty string."""
     if not url or not url.startswith("https://"):
@@ -375,6 +383,13 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
     CAP = 512_000  # 500 KB hard cap on thumbnail size
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
+        # Re-check the FINAL host after any redirects — a whitelisted host could
+        # 302 to an internal address (mirrors _safe_urlopen's redirect guard).
+        final_host = urllib.parse.urlparse(req.url).hostname or ""
+        if _is_internal_host(final_host):
+            _sec_event(f"Thumbnail redirect rejected (internal host): {final_host!r}")
+            req.close()
+            return ""
         # Reject non-image responses before reading the body
         ctype = req.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if ctype not in ("image/jpeg", "image/png", "image/webp"):
@@ -1035,7 +1050,7 @@ def start_download():
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
-                           min(max(int(data.get("concurrent_fragments") or 1), 1), 16),
+                           _clamp_int(data.get("concurrent_fragments"), 1, 1, 16),
                            data.get("audio_quality") or "320",
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
