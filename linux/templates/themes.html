@@ -59,9 +59,12 @@
     .sidebar {
       width:135px;flex-shrink:0;
       background:var(--surf);border-right:1px solid var(--border);
-      padding:8px 0;overflow-y:auto;
       position:relative;z-index:1;
       display:flex;flex-direction:column;
+      overflow:hidden;
+    }
+    .sidebar-cats {
+      flex:1;overflow-y:auto;padding:8px 0;
     }
 
     .cat-tab {
@@ -169,6 +172,18 @@
 
 <script>
 {% raw %}
+// ── API token interceptor — same as main window ──────────────────────────────
+(function() {
+  const _t = '{% endraw %}{{ egm_token }}{% raw %}';
+  const _f = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/') && _t) {
+      opts = opts || {};
+      opts.headers = Object.assign({}, opts.headers || {}, { 'X-EGM-Token': _t });
+    }
+    return _f.call(this, url, opts);
+  };
+})();
 const THEME_DATA = {
     void:             {label:'Void',             bg:'#010101', surf:'#080808', acc:'#d0d8e8',   cat:'dark'},
     eclipse:          {label:'Eclipse',          bg:'#18161a',surf:'#241f28',acc:'#a855f7',   cat:'dark'},
@@ -719,7 +734,9 @@ function buildSidebar() {
     html += `</div>`;
   });
 
-  sb.innerHTML = html;
+  // Wrap categories in scrollable container, random toggle stays fixed at bottom
+  sb.innerHTML = `<div class="sidebar-cats">${html}</div>`;
+  const catsDiv = sb.querySelector('.sidebar-cats');
 
   const randomHtml = `
     <div style="border-top:1px solid var(--border);margin-top:auto;padding:10px 14px;">
@@ -747,7 +764,7 @@ function buildSidebar() {
   });
 
   // Wire category clicks
-  sb.querySelectorAll('.cat-tab').forEach(tab => {
+  catsDiv.querySelectorAll('.cat-tab').forEach(tab => {
     tab.addEventListener('click', () => {
       activeCat = tab.dataset.cat;
       sb.querySelectorAll('.cat-tab').forEach(t => t.classList.remove('active'));
