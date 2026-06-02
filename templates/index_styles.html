@@ -353,7 +353,11 @@
     .hpanel-tab.active { color: #fff; background: var(--acc); }
     .hpanel-tab:not(.active):hover { color: var(--text); background: var(--surf3); }
     .hpanel-content { animation: hpanel-fade .15s ease; }
-    @keyframes hpanel-fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+    /* opacity-only fade — a transform here promotes .hpanel-content to its own */
+    /* compositor layer; with the native <select> dropdowns in the Advanced tab and the */
+    /* overflow:hidden+border-radius panel, that triggered a stale-layer paint bug where */
+    /* the panel background/border stopped rendering until restart. No transform = no bug. */
+    @keyframes hpanel-fade { from { opacity: 0; } to { opacity: 1; } }
     .hpanel-open-full {
       display: flex; align-items: center; justify-content: space-between;
       padding: 7px 12px; background: var(--surf2); border-bottom: 1px solid var(--border);
