@@ -92,12 +92,16 @@ def _progress(count, block, total):
 
 # ── Python deps ───────────────────────────────────────────────────────────────
 def ensure_python_deps():
+    # Keep this list in sync with requirements.txt. cryptography is REQUIRED for
+    # signed-manifest verification (Windows auto-update); mutagen for audio
+    # metadata/thumbnail embedding. The sentinel imports must include them so a
+    # missing one triggers (re)install. (pyzipper was unused and is dropped.)
     try:
-        import flask, yt_dlp, pyzipper; return
+        import flask, yt_dlp, cryptography, mutagen; return
     except ImportError: pass
     _gui_msg("Installing Python packages…")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "pyzipper"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography"],
                    check=True, timeout=300, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────

@@ -1042,6 +1042,23 @@ def save_settings():
         if folder:
             try: Path(folder).mkdir(parents=True, exist_ok=True)
             except Exception: pass
+    # Sanitize favorites / random-theme settings — defense-in-depth (the UI already
+    # validates, but never trust client input). Keep only valid theme keys, capped.
+    if "favorite_themes" in data:
+        fav = data.get("favorite_themes")
+        if isinstance(fav, list):
+            cleaned, seen = [], set()
+            for _k in fav:
+                if isinstance(_k, str) and _re.fullmatch(r"[a-z0-9-]+", _k) and _k not in seen:
+                    seen.add(_k); cleaned.append(_k)
+                    if len(cleaned) >= 1000: break
+            data["favorite_themes"] = cleaned
+        else:
+            data.pop("favorite_themes", None)
+    if data.get("random_theme_scope") not in (None, "favorites", "all"):
+        data.pop("random_theme_scope", None)
+    if "random_theme_on_launch" in data:
+        data["random_theme_on_launch"] = bool(data["random_theme_on_launch"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
