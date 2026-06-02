@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, screen, session } = require('electron');
-const { spawn, execSync } = require('child_process');
+const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
 const http = require('http');
@@ -159,7 +159,7 @@ function findPython() {
   ];
   for (const c of candidates) {
     try {
-      execSync(`"${c}" --version`, { stdio: 'ignore' });
+      execFileSync(c, ['--version'], { stdio: 'ignore' });
       console.log(`[EGM] Using Python: ${c}`);
       return c;
     } catch {}

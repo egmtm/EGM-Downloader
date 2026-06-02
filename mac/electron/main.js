@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, screen, session } = require('electron');
-const { spawn, execSync } = require('child_process');
+const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
 const http = require('http');
@@ -154,7 +154,7 @@ function findPython() {
   ];
   for (const c of candidates) {
     try {
-      execSync(`"${c}" --version`, { stdio: 'ignore' });
+      execFileSync(c, ['--version'], { stdio: 'ignore' });
       console.log(`[EGM] Using Python: ${c}`);
       return c;
     } catch {}
@@ -181,8 +181,8 @@ async function startFlask() {
   });
 
   flaskProc.on('exit', (code) => {
-    if (code !== 0 && code !== null && !app.isQuiting) {
-      app.isQuiting = true;
+    if (code !== 0 && code !== null && !app.isQuitting) {
+      app.isQuitting = true;
       dialog.showErrorBox('EGM Downloader — Backend crashed',
         `The backend stopped unexpectedly (code ${code}).\n\nPlease restart the app.`);
       app.quit();
@@ -190,8 +190,8 @@ async function startFlask() {
   });
 
   flaskProc.on('error', (err) => {
-    if (!app.isQuiting) {
-      app.isQuiting = true;
+    if (!app.isQuitting) {
+      app.isQuitting = true;
       dialog.showErrorBox('EGM Downloader — Startup error',
         `Failed to start backend:\n${err.message}`);
       app.quit();
@@ -303,7 +303,7 @@ async function createWindow() {
   // Save state on close
   mainWindow.on('close', () => {
     saveWindowState();
-    app.isQuiting = true;
+    app.isQuitting = true;
   });
 
   // Fix 4: single waitForFlask, single error path
@@ -322,7 +322,7 @@ async function createWindow() {
 // ── IPC: quit app ─────────────────────────────────────────────────────────────
 ipcMain.handle('quit-app', (event) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-  app.isQuiting = true;
+  app.isQuitting = true;
   app.quit();
   return { success: true };
 });
@@ -549,7 +549,7 @@ app.on('window-all-closed', () => {
 
 // Fix 3: single cleanup point for every quit path (X, crash)
 app.on('before-quit', () => {
-  app.isQuiting = true;
+  app.isQuitting = true;
   if (!flaskProc) return;
 
   const pid = flaskProc.pid;
