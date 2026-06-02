@@ -1,7 +1,7 @@
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
-  • [ALL] New: 81 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11 — Obsidian, Wraith, Porcelain, Paranoia, Wanderlust, Catharsis, Hypnotic, Master Chief, Cloud Strife, Mario, Sonic) — total now 341 themes
-  • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import
+  • [ALL] New: 90 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9 — Neural, Quantum, Singularity, Cybercore, Dyson, Terraform, Biopunk, Nanite, Post Human) — total now 350 themes
+  • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import, server-side validation (XSS-safe, deduped, capped)
   • [ALL] New: Random theme on launch — optional toggle with Favorites only or All themes scope
   • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
   • [ALL] New: ffmpeg update channel toggle (Stable / Nightly) in Advanced panel — Mac uses martin-riedl.de snapshot/release, Linux uses BtbN master/n8.1, Windows uses BtbN master/n8.1
@@ -25,16 +25,18 @@ v1.0 - CORNERSTONE (in progress)
   • [ALL] Security: Electron settings writes now atomic (atomicWriteJson) — all platforms
   • [ALL] Security: file imports capped at 2MB (readFileCapped) — all platforms
   • [ALL] Security: integer input validation (_clamp_int) — prevents 500 on malformed params
+  • [ALL] Security: preload bridge validates inputs before sending IPC (isStr, THEME_RE, isHttpUrl) — all platforms
+  • [ALL] Security: external links restricted to HTTPS only, navigation pinned to Flask origin — all platforms
+  • [ALL] Security: Deno download verified against published SHA-256 checksum — all platforms
   • [ALL] Test: security parity test — asserts hardening markers exist on all 3 platforms, prevents Windows-only fixes
   • [WINDOWS] Polish: download count badge removed from hamburger button — redundant with history
   • [WINDOWS] Fix: portable mode isolates Electron data — no settings leak between installed and portable versions
+  • [WINDOWS] Fix: first-run installs cryptography + mutagen dependencies — prevents update check 502 on fresh installs
   • [WINDOWS] Polish: portable internal files hidden in Explorer — only launcher, instructions, and patchnotes visible
   • [WINDOWS] Fix: uninstaller restructured — separate dialogs for runtime components vs user data, closes app before uninstall, cleans desktop shortcut
   • [WINDOWS] Polish: deterministic Electron install via bundled package-lock.json, prefers npm ci
   • [WINDOWS] Security: Node.js download verified against official SHASUMS256.txt before extraction
   • [WINDOWS] Security: zip-slip guard on Node.js extraction — rejects path traversal
-  • [WINDOWS] Security: preload bridge validates inputs before sending IPC
-  • [WINDOWS] Security: external links restricted to HTTPS only, navigation pinned to Flask origin
   • [WINDOWS] Fix: window state files (history/themes bounds) moved to userData — survives Electron reinstall
   • [WINDOWS] Fix: update installer download uses correct timeout for large files
   • [WINDOWS] Fix: Aurora/Aurora Deep theme picker HTML structure corrected
