@@ -1,34 +1,41 @@
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
-  • [ALL] New: 70 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (20) — total now 320 themes
+  • [ALL] New: 81 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11 — Obsidian, Wraith, Porcelain, Paranoia, Wanderlust, Catharsis, Hypnotic, Master Chief, Cloud Strife, Mario, Sonic) — total now 341 themes
+  • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import
+  • [ALL] New: Random theme on launch — optional toggle with Favorites only or All themes scope
+  • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
+  • [ALL] New: ffmpeg update channel toggle (Stable / Nightly) in Advanced panel — Mac uses martin-riedl.de snapshot/release, Linux uses BtbN master/n8.1, Windows uses BtbN master/n8.1
+  • [ALL] Fix: YouTube signature solving — adds --remote-components ejs:github to all yt-dlp commands
   • [ALL] Fix: ffmpeg downloads in background — app loads immediately even on slow connections, no frozen splash
   • [ALL] Fix: ffmpeg readiness gate — downloads return clear message while ffmpeg is still downloading instead of failing silently
   • [ALL] Fix: atomic file writes now use fsync — prevents empty files on power loss
-  • [ALL] Fix: thumbnail download hardened — SSRF guard blocks internal hosts, Content-Length pre-check rejects oversized images
+  • [ALL] Fix: thumbnail download hardened — SSRF guard blocks internal hosts, Content-Length pre-check rejects oversized images, redirect re-check
   • [ALL] Fix: whats-new feed now verified against signed manifest before displaying
   • [ALL] Fix: history API validates pagination params — prevents 500 errors on bad input, caps per_page at 500
   • [ALL] Fix: flask_port precedence — Electron's PORT env always wins over stale settings, prevents stuck-on-loading
   • [ALL] Fix: DST-aware timestamps in update feeds — no longer hardcodes -05:00
-  • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
-  • [ALL] New: ffmpeg update channel toggle (Stable / Nightly) in Advanced panel — Mac uses martin-riedl.de snapshot/release, Linux uses BtbN master/n8.1, Windows uses BtbN master/n8.1
   • [ALL] Fix: yt-dlp nightly install uses download-first approach — bundled pip can't handle GitHub URLs directly
+  • [ALL] Fix: save/rename modal no longer dismisses on overlay click — only Cancel, Save, or Escape close it
   • [ALL] Refactor: index.html split into index + index_scripts + index_styles — source maintainability, rendered output byte-identical
   • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
   • [ALL] Polish: settings import notes thumbnails are not included after reinstall
   • [ALL] Polish: ffmpeg reinstall button removed — redundant with channel toggles
+  • [ALL] Polish: Flask port setting removed from Advanced panel — port is hardcoded in Electron, setting could never take effect
+  • [ALL] Security: IPC sender validation (isTrustedSender) on all Electron handlers — all platforms
+  • [ALL] Security: Electron settings writes now atomic (atomicWriteJson) — all platforms
+  • [ALL] Security: file imports capped at 2MB (readFileCapped) — all platforms
+  • [ALL] Security: integer input validation (_clamp_int) — prevents 500 on malformed params
+  • [ALL] Test: security parity test — asserts hardening markers exist on all 3 platforms, prevents Windows-only fixes
   • [WINDOWS] Polish: download count badge removed from hamburger button — redundant with history
   • [WINDOWS] Fix: portable mode isolates Electron data — no settings leak between installed and portable versions
   • [WINDOWS] Polish: portable internal files hidden in Explorer — only launcher, instructions, and patchnotes visible
   • [WINDOWS] Fix: uninstaller restructured — separate dialogs for runtime components vs user data, closes app before uninstall, cleans desktop shortcut
   • [WINDOWS] Polish: deterministic Electron install via bundled package-lock.json, prefers npm ci
-  • [WINDOWS] Security: IPC sender validation on all Electron handlers — prevents untrusted renderer from invoking sensitive operations
-  • [WINDOWS] Security: external links restricted to HTTPS only, navigation pinned to Flask origin
   • [WINDOWS] Security: Node.js download verified against official SHASUMS256.txt before extraction
   • [WINDOWS] Security: zip-slip guard on Node.js extraction — rejects path traversal
   • [WINDOWS] Security: preload bridge validates inputs before sending IPC
+  • [WINDOWS] Security: external links restricted to HTTPS only, navigation pinned to Flask origin
   • [WINDOWS] Fix: window state files (history/themes bounds) moved to userData — survives Electron reinstall
-  • [WINDOWS] Fix: Electron settings writes now atomic (tmp + rename)
-  • [WINDOWS] Fix: file imports capped at 2MB — prevents memory issues on large files
   • [WINDOWS] Fix: update installer download uses correct timeout for large files
   • [WINDOWS] Fix: Aurora/Aurora Deep theme picker HTML structure corrected
   • [WINDOWS] Polish: gen-update-json validates checksum format, documents signing workflow
