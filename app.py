@@ -1783,7 +1783,7 @@ def import_history():
 def history_page(): return render_template("history.html", egm_token=_API_TOKEN)
 
 @app.route("/themes-page")
-def themes_page(): return render_template("themes.html")
+def themes_page(): return render_template("themes.html", egm_token=_API_TOKEN)
 
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
