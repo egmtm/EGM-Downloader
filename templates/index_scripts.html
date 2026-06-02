@@ -2397,6 +2397,18 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   const saved = localStorage.getItem('egm-theme') || 'void';
   applyTheme(saved);
 
+  // Random theme on launch — async check, applies over saved theme if enabled
+  (async () => {
+    try {
+      const s = await fetch('/api/settings').then(r => r.json());
+      if (!s.random_theme_on_launch) return;
+      const favs = Array.isArray(s.favorite_themes) ? s.favorite_themes.filter(k => THEMES.includes(k)) : [];
+      const pool = (s.random_theme_scope === 'favorites' && favs.length > 0) ? favs : THEMES;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      if (pick && pick !== saved) applyTheme(pick);
+    } catch {}
+  })();
+
   // Listen for theme changes from themes window (via IPC)
   if (window.electronAPI && window.electronAPI.onThemeChanged) {
     window.electronAPI.onThemeChanged(theme => applyTheme(theme));
