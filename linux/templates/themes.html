@@ -61,6 +61,7 @@
       background:var(--surf);border-right:1px solid var(--border);
       padding:8px 0;overflow-y:auto;
       position:relative;z-index:1;
+      display:flex;flex-direction:column;
     }
 
     .cat-tab {
@@ -552,6 +553,41 @@ const CAT_LABELS = {
 };
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';
+let favoriteThemes = new Set();
+let randomOnLaunch = false;
+let randomScope = 'favorites';
+
+async function loadFavorites() {
+  try {
+    const s = await fetch('/api/settings').then(r => r.json());
+    favoriteThemes = new Set(Array.isArray(s.favorite_themes) ? s.favorite_themes : []);
+    randomOnLaunch = !!s.random_theme_on_launch;
+    randomScope = s.random_theme_scope || 'favorites';
+  } catch {}
+}
+
+async function saveFavorites() {
+  try {
+    await fetch('/api/settings/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        favorite_themes: [...favoriteThemes],
+        random_theme_on_launch: randomOnLaunch,
+        random_theme_scope: randomScope
+      })
+    });
+  } catch {}
+}
+
+function toggleFavorite(key) {
+  if (!/^[a-z0-9-]+$/.test(key)) return;
+  if (favoriteThemes.has(key)) favoriteThemes.delete(key);
+  else favoriteThemes.add(key);
+  saveFavorites();
+  buildSidebar();
+  render();
+}
 
 // ── Seasonal visibility — same ±30d logic as main picker ─────────────────────
 const SEASONAL_VISIBLE = (() => {
@@ -639,6 +675,11 @@ function buildSidebar() {
   const collapsed = getCollapsed();
 
   let html = `<div class="cat-tab all-tab${activeCat === 'all' ? ' active' : ''}" data-cat="all">All<span class="cat-count">${countTotal()}</span></div>`;
+
+  if (favoriteThemes.size > 0) {
+    html += `<div class="cat-tab fav-tab${activeCat === 'favorites' ? ' active' : ''}" data-cat="favorites" style="color:var(--acc)"><span style="margin-right:4px;font-size:13px">♥</span>Favorites<span class="cat-count">${favoriteThemes.size}</span></div>`;
+  }
+
   html += `<div class="cat-divider"></div>`;
 
   SECTIONS.forEach(sec => {
@@ -656,6 +697,31 @@ function buildSidebar() {
   });
 
   sb.innerHTML = html;
+
+  const randomHtml = `
+    <div style="border-top:1px solid var(--border);margin-top:auto;padding:10px 14px;">
+      <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.72rem;color:var(--text2)">
+        <input type="checkbox" id="random-toggle" ${randomOnLaunch ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+        Random on launch
+      </label>
+      <select id="random-scope" style="width:100%;margin-top:6px;font-size:.68rem;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:4px;padding:2px 4px;outline:none;cursor:pointer${randomOnLaunch ? '' : ';opacity:0.4;pointer-events:none'}">
+        <option value="favorites" ${randomScope === 'favorites' ? 'selected' : ''}>Favorites only</option>
+        <option value="all" ${randomScope === 'all' ? 'selected' : ''}>All themes</option>
+      </select>
+    </div>`;
+  sb.insertAdjacentHTML('beforeend', randomHtml);
+
+  document.getElementById('random-toggle').addEventListener('change', (e) => {
+    randomOnLaunch = e.target.checked;
+    const scope = document.getElementById('random-scope');
+    scope.style.opacity = randomOnLaunch ? '1' : '0.4';
+    scope.style.pointerEvents = randomOnLaunch ? '' : 'none';
+    saveFavorites();
+  });
+  document.getElementById('random-scope').addEventListener('change', (e) => {
+    randomScope = e.target.value;
+    saveFavorites();
+  });
 
   // Wire category clicks
   sb.querySelectorAll('.cat-tab').forEach(tab => {
@@ -735,13 +801,16 @@ function render() {
   const grid = document.getElementById('grid');
   const entries = Object.entries(THEME_DATA).filter(([key, d]) => {
     if (d.cat === 'seasonal' && !SEASONAL_VISIBLE.has(key)) return false;
+    if (activeCat === 'favorites') return favoriteThemes.has(key);
     if (activeCat !== 'all' && d.cat !== activeCat) return false;
     if (searchQ && !d.label.toLowerCase().includes(searchQ) && !key.includes(searchQ)) return false;
     return true;
   }).sort((a, b) => a[1].label.localeCompare(b[1].label));
 
   if (!entries.length) {
-    grid.innerHTML = '<div class="empty">No themes match your search.</div>';
+    grid.innerHTML = activeCat === 'favorites'
+      ? '<div class="empty">No favorites yet — click the heart on any theme to add it.</div>'
+      : '<div class="empty">No themes match your search.</div>';
     return;
   }
 
@@ -753,11 +822,13 @@ function render() {
         <div class="swatch" style="background:${d.acc}"></div>
       </div>
       <span class="card-name">${d.label}${d.cat === 'seasonal' ? '<span class="seasonal-badge">✦</span>' : ''}</span>
+      <span class="fav-heart" data-fav="${key}" title="${favoriteThemes.has(key) ? 'Remove from favorites' : 'Add to favorites'}" style="font-size:14px;cursor:pointer;margin-left:auto;color:${favoriteThemes.has(key) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(key) ? '1' : '0.4'}">${favoriteThemes.has(key) ? '♥' : '♡'}</span>
     </div>
   `).join('');
 
   grid.querySelectorAll('.theme-card').forEach(card => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.fav-heart')) return;
       const theme = card.dataset.theme;
       currentTheme = theme;
       localStorage.setItem('egm-theme', theme);
@@ -768,10 +839,19 @@ function render() {
       render();
     });
   });
+
+  grid.querySelectorAll('.fav-heart').forEach(heart => {
+    heart.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleFavorite(heart.dataset.fav);
+    });
+  });
 }
 
-buildSidebar();
-render();
+loadFavorites().then(() => {
+  buildSidebar();
+  render();
+});
 {% endraw %}
 </script>
 </body>

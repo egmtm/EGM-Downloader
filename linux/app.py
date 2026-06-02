@@ -1022,6 +1022,9 @@ def get_settings():
         "theme":                   s.get("theme", ""),
         "yt_dlp_channel":          s.get("yt_dlp_channel", "stable"),
         "ffmpeg_channel":          s.get("ffmpeg_channel", "stable"),
+        "favorite_themes":         s.get("favorite_themes", []),
+        "random_theme_on_launch":  s.get("random_theme_on_launch", False),
+        "random_theme_scope":      s.get("random_theme_scope", "favorites"),
     })
 
 @app.route("/api/settings/save", methods=["POST"])
@@ -1032,7 +1035,8 @@ def save_settings():
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",
-               "yt_dlp_channel", "ffmpeg_channel"}
+               "yt_dlp_channel", "ffmpeg_channel",
+               "favorite_themes", "random_theme_on_launch", "random_theme_scope"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
