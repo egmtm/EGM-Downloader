@@ -1219,7 +1219,6 @@ function closeModal(result=null) {
   document.getElementById('name-modal').style.display = 'none';
   if (_modalOk) { _modalOk(result); _modalOk = null; }
 }
-function modalBgClick(e) { if (e.target.id==='name-modal') closeModal(); }
 
 // ── Download ──────────────────────────────────────────────────────────────────
 async function startDl(item, n) {
