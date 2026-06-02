@@ -167,7 +167,10 @@ def _atomic_write_text(path: Path, content: str, *, owner_only: bool = False) ->
     it exists (no race window). Cleans up the tmp file on failure and re-raises."""
     tmp = path.with_suffix(path.suffix + ".tmp")
     try:
-        tmp.write_text(content, encoding="utf-8")
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())          # durability parity w/ Windows
         if owner_only:
             _chmod_owner_only(tmp)
         tmp.replace(path)
@@ -1429,6 +1432,15 @@ def _run_deno_install():
                         log(f"  {mb:.0f} MB downloaded...")
                     next_report += 5 * 1024 * 1024
 
+        # Verify SHA-256 against Deno's published <asset>.sha256sum (parity w/ Windows).
+        ok, msg = _verify_upstream_checksum(tmp, url + ".sha256sum", DENO_ZIP_NAME)
+        log(msg)
+        if not ok:
+            tmp.unlink(missing_ok=True)
+            deno_install_status["error"] = "Checksum mismatch — install aborted"
+            deno_install_status["done"]  = True
+            return
+
         log("Extracting deno binary...")
         with zipfile.ZipFile(tmp, "r") as z:
             if "deno" not in z.namelist():
@@ -1508,6 +1520,10 @@ def whats_new():
                                      headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
+        # Verify signed manifest before trusting release-notes content (parity w/ Windows)
+        if not _verify_manifest(data):
+            _sec_event("whats-new: manifest signature INVALID or MISSING — notes suppressed")
+            return jsonify({"version": APP_VERSION, "notes_list": []})
         notes = data.get("_version_notes", [])
         if not isinstance(notes, list):
             notes = [str(notes)] if notes else []
@@ -1683,8 +1699,9 @@ def deno_reinstall():
 # ── History routes ────────────────────────────────────────────────────────────
 @app.route("/api/history")
 def get_history():
-    page     = int(request.args.get("page", 1))
-    per_page = int(request.args.get("per_page", 10))
+    # Robust parse — bad query params must not 500; clamp to sane bounds (parity w/ Windows)
+    page     = _clamp_int(request.args.get("page"), 1, 1, 10_000_000)
+    per_page = _clamp_int(request.args.get("per_page"), 10, 1, 500)
     with _history_lock:
         items = _load_history()
     total = len(items)
