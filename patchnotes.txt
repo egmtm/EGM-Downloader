@@ -1,6 +1,6 @@
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
-  • [ALL] New: 90 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9 — Neural, Quantum, Singularity, Cybercore, Dyson, Terraform, Biopunk, Nanite, Post Human) — total now 350 themes
+  • [ALL] New: 100 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10 — Mercury, Venus, Jupiter, Uranus, Earth, Pluto, Titan, Dark Matter, Magnetar, Exoplanet) — total now 360 themes
   • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import, server-side validation (XSS-safe, deduped, capped)
   • [ALL] New: Random theme on launch — optional toggle with Favorites only or All themes scope
   • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
@@ -29,6 +29,10 @@ v1.0 - CORNERSTONE (in progress)
   • [ALL] Security: external links restricted to HTTPS only, navigation pinned to Flask origin — all platforms
   • [ALL] Security: Deno download verified against published SHA-256 checksum — all platforms
   • [ALL] Test: security parity test — asserts hardening markers exist on all 3 platforms, prevents Windows-only fixes
+  • [ALL] Fix: 13 theme similarity fixes — accent color adjustments to differentiate visually similar themes across categories
+  • [ALL] Fix: 5 existing space themes migrated to new Planets category — cleaner taxonomy
+  • [ALL] Fix: Advanced panel layout — removed CSS transform that triggered Chromium compositor paint bug on Mac/Linux
+  • [ALL] Chore: Electron 42.2.0 → 42.3.2 (Chromium 148, security patches, faster launch)
   • [WINDOWS] Polish: download count badge removed from hamburger button — redundant with history
   • [WINDOWS] Fix: portable mode isolates Electron data — no settings leak between installed and portable versions
   • [WINDOWS] Fix: first-run installs cryptography + mutagen dependencies — prevents update check 502 on fresh installs
