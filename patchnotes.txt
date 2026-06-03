@@ -17,6 +17,7 @@ v1.0 - CORNERSTONE (in progress)
   • [ALL] Fix: yt-dlp nightly install uses download-first approach — bundled pip can't handle GitHub URLs directly
   • [ALL] Fix: save/rename modal no longer dismisses on overlay click — only Cancel, Save, or Escape close it
   • [ALL] Refactor: index.html split into index + index_scripts + index_styles — source maintainability, rendered output byte-identical
+  • [ALL] Refactor: THEME_DATA unified into single shared partial (theme_data.html) — eliminates duplication between main window and themes window, one entry point for all theme changes
   • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
   • [ALL] Polish: settings import notes thumbnails are not included after reinstall
   • [ALL] Polish: ffmpeg reinstall button removed — redundant with channel toggles
