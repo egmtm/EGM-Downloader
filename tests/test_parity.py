@@ -318,3 +318,58 @@ def test_index_html_div_balance():
         f"Header div imbalance: {opens} opens vs {closes} closes "
         f"(diff: {opens - closes})"
     )
+
+
+# ── Channel URL resolution — correct URL per channel setting ──────────────────
+
+def test_ffmpeg_channel_urls_correct():
+    """Each platform must have both stable and nightly ffmpeg URL constants,
+    and they must point to the correct sources per platform."""
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        if name == "mac":
+            # Mac uses martin-riedl.de with snapshot/release
+            assert "martin-riedl.de" in source, f"{name} must use martin-riedl.de for ffmpeg"
+            assert "snapshot" in source, f"{name} must have snapshot (nightly) path"
+            assert "release" in source, f"{name} must have release (stable) path"
+        else:
+            # Windows/Linux use BtbN
+            assert "FFMPEG_URL_STABLE" in source, f"{name} missing FFMPEG_URL_STABLE"
+            assert "FFMPEG_URL_NIGHTLY" in source, f"{name} missing FFMPEG_URL_NIGHTLY"
+            assert "ffmpeg-master" in source, f"{name} nightly URL must reference master"
+            assert "ffmpeg-n8.1" in source, f"{name} stable URL must reference n8.1"
+
+
+def test_ytdlp_channel_repos_correct():
+    """_get_latest_ytdlp_version must query the correct repo per channel."""
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        assert "yt-dlp/yt-dlp-nightly-builds" in source, (
+            f"{name} missing nightly repo reference")
+        assert 'yt-dlp/yt-dlp"' in source or "yt-dlp/yt-dlp'" in source, (
+            f"{name} missing stable repo reference")
+
+
+# ── Template render — Jinja include integrity ─────────────────────────────────
+
+def test_templates_render_without_jinja_errors():
+    """index.html must render through Jinja without errors, with all includes
+    resolved and THEME_DATA present in the output."""
+    from flask import Flask
+    import os
+    root = os.path.dirname(os.path.dirname(__file__))
+    app = Flask(__name__, template_folder=os.path.join(root, "templates"))
+    with app.app_context():
+        from flask import render_template
+        html = render_template("index.html", egm_token="test-token", platform_url="test")
+
+    # Verify no unrendered Jinja
+    assert "{%" not in html, "Unrendered Jinja block tag found in output"
+    assert "{{" not in html or "egm_token" not in html, "Unrendered Jinja variable found"
+
+    # Verify theme_data.html was included (THEME_DATA should be in output)
+    assert "const THEME_DATA" in html, "THEME_DATA not found — theme_data.html include failed"
+    assert "body.bologna" in html, "Theme CSS not found — theme_styles.html include failed"
+
+    # Verify the split files were included
+    assert "function applyTheme" in html, "index_scripts.html include failed"
