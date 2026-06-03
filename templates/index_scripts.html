@@ -1925,7 +1925,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','espresso','matcha','honey','merlot','saffron','goldenhour','overcast','northernlights','thunderstorm','sirocco','nebula','pulsar','solarflare','eventhorizon','andromeda','brutalist','artdeco','blueprint','marble','gothic','discofever','summeroflove','neonpunk','grunge','millenniumbug','drivein','woodstock','prohibition','spacerace','wallstreet','olympus','tartarus','elysium','valhalla','asgard','hades','avalon','aztecsun','anubis','dragoncourt','lunarnewyear','dayofthedead','eid','carnival','pride','nowruz','midautumn','kwanzaa','midsummer','oktoberfest','montmartre','niledusk','hangang','londonfog','carnivalcity','lagospulse','redplanet','icegiant','theringedone','io','europa','alien','lostintranslation','theshining','scream','pager','floppy','laserdisc','betamax','opera','punk','reggae','flamenco','solitude','rage','bauhaus','pagoda','pantheon','mudejar','mosaic','burgerjoint','takoyaki','jerkshack','nightmarket','shawarma','blizzard','downpour','heatwave','fogbank','hurricane','codemaster','overseer','gittymaster','webwizard','artist','sansebastian','nochedesanjuan','lasparrandas','elyunque','laparguera','coqui','flamboyan','conejomalo','conejomalo2','conejomalo3','conejomalo4','conejomalo5','titotrinidad','parquedebombas','lacruceta','laguancha','lasletras','plazalasdelicias','sananton','oldsanjuan','laperla','islaculebra','elmorro','plena','vejigante','mofongo','windows95','windows98','windowsxp','windowsvista','windows7','windows11','macos9','macosxaqua','macosbigsur','macossequoia','ubuntu','archlinux','kalilinux','fedora','beos','amiga','dos','nextstep','os2warp','solaris','unix','bsd','shiva','kali','amaterasu','susanoo','quetzalcoatl','tezcatlipoca','perun','morrigan','osiris','ogun','boxing','basketball','soccer','baseball','mma','tennis','hockey','surfing','athletics','aew','twenties','forties','fifties','sixties','seventies','eighties','nineties','twothousands','tens','twentytwenties','doge','thisisfine','drake','trollface','nyancat','sixseven','newyork','mumbai','istanbul','mexicocity','saopaulo','shanghai','nairobi','moscow','buenosaires','athens','marrakech','kyoto','amsterdam','sydney','berlin','lisbon','tehran','singapore','kinshasa','toronto','pitch','blanc','obsidian','wraith','porcelain','paranoia','wanderlust','catharsis','hypnotic','masterchief','cloudstrife','mario','sonic','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson','bologna','seoul','bangkok','miami','medellin','beirut','prague','hochiminhcity','sanjuan','ponce','neural','quantum','singularity','cybercore','dyson','terraform','biopunk','nanite','posthuman'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','espresso','matcha','honey','merlot','saffron','goldenhour','overcast','northernlights','thunderstorm','sirocco','nebula','pulsar','solarflare','eventhorizon','andromeda','brutalist','artdeco','blueprint','marble','gothic','discofever','summeroflove','neonpunk','grunge','millenniumbug','drivein','woodstock','prohibition','spacerace','wallstreet','olympus','tartarus','elysium','valhalla','asgard','hades','avalon','aztecsun','anubis','dragoncourt','lunarnewyear','dayofthedead','eid','carnival','pride','nowruz','midautumn','kwanzaa','midsummer','oktoberfest','montmartre','niledusk','hangang','londonfog','carnivalcity','lagospulse','redplanet','icegiant','theringedone','io','europa','alien','lostintranslation','theshining','scream','pager','floppy','laserdisc','betamax','opera','punk','reggae','flamenco','solitude','rage','bauhaus','pagoda','pantheon','mudejar','mosaic','burgerjoint','takoyaki','jerkshack','nightmarket','shawarma','blizzard','downpour','heatwave','fogbank','hurricane','codemaster','overseer','gittymaster','webwizard','artist','sansebastian','nochedesanjuan','lasparrandas','elyunque','laparguera','coqui','flamboyan','conejomalo','conejomalo2','conejomalo3','conejomalo4','conejomalo5','titotrinidad','parquedebombas','lacruceta','laguancha','lasletras','plazalasdelicias','sananton','oldsanjuan','laperla','islaculebra','elmorro','plena','vejigante','mofongo','windows95','windows98','windowsxp','windowsvista','windows7','windows11','macos9','macosxaqua','macosbigsur','macossequoia','ubuntu','archlinux','kalilinux','fedora','beos','amiga','dos','nextstep','os2warp','solaris','unix','bsd','shiva','kali','amaterasu','susanoo','quetzalcoatl','tezcatlipoca','perun','morrigan','osiris','ogun','boxing','basketball','soccer','baseball','mma','tennis','hockey','surfing','athletics','aew','twenties','forties','fifties','sixties','seventies','eighties','nineties','twothousands','tens','twentytwenties','doge','thisisfine','drake','trollface','nyancat','sixseven','newyork','mumbai','istanbul','mexicocity','saopaulo','shanghai','nairobi','moscow','buenosaires','athens','marrakech','kyoto','amsterdam','sydney','berlin','lisbon','tehran','singapore','kinshasa','toronto','pitch','blanc','obsidian','wraith','porcelain','paranoia','wanderlust','catharsis','hypnotic','masterchief','cloudstrife','mario','sonic','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson','bologna','seoul','bangkok','miami','medellin','beirut','prague','hochiminhcity','sanjuan','ponce','neural','quantum','singularity','cybercore','dyson','terraform','biopunk','nanite','posthuman','mercury','venus','jupiter','uranus','earth','pluto','titan','darkmatter','magnetar','exoplanet'];
 
   // ── Seasonal theme visibility ────────────────────────────────────────────────
   (function() {
@@ -2036,14 +2036,14 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     saturn:             {label:'Saturn', bg:'#0a1a1e',surf:'#102428',acc:'#00838f', cat:'consoles'},
     neogeo:             {label:'Neo Geo', bg:'#050a1a',surf:'#0a1428',acc:'#d4a017', cat:'consoles'},
     chosenundead:             {label:'Chosen Undead', bg:'#0c0c0c',surf:'#181818',acc:'#e07010', cat:'characters'},
-    vaultdweller:             {label:'Vault Dweller', bg:'#030a03',surf:'#051005',acc:'#00ff41', cat:'characters'},
+    vaultdweller:             {label:'Vault Dweller', bg:'#030a03',surf:'#051005',acc:'#00e838', cat:'characters'},
     n7:             {label:'N7', bg:'#050005',surf:'#0e000e',acc:'#cc0000', cat:'characters'},
     dragonborn:             {label:'Dragonborn', bg:'#0a1018',surf:'#121c26',acc:'#6888c0', cat:'characters'},
     bigboss:             {label:'Big Boss', bg:'#0c1008',surf:'#141a10',acc:'#6a8020', cat:'characters'},
     laracroft:             {label:'Lara Croft', bg:'#12080a',surf:'#1e100e',acc:'#c8780a', cat:'characters'},
     masterchief:           {label:'Master Chief', bg:'#020a04',surf:'#061008',acc:'#28c050', cat:'characters'},
     cloudstrife:           {label:'Cloud Strife', bg:'#040812',surf:'#081020',acc:'#2068e8', cat:'characters'},
-    mario:                 {label:'Mario',        bg:'#0e0400',surf:'#1c0800',acc:'#e82020', cat:'characters'},
+    mario:                 {label:'Mario',        bg:'#0e0400',surf:'#1c0800',acc:'#e01818', cat:'characters'},
     sonic:                 {label:'Sonic',        bg:'#020810',surf:'#041020',acc:'#2080ff', cat:'characters'},
     holographic:             {label:'Holographic', bg:'#04040e',surf:'#080812',acc:'#00e5ff', cat:'experimental'},
     y2k:             {label:'Y2K', bg:'#e8eef8',surf:'#dce4f4',acc:'#0044ff', cat:'experimental'},
@@ -2054,7 +2054,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     vinyl:             {label:'Vinyl', bg:'#1a0f00',surf:'#261600',acc:'#d4820a',   cat:'music'},
     lofi:              {label:'Lo-Fi', bg:'#111620',surf:'#181e2c',acc:'#7090b8',   cat:'music'},
     jazzclub:          {label:'Jazz Club', bg:'#0e0508',surf:'#180a10',acc:'#c8920a',   cat:'music'},
-    studiomidnight:    {label:'Studio Midnight', bg:'#030508',surf:'#06080e',acc:'#0080ff',   cat:'music'},
+    studiomidnight:    {label:'Studio Midnight', bg:'#030508',surf:'#06080e',acc:'#0070e8',   cat:'music'},
     rave:              {label:'Rave', bg:'#000000',surf:'#050008',acc:'#cc00ff',   cat:'music'},
     acoustic:          {label:'Acoustic', bg:'#1e1208',surf:'#281a0c',acc:'#d4962a',   cat:'music'},
     bioluminescent:    {label:'Bioluminescent', bg:'#000d12',surf:'#001820',acc:'#00f5d4',   cat:'nature'},
@@ -2112,7 +2112,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     /* ── Eras & Decades ── */
     discofever:       {label:'Disco Fever',    bg:'#0e0800', surf:'#1c1000', acc:'#f0b000',   cat:'eras'},
     summeroflove:     {label:'Summer of Love', bg:'#180808', surf:'#261010', acc:'#e86020',   cat:'eras'},
-    neonpunk:         {label:'Neon Punk',      bg:'#0a0018', surf:'#10002a', acc:'#ff00aa',   cat:'eras'},
+    neonpunk:         {label:'Neon Punk',      bg:'#0a0018', surf:'#10002a', acc:'#e800a8',   cat:'eras'},
     grunge:           {label:'Grunge',         bg:'#0e0e0c', surf:'#18181a', acc:'#a09040',   cat:'eras'},
     millenniumbug:    {label:'Millennium Bug', bg:'#060810', surf:'#0e1020', acc:'#60c0ff',   cat:'eras'},
     drivein:          {label:'Drive-In',       bg:'#0a0800', surf:'#161000', acc:'#e83830',   cat:'eras'},
@@ -2146,15 +2146,15 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     /* ── CITIES & SPACE ── */
     montmartre:    {label:'Montmartre',      bg:'#0c0e14', surf:'#141620', acc:'#d4881e', cat:'cities'},
     niledusk:      {label:'Nile Dusk',       bg:'#120c04', surf:'#1e1408', acc:'#d4a020', cat:'cities'},
-    hangang:       {label:'Hangang',         bg:'#04060e', surf:'#080c18', acc:'#ff3899', cat:'cities'},
+    hangang:       {label:'Hangang',         bg:'#04060e', surf:'#080c18', acc:'#20e8f0', cat:'cities'},
     londonfog:     {label:'London Fog',      bg:'#0c0e12', surf:'#141618', acc:'#7090a8', cat:'cities'},
     carnivalcity:  {label:'Carnival City',   bg:'#041410', surf:'#081e18', acc:'#20d870', cat:'cities'},
     lagospulse:    {label:'Lagos Pulse',     bg:'#100800', surf:'#1c1000', acc:'#f06020', cat:'cities'},
-    redplanet:     {label:'Red Planet',      bg:'#0e0400', surf:'#1c0800', acc:'#e04818', cat:'space'},
-    icegiant:      {label:'Ice Giant',       bg:'#020a18', surf:'#040e22', acc:'#2060f0', cat:'space'},
-    theringedone:  {label:'The Ringed One',  bg:'#0a0800', surf:'#161000', acc:'#e8b040', cat:'space'},
-    io:            {label:'Io',              bg:'#0c0800', surf:'#181200', acc:'#e8c000', cat:'space'},
-    europa:        {label:'Europa',          bg:'#040810', surf:'#080e18', acc:'#80d0f8', cat:'space'},
+    redplanet:     {label:'Red Planet',      bg:'#0e0400', surf:'#1c0800', acc:'#e04818', cat:'planets'},
+    icegiant:      {label:'Ice Giant',       bg:'#020a18', surf:'#040e22', acc:'#2060f0', cat:'planets'},
+    theringedone:  {label:'The Ringed One',  bg:'#0a0800', surf:'#161000', acc:'#e8b040', cat:'planets'},
+    io:            {label:'Io',              bg:'#0c0800', surf:'#181200', acc:'#e8c000', cat:'planets'},
+    europa:        {label:'Europa',          bg:'#040810', surf:'#080e18', acc:'#80d0f8', cat:'planets'},
 
     /* ── MOVIES / RETRO / MUSIC / MOODS ── */
     alien:               {label:'Alien',                bg:'#020604', surf:'#060e08', acc:'#40e820', cat:'movies'},
@@ -2167,7 +2167,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     betamax:       {label:'Betamax',        bg:'#0a0800', surf:'#161000', acc:'#d4a040', cat:'retro'},
     opera:         {label:'Opera',          bg:'#0a0002', surf:'#160006', acc:'#d4a020', cat:'music'},
     punk:          {label:'Punk',           bg:'#020202', surf:'#080808', acc:'#d4f000', cat:'music'},
-    reggae:        {label:'Reggae',         bg:'#060e00', surf:'#0e1800', acc:'#e8c000', cat:'music'},
+    reggae:        {label:'Reggae',         bg:'#060e00', surf:'#0e1800', acc:'#e8b800', cat:'music'},
     flamenco:      {label:'Flamenco',       bg:'#080000', surf:'#140000', acc:'#e82020', cat:'music'},
     solitude:      {label:'Solitude',       bg:'#0c0e10', surf:'#141618', acc:'#8898a8', cat:'moods'},
     rage:          {label:'Rage',           bg:'#040000', surf:'#0c0000', acc:'#ff0000', cat:'moods'},
@@ -2181,7 +2181,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     pagoda:        {label:'Pagoda',         bg:'#0c0602', surf:'#180e06', acc:'#cc2808', cat:'architecture'},
     pantheon:      {label:'Pantheon',       bg:'#100e08', surf:'#1c1a12', acc:'#c8a840', cat:'architecture'},
     mudejar:       {label:'Mudejar',        bg:'#100800', surf:'#1c1000', acc:'#d05818', cat:'architecture'},
-    mosaic:        {label:'Mosaic',         bg:'#060810', surf:'#0c1018', acc:'#d4a020', cat:'architecture'},
+    mosaic:        {label:'Mosaic',         bg:'#060810', surf:'#0c1018', acc:'#c89820', cat:'architecture'},
     burgerjoint:   {label:'Burger Joint',   bg:'#0e0400', surf:'#1a0800', acc:'#e82020', cat:'food'},
     takoyaki:      {label:'Takoyaki',       bg:'#100800', surf:'#1c1000', acc:'#e87020', cat:'food'},
     jerkshack:     {label:'Jerk Shack',     bg:'#080808', surf:'#121210', acc:'#e84020', cat:'food'},
@@ -2204,7 +2204,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     sansebastian:      {label:'San Sebastián',        bg:'#040210', surf:'#080418', acc:'#ff4088', cat:'puerto_rico'},
     nochedesanjuan:    {label:'Noche de San Juan',     bg:'#020810', surf:'#040e1a', acc:'#40c8e8', cat:'puerto_rico'},
     lasparrandas:      {label:'Las Parrandas',         bg:'#0a0400', surf:'#160800', acc:'#e85020', cat:'puerto_rico'},
-    elyunque:          {label:'El Yunque',             bg:'#021006', surf:'#041c0a', acc:'#28c860', cat:'puerto_rico'},
+    elyunque:          {label:'El Yunque',             bg:'#021006', surf:'#041c0a', acc:'#20c858', cat:'puerto_rico'},
     laparguera:        {label:'La Parguera',           bg:'#020810', surf:'#030e18', acc:'#00d8c0', cat:'puerto_rico'},
     coqui:             {label:'Coquí',                 bg:'#040e04', surf:'#081808', acc:'#68e828', cat:'puerto_rico'},
     flamboyan:         {label:'Flamboyán',             bg:'#100400', surf:'#1c0800', acc:'#ff5010', cat:'puerto_rico'},
@@ -2214,7 +2214,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     conejomalo4:       {label:'Conejo Malo 4.0',       bg:'#041c18', surf:'#083028', acc:'#f8d000', cat:'puerto_rico'},
     conejomalo5:       {label:'Conejo Malo 5.0',       bg:'#0e0a00', surf:'#1a1400', acc:'#e8a830', cat:'puerto_rico'},
     titotrinidad:      {label:'Tito Trinidad',         bg:'#0a0000', surf:'#160000', acc:'#e8a000', cat:'puerto_rico'},
-    parquedebombas:    {label:'Parque de Bombas',      bg:'#080000', surf:'#120000', acc:'#cc0808', cat:'puerto_rico'},
+    parquedebombas:    {label:'Parque de Bombas',      bg:'#080000', surf:'#120000', acc:'#c80010', cat:'puerto_rico'},
     lacruceta:         {label:'La Cruceta del Vigía',  bg:'#081018', surf:'#101828', acc:'#e8e8ff', cat:'puerto_rico'},
     laguancha:         {label:'La Guancha',            bg:'#040e10', surf:'#081a1c', acc:'#20b8e0', cat:'puerto_rico'},
     lasletras:         {label:'Las Letras de Ponce',   bg:'#080600', surf:'#141000', acc:'#e8b800', cat:'puerto_rico'},
@@ -2257,7 +2257,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   
     /* ── Operating Systems ── */
     windows95:     {label:'Windows 95',      bg:'#008080', surf:'#c0c0c0', acc:'#000080', cat:'os'},
-    windows98:     {label:'Windows 98',      bg:'#008080', surf:'#c0c0c0', acc:'#000080', cat:'os'},
+    windows98:     {label:'Windows 98',      bg:'#008080', surf:'#c8c8c8', acc:'#000080', cat:'os'},
     windowsxp:     {label:'Windows XP',      bg:'#1c4a8a', surf:'#2458a8', acc:'#3a8a30', cat:'os'},
     windowsvista:  {label:'Windows Vista',   bg:'#04102a', surf:'#081828', acc:'#4090e8', cat:'os'},
     windows7:      {label:'Windows 7',       bg:'#06141e', surf:'#0c1e2e', acc:'#1e78d8', cat:'os'},
@@ -2320,7 +2320,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     sixseven:    {label:'6/7',           bg:'#040402', surf:'#0c0c08', acc:'#e8d800', cat:'memes'},
     /* ── Cities ── */
     newyork:      {label:'New York',      bg:'#060608', surf:'#0e1018', acc:'#f8c000', cat:'cities'},
-    mumbai:       {label:'Mumbai',        bg:'#0e0800', surf:'#1a1200', acc:'#e86020', cat:'cities'},
+    mumbai:       {label:'Mumbai',        bg:'#0e0800', surf:'#1a1200', acc:'#f09020', cat:'cities'},
     istanbul:     {label:'Istanbul',      bg:'#080608', surf:'#141010', acc:'#c89830', cat:'cities'},
     mexicocity:   {label:'Mexico City',   bg:'#0e0600', surf:'#1a1000', acc:'#e83880', cat:'cities'},
     saopaulo:     {label:'São Paulo',     bg:'#080808', surf:'#121212', acc:'#20d8f8', cat:'cities'},
@@ -2348,7 +2348,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     prague:        {label:'Prague',           bg:'#080610', surf:'#100e1c', acc:'#8878d0', cat:'cities'},
     hochiminhcity: {label:'Ho Chi Minh City', bg:'#0a0600', surf:'#181000', acc:'#f87020', cat:'cities'},
     sanjuan:       {label:'San Juan',         bg:'#04080e', surf:'#080e18', acc:'#5890e8', cat:'cities'},
-    ponce:         {label:'Ponce',            bg:'#080000', surf:'#140000', acc:'#cc0808', cat:'cities'},
+    ponce:         {label:'Ponce',            bg:'#080000', surf:'#140000', acc:'#c00010', cat:'cities'},
     /* ── Futuristic ── */
     neural:      {label:'Neural',      bg:'#020410', surf:'#060818', acc:'#60a8ff', cat:'futuristic'},
     quantum:     {label:'Quantum',     bg:'#04020e', surf:'#080418', acc:'#9040e8', cat:'futuristic'},
@@ -2359,6 +2359,18 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     biopunk:     {label:'Biopunk',     bg:'#080402', surf:'#120806', acc:'#d86840', cat:'futuristic'},
     nanite:      {label:'Nanite',      bg:'#060608', surf:'#0e0e12', acc:'#c0d0e8', cat:'futuristic'},
     posthuman:   {label:'Post Human',  bg:'#030308', surf:'#080810', acc:'#d0c8ff', cat:'futuristic'},
+    /* -- Planets -- */
+    mercury:    {label:'Mercury',     bg:'#0e0c0a', surf:'#1a1816', acc:'#c0b0a0', cat:'planets'},
+    venus:      {label:'Venus',       bg:'#100c00', surf:'#1c1800', acc:'#d8d020', cat:'planets'},
+    jupiter:    {label:'Jupiter',     bg:'#100800', surf:'#1c1200', acc:'#d86820', cat:'planets'},
+    uranus:     {label:'Uranus',      bg:'#041018', surf:'#081e28', acc:'#70c8e0', cat:'planets'},
+    earth:      {label:'Earth',       bg:'#020c18', surf:'#041830', acc:'#1870e8', cat:'planets'},
+    pluto:      {label:'Pluto',       bg:'#060408', surf:'#0e0c10', acc:'#b8a0d0', cat:'planets'},
+    titan:      {label:'Titan',       bg:'#0e0a00', surf:'#1c1400', acc:'#d88038', cat:'planets'},
+    /* -- Space additions -- */
+    darkmatter: {label:'Dark Matter', bg:'#020204', surf:'#060608', acc:'#404858', cat:'space'},
+    magnetar:   {label:'Magnetar',    bg:'#040208', surf:'#080410', acc:'#d030e8', cat:'space'},
+    exoplanet:  {label:'Exoplanet',   bg:'#060010', surf:'#0e0020', acc:'#f090e8', cat:'space'},
 
 
 
