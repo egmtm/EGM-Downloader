@@ -265,3 +265,59 @@ def test_ejs_remote_components_in_download_path():
             f"{name}/app.py: run_download missing --remote-components ejs:github "
             f"(signature solving would fail on this platform)"
         )
+
+
+# ── Theme count consistency — prevents corruption and sync drift ──────────────
+
+def test_theme_counts_consistent():
+    """THEME_DATA in index_scripts, themes.html, HTML rows, and THEMES array
+    must all agree on the total count. Catches corruption from bad insertions,
+    merge drift, and partial integrations."""
+    scripts = read_source("templates/index_scripts.html")
+    themes_html = read_source("templates/themes.html")
+    index_html = read_source("templates/index.html")
+
+    data_scripts = len(re.findall(r"cat:'", scripts))
+    data_themes  = len(re.findall(r"cat:'", themes_html))
+    html_rows    = len(re.findall(r'data-theme=', index_html))
+
+    # THEMES array — count quoted entries
+    arr_match = re.search(r'const THEMES = \[(.*?)\]', scripts, re.DOTALL)
+    assert arr_match, "THEMES array not found in index_scripts.html"
+    arr_count = len(re.findall(r"'[a-z0-9-]+'", arr_match.group(1)))
+
+    assert data_scripts == data_themes, (
+        f"THEME_DATA mismatch: index_scripts has {data_scripts}, themes.html has {data_themes}")
+    assert data_scripts == html_rows, (
+        f"THEME_DATA ({data_scripts}) != HTML rows ({html_rows}) in index.html")
+    assert data_scripts == arr_count, (
+        f"THEME_DATA ({data_scripts}) != THEMES array ({arr_count})")
+
+
+def test_theme_counts_linux_parity():
+    """Linux templates must have identical theme counts to root templates."""
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html"]:
+        root = read_source(f"templates/{fname}")
+        linux = read_source(f"linux/templates/{fname}")
+        assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
+
+
+# ── HTML div balance — prevents DOM corruption cascading to layout ────────────
+
+def test_index_html_div_balance():
+    """The header section of index.html must have balanced <div>...</div> tags.
+    Unbalanced divs cause the browser to auto-close at wrong points, breaking
+    panel layout — this exact bug caused the Advanced panel to render empty on
+    Mac/Linux in RC5."""
+    html = read_source("templates/index.html")
+    header_start = html.find("<header>")
+    header_end = html.find("</header>") + len("</header>")
+    assert header_start > 0 and header_end > header_start, "Could not find <header>...</header>"
+
+    header = html[header_start:header_end]
+    opens = len(re.findall(r'<div[\s>]', header))
+    closes = header.count('</div>')
+    assert opens == closes, (
+        f"Header div imbalance: {opens} opens vs {closes} closes "
+        f"(diff: {opens - closes})"
+    )
