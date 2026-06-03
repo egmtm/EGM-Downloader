@@ -1,7 +1,7 @@
 """
 Tests for _atomic_write_text — the persistence helper introduced in v0.99.13.
 
-Rule (per OVERSEER): any new helper that handles persistence gets its own test
+Rule: any new helper that handles persistence gets its own test
 the same release it lands. Three cases required:
   (a) normal write succeeds and content lands at the correct path
   (b) chmod is applied to the tmp file BEFORE rename — no race window
