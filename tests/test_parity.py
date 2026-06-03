@@ -128,8 +128,8 @@ def test_theme_data_matches_themes_array():
     assert m, "THEMES array not found"
     themes_arr = {t.strip().strip("'\"") for t in m.group(1).split(",") if t.strip().strip("'\"")} - {"custom"}
 
-    # Extract THEME_DATA keys
-    m2 = re.search(r"const THEME_DATA\s*=\s*\{(.*?)\n\s*\};", source, re.DOTALL)
+    # Extract THEME_DATA keys (now in shared partial theme_data.html)
+    m2 = re.search(r"const THEME_DATA\s*=\s*\{(.*?)\n\s*\};", read_source("templates/theme_data.html"), re.DOTALL)
     assert m2, "THEME_DATA block not found"
     theme_data_keys = set(re.findall(r"""^\s*'?([\w-]+)'?\s*:\s*\{label:""", m2.group(1), re.MULTILINE))
 
@@ -155,7 +155,7 @@ def test_no_duplicate_theme_labels():
     No two themes may share the same display label.
     Regression: 'Aurora' label collision between aurora and aurora-deep.
     """
-    source = read_source("templates/index_scripts.html")  # JS extracted from index.html
+    source = read_source("templates/theme_data.html")  # shared THEME_DATA partial
     m = re.search(r"const THEME_DATA\s*=\s*\{(.*?)\n\s*\};", source, re.DOTALL)
     assert m, "THEME_DATA block not found"
 
@@ -273,30 +273,27 @@ def test_theme_counts_consistent():
     """THEME_DATA in index_scripts, themes.html, HTML rows, and THEMES array
     must all agree on the total count. Catches corruption from bad insertions,
     merge drift, and partial integrations."""
+    theme_data = read_source("templates/theme_data.html")  # single shared source now
     scripts = read_source("templates/index_scripts.html")
-    themes_html = read_source("templates/themes.html")
     index_html = read_source("templates/index.html")
 
-    data_scripts = len(re.findall(r"cat:'", scripts))
-    data_themes  = len(re.findall(r"cat:'", themes_html))
-    html_rows    = len(re.findall(r'data-theme=', index_html))
+    data_count = len(re.findall(r"cat:'", theme_data))
+    html_rows  = len(re.findall(r'data-theme=', index_html))
 
     # THEMES array — count quoted entries
     arr_match = re.search(r'const THEMES = \[(.*?)\]', scripts, re.DOTALL)
     assert arr_match, "THEMES array not found in index_scripts.html"
     arr_count = len(re.findall(r"'[a-z0-9-]+'", arr_match.group(1)))
 
-    assert data_scripts == data_themes, (
-        f"THEME_DATA mismatch: index_scripts has {data_scripts}, themes.html has {data_themes}")
-    assert data_scripts == html_rows, (
-        f"THEME_DATA ({data_scripts}) != HTML rows ({html_rows}) in index.html")
-    assert data_scripts == arr_count, (
-        f"THEME_DATA ({data_scripts}) != THEMES array ({arr_count})")
+    assert data_count == html_rows, (
+        f"THEME_DATA ({data_count}) != HTML rows ({html_rows}) in index.html")
+    assert data_count == arr_count, (
+        f"THEME_DATA ({data_count}) != THEMES array ({arr_count})")
 
 
 def test_theme_counts_linux_parity():
     """Linux templates must have identical theme counts to root templates."""
-    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html"]:
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html"]:
         root = read_source(f"templates/{fname}")
         linux = read_source(f"linux/templates/{fname}")
         assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
