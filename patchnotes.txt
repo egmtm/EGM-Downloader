@@ -29,7 +29,7 @@ v1.0 - CORNERSTONE (in progress)
   • [ALL] Security: preload bridge validates inputs before sending IPC (isStr, THEME_RE, isHttpUrl) — all platforms
   • [ALL] Security: external links restricted to HTTPS only, navigation pinned to Flask origin — all platforms
   • [ALL] Security: Deno download verified against published SHA-256 checksum — all platforms
-  • [ALL] Test: 27 automated tests — security parity (app.py + main.js + preload.js × 3 platforms), theme count consistency, HTML div balance, linux template parity, ejs download path guard
+  • [ALL] Test: 32 automated tests — security parity (app.py + main.js + preload.js × 3 platforms), theme count consistency, HTML div balance, linux template parity, ejs download path, favorites sanitization, port resolution, channel URL validation, template Jinja render integrity
   • [ALL] Fix: 13 theme similarity fixes — accent color adjustments to differentiate visually similar themes across categories
   • [ALL] Fix: 5 existing space themes migrated to new Planets category — cleaner taxonomy
   • [ALL] Fix: Advanced panel layout — removed CSS transform that triggered Chromium compositor paint bug on Mac/Linux
