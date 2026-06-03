@@ -235,6 +235,24 @@ def test_security_markers_in_all_main_js():
         assert not missing, f"{name}/main.js missing security markers: {missing}"
 
 
+def test_security_markers_in_all_preload_js():
+    """Every platform preload.js must contain the same bridge-layer validation."""
+    REQUIRED = [
+        "isStr",                    # string type validator
+        "THEME_RE",                 # theme key regex validation
+        "isHttpUrl",                # URL protocol validator
+    ]
+    preload_files = [
+        ("windows", "windows/electron/preload.js"),
+        ("linux",   "linux/electron/preload.js"),
+        ("mac",     "mac/electron/preload.js"),
+    ]
+    for name, path in preload_files:
+        source = read_source(path)
+        missing = [m for m in REQUIRED if m not in source]
+        assert not missing, f"{name}/preload.js missing security markers: {missing}"
+
+
 def test_ejs_remote_components_in_download_path():
     """run_download() must invoke yt-dlp with --remote-components ejs:github on
     EVERY platform (YouTube signature solving). Regression: in RC4 this was applied
