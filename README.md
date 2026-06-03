@@ -43,7 +43,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and download them all at once
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
-- 🎨 **260 Themes** - 250 permanent across 20+ categories + 10 seasonal easter eggs with smooth transitions
+- 🎨 **360 Themes** - 350 permanent across 20+ categories + 10 seasonal easter eggs with smooth transitions
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
 - 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
@@ -58,7 +58,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v0.99.11 running on Linux. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v0.99.13 running on Linux. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -78,9 +78,9 @@
   <tr>
     <td align="center">
       <a href="screenshots/03-themes-window.png">
-        <img src="screenshots/03-themes-window.png" width="340" alt="Themes Window — 260 Themes"/>
+        <img src="screenshots/03-themes-window.png" width="340" alt="Themes Window — 360 Themes"/>
       </a>
-      <br/><sub><b>Themes Window — 260 Themes</b></sub>
+      <br/><sub><b>Themes Window — 360 Themes</b></sub>
     </td>
     <td align="center">
       <a href="screenshots/04-fetching-videos.png">
@@ -262,7 +262,7 @@
 
 **v0.99.11 — FOUNDER'S EDITION:** ✅ Shipped
 - 🇵🇷 Puerto Rico Collection — 22 deeply personal themes celebrating Ponce, the island, holidays, and culture
-- 🎨 67 new themes total — bringing the library to 230+ (260 with v0.99.13 OS themes)
+- 🎨 67 new themes total — bringing the library to 360
 - 🖼️ Dedicated Puerto Rico section in the themes sidebar
 - 🔒 Thumbnail fetching restricted to HTTPS-only
 
