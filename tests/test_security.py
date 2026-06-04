@@ -29,7 +29,7 @@ def app_mod():
 
 
 @pytest.fixture(scope="module")
-def test_keypair():
+def signing_keypair():
     """Generate a throwaway ed25519 keypair for manifest signing tests."""
     from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PrivateKey
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
@@ -127,13 +127,13 @@ def test_verify_manifest_rejects_empty_signature(app_mod):
     assert app_mod._verify_manifest(data) is False, "Empty signature should be rejected"
 
 
-def test_verify_manifest_rejects_tampered_content(app_mod, test_keypair):
+def test_verify_manifest_rejects_tampered_content(app_mod, signing_keypair):
     """
     A manifest signed with a valid key but then tampered must be rejected.
     Any byte change to the payload invalidates the ed25519 signature.
     """
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-    private, public = test_keypair
+    private, public = signing_keypair
 
     # Sign a manifest
     data = {"version": "0.99.12", "build": 120}
@@ -149,13 +149,13 @@ def test_verify_manifest_rejects_tampered_content(app_mod, test_keypair):
     assert app_mod._verify_manifest(tampered) is False, "Tampered manifest should be rejected"
 
 
-def test_verify_manifest_rejects_wrong_key(app_mod, test_keypair):
+def test_verify_manifest_rejects_wrong_key(app_mod, signing_keypair):
     """
     A manifest signed with an unknown private key must be rejected.
     Guards against attackers who generate their own keypair.
     """
     from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat
-    private, _ = test_keypair
+    private, _ = signing_keypair
 
     data = {"version": "0.99.12", "build": 120}
     payload = json.dumps(data, sort_keys=True, separators=(',', ':')).encode('utf-8')
@@ -189,3 +189,67 @@ def test_checksum_source_present_in_all_platforms():
         assert "return False" in func_body, (
             f"_verify_upstream_checksum in {platform_file} must return False on failure (fail-closed)"
         )
+
+
+# ── Favorites sanitization — defense-in-depth on user input ───────────────────
+
+def test_favorites_sanitization(app_mod):
+    """Malicious favorite_themes payloads must be sanitized server-side:
+    XSS keys filtered, duplicates removed, scope constrained, bool coerced."""
+    with app_mod.app.test_client() as client:
+        # Set the token header for auth
+        headers = {"Content-Type": "application/json",
+                   "X-EGM-Token": app_mod._API_TOKEN}
+
+        payload = {
+            "favorite_themes": [
+                "void", "ghost",                    # valid
+                "<script>alert(1)</script>",         # XSS — must be filtered
+                "../../etc/passwd",                  # path traversal — must be filtered
+                "void",                              # duplicate — must be deduped
+                "UPPERCASE",                         # invalid (uppercase) — must be filtered
+                "ok-theme",                          # valid
+                123,                                 # non-string — must be filtered
+            ],
+            "random_theme_scope": "../../etc",       # invalid — must reset to default
+            "random_theme_on_launch": 1,             # truthy int — must coerce to bool
+        }
+        resp = client.post("/api/settings/save", json=payload, headers=headers)
+        assert resp.status_code == 200
+
+        # Read back
+        resp = client.get("/api/settings", headers=headers)
+        data = resp.get_json()
+
+        favs = data.get("favorite_themes", [])
+        assert "void" in favs, "Valid key 'void' should survive"
+        assert "ghost" in favs, "Valid key 'ghost' should survive"
+        assert "ok-theme" in favs, "Valid key 'ok-theme' should survive"
+        assert favs.count("void") == 1, "Duplicates should be removed"
+        assert "<script>alert(1)</script>" not in str(favs), "XSS must be filtered"
+        assert "../../etc/passwd" not in str(favs), "Path traversal must be filtered"
+        assert "UPPERCASE" not in str(favs), "Uppercase keys must be filtered"
+        assert len(favs) <= 4, f"Expected ≤4 clean keys, got {len(favs)}: {favs}"
+
+        scope = data.get("random_theme_scope", "")
+        assert scope in ("favorites", "all"), f"Invalid scope should reset to default, got: {scope}"
+
+        on_launch = data.get("random_theme_on_launch")
+        assert on_launch is True or on_launch is False, f"Should be bool, got: {type(on_launch)}"
+
+
+# ── Port resolution — priority: env > settings > fallback ─────────────────────
+
+def test_port_resolution_logic():
+    """_resolve_port must follow: PORT env > flask_port setting > 8899 fallback.
+    This exact logic crashed Mac/Linux in RC4 when the one-liner was wrong."""
+    import os
+    # We test the logic pattern, not the actual function (it's defined inside main guard)
+    # Verify the pattern exists in all platform files
+    for name, path in [("windows", "app.py"), ("linux", "linux/app.py"), ("mac", "mac/app.py")]:
+        source = read_source(path)
+        assert "def _resolve_port" in source, f"{name} missing _resolve_port function"
+        assert 'os.environ.get("PORT")' in source, f"{name} _resolve_port must check PORT env var"
+        assert 'flask_port' in source, f"{name} _resolve_port must check flask_port setting"
+        assert "return 8899" in source, f"{name} _resolve_port must fall back to 8899"
+        assert "1024" in source and "65535" in source, f"{name} _resolve_port must validate port range"

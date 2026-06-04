@@ -36,11 +36,11 @@ jobs:
     - name: Run flake8
       run: |
         # Stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude='*/electron/dist/*,linux/python/*'
         # Exit-zero treats all errors as warnings
         # E501: line too long (100 chars)
         # W503: line break before binary operator (black style)
-        flake8 . --count --exit-zero --max-line-length=100 --ignore=W503 --statistics
+        flake8 . --count --exit-zero --max-line-length=100 --ignore=W503 --statistics --exclude='*/electron/dist/*,linux/python/*'
         
     - name: Check import sorting
       run: |

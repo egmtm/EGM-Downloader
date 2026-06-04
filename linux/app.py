@@ -81,7 +81,6 @@ def _verify_manifest(data: dict) -> bool:
     Returns True if signature is present and valid, False otherwise."""
     try:
         from cryptography.hazmat.primitives.serialization import load_pem_public_key
-        from cryptography.exceptions import InvalidSignature
         import base64, json as _json
         sig_b64 = data.get('signature', '')
         if not sig_b64:
@@ -167,7 +166,10 @@ def _atomic_write_text(path: Path, content: str, *, owner_only: bool = False) ->
     it exists (no race window). Cleans up the tmp file on failure and re-raises."""
     tmp = path.with_suffix(path.suffix + ".tmp")
     try:
-        tmp.write_text(content, encoding="utf-8")
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())          # durability parity w/ Windows
         if owner_only:
             _chmod_owner_only(tmp)
         tmp.replace(path)
@@ -178,7 +180,8 @@ def _atomic_write_text(path: Path, content: str, *, owner_only: bool = False) ->
 
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
 # /api/show-window is exempt because launch.py (second-instance signaler) has no token access
-_TOKEN_EXEMPT    = {"/api/show-window"}
+_TOKEN_EXEMPT        = {"/api/show-window"}
+_TOKEN_EXEMPT_PREFIX = ("/api/thumbnail/",)
 _IS_DEV          = os.environ.get("EGM_DEV_MODE") == "1"
 if not _API_TOKEN and not _IS_DEV:
     raise RuntimeError("EGM_API_TOKEN is required — set EGM_DEV_MODE=1 for local development")
@@ -198,7 +201,7 @@ def _verify_host_header():
         _sec_event(f"Host header rejected: {request.host!r} on {request.path}")
         abort(403)
     # 2. API token check (per-session Electron token)
-    if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT and not request.path.startswith("/api/thumbnail/"):
+    if _API_TOKEN and request.path.startswith("/api/") and request.path not in _TOKEN_EXEMPT and not request.path.startswith(_TOKEN_EXEMPT_PREFIX):
         if not hmac.compare_digest(
             request.headers.get("X-EGM-Token", ""), _API_TOKEN
         ):
@@ -258,27 +261,83 @@ def _save_history(items: list):
     except Exception:
         pass
 
+def _is_internal_host(host: str) -> bool:
+    """Return True if host resolves to a loopback/private/link-local/reserved
+    address. Thumbnail URLs come from extractor metadata (and are accepted from
+    the /api/download caller), so a hostile value could otherwise make the
+    backend fetch internal services (SSRF). Fail-closed: resolution failure -> internal."""
+    import socket, ipaddress
+    if not host:
+        return True
+    try:
+        infos = socket.getaddrinfo(host, None)
+    except Exception:
+        return True
+    for info in infos:
+        addr = info[4][0].split("%")[0]  # strip IPv6 zone id
+        try:
+            ip = ipaddress.ip_address(addr)
+        except ValueError:
+            return True
+        if (ip.is_private or ip.is_loopback or ip.is_link_local
+                or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
+            return True
+    return False
+
+def _clamp_int(value, default, lo, hi):
+    """Parse value to int and clamp to [lo, hi]; return default on bad/empty input.
+    Prevents a malformed request field from raising and 500-ing the route."""
+    try:
+        return max(lo, min(int(value), hi))
+    except (TypeError, ValueError):
+        return default
+
 def _download_thumbnail(url: str, entry_id: str) -> str:
     """Download a thumbnail image and save it locally. Returns filename or empty string."""
     if not url or not url.startswith("https://"):
         if url:
             _sec_event(f"Thumbnail URL rejected (non-HTTPS): scheme={url.split(':')[0]!r}")
         return ""
+    # SSRF guard: never let a thumbnail URL point the backend at an internal host.
+    _thumb_host = urllib.parse.urlparse(url).hostname or ""
+    if _is_internal_host(_thumb_host):
+        _sec_event(f"Thumbnail URL rejected (internal/unresolvable host): {_thumb_host!r}")
+        return ""
+    CAP = 512_000  # 500 KB hard cap on thumbnail size
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
+        # Re-check the FINAL host after any redirects — a whitelisted host could
+        # 302 to an internal address (mirrors _safe_urlopen's redirect guard).
+        final_host = urllib.parse.urlparse(req.url).hostname or ""
+        if _is_internal_host(final_host):
+            _sec_event(f"Thumbnail redirect rejected (internal host): {final_host!r}")
+            req.close()
+            return ""
         # Reject non-image responses before reading the body
         ctype = req.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if ctype not in ("image/jpeg", "image/png", "image/webp"):
             req.close()
             return ""
-        data = req.read(512_000)  # cap at 500KB
+        # Reject early if the server advertises a size over the cap.
+        try:
+            clen = int(req.headers.get("Content-Length", "0"))
+        except (TypeError, ValueError):
+            clen = 0
+        if clen > CAP:
+            req.close()
+            return ""
+        # Read one byte past the cap: if we get more than CAP the source lied about
+        # (or omitted) its length, so reject rather than save a truncated image.
+        data = req.read(CAP + 1)
         req.close()
+        if len(data) > CAP:
+            return ""
         # Strict magic byte detection at exact offset
-        if data.startswith(b'\x89PNG\r\n\x1a\n'):
+        if data.startswith(b"\x89PNG\r\n\x1a\n"):
             ext = ".png"
-        elif data.startswith(b'RIFF') and len(data) >= 12 and data[8:12] == b'WEBP':
+        elif data.startswith(b"RIFF") and len(data) >= 12 and data[8:12] == b"WEBP":
             ext = ".webp"
-        elif data[:3] == b'\xff\xd8\xff':
+        elif data[:3] == b"\xff\xd8\xff":
             ext = ".jpg"
         else:
             return ""  # Unknown format — reject rather than mis-tag
@@ -424,8 +483,16 @@ def _popen_yt(*cmd, **kw):
     return subprocess.Popen(list(cmd), env=_yt_env(), **kw)
 
 # ── ffmpeg: BtbN Linux x64 build ─────────────────────────────────────────────
-FFMPEG_URL      = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
-                   "ffmpeg-master-latest-linux64-gpl.tar.xz")
+FFMPEG_URL_NIGHTLY = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                     "ffmpeg-master-latest-linux64-gpl.tar.xz")
+FFMPEG_URL_STABLE  = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                      "ffmpeg-n8.1-latest-linux64-gpl-8.1.tar.xz")
+
+def _get_ffmpeg_url():
+    ch = _load_settings().get("ffmpeg_channel", "stable")
+    return FFMPEG_URL_NIGHTLY if ch == "nightly" else FFMPEG_URL_STABLE
+
+FFMPEG_URL = FFMPEG_URL_STABLE
 FFMPEG_TAG_FILE = FFMPEG_DIR / "build_tag.txt"
 
 # ── Deno: stored in DATA_DIR (downloaded on first use) ───────────────────────
@@ -454,10 +521,11 @@ def ensure_ffmpeg():
     FFMPEG_DIR.mkdir(exist_ok=True)
     tmp = FFMPEG_DIR / "ffmpeg_tmp.tar.xz"
     try:
-        req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+        ffmpeg_url = _get_ffmpeg_url()
+        req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
-        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", "ffmpeg-master-latest-linux64-gpl.tar.xz")
+        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
         print(f"[EGM] {msg}")
         if not ok:
             tmp.unlink(missing_ok=True)
@@ -523,7 +591,7 @@ def _bgutil_args() -> list:
 
 def _ytdlp(*extra, timeout=None):
     # Use python -m yt_dlp so PYTHONPATH-installed updates take precedence over bundled
-    return _run_yt(sys.executable, "-m", "yt_dlp", *_ffmpeg_args(), *_deno_args(),
+    return _run_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github", *_ffmpeg_args(), *_deno_args(),
                    *_cookies_args(), *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -632,7 +700,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
     args.append(url)
 
-    cmd = [sys.executable, "-m", "yt_dlp"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
+    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
     try:
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace",
@@ -853,6 +921,10 @@ def start_download():
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
+    # Gate: ffmpeg must be ready before downloads can start (it runs in a
+    # background thread on first launch — see ensure_ffmpeg).
+    if not (FFMPEG_DIR / "ffmpeg").exists():
+        return jsonify({"error": "ffmpeg is still downloading — please wait a moment and try again"}), 503
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
 
@@ -887,7 +959,7 @@ def start_download():
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
-                           min(max(int(data.get("concurrent_fragments") or 1), 1), 16),
+                           _clamp_int(data.get("concurrent_fragments"), 1, 1, 16),
                            data.get("audio_quality") or "320",
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
@@ -942,7 +1014,6 @@ def get_settings():
         "ck_open":                 s.get("ck_open", False),
         "quit_on_done":            s.get("quit_on_done", False),
         "check_updates_on_launch": s.get("check_updates_on_launch", False),
-        "flask_port":              s.get("flask_port", 8899),
         "last_seen_version":       s.get("last_seen_version", ""),
         # Promoted UI controls — must be returned so frontend can restore on init.
         # Without these, defaults always win regardless of what was saved.
@@ -951,21 +1022,45 @@ def get_settings():
         "output_format":           s.get("output_format", "mp4"),
         "default_audio_format":    s.get("default_audio_format", "320"),
         "theme":                   s.get("theme", ""),
+        "yt_dlp_channel":          s.get("yt_dlp_channel", "stable"),
+        "ffmpeg_channel":          s.get("ffmpeg_channel", "stable"),
+        "favorite_themes":         s.get("favorite_themes", []),
+        "random_theme_on_launch":  s.get("random_theme_on_launch", False),
+        "random_theme_scope":      s.get("random_theme_scope", "favorites"),
     })
 
 @app.route("/api/settings/save", methods=["POST"])
 def save_settings():
     data = request.get_json(silent=True) or {}
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
-               "upd_open", "ck_open", "quit_on_done", "flask_port",
+               "upd_open", "ck_open", "quit_on_done",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
-               "default_audio_format", "default_video_format"}
+               "default_audio_format", "default_video_format",
+               "yt_dlp_channel", "ffmpeg_channel",
+               "favorite_themes", "random_theme_on_launch", "random_theme_scope"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
             try: Path(folder).mkdir(parents=True, exist_ok=True)
             except Exception: pass
+    # Sanitize favorites / random-theme settings — defense-in-depth (the UI already
+    # validates, but never trust client input). Keep only valid theme keys, capped.
+    if "favorite_themes" in data:
+        fav = data.get("favorite_themes")
+        if isinstance(fav, list):
+            cleaned, seen = [], set()
+            for _k in fav:
+                if isinstance(_k, str) and _re.fullmatch(r"[a-z0-9-]+", _k) and _k not in seen:
+                    seen.add(_k); cleaned.append(_k)
+                    if len(cleaned) >= 1000: break
+            data["favorite_themes"] = cleaned
+        else:
+            data.pop("favorite_themes", None)
+    if data.get("random_theme_scope") not in (None, "favorites", "all"):
+        data.pop("random_theme_scope", None)
+    if "random_theme_on_launch" in data:
+        data["random_theme_on_launch"] = bool(data["random_theme_on_launch"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
@@ -1030,10 +1125,13 @@ def _get_latest_ffmpeg_tag():
             return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
-def _get_latest_ytdlp_version():
+def _get_latest_ytdlp_version(channel=None):
+    if channel is None:
+        channel = _load_settings().get("yt_dlp_channel", "stable")
+    repo = "yt-dlp/yt-dlp-nightly-builds" if channel == "nightly" else "yt-dlp/yt-dlp"
     try:
         req = urllib.request.Request(
-            "https://api.github.com/repos/yt-dlp/yt-dlp/releases/latest",
+            f"https://api.github.com/repos/{repo}/releases/latest",
             headers={"User-Agent":"EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read()).get("tag_name","unknown")
@@ -1048,16 +1146,37 @@ def _run_update(do_ytdlp, do_ffmpeg):
     try:
         if do_ytdlp:
             PACKAGES_DIR.mkdir(parents=True, exist_ok=True)
-            stable_ver = _get_latest_ytdlp_version()
-            if stable_ver and stable_ver != "unknown":
-                log(f"Installing yt-dlp stable {stable_ver}...")
+            channel = _load_settings().get("yt_dlp_channel", "stable")
+            if channel == "nightly":
+                log("Installing yt-dlp nightly...")
+                # Download tar.gz first — bundled pip may not handle GitHub URLs/redirects
+                nightly_url = "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz"
+                tmp_tar = PACKAGES_DIR / "yt-dlp-nightly.tar.gz"
+                try:
+                    req = urllib.request.Request(nightly_url, headers={"User-Agent": "EGM-Downloader"})
+                    with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as resp, open(tmp_tar, "wb") as f:
+                        shutil.copyfileobj(resp, f)
+                except Exception as e:
+                    log(f"yt-dlp nightly download failed: {e}")
+                    try: tmp_tar.unlink(missing_ok=True)
+                    except Exception: pass
+                    return
                 r = _run(sys.executable, "-m", "pip", "install",
-                         f"yt-dlp=={stable_ver}", "--target", str(PACKAGES_DIR),
-                         "--upgrade", timeout=120)
+                         str(tmp_tar), "--target", str(PACKAGES_DIR),
+                         "--upgrade", "--force-reinstall", timeout=120)
+                try: tmp_tar.unlink(missing_ok=True)
+                except Exception: pass
             else:
-                log("Installing yt-dlp stable (latest)...")
-                r = _run(sys.executable, "-m", "pip", "install", "yt-dlp",
-                         "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
+                latest_ver = _get_latest_ytdlp_version("stable")
+                if latest_ver and latest_ver != "unknown":
+                    log(f"Installing yt-dlp stable {latest_ver}...")
+                    r = _run(sys.executable, "-m", "pip", "install",
+                             f"yt-dlp=={latest_ver}", "--target", str(PACKAGES_DIR),
+                             "--upgrade", timeout=120)
+                else:
+                    log("Installing yt-dlp stable (latest)...")
+                    r = _run(sys.executable, "-m", "pip", "install", "yt-dlp",
+                             "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
@@ -1068,12 +1187,13 @@ def _run_update(do_ytdlp, do_ffmpeg):
             log("Downloading latest ffmpeg...")
             FFMPEG_DIR.mkdir(exist_ok=True)
             tmp = FFMPEG_DIR / "ffmpeg_update.tar.xz"
-            req = urllib.request.Request(FFMPEG_URL, headers={"User-Agent": "EGM-Downloader"})
+            ffmpeg_url = _get_ffmpeg_url()
+            req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
             with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
                 shutil.copyfileobj(r, f)
             ok, msg = _verify_upstream_checksum(tmp,
                 "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256",
-                "ffmpeg-master-latest-linux64-gpl.tar.xz")
+                os.path.basename(ffmpeg_url))
             log(msg)
             if not ok:
                 tmp.unlink(missing_ok=True)
@@ -1114,11 +1234,13 @@ def check_updates():
     # to render the "—" badge instead of green/red, and prevents the slow
     # endpoint from clobbering the fast endpoint's correct version with
     # undefined → "checking…" placeholder.
+    ytdlp_ch  = _load_settings().get("yt_dlp_channel", "stable")
+    ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
     return jsonify({
-        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok},
+        "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf},
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
     })
 
@@ -1246,6 +1368,15 @@ def _run_deno_install():
                         log(f"  {mb:.0f} MB downloaded...")
                     next_report += 5 * 1024 * 1024
 
+        # Verify SHA-256 against Deno's published <asset>.sha256sum (parity w/ Windows).
+        ok, msg = _verify_upstream_checksum(tmp, url + ".sha256sum", "deno-x86_64-unknown-linux-gnu.zip")
+        log(msg)
+        if not ok:
+            tmp.unlink(missing_ok=True)
+            deno_install_status["error"] = "Checksum mismatch — install aborted"
+            deno_install_status["done"]  = True
+            return
+
         log("Extracting deno...")
         with zipfile.ZipFile(tmp, "r") as z:
             if "deno" not in z.namelist():
@@ -1314,17 +1445,6 @@ def settings_reset():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/ffmpeg/reinstall", methods=["POST"])
-def ffmpeg_reinstall():
-    """Delete ffmpeg binaries so they are re-downloaded on next launch."""
-    try:
-        for f in FFMPEG_DIR.glob("*"):
-            try: f.unlink()
-            except Exception: pass
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/api/deno/reinstall", methods=["POST"])
 def deno_reinstall():
     """Delete Deno binary so it is reinstalled on next launch."""
@@ -1345,6 +1465,10 @@ def whats_new():
                                      headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
+        # Verify signed manifest before trusting release-notes content (parity w/ Windows)
+        if not _verify_manifest(data):
+            _sec_event("whats-new: manifest signature INVALID or MISSING — notes suppressed")
+            return jsonify({"version": APP_VERSION, "notes_list": []})
         notes = data.get("_version_notes", [])
         if not isinstance(notes, list):
             notes = [str(notes)] if notes else []
@@ -1389,8 +1513,9 @@ def check_app_update():
 # ── History routes ────────────────────────────────────────────────────────────
 @app.route("/api/history")
 def get_history():
-    page     = int(request.args.get("page", 1))
-    per_page = int(request.args.get("per_page", 10))
+    # Robust parse — bad query params must not 500; clamp to sane bounds (parity w/ Windows)
+    page     = _clamp_int(request.args.get("page"), 1, 1, 10_000_000)
+    per_page = _clamp_int(request.args.get("per_page"), 10, 1, 500)
     with _history_lock:
         items = _load_history()
     total = len(items)
@@ -1454,7 +1579,7 @@ def import_history():
 def history_page(): return render_template("history.html", egm_token=_API_TOKEN)
 
 @app.route("/themes-page")
-def themes_page(): return render_template("themes.html")
+def themes_page(): return render_template("themes.html", egm_token=_API_TOKEN)
 
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
@@ -1483,8 +1608,17 @@ if __name__ == "__main__":
     except Exception:
         pass
 
-    ensure_ffmpeg()
-    port = int(_load_settings().get("flask_port", os.environ.get("PORT", 8899)))
+    threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
+    def _resolve_port():
+        for candidate in (os.environ.get("PORT"), _load_settings().get("flask_port")):
+            try:
+                p = int(candidate)
+            except (TypeError, ValueError):
+                continue
+            if 1024 <= p <= 65535:
+                return p
+        return 8899
+    port = _resolve_port()
     host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host, port=port, use_reloader=False),
                      daemon=True, name="flask").start()
