@@ -544,8 +544,12 @@ document.addEventListener('keydown', (e) => {
   const cards = [...document.querySelectorAll('.theme-card')];
   if (!cards.length) return;
 
-  // Calculate columns from grid layout
-  const cols = Math.max(1, Math.round(document.getElementById('grid').offsetWidth / cards[0].offsetWidth));
+  // Calculate columns from actual rendered positions
+  const firstTop = cards[0].offsetTop;
+  let cols = cards.length;
+  for (let i = 1; i < cards.length; i++) {
+    if (cards[i].offsetTop !== firstTop) { cols = i; break; }
+  }
 
   if (e.key === 'ArrowRight') {
     e.preventDefault();
