@@ -196,11 +196,13 @@ const SECTIONS = [
   { label: 'Culture',       cats: ['movies', 'consoles', 'characters', 'architecture', 'eras', 'mythology'] },
   { label: 'Puerto Rico 🇵🇷', cats: ['puerto_rico'] },
   { label: 'OS',            cats: ['os'] },
-  { label: 'Mythology',      cats: ['mythology'] },
   { label: 'Sports',         cats: ['sports'] },
   { label: 'Decades',        cats: ['decades'] },
   { label: 'Memes',           cats: ['memes'] },
   { label: 'Cities',          cats: ['cities'] },
+  { label: 'Futuristic',       cats: ['futuristic'] },
+  { label: 'Planets',          cats: ['planets'] },
+  { label: 'Brands',           cats: ['brands'] },
   { label: 'Other',         cats: ['retro', 'experimental', 'seasonal', 'custom'] },
 ];
 
@@ -218,7 +220,10 @@ const CAT_LABELS = {
   memes:'Memes',
   cities:'Cities',
   space:'Space', architecture:'Architecture',
-  eras:'Eras & Decades', mythology:'Mythology',
+  eras:'Eras & Decades',
+  futuristic:'Futuristic',
+  planets:'Planets',
+  brands:'Brands',
 };
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';
