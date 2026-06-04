@@ -121,6 +121,7 @@
       background:var(--surf);transition:border-color .15s,transform .1s;
     }
     .theme-card:hover { border-color:var(--border2);transform:translateY(-1px); }
+    .theme-card.focused { outline:2px solid var(--acc);outline-offset:1px; }
     .theme-card.active {
       border-color:var(--acc);border-width:2px;
       box-shadow:0 0 0 1px var(--acc);
@@ -494,9 +495,10 @@ function render() {
     </div>
   `).join('');
 
-  grid.querySelectorAll('.theme-card').forEach(card => {
+  grid.querySelectorAll('.theme-card').forEach((card, i) => {
     card.addEventListener('click', (e) => {
       if (e.target.closest('.fav-heart')) return;
+      focusedIdx = i;
       const theme = card.dataset.theme;
       currentTheme = theme;
       localStorage.setItem('egm-theme', theme);
@@ -522,6 +524,49 @@ function render() {
     });
   });
 }
+
+// ── Keyboard navigation ──────────────────────────────────────────────────────
+let focusedIdx = -1;
+
+function updateFocus(cards, idx) {
+  cards.forEach(c => c.classList.remove('focused'));
+  if (idx >= 0 && idx < cards.length) {
+    focusedIdx = idx;
+    cards[idx].classList.add('focused');
+    cards[idx].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+document.addEventListener('keydown', (e) => {
+  // Don't capture when search is focused
+  if (document.activeElement && document.activeElement.tagName === 'INPUT') return;
+
+  const cards = [...document.querySelectorAll('.theme-card')];
+  if (!cards.length) return;
+
+  // Calculate columns from grid layout
+  const cols = Math.max(1, Math.round(document.getElementById('grid').offsetWidth / cards[0].offsetWidth));
+
+  if (e.key === 'ArrowRight') {
+    e.preventDefault();
+    updateFocus(cards, Math.min(focusedIdx + 1, cards.length - 1));
+  } else if (e.key === 'ArrowLeft') {
+    e.preventDefault();
+    updateFocus(cards, Math.max(focusedIdx - 1, 0));
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    updateFocus(cards, Math.min(focusedIdx + cols, cards.length - 1));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    updateFocus(cards, Math.max(focusedIdx - cols, 0));
+  } else if (e.key === 'Enter' && focusedIdx >= 0) {
+    e.preventDefault();
+    cards[focusedIdx].click();
+  } else if ((e.key === 'f' || e.key === 'F') && focusedIdx >= 0) {
+    e.preventDefault();
+    toggleFavorite(cards[focusedIdx].dataset.theme);
+  }
+});
 
 loadFavorites().then(() => {
   buildSidebar();
