@@ -81,7 +81,6 @@ def _verify_manifest(data: dict) -> bool:
     Returns True if signature is present and valid, False otherwise."""
     try:
         from cryptography.hazmat.primitives.serialization import load_pem_public_key
-        from cryptography.exceptions import InvalidSignature
         import base64, json as _json
         sig_b64 = data.get('signature', '')
         if not sig_b64:
