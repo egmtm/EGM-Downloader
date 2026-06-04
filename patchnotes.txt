@@ -18,6 +18,12 @@ v1.0 - CORNERSTONE (in progress)
   • [ALL] Fix: save/rename modal no longer dismisses on overlay click — only Cancel, Save, or Escape close it
   • [ALL] Refactor: index.html split into index + index_scripts + index_styles — source maintainability, rendered output byte-identical
   • [ALL] Refactor: THEME_DATA unified into single shared partial (theme_data.html) — eliminates duplication between main window and themes window, one entry point for all theme changes
+  • [ALL] New: double-click theme card to favorite/unfavorite — complements heart icon click
+  • [ALL] New: arrow key navigation in themes window — left/right between cards, up/down between rows, Enter applies theme, F toggles favorite
+  • [ALL] Polish: Escape clears theme search — hands stay on keyboard
+  • [ALL] Polish: accent pulse feedback on theme apply via Enter key
+  • [ALL] Cleanup: removed unused InvalidSignature import from all app.py — dead code
+  • [ALL] Cleanup: removed unreferenced icon-1024.png (515KB saved)
   • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
   • [ALL] Polish: settings import notes thumbnails are not included after reinstall
   • [ALL] Polish: ffmpeg reinstall button removed — redundant with channel toggles
