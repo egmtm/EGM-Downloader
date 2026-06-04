@@ -281,9 +281,11 @@
 - 🧱 The foundation release — everything built since v0.93 comes together here
 - 🎨 400 themes — mythology, sports, decades, memes, cities, space, planets, Conejo Malo series, and more
 - ⭐ Theme Favorites + Random Launch — heart any theme, optionally start fresh every session
+- 🎮 Keyboard-first themes — arrow keys navigate cards, Enter applies, F favorites, Escape clears search
 - 🪟 Windows portable fully isolated — no settings leak between installed and portable versions
 - 🪟 Windows app identity — EGM Downloader shows correctly across all system views
 - 🔧 YouTube signature fix — yt-dlp remote components resolve playback issues
+- 🔧 Save/rename modal stays open on overlay click — Cancel, Save, or Escape only
 - ⚡ ffmpeg loads in background — app opens immediately, no frozen splash on slow connections
 - 🔄 yt-dlp and ffmpeg channel toggles (Stable / Nightly) in Advanced panel
 - 🔒 IPC hardening — sender validation, atomic writes, signed manifest verification, file import cap, zip-slip guard
