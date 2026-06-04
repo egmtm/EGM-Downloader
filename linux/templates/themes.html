@@ -122,6 +122,8 @@
     }
     .theme-card:hover { border-color:var(--border2);transform:translateY(-1px); }
     .theme-card.focused { outline:2px solid var(--acc);outline-offset:1px; }
+    .theme-card.applied { animation: card-pulse .3s ease; }
+    @keyframes card-pulse { 0%{box-shadow:0 0 0 0 var(--acc)} 50%{box-shadow:0 0 0 4px var(--acc)} 100%{box-shadow:0 0 0 0 var(--acc)} }
     .theme-card.active {
       border-color:var(--acc);border-width:2px;
       box-shadow:0 0 0 1px var(--acc);
@@ -566,9 +568,19 @@ document.addEventListener('keydown', (e) => {
   } else if (e.key === 'Enter' && focusedIdx >= 0) {
     e.preventDefault();
     cards[focusedIdx].click();
+    cards[focusedIdx].classList.add('applied');
+    setTimeout(() => cards[focusedIdx]?.classList.remove('applied'), 300);
   } else if ((e.key === 'f' || e.key === 'F') && focusedIdx >= 0) {
     e.preventDefault();
     toggleFavorite(cards[focusedIdx].dataset.theme);
+  } else if (e.key === 'Escape') {
+    const search = document.getElementById('search');
+    if (search.value) {
+      e.preventDefault();
+      search.value = '';
+      searchQ = '';
+      render();
+    }
   }
 });
 
