@@ -1,21 +1,45 @@
-// Preload: expose Electron APIs to the renderer (Flask page) safely
+// Preload: expose Electron APIs to the renderer (Flask page) safely.
+// Input is re-validated in main.js too — these checks are defense-in-depth that
+// reject obviously-bad values at the bridge before any IPC is sent.
 const { contextBridge, ipcRenderer } = require('electron');
+
+const isStr     = (v) => typeof v === 'string' && v.length > 0;
+const THEME_RE  = /^[a-z0-9-]+$/;
+const isHttpUrl = (v) => {
+  try { return ['http:', 'https:'].includes(new URL(v).protocol); }
+  catch { return false; }
+};
 
 contextBridge.exposeInMainWorld('electronAPI', {
   pickFolder:      (defaultPath)    => ipcRenderer.invoke('pick-folder', defaultPath),
-  openFolder:      (folderPath)     => ipcRenderer.invoke('open-folder', folderPath),
+  openFolder:      (folderPath)     => isStr(folderPath)
+                                         ? ipcRenderer.invoke('open-folder', folderPath)
+                                         : Promise.resolve({ error: 'Invalid path' }),
   createShortcut:  ()               => ipcRenderer.invoke('create-shortcut'),
   quit:            ()               => ipcRenderer.invoke('quit-app'),
-  launchInstaller: (installerPath)  => ipcRenderer.invoke('launch-installer', installerPath),
+  launchInstaller: (installerPath)  => isStr(installerPath)
+                                         ? ipcRenderer.invoke('launch-installer', installerPath)
+                                         : Promise.resolve({ error: 'Invalid installer path' }),
   saveFile:           (name, content)  => ipcRenderer.invoke('save-file', name, content),
   openFile:           (options)         => ipcRenderer.invoke('open-file', options),
   openCookiesFile:    ()               => ipcRenderer.invoke('open-cookies-file'),
   openHistoryWindow:  ()               => ipcRenderer.invoke('open-history-window'),
   openThemesWindow:   ()               => ipcRenderer.invoke('open-themes-window'),
-  setTheme:           (theme)          => ipcRenderer.send('set-theme', theme),
-  onThemeChanged:     (cb)             => ipcRenderer.on('theme-changed', (e, theme) => cb(theme)),
-  sendUrlToMain:      (url)            => ipcRenderer.send('send-url-to-main', url),
-  onReceiveUrl:       (cb)             => ipcRenderer.on('readd-url', (e, url) => cb(url)),
+  setTheme:           (theme)          => { if (isStr(theme) && THEME_RE.test(theme)) ipcRenderer.send('set-theme', theme); },
+  sendUrlToMain:      (url)            => { if (isHttpUrl(url)) ipcRenderer.send('send-url-to-main', url); },
+  // Listener registrars return an unsubscribe fn so callers can clean up and avoid
+  // stacking duplicate handlers across reloads/navigation. Existing callers that
+  // ignore the return value keep working unchanged.
+  onThemeChanged:     (cb)             => {
+    const handler = (e, theme) => cb(theme);
+    ipcRenderer.on('theme-changed', handler);
+    return () => ipcRenderer.removeListener('theme-changed', handler);
+  },
+  onReceiveUrl:       (cb)             => {
+    const handler = (e, url) => cb(url);
+    ipcRenderer.on('readd-url', handler);
+    return () => ipcRenderer.removeListener('readd-url', handler);
+  },
   isElectron: true,
   platform: 'win',
 });

@@ -1,3 +1,62 @@
+v1.0 - CORNERSTONE (in progress)
+-----------------------------------------
+  • [ALL] New: 100 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10 — Mercury, Venus, Jupiter, Uranus, Earth, Pluto, Titan, Dark Matter, Magnetar, Exoplanet) — total now 360 themes
+  • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import, server-side validation (XSS-safe, deduped, capped)
+  • [ALL] New: Random theme on launch — optional toggle with Favorites only or All themes scope
+  • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
+  • [ALL] New: ffmpeg update channel toggle (Stable / Nightly) in Advanced panel — Mac uses martin-riedl.de snapshot/release, Linux uses BtbN master/n8.1, Windows uses BtbN master/n8.1
+  • [ALL] Fix: YouTube signature solving — adds --remote-components ejs:github to all yt-dlp commands
+  • [ALL] Fix: ffmpeg downloads in background — app loads immediately even on slow connections, no frozen splash
+  • [ALL] Fix: ffmpeg readiness gate — downloads return clear message while ffmpeg is still downloading instead of failing silently
+  • [ALL] Fix: atomic file writes now use fsync — prevents empty files on power loss
+  • [ALL] Fix: thumbnail download hardened — SSRF guard blocks internal hosts, Content-Length pre-check rejects oversized images, redirect re-check
+  • [ALL] Fix: whats-new feed now verified against signed manifest before displaying
+  • [ALL] Fix: history API validates pagination params — prevents 500 errors on bad input, caps per_page at 500
+  • [ALL] Fix: flask_port precedence — Electron's PORT env always wins over stale settings, prevents stuck-on-loading
+  • [ALL] Fix: DST-aware timestamps in update feeds — no longer hardcodes -05:00
+  • [ALL] Fix: yt-dlp nightly install uses download-first approach — bundled pip can't handle GitHub URLs directly
+  • [ALL] Fix: save/rename modal no longer dismisses on overlay click — only Cancel, Save, or Escape close it
+  • [ALL] Refactor: index.html split into index + index_scripts + index_styles — source maintainability, rendered output byte-identical
+  • [ALL] Refactor: THEME_DATA unified into single shared partial (theme_data.html) — eliminates duplication between main window and themes window, one entry point for all theme changes
+  • [ALL] New: double-click theme card to favorite/unfavorite — complements heart icon click
+  • [ALL] New: arrow key navigation in themes window — left/right between cards, up/down between rows, Enter applies theme, F toggles favorite
+  • [ALL] Polish: Escape clears theme search — hands stay on keyboard
+  • [ALL] Polish: accent pulse feedback on theme apply via Enter key
+  • [ALL] Cleanup: removed unused InvalidSignature import from all app.py — dead code
+  • [ALL] Cleanup: removed unreferenced icon-1024.png (515KB saved)
+  • [ALL] Polish: consolidated Eras & Decades into single sidebar section — removes duplication from Culture category
+  • [ALL] Polish: sidebar section headers and theme counts improved readability across all themes
+  • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
+  • [ALL] Polish: settings import notes thumbnails are not included after reinstall
+  • [ALL] Polish: ffmpeg reinstall button removed — redundant with channel toggles
+  • [ALL] Polish: Flask port setting removed from Advanced panel — port is hardcoded in Electron, setting could never take effect
+  • [ALL] Security: IPC sender validation (isTrustedSender) on all Electron handlers — all platforms
+  • [ALL] Security: Electron settings writes now atomic (atomicWriteJson) — all platforms
+  • [ALL] Security: file imports capped at 2MB (readFileCapped) — all platforms
+  • [ALL] Security: integer input validation (_clamp_int) — prevents 500 on malformed params
+  • [ALL] Security: preload bridge validates inputs before sending IPC (isStr, THEME_RE, isHttpUrl) — all platforms
+  • [ALL] Security: external links restricted to HTTPS only, navigation pinned to Flask origin — all platforms
+  • [ALL] Security: Deno download verified against published SHA-256 checksum — all platforms
+  • [ALL] Test: 32 automated tests — security parity (app.py + main.js + preload.js × 3 platforms), theme count consistency, HTML div balance, linux template parity, ejs download path, favorites sanitization, port resolution, channel URL validation, template Jinja render integrity
+  • [ALL] Fix: 13 theme similarity fixes — accent color adjustments to differentiate visually similar themes across categories
+  • [ALL] Fix: 5 existing space themes migrated to new Planets category — cleaner taxonomy
+  • [ALL] Fix: Advanced panel layout — removed CSS transform that triggered Chromium compositor paint bug on Mac/Linux
+  • [ALL] Chore: Electron 42.2.0 → 42.3.2 (Chromium 148, security patches, faster launch)
+  • [WINDOWS] Polish: download count badge removed from hamburger button — redundant with history
+  • [WINDOWS] Fix: portable mode isolates Electron data — no settings leak between installed and portable versions
+  • [WINDOWS] Fix: first-run installs cryptography + mutagen dependencies — prevents update check 502 on fresh installs
+  • [WINDOWS] Polish: portable internal files hidden in Explorer — only launcher, instructions, and patchnotes visible
+  • [WINDOWS] Fix: uninstaller restructured — separate dialogs for runtime components vs user data, closes app before uninstall, cleans desktop shortcut
+  • [WINDOWS] Polish: deterministic Electron install via bundled package-lock.json, prefers npm ci
+  • [WINDOWS] Security: Node.js download verified against official SHASUMS256.txt before extraction
+  • [WINDOWS] Security: zip-slip guard on Node.js extraction — rejects path traversal
+  • [WINDOWS] Fix: window state files (history/themes bounds) moved to userData — survives Electron reinstall
+  • [WINDOWS] Fix: update installer download uses correct timeout for large files
+  • [WINDOWS] Fix: Aurora/Aurora Deep theme picker HTML structure corrected
+  • [WINDOWS] Polish: gen-update-json validates checksum format, documents signing workflow
+  • [WINDOWS] New: Electron reinstall button in Advanced panel — creates marker, reinstalls on next restart without full app reinstall
+  • [WINDOWS] Polish: Task Manager shows "EGM Downloader" on all processes — rcedit stamps Electron binary's PE version resource (SHA-256 verified)
+
 v0.99.13 - Build 121 (5/26/2026 11:06 AM EST) — SOLID
 -----------------------------------------
   • [ALL] New: 22 Operating System themes — Windows (95, 98, XP, Vista, 7, 11), macOS (9, X Aqua, Big Sur, Sequoia), Linux (Ubuntu, Arch, Kali, Fedora), and retro OS (BeOS, Amiga, DOS, NeXTSTEP, OS/2 Warp, Solaris, Unix, BSD) — total now 260 themes

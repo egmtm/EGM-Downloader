@@ -213,9 +213,12 @@ cp "$REPO_ROOT/patchnotes.txt"                "$PORTABLE_STAGE/"
 
 # Templates
 cp "$REPO_ROOT/templates/index.html"          "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/index_styles.html"   "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/index_scripts.html"  "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/history.html"        "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/themes.html"         "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/theme_styles.html"   "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/theme_data.html"      "$PORTABLE_STAGE/templates/"
 
 # Static
 cp "$REPO_ROOT/static/icon.ico"               "$PORTABLE_STAGE/static/"
@@ -231,11 +234,9 @@ cp "$REPO_ROOT/windows/electron/main.js"      "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/preload.js"   "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/splash.html"  "$PORTABLE_STAGE/electron/"
 cp "$REPO_ROOT/windows/electron/package.json" "$PORTABLE_STAGE/electron/"
+cp "$REPO_ROOT/windows/electron/package-lock.json" "$PORTABLE_STAGE/electron/"
 
-# Languages (i18n — future picker)
-if [ -d "$REPO_ROOT/languages" ]; then
-    cp -r "$REPO_ROOT/languages" "$PORTABLE_STAGE/"
-fi
+# Languages folder intentionally excluded until POLYGLOT (v1.3) lands
 
 # Portable marker — is_portable() in app.py detects this file
 echo "$VERSION-portable-build-$BUILD_NUM" > "$PORTABLE_STAGE/.portable"

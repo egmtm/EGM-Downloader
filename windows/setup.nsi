@@ -144,9 +144,12 @@ Section "Install"
   ; ── templates\ ──
   SetOutPath "$INSTDIR\templates"
   File "${REPO_ROOT}/templates/index.html"
+  File "${REPO_ROOT}/templates/index_styles.html"
+  File "${REPO_ROOT}/templates/index_scripts.html"
   File "${REPO_ROOT}/templates/history.html"
   File "${REPO_ROOT}/templates/themes.html"
   File "${REPO_ROOT}/templates/theme_styles.html"
+  File "${REPO_ROOT}/templates/theme_data.html"
 
   ; ── static\ ──
   SetOutPath "$INSTDIR\static"
@@ -164,6 +167,7 @@ Section "Install"
   File "${REPO_ROOT}/windows/electron/preload.js"
   File "${REPO_ROOT}/windows/electron/splash.html"
   File "${REPO_ROOT}/windows/electron/package.json"
+  File "${REPO_ROOT}/windows/electron/package-lock.json"
 
   ; Reset path back to install dir for the rest
   SetOutPath "$INSTDIR"
@@ -197,12 +201,18 @@ SectionEnd
 
 ; ── Uninstall Section ────────────────────────────────────────
 Section "Uninstall"
+  ; ── Close the app if it's still running, so files aren't locked ──
+  ; Both the launcher and the renamed Electron runtime use this image name.
+  nsExec::Exec 'taskkill /F /T /IM "EGM Downloader.exe"'
+  Sleep 500
+
   ; ── Remove app files ──
   Delete "$INSTDIR\EGM Downloader.exe"
   Delete "$INSTDIR\launch.bat"
   Delete "$INSTDIR\launch.py"
   Delete "$INSTDIR\instructions.txt"
   Delete "$INSTDIR\app.py"
+  Delete "$INSTDIR\rcedit-x64.exe"
   Delete "$INSTDIR\patchnotes.txt"
 
   RMDir /r "$INSTDIR\templates"
@@ -213,34 +223,54 @@ Section "Uninstall"
   Delete "$INSTDIR\electron\preload.js"
   Delete "$INSTDIR\electron\splash.html"
   Delete "$INSTDIR\electron\package.json"
+  Delete "$INSTDIR\electron\package-lock.json"
 
   ; Python __pycache__ (created at runtime)
   RMDir /r "$INSTDIR\__pycache__"
-  RMDir /r "$INSTDIR\ffmpeg_bin"
 
   Delete "$INSTDIR\uninstall.exe"
 
-  ; ── Optional: ask about downloaded components ──
+  ; ── Prompt 1: downloaded RUNTIME COMPONENTS only (no user data here) ──
   MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Also remove downloaded components (Node.js, Electron, Deno)?$\r$\n$\r$\n\
+    "Also remove downloaded components (Node.js, Electron, ffmpeg, Deno)?$\r$\n$\r$\n\
 This will free ~350 MB but means re-downloading on next install.$\r$\n\
 Choose No to keep them for faster reinstall." \
     /SD IDNO IDNO skip_components
 
   RMDir /r "$INSTDIR\node_bin"
   RMDir /r "$INSTDIR\runtime"
+  RMDir /r "$INSTDIR\ffmpeg_bin"
   RMDir /r "$INSTDIR\electron\node_modules"
-  Delete "$INSTDIR\egm_settings.json"
-  Delete "$INSTDIR\cookies.txt"
 
   skip_components:
+
+  ; ── Prompt 2: USER DATA (settings, history, cookies, thumbnails, logs) ──
+  MessageBox MB_YESNO|MB_ICONQUESTION \
+    "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\n\
+Choose No to keep them for a faster setup on next install." \
+    /SD IDNO IDNO skip_userdata
+
+  Delete "$INSTDIR\egm_settings.json"
+  Delete "$INSTDIR\egm_history.json"
+  Delete "$INSTDIR\cookies.txt"
+  RMDir /r "$INSTDIR\thumbnails"
+  RMDir /r "$INSTDIR\data"
+  RMDir /r "$INSTDIR\logs"
+  RMDir /r "$INSTDIR\electron-data"
+  ; Installed-build Electron userData (package.json "name" = egm-downloader)
+  RMDir /r "$APPDATA\egm-downloader"
+
+  skip_userdata:
+
+  ; ── Remove now-empty install dirs (no-op if components/data were kept) ──
   RMDir "$INSTDIR\electron"
   RMDir "$INSTDIR"
 
-  ; ── Start Menu ──
+  ; ── Start Menu + Desktop shortcuts ──
   Delete "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk"
   Delete "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk"
   RMDir  "$SMPROGRAMS\${APPNAME}"
+  Delete "$DESKTOP\EGM Downloader.lnk"
 
   ; ── Registry ──
   DeleteRegKey HKCU "${REGKEY}"
