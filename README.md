@@ -279,16 +279,17 @@
 
 **v1.0 — CORNERSTONE:** 🔨 In progress
 - 🧱 The foundation release — everything built since v0.93 comes together here
-- 🎨 360 themes milestone — mythology, sports, decades, memes, cities, space, and more
+- 🎨 400 themes — mythology, sports, decades, memes, cities, space, planets, Conejo Malo series, and more
 - ⭐ Theme Favorites + Random Launch — heart any theme, optionally start fresh every session
 - 🪟 Windows portable fully isolated — no settings leak between installed and portable versions
 - 🪟 Windows app identity — EGM Downloader shows correctly across all system views
 - 🔧 YouTube signature fix — yt-dlp remote components resolve playback issues
 - ⚡ ffmpeg loads in background — app opens immediately, no frozen splash on slow connections
 - 🔄 yt-dlp and ffmpeg channel toggles (Stable / Nightly) in Advanced panel
-- 🔒 IPC sender validation, atomic writes, signed manifest verification, file import cap
-- 🧪 Security parity test — asserts hardening markers exist on all 3 platforms
-- ✨ index.html split — cleaner source, byte-identical output
+- 🔒 IPC hardening — sender validation, atomic writes, signed manifest verification, file import cap, zip-slip guard
+- 🧪 32 automated tests — security parity across all 3 platforms, theme consistency, template integrity
+- ✨ Source split — index, scripts, styles, and theme data in dedicated files; rendered output identical
+- ⚡ Electron 42.3.2 — latest stable runtime
 - *More items TBD*
 
 **v1.1 — IGNITION:**
