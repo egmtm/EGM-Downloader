@@ -514,6 +514,13 @@ function render() {
       toggleFavorite(heart.dataset.fav);
     });
   });
+
+  grid.querySelectorAll('.theme-card').forEach(card => {
+    card.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.fav-heart')) return;
+      toggleFavorite(card.dataset.theme);
+    });
+  });
 }
 
 loadFavorites().then(() => {
