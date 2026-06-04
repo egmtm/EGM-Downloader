@@ -1,5 +1,5 @@
 const { app, BrowserWindow, ipcMain, dialog, shell, screen, session } = require('electron');
-const { spawn, execSync } = require('child_process');
+const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
 const http = require('http');
@@ -21,16 +21,19 @@ const SETTINGS_FILE = path.join(
 function hardenWindow(win) {
   // External links → user's default browser (http/https only, never in-app)
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('http://') || url.startsWith('https://')) {
-      shell.openExternal(url);
-    }
+    try {
+      const u = new URL(url);
+      if (u.protocol === 'https:') {
+        shell.openExternal(u.toString());
+      }
+    } catch {}
     return { action: 'deny' };
   });
-  // Block in-window navigation away from Flask origin (127.0.0.1 / localhost only)
+  // Block in-window navigation away from the exact Flask origin (scheme+host+port).
   win.webContents.on('will-navigate', (event, url) => {
     try {
       const u = new URL(url);
-      if (u.hostname !== '127.0.0.1' && u.hostname !== 'localhost') {
+      if (u.origin !== APP_URL) {
         event.preventDefault();
       }
     } catch {
@@ -48,13 +51,39 @@ function loadSettings() {
   catch { return {}; }
 }
 
+function atomicWriteJson(file, data) {
+  const tmp = `${file}.tmp`;
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
+  fs.renameSync(tmp, file);
+}
+
 function saveSettings(patch) {
   try {
     const s = loadSettings();
     Object.assign(s, patch);
-    fs.mkdirSync(path.dirname(SETTINGS_FILE), { recursive: true });
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(s, null, 2), 'utf8');
+    atomicWriteJson(SETTINGS_FILE, s);
   } catch {}
+}
+
+// Validate that an IPC message originated from our own Flask-origin pages.
+// Every window shares one preload, so without this any renderer content could
+// invoke sensitive IPC. Fail-closed on any error.
+function isTrustedSender(event) {
+  try {
+    const url = (event.senderFrame && event.senderFrame.url) || event.sender.getURL();
+    return new URL(url).origin === APP_URL;
+  } catch {
+    return false;
+  }
+}
+
+// Cap user-picked text files so we never read a huge file into memory.
+const MAX_IMPORT_BYTES = 2 * 1024 * 1024; // 2 MB
+function readFileCapped(filePath) {
+  const { size } = fs.statSync(filePath);
+  if (size > MAX_IMPORT_BYTES) return { error: 'File too large (max 2 MB)' };
+  return { ok: true, content: fs.readFileSync(filePath, 'utf8') };
 }
 
 // ── Window state helpers ──────────────────────────────────────────────────────
@@ -125,7 +154,7 @@ function findPython() {
   ];
   for (const c of candidates) {
     try {
-      execSync(`"${c}" --version`, { stdio: 'ignore' });
+      execFileSync(c, ['--version'], { stdio: 'ignore' });
       console.log(`[EGM] Using Python: ${c}`);
       return c;
     } catch {}
@@ -152,8 +181,8 @@ async function startFlask() {
   });
 
   flaskProc.on('exit', (code) => {
-    if (code !== 0 && code !== null && !app.isQuiting) {
-      app.isQuiting = true;
+    if (code !== 0 && code !== null && !app.isQuitting) {
+      app.isQuitting = true;
       dialog.showErrorBox('EGM Downloader — Backend crashed',
         `The backend stopped unexpectedly (code ${code}).\n\nPlease restart the app.`);
       app.quit();
@@ -161,8 +190,8 @@ async function startFlask() {
   });
 
   flaskProc.on('error', (err) => {
-    if (!app.isQuiting) {
-      app.isQuiting = true;
+    if (!app.isQuitting) {
+      app.isQuitting = true;
       dialog.showErrorBox('EGM Downloader — Startup error',
         `Failed to start backend:\n${err.message}`);
       app.quit();
@@ -177,7 +206,6 @@ function waitForFlask(retries = 180, delay = 1000) {
     const try_ = (n) => {
       attemptCount++;
       // Exponential curve: visible movement early, slows as it approaches 90%
-      const progress = 30 + 60 * (1 - Math.exp(-attemptCount / 30));
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
         if (n <= 0) {
@@ -275,7 +303,7 @@ async function createWindow() {
   // Save state on close
   mainWindow.on('close', () => {
     saveWindowState();
-    app.isQuiting = true;
+    app.isQuitting = true;
   });
 
   // Fix 4: single waitForFlask, single error path
@@ -292,13 +320,16 @@ async function createWindow() {
 }
 
 // ── IPC: quit app ─────────────────────────────────────────────────────────────
-ipcMain.handle('quit-app', () => {
-  app.isQuiting = true;
+ipcMain.handle('quit-app', (event) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
+  app.isQuitting = true;
   app.quit();
+  return { success: true };
 });
 
 // ── IPC: folder picker ────────────────────────────────────────────────────────
 ipcMain.handle('pick-folder', async (event, defaultPath) => {
+  if (!isTrustedSender(event)) return null;
   const result = await dialog.showOpenDialog(mainWindow, {
     title:       'Select download folder',
     defaultPath: defaultPath,
@@ -311,6 +342,7 @@ ipcMain.handle('pick-folder', async (event, defaultPath) => {
 // ── IPC: open folder in Finder ────────────────────────────────────────────────
 ipcMain.handle('open-folder', async (event, folderPath) => {
   try {
+    if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
     if (!folderPath || typeof folderPath !== 'string') return { error: 'Invalid path' };
     if (folderPath.startsWith('http') || folderPath.startsWith('javascript')) return { error: 'Invalid path' };
     // Must be an existing directory — prevents shell.openPath from launching arbitrary files
@@ -327,6 +359,7 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 
 // ── IPC: save file dialog (settings export) ───────────────────────────────────
 ipcMain.handle('save-file', async (event, defaultName, content) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
   const result = await dialog.showSaveDialog(mainWindow, {
     title:       'Export Settings',
     defaultPath: defaultName || 'egm-settings.json',
@@ -343,6 +376,7 @@ ipcMain.handle('save-file', async (event, defaultName, content) => {
 
 // ── IPC: open file dialog (settings import) ───────────────────────────────────
 ipcMain.handle('open-file', async (event, options) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
   const isCookies = options && options.type === 'cookies';
   const dialogOpts = {
     title:      isCookies ? 'Select cookies.txt' : 'Import Settings',
@@ -353,15 +387,15 @@ ipcMain.handle('open-file', async (event, options) => {
   const result = await dialog.showOpenDialog(mainWindow, dialogOpts);
   if (result.canceled || !result.filePaths.length) return { canceled: true };
   try {
-    const content = require('fs').readFileSync(result.filePaths[0], 'utf8');
-    return { ok: true, content };
+    return readFileCapped(result.filePaths[0]);
   } catch (e) {
     return { error: e.message };
   }
 });
 
 // ── IPC: open cookies file dialog ────────────────────────────────────────────
-ipcMain.handle('open-cookies-file', async () => {
+ipcMain.handle('open-cookies-file', async (event) => {
+  if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
   const result = await dialog.showOpenDialog(mainWindow, {
     title:      'Select cookies.txt',
     filters:    [{ name: 'Text files', extensions: ['txt'] }, { name: 'All files', extensions: ['*'] }],
@@ -369,8 +403,7 @@ ipcMain.handle('open-cookies-file', async () => {
   });
   if (result.canceled || !result.filePaths.length) return { canceled: true };
   try {
-    const content = require('fs').readFileSync(result.filePaths[0], 'utf8');
-    return { ok: true, content };
+    return readFileCapped(result.filePaths[0]);
   } catch (e) {
     return { error: e.message };
   }
@@ -397,7 +430,8 @@ function saveHistoryBounds(win) {
   try { fs.writeFileSync(HISTORY_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
 }
 
-ipcMain.handle('open-history-window', async () => {
+ipcMain.handle('open-history-window', async (event) => {
+  if (!isTrustedSender(event)) return;
   if (historyWindow && !historyWindow.isDestroyed()) { historyWindow.focus(); return; }
   const bounds = loadHistoryBounds();
   historyWindow = new BrowserWindow({
@@ -435,7 +469,8 @@ function loadThemesBounds() {
 function saveThemesBounds(win) {
   try { fs.writeFileSync(THEMES_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
 }
-ipcMain.handle('open-themes-window', async () => {
+ipcMain.handle('open-themes-window', async (event) => {
+  if (!isTrustedSender(event)) return;
   if (themesWindow && !themesWindow.isDestroyed()) { themesWindow.focus(); return; }
   const bounds = loadThemesBounds();
   themesWindow = new BrowserWindow({
@@ -458,6 +493,7 @@ ipcMain.handle('open-themes-window', async () => {
 // supporting any future theme without allowlist maintenance
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
 ipcMain.on('set-theme', (event, theme) => {
+  if (!isTrustedSender(event)) return;
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return;
   if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('theme-changed', theme);
 });
@@ -466,7 +502,9 @@ ipcMain.on('set-theme', (event, theme) => {
 // History window is a separate BrowserWindow with no opener relationship,
 // so cross-window readd uses this IPC bridge.
 ipcMain.on('send-url-to-main', (event, url) => {
+  if (!isTrustedSender(event)) return;
   if (typeof url !== 'string' || !url.trim()) return;
+  try { if (!['http:', 'https:'].includes(new URL(url).protocol)) return; } catch { return; }
   if (mainWindow && !mainWindow.isDestroyed()) {
     mainWindow.webContents.send('readd-url', url);
     mainWindow.focus();
@@ -511,7 +549,7 @@ app.on('window-all-closed', () => {
 
 // Fix 3: single cleanup point for every quit path (X, crash)
 app.on('before-quit', () => {
-  app.isQuiting = true;
+  app.isQuitting = true;
   if (!flaskProc) return;
 
   const pid = flaskProc.pid;

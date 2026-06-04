@@ -34,6 +34,7 @@ WIN_ONLY_ROUTES = {
     "/api/portable-status",   # portable mode detection — Windows install only
     "/api/show-window",       # second-instance signal — Windows launch.py only
     "/api/show-window-check", # second-instance poll   — Windows launch.py only
+    "/api/electron/reinstall", # Electron reinstall marker — Windows only (Mac/Linux bundle)
 }
 # Auto-update: Windows + Mac have it; Linux does not (AppImage = manual update)
 NO_LINUX_ROUTES = WIN_ONLY_ROUTES | {"/api/download-update"}
@@ -90,7 +91,7 @@ def test_frontend_settings_keys_accepted_by_backend():
     Every settings key the frontend sends via /api/settings/save must be in
     the backend ALLOWED set, or it will be silently dropped.
     """
-    index_src  = read_source("templates/index.html")
+    index_src  = read_source("templates/index_scripts.html")  # JS extracted from index.html
     backend_src = read_source("app.py")
 
     # Extract keys from JS save calls: post('/api/settings/save', { key: value })
@@ -120,15 +121,15 @@ def test_theme_data_matches_themes_array():
     (excluding 'custom' which is handled specially).
     Regression: new theme batches added to one structure but not the other.
     """
-    source = read_source("templates/index.html")
+    source = read_source("templates/index_scripts.html")  # JS extracted from index.html
 
     # Extract THEMES array
     m = re.search(r"const THEMES\s*=\s*\[([^\]]+)\]", source)
     assert m, "THEMES array not found"
     themes_arr = {t.strip().strip("'\"") for t in m.group(1).split(",") if t.strip().strip("'\"")} - {"custom"}
 
-    # Extract THEME_DATA keys
-    m2 = re.search(r"const THEME_DATA\s*=\s*\{(.*?)\n\s*\};", source, re.DOTALL)
+    # Extract THEME_DATA keys (now in shared partial theme_data.html)
+    m2 = re.search(r"const THEME_DATA\s*=\s*\{(.*?)\n\s*\};", read_source("templates/theme_data.html"), re.DOTALL)
     assert m2, "THEME_DATA block not found"
     theme_data_keys = set(re.findall(r"""^\s*'?([\w-]+)'?\s*:\s*\{label:""", m2.group(1), re.MULTILINE))
 
@@ -154,7 +155,7 @@ def test_no_duplicate_theme_labels():
     No two themes may share the same display label.
     Regression: 'Aurora' label collision between aurora and aurora-deep.
     """
-    source = read_source("templates/index.html")
+    source = read_source("templates/theme_data.html")  # shared THEME_DATA partial
     m = re.search(r"const THEME_DATA\s*=\s*\{(.*?)\n\s*\};", source, re.DOTALL)
     assert m, "THEME_DATA block not found"
 
@@ -193,5 +194,182 @@ def test_all_theme_css_blocks_have_required_vars():
 
     assert not incomplete, (
         f"{len(incomplete)} theme(s) missing required CSS vars:\n" +
-        "\n".join(f"  {name}: missing {vars_}" for name, vars_ in list(incomplete.items())[:10])
+        "\n".join(f"  {name}: missing {vars_}" for name, vars_ in list(incomplete.items())[:10]))
+
+
+# ── Security parity — required markers on every platform ──────────────────────
+# Prevents security fixes from silently landing Windows-only. If a marker is
+# missing on any platform, it means a hardening patch wasn't ported.
+
+def test_security_markers_in_all_app_py():
+    """Every platform app.py must contain the same security patterns."""
+    REQUIRED = [
+        "_is_internal_host",         # SSRF guard on thumbnail downloads
+        "Content-Length",            # pre-check rejects oversized images
+        "_clamp_int",               # safe int parsing (prevents 500 on bad input)
+        "_TOKEN_EXEMPT_PREFIX",     # consolidated token exemption
+        "_safe_urlopen",            # timeout-enforced HTTP opens
+        "_atomic_write_text",       # crash-safe file writes
+    ]
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        missing = [m for m in REQUIRED if m not in source]
+        assert not missing, f"{name}/app.py missing security markers: {missing}"
+
+
+def test_security_markers_in_all_main_js():
+    """Every platform main.js must contain the same Electron hardening."""
+    REQUIRED = [
+        "isTrustedSender",          # IPC sender validation
+        "atomicWriteJson",          # crash-safe settings write
+        "readFileCapped",           # import size cap (2MB)
+    ]
+    main_files = [
+        ("windows", "windows/electron/main.js"),
+        ("linux",   "linux/electron/main.js"),
+        ("mac",     "mac/electron/main.js"),
+    ]
+    for name, path in main_files:
+        source = read_source(path)
+        missing = [m for m in REQUIRED if m not in source]
+        assert not missing, f"{name}/main.js missing security markers: {missing}"
+
+
+def test_security_markers_in_all_preload_js():
+    """Every platform preload.js must contain the same bridge-layer validation."""
+    REQUIRED = [
+        "isStr",                    # string type validator
+        "THEME_RE",                 # theme key regex validation
+        "isHttpUrl",                # URL protocol validator
+    ]
+    preload_files = [
+        ("windows", "windows/electron/preload.js"),
+        ("linux",   "linux/electron/preload.js"),
+        ("mac",     "mac/electron/preload.js"),
+    ]
+    for name, path in preload_files:
+        source = read_source(path)
+        missing = [m for m in REQUIRED if m not in source]
+        assert not missing, f"{name}/preload.js missing security markers: {missing}"
+
+
+def test_ejs_remote_components_in_download_path():
+    """run_download() must invoke yt-dlp with --remote-components ejs:github on
+    EVERY platform (YouTube signature solving). Regression: in RC4 this was applied
+    to the info path on all 3 but to the download path on Windows only."""
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        m = re.search(r'cmd = \[sys\.executable, "-m", "yt_dlp".*?\] \+ ', source)
+        assert m, f"{name}/app.py: run_download cmd line not found"
+        assert "ejs:github" in m.group(0), (
+            f"{name}/app.py: run_download missing --remote-components ejs:github "
+            f"(signature solving would fail on this platform)"
+        )
+
+
+# ── Theme count consistency — prevents corruption and sync drift ──────────────
+
+def test_theme_counts_consistent():
+    """THEME_DATA in index_scripts, themes.html, HTML rows, and THEMES array
+    must all agree on the total count. Catches corruption from bad insertions,
+    merge drift, and partial integrations."""
+    theme_data = read_source("templates/theme_data.html")  # single shared source now
+    scripts = read_source("templates/index_scripts.html")
+    index_html = read_source("templates/index.html")
+
+    data_count = len(re.findall(r"cat:'", theme_data))
+    html_rows  = len(re.findall(r'data-theme=', index_html))
+
+    # THEMES array — count quoted entries
+    arr_match = re.search(r'const THEMES = \[(.*?)\]', scripts, re.DOTALL)
+    assert arr_match, "THEMES array not found in index_scripts.html"
+    arr_count = len(re.findall(r"'[a-z0-9-]+'", arr_match.group(1)))
+
+    assert data_count == html_rows, (
+        f"THEME_DATA ({data_count}) != HTML rows ({html_rows}) in index.html")
+    assert data_count == arr_count, (
+        f"THEME_DATA ({data_count}) != THEMES array ({arr_count})")
+
+
+def test_theme_counts_linux_parity():
+    """Linux templates must have identical theme counts to root templates."""
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html"]:
+        root = read_source(f"templates/{fname}")
+        linux = read_source(f"linux/templates/{fname}")
+        assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
+
+
+# ── HTML div balance — prevents DOM corruption cascading to layout ────────────
+
+def test_index_html_div_balance():
+    """The header section of index.html must have balanced <div>...</div> tags.
+    Unbalanced divs cause the browser to auto-close at wrong points, breaking
+    panel layout — this exact bug caused the Advanced panel to render empty on
+    Mac/Linux in RC5."""
+    html = read_source("templates/index.html")
+    header_start = html.find("<header>")
+    header_end = html.find("</header>") + len("</header>")
+    assert header_start > 0 and header_end > header_start, "Could not find <header>...</header>"
+
+    header = html[header_start:header_end]
+    opens = len(re.findall(r'<div[\s>]', header))
+    closes = header.count('</div>')
+    assert opens == closes, (
+        f"Header div imbalance: {opens} opens vs {closes} closes "
+        f"(diff: {opens - closes})"
     )
+
+
+# ── Channel URL resolution — correct URL per channel setting ──────────────────
+
+def test_ffmpeg_channel_urls_correct():
+    """Each platform must have both stable and nightly ffmpeg URL constants,
+    and they must point to the correct sources per platform."""
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        if name == "mac":
+            # Mac uses martin-riedl.de with snapshot/release
+            assert "martin-riedl.de" in source, f"{name} must use martin-riedl.de for ffmpeg"
+            assert "snapshot" in source, f"{name} must have snapshot (nightly) path"
+            assert "release" in source, f"{name} must have release (stable) path"
+        else:
+            # Windows/Linux use BtbN
+            assert "FFMPEG_URL_STABLE" in source, f"{name} missing FFMPEG_URL_STABLE"
+            assert "FFMPEG_URL_NIGHTLY" in source, f"{name} missing FFMPEG_URL_NIGHTLY"
+            assert "ffmpeg-master" in source, f"{name} nightly URL must reference master"
+            assert "ffmpeg-n8.1" in source, f"{name} stable URL must reference n8.1"
+
+
+def test_ytdlp_channel_repos_correct():
+    """_get_latest_ytdlp_version must query the correct repo per channel."""
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        assert "yt-dlp/yt-dlp-nightly-builds" in source, (
+            f"{name} missing nightly repo reference")
+        assert 'yt-dlp/yt-dlp"' in source or "yt-dlp/yt-dlp'" in source, (
+            f"{name} missing stable repo reference")
+
+
+# ── Template render — Jinja include integrity ─────────────────────────────────
+
+def test_templates_render_without_jinja_errors():
+    """index.html must render through Jinja without errors, with all includes
+    resolved and THEME_DATA present in the output."""
+    from flask import Flask
+    import os
+    root = os.path.dirname(os.path.dirname(__file__))
+    app = Flask(__name__, template_folder=os.path.join(root, "templates"))
+    with app.app_context():
+        from flask import render_template
+        html = render_template("index.html", egm_token="test-token", platform_url="test")
+
+    # Verify no unrendered Jinja
+    assert "{%" not in html, "Unrendered Jinja block tag found in output"
+    assert "{{" not in html or "egm_token" not in html, "Unrendered Jinja variable found"
+
+    # Verify theme_data.html was included (THEME_DATA should be in output)
+    assert "const THEME_DATA" in html, "THEME_DATA not found — theme_data.html include failed"
+    assert "body.bologna" in html, "Theme CSS not found — theme_styles.html include failed"
+
+    # Verify the split files were included
+    assert "function applyTheme" in html, "index_scripts.html include failed"
