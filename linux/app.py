@@ -236,6 +236,7 @@ APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 # Settings and cookies: writable user data under DATA_DIR
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
 HISTORY_FILE  = DATA_DIR / "egm_history.json"
+SUBS_FILE     = DATA_DIR / "egm_subscriptions.json"
 COOKIES_FILE  = DATA_DIR / "cookies.txt"
 
 _settings_cache: dict = {}

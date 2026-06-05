@@ -253,6 +253,7 @@ UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "
 # survives app updates (DATA_DIR is never touched when dragging a new .app).
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
 HISTORY_FILE  = DATA_DIR / "egm_history.json"
+SUBS_FILE     = DATA_DIR / "egm_subscriptions.json"
 
 # ── Cookies: path to cookies.txt — managed via Settings UI ───────────────────
 COOKIES_FILE = DATA_DIR / "cookies.txt"
