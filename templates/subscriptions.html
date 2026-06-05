@@ -113,7 +113,11 @@
     </div>
 
     <div class="add-bar">
-      <input type="text" id="add-url" placeholder="Paste channel or playlist URL..." />
+      <input type="text" id="add-url" placeholder="Paste URL here..." />
+      <div style="display:flex;gap:4px;margin-top:4px">
+        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Paste from clipboard">📋 Paste</button>
+        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Add subscription">+ Add</button>
+      </div>
     </div>
 
     <div class="sub-list" id="sub-list"></div>
@@ -225,9 +229,8 @@ function renderDetail() {
 }
 
 // ── Add subscription ─────────────────────────────────────────────────────────
-document.getElementById('add-url').addEventListener('keydown', async (e) => {
-  if (e.key !== 'Enter') return;
-  const input = e.target;
+async function addSub() {
+  const input = document.getElementById('add-url');
   const url = input.value.trim();
   if (!url) return;
 
@@ -251,10 +254,27 @@ document.getElementById('add-url').addEventListener('keydown', async (e) => {
     }
   } catch {}
   input.disabled = false;
+}
+
+document.getElementById('add-url').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addSub();
+});
+
+document.getElementById('add-btn').addEventListener('click', addSub);
+
+document.getElementById('paste-btn').addEventListener('click', async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('add-url').value = text;
+  } catch {}
 });
 
 // ── Remove subscription ──────────────────────────────────────────────────────
 async function removeSub(id) {
+  const sub = subs.find(s => s.id === id);
+  const name = sub ? (sub.name || sub.url) : 'this subscription';
+  if (!confirm(`Remove "${name}"? This cannot be undone.`)) return;
+
   await fetch('/api/subscriptions/remove', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
