@@ -1,3 +1,13 @@
+v1.1 - IGNITION (in progress)
+-----------------------------------------
+  • [ALL] New: Subscriptions entry point button — dedicated button before hamburger, opens Subscriptions window
+  • [ALL] New: Subscriptions data layer — egm_subscriptions.json with atomic read/write, thread-safe caching
+  • [ALL] New: Subscriptions CRUD API — add/remove/update routes with token auth
+  • [ALL] New: Subscriptions BrowserWindow — sidebar with subscription list, collapsible (180px↔40px), detail pane, add bar with Paste + Add buttons
+  • [ALL] New: Delete confirmation dialog before removing subscriptions
+  • [ALL] New: IPC handlers for subscriptions window (isTrustedSender on all)
+  • [ALL] Cleanup: uninstaller removes egm_subscriptions.json on Windows
+
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
   • [ALL] New: 140 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10), Brands (20), Venues (10), 8-Bit Era (10) — total now 400 themes
