@@ -7,6 +7,7 @@ v1.1 - IGNITION (in progress)
   • [ALL] New: Delete confirmation dialog before removing subscriptions
   • [ALL] New: IPC handlers for subscriptions window (isTrustedSender on all)
   • [ALL] Cleanup: uninstaller removes egm_subscriptions.json on Windows
+  • [ALL] Test: broadened preload bridge parity — locks full exposed function surface across all 3 platforms, not just security markers (prevents the Windows-only bridge pattern that recurred 3 times)
 
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
