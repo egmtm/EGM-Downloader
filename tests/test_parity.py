@@ -414,3 +414,12 @@ def test_preload_bridge_full_parity():
     assert not missing_from_win, (
         f"Windows preload missing functions that Mac/Linux have: {missing_from_win}"
     )
+
+    # Windows extras must be a KNOWN allowlist — catches accidental Windows-only feature functions
+    win_only = win_keys - shared
+    allowed_win_only = {"launchInstaller", "createShortcut"}  # legitimately Windows-only
+    unexpected = win_only - allowed_win_only
+    assert not unexpected, (
+        f"Windows-only bridge functions not in allowlist: {unexpected}. "
+        f"If cross-platform, port to Mac/Linux. If truly Windows-only, add to allowlist."
+    )
