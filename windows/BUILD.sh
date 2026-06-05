@@ -219,6 +219,7 @@ cp "$REPO_ROOT/templates/history.html"        "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/themes.html"         "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/theme_styles.html"   "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/theme_data.html"      "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/subscriptions.html"  "$PORTABLE_STAGE/templates/"
 
 # Static
 cp "$REPO_ROOT/static/icon.ico"               "$PORTABLE_STAGE/static/"

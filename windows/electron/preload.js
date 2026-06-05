@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openCookiesFile:    ()               => ipcRenderer.invoke('open-cookies-file'),
   openHistoryWindow:  ()               => ipcRenderer.invoke('open-history-window'),
   openThemesWindow:   ()               => ipcRenderer.invoke('open-themes-window'),
+  openSubscriptions:  ()               => ipcRenderer.invoke('open-subscriptions-window'),
+  closeSubscriptions: ()               => ipcRenderer.invoke('close-subscriptions'),
   setTheme:           (theme)          => { if (isStr(theme) && THEME_RE.test(theme)) ipcRenderer.send('set-theme', theme); },
   sendUrlToMain:      (url)            => { if (isHttpUrl(url)) ipcRenderer.send('send-url-to-main', url); },
   // Listener registrars return an unsubscribe fn so callers can clean up and avoid

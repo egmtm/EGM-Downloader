@@ -2064,6 +2064,15 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 })(); // ── End theme picker IIFE ───────────────────────────────────────────────
 
+// ── Subscriptions button ─────────────────────────────────────────────────────
+document.getElementById('subs-btn').addEventListener('click', () => {
+  if (window.electronAPI && window.electronAPI.openSubscriptions) {
+    window.electronAPI.openSubscriptions();
+  } else {
+    window.open('/subscriptions-page', '_blank');
+  }
+});
+
 // ── Theme import / export ─────────────────────────────────────────────────────
 (function() {
   const REQUIRED_VARS = ['--bg','--surf','--surf2','--surf3','--border','--border2',

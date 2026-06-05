@@ -150,6 +150,7 @@ Section "Install"
   File "${REPO_ROOT}/templates/themes.html"
   File "${REPO_ROOT}/templates/theme_styles.html"
   File "${REPO_ROOT}/templates/theme_data.html"
+  File "${REPO_ROOT}/templates/subscriptions.html"
 
   ; ── static\ ──
   SetOutPath "$INSTDIR\static"
@@ -252,6 +253,7 @@ Choose No to keep them for a faster setup on next install." \
 
   Delete "$INSTDIR\egm_settings.json"
   Delete "$INSTDIR\egm_history.json"
+  Delete "$INSTDIR\egm_subscriptions.json"
   Delete "$INSTDIR\cookies.txt"
   RMDir /r "$INSTDIR\thumbnails"
   RMDir /r "$INSTDIR\data"

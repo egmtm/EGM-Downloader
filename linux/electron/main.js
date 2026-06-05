@@ -531,6 +531,28 @@ ipcMain.handle('open-themes-window', async (event) => {
   themesWindow.on('closed', () => { themesWindow = null; });
 });
 
+// -- IPC: open subscriptions window ----------------------------------------
+let subsWindow = null;
+ipcMain.handle('open-subscriptions-window', async (event) => {
+  if (!isTrustedSender(event)) return;
+  if (subsWindow && !subsWindow.isDestroyed()) { subsWindow.focus(); return; }
+  subsWindow = new BrowserWindow({
+    width: 900, height: 600, minWidth: 600, minHeight: 400,
+    title: 'Subscriptions - EGM Downloader',
+    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    autoHideMenuBar: true,
+  });
+  subsWindow.loadURL(APP_URL + '/subscriptions-page');
+  hardenWindow(subsWindow);
+  subsWindow.on('closed', () => { subsWindow = null; });
+});
+
+ipcMain.handle('close-subscriptions', async (event) => {
+  if (!isTrustedSender(event)) return;
+  if (subsWindow && !subsWindow.isDestroyed()) subsWindow.close();
+});
+
 // Theme key validation — alphanumeric only, prevents IPC injection while
 // supporting any future theme without allowlist maintenance
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
