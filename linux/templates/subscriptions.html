@@ -154,6 +154,13 @@
 let subs = [];
 let activeSub = null;
 
+// ── HTML escape — prevents stored XSS from user-controlled data ──────────────
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
 // ── Load subscriptions ───────────────────────────────────────────────────────
 async function loadSubs() {
   try {
@@ -172,7 +179,7 @@ function renderSidebar() {
   }
   list.innerHTML = subs.map(s => `
     <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}">
-      ${s.name || s.url}
+      ${esc(s.name || s.url)}
     </div>
     <div class="sub-actions">
       <button data-action="fetch" data-id="${s.id}">Fetch</button>
@@ -214,8 +221,8 @@ function renderDetail() {
     <div class="channel-header">
       <div class="channel-thumb">📺</div>
       <div class="channel-info">
-        <h2>${activeSub.name || 'Untitled'}</h2>
-        <p>${activeSub.url}</p>
+        <h2>${esc(activeSub.name || 'Untitled')}</h2>
+        <p>${esc(activeSub.url)}</p>
       </div>
     </div>
     <div class="video-list">

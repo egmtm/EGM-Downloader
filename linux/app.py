@@ -1616,10 +1616,15 @@ def get_subscriptions():
 def add_subscription():
     data = request.get_json(silent=True) or {}
     url = (data.get("url") or "").strip()
-    if not url:
-        return jsonify({"error": "URL is required"}), 400
+    if not url or not url.startswith(("http://", "https://")):
+        return jsonify({"error": "Valid HTTP(S) URL is required"}), 400
+
+    name = (data.get("name") or "")[:200].strip()
 
     subs = _load_subscriptions()
+
+    if len(subs) >= 500:
+        return jsonify({"error": "Subscription limit reached (500)"}), 400
 
     # Prevent duplicates
     if any(s.get("url") == url for s in subs):
@@ -1628,7 +1633,7 @@ def add_subscription():
     sub = {
         "id": str(uuid.uuid4()),
         "url": url,
-        "name": data.get("name", ""),
+        "name": name,
         "description": "",
         "thumbnail_url": "",
         "added_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -1671,8 +1676,15 @@ def update_subscription():
     for s in subs:
         if s.get("id") == sub_id:
             for k, v in data.items():
-                if k in allowed:
-                    s[k] = v
+                if k not in allowed:
+                    continue
+                if k == "name":
+                    v = str(v)[:200].strip()
+                elif k == "format":
+                    v = v if v in ("video", "audio") else "video"
+                elif k == "auto_fetch_on_open":
+                    v = bool(v)
+                s[k] = v
             _save_subscriptions(subs)
             return jsonify({"subscription": s})
     return jsonify({"error": "Not found"}), 404
