@@ -191,20 +191,11 @@
 
 // Sidebar structure: ordered sections + categories per section
 const SECTIONS = [
-  { label: 'Style',         cats: ['dark', 'light', 'colors', 'space'] },
-  { label: 'Vibe',          cats: ['music', 'nature', 'cities', 'moods', 'food', 'weather'] },
-  { label: 'Culture',       cats: ['movies', 'consoles', 'characters', 'architecture', 'mythology'] },
-  { label: 'Puerto Rico 🇵🇷', cats: ['puerto_rico'] },
-  { label: 'OS',            cats: ['os'] },
-  { label: 'Sports',         cats: ['sports'] },
-  { label: 'Eras & Decades',  cats: ['eras', 'decades'] },
-  { label: 'Memes',           cats: ['memes'] },
-  { label: 'Cities',          cats: ['cities'] },
-  { label: 'Futuristic',       cats: ['futuristic'] },
-  { label: 'Planets',          cats: ['planets'] },
-  { label: 'Brands',           cats: ['brands'] },
-  { label: 'Venues',           cats: ['venues'] },
-  { label: 'Other',         cats: ['retro', 'experimental', 'seasonal', 'custom'] },
+  { label: 'Style',         cats: ['dark', 'light', 'colors', 'space', 'futuristic', 'retro'] },
+  { label: 'Vibe',          cats: ['music', 'nature', 'cities', 'moods', 'food', 'weather', 'sports'] },
+  { label: 'Pop Culture',   cats: ['movies', 'consoles', 'characters', 'memes', 'brands'] },
+  { label: 'Heritage',      cats: ['mythology', 'architecture', 'puerto_rico', 'eras', 'decades', 'venues'] },
+  { label: 'Other',         cats: ['os', 'experimental', 'custom'] },
 ];
 
 const CAT_LABELS = {
@@ -215,17 +206,10 @@ const CAT_LABELS = {
   food:'Food & Drink', weather:'Weather',
   puerto_rico:'Puerto Rico 🇵🇷',
   os:'Operating Systems',
-  mythology:'Mythology',
-  sports:'Sports',
-  decades:'Decades',
-  memes:'Memes',
-  cities:'Cities',
-  space:'Space', architecture:'Architecture',
-  eras:'Eras & Decades',
-  futuristic:'Futuristic',
-  planets:'Planets',
-  brands:'Brands',
-  venues:'Venues',
+  mythology:'Mythology', architecture:'Architecture',
+  sports:'Sports', decades:'Decades', memes:'Memes',
+  space:'Space', eras:'Eras',
+  futuristic:'Futuristic', brands:'Brands', venues:'Venues',
 };
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';
@@ -354,6 +338,12 @@ function buildSidebar() {
 
   if (favoriteThemes.size > 0) {
     html += `<div class="cat-tab fav-tab${activeCat === 'favorites' ? ' active' : ''}" data-cat="favorites" style="color:var(--acc)"><span style="margin-right:4px;font-size:13px">♥</span>Favorites<span class="cat-count">${favoriteThemes.size}</span></div>`;
+  }
+
+  // Seasonal — top-level, only if any are currently visible
+  const seasonalCount = Object.entries(THEME_DATA).filter(([k,d]) => d.cat === 'seasonal' && SEASONAL_VISIBLE.has(k)).length;
+  if (seasonalCount > 0) {
+    html += `<div class="cat-tab${activeCat === 'seasonal' ? ' active' : ''}" data-cat="seasonal"><span style="margin-right:4px;font-size:11px">✦</span>Seasonal<span class="cat-count">${seasonalCount}</span></div>`;
   }
 
   html += `<div class="cat-divider"></div>`;
