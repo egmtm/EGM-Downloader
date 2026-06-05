@@ -155,7 +155,6 @@ function findPython() {
   for (const c of candidates) {
     try {
       execFileSync(c, ['--version'], { stdio: 'ignore' });
-      console.log(`[EGM] Using Python: ${c}`);
       return c;
     } catch {}
   }
@@ -222,7 +221,6 @@ function waitForFlask(retries = 180, delay = 1000) {
 
 // ── Create splash window ──────────────────────────────────────────────────────
 function createSplash() {
-  console.log('[EGM] Creating splash window...');
   splashWindow = new BrowserWindow({
     width: 500,
     height: 350,
@@ -238,11 +236,9 @@ function createSplash() {
   });
 
   const splashPath = path.join(__dirname, 'splash.html');
-  console.log('[EGM] Loading splash from:', splashPath);
   splashWindow.loadFile(splashPath);
   splashWindow.center();
   splashWindow.show();
-  console.log('[EGM] Splash window created and shown');
 }
 
 // ── Send progress to splash ───────────────────────────────────────────────────
