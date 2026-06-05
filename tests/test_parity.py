@@ -373,3 +373,44 @@ def test_templates_render_without_jinja_errors():
 
     # Verify the split files were included
     assert "function applyTheme" in html, "index_scripts.html include failed"
+
+
+# ── Preload bridge parity — full surface, not just security markers ───────────
+
+def test_preload_bridge_full_parity():
+    """All exposed bridge functions must exist on Mac AND Linux (identical sets).
+    Windows may have extras (launchInstaller, createShortcut) but must be a
+    superset of Mac/Linux. Catches the 'Windows-only bridge function' pattern
+    that recurred 3 times (security validators, openSubscriptions)."""
+    preloads = {
+        "windows": read_source("windows/electron/preload.js"),
+        "linux":   read_source("linux/electron/preload.js"),
+        "mac":     read_source("mac/electron/preload.js"),
+    }
+
+    def extract_bridge_keys(source):
+        """Extract function names from contextBridge.exposeInMainWorld block."""
+        keys = set()
+        for line in source.split('\n'):
+            m = re.match(r'^\s+(\w+):\s', line)
+            if m and m.group(1) not in ('contextBridge', 'ipcRenderer'):
+                keys.add(m.group(1))
+        return keys
+
+    win_keys   = extract_bridge_keys(preloads["windows"])
+    linux_keys = extract_bridge_keys(preloads["linux"])
+    mac_keys   = extract_bridge_keys(preloads["mac"])
+
+    # Linux == Mac (these two must be identical)
+    assert linux_keys == mac_keys, (
+        f"Linux/Mac preload bridge mismatch.\n"
+        f"  Linux only: {linux_keys - mac_keys}\n"
+        f"  Mac only:   {mac_keys - linux_keys}"
+    )
+
+    # Windows ⊇ Linux ∪ Mac (Windows may have extras, must not be missing any)
+    shared = linux_keys | mac_keys
+    missing_from_win = shared - win_keys
+    assert not missing_from_win, (
+        f"Windows preload missing functions that Mac/Linux have: {missing_from_win}"
+    )
