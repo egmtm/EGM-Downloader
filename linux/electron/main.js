@@ -160,7 +160,6 @@ function findPython() {
   for (const c of candidates) {
     try {
       execFileSync(c, ['--version'], { stdio: 'ignore' });
-      console.log(`[EGM] Using Python: ${c}`);
       return c;
     } catch {}
   }
@@ -310,7 +309,6 @@ async function createWindow() {
   const showMainWindow = (source) => {
     if (mainWindowShown) return;
     mainWindowShown = true;
-    console.log(`[EGM] Main window shown via: ${source}`);
     closeSplash();
     mainWindow.show();
     mainWindow.focus();
