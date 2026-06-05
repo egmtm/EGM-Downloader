@@ -1,6 +1,6 @@
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
-  • [ALL] New: 100 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10 — Mercury, Venus, Jupiter, Uranus, Earth, Pluto, Titan, Dark Matter, Magnetar, Exoplanet) — total now 360 themes
+  • [ALL] New: 140 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10), Brands (20), Venues (10), 8-Bit Era (10) — total now 400 themes
   • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import, server-side validation (XSS-safe, deduped, capped)
   • [ALL] New: Random theme on launch — optional toggle with Favorites only or All themes scope
   • [ALL] New: yt-dlp update channel toggle (Stable / Nightly) in Advanced panel — nightly brings frequent improvements, switch back to Stable force-reinstalls
@@ -24,8 +24,8 @@ v1.0 - CORNERSTONE (in progress)
   • [ALL] Polish: accent pulse feedback on theme apply via Enter key
   • [ALL] Cleanup: removed unused InvalidSignature import from all app.py — dead code
   • [ALL] Cleanup: removed unreferenced icon-1024.png (515KB saved)
-  • [ALL] Polish: consolidated Eras & Decades into single sidebar section — removes duplication from Culture category
   • [ALL] Polish: sidebar section headers and theme counts improved readability across all themes
+  • [ALL] Refactor: sidebar reorganized — Style, Vibe, Pop Culture, Heritage, Other; Seasonal promoted to top-level; Planets merged into Space
   • [ALL] Refactor: _TOKEN_EXEMPT consolidated — thumbnail prefix moved from inline check to _TOKEN_EXEMPT_PREFIX tuple
   • [ALL] Polish: settings import notes thumbnails are not included after reinstall
   • [ALL] Polish: ffmpeg reinstall button removed — redundant with channel toggles
