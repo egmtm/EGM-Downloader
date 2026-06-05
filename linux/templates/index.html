@@ -33,8 +33,13 @@
     <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v0.99.13</span></h1>
     <p>Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
   </div>
+  <!-- Subscriptions button — opens channel monitoring window -->
+  <button id="subs-btn" title="Subscriptions — Channel monitoring" aria-label="Subscriptions" style="background:none;border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:6px 8px;cursor:pointer;margin-left:auto;flex-shrink:0;font-size:14px;line-height:1;transition:border-color .15s,color .15s" onmouseover="this.style.borderColor='var(--acc)';this.style.color='var(--acc)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text2)'">
+    ⫸
+  </button>
+
   <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
-  <div style="margin-left:auto;flex-shrink:0;position:relative">
+  <div style="flex-shrink:0;position:relative">
     <button id="hamburger-btn" title="History, Themes &amp; Advanced" aria-label="History, Themes and Advanced" style="position:relative">
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
         <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
