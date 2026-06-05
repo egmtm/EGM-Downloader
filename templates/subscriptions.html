@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Subscriptions — EGM Downloader</title>
+  <style>
+    :root { --bg:#0e0e10;--surf:#18181c;--surf2:#1e1e24;--border:#2a2a32;--acc:#e74c3c;--acc-h:#ff5c4c;--text:#e0e0e4;--text2:#8888a0; }
+
+    * { margin:0;padding:0;box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width:180px;background:var(--surf);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;transition:width .2s ease;overflow:hidden;
+    }
+    .sidebar.collapsed { width:40px; }
+
+    .sidebar-header {
+      padding:10px;display:flex;align-items:center;justify-content:space-between;
+      border-bottom:1px solid var(--border);min-height:42px;
+    }
+    .sidebar-title { font-size:.75rem;font-weight:600;white-space:nowrap;overflow:hidden; }
+    .sidebar.collapsed .sidebar-title { display:none; }
+
+    .collapse-btn {
+      background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;
+      padding:4px;border-radius:4px;flex-shrink:0;
+    }
+    .collapse-btn:hover { color:var(--acc); }
+
+    .sub-list { flex:1;overflow-y:auto;padding:4px 0; }
+    .sidebar.collapsed .sub-list { display:none; }
+
+    .sub-item {
+      padding:8px 10px;font-size:.72rem;color:var(--text2);cursor:pointer;
+      border-left:2px solid transparent;transition:all .1s;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .sub-item:hover { color:var(--text);background:var(--surf2); }
+    .sub-item.active { color:var(--acc);border-left-color:var(--acc);background:var(--surf2); }
+
+    .sub-actions {
+      display:none;padding:4px 10px;gap:6px;font-size:.65rem;
+    }
+    .sub-item.active + .sub-actions { display:flex; }
+    .sub-actions button {
+      background:var(--surf2);border:1px solid var(--border);color:var(--text2);
+      padding:2px 8px;border-radius:3px;cursor:pointer;font-size:.65rem;
+    }
+    .sub-actions button:hover { border-color:var(--acc);color:var(--acc); }
+
+    .sidebar-footer {
+      padding:8px 10px;border-top:1px solid var(--border);
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .sidebar.collapsed .sidebar-footer { display:none; }
+
+    .sidebar-footer button {
+      background:none;border:1px solid var(--border);color:var(--text2);
+      padding:5px 8px;border-radius:4px;cursor:pointer;font-size:.68rem;
+      text-align:left;
+    }
+    .sidebar-footer button:hover { border-color:var(--acc);color:var(--acc); }
+
+    /* ── Add subscription bar ── */
+    .add-bar {
+      padding:8px 10px;border-bottom:1px solid var(--border);
+    }
+    .sidebar.collapsed .add-bar { display:none; }
+    .add-bar input {
+      width:100%;padding:5px 8px;font-size:.7rem;
+      background:var(--surf2);border:1px solid var(--border);border-radius:4px;
+      color:var(--text);outline:none;
+    }
+    .add-bar input:focus { border-color:var(--acc); }
+    .add-bar input::placeholder { color:var(--text2);opacity:0.5; }
+
+    /* ── Detail pane ── */
+    .detail {
+      flex:1;display:flex;flex-direction:column;overflow:hidden;
+    }
+
+    .detail-empty {
+      flex:1;display:flex;align-items:center;justify-content:center;
+      color:var(--text2);font-size:.8rem;
+    }
+
+    .channel-header {
+      padding:14px 18px;border-bottom:1px solid var(--border);
+      display:flex;align-items:center;gap:12px;
+    }
+    .channel-thumb {
+      width:48px;height:48px;border-radius:8px;background:var(--surf2);
+      display:flex;align-items:center;justify-content:center;font-size:24px;
+    }
+    .channel-info h2 { font-size:.9rem;font-weight:600; }
+    .channel-info p { font-size:.68rem;color:var(--text2);margin-top:2px; }
+
+    .video-list { flex:1;overflow-y:auto;padding:8px 18px; }
+
+    .empty-state {
+      text-align:center;padding:40px;color:var(--text2);font-size:.75rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Subscriptions</span>
+      <button class="collapse-btn" id="collapse-btn" title="Toggle sidebar">☰</button>
+    </div>
+
+    <div class="add-bar">
+      <input type="text" id="add-url" placeholder="Paste channel or playlist URL..." />
+    </div>
+
+    <div class="sub-list" id="sub-list"></div>
+
+    <div class="sidebar-footer">
+      <button id="back-btn">← Back to app</button>
+    </div>
+  </div>
+
+  <div class="detail" id="detail">
+    <div class="detail-empty" id="empty-state">
+      <div>
+        <div style="font-size:2rem;margin-bottom:8px">📡</div>
+        <div>Add a channel or playlist URL to get started</div>
+      </div>
+    </div>
+  </div>
+
+<script>
+{% raw %}
+// ── API token interceptor ────────────────────────────────────────────────────
+(function() {
+  const _t = '{% endraw %}{{ egm_token }}{% raw %}';
+  const _f = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/') && _t) {
+      opts = opts || {};
+      opts.headers = Object.assign({}, opts.headers || {}, { 'X-EGM-Token': _t });
+    }
+    return _f.call(this, url, opts);
+  };
+})();
+
+let subs = [];
+let activeSub = null;
+
+// ── Load subscriptions ───────────────────────────────────────────────────────
+async function loadSubs() {
+  try {
+    const r = await fetch('/api/subscriptions').then(r => r.json());
+    subs = r.subscriptions || [];
+  } catch { subs = []; }
+  renderSidebar();
+}
+
+// ── Render sidebar ───────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('sub-list');
+  if (!subs.length) {
+    list.innerHTML = '<div class="empty-state">No subscriptions yet</div>';
+    return;
+  }
+  list.innerHTML = subs.map(s => `
+    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}">
+      ${s.name || s.url}
+    </div>
+    <div class="sub-actions">
+      <button data-action="fetch" data-id="${s.id}">Fetch</button>
+      <button data-action="force" data-id="${s.id}">Force</button>
+      <button data-action="delete" data-id="${s.id}">Delete</button>
+    </div>
+  `).join('');
+
+  // Wire clicks
+  list.querySelectorAll('.sub-item').forEach(item => {
+    item.addEventListener('click', () => {
+      activeSub = subs.find(s => s.id === item.dataset.id) || null;
+      renderSidebar();
+      renderDetail();
+    });
+  });
+
+  list.querySelectorAll('.sub-actions button').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.id;
+      if (btn.dataset.action === 'delete') removeSub(id);
+    });
+  });
+}
+
+// ── Render detail ────────────────────────────────────────────────────────────
+function renderDetail() {
+  const detail = document.getElementById('detail');
+  if (!activeSub) {
+    detail.innerHTML = `<div class="detail-empty"><div>
+      <div style="font-size:2rem;margin-bottom:8px">📡</div>
+      <div>Select a subscription to view details</div>
+    </div></div>`;
+    return;
+  }
+
+  detail.innerHTML = `
+    <div class="channel-header">
+      <div class="channel-thumb">📺</div>
+      <div class="channel-info">
+        <h2>${activeSub.name || 'Untitled'}</h2>
+        <p>${activeSub.url}</p>
+      </div>
+    </div>
+    <div class="video-list">
+      <div class="empty-state">
+        ${activeSub.videos && activeSub.videos.length
+          ? activeSub.videos.length + ' videos cached'
+          : 'Click "Fetch" to load videos'}
+      </div>
+    </div>
+  `;
+}
+
+// ── Add subscription ─────────────────────────────────────────────────────────
+document.getElementById('add-url').addEventListener('keydown', async (e) => {
+  if (e.key !== 'Enter') return;
+  const input = e.target;
+  const url = input.value.trim();
+  if (!url) return;
+
+  input.disabled = true;
+  try {
+    const r = await fetch('/api/subscriptions/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    }).then(r => r.json());
+
+    if (r.subscription) {
+      input.value = '';
+      await loadSubs();
+      activeSub = r.subscription;
+      renderSidebar();
+      renderDetail();
+    } else {
+      input.style.borderColor = 'var(--red, #e04040)';
+      setTimeout(() => input.style.borderColor = '', 1500);
+    }
+  } catch {}
+  input.disabled = false;
+});
+
+// ── Remove subscription ──────────────────────────────────────────────────────
+async function removeSub(id) {
+  await fetch('/api/subscriptions/remove', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id })
+  });
+  if (activeSub && activeSub.id === id) activeSub = null;
+  await loadSubs();
+  renderDetail();
+}
+
+// ── Sidebar collapse ─────────────────────────────────────────────────────────
+document.getElementById('collapse-btn').addEventListener('click', () => {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+});
+
+// ── Back to app ──────────────────────────────────────────────────────────────
+document.getElementById('back-btn').addEventListener('click', () => {
+  if (window.electronAPI && window.electronAPI.closeSubscriptions) {
+    window.electronAPI.closeSubscriptions();
+  } else {
+    window.close();
+  }
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+loadSubs();
+{% endraw %}
+</script>
+</body>
+</html>

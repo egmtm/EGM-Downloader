@@ -416,6 +416,27 @@ def _save_settings(data: dict):
 def _get_last_folder() -> str:
     return _load_settings().get("last_folder", "")
 
+# ── Subscriptions data ────────────────────────────────────────────────────────
+_subs_cache = None
+_subs_lock  = threading.Lock()
+
+def _load_subscriptions() -> list:
+    global _subs_cache
+    with _subs_lock:
+        if _subs_cache is None:
+            try:
+                data = json.loads(SUBS_FILE.read_text(encoding="utf-8"))
+                _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
+            except Exception:
+                _subs_cache = []
+        return list(_subs_cache)
+
+def _save_subscriptions(subs: list):
+    global _subs_cache
+    with _subs_lock:
+        _subs_cache = subs
+        _atomic_write_text(SUBS_FILE, json.dumps({"subscriptions": subs}, indent=2), owner_only=True)
+
 jobs: dict = {}
 _jobs_lock = threading.Lock()
 
@@ -1765,6 +1786,81 @@ def history_page(): return render_template("history.html", egm_token=_API_TOKEN)
 
 @app.route("/themes-page")
 def themes_page(): return render_template("themes.html", egm_token=_API_TOKEN)
+
+@app.route("/subscriptions-page")
+def subscriptions_page(): return render_template("subscriptions.html", egm_token=_API_TOKEN)
+
+# ── Subscriptions API ─────────────────────────────────────────────────────────
+
+@app.route("/api/subscriptions", methods=["GET"])
+def get_subscriptions():
+    return jsonify({"subscriptions": _load_subscriptions()})
+
+@app.route("/api/subscriptions/add", methods=["POST"])
+def add_subscription():
+    data = request.get_json(silent=True) or {}
+    url = (data.get("url") or "").strip()
+    if not url:
+        return jsonify({"error": "URL is required"}), 400
+
+    subs = _load_subscriptions()
+
+    # Prevent duplicates
+    if any(s.get("url") == url for s in subs):
+        return jsonify({"error": "Already subscribed"}), 409
+
+    sub = {
+        "id": str(uuid.uuid4()),
+        "url": url,
+        "name": data.get("name", ""),
+        "description": "",
+        "thumbnail_url": "",
+        "added_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "last_fetched": None,
+        "auto_fetch_on_open": False,
+        "download_folder": None,
+        "format": "video",
+        "videos": []
+    }
+
+    subs.append(sub)
+    _save_subscriptions(subs)
+    return jsonify({"subscription": sub})
+
+@app.route("/api/subscriptions/remove", methods=["POST"])
+def remove_subscription():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    if not sub_id:
+        return jsonify({"error": "ID is required"}), 400
+
+    subs = _load_subscriptions()
+    before = len(subs)
+    subs = [s for s in subs if s.get("id") != sub_id]
+    if len(subs) == before:
+        return jsonify({"error": "Not found"}), 404
+
+    _save_subscriptions(subs)
+    return jsonify({"ok": True})
+
+@app.route("/api/subscriptions/update", methods=["POST"])
+def update_subscription():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    if not sub_id:
+        return jsonify({"error": "ID is required"}), 400
+
+    allowed = {"name", "download_folder", "format", "auto_fetch_on_open"}
+    subs = _load_subscriptions()
+    for s in subs:
+        if s.get("id") == sub_id:
+            for k, v in data.items():
+                if k in allowed:
+                    s[k] = v
+            _save_subscriptions(subs)
+            return jsonify({"subscription": s})
+    return jsonify({"error": "Not found"}), 404
+
 
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
