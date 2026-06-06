@@ -1864,19 +1864,26 @@ def add_subscription():
         "videos": []
     }
 
-    # Quick metadata extraction — get channel name from first video
+    # Quick metadata extraction — get channel name and proper thumbnail
     if not name:
         try:
-            r = _ytdlp("--flat-playlist", "-j", "--playlist-end", "1", url, timeout=30)
+            # --dump-single-json gives playlist-level metadata (channel name, thumb)
+            r = _ytdlp("--flat-playlist", "--dump-single-json", "--playlist-end", "1", url, timeout=30)
             if r.returncode == 0 and r.stdout:
-                first_line = r.stdout.strip().split("\n")[0]
-                meta = json.loads(first_line)
-                sub["name"] = (meta.get("channel") or meta.get("uploader") or meta.get("playlist_title") or "")[:200]
+                meta = json.loads(r.stdout.strip())
+                # Channel name: try multiple fields, strip " - Videos" suffix
+                cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
+                cname = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
+                sub["name"] = cname
+
+                # Channel description
+                sub["description"] = (meta.get("description") or "")[:500]
+
+                # Channel thumbnail — playlist-level thumbnails, not video thumbnail
                 thumbs = meta.get("thumbnails") or []
                 if thumbs and isinstance(thumbs, list):
+                    # Take the largest channel thumbnail
                     sub["thumbnail_url"] = thumbs[-1].get("url", "") if isinstance(thumbs[-1], dict) else ""
-                if not sub["thumbnail_url"]:
-                    sub["thumbnail_url"] = meta.get("thumbnail") or ""
         except Exception:
             pass
 
@@ -1943,8 +1950,9 @@ def fetch_subscription_videos():
         return jsonify({"error": "No URL"}), 400
 
     try:
-        # Full extraction (not flat) — slower but gives dates, thumbnails, duration
-        r = _ytdlp("-j", "--no-download", "--playlist-end", "30", url, timeout=180)
+        # Flat-playlist for speed — YouTube flat doesn't return upload_date,
+        # but full extraction takes 30-60+ seconds. Speed wins for v1.1.
+        r = _ytdlp("--flat-playlist", "-j", "--playlist-end", "50", url, timeout=60)
         if r.returncode != 0:
             return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
 
@@ -1971,6 +1979,7 @@ def fetch_subscription_videos():
             # Extract channel info from first entry
             if not channel_name:
                 channel_name = (entry.get("channel") or entry.get("uploader") or entry.get("title", ""))[:200]
+                channel_name = channel_name.replace(" - Videos", "").replace(" - Playlists", "").strip()
             if not channel_thumb:
                 # thumbnails is an array in yt-dlp output
                 thumbs = entry.get("thumbnails") or []
