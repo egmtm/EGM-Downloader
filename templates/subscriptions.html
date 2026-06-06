@@ -299,7 +299,9 @@ function renderDetail() {
             <div class="video-meta">${v.upload_date ? formatDate(v.upload_date) : '—'}</div>
           </div>
         </div>
-      `).join('')}
+      `).join('') + (hasMore ? `
+        <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="fetchVideos('${activeSub.id}', false, ${currentPage + 1})">Load more (${videos.length} loaded)</button>
+      ` : '')}
     </div>
   `;
 
@@ -340,18 +342,28 @@ function formatDate(d) {
 }
 
 // ── Fetch videos ─────────────────────────────────────────────────────────────
-async function fetchVideos(id, force) {
+let hasMore = false;
+let currentPage = 1;
+
+async function fetchVideos(id, force, page = 1) {
   const list = document.getElementById('video-list');
-  if (list) list.innerHTML = '<div class="empty-state">⏳ Fetching videos...</div>';
+  if (list && page === 1) {
+    list.innerHTML = '<div class="empty-state">⏳ Fetching videos (this may take 20-40 seconds for full metadata)...</div>';
+  } else if (list && page > 1) {
+    const loadMoreBtn = document.getElementById('load-more-btn');
+    if (loadMoreBtn) loadMoreBtn.textContent = '⏳ Loading...';
+  }
 
   try {
     const r = await fetch('/api/subscriptions/fetch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, force })
+      body: JSON.stringify({ id, force, page })
     }).then(r => r.json());
 
     if (r.subscription) {
+      hasMore = r.has_more || false;
+      currentPage = r.page || 1;
       // Update local state
       const idx = subs.findIndex(s => s.id === id);
       if (idx >= 0) subs[idx] = r.subscription;
