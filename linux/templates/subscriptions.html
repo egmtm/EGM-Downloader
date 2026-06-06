@@ -413,6 +413,17 @@ async function removeSub(id) {
   const name = sub ? (sub.name || sub.url) : 'this subscription';
   if (!confirm(`Remove "${name}"? This cannot be undone.`)) return;
 
+  // Optimistic UI: remove locally first, then sync with server
+  subs = subs.filter(s => s.id !== id);
+  if (activeSub && activeSub.id === id) activeSub = null;
+  renderSidebar();
+  renderDetail();
+
+  // Re-enable input in case it was stuck
+  const input = document.getElementById('add-url');
+  if (input) input.disabled = false;
+
+  // Background sync
   try {
     await fetch('/api/subscriptions/remove', {
       method: 'POST',
@@ -420,12 +431,6 @@ async function removeSub(id) {
       body: JSON.stringify({ id })
     });
   } catch {}
-  if (activeSub && activeSub.id === id) activeSub = null;
-  await loadSubs();
-  renderDetail();
-  // Re-enable input in case it was stuck
-  const input = document.getElementById('add-url');
-  if (input) input.disabled = false;
 }
 
 // ── Sidebar collapse ─────────────────────────────────────────────────────────
