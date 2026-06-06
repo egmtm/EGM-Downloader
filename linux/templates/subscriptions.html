@@ -294,7 +294,7 @@ function renderDetail() {
           </div>
           <div class="video-info">
             <div class="video-title">${esc(v.title)}</div>
-            <div class="video-meta">${v.upload_date ? formatDate(v.upload_date) : 'Unknown date'}</div>
+            <div class="video-meta">${v.upload_date ? formatDate(v.upload_date) : '—'}</div>
           </div>
         </div>
       `).join('')}
@@ -339,7 +339,6 @@ function formatDate(d) {
 
 // ── Fetch videos ─────────────────────────────────────────────────────────────
 async function fetchVideos(id, force) {
-  const detail = document.getElementById('detail');
   const list = document.getElementById('video-list');
   if (list) list.innerHTML = '<div class="empty-state">⏳ Fetching videos...</div>';
 

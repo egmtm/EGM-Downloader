@@ -1644,6 +1644,22 @@ def add_subscription():
         "videos": []
     }
 
+    # Quick metadata extraction — get channel name from first video
+    if not name:
+        try:
+            r = _ytdlp("--flat-playlist", "-j", "--playlist-end", "1", url, timeout=30)
+            if r.returncode == 0 and r.stdout:
+                first_line = r.stdout.strip().split("\n")[0]
+                meta = json.loads(first_line)
+                sub["name"] = (meta.get("channel") or meta.get("uploader") or meta.get("playlist_title") or "")[:200]
+                thumbs = meta.get("thumbnails") or []
+                if thumbs and isinstance(thumbs, list):
+                    sub["thumbnail_url"] = thumbs[-1].get("url", "") if isinstance(thumbs[-1], dict) else ""
+                if not sub["thumbnail_url"]:
+                    sub["thumbnail_url"] = meta.get("thumbnail") or ""
+        except Exception:
+            pass
+
     subs.append(sub)
     _save_subscriptions(subs)
     return jsonify({"subscription": sub})
@@ -1735,16 +1751,29 @@ def fetch_subscription_videos():
 
             # Extract channel info from first entry
             if not channel_name:
-                channel_name = (entry.get("channel") or entry.get("uploader") or "")[:200]
+                channel_name = (entry.get("channel") or entry.get("uploader") or entry.get("title", ""))[:200]
             if not channel_thumb:
-                channel_thumb = entry.get("channel_url") or ""
+                # thumbnails is an array in yt-dlp output
+                thumbs = entry.get("thumbnails") or []
+                if thumbs and isinstance(thumbs, list):
+                    channel_thumb = thumbs[-1].get("url", "") if isinstance(thumbs[-1], dict) else ""
+                if not channel_thumb:
+                    channel_thumb = entry.get("thumbnail") or ""
+
+            # Get best thumbnail for this video
+            vid_thumb = ""
+            vid_thumbs = entry.get("thumbnails") or []
+            if vid_thumbs and isinstance(vid_thumbs, list):
+                vid_thumb = vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else ""
+            if not vid_thumb:
+                vid_thumb = entry.get("thumbnail") or ""
 
             new_videos.append({
                 "video_id": vid,
                 "title": (entry.get("title") or "Untitled")[:300],
                 "duration": entry.get("duration") or 0,
                 "upload_date": entry.get("upload_date") or "",
-                "thumbnail_url": entry.get("thumbnail") or "",
+                "thumbnail_url": vid_thumb,
                 "formats": [],
                 "downloaded": False,
                 "download_path": None
