@@ -1956,8 +1956,9 @@ def fetch_subscription_videos():
 
     try:
         # Full extraction — slower but gives real dates, thumbnails, duration
+        # Use range syntax for reliability; also enforce per_page in Python as safety net
         r = _ytdlp("-j", "--no-download",
-                   "--playlist-items", f"{start}:{end}",
+                   "--playlist-items", f"{start}-{end}",
                    url, timeout=180)
         if r.returncode != 0:
             return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
@@ -1973,6 +1974,8 @@ def fetch_subscription_videos():
         for line in (r.stdout or "").strip().split("\n"):
             if not line.strip():
                 continue
+            if len(new_videos) >= per_page:
+                break  # Hard cap regardless of what yt-dlp returns
             try:
                 entry = json.loads(line)
             except Exception:
