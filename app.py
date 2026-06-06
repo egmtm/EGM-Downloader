@@ -1943,8 +1943,8 @@ def fetch_subscription_videos():
         return jsonify({"error": "No URL"}), 400
 
     try:
-        # Fetch latest 50 videos via flat-playlist
-        r = _ytdlp("--flat-playlist", "-j", "--playlist-end", "50", url, timeout=120)
+        # Full extraction (not flat) — slower but gives dates, thumbnails, duration
+        r = _ytdlp("-j", "--no-download", "--playlist-end", "30", url, timeout=180)
         if r.returncode != 0:
             return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
 

@@ -262,7 +262,9 @@ function renderDetail() {
 
   detail.innerHTML = `
     <div class="channel-header">
-      <div class="channel-thumb">📺</div>
+      <div class="channel-thumb" ${activeSub.thumbnail_url ? `style="background-image:url('${esc(activeSub.thumbnail_url)}');background-size:cover;background-position:center"` : ''}>
+        ${!activeSub.thumbnail_url ? '📺' : ''}
+      </div>
       <div class="channel-info">
         <h2>${esc(activeSub.name || 'Untitled')}</h2>
         <p>${esc(activeSub.url)}</p>
@@ -411,14 +413,19 @@ async function removeSub(id) {
   const name = sub ? (sub.name || sub.url) : 'this subscription';
   if (!confirm(`Remove "${name}"? This cannot be undone.`)) return;
 
-  await fetch('/api/subscriptions/remove', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ id })
-  });
+  try {
+    await fetch('/api/subscriptions/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+  } catch {}
   if (activeSub && activeSub.id === id) activeSub = null;
   await loadSubs();
   renderDetail();
+  // Re-enable input in case it was stuck
+  const input = document.getElementById('add-url');
+  if (input) input.disabled = false;
 }
 
 // ── Sidebar collapse ─────────────────────────────────────────────────────────
