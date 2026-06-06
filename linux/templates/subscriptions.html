@@ -103,6 +103,37 @@
     .empty-state {
       text-align:center;padding:40px;color:var(--text2);font-size:.75rem;
     }
+
+    /* ── Video cards ── */
+    .video-card {
+      display:flex;gap:10px;padding:8px;border-radius:6px;
+      transition:background .1s;cursor:default;
+    }
+    .video-card:hover { background:var(--surf2); }
+
+    .video-thumb {
+      width:120px;height:68px;border-radius:4px;background:var(--surf2);
+      flex-shrink:0;display:flex;align-items:center;justify-content:center;
+      font-size:20px;color:var(--text2);position:relative;overflow:hidden;
+      background-size:cover;background-position:center;
+    }
+    .video-duration {
+      position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,.8);
+      color:#fff;font-size:.55rem;padding:1px 4px;border-radius:2px;
+    }
+
+    .video-info { flex:1;min-width:0; }
+    .video-title {
+      font-size:.72rem;font-weight:500;color:var(--text);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .video-meta { font-size:.6rem;color:var(--text2);margin-top:3px; }
+
+    .fetch-btn {
+      background:var(--surf2);border:1px solid var(--border);color:var(--text2);
+      padding:3px 10px;border-radius:3px;cursor:pointer;font-size:.65rem;
+    }
+    .fetch-btn:hover { border-color:var(--acc);color:var(--acc); }
   </style>
 </head>
 <body>
@@ -202,6 +233,8 @@ function renderSidebar() {
       e.stopPropagation();
       const id = btn.dataset.id;
       if (btn.dataset.action === 'delete') removeSub(id);
+      else if (btn.dataset.action === 'fetch') fetchVideos(id, false);
+      else if (btn.dataset.action === 'force') fetchVideos(id, true);
     });
   });
 }
@@ -217,22 +250,99 @@ function renderDetail() {
     return;
   }
 
+  const videos = activeSub.videos || [];
+  const sortedVideos = [...videos].sort((a, b) => {
+    if (currentSort === 'oldest') return (a.upload_date || '').localeCompare(b.upload_date || '');
+    return (b.upload_date || '').localeCompare(a.upload_date || '');
+  });
+
   detail.innerHTML = `
     <div class="channel-header">
       <div class="channel-thumb">📺</div>
       <div class="channel-info">
         <h2>${esc(activeSub.name || 'Untitled')}</h2>
         <p>${esc(activeSub.url)}</p>
+        <p style="font-size:.6rem;color:var(--text2);margin-top:2px">
+          ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
+        </p>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
+        <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.65rem;border-radius:3px;padding:2px 4px;cursor:pointer">
+          <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
+          <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
+        </select>
+        <button class="fetch-btn" onclick="fetchVideos('${activeSub.id}', false)">Fetch</button>
+        <button class="fetch-btn" onclick="fetchVideos('${activeSub.id}', true)">Force</button>
       </div>
     </div>
-    <div class="video-list">
-      <div class="empty-state">
-        ${activeSub.videos && activeSub.videos.length
-          ? activeSub.videos.length + ' videos cached'
-          : 'Click "Fetch" to load videos'}
-      </div>
+    <div class="video-list" id="video-list">
+      ${videos.length === 0 ? `
+        <div class="empty-state">Click "Fetch" to load videos from this channel</div>
+      ` : sortedVideos.map(v => `
+        <div class="video-card">
+          <div class="video-thumb" ${v.thumbnail_url ? `style="background-image:url('${esc(v.thumbnail_url)}')"` : ''}>
+            ${!v.thumbnail_url ? '🎬' : ''}
+            ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
+          </div>
+          <div class="video-info">
+            <div class="video-title">${esc(v.title)}</div>
+            <div class="video-meta">${v.upload_date ? formatDate(v.upload_date) : 'Unknown date'}</div>
+          </div>
+        </div>
+      `).join('')}
     </div>
   `;
+
+  const sortSelect = document.getElementById('sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      currentSort = e.target.value;
+      renderDetail();
+    });
+  }
+}
+
+let currentSort = 'latest';
+
+function formatDuration(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function formatDate(d) {
+  if (!d || d.length !== 8) return d || '';
+  return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
+}
+
+// ── Fetch videos ─────────────────────────────────────────────────────────────
+async function fetchVideos(id, force) {
+  const detail = document.getElementById('detail');
+  const list = document.getElementById('video-list');
+  if (list) list.innerHTML = '<div class="empty-state">⏳ Fetching videos...</div>';
+
+  try {
+    const r = await fetch('/api/subscriptions/fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, force })
+    }).then(r => r.json());
+
+    if (r.subscription) {
+      // Update local state
+      const idx = subs.findIndex(s => s.id === id);
+      if (idx >= 0) subs[idx] = r.subscription;
+      if (activeSub && activeSub.id === id) activeSub = r.subscription;
+      renderSidebar();
+      renderDetail();
+    } else {
+      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc(r.error || 'Unknown')}</div>`;
+    }
+  } catch (e) {
+    if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';
+  }
 }
 
 // ── Add subscription ─────────────────────────────────────────────────────────
