@@ -1923,8 +1923,7 @@ def fetch_subscription_videos():
     try:
         # Full extraction — slower but gives real dates, thumbnails, duration
         r = _ytdlp("-j", "--no-download",
-                   "--playlist-start", str(start),
-                   "--playlist-end", str(end),
+                   "--playlist-items", f"{start}:{end}",
                    url, timeout=180)
         if r.returncode != 0:
             return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
