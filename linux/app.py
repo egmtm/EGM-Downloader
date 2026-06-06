@@ -1690,6 +1690,83 @@ def update_subscription():
     return jsonify({"error": "Not found"}), 404
 
 
+@app.route("/api/subscriptions/fetch", methods=["POST"])
+def fetch_subscription_videos():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    force = bool(data.get("force", False))
+    if not sub_id:
+        return jsonify({"error": "ID is required"}), 400
+
+    subs = _load_subscriptions()
+    sub = next((s for s in subs if s.get("id") == sub_id), None)
+    if not sub:
+        return jsonify({"error": "Not found"}), 404
+
+    url = sub.get("url", "")
+    if not url:
+        return jsonify({"error": "No URL"}), 400
+
+    try:
+        # Fetch latest 50 videos via flat-playlist
+        r = _ytdlp("--flat-playlist", "-j", "--playlist-end", "50", url, timeout=120)
+        if r.returncode != 0:
+            return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
+
+        existing_ids = set()
+        if not force:
+            existing_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
+
+        new_videos = []
+        channel_name = sub.get("name") or ""
+        channel_thumb = sub.get("thumbnail_url") or ""
+
+        for line in (r.stdout or "").strip().split("\n"):
+            if not line.strip():
+                continue
+            try:
+                entry = json.loads(line)
+            except Exception:
+                continue
+
+            vid = entry.get("id", "")
+            if not vid or (vid in existing_ids and not force):
+                continue
+
+            # Extract channel info from first entry
+            if not channel_name:
+                channel_name = (entry.get("channel") or entry.get("uploader") or "")[:200]
+            if not channel_thumb:
+                channel_thumb = entry.get("channel_url") or ""
+
+            new_videos.append({
+                "video_id": vid,
+                "title": (entry.get("title") or "Untitled")[:300],
+                "duration": entry.get("duration") or 0,
+                "upload_date": entry.get("upload_date") or "",
+                "thumbnail_url": entry.get("thumbnail") or "",
+                "formats": [],
+                "downloaded": False,
+                "download_path": None
+            })
+
+        # Merge: new videos first, then existing (if not force)
+        if force:
+            sub["videos"] = new_videos
+        else:
+            sub["videos"] = new_videos + (sub.get("videos") or [])
+
+        # Update metadata
+        if channel_name and not sub.get("name"):
+            sub["name"] = channel_name
+        sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+
+        _save_subscriptions(subs)
+        return jsonify({"subscription": sub, "new_count": len(new_videos)})
+
+    except Exception as e:
+        return jsonify({"error": str(e)[:500]}), 500
+
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Clean shutdown requested by Electron before-quit."""
