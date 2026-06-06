@@ -1718,6 +1718,8 @@ def fetch_subscription_videos():
     data = request.get_json(silent=True) or {}
     sub_id = (data.get("id") or "").strip()
     force = bool(data.get("force", False))
+    page = max(1, int(data.get("page", 1) or 1))
+    per_page = 20
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
@@ -1730,15 +1732,20 @@ def fetch_subscription_videos():
     if not url:
         return jsonify({"error": "No URL"}), 400
 
+    start = (page - 1) * per_page + 1
+    end = page * per_page
+
     try:
-        # Flat-playlist for speed — YouTube flat doesn't return upload_date,
-        # but full extraction takes 30-60+ seconds. Speed wins for v1.1.
-        r = _ytdlp("--flat-playlist", "-j", "--playlist-end", "50", url, timeout=60)
+        # Full extraction — slower but gives real dates, thumbnails, duration
+        r = _ytdlp("-j", "--no-download",
+                   "--playlist-start", str(start),
+                   "--playlist-end", str(end),
+                   url, timeout=180)
         if r.returncode != 0:
             return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
 
         existing_ids = set()
-        if not force:
+        if not force and page == 1:
             existing_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
 
         new_videos = []
@@ -1754,20 +1761,13 @@ def fetch_subscription_videos():
                 continue
 
             vid = entry.get("id", "")
-            if not vid or (vid in existing_ids and not force):
+            if not vid or (vid in existing_ids and not force and page == 1):
                 continue
 
-            # Extract channel info from first entry
+            # Extract channel info from first entry if not set
             if not channel_name:
-                channel_name = (entry.get("channel") or entry.get("uploader") or entry.get("title", ""))[:200]
+                channel_name = (entry.get("channel") or entry.get("uploader") or "")[:200]
                 channel_name = channel_name.replace(" - Videos", "").replace(" - Playlists", "").strip()
-            if not channel_thumb:
-                # thumbnails is an array in yt-dlp output
-                thumbs = entry.get("thumbnails") or []
-                if thumbs and isinstance(thumbs, list):
-                    channel_thumb = thumbs[-1].get("url", "") if isinstance(thumbs[-1], dict) else ""
-                if not channel_thumb:
-                    channel_thumb = entry.get("thumbnail") or ""
 
             # Get best thumbnail for this video
             vid_thumb = ""
@@ -1788,11 +1788,15 @@ def fetch_subscription_videos():
                 "download_path": None
             })
 
-        # Merge: new videos first, then existing (if not force)
-        if force:
+        # Merge strategy
+        if force and page == 1:
             sub["videos"] = new_videos
-        else:
+        elif page == 1:
+            # Incremental: new videos first, then existing
             sub["videos"] = new_videos + (sub.get("videos") or [])
+        else:
+            # Pagination: append to existing
+            sub["videos"] = (sub.get("videos") or []) + new_videos
 
         # Update metadata
         if channel_name and not sub.get("name"):
@@ -1800,7 +1804,12 @@ def fetch_subscription_videos():
         sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
         _save_subscriptions(subs)
-        return jsonify({"subscription": sub, "new_count": len(new_videos)})
+        return jsonify({
+            "subscription": sub,
+            "new_count": len(new_videos),
+            "page": page,
+            "has_more": len(new_videos) == per_page
+        })
 
     except Exception as e:
         return jsonify({"error": str(e)[:500]}), 500
