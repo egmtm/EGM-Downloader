@@ -208,16 +208,20 @@ function renderSidebar() {
     list.innerHTML = '<div class="empty-state">No subscriptions yet</div>';
     return;
   }
-  list.innerHTML = subs.map(s => `
-    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}">
-      ${esc(s.name || s.url)}
+  list.innerHTML = subs.map(s => {
+    const count = (s.videos || []).length;
+    const badge = count > 0 ? `<span style="margin-left:auto;font-size:.55rem;color:var(--text2);opacity:0.7">${count}</span>` : '';
+    return `
+    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}" style="display:flex;align-items:center;gap:4px">
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
+      ${badge}
     </div>
     <div class="sub-actions">
       <button data-action="fetch" data-id="${s.id}">Fetch</button>
       <button data-action="force" data-id="${s.id}">Force</button>
       <button data-action="delete" data-id="${s.id}">Delete</button>
     </div>
-  `).join('');
+  `}).join('');
 
   // Wire clicks
   list.querySelectorAll('.sub-item').forEach(item => {
@@ -265,6 +269,10 @@ function renderDetail() {
         <p style="font-size:.6rem;color:var(--text2);margin-top:2px">
           ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
         </p>
+        <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:4px;cursor:pointer">
+          <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+          Auto-fetch on open
+        </label>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.65rem;border-radius:3px;padding:2px 4px;cursor:pointer">
@@ -298,6 +306,18 @@ function renderDetail() {
     sortSelect.addEventListener('change', (e) => {
       currentSort = e.target.value;
       renderDetail();
+    });
+  }
+
+  const autoFetch = document.getElementById('auto-fetch-toggle');
+  if (autoFetch) {
+    autoFetch.addEventListener('change', async (e) => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, auto_fetch_on_open: e.target.checked })
+      });
+      activeSub.auto_fetch_on_open = e.target.checked;
     });
   }
 }
@@ -417,7 +437,12 @@ document.getElementById('back-btn').addEventListener('click', () => {
 });
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-loadSubs();
+loadSubs().then(() => {
+  // Auto-fetch for subscriptions with the toggle enabled
+  subs.filter(s => s.auto_fetch_on_open).forEach(s => {
+    fetchVideos(s.id, false);
+  });
+});
 {% endraw %}
 </script>
 </body>
