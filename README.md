@@ -292,7 +292,6 @@
 - 🧪 32 automated tests — security parity across all 3 platforms, theme consistency, template integrity
 - ✨ Source split — index, scripts, styles, and theme data in dedicated files; rendered output identical
 - ⚡ Electron 42.3.2 — latest stable runtime
-- *More items TBD*
 
 **v1.1 — IGNITION:**
 - 📡 Subscriptions — save any channel or playlist once, automatically download what's new
