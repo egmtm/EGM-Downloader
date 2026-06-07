@@ -533,11 +533,30 @@ ipcMain.handle('open-themes-window', async (event) => {
 
 // -- IPC: open subscriptions window ----------------------------------------
 let subsWindow = null;
+const SUBS_BOUNDS_FILE = path.join(WINDOW_STATE_DIR, 'egm_subs_window.json');
+
+function loadSubsBounds() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(SUBS_BOUNDS_FILE, 'utf8'));
+    const displays = require('electron').screen.getAllDisplays();
+    const onScreen = displays.some(d => {
+      const b = d.bounds;
+      return saved.x < b.x + b.width && saved.x + saved.width > b.x &&
+             saved.y < b.y + b.height && saved.y + saved.height > b.y;
+    });
+    return onScreen ? saved : { width: 900, height: 600 };
+  } catch { return { width: 900, height: 600 }; }
+}
+
+function saveSubsBounds(win) {
+  try { fs.writeFileSync(SUBS_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
+}
+
 ipcMain.handle('open-subscriptions-window', async (event) => {
   if (!isTrustedSender(event)) return;
   if (subsWindow && !subsWindow.isDestroyed()) { subsWindow.focus(); return; }
   subsWindow = new BrowserWindow({
-    width: 900, height: 600, minWidth: 600, minHeight: 400,
+    ...loadSubsBounds(), minWidth: 600, minHeight: 400,
     title: 'Subscriptions - EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
@@ -545,6 +564,10 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
   });
   subsWindow.loadURL(APP_URL + '/subscriptions-page');
   hardenWindow(subsWindow);
+  let saveTimer = null;
+  const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveSubsBounds(subsWindow), 500); };
+  subsWindow.on('resize', debouncedSave);
+  subsWindow.on('move', debouncedSave);
   subsWindow.on('closed', () => { subsWindow = null; });
 });
 
