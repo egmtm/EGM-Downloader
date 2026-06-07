@@ -58,125 +58,136 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v0.99.13 running on Linux. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.0 — CORNERSTONE. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/01-loading.png">
-        <img src="screenshots/01-loading.png" width="340" alt="Loading Screen"/>
+      <a href="screenshots/01-main-ui-parguera-theme.png">
+        <img src="screenshots/01-main-ui-parguera-theme.png" width="340" alt="Main UI — La Parguera Theme"/>
       </a>
-      <br/><sub><b>Loading Screen</b></sub>
+      <br/><sub><b>Main UI — La Parguera Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-ghost-theme.png">
-        <img src="screenshots/02-main-ui-ghost-theme.png" width="340" alt="Main UI — Ghost Theme"/>
+      <a href="screenshots/14-mac-ui-sequoia-theme.png">
+        <img src="screenshots/14-mac-ui-sequoia-theme.png" width="340" alt="macOS — Sequoia Theme"/>
       </a>
-      <br/><sub><b>Main UI — Ghost Theme</b></sub>
+      <br/><sub><b>macOS — Sequoia Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/03-themes-window.png">
-        <img src="screenshots/03-themes-window.png" width="340" alt="Themes Window — 360 Themes"/>
+      <a href="screenshots/09-all-themes-pt1.png">
+        <img src="screenshots/09-all-themes-pt1.png" width="340" alt="All Themes — 400 Themes Pt. 1"/>
       </a>
-      <br/><sub><b>Themes Window — 360 Themes</b></sub>
+      <br/><sub><b>All Themes — 400 Total (Pt. 1)</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/04-fetching-videos.png">
-        <img src="screenshots/04-fetching-videos.png" width="340" alt="Fetching Videos"/>
+      <a href="screenshots/10-all-themes-pt2.png">
+        <img src="screenshots/10-all-themes-pt2.png" width="340" alt="All Themes Pt. 2"/>
       </a>
-      <br/><sub><b>Fetching Videos</b></sub>
+      <br/><sub><b>All Themes — 400 Total (Pt. 2)</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/05-fetched-videos.png">
-        <img src="screenshots/05-fetched-videos.png" width="340" alt="Fetched Videos — Ready to Download"/>
+      <a href="screenshots/11-all-themes-pt3.png">
+        <img src="screenshots/11-all-themes-pt3.png" width="340" alt="All Themes Pt. 3"/>
       </a>
-      <br/><sub><b>Fetched Videos — Ready to Download</b></sub>
+      <br/><sub><b>All Themes — 400 Total (Pt. 3)</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/06-downloading-videos.png">
-        <img src="screenshots/06-downloading-videos.png" width="340" alt="Downloading Videos"/>
+      <a href="screenshots/08-hamburger-themes-last10.png">
+        <img src="screenshots/08-hamburger-themes-last10.png" width="340" alt="Hamburger — Last 10 Used Themes"/>
+      </a>
+      <br/><sub><b>Hamburger — Last 10 Used Themes</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/03-fetching-videos-quality-selector.png">
+        <img src="screenshots/03-fetching-videos-quality-selector.png" width="340" alt="Fetching Videos — Quality Selector"/>
+      </a>
+      <br/><sub><b>Fetching Videos — Quality Selector</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/04-download-all-videos-audio.png">
+        <img src="screenshots/04-download-all-videos-audio.png" width="340" alt="Download All Videos + Audio"/>
+      </a>
+      <br/><sub><b>Download All Videos + Audio</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/05-downloading-videos.png">
+        <img src="screenshots/05-downloading-videos.png" width="340" alt="Downloading Videos"/>
       </a>
       <br/><sub><b>Downloading Videos</b></sub>
     </td>
-  </tr>
-  <tr>
     <td align="center">
-      <a href="screenshots/07-hamburger-history.png">
-        <img src="screenshots/07-hamburger-history.png" width="340" alt="Hamburger Panel — Download History"/>
-      </a>
-      <br/><sub><b>Hamburger — Download History</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/08-hamburger-themes.png">
-        <img src="screenshots/08-hamburger-themes.png" width="340" alt="Hamburger Panel — Themes"/>
-      </a>
-      <br/><sub><b>Hamburger — Themes Tab</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/09-hamburger-advanced.png">
-        <img src="screenshots/09-hamburger-advanced.png" width="340" alt="Hamburger Panel — Advanced Settings"/>
-      </a>
-      <br/><sub><b>Hamburger — Advanced Settings</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/10-expanded-history.png">
-        <img src="screenshots/10-expanded-history.png" width="340" alt="Expanded Download History"/>
+      <a href="screenshots/07-expanded-download-history.png">
+        <img src="screenshots/07-expanded-download-history.png" width="340" alt="Expanded Download History"/>
       </a>
       <br/><sub><b>Expanded Download History</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/11-plugins-panel.png">
-        <img src="screenshots/11-plugins-panel.png" width="340" alt="Plugins Update Panel"/>
+      <a href="screenshots/06-hamburger-history.png">
+        <img src="screenshots/06-hamburger-history.png" width="340" alt="Hamburger — History Tab"/>
       </a>
-      <br/><sub><b>Plugins Update Panel</b></sub>
+      <br/><sub><b>Hamburger — History Tab</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/12-video-output.png">
-        <img src="screenshots/12-video-output.png" width="340" alt="Video Output"/>
+      <a href="screenshots/12-hamburger-advanced.png">
+        <img src="screenshots/12-hamburger-advanced.png" width="340" alt="Hamburger — Advanced Settings"/>
       </a>
-      <br/><sub><b>Video Output</b></sub>
+      <br/><sub><b>Hamburger — Advanced Settings</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/02-update-plugins.png">
+        <img src="screenshots/02-update-plugins.png" width="340" alt="Update Plugins"/>
+      </a>
+      <br/><sub><b>Update Plugins</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/13-mac-dmg-install.png">
+        <img src="screenshots/13-mac-dmg-install.png" width="340" alt="macOS DMG Install"/>
+      </a>
+      <br/><sub><b>macOS — DMG Install</b></sub>
     </td>
   </tr>
 </table>
-
----
-
 ## 📥 Download
 
 ### Windows
 **Latest:** v1.0.0 Build 124  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
-**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (419 KB · ~800 MB after install)  
+**SHA256:** `fa674b033562a28041506a9ada0a1983754615801cc3ed685bc2fd98f8e02f26`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.0.0 Build 124  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
-**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (390 KB · ~800 MB after first run)  
+**SHA256:** `dc58e5e1a0f506c8615dc34eb6a8182653725d667f0215f145d8248b07976235`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
 **Latest:** v1.0.0 Build 124  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
-**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (119 MB · ~300 MB after install)  
+**SHA256:** `19716e514dcd3799062530b451e021d86a908383fa3641a6680cdbf39f2d145c`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.0.0 Build 124  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
-**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (139 MB · ~300 MB after install)  
+**SHA256:** `265e2cf188bee86f2e8c67cc971e75601dbb216a611edf00a34947910466544f`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -277,7 +288,7 @@
 - 🔍 Strict image magic byte detection — canonical pattern matching replaces loose checks
 - 🛡️ Content-Type header validation on thumbnail fetches — defense-in-depth on top of existing HTTPS-only + size cap stack
 
-**v1.0 — CORNERSTONE:** 🔨 In progress
+**v1.0 — CORNERSTONE:** ✅ Shipped
 - 🧱 The foundation release — everything built since v0.93 comes together here
 - 🎨 400 themes — mythology, sports, decades, memes, cities, space, planets, Conejo Malo series, and more
 - ⭐ Theme Favorites + Random Launch — heart any theme, optionally start fresh every session
@@ -457,10 +468,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 121 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 121 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 121 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 121 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 124 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 124 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 124 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 124 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
