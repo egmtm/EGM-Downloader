@@ -1864,25 +1864,25 @@ def add_subscription():
         "videos": []
     }
 
-    # Quick metadata — get channel info first (no videos), then add
+    # Get channel metadata — dump-single-json gives playlist-level data (name, avatar)
     if not name:
         try:
-            # --playlist-end 0 gets channel-level metadata only, fast
-            r = _run_yt(
-                sys.executable, "-m", "yt_dlp",
-                "--flat-playlist", "--dump-single-json",
-                "--playlist-end", "0",
-                url, timeout=20
-            )
+            r = _ytdlp("--flat-playlist", "--dump-single-json",
+                       "--playlist-end", "1", url, timeout=30)
             if r.returncode == 0 and r.stdout:
                 meta = json.loads(r.stdout.strip())
+                # Channel name from playlist-level field
                 cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
                 cname = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
                 sub["name"] = cname
-                # Channel-level thumbnails (avatar) from playlist metadata
+                # Channel avatar — playlist-level thumbnails (not entry thumbnails)
                 thumbs = meta.get("thumbnails") or []
                 if thumbs and isinstance(thumbs, list):
-                    sub["thumbnail_url"] = thumbs[-1].get("url", "") if isinstance(thumbs[-1], dict) else ""
+                    # Filter for likely avatar (square-ish, not banners)
+                    avatars = [t for t in thumbs if isinstance(t, dict) and
+                               t.get("id", "").startswith("avatar")]
+                    src = avatars[-1] if avatars else thumbs[-1]
+                    sub["thumbnail_url"] = src.get("url", "") if isinstance(src, dict) else ""
         except Exception:
             pass
 
