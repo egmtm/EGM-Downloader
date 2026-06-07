@@ -187,7 +187,7 @@ def gen_windows_portable(data, notes, dry_run, checksum="", size_bytes=0):
         "label":          build_label(data),
         "downloadUrl":    "https://egerena.com/apps/EGMd-portable.zip",
         "zip":            "EGMd-portable.zip",
-        **({"_checksums": {"sha256": checksum, "algorithm": "SHA-256", "file": "EGMd-portable.zip"}} if checksum else {}),
+        **({"_checksums": {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": "EGMd-portable.zip"}} if checksum else {}),
         **({"size_bytes": size_bytes} if size_bytes else {}),
     }, dry_run, "Windows Portable")
 
@@ -207,7 +207,7 @@ def gen_windows(data, notes, dry_run, checksum="", size_bytes=0):
         "zip":            p["zip"],
     }
     if checksum:
-        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+        payload["_checksums"] = {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": p["zip"]}
     if size_bytes:
         payload["size_bytes"] = size_bytes
     return write_json(p["updateJson"], payload, dry_run, "Windows")
@@ -227,7 +227,7 @@ def gen_mac(data, notes, dry_run, checksum="", size_bytes=0):
         "zip":            p["zip"],
     }
     if checksum:
-        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+        payload["_checksums"] = {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": p["zip"]}
     if size_bytes:
         payload["size_bytes"] = size_bytes
     return write_json(p["updateJson"], payload, dry_run, "Mac")
@@ -247,7 +247,7 @@ def gen_linux(data, notes, dry_run, checksum="", size_bytes=0):
         "zip":            p["zip"],
     }
     if checksum:
-        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+        payload["_checksums"] = {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": p["zip"]}
     if size_bytes:
         payload["size_bytes"] = size_bytes
     return write_json(p["updateJson"], payload, dry_run, "Linux")
