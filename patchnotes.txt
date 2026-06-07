@@ -9,6 +9,20 @@ v1.1 - IGNITION (in progress)
   • [ALL] Cleanup: uninstaller removes egm_subscriptions.json on Windows
   • [ALL] Test: broadened preload bridge parity — locks full exposed function surface across all 3 platforms, not just security markers (prevents the Windows-only bridge pattern that recurred 3 times)
 
+v1.1 IGNITION — Phase 2: Fetch & Display
+  • [ALL] New: fetch channel videos via yt-dlp flat-playlist with approximate_date — fast listing with real dates for sorting
+  • [ALL] New: video list with thumbnails, durations, approximate upload dates
+  • [ALL] New: client-side pagination — 20 videos shown, Load More adds 20 at a time
+  • [ALL] New: channel metadata on add — name, avatar thumbnail, description via yt-dlp
+  • [ALL] New: sort videos by Latest / Oldest
+  • [ALL] New: auto-fetch-on-open toggle per channel — auto-selects and fetches on window open
+  • [ALL] New: subscriptions window remembers size and position across sessions
+  • [ALL] Fix: thumbnail URLs validated server-side — rejects quotes, spaces, scheme violations before storage (closes attribute-context XSS + SSRF)
+  • [ALL] Fix: formatDate never returns raw input — enforces 8-digit format, esc() at call site
+  • [ALL] Fix: optimistic delete — UI updates immediately, server sync in background
+  • [ALL] Fix: subscriptions window themes inherit active theme from main window
+  • [ALL] Chore: subscriptions.html added to template drift list in validate-version-sync
+
 v1.0 - CORNERSTONE (in progress)
 -----------------------------------------
   • [ALL] New: 140 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10), Brands (20), Venues (10), 8-Bit Era (10) — total now 400 themes
