@@ -17,7 +17,7 @@ v1.1 IGNITION — Phase 2: Fetch & Display
   • [ALL] New: sort videos by Latest / Oldest
   • [ALL] New: auto-fetch-on-open toggle per channel — auto-selects and fetches on window open
   • [ALL] New: subscriptions window remembers size and position across sessions
-  • [ALL] Fix: thumbnail URLs validated server-side — rejects quotes, spaces, scheme violations before storage (closes attribute-context XSS + SSRF)
+  • [ALL] Fix: thumbnail URLs validated server-side — rejects quotes, parens, spaces, scheme violations before storage (closes attribute-context XSS; internal-host SSRF guard deferred to Phase 3)
   • [ALL] Fix: formatDate never returns raw input — enforces 8-digit format, esc() at call site
   • [ALL] Fix: optimistic delete — UI updates immediately, server sync in background
   • [ALL] Fix: subscriptions window themes inherit active theme from main window
