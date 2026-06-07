@@ -160,12 +160,13 @@
     </td>
   </tr>
 </table>
+
 ## 📥 Download
 
 ### Windows
 **Latest:** v1.0.0 Build 124  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (419 KB · ~800 MB after install)  
-**SHA256:** `fa674b033562a28041506a9ada0a1983754615801cc3ed685bc2fd98f8e02f26`  
+**SHA256:** `2f81288f21791b021749b31ef72d1d5a59d7dea5249f47c5444b497d1922ba5a`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
