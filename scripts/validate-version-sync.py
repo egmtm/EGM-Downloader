@@ -279,7 +279,8 @@ def check_linux_drift_from_root():
     # they must be drift-checked too — otherwise a theme added to root but not linux
     # would slip through.
     template_files = ['index.html', 'index_styles.html', 'index_scripts.html',
-                      'history.html', 'themes.html', 'theme_styles.html', 'theme_data.html']
+                      'history.html', 'themes.html', 'theme_styles.html', 'theme_data.html',
+                      'subscriptions.html']
     for name in template_files:
         root_path = root / 'templates' / name
         linux_path = root / 'linux' / 'templates' / name

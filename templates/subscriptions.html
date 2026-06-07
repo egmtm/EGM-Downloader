@@ -317,7 +317,7 @@ function renderDetail() {
             </div>
             <div class="video-info">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta">${v.upload_date ? formatDate(v.upload_date) : '—'}</div>
+              <div class="video-meta">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
             </div>
           </div>
         `).join('') + (hasMore ? `
@@ -359,7 +359,7 @@ function formatDuration(sec) {
 }
 
 function formatDate(d) {
-  if (!d || d.length !== 8) return d || '';
+  if (!d || typeof d !== 'string' || d.length !== 8 || !/^\d{8}$/.test(d)) return '';
   return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
 }
 

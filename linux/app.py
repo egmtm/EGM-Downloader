@@ -617,6 +617,17 @@ def _ytdlp(*extra, timeout=None):
                    *_cookies_args(), *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+def _safe_thumb_url(url) -> str:
+    """Validate thumbnail URL — reject anything with quotes or spaces
+    that could break out of a CSS url() or style attribute context."""
+    if not url or not isinstance(url, str):
+        return ""
+    url = url.strip()
+    # Must be https, no quotes, spaces, or angle brackets
+    if not url.startswith(("https://", "http://")) or any(c in url for c in ('"', "'", ' ', '<', '>')):
+        return ""
+    return url
+
 def _safe_filename(title: str, ext: str) -> str:
     safe = "".join(c for c in title if c not in r'\/:\*?"<>|').strip()[:120].strip()
     return f"{safe}{ext}" if safe else f"download{ext}"
@@ -1662,7 +1673,7 @@ def add_subscription():
                     avatars = [t for t in thumbs if isinstance(t, dict) and
                                t.get("id", "").startswith("avatar")]
                     src = avatars[-1] if avatars else thumbs[-1]
-                    sub["thumbnail_url"] = src.get("url", "") if isinstance(src, dict) else ""
+                    sub["thumbnail_url"] = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
         except Exception:
             pass
 
@@ -1771,9 +1782,9 @@ def fetch_subscription_videos():
             vid_thumb = ""
             vid_thumbs = entry.get("thumbnails") or []
             if vid_thumbs and isinstance(vid_thumbs, list):
-                vid_thumb = vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else ""
+                vid_thumb = _safe_thumb_url(vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else "")
             if not vid_thumb:
-                vid_thumb = entry.get("thumbnail") or ""
+                vid_thumb = _safe_thumb_url(entry.get("thumbnail") or "")
 
             # upload_date from approximate_date (returns int timestamp or ISO string)
             upload_date = ""
