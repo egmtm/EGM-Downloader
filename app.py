@@ -1864,27 +1864,25 @@ def add_subscription():
         "videos": []
     }
 
-    # Quick metadata — flat fetch for channel name/thumb, much faster than single-json
+    # Quick metadata — get channel info first (no videos), then add
     if not name:
         try:
+            # --playlist-end 0 gets channel-level metadata only, fast
             r = _run_yt(
                 sys.executable, "-m", "yt_dlp",
-                "--flat-playlist", "-j",
-                "--extractor-args", "youtubetab:approximate_date",
-                "--playlist-end", "1",
-                url, timeout=30
+                "--flat-playlist", "--dump-single-json",
+                "--playlist-end", "0",
+                url, timeout=20
             )
             if r.returncode == 0 and r.stdout:
-                first_line = r.stdout.strip().split("\n")[0]
-                meta = json.loads(first_line)
-                cname = (meta.get("channel") or meta.get("uploader") or meta.get("playlist_title") or "")
+                meta = json.loads(r.stdout.strip())
+                cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
                 cname = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
                 sub["name"] = cname
+                # Channel-level thumbnails (avatar) from playlist metadata
                 thumbs = meta.get("thumbnails") or []
                 if thumbs and isinstance(thumbs, list):
                     sub["thumbnail_url"] = thumbs[-1].get("url", "") if isinstance(thumbs[-1], dict) else ""
-                if not sub["thumbnail_url"]:
-                    sub["thumbnail_url"] = meta.get("thumbnail") or ""
         except Exception:
             pass
 
@@ -1956,8 +1954,9 @@ def fetch_subscription_videos():
         r = _run_yt(
             sys.executable, "-m", "yt_dlp",
             "--flat-playlist", "-j",
+            "--playlist-end", "200",
             "--extractor-args", "youtubetab:approximate_date",
-            url, timeout=60
+            url, timeout=90
         )
         if r.returncode != 0:
             return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
