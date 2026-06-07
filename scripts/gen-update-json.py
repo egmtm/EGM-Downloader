@@ -175,7 +175,7 @@ def write_json(filename, payload, dry_run, label):
     return out
 
 
-def gen_windows_portable(data, notes, dry_run, checksum=""):
+def gen_windows_portable(data, notes, dry_run, checksum="", size_bytes=0):
     """Generate update JSON for the Windows portable variant."""
     return write_json("egm-portable-version.json", {
         "_comment":       "EGM Downloader Windows Portable update feed. Upload to egerena.com/apps/egm-portable-version.json",
@@ -187,11 +187,12 @@ def gen_windows_portable(data, notes, dry_run, checksum=""):
         "label":          build_label(data),
         "downloadUrl":    "https://egerena.com/apps/EGMd-portable.zip",
         "zip":            "EGMd-portable.zip",
-        **({"_checksums": {"sha256": checksum, "algorithm": "SHA-256", "file": "EGMd-portable.zip"}} if checksum else {}),
+        **({"_checksums": {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": "EGMd-portable.zip"}} if checksum else {}),
+        **({"size_bytes": size_bytes} if size_bytes else {}),
     }, dry_run, "Windows Portable")
 
 
-def gen_windows(data, notes, dry_run, checksum=""):
+def gen_windows(data, notes, dry_run, checksum="", size_bytes=0):
     p = data["platforms"]["windows"]
     payload = {
         "_comment":       "EGM Downloader Windows update feed. Upload to egerena.com/apps/egm-version.json",
@@ -206,11 +207,13 @@ def gen_windows(data, notes, dry_run, checksum=""):
         "zip":            p["zip"],
     }
     if checksum:
-        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+        payload["_checksums"] = {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": p["zip"]}
+    if size_bytes:
+        payload["size_bytes"] = size_bytes
     return write_json(p["updateJson"], payload, dry_run, "Windows")
 
 
-def gen_mac(data, notes, dry_run, checksum=""):
+def gen_mac(data, notes, dry_run, checksum="", size_bytes=0):
     p = data["platforms"]["mac"]
     payload = {
         "_comment":       "EGM Downloader Mac update feed. Upload to egerena.com/apps/egmac-update.json",
@@ -224,11 +227,13 @@ def gen_mac(data, notes, dry_run, checksum=""):
         "zip":            p["zip"],
     }
     if checksum:
-        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+        payload["_checksums"] = {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": p["zip"]}
+    if size_bytes:
+        payload["size_bytes"] = size_bytes
     return write_json(p["updateJson"], payload, dry_run, "Mac")
 
 
-def gen_linux(data, notes, dry_run, checksum=""):
+def gen_linux(data, notes, dry_run, checksum="", size_bytes=0):
     p = data["platforms"]["linux"]
     payload = {
         "_comment":       "EGM Downloader Linux — informational, no auto-update. Upload to egerena.com/apps/egmlinux-update.json",
@@ -242,7 +247,9 @@ def gen_linux(data, notes, dry_run, checksum=""):
         "zip":            p["zip"],
     }
     if checksum:
-        payload["_checksums"] = {"sha256": checksum, "algorithm": "SHA-256", "file": p["zip"]}
+        payload["_checksums"] = {"sha256": checksum.lower(), "algorithm": "SHA-256", "file": p["zip"]}
+    if size_bytes:
+        payload["size_bytes"] = size_bytes
     return write_json(p["updateJson"], payload, dry_run, "Linux")
 
 
@@ -252,24 +259,44 @@ def main():
     parser.add_argument("--platform", choices=["windows", "windows-portable", "mac", "linux"])
     parser.add_argument("--checksum", default="", help="SHA-256 checksum of the distribution zip (64-char hex string)")
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument("--size-bytes", type=int, default=0, help="Distribution zip size in bytes for this platform — mirrors --checksum, use with --platform")
     args = parser.parse_args()
 
     # Validate checksum format early — a malformed value here silently produces a
     # feed whose _checksums never match, breaking auto-update with no obvious cause.
     if args.checksum and not re.fullmatch(r"[a-fA-F0-9]{64}", args.checksum):
         parser.error("--checksum must be a 64-character SHA-256 hex string")
+    if args.size_bytes < 0:
+        parser.error("--size-bytes must be a positive integer")
+    if args.size_bytes > 0 and not (1024 <= args.size_bytes <= 2 * 1024 * 1024 * 1024):
+        parser.error("--size-bytes out of sane range (1 KB – 2 GB)")
 
     data  = load_version()
     notes = [n.strip() for n in args.notes.split("|||") if n.strip()] if args.notes else []
     plats = [args.platform] if args.platform else ["windows", "mac", "linux"]
 
+    # Auto-compute size_bytes from local artifact if not supplied (optional polish)
+    size_bytes = args.size_bytes
+    if not size_bytes and args.platform:
+        artifact_map = {
+            "windows":          "dist/EGMd.zip",
+            "windows-portable": "dist/EGMd-portable.zip",
+            "mac":              "dist/EGMdM.zip",
+            "linux":            "dist/EGMdL.zip",
+        }
+        artifact = artifact_map.get(args.platform)
+        if artifact:
+            import os
+            if os.path.exists(artifact):
+                size_bytes = os.path.getsize(artifact)
+
     print(f"\n  Generating update JSONs — v{data['version']} Build {data['build']}\n")
 
     outputs = []
-    if "windows"          in plats: outputs.append(gen_windows(data, notes, args.dry_run, args.checksum))
-    if "windows-portable" in plats: outputs.append(gen_windows_portable(data, notes, args.dry_run, args.checksum))
-    if "mac"              in plats: outputs.append(gen_mac(data, notes, args.dry_run, args.checksum))
-    if "linux"            in plats: outputs.append(gen_linux(data, notes, args.dry_run, args.checksum))
+    if "windows"          in plats: outputs.append(gen_windows(data, notes, args.dry_run, args.checksum, size_bytes))
+    if "windows-portable" in plats: outputs.append(gen_windows_portable(data, notes, args.dry_run, args.checksum, size_bytes))
+    if "mac"           in plats: outputs.append(gen_mac(data, notes, args.dry_run, args.checksum, size_bytes))
+    if "linux"         in plats: outputs.append(gen_linux(data, notes, args.dry_run, args.checksum, size_bytes))
 
     if not args.dry_run:
         print(f"\n  Upload these to egerena.com/apps/:")
