@@ -306,20 +306,24 @@ function renderDetail() {
     <div class="video-list" id="video-list">
       ${videos.length === 0 ? `
         <div class="empty-state">Click "Fetch" to load videos from this channel</div>
-      ` : sortedVideos.map(v => `
-        <div class="video-card">
-          <div class="video-thumb" ${v.thumbnail_url ? `style="background-image:url('${esc(v.thumbnail_url)}')"` : ''}>
-            ${!v.thumbnail_url ? '🎬' : ''}
-            ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
+      ` : (() => {
+        const visible = sortedVideos.slice(0, visibleCount);
+        const hasMore = sortedVideos.length > visibleCount;
+        return visible.map(v => `
+          <div class="video-card">
+            <div class="video-thumb" ${v.thumbnail_url ? `style="background-image:url('${esc(v.thumbnail_url)}')"` : ''}>
+              ${!v.thumbnail_url ? '🎬' : ''}
+              ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
+            </div>
+            <div class="video-info">
+              <div class="video-title">${esc(v.title)}</div>
+              <div class="video-meta">${v.upload_date ? formatDate(v.upload_date) : '—'}</div>
+            </div>
           </div>
-          <div class="video-info">
-            <div class="video-title">${esc(v.title)}</div>
-            <div class="video-meta">${v.upload_date ? formatDate(v.upload_date) : '—'}</div>
-          </div>
-        </div>
-      `).join('') + (hasMore ? `
-        <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="fetchVideos('${activeSub.id}', false, ${currentPage + 1})">Load more (${videos.length} loaded)</button>
-      ` : '')}
+        `).join('') + (hasMore ? `
+          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="visibleCount+=20;renderDetail()">Load more (${visible.length} of ${sortedVideos.length})</button>
+        ` : `<div style="text-align:center;padding:10px;font-size:.6rem;color:var(--text2);opacity:0.5">${sortedVideos.length} videos total</div>`);
+      })()}
     </div>
   `;
 
@@ -360,29 +364,21 @@ function formatDate(d) {
 }
 
 // ── Fetch videos ─────────────────────────────────────────────────────────────
-let hasMore = false;
-let currentPage = 1;
+let visibleCount = 20;
 
-async function fetchVideos(id, force, page = 1) {
+async function fetchVideos(id, force) {
+  visibleCount = 20; // reset on new fetch
   const list = document.getElementById('video-list');
-  if (list && page === 1) {
-    list.innerHTML = '<div class="empty-state">⏳ Fetching videos (this may take 20-40 seconds for full metadata)...</div>';
-  } else if (list && page > 1) {
-    const loadMoreBtn = document.getElementById('load-more-btn');
-    if (loadMoreBtn) loadMoreBtn.textContent = '⏳ Loading...';
-  }
+  if (list) list.innerHTML = '<div class="empty-state">⏳ Fetching videos...</div>';
 
   try {
     const r = await fetch('/api/subscriptions/fetch', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id, force, page })
+      body: JSON.stringify({ id, force })
     }).then(r => r.json());
 
     if (r.subscription) {
-      hasMore = r.has_more || false;
-      currentPage = r.page || 1;
-      // Update local state
       const idx = subs.findIndex(s => s.id === id);
       if (idx >= 0) subs[idx] = r.subscription;
       if (activeSub && activeSub.id === id) activeSub = r.subscription;
@@ -391,7 +387,7 @@ async function fetchVideos(id, force, page = 1) {
     } else {
       if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc(r.error || 'Unknown')}</div>`;
     }
-  } catch (e) {
+  } catch {
     if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';
   }
 }
