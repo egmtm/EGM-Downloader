@@ -152,14 +152,14 @@
 ## 📥 Download
 
 ### Windows
-**Latest:** v0.99.13 Build 123  
+**Latest:** v1.0.0 Build 124  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
 **SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
-**Latest:** v0.99.13 Build 123  
+**Latest:** v1.0.0 Build 124  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
 **SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
 **Requirements:** Windows 10/11 (64-bit)  
@@ -167,14 +167,14 @@
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
-**Latest:** v0.99.13 Build 123  
+**Latest:** v1.0.0 Build 124  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
 **SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v0.99.13 Build 123  
+**Latest:** v1.0.0 Build 124  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
 **SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
 **Format:** AppImage (Universal)  
@@ -610,8 +610,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 0.99.13
-- **Build:** 123
+- **Version:** 1.0.0
+- **Build:** 124
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** AGPL-3.0
