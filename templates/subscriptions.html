@@ -475,10 +475,14 @@ document.getElementById('back-btn').addEventListener('click', () => {
 
 // ── Init ─────────────────────────────────────────────────────────────────────
 loadSubs().then(() => {
-  // Auto-fetch for subscriptions with the toggle enabled
-  subs.filter(s => s.auto_fetch_on_open).forEach(s => {
-    fetchVideos(s.id, false);
-  });
+  const autoFetchSubs = subs.filter(s => s.auto_fetch_on_open);
+  if (autoFetchSubs.length > 0) {
+    // Select first auto-fetch channel so user sees it loading
+    activeSub = autoFetchSubs[0];
+    renderSidebar();
+    renderDetail();
+    autoFetchSubs.forEach(s => fetchVideos(s.id, false));
+  }
 });
 {% endraw %}
 </script>
