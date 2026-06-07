@@ -259,28 +259,44 @@ def main():
     parser.add_argument("--platform", choices=["windows", "windows-portable", "mac", "linux"])
     parser.add_argument("--checksum", default="", help="SHA-256 checksum of the distribution zip (64-char hex string)")
     parser.add_argument("--dry-run", action="store_true")
-    parser.add_argument("--size-bytes-win",      type=int, default=0, help="Windows installer size in bytes")
-    parser.add_argument("--size-bytes-portable", type=int, default=0, help="Windows portable size in bytes")
-    parser.add_argument("--size-bytes-mac",      type=int, default=0, help="Mac size in bytes")
-    parser.add_argument("--size-bytes-linux",    type=int, default=0, help="Linux size in bytes")
+    parser.add_argument("--size-bytes", type=int, default=0, help="Distribution zip size in bytes for this platform — mirrors --checksum, use with --platform")
     args = parser.parse_args()
 
     # Validate checksum format early — a malformed value here silently produces a
     # feed whose _checksums never match, breaking auto-update with no obvious cause.
     if args.checksum and not re.fullmatch(r"[a-fA-F0-9]{64}", args.checksum):
         parser.error("--checksum must be a 64-character SHA-256 hex string")
+    if args.size_bytes < 0:
+        parser.error("--size-bytes must be a positive integer")
+    if args.size_bytes > 0 and not (1024 <= args.size_bytes <= 2 * 1024 * 1024 * 1024):
+        parser.error("--size-bytes out of sane range (1 KB – 2 GB)")
 
     data  = load_version()
     notes = [n.strip() for n in args.notes.split("|||") if n.strip()] if args.notes else []
     plats = [args.platform] if args.platform else ["windows", "mac", "linux"]
 
+    # Auto-compute size_bytes from local artifact if not supplied (optional polish)
+    size_bytes = args.size_bytes
+    if not size_bytes and args.platform:
+        artifact_map = {
+            "windows":          "dist/EGMd.zip",
+            "windows-portable": "dist/EGMd-portable.zip",
+            "mac":              "dist/EGMdM.zip",
+            "linux":            "dist/EGMdL.zip",
+        }
+        artifact = artifact_map.get(args.platform)
+        if artifact:
+            import os
+            if os.path.exists(artifact):
+                size_bytes = os.path.getsize(artifact)
+
     print(f"\n  Generating update JSONs — v{data['version']} Build {data['build']}\n")
 
     outputs = []
-    if "windows"          in plats: outputs.append(gen_windows(data, notes, args.dry_run, args.checksum, args.size_bytes_win))
-    if "windows-portable" in plats: outputs.append(gen_windows_portable(data, notes, args.dry_run, args.checksum, args.size_bytes_portable))
-    if "mac"           in plats: outputs.append(gen_mac(data, notes, args.dry_run, args.checksum, args.size_bytes_mac))
-    if "linux"         in plats: outputs.append(gen_linux(data, notes, args.dry_run, args.checksum, args.size_bytes_linux))
+    if "windows"          in plats: outputs.append(gen_windows(data, notes, args.dry_run, args.checksum, size_bytes))
+    if "windows-portable" in plats: outputs.append(gen_windows_portable(data, notes, args.dry_run, args.checksum, size_bytes))
+    if "mac"           in plats: outputs.append(gen_mac(data, notes, args.dry_run, args.checksum, size_bytes))
+    if "linux"         in plats: outputs.append(gen_linux(data, notes, args.dry_run, args.checksum, size_bytes))
 
     if not args.dry_run:
         print(f"\n  Upload these to egerena.com/apps/:")
