@@ -698,13 +698,16 @@ def _ytdlp(*extra, timeout=None):
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
 def _safe_thumb_url(url) -> str:
-    """Validate thumbnail URL — reject anything with quotes or spaces
-    that could break out of a CSS url() or style attribute context."""
+    """Validate thumbnail URL — reject chars that could break out of a CSS url()
+    or style attribute context. Rejecting ')' is context-independent: safe
+    regardless of whether the interpolation is quoted or unquoted.
+    Note: only validates scheme + chars; internal-host SSRF guard is applied
+    at download time via _download_thumbnail (Phase 3)."""
     if not url or not isinstance(url, str):
         return ""
     url = url.strip()
-    # Must be https, no quotes, spaces, or angle brackets
-    if not url.startswith(("https://", "http://")) or any(c in url for c in ('"', "'", ' ', '<', '>')):
+    # Must be http(s), no breakout chars (quotes, parens, spaces, angle brackets)
+    if not url.startswith(("https://", "http://")) or any(c in url for c in ('"', "'", ' ', '<', '>', '(', ')')):
         return ""
     return url
 
