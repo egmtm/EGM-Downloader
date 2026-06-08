@@ -641,7 +641,8 @@ document.getElementById('open-folder-btn').addEventListener('click', async () =>
 // ── Update panel ──────────────────────────────────────────────────────────────
 document.getElementById('check-updates-btn').addEventListener('click', async () => {
   // Auto-expand plugins panel if collapsed
-  if (!updOpen) togglePluginsPanel();
+  const wasCollapsed = !updOpen;
+  if (wasCollapsed) togglePluginsPanel();
   const btn = document.getElementById('check-updates-btn');
   btn.disabled = true;
   const label = btn.querySelector('.adv-btn-label') || btn;
@@ -656,6 +657,13 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
     renderUpdGrid(data);
     syncInstallBtn();
     updatePluginsBadge(data);
+    // Auto-collapse if we auto-expanded and no updates available
+    if (wasCollapsed) {
+      const installBtn = document.getElementById('run-update-btn');
+      if (installBtn && installBtn.style.display === 'none') {
+        setTimeout(() => { if (updOpen) togglePluginsPanel(); }, 3000);
+      }
+    }
   } catch (e) { toast('Check failed: ' + e.message, 'err'); }
   btn.disabled = false;
   label.textContent = origText;
