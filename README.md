@@ -164,14 +164,14 @@
 ## 📥 Download
 
 ### Windows
-**Latest:** v1.0.0 Build 124  
+**Latest:** v1.0.1 Build 125  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (419 KB · ~800 MB after install)  
 **SHA256:** `2f81288f21791b021749b31ef72d1d5a59d7dea5249f47c5444b497d1922ba5a`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
-**Latest:** v1.0.0 Build 124  
+**Latest:** v1.0.1 Build 125  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (390 KB · ~800 MB after first run)  
 **SHA256:** `dc58e5e1a0f506c8615dc34eb6a8182653725d667f0215f145d8248b07976235`  
 **Requirements:** Windows 10/11 (64-bit)  
@@ -179,14 +179,14 @@
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
-**Latest:** v1.0.0 Build 124  
+**Latest:** v1.0.1 Build 125  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (119 MB · ~300 MB after install)  
 **SHA256:** `19716e514dcd3799062530b451e021d86a908383fa3641a6680cdbf39f2d145c`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v1.0.0 Build 124  
+**Latest:** v1.0.1 Build 125  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (139 MB · ~300 MB after install)  
 **SHA256:** `265e2cf188bee86f2e8c67cc971e75601dbb216a611edf00a34947910466544f`  
 **Format:** AppImage (Universal)  
@@ -621,8 +621,8 @@ Alternatively, you can report via GitHub's private vulnerability reporting featu
 
 ## 📈 Project Stats
 
-- **Version:** 1.0.0
-- **Build:** 124
+- **Version:** 1.0.1
+- **Build:** 125
 - **Supported Sites:** 1000+
 - **Platforms:** 3 (Windows, macOS, Linux)
 - **License:** AGPL-3.0
