@@ -285,6 +285,23 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       document.getElementById('settings-toggle').textContent = '▼ Hide';
       document.getElementById('settings-sec-hdr').classList.add('open');
     }
+    if (s.upd_open === true) {
+      updOpen = true;
+      updLoaded = true;
+      document.getElementById('plugins-body').classList.remove('collapsed');
+      document.getElementById('plugins-toggle').textContent = '▼ Hide';
+      // Panel already open — load installed versions immediately
+      (async () => {
+        try {
+          const [data, deno] = await Promise.all([
+            fetch('/api/installed-versions').then(r => r.json()),
+            fetch('/api/deno/status').then(r => r.json()),
+          ]);
+          data.deno = deno;
+          renderUpdGrid(data);
+        } catch {}
+      })();
+    }
     if (s.ck_open === true) {
       // No-op: cookies section is always visible (single-row layout)
     }
@@ -406,21 +423,28 @@ document.getElementById('fragments-sel').addEventListener('change', () => {
 });
 
 
-// ── Plugin versions loader (Advanced tab) ─────────────────────────────────────
+// ── Plugins panel toggle (Advanced tab) ───────────────────────────────────────
+let updOpen = false;
 let updLoaded = false;  // track if installed versions have been fetched yet
-function loadPluginVersions() {
-  if (updLoaded) return;
-  updLoaded = true;
-  (async () => {
-    try {
-      const [data, deno] = await Promise.all([
-        fetch('/api/installed-versions').then(r => r.json()),
-        fetch('/api/deno/status').then(r => r.json()),
-      ]);
-      data.deno = deno;
-      renderUpdGrid(data);
-    } catch {}
-  })();
+function togglePluginsPanel() {
+  updOpen = !updOpen;
+  document.getElementById('plugins-body').classList.toggle('collapsed', !updOpen);
+  document.getElementById('plugins-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
+  post('/api/settings/save', { upd_open: updOpen });
+  // On first expand, immediately show installed versions
+  if (updOpen && !updLoaded) {
+    updLoaded = true;
+    (async () => {
+      try {
+        const [data, deno] = await Promise.all([
+          fetch('/api/installed-versions').then(r => r.json()),
+          fetch('/api/deno/status').then(r => r.json()),
+        ]);
+        data.deno = deno;
+        renderUpdGrid(data);
+      } catch {}
+    })();
+  }
 }
 
 // ── Plugins section badge — shows "All current" or "N updates" ────────────────
@@ -616,6 +640,8 @@ document.getElementById('open-folder-btn').addEventListener('click', async () =>
 
 // ── Update panel ──────────────────────────────────────────────────────────────
 document.getElementById('check-updates-btn').addEventListener('click', async () => {
+  // Auto-expand plugins panel if collapsed
+  if (!updOpen) togglePluginsPanel();
   const btn = document.getElementById('check-updates-btn');
   btn.disabled = true;
   const label = btn.querySelector('.adv-btn-label') || btn;
@@ -1717,8 +1743,6 @@ function toast(msg, type='') {
     // Re-trigger animation
     const el = document.getElementById(`hpanel-${tab}`);
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
-    // Load plugin versions on first Advanced tab visit
-    if (tab === 'advanced') loadPluginVersions();
   }));
 
   document.getElementById('open-history-window-btn').addEventListener('click', () => {
