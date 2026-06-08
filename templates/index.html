@@ -1697,6 +1697,8 @@
           <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls Deno runtime — app will restart to apply changes">
             <span class="adv-btn-icon green">⬡</span>Reinstall Deno
           </button>
+          <!-- Channels -->
+          <div class="adv-divider"><span class="adv-divider-label">Channels</span></div>
           <div class="adv-port-wrap" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
             <span class="adv-btn-icon teal">⇅</span>
             <span class="adv-port-label">yt-dlp channel</span>
@@ -1713,6 +1715,22 @@
               <option value="nightly">Nightly</option>
             </select>
           </div>
+          <!-- Plugins -->
+          <div class="adv-divider">
+            <span class="adv-divider-label">Plugins</span>
+            <span class="adv-divider-badge" id="plugins-status-badge"></span>
+          </div>
+          <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates">
+            <span class="adv-btn-icon teal">🔍</span><span class="adv-btn-label">Check for updates</span>
+          </button>
+          <div class="update-grid" id="update-grid"></div>
+          <div style="margin-top:4px">
+            <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%">⬆ Install Updates</button>
+          </div>
+          <div class="upd-log" id="upd-log"></div>
+          <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
+          <!-- Post-plugins actions -->
+          <div class="adv-divider"></div>
           <button class="adv-btn-full" id="adv-electron-btn" title="Reinstalls Electron on next restart — updates to latest compatible version" style="display:none">
             <span class="adv-btn-icon teal">⚡</span>Reinstall Electron
           </button>
@@ -1860,25 +1878,6 @@
     </div>
   </div>
 
-  <!-- Update Plugins section -->
-  <div class="sec-hdr" onclick="toggleUpdPanel()">
-    <span class="sec-title" title="Check and install updates for yt-dlp, ffmpeg, mutagen, and Deno">🔌 Update Plugins</span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
-      <button class="btn btn-ghost btn-sm" id="check-updates-btn" onclick="event.stopPropagation()" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates" style="font-size:.68rem;padding:2px 8px">🔍 Check for Updates</button>
-      <button class="card-toggle" id="upd-toggle" onclick="event.stopPropagation();toggleUpdPanel()">▶ Show</button>
-    </div>
-  </div>
-  <div class="sec-body collapsed" id="upd-body">
-    <div class="update-grid" id="update-grid">
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none">⬆ Install Updates</button>
-    </div>
-    <div class="upd-log" id="upd-log"></div>
-    <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
-  </div>
-
 </div>
 
 <!-- Bulk bar -->
@@ -1890,8 +1889,6 @@
 
 <!-- Results -->
 <div id="results"></div>
-
-<!-- Update Plugins moved into unified panel above -->
 
 <footer>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">

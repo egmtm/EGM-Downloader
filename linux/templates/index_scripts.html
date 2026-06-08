@@ -285,23 +285,6 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
       document.getElementById('settings-toggle').textContent = '▼ Hide';
       document.getElementById('settings-sec-hdr').classList.add('open');
     }
-    if (s.upd_open === true) {
-      updOpen = true;
-      updLoaded = true;
-      document.getElementById('upd-body').classList.remove('collapsed');
-      document.getElementById('upd-toggle').textContent = '▼ Hide';
-      // Panel already open — load installed versions immediately
-      (async () => {
-        try {
-          const [data, deno] = await Promise.all([
-            fetch('/api/installed-versions').then(r => r.json()),
-            fetch('/api/deno/status').then(r => r.json()),
-          ]);
-          data.deno = deno;
-          renderUpdGrid(data);
-        } catch {}
-      })();
-    }
     if (s.ck_open === true) {
       // No-op: cookies section is always visible (single-row layout)
     }
@@ -423,27 +406,37 @@ document.getElementById('fragments-sel').addEventListener('change', () => {
 });
 
 
-// ── Update panel toggle ───────────────────────────────────────────────────────
-let updOpen = false;
+// ── Plugin versions loader (Advanced tab) ─────────────────────────────────────
 let updLoaded = false;  // track if installed versions have been fetched yet
-function toggleUpdPanel() {
-  updOpen = !updOpen;
-  document.getElementById('upd-body').classList.toggle('collapsed', !updOpen);
-  document.getElementById('upd-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
-  post('/api/settings/save', { upd_open: updOpen });
-  // On first expand, immediately show installed versions (no network)
-  if (updOpen && !updLoaded) {
-    updLoaded = true;
-    (async () => {
-      try {
-        const [data, deno] = await Promise.all([
-          fetch('/api/installed-versions').then(r => r.json()),
-          fetch('/api/deno/status').then(r => r.json()),
-        ]);
-        data.deno = deno;
-        renderUpdGrid(data);
-      } catch {}
-    })();
+function loadPluginVersions() {
+  if (updLoaded) return;
+  updLoaded = true;
+  (async () => {
+    try {
+      const [data, deno] = await Promise.all([
+        fetch('/api/installed-versions').then(r => r.json()),
+        fetch('/api/deno/status').then(r => r.json()),
+      ]);
+      data.deno = deno;
+      renderUpdGrid(data);
+    } catch {}
+  })();
+}
+
+// ── Plugins section badge — shows "All current" or "N updates" ────────────────
+function updatePluginsBadge(data) {
+  const badge = document.getElementById('plugins-status-badge');
+  if (!badge) return;
+  let count = 0;
+  if (data.ytdlp && data.ytdlp.up_to_date === false) count++;
+  if (data.ffmpeg && data.ffmpeg.up_to_date === false) count++;
+  if (data.mutagen && data.mutagen.up_to_date === false) count++;
+  if (count > 0) {
+    badge.textContent = count + ' update' + (count > 1 ? 's' : '');
+    badge.className = 'adv-divider-badge upd';
+  } else {
+    badge.textContent = 'All current';
+    badge.className = 'adv-divider-badge ok';
   }
 }
 
@@ -466,15 +459,6 @@ function toggleSettingsPanel() {
     settingsHeader.addEventListener('click', e => {
       if (e.target.closest('button') || e.target.closest('label')) return;
       toggleSettingsPanel();
-    });
-  }
-  // Update Plugins card header
-  const updHeader = document.getElementById('upd-toggle').closest('.card-header');
-  if (updHeader) {
-    updHeader.classList.add('clickable');
-    updHeader.addEventListener('click', e => {
-      if (e.target.closest('button')) return;
-      toggleUpdPanel();
     });
   }
 })();
@@ -632,11 +616,11 @@ document.getElementById('open-folder-btn').addEventListener('click', async () =>
 
 // ── Update panel ──────────────────────────────────────────────────────────────
 document.getElementById('check-updates-btn').addEventListener('click', async () => {
-  // Auto-expand panel if collapsed
-  const body = document.getElementById('upd-body');
-  if (body.classList.contains('collapsed')) toggleUpdPanel();
   const btn = document.getElementById('check-updates-btn');
-  btn.disabled = true; btn.textContent = '⏳ Checking…';
+  btn.disabled = true;
+  const label = btn.querySelector('.adv-btn-label') || btn;
+  const origText = label.textContent;
+  label.textContent = '⏳ Checking…';
   try {
     const [data, deno] = await Promise.all([
       fetch('/api/check-updates').then(r => r.json()),
@@ -645,16 +629,10 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
     data.deno = deno;
     renderUpdGrid(data);
     syncInstallBtn();
+    updatePluginsBadge(data);
   } catch (e) { toast('Check failed: ' + e.message, 'err'); }
-  btn.disabled = false; btn.textContent = '🔍 Check for Updates';
-  // Auto-collapse panel after 3s if no updates available
-  const installBtn = document.getElementById('run-update-btn');
-  if (installBtn && installBtn.style.display === 'none') {
-    setTimeout(() => {
-      const b = document.getElementById('upd-body');
-      if (b && !b.classList.contains('collapsed')) toggleUpdPanel();
-    }, 3000);
-  }
+  btn.disabled = false;
+  label.textContent = origText;
 });
 
 function renderUpdGrid(data) {
@@ -780,6 +758,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
           ]);
           fresh.deno = freshDeno;
           renderUpdGrid(fresh);
+          updatePluginsBadge(fresh);
           // Reset toggles and hide Install button — job done
           ['sw-ytdlp','sw-ffmpeg','sw-mutagen'].forEach(id => {
             const el = document.getElementById(id); if (el) el.checked = false;
@@ -1738,6 +1717,8 @@ function toast(msg, type='') {
     // Re-trigger animation
     const el = document.getElementById(`hpanel-${tab}`);
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+    // Load plugin versions on first Advanced tab visit
+    if (tab === 'advanced') loadPluginVersions();
   }));
 
   document.getElementById('open-history-window-btn').addEventListener('click', () => {
