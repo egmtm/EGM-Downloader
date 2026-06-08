@@ -166,29 +166,29 @@
 ### Windows
 **Latest:** v1.0.1 Build 125  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (419 KB · ~800 MB after install)  
-**SHA256:** `2f81288f21791b021749b31ef72d1d5a59d7dea5249f47c5444b497d1922ba5a`  
+**SHA256:** `201be7dfd5a68818ee810b4d289354f7ae54009d9082324ca67bf88dea95af55`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.0.1 Build 125  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (390 KB · ~800 MB after first run)  
-**SHA256:** `dc58e5e1a0f506c8615dc34eb6a8182653725d667f0215f145d8248b07976235`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (391 KB · ~800 MB after first run)  
+**SHA256:** `fab5fc17f3a0488dc47926fcc51c63781627eedb6d1fb9978b776f0958d4240b`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
 **Latest:** v1.0.1 Build 125  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (119 MB · ~300 MB after install)  
-**SHA256:** `19716e514dcd3799062530b451e021d86a908383fa3641a6680cdbf39f2d145c`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (120 MB · ~300 MB after install)  
+**SHA256:** `03ed8bd5fbbbfe43abe51257bbaa5a7b92f293c06958e6c34400d100d1231ec1`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.0.1 Build 125  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (139 MB · ~300 MB after install)  
-**SHA256:** `265e2cf188bee86f2e8c67cc971e75601dbb216a611edf00a34947910466544f`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
+**SHA256:** `22597e9ca54f2f0bcba65f77a0861e46110a496ecd006cb1969e1abeafabe2cf`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -304,6 +304,14 @@
 - 🧪 32 automated tests — security parity across all 3 platforms, theme consistency, template integrity
 - ✨ Source split — index, scripts, styles, and theme data in dedicated files; rendered output identical
 - ⚡ Electron 42.3.2 — latest stable runtime
+
+**v1.0.1:** ✅ Shipped
+- 🔧 Update Plugins panel moved into hamburger → Advanced tab — cleaner main page
+- 🔧 Collapsible plugins grid with Show/Hide toggle — state remembered across restarts
+- 🔧 Section dividers in Advanced tab — Channels, Plugins, Maintenance grouping
+- 🔧 Clear cache moved to maintenance zone
+- 🔧 Auto-collapse plugins panel after check when all plugins are current
+- 🔧 Update modal now scrollable — max-height 90vh, buttons stay fixed
 
 **v1.1 — IGNITION:**
 - 📡 Subscriptions — save any channel or playlist once, automatically download what's new
@@ -468,10 +476,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 124 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 124 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 124 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 124 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 125 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 125 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 125 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 125 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
