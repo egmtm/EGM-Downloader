@@ -1103,6 +1103,7 @@ def get_settings():
         "concurrency":             s.get("concurrency", 6),
         "fragments":               s.get("fragments", 4),
         "settings_open":           s.get("settings_open", True),
+        "upd_open":                s.get("upd_open", False),
         "ck_open":                 s.get("ck_open", False),
         "quit_on_done":            s.get("quit_on_done", False),
         "check_updates_on_launch": s.get("check_updates_on_launch", False),
@@ -1125,7 +1126,7 @@ def get_settings():
 def save_settings():
     data = request.get_json(silent=True) or {}
     ALLOWED = {"last_folder", "concurrency", "fragments", "settings_open",
-               "ck_open", "quit_on_done",
+               "upd_open", "ck_open", "quit_on_done",
                "last_seen_version", "window_bounds", "window_maximized", "check_updates_on_launch", "theme",
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",

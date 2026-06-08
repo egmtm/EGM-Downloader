@@ -1685,9 +1685,6 @@
           <button class="adv-btn-full" id="adv-shortcut-btn" title="Creates a shortcut on your desktop for easier access">
             <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
           </button>
-          <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
-            <span class="adv-btn-icon amber">⌫</span>Clear cache
-          </button>
           <button class="adv-btn-full" id="adv-export-btn" title="Export your settings to a file">
             <span class="adv-btn-icon blue">↑</span>Export settings
           </button>
@@ -1718,19 +1715,27 @@
           <!-- Plugins -->
           <div class="adv-divider">
             <span class="adv-divider-label">Plugins</span>
-            <span class="adv-divider-badge" id="plugins-status-badge"></span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="adv-divider-badge" id="plugins-status-badge"></span>
+              <button class="adv-toggle-btn" id="plugins-toggle" onclick="togglePluginsPanel()">▶ Show</button>
+            </div>
           </div>
           <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates">
             <span class="adv-btn-icon teal">🔍</span><span class="adv-btn-label">Check for updates</span>
           </button>
-          <div class="update-grid" id="update-grid"></div>
-          <div style="margin-top:4px">
-            <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%">⬆ Install Updates</button>
+          <div class="plugins-collapsible collapsed" id="plugins-body">
+            <div class="update-grid" id="update-grid"></div>
+            <div style="margin-top:4px">
+              <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%">⬆ Install Updates</button>
+            </div>
+            <div class="upd-log" id="upd-log"></div>
+            <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
           </div>
-          <div class="upd-log" id="upd-log"></div>
-          <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
-          <!-- Post-plugins actions -->
+          <!-- Maintenance -->
           <div class="adv-divider"></div>
+          <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
+            <span class="adv-btn-icon amber">⌫</span>Clear cache
+          </button>
           <button class="adv-btn-full" id="adv-electron-btn" title="Reinstalls Electron on next restart — updates to latest compatible version" style="display:none">
             <span class="adv-btn-icon teal">⚡</span>Reinstall Electron
           </button>
