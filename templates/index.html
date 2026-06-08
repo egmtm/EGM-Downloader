@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v1.0.0</title>
+  <title>EGM Downloader v1.0.1</title>
   <style>
 {% include 'index_styles.html' %}  </style>
 </head>
@@ -30,7 +30,7 @@
     </svg>
   </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v1.0.0</span></h1>
+    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v1.0.1</span></h1>
     <p>Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
   </div>
   <!-- Subscriptions button — matches hamburger spec (Wizard) -->
@@ -1702,6 +1702,8 @@
           <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls Deno runtime — app will restart to apply changes">
             <span class="adv-btn-icon green">⬡</span>Reinstall Deno
           </button>
+          <!-- Channels -->
+          <div class="adv-divider"><span class="adv-divider-label">Channels</span></div>
           <div class="adv-port-wrap" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
             <span class="adv-btn-icon teal">⇅</span>
             <span class="adv-port-label">yt-dlp channel</span>
@@ -1718,6 +1720,30 @@
               <option value="nightly">Nightly</option>
             </select>
           </div>
+          <!-- Plugins -->
+          <div class="adv-divider">
+            <span class="adv-divider-label">Plugins</span>
+            <div style="display:flex;align-items:center;gap:6px">
+              <span class="adv-divider-badge" id="plugins-status-badge"></span>
+              <button class="adv-toggle-btn" id="plugins-toggle" onclick="togglePluginsPanel()">▶ Show</button>
+            </div>
+          </div>
+          <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates">
+            <span class="adv-btn-icon teal">🔍</span><span class="adv-btn-label">Check for updates</span>
+          </button>
+          <div class="plugins-collapsible collapsed" id="plugins-body">
+            <div class="update-grid" id="update-grid"></div>
+            <div style="margin-top:4px">
+              <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%">⬆ Install Updates</button>
+            </div>
+            <div class="upd-log" id="upd-log"></div>
+            <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
+          </div>
+          <!-- Maintenance -->
+          <div class="adv-divider"></div>
+          <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
+            <span class="adv-btn-icon amber">⌫</span>Clear cache
+          </button>
           <button class="adv-btn-full" id="adv-electron-btn" title="Reinstalls Electron on next restart — updates to latest compatible version" style="display:none">
             <span class="adv-btn-icon teal">⚡</span>Reinstall Electron
           </button>
@@ -1865,25 +1891,6 @@
     </div>
   </div>
 
-  <!-- Update Plugins section -->
-  <div class="sec-hdr" onclick="toggleUpdPanel()">
-    <span class="sec-title" title="Check and install updates for yt-dlp, ffmpeg, mutagen, and Deno">🔌 Update Plugins</span>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span id="deno-status-badge" style="display:none;font-size:.7rem;color:var(--text2)"></span>
-      <button class="btn btn-ghost btn-sm" id="check-updates-btn" onclick="event.stopPropagation()" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates" style="font-size:.68rem;padding:2px 8px">🔍 Check for Updates</button>
-      <button class="card-toggle" id="upd-toggle" onclick="event.stopPropagation();toggleUpdPanel()">▶ Show</button>
-    </div>
-  </div>
-  <div class="sec-body collapsed" id="upd-body">
-    <div class="update-grid" id="update-grid">
-    </div>
-    <div class="row" style="margin-top:6px">
-      <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none">⬆ Install Updates</button>
-    </div>
-    <div class="upd-log" id="upd-log"></div>
-    <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
-  </div>
-
 </div>
 
 <!-- Bulk bar -->
@@ -1896,13 +1903,11 @@
 <!-- Results -->
 <div id="results"></div>
 
-<!-- Update Plugins moved into unified panel above -->
-
 <footer>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
-    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.0.0</span>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.0.1</span>
     <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
   </div>
   <div style="margin-top:7px;text-align:center">
@@ -2012,7 +2017,7 @@
 <!-- What's New modal — shown once per version -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3>🎉 What's New in <span id="whats-new-version">v1.0.0</span></h3>
+    <h3>🎉 What's New in <span id="whats-new-version">v1.0.1</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <!-- lint-allow-muted: loading-state -->
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>

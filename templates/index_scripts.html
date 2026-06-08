@@ -288,8 +288,8 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
     if (s.upd_open === true) {
       updOpen = true;
       updLoaded = true;
-      document.getElementById('upd-body').classList.remove('collapsed');
-      document.getElementById('upd-toggle').textContent = '▼ Hide';
+      document.getElementById('plugins-body').classList.remove('collapsed');
+      document.getElementById('plugins-toggle').textContent = '▼ Hide';
       // Panel already open — load installed versions immediately
       (async () => {
         try {
@@ -423,15 +423,15 @@ document.getElementById('fragments-sel').addEventListener('change', () => {
 });
 
 
-// ── Update panel toggle ───────────────────────────────────────────────────────
+// ── Plugins panel toggle (Advanced tab) ───────────────────────────────────────
 let updOpen = false;
 let updLoaded = false;  // track if installed versions have been fetched yet
-function toggleUpdPanel() {
+function togglePluginsPanel() {
   updOpen = !updOpen;
-  document.getElementById('upd-body').classList.toggle('collapsed', !updOpen);
-  document.getElementById('upd-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
+  document.getElementById('plugins-body').classList.toggle('collapsed', !updOpen);
+  document.getElementById('plugins-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
   post('/api/settings/save', { upd_open: updOpen });
-  // On first expand, immediately show installed versions (no network)
+  // On first expand, immediately show installed versions
   if (updOpen && !updLoaded) {
     updLoaded = true;
     (async () => {
@@ -444,6 +444,23 @@ function toggleUpdPanel() {
         renderUpdGrid(data);
       } catch {}
     })();
+  }
+}
+
+// ── Plugins section badge — shows "All current" or "N updates" ────────────────
+function updatePluginsBadge(data) {
+  const badge = document.getElementById('plugins-status-badge');
+  if (!badge) return;
+  let count = 0;
+  if (data.ytdlp && data.ytdlp.up_to_date === false) count++;
+  if (data.ffmpeg && data.ffmpeg.up_to_date === false) count++;
+  if (data.mutagen && data.mutagen.up_to_date === false) count++;
+  if (count > 0) {
+    badge.textContent = count + ' update' + (count > 1 ? 's' : '');
+    badge.className = 'adv-divider-badge upd';
+  } else {
+    badge.textContent = 'All current';
+    badge.className = 'adv-divider-badge ok';
   }
 }
 
@@ -466,15 +483,6 @@ function toggleSettingsPanel() {
     settingsHeader.addEventListener('click', e => {
       if (e.target.closest('button') || e.target.closest('label')) return;
       toggleSettingsPanel();
-    });
-  }
-  // Update Plugins card header
-  const updHeader = document.getElementById('upd-toggle').closest('.card-header');
-  if (updHeader) {
-    updHeader.classList.add('clickable');
-    updHeader.addEventListener('click', e => {
-      if (e.target.closest('button')) return;
-      toggleUpdPanel();
     });
   }
 })();
@@ -632,11 +640,14 @@ document.getElementById('open-folder-btn').addEventListener('click', async () =>
 
 // ── Update panel ──────────────────────────────────────────────────────────────
 document.getElementById('check-updates-btn').addEventListener('click', async () => {
-  // Auto-expand panel if collapsed
-  const body = document.getElementById('upd-body');
-  if (body.classList.contains('collapsed')) toggleUpdPanel();
+  // Auto-expand plugins panel if collapsed
+  const wasCollapsed = !updOpen;
+  if (wasCollapsed) togglePluginsPanel();
   const btn = document.getElementById('check-updates-btn');
-  btn.disabled = true; btn.textContent = '⏳ Checking…';
+  btn.disabled = true;
+  const label = btn.querySelector('.adv-btn-label') || btn;
+  const origText = label.textContent;
+  label.textContent = '⏳ Checking…';
   try {
     const [data, deno] = await Promise.all([
       fetch('/api/check-updates').then(r => r.json()),
@@ -645,16 +656,17 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
     data.deno = deno;
     renderUpdGrid(data);
     syncInstallBtn();
+    updatePluginsBadge(data);
+    // Auto-collapse if we auto-expanded and no updates available
+    if (wasCollapsed) {
+      const installBtn = document.getElementById('run-update-btn');
+      if (installBtn && installBtn.style.display === 'none') {
+        setTimeout(() => { if (updOpen) togglePluginsPanel(); }, 3000);
+      }
+    }
   } catch (e) { toast('Check failed: ' + e.message, 'err'); }
-  btn.disabled = false; btn.textContent = '🔍 Check for Updates';
-  // Auto-collapse panel after 3s if no updates available
-  const installBtn = document.getElementById('run-update-btn');
-  if (installBtn && installBtn.style.display === 'none') {
-    setTimeout(() => {
-      const b = document.getElementById('upd-body');
-      if (b && !b.classList.contains('collapsed')) toggleUpdPanel();
-    }, 3000);
-  }
+  btn.disabled = false;
+  label.textContent = origText;
 });
 
 function renderUpdGrid(data) {
@@ -780,6 +792,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
           ]);
           fresh.deno = freshDeno;
           renderUpdGrid(fresh);
+          updatePluginsBadge(fresh);
           // Reset toggles and hide Install button — job done
           ['sw-ytdlp','sw-ffmpeg','sw-mutagen'].forEach(id => {
             const el = document.getElementById(id); if (el) el.checked = false;
