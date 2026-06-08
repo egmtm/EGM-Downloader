@@ -23,7 +23,16 @@ v1.1 IGNITION — Phase 2: Fetch & Display
   • [ALL] Fix: subscriptions window themes inherit active theme from main window
   • [ALL] Chore: subscriptions.html added to template drift list in validate-version-sync
 
-v1.0 - CORNERSTONE (in progress)
+v1.0.1 - Build 125 (6/8/2026)
+-----------------------------------------
+  • [ALL] New: Update Plugins panel moved into hamburger → Advanced tab — cleaner main page
+  • [ALL] New: Collapsible plugins grid with Show/Hide toggle — state remembered across app restarts
+  • [ALL] New: Section dividers in Advanced tab — Channels, Plugins, Maintenance grouping
+  • [ALL] Polish: Clear cache moved to maintenance zone (after Plugins, before Reset settings)
+  • [ALL] Polish: Auto-collapse plugins panel after check when all plugins are current
+  • [ALL] Fix: Update modal now scrollable — max-height 90vh, body scrolls, buttons stay fixed
+
+v1.0 - CORNERSTONE
 -----------------------------------------
   • [ALL] New: 140 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10), Brands (20), Venues (10), 8-Bit Era (10) — total now 400 themes
   • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import, server-side validation (XSS-safe, deduped, capped)
