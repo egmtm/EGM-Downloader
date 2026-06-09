@@ -1759,15 +1759,8 @@ def show_window_check():
 # ── History routes ────────────────────────────────────────────────────────────
 @app.route("/api/history")
 def get_history():
-    # Robust parse — bad query params must not 500. Clamp per_page to a sane
-    # ceiling so a huge value can't force a giant response payload.
-    def _int_arg(name, default, lo, hi):
-        try:
-            return max(lo, min(int(request.args.get(name, default)), hi))
-        except (TypeError, ValueError):
-            return default
-    page     = _int_arg("page", 1, 1, 10_000_000)
-    per_page = _int_arg("per_page", 10, 1, 500)
+    page     = _clamp_int(request.args.get("page"), 1, 1, 10_000_000)
+    per_page = _clamp_int(request.args.get("per_page"), 10, 1, 500)
     with _history_lock:
         items = _load_history()
     total = len(items)
