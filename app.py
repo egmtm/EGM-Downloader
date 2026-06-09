@@ -482,6 +482,19 @@ _jobs_lock = threading.Lock()
 _active_procs: dict = {}
 _active_procs_lock  = threading.Lock()
 
+# ── Concurrency backstop ──────────────────────────────────────────────────────
+# The UI paces concurrent downloads to the user's "concurrency" setting (max 20).
+# This server-side hard ceiling guarantees nothing — a fast client, a bulk action,
+# or a future bulk-fetch — can spawn unbounded yt-dlp/ffmpeg process trees and
+# exhaust the machine. Set above the UI max so it never affects normal use.
+_MAX_CONCURRENT_DOWNLOADS = 24
+_download_sem = threading.BoundedSemaphore(_MAX_CONCURRENT_DOWNLOADS)
+
+# Guard the check-and-start of the singleton update / deno-install workers so two
+# near-simultaneous requests can't both spawn a worker (TOCTOU on "running").
+_update_lock       = threading.Lock()
+_deno_install_lock = threading.Lock()
+
 # ── Jobs cleanup — remove stale completed entries after ~10 minutes ───────────
 def _jobs_cleanup_worker():
     """Background thread: sweep jobs dict every 60s and evict entries that
@@ -704,6 +717,36 @@ def _build_audio_formats(info):
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
 # ── Download worker ────────────────────────────────────────────────────────────
+def _run_download_slot(job_id, *rest):
+    """Hold a concurrency slot for the whole download and wait out first-run ffmpeg.
+    The backstop bounds concurrent process trees regardless of client pacing; the
+    ffmpeg wait means a download started before first-run setup finishes just stays
+    'queued' until ffmpeg is ready, instead of the endpoint rejecting it."""
+    _download_sem.acquire()
+    try:
+        job = jobs.get(job_id)
+        if not job:
+            return
+        if job.get("cancelled"):
+            job["status"] = "cancelled"; job["_finished_at"] = time.time()
+            return
+        ff = FFMPEG_DIR / "ffmpeg.exe"
+        if not ff.exists():
+            waited = 0
+            while not ff.exists() and waited < 180:
+                if job.get("cancelled"):
+                    job["status"] = "cancelled"; job["_finished_at"] = time.time()
+                    return
+                time.sleep(1); waited += 1
+            if not ff.exists():
+                job["status"] = "error"
+                job["error"]  = "ffmpeg is still installing (first-run setup). Please try again in a moment."
+                job["_finished_at"] = time.time()
+                return
+        run_download(job_id, *rest)
+    finally:
+        _download_sem.release()
+
 def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
     job     = jobs.get(job_id)
     if not job:
@@ -1013,10 +1056,6 @@ def start_download():
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
-    # Gate: ffmpeg must be ready before downloads can start (it runs in a
-    # background thread on first launch — see ensure_ffmpeg).
-    if not (FFMPEG_DIR / "ffmpeg.exe").exists():
-        return jsonify({"error": "ffmpeg is still downloading — please wait a moment and try again"}), 503
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
 
@@ -1047,7 +1086,7 @@ def start_download():
                         "title": data.get("title",""), "proc": None, "cancelled": False,
                         "download_dir": dl_dir, "format": data.get("format", "video"),
                         "thumbnail": data.get("thumbnail", "")}
-    threading.Thread(target=run_download,
+    threading.Thread(target=_run_download_slot,
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
@@ -1344,7 +1383,9 @@ def check_updates():
 
 @app.route("/api/run-update", methods=["POST"])
 def run_update():
-    if update_status.get("running"): return jsonify({"error": "Already running"}), 409
+    with _update_lock:
+        if update_status.get("running"): return jsonify({"error": "Already running"}), 409
+        update_status["running"] = True   # claim the slot before spawning (no TOCTOU)
     data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
                      args=(bool(data.get("ytdlp", True)),
@@ -1483,10 +1524,12 @@ def _run_deno_install():
 
 @app.route("/api/deno/install", methods=["POST"])
 def install_deno():
-    if deno_install_status.get("running"):
-        return jsonify({"error": "Install already running"}), 409
-    if DENO_EXE.exists():
-        return jsonify({"error": "Deno already installed"}), 400
+    with _deno_install_lock:
+        if deno_install_status.get("running"):
+            return jsonify({"error": "Install already running"}), 409
+        if DENO_EXE.exists():
+            return jsonify({"error": "Deno already installed"}), 400
+        deno_install_status["running"] = True   # claim before spawning (no TOCTOU)
     threading.Thread(target=_run_deno_install, daemon=True).start()
     return jsonify({"started": True})
 
