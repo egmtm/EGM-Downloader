@@ -1,3 +1,10 @@
+v1.0.2 - Build 126 (6/9/2026)
+-----------------------------------------
+  • [ALL] New: Direct-access navigation buttons replace hamburger menu — History, Themes, Advanced each get their own button
+  • [ALL] New: Enlarged app logo (76px) for balanced header layout
+  • [ALL] Polish: Larger header title and subtitle for visual balance
+  • [ALL] Fix: History panel loads correctly when switching from another tab
+
 v1.0.1 - Build 125 (6/8/2026)
 -----------------------------------------
   • [ALL] New: Update Plugins panel moved into hamburger → Advanced tab — cleaner main page
