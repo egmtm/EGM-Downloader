@@ -33,17 +33,19 @@
     <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v1.0.1</span></h1>
     <p>Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
   </div>
-  <!-- Hamburger button (B4 grid) — opens History+Themes panel -->
+  <!-- Navigation buttons — direct access to panel tabs -->
   <div style="margin-left:auto;flex-shrink:0;position:relative">
-    <button id="hamburger-btn" title="History, Themes &amp; Advanced" aria-label="History, Themes and Advanced" style="position:relative">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px">
-        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
-        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
-        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
-        <span style="width:5px;height:5px;border-radius:1.5px;background:currentColor;display:block"></span>
-      </div>
-      
-    </button>
+    <div id="nav-buttons" style="display:flex;gap:3px">
+      <button class="nav-btn" data-nav="history" title="View download history">
+        <span class="nav-icon blue">📋</span>History
+      </button>
+      <button class="nav-btn" data-nav="themes" title="Browse and switch themes">
+        <span class="nav-icon purple">🎨</span>Themes
+      </button>
+      <button class="nav-btn" data-nav="advanced" title="Channels, plugins, and settings">
+        <span class="nav-icon muted">⚙</span>Advanced
+      </button>
+    </div>
     <div id="hamburger-panel">
       <!-- Tabs -->
       <div class="hpanel-tabs">
