@@ -318,6 +318,13 @@
 - 🖼️ Enlarged logo (76px) with vertical nav stack — cleaner header layout
 - 🔧 History panel loads correctly on every navigation path — tab switch and nav-while-open both handled
 
+**v1.0.3:** 🔨 In progress
+- 🔒 Server-side download concurrency cap (BoundedSemaphore) — prevents unbounded process spawns
+- 🔒 Resolve-first download directory validation — closes path traversal bypass
+- 🔒 TOCTOU locks on update and Deno install — prevents double-spawn race on simultaneous requests
+- 🔧 First-run ffmpeg queues downloads instead of 503 — new users can download immediately after install
+- ⚡ Electron 42.4.0 — Mac and Linux
+
 **v1.1 — IGNITION:**
 - 📡 Subscriptions — save any channel or playlist once, automatically download what's new
 - The engine fires here. Subscriptions touch backend, UI, and update flow — given room to land right
