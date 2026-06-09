@@ -1725,36 +1725,70 @@ function toast(msg, type='') {
   c.appendChild(t); setTimeout(()=>t.remove(), TOAST_DURATION);
 }
 
-// ── Hamburger panel — History + Themes tabs ────────────────────────────────────
+// ── Navigation buttons — direct access to panel tabs ────────────────────────────
 (function() {
-  const btn   = document.getElementById('hamburger-btn');
-  const panel = document.getElementById('hamburger-panel');
-  const tabs  = document.querySelectorAll('.hpanel-tab');
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const panel   = document.getElementById('hamburger-panel');
+  const tabs    = document.querySelectorAll('.hpanel-tab');
 
-  btn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const opening = !panel.classList.contains('open');
-    panel.classList.toggle('open');
-    if (opening) loadHistoryPanel();
-  });
-  document.addEventListener('click', (e) => {
-    if (!panel.contains(e.target) && e.target !== btn) panel.classList.remove('open');
-  });
-
-  tabs.forEach(t => t.addEventListener('click', () => {
-    tabs.forEach(x => x.classList.remove('active'));
-    t.classList.add('active');
-    const tab = t.dataset.tab;
+  function switchTab(tab) {
+    tabs.forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === tab);
+    });
     document.getElementById('hpanel-history').style.display  = tab === 'history'  ? '' : 'none';
     document.getElementById('hpanel-themes').style.display   = tab === 'themes'   ? '' : 'none';
     document.getElementById('hpanel-advanced').style.display  = tab === 'advanced' ? '' : 'none';
-    // Re-trigger animation
     const el = document.getElementById(`hpanel-${tab}`);
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+  }
+
+  function setActiveNav(tab) {
+    navBtns.forEach(b => b.classList.toggle('active', b.dataset.nav === tab));
+  }
+
+  function getActiveTab() {
+    const active = document.querySelector('.hpanel-tab.active');
+    return active ? active.dataset.tab : 'history';
+  }
+
+  navBtns.forEach(b => b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const target = b.dataset.nav;
+    const isOpen = panel.classList.contains('open');
+    const currentTab = getActiveTab();
+
+    if (isOpen && currentTab === target) {
+      // Same button — close panel
+      panel.classList.remove('open');
+      setActiveNav(null);
+    } else {
+      // Open panel to this tab (or switch tab if already open)
+      switchTab(target);
+      setActiveNav(target);
+      if (!isOpen) {
+        panel.classList.add('open');
+        if (target === 'history') loadHistoryPanel();
+      }
+    }
   }));
+
+  // Clicking inside panel tabs still works
+  tabs.forEach(t => t.addEventListener('click', () => {
+    switchTab(t.dataset.tab);
+    setActiveNav(t.dataset.tab);
+  }));
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && !e.target.closest('.nav-btn')) {
+      panel.classList.remove('open');
+      setActiveNav(null);
+    }
+  });
 
   document.getElementById('open-history-window-btn').addEventListener('click', () => {
     panel.classList.remove('open');
+    setActiveNav(null);
     if (window.electronAPI?.openHistoryWindow) window.electronAPI.openHistoryWindow();
     else window.open('/history-page', '_blank');
   });
@@ -2033,6 +2067,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     list.querySelectorAll('.theme-row').forEach(r => r.addEventListener('click', () => {
       applyTheme(r.dataset.theme);
       document.getElementById('hamburger-panel').classList.remove('open');
+      document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
     }));
   }
 
@@ -2073,6 +2108,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
       window.open('/themes-page', '_blank');
     }
     document.getElementById('hamburger-panel').classList.remove('open');
+    document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
   };
 
 })(); // ── End theme picker IIFE ───────────────────────────────────────────────
