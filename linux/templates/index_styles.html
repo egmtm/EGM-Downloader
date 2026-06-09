@@ -328,13 +328,19 @@
     {% include 'theme_styles.html' %}
 
     /* ── Hamburger button (B4 grid) ── */
-    #hamburger-btn {
+    .nav-btn {
       background: var(--surf); border: 1px solid var(--border2);
-      border-radius: var(--rs); width: 34px; height: 34px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--text2); flex-shrink: 0;
+      border-radius: var(--rs); padding: 4px 9px;
+      display: flex; align-items: center; gap: 4px;
+      cursor: pointer; color: var(--text2); font-size: .62rem;
+      font-family: inherit; white-space: nowrap; flex-shrink: 0;
     }
-    #hamburger-btn:hover { border-color: var(--acc); color: var(--acc); }
+    .nav-btn:hover { border-color: var(--acc); color: var(--text); }
+    .nav-btn.active { border-color: var(--acc); color: var(--text); background: var(--surf2); }
+    .nav-icon { font-size: .7rem; }
+    .nav-icon.blue { filter: hue-rotate(0deg); }
+    .nav-icon.purple { filter: hue-rotate(0deg); }
+    .nav-icon.muted { opacity: .8; }
 
     /* ── Hamburger panel ── */
     #hamburger-panel {
