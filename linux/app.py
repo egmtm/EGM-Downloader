@@ -608,6 +608,59 @@ def _ytdlp(*extra, timeout=None):
                    *_cookies_args(), *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
+# ── Download directory validation ─────────────────────────────────────────────
+# Self-harm protection for the user's own machine: the native folder picker is
+# the normal path; this guards hand-entered or API-supplied values. Deliberately
+# NOT an allowlist — external drives (D:\, /Volumes, /mnt) stay fully supported.
+_SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/boot",
+                 "/sys", "/proc",
+                 "C:\\Windows", "C:\\Program Files", "C:\\Program Files (x86)",
+                 "C:\\System32")
+
+def _validate_download_dir(dl_dir):
+    """Validate a download directory. Returns (ok, resolved_path_str, error).
+
+    1. RESOLVE first (collapses '..', follows symlinks) so the system-root check
+       can't be bypassed via 'C:\\Users\\..\\Windows' or a symlinked folder.
+    2. Boundary-aware system-root check on the RESOLVED path — '/etc/x' is
+       rejected but '/etcetera' is fine (the old prefix match got this wrong,
+       which is also why 'Program Files (x86)' is now listed explicitly).
+    3. Reachability + writability probe on the deepest EXISTING ancestor (the
+       directory itself may not exist yet — run_download creates it). Catches
+       unplugged drives, read-only mounts and permission errors up front with a
+       clear message instead of a mid-download worker failure. os.access is a
+       best-effort probe (Windows ACLs may not be fully reflected); the worker's
+       mkdir remains the final arbiter.
+
+    Also used by subscriptions per-channel download folders (Phase 3).
+    """
+    if not dl_dir or not isinstance(dl_dir, str) or not dl_dir.strip():
+        return False, "", "No download directory provided."
+    try:
+        p = Path(dl_dir).expanduser().resolve()
+    except (OSError, RuntimeError, ValueError):
+        return False, "", "Invalid download directory path."
+    rs = str(p).replace("\\", "/").rstrip("/").lower()
+    for root in _SYSTEM_ROOTS:
+        rn = root.replace("\\", "/").rstrip("/").lower()
+        if rs == rn or rs.startswith(rn + "/"):
+            return False, "", (f"Download directory '{dl_dir}' resolves to a system "
+                               "path. Please choose a different folder.")
+    probe = p
+    while not probe.exists():
+        if probe.parent == probe:
+            break
+        probe = probe.parent
+    if not probe.exists():
+        return False, "", (f"Download directory '{dl_dir}' is not reachable "
+                           "(drive disconnected?). Please choose a different folder.")
+    if not probe.is_dir():
+        return False, "", f"'{dl_dir}' is not a valid folder location."
+    if not os.access(str(probe), os.W_OK):
+        return False, "", (f"Download directory '{dl_dir}' is not writable. "
+                           "Please choose a different folder.")
+    return True, str(p), ""
+
 def _safe_filename(title: str, ext: str) -> str:
     safe = "".join(c for c in title if c not in r'\/:\*?"<>|').strip()[:120].strip()
     return f"{safe}{ext}" if safe else f"download{ext}"
@@ -967,13 +1020,13 @@ def start_download():
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
 
-    # Traversal guard: warn if path looks like a system directory
-    _SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/sys", "/proc",
-                     "C:\\Windows", "C:\\Program Files", "C:\\System32")
-    dl_str = str(dl_dir).rstrip("/\\")
-    for root in _SYSTEM_ROOTS:
-        if dl_str.lower().startswith(root.lower()):
-            return jsonify({"error": f"Download directory '{dl_dir}' looks like a system path. Please choose a different folder."}), 400
+    # Validate + resolve the download directory: traversal-proof system-root
+    # check plus reachability/writability probe. The RESOLVED path is what the
+    # job uses, so history and yt-dlp see the canonical location.
+    _dl_ok, _dl_resolved, _dl_err = _validate_download_dir(dl_dir)
+    if not _dl_ok:
+        return jsonify({"error": _dl_err}), 400
+    dl_dir = _dl_resolved
 
     # #13 — format_id validation: only safe yt-dlp selector characters allowed
     raw_format_id = data.get("format_id") or ""
