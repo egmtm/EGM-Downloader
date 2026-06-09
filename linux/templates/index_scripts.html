@@ -1740,6 +1740,7 @@ function toast(msg, type='') {
     document.getElementById('hpanel-advanced').style.display  = tab === 'advanced' ? '' : 'none';
     const el = document.getElementById(`hpanel-${tab}`);
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+    if (tab === 'history') loadHistoryPanel();
   }
 
   function setActiveNav(tab) {
@@ -1767,7 +1768,6 @@ function toast(msg, type='') {
       setActiveNav(target);
       if (!isOpen) {
         panel.classList.add('open');
-        if (target === 'history') loadHistoryPanel();
       }
     }
   }));
