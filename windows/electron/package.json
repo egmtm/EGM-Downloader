@@ -8,8 +8,10 @@
   "scripts": {
     "start": "electron ."
   },
+  "dependencies": {
+    "electron": "^42.4.0"
+  },
   "devDependencies": {
-    "electron": "^42.4.0",
     "electron-builder": "^26.0.0"
   },
   "build": {
