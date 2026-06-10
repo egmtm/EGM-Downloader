@@ -165,30 +165,30 @@
 
 ### Windows
 **Latest:** v1.0.3 Build 127  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (420 KB · ~800 MB after install)  
-**SHA256:** `863655067d479832f707b00f00ee073e12e33f356f363d2b87e58177cf9efa68`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (421 KB · ~800 MB after install)  
+**SHA256:** `66cf95fdcff84532ed6c6a61e8b5d6baca517ba0c1563c8b0f027af24b032e8a`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.0.3 Build 127  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (391 KB · ~800 MB after first run)  
-**SHA256:** `e2549f9e5c8b05eae9136899d312529af65a82b01b89ef4e5763b3fd76b265d2`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (393 KB · ~800 MB after first run)  
+**SHA256:** `7d09b74a3d0c02b3d903b570fab7d729046c0055a91dead29e7ec4702cf4bc13`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
 **Latest:** v1.0.3 Build 127  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (120 MB · ~300 MB after install)  
-**SHA256:** `065b201b48911eb6d17cc4fd089ed152910daa068c545afeee36aae0a51f2904`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (128 MB · ~300 MB after install)  
+**SHA256:** `b764310b6a2edf9f24e173e3fc41e2bb15180d68c99b662035c3d499644e715c`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.0.3 Build 127  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
-**SHA256:** `6114f954ad9852ef7f463cf0d3f51e7b5076b14c65099b145c6e95dc6dd39424`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
+**SHA256:** `afe5c38ff63cf4253974662cf07434f21ca4369357bf62cdf7136d89887f0d94`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -318,7 +318,7 @@
 - 🖼️ Enlarged logo (76px) with vertical nav stack — cleaner header layout
 - 🔧 History panel loads correctly on every navigation path — tab switch and nav-while-open both handled
 
-**v1.0.3:** 🔨 In progress
+**v1.0.3:** ✅ Shipped
 - 🔒 Server-side download concurrency cap (BoundedSemaphore) — prevents unbounded process spawns
 - 🔒 Resolve-first download directory validation — closes path traversal bypass
 - 🔒 TOCTOU locks on update and Deno install — prevents double-spawn race on simultaneous requests
@@ -488,10 +488,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 126 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 126 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 126 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 126 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 127 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 127 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 127 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 127 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
