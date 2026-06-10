@@ -1,3 +1,12 @@
+v1.0.3 - Build 127 (6/2026)
+-----------------------------------------
+  • [ALL] Security: Server-side download concurrency backstop — BoundedSemaphore (cap 24) prevents unbounded process spawns regardless of client pacing
+  • [ALL] Security: Resolve-first download directory validation replaces denylist — closes path traversal bypass, adds boundary-aware root check and writability probe
+  • [ALL] Security: TOCTOU locks on update and Deno install singletons — prevents double-spawn race on simultaneous requests
+  • [ALL] Fix: First-run ffmpeg now queues downloads instead of returning 503 — new users no longer get an error when downloading immediately after install
+  • [MAC] [LINUX] Runtime: Electron 42.3.2 → 42.4.0
+  • [WINDOWS] Runtime: Electron 42.4.0 included for fresh installs; existing installs keep 42.3.2 until major bump or manual Reinstall Electron (minor bumps do not trigger automatic Electron re-download)
+
 v1.0.2 - Build 126 (6/9/2026)
 -----------------------------------------
   • [ALL] New: Direct-access navigation buttons replace hamburger menu — History, Themes, Advanced each get their own button
