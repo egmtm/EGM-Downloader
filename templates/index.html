@@ -40,15 +40,21 @@
 
   <!-- Navigation buttons — direct access to panel tabs -->
   <div style="flex-shrink:0;position:relative">
-    <div id="nav-buttons" style="display:flex;flex-direction:column;gap:3px">
-      <button class="nav-btn" data-nav="history" title="View download history">
-        <span class="nav-icon blue">📋</span>History
-      </button>
-      <button class="nav-btn" data-nav="themes" title="Browse and switch themes">
-        <span class="nav-icon purple">🎨</span>Themes
-      </button>
+    <div id="nav-buttons" style="display:flex;align-items:center;gap:10px">
+      <div style="display:flex;flex-direction:column;gap:3px">
+        <button class="nav-btn" data-nav="history" title="View download history">
+          <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+          History
+        </button>
+        <button class="nav-btn" data-nav="themes" title="Browse and switch themes">
+          <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"/><path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
+          Themes
+        </button>
+      </div>
+      <div style="width:1px;height:28px;background:var(--border)"></div>
       <button class="nav-btn" data-nav="advanced" title="Channels, plugins, and settings">
-        <span class="nav-icon muted">⚙</span>Advanced
+        <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/><path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 18l11 0"/><path d="M19 18l1 0"/></svg>
+        Advanced
       </button>
     </div>
     <div id="hamburger-panel">
@@ -61,7 +67,7 @@
       <!-- History tab -->
       <div class="hpanel-content" id="hpanel-history">
         <div class="hpanel-open-full" id="open-history-window-btn">
-          <span>⤢ Open full history</span>
+          <span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg> Open full history</span>
           <small id="history-total-info">0 downloads</small>
         </div>
         <div id="history-panel-body" style="padding:5px">
@@ -1681,8 +1687,8 @@
 
           </div><!-- end theme-list-static -->
           <div style="display:flex;gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
-            <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬆ Import</button>
-            <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)">⬇ Export</button>
+            <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg> Import</button>
+            <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> Export</button>
           </div>
         </div>
       </div>
@@ -1690,24 +1696,24 @@
       <div class="hpanel-content" id="hpanel-advanced" style="display:none">
         <div style="padding:5px;display:flex;flex-direction:column;gap:4px">
           <button class="adv-btn-full" id="adv-shortcut-btn" title="Creates a shortcut on your desktop for easier access">
-            <span class="adv-btn-icon blue">⬡</span>Desktop shortcut
+            <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10"/><path d="M7 20h10"/><path d="M9 16v4"/><path d="M15 16v4"/></svg></span>Desktop shortcut
           </button>
           <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
-            <span class="adv-btn-icon amber">⌫</span>Clear cache
+            <span class="adv-btn-icon amber"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg></span>Clear cache
           </button>
           <button class="adv-btn-full" id="adv-export-btn" title="Export your settings to a file">
-            <span class="adv-btn-icon blue">↑</span>Export settings
+            <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg></span>Export settings
           </button>
           <button class="adv-btn-full" id="adv-import-btn" title="Import settings from a file to restore your preferences">
-            <span class="adv-btn-icon blue">↓</span>Import settings
+            <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg></span>Import settings
           </button>
           <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls Deno runtime — app will restart to apply changes">
-            <span class="adv-btn-icon green">⬡</span>Reinstall Deno
+            <span class="adv-btn-icon green"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></span>Reinstall Deno
           </button>
           <!-- Channels -->
           <div class="adv-divider"><span class="adv-divider-label">Channels</span></div>
           <div class="adv-port-wrap" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
-            <span class="adv-btn-icon teal">⇅</span>
+            <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
             <span class="adv-port-label">yt-dlp channel</span>
             <select id="adv-ytdlp-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-left:auto;outline:none;cursor:pointer">
               <option value="stable">Stable</option>
@@ -1715,7 +1721,7 @@
             </select>
           </div>
           <div class="adv-port-wrap" id="adv-ffmpeg-channel-wrap" title="ffmpeg update channel — Nightly uses git master, Stable uses the latest release branch">
-            <span class="adv-btn-icon teal">⇅</span>
+            <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
             <span class="adv-port-label">ffmpeg channel</span>
             <select id="adv-ffmpeg-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-left:auto;outline:none;cursor:pointer">
               <option value="stable">Stable</option>
@@ -1731,12 +1737,12 @@
             </div>
           </div>
           <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates">
-            <span class="adv-btn-icon teal">🔍</span><span class="adv-btn-label">Check for updates</span>
+            <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg></span><span class="adv-btn-label">Check for updates</span>
           </button>
           <div class="plugins-collapsible collapsed" id="plugins-body">
             <div class="update-grid" id="update-grid"></div>
             <div style="margin-top:4px">
-              <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%">⬆ Install Updates</button>
+              <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> Install Updates</button>
             </div>
             <div class="upd-log" id="upd-log"></div>
             <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
@@ -1744,13 +1750,13 @@
           <!-- Maintenance -->
           <div class="adv-divider"></div>
           <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
-            <span class="adv-btn-icon amber">⌫</span>Clear cache
+            <span class="adv-btn-icon amber"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg></span>Clear cache
           </button>
           <button class="adv-btn-full" id="adv-electron-btn" title="Reinstalls Electron on next restart — updates to latest compatible version" style="display:none">
-            <span class="adv-btn-icon teal">⚡</span>Reinstall Electron
+            <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></span>Reinstall Electron
           </button>
           <button class="adv-btn-full" id="adv-reset-btn" title="Resets the application to its default settings">
-            <span class="adv-btn-icon red">↺</span>Reset settings
+            <span class="adv-btn-icon red"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"/><path d="M3 4.001v5h5"/><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg></span>Reset settings
           </button>
         </div>
       </div>
@@ -1763,8 +1769,8 @@
   <div class="card-header">
     <span class="card-title">Video / Playlist URLs</span>
     <div style="display:flex;gap:6px">
-      <button class="paste-btn" id="paste-btn">📋 Paste</button>
-      <button class="paste-fetch-btn" id="paste-fetch-btn">📋 Paste &amp; Fetch</button>
+      <button class="paste-btn" id="paste-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/></svg> Paste</button>
+      <button class="paste-fetch-btn" id="paste-fetch-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/><path d="M9 14l2 2l4 -4"/></svg> Paste &amp; Fetch</button>
     </div>
   </div>
   <div class="card-body">
@@ -1776,8 +1782,8 @@
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         Fetch Info
       </button>
-      <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none">⏹ Stop Fetching</button>
-      <button class="paste-btn" id="clear-btn" style="height:28px">✕ Clear</button>
+      <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg> Stop Fetching</button>
+      <button class="paste-btn" id="clear-btn" style="height:28px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M10 10l4 4m0 -4l-4 4"/></svg> Clear</button>
       <div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
         <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" title="Max simultaneous video downloads">
           Max videos
@@ -1819,7 +1825,7 @@
 
   <!-- Settings section — collapsed by default -->
   <div class="sec-hdr" id="settings-sec-hdr" onclick="toggleSettingsPanel()">
-    <span class="sec-title" title="Download folder, quality, format, and output preferences">⚙ Settings</span>
+    <span class="sec-title" title="Download folder, quality, format, and output preferences"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg> Settings</span>
     <div style="display:flex;align-items:center;gap:8px">
       <button class="card-toggle" id="settings-toggle" onclick="event.stopPropagation();toggleSettingsPanel()">▶ Show</button>
     </div>
@@ -1828,8 +1834,8 @@
     <span class="opt-label">Download folder</span>
     <div class="path-row">
       <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
-      <button class="btn btn-ghost btn-sm" id="browse-btn">📂 Browse</button>
-      <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled>📁 Open</button>
+      <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
+      <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> Open</button>
     </div>
 
     <!-- Daily-use controls promoted from Advanced — format selectors + toggles -->
@@ -1879,17 +1885,17 @@
 
   <!-- Cookies — single row, always visible -->
   <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-top:1px solid var(--border);flex-wrap:wrap">
-    <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0">🍪 Site Cookies</span>
+    <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M8 13v.01"/><path d="M12 17v.01"/><path d="M12 12v.01"/><path d="M16 14v.01"/><path d="M11 8v.01"/><path d="M13.148 3.476l2.667 1.104a4 4 0 0 0 4.656 6.14l.053 .132a3 3 0 0 1 0 2.296q -.745 1.18 -1.024 1.852q -.283 .684 -.66 2.216a3 3 0 0 1 -1.624 1.623q -1.572 .394 -2.216 .661q -.712 .295 -1.852 1.024a3 3 0 0 1 -2.296 0q -1.203 -.754 -1.852 -1.024q -.707 -.292 -2.216 -.66a3 3 0 0 1 -1.623 -1.624q -.397 -1.577 -.661 -2.216q -.298 -.718 -1.024 -1.852a3 3 0 0 1 0 -2.296q .719 -1.116 1.024 -1.852q .257 -.62 .66 -2.216a3 3 0 0 1 1.624 -1.623q 1.547 -.384 2.216 -.661q .687 -.285 1.852 -1.024a3 3 0 0 1 2.296 0"/></svg> Site Cookies</span>
     <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
     <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
     <div style="flex:1"></div>
     <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0">Cookies: not loaded</span>
     <div id="ck-not-loaded" style="display:flex;align-items:center;flex-shrink:0">
-      <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()">📂 Browse</button>
+      <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
     </div>
     <div id="ck-loaded" style="display:none;align-items:center;gap:4px;flex-shrink:0">
-      <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()">📂 Replace</button>
-      <button class="btn btn-red btn-sm" id="ck-clear-btn">✕ Unload</button>
+      <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Replace</button>
+      <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Unload</button>
     </div>
   </div>
 
@@ -1899,7 +1905,7 @@
 <div id="bulk-bar">
   <span id="bulk-txt">Downloading…</span>
 
-  <button class="btn btn-red btn-sm" onclick="cancelBulk()">✕ Cancel All</button>
+  <button class="btn btn-red btn-sm" onclick="cancelBulk()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Cancel All</button>
 </div>
 
 <!-- Results -->
