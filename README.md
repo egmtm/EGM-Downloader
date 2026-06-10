@@ -165,15 +165,15 @@
 
 ### Windows
 **Latest:** v1.0.4 Build 128  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (421 KB · ~800 MB after install)  
-**SHA256:** `66cf95fdcff84532ed6c6a61e8b5d6baca517ba0c1563c8b0f027af24b032e8a`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (422 KB · ~800 MB after install)  
+**SHA256:** `45c8010b75cf9c6f5d4212b064cda8f6981a879ca559e52427d3bf89dbac41bb`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.0.4 Build 128  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (393 KB · ~800 MB after first run)  
-**SHA256:** `7d09b74a3d0c02b3d903b570fab7d729046c0055a91dead29e7ec4702cf4bc13`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (394 KB · ~800 MB after first run)  
+**SHA256:** `70b8f8f77b7408083860633c69b1ea9017ec9c1bb42cae3d53f541f9f3c8462b`  
 **Requirements:** Windows 10/11 (64-bit)  
 **No installer, no registry** — runs from any folder or USB drive  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
@@ -181,14 +181,14 @@
 ### macOS
 **Latest:** v1.0.4 Build 128  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (128 MB · ~300 MB after install)  
-**SHA256:** `b764310b6a2edf9f24e173e3fc41e2bb15180d68c99b662035c3d499644e715c`  
+**SHA256:** `82c678fb51003a11e781baf71d017c80f3fe8c6aaae3740a55bfb3e6cdeef924`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.0.4 Build 128  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `afe5c38ff63cf4253974662cf07434f21ca4369357bf62cdf7136d89887f0d94`  
+**SHA256:** `120a7b0693ad6d19998c2cd0353548ff4beb60ae4de9366ccb864dbc2a6ae6a7`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -323,7 +323,12 @@
 - 🔒 Resolve-first download directory validation — closes path traversal bypass
 - 🔒 TOCTOU locks on update and Deno install — prevents double-spawn race on simultaneous requests
 - 🔧 First-run ffmpeg queues downloads instead of 503 — new users can download immediately after install
-- ⚡ Electron 42.4.0 — Mac and Linux
+- ⚡ Electron 42.4.0 — Mac and Linux; includes CVE-2026-9115 + CVE-2026-9116 backports, Chromium 148.0.7778.254, Node.js v24.16.0
+
+**v1.0.4:** ✅ Shipped
+- 🎨 Full SVG icon upgrade — all emoji replaced with inline SVGs, theme-compatible via currentColor
+- 🧭 Nav buttons 2-column layout — History/Themes stacked left, separator, Advanced isolated right
+- 🔧 Card toggle contrast fix — Show/Hide readable across all 400 themes
 
 **v1.1 — IGNITION:**
 - 📡 Subscriptions — save any channel or playlist once, automatically download what's new
@@ -488,10 +493,10 @@ All pull requests are automatically tested via GitHub Actions.
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 127 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 127 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 127 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 127 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 128 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 128 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 128 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 128 | EGMdL.zip | ❌ Manual |
 
 **All platforms are production-ready and actively maintained.**
 
