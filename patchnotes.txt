@@ -3,6 +3,8 @@ v1.0.4 - Build 128 (6/2026)
   • [ALL] Polish: All UI icons upgraded from emoji to inline SVGs — sharper rendering, consistent across platforms
   • [ALL] Polish: Nav buttons, URL panel, Settings, Advanced panel, section titles all use theme-compatible vector icons
   • [ALL] Polish: Buttons inherit theme colors via currentColor — zero extra CSS needed per theme
+  • [ALL] Polish: Nav layout refined — History and Themes grouped, Advanced isolated with visual separator
+  • [ALL] Fix: Improved contrast on Show/Hide toggle across all themes
 
 v1.0.3 - Build 127 (6/2026)
 -----------------------------------------
