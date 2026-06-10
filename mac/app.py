@@ -241,8 +241,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "1.0.1"
-APP_BUILD             = 125
+APP_VERSION           = "1.0.3"
+APP_BUILD             = 126
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
@@ -445,6 +445,12 @@ _jobs_lock = threading.Lock()
 # Maps job_id → proc. Maintained by run_download; cleared when proc exits.
 _active_procs: dict = {}
 _active_procs_lock  = threading.Lock()
+
+_MAX_CONCURRENT_DOWNLOADS = 24
+_download_sem = threading.BoundedSemaphore(_MAX_CONCURRENT_DOWNLOADS)
+
+_update_lock       = threading.Lock()
+_deno_install_lock = threading.Lock()
 
 # ── Jobs cleanup — remove stale completed entries after ~10 minutes ───────────
 def _jobs_cleanup_worker():
@@ -680,6 +686,40 @@ def _safe_thumb_url(url) -> str:
         return ""
     return url
 
+_SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/boot",
+                 "/sys", "/proc",
+                 "C:\\Windows", "C:\\Program Files", "C:\\Program Files (x86)",
+                 "C:\\System32")
+
+def _validate_download_dir(dl_dir):
+    """Validate a download directory. Returns (ok, resolved_path_str, error)."""
+    if not dl_dir or not isinstance(dl_dir, str) or not dl_dir.strip():
+        return False, "", "No download directory provided."
+    try:
+        p = Path(dl_dir).expanduser().resolve()
+    except (OSError, RuntimeError, ValueError):
+        return False, "", "Invalid download directory path."
+    rs = str(p).replace("\\", "/").rstrip("/").lower()
+    for root in _SYSTEM_ROOTS:
+        rn = root.replace("\\", "/").rstrip("/").lower()
+        if rs == rn or rs.startswith(rn + "/"):
+            return False, "", (f"Download directory '{dl_dir}' resolves to a system "
+                               "path. Please choose a different folder.")
+    probe = p
+    while not probe.exists():
+        if probe.parent == probe:
+            break
+        probe = probe.parent
+    if not probe.exists():
+        return False, "", (f"Download directory '{dl_dir}' is not reachable "
+                           "(drive disconnected?). Please choose a different folder.")
+    if not probe.is_dir():
+        return False, "", f"'{dl_dir}' is not a valid folder location."
+    if not os.access(str(probe), os.W_OK):
+        return False, "", (f"Download directory '{dl_dir}' is not writable. "
+                           "Please choose a different folder.")
+    return True, str(p), ""
+
 def _safe_filename(title: str, ext: str) -> str:
     safe = "".join(c for c in title if c not in r'\/:\*?"<>|').strip()[:120].strip()
     return f"{safe}{ext}" if safe else f"download{ext}"
@@ -709,6 +749,33 @@ def _build_audio_formats(info):
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
 # ── Download worker ────────────────────────────────────────────────────────────
+def _run_download_slot(job_id, *rest):
+    """Hold a concurrency slot for the whole download and wait out first-run ffmpeg."""
+    _download_sem.acquire()
+    try:
+        job = jobs.get(job_id)
+        if not job:
+            return
+        if job.get("cancelled"):
+            job["status"] = "cancelled"; job["_finished_at"] = time.time()
+            return
+        ff = FFMPEG_DIR / "ffmpeg"
+        if not ff.exists():
+            waited = 0
+            while not ff.exists() and waited < 180:
+                if job.get("cancelled"):
+                    job["status"] = "cancelled"; job["_finished_at"] = time.time()
+                    return
+                time.sleep(1); waited += 1
+            if not ff.exists():
+                job["status"] = "error"
+                job["error"]  = "ffmpeg is still installing (first-run setup). Please try again in a moment."
+                job["_finished_at"] = time.time()
+                return
+        run_download(job_id, *rest)
+    finally:
+        _download_sem.release()
+
 def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
     job     = jobs.get(job_id)
     if not job:
@@ -1018,20 +1085,13 @@ def start_download():
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
-    # Gate: ffmpeg must be ready before downloads can start (it runs in a
-    # background thread on first launch — see ensure_ffmpeg).
-    if not (FFMPEG_DIR / "ffmpeg").exists():
-        return jsonify({"error": "ffmpeg is still downloading — please wait a moment and try again"}), 503
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
 
-    # Traversal guard: warn if path looks like a system directory
-    _SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/sys", "/proc",
-                     "C:\\Windows", "C:\\Program Files", "C:\\System32")
-    dl_str = str(dl_dir).rstrip("/\\")
-    for root in _SYSTEM_ROOTS:
-        if dl_str.lower().startswith(root.lower()):
-            return jsonify({"error": f"Download directory '{dl_dir}' looks like a system path. Please choose a different folder."}), 400
+    ok, resolved_dir, err = _validate_download_dir(dl_dir)
+    if not ok:
+        return jsonify({"error": err}), 400
+    dl_dir = resolved_dir
 
     # #13 — format_id validation: only safe yt-dlp selector characters allowed
     raw_format_id = data.get("format_id") or ""
@@ -1052,7 +1112,7 @@ def start_download():
                         "title": data.get("title",""), "proc": None, "cancelled": False,
                         "download_dir": dl_dir, "format": data.get("format", "video"),
                         "thumbnail": data.get("thumbnail", "")}
-    threading.Thread(target=run_download,
+    threading.Thread(target=_run_download_slot,
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
                            data.get("audio_codec") or "",
@@ -1367,7 +1427,9 @@ def check_updates():
 
 @app.route("/api/run-update", methods=["POST"])
 def run_update():
-    if update_status.get("running"): return jsonify({"error": "Already running"}), 409
+    with _update_lock:
+        if update_status.get("running"): return jsonify({"error": "Already running"}), 409
+        update_status["running"] = True
     data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
                      args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False))),
@@ -1507,10 +1569,12 @@ def _run_deno_install():
 
 @app.route("/api/deno/install", methods=["POST"])
 def install_deno():
-    if deno_install_status.get("running"):
-        return jsonify({"error": "Install already running"}), 409
-    if DENO_EXE.exists():
-        return jsonify({"error": "Deno already installed"}), 400
+    with _deno_install_lock:
+        if deno_install_status.get("running"):
+            return jsonify({"error": "Install already running"}), 409
+        if DENO_EXE.exists():
+            return jsonify({"error": "Deno already installed"}), 400
+        deno_install_status["running"] = True
     threading.Thread(target=_run_deno_install, daemon=True).start()
     return jsonify({"started": True})
 

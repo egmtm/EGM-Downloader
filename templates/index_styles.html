@@ -328,13 +328,19 @@
     {% include 'theme_styles.html' %}
 
     /* ── Hamburger button (B4 grid) ── */
-    #hamburger-btn {
+    .nav-btn {
       background: var(--surf); border: 1px solid var(--border2);
-      border-radius: var(--rs); width: 34px; height: 34px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer; color: var(--text2); flex-shrink: 0;
+      border-radius: var(--rs); padding: 4px 9px;
+      display: flex; align-items: center; gap: 4px;
+      cursor: pointer; color: var(--text2); font-size: .62rem;
+      font-family: inherit; white-space: nowrap; flex-shrink: 0;
     }
-    #hamburger-btn:hover { border-color: var(--acc); color: var(--acc); }
+    .nav-btn:hover { border-color: var(--acc); color: var(--text); }
+    .nav-btn.active { border-color: var(--acc); color: var(--text); background: var(--surf2); }
+    .nav-icon { font-size: .7rem; }
+    .nav-icon.blue { filter: hue-rotate(0deg); }
+    .nav-icon.purple { filter: hue-rotate(0deg); }
+    .nav-icon.muted { opacity: .8; }
     #subs-btn:hover { border-color: var(--acc); color: var(--acc); }
 
     /* ── Hamburger panel ── */
@@ -345,7 +351,7 @@
       z-index: 1000; overflow: hidden;
     }
     #hamburger-panel.open { display: block; }
-    .hpanel-tabs { display: flex; padding: 5px 5px 0; gap: 3px; background: var(--surf2); }
+    .hpanel-tabs { display: none; }
     .hpanel-tab {
       flex: 1; padding: 7px 0; font-size: 12px; font-weight: 500;
       color: var(--text2); background: transparent; border: none;
@@ -479,16 +485,16 @@
       display: flex; align-items: center; gap: 14px;
       position: relative; z-index: 10;
     }
-    .logo { width: 44px; height: 44px; flex-shrink: 0; }
+    .logo { width: 76px; height: 76px; flex-shrink: 0; }
     .logo img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
     .header-text {
       flex: 1; text-align: center;
     }
     header h1 {
-      font-size: 1.35rem; font-weight: 700; letter-spacing: -.01em;
+      font-size: 1.55rem; font-weight: 700; letter-spacing: -.01em;
       color: var(--acc);
     }
-    header p { font-size: .74rem; color: var(--text2); margin-top: 3px; line-height: 1.6; }
+    header p { font-size: .85rem; color: var(--text2); margin-top: 3px; line-height: 1.6; }
 
     /* ── Card ── */
     /* ── Scrollbar theming ── */

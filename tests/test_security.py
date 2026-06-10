@@ -253,3 +253,50 @@ def test_port_resolution_logic():
         assert 'flask_port' in source, f"{name} _resolve_port must check flask_port setting"
         assert "return 8899" in source, f"{name} _resolve_port must fall back to 8899"
         assert "1024" in source and "65535" in source, f"{name} _resolve_port must validate port range"
+
+
+# ── Download directory validation ──────────────────────────────────────────────
+
+def test_download_dir_validator_present_on_all_platforms():
+    """_validate_download_dir must exist on all 3 platforms with identical logic."""
+    for name, path in [("windows", "app.py"), ("linux", "linux/app.py"), ("mac", "mac/app.py")]:
+        source = read_source(path)
+        assert "def _validate_download_dir" in source, f"{name} missing _validate_download_dir"
+        assert "expanduser().resolve()" in source, f"{name} must resolve paths before checking"
+        assert 'rn + "/"' in source, f"{name} must use boundary-aware root check (rn + '/')"
+
+def test_download_dir_rejects_system_roots(app_mod):
+    """System roots (/etc, /bin, /sbin, etc.) must be rejected after resolve."""
+    for sys_path in ["/etc/test", "/bin/evil", "/sbin/x", "/sys/kernel", "/proc/1"]:
+        ok, _, err = app_mod._validate_download_dir(sys_path)
+        assert not ok, f"Should reject system path: {sys_path}"
+        assert "system" in err.lower(), f"Error should mention 'system' for {sys_path}"
+
+def test_download_dir_boundary_not_prefix(app_mod):
+    """Boundary-aware check: '/etcetera' must NOT be rejected just because it
+    starts with '/etc'. The old prefix match got this wrong. This test fails
+    if anyone weakens rn+'/' back to a naive startswith(rn)."""
+    import tempfile, os
+    # Create a real directory whose name starts with a system root prefix
+    with tempfile.TemporaryDirectory(prefix="etcetera_") as td:
+        ok, resolved, err = app_mod._validate_download_dir(td)
+        assert ok, f"Should allow '{td}' — not a system root (got: {err})"
+
+def test_download_dir_traversal_blocked(app_mod):
+    """Paths with '..' that resolve to system roots must be rejected."""
+    ok, _, err = app_mod._validate_download_dir("/tmp/../../etc")
+    assert not ok, "Traversal to /etc via '..' should be rejected after resolve"
+
+def test_download_dir_rejects_bad_input(app_mod):
+    """Empty, None, int, and whitespace-only inputs must return clean errors."""
+    for bad in [None, "", "   ", 123, 0]:
+        ok, _, err = app_mod._validate_download_dir(bad)
+        assert not ok, f"Should reject bad input: {bad!r}"
+
+def test_download_dir_accepts_valid_writable(app_mod):
+    """A valid, writable directory must pass and return the resolved path."""
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        ok, resolved, err = app_mod._validate_download_dir(td)
+        assert ok, f"Should accept valid writable dir '{td}' (got: {err})"
+        assert resolved, "Resolved path should be non-empty"
