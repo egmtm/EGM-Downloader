@@ -241,8 +241,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "1.0.3"
-APP_BUILD             = 127
+APP_VERSION           = "1.0.4"
+APP_BUILD             = 128
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
