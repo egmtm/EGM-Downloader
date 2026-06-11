@@ -1965,6 +1965,14 @@ def update_subscription():
                     continue
                 if k == "name":
                     v = str(v)[:200].strip()
+                elif k == "download_folder":
+                    if v:
+                        ok, resolved, err = _validate_download_dir(str(v))
+                        if not ok:
+                            return jsonify({"error": err}), 400
+                        v = resolved
+                    else:
+                        v = None
                 elif k == "format":
                     v = v if v in ("video", "audio") else "video"
                 elif k == "auto_fetch_on_open":
