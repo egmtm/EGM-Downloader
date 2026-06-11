@@ -42,6 +42,23 @@ Fixes applied across 5 languages:
 - `themes.filter.seasonal`: shortened "Seizoensgebonden ✦" → "Seizoens ✦" for UI fit (filter pill width)
 
 
+### 2026-06-11 — en.json expansion (221 → 268 keys)
+
+Audited `templates/index.html` and `templates/subscriptions.html` against `en.json`.
+Updated 8 existing key values to match current UI text, added 47 new keys.
+All 9 locale files updated to maintain key parity — new keys carry English placeholder
+values pending translation.
+
+**Updated values (8):** `url.placeholder`, `url.label.videos`, `settings.folder.placeholder`,
+`audio.modal.title`, `audio.modal.subtitle`, `audio.option.128/192/320.desc`
+
+**New keys (47):** `url.btn.stop_fetch`, `cookies.btn.replace/unload`,
+`settings.toggle.embed_metadata/download_subtitles`, `advanced.section.channels`,
+`advanced.label/channel.ytdlp/ffmpeg`, `advanced.btn.reinstall_electron`,
+`quality.section.high_resolution/standard`, `quality.option.8k/4k/2k.desc`,
+`audio.option.m4a_256/opus_128/opus_192.desc`, `subscriptions.*` (12 keys),
+`filename.modal.*` (3 keys), `plugins.portable.note`, `tooltip.*` (12 new tooltips)
+
 ### 2026-06-11 — Fetch term correction in Spanish and Portuguese
 
 - `url.btn.fetch` and `url.btn.paste_fetch`: replaced "Buscar" (search) with "Obtener" (ES) and "Obter" (PT) — more precise distinction between fetch (retrieve metadata) and download (save file)
