@@ -25,6 +25,9 @@ v1.1 IGNITION — Phase 2: Fetch & Display
   • [ALL] Polish: Site Cookies merged into Settings panel — one Show/Hide toggle controls both
   • [ALL] Security: Per-channel download_folder validated on save via _validate_download_dir — rejects system roots, traversal, unwritable paths; stores resolved canonical path
 
+  TODO (cosmetic, non-blocking):
+  • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast to refresh open BrowserWindows
+
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
   • [ALL] Polish: All UI icons upgraded from emoji to inline SVGs — sharper rendering, consistent across platforms
