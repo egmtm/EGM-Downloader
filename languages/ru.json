@@ -4,9 +4,11 @@
   "_language_english": "Russian",
   "_code": "ru",
   "_direction": "ltr",
-  "_version": "0.97.5",
-  "_contributors": [],
-  "_last_updated": "2026-04-26",
+  "_version": "1.0.3",
+  "_contributors": [
+    "egmtm"
+  ],
+  "_last_updated": "2026-06-11",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -14,7 +16,7 @@
     "url.section_title": "URL видео / плейлистов",
     "url.placeholder": "Вставьте один или несколько URL (по одному на строку)\nhttps://www.youtube.com/watch?v=...\nhttps://www.youtube.com/playlist?list=...",
     "url.btn.paste": "Вставить",
-    "url.btn.paste_fetch": "Вставить и загрузить",
+    "url.btn.paste_fetch": "Вставить и получить",
     "url.btn.fetch": "Получить инфо",
     "url.btn.clear": "Очистить",
     "url.label.videos": "Видео",
@@ -222,7 +224,7 @@
     "confirm.reinstall_ffmpeg": "Удалить текущую установку ffmpeg?\n\nСвежая копия будет загружена при следующем запуске. Убедитесь, что у вас есть соединение с интернетом.",
     "confirm.reinstall_deno": "Удалить текущую установку Deno?\n\nDeno будет переустановлен при следующем запуске. Убедитесь, что у вас есть соединение с интернетом.",
     "status.cookies_active": "Cookies: активны{0}",
-    "status.bulk_progress": "Загрузка {0} / {1} {2} готово ({3} активны)",
+    "status.bulk_progress": "Загрузка {0} / {1} {2} готово  ({3} активны)",
     "status.batch_hidden": "· · · ещё {0} в этом пакете · · ·",
     "status.show_older": "↓ Показать старые (ещё {0})",
     "status.bar.count": "{0} загрузок",
