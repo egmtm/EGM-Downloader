@@ -4,9 +4,11 @@
   "_language_english": "Arabic",
   "_code": "ar",
   "_direction": "rtl",
-  "_version": "0.97.5",
-  "_contributors": [],
-  "_last_updated": "2026-04-26",
+  "_version": "1.0.3",
+  "_contributors": [
+    "egmtm"
+  ],
+  "_last_updated": "2026-06-11",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo و {0} موقع آخر",
@@ -222,7 +224,7 @@
     "confirm.reinstall_ffmpeg": "إزالة تثبيت ffmpeg الحالي؟\n\nسيتم تحميل نسخة جديدة عند البدء التالي. تأكد من اتصالك بالإنترنت.",
     "confirm.reinstall_deno": "إزالة تثبيت Deno الحالي؟\n\nسيتم إعادة تثبيت Deno عند البدء التالي. تأكد من اتصالك بالإنترنت.",
     "status.cookies_active": "ملفات التعريف: نشطة{0}",
-    "status.bulk_progress": "جاري تحميل {0} / {1} {2} مكتمل ({3} نشط)",
+    "status.bulk_progress": "جاري تحميل {0} / {1} {2} مكتمل  ({3} نشط)",
     "status.batch_hidden": "· · · {0} المزيد في هذه الدفعة · · ·",
     "status.show_older": "↓ عرض الأقدم ({0} المزيد)",
     "status.bar.count": "{0} تحميلات",
