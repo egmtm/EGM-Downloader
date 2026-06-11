@@ -4,9 +4,11 @@
   "_language_english": "Italian",
   "_code": "it",
   "_direction": "ltr",
-  "_version": "0.97.5",
-  "_contributors": [],
-  "_last_updated": "2026-04-26",
+  "_version": "1.0.3",
+  "_contributors": [
+    "egmtm"
+  ],
+  "_last_updated": "2026-06-11",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} altri siti",
@@ -87,7 +89,7 @@
     "quality.option.1080.desc": "Full HD · consigliato",
     "quality.option.720.desc": "HD · file più piccoli",
     "quality.option.480.desc": "SD · download veloci",
-    "quality.option.360.desc": "Bassa qualità · file più piccoli",
+    "quality.option.360.desc": "Bassa qualità · file minimi",
     "quality.btn.cancel": "Annulla",
     "quality.btn.download": "Scarica",
     "audio.modal.title": "🎵 Qualità Audio",
