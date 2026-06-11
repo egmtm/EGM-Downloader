@@ -58,109 +58,94 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.0 — CORNERSTONE. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.0.4 — Sharp. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/01-main-ui-parguera-theme.png">
-        <img src="screenshots/01-main-ui-parguera-theme.png" width="340" alt="Main UI — La Parguera Theme"/>
+      <a href="screenshots/01-main-ui-the-10s-theme.png">
+        <img src="screenshots/01-main-ui-the-10s-theme.png" width="340" alt="Main UI — The 10s Theme"/>
       </a>
-      <br/><sub><b>Main UI — La Parguera Theme</b></sub>
+      <br/><sub><b>Main UI — The 10s Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/14-mac-ui-sequoia-theme.png">
-        <img src="screenshots/14-mac-ui-sequoia-theme.png" width="340" alt="macOS — Sequoia Theme"/>
+      <a href="screenshots/02-main-ui-settings-hidden-millenium-bug-theme.png">
+        <img src="screenshots/02-main-ui-settings-hidden-millenium-bug-theme.png" width="340" alt="Main UI — Millennium Bug Theme"/>
       </a>
-      <br/><sub><b>macOS — Sequoia Theme</b></sub>
+      <br/><sub><b>Main UI — Millennium Bug Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/09-all-themes-pt1.png">
-        <img src="screenshots/09-all-themes-pt1.png" width="340" alt="All Themes — 400 Themes Pt. 1"/>
+      <a href="screenshots/03-fetching-videos-ghost-theme.png">
+        <img src="screenshots/03-fetching-videos-ghost-theme.png" width="340" alt="Fetching Videos — Ghost Theme"/>
       </a>
-      <br/><sub><b>All Themes — 400 Total (Pt. 1)</b></sub>
+      <br/><sub><b>Fetching Videos — Ghost Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/10-all-themes-pt2.png">
-        <img src="screenshots/10-all-themes-pt2.png" width="340" alt="All Themes Pt. 2"/>
+      <a href="screenshots/04-download-all-videos-zion-theme.png">
+        <img src="screenshots/04-download-all-videos-zion-theme.png" width="340" alt="Download All Videos — Zion Theme"/>
       </a>
-      <br/><sub><b>All Themes — 400 Total (Pt. 2)</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/11-all-themes-pt3.png">
-        <img src="screenshots/11-all-themes-pt3.png" width="340" alt="All Themes Pt. 3"/>
-      </a>
-      <br/><sub><b>All Themes — 400 Total (Pt. 3)</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/08-hamburger-themes-last10.png">
-        <img src="screenshots/08-hamburger-themes-last10.png" width="340" alt="Hamburger — Last 10 Used Themes"/>
-      </a>
-      <br/><sub><b>Hamburger — Last 10 Used Themes</b></sub>
+      <br/><sub><b>Download All Videos — Zion Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/03-fetching-videos-quality-selector.png">
-        <img src="screenshots/03-fetching-videos-quality-selector.png" width="340" alt="Fetching Videos — Quality Selector"/>
+      <a href="screenshots/05-downloading-videos-midnight-theme.png">
+        <img src="screenshots/05-downloading-videos-midnight-theme.png" width="340" alt="Downloading Videos — Midnight Theme"/>
       </a>
-      <br/><sub><b>Fetching Videos — Quality Selector</b></sub>
+      <br/><sub><b>Downloading Videos — Midnight Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/04-download-all-videos-audio.png">
-        <img src="screenshots/04-download-all-videos-audio.png" width="340" alt="Download All Videos + Audio"/>
+      <a href="screenshots/06-download-history-la-guancha-theme.png">
+        <img src="screenshots/06-download-history-la-guancha-theme.png" width="340" alt="Download History — La Guancha Theme"/>
       </a>
-      <br/><sub><b>Download All Videos + Audio</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/05-downloading-videos.png">
-        <img src="screenshots/05-downloading-videos.png" width="340" alt="Downloading Videos"/>
-      </a>
-      <br/><sub><b>Downloading Videos</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/07-expanded-download-history.png">
-        <img src="screenshots/07-expanded-download-history.png" width="340" alt="Expanded Download History"/>
-      </a>
-      <br/><sub><b>Expanded Download History</b></sub>
+      <br/><sub><b>Download History — La Guancha Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/06-hamburger-history.png">
-        <img src="screenshots/06-hamburger-history.png" width="340" alt="Hamburger — History Tab"/>
+      <a href="screenshots/07-themes-main-ui-the-witness-theme.png">
+        <img src="screenshots/07-themes-main-ui-the-witness-theme.png" width="340" alt="Themes — The Witness Theme"/>
       </a>
-      <br/><sub><b>Hamburger — History Tab</b></sub>
+      <br/><sub><b>Themes Window — The Witness Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/12-hamburger-advanced.png">
-        <img src="screenshots/12-hamburger-advanced.png" width="340" alt="Hamburger — Advanced Settings"/>
+      <a href="screenshots/08-all-themes-n64-theme.png">
+        <img src="screenshots/08-all-themes-n64-theme.png" width="340" alt="All Themes — N64 Theme"/>
       </a>
-      <br/><sub><b>Hamburger — Advanced Settings</b></sub>
+      <br/><sub><b>All Themes — N64 Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/02-update-plugins.png">
-        <img src="screenshots/02-update-plugins.png" width="340" alt="Update Plugins"/>
+      <a href="screenshots/09-advanced-options-old-san-juan-theme.png">
+        <img src="screenshots/09-advanced-options-old-san-juan-theme.png" width="340" alt="Advanced Options — Old San Juan Theme"/>
       </a>
-      <br/><sub><b>Update Plugins</b></sub>
+      <br/><sub><b>Advanced Options — Old San Juan Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/13-mac-dmg-install.png">
-        <img src="screenshots/13-mac-dmg-install.png" width="340" alt="macOS DMG Install"/>
+      <a href="screenshots/10-plugins-update-advanced-bauhaus-theme.png">
+        <img src="screenshots/10-plugins-update-advanced-bauhaus-theme.png" width="340" alt="Plugins Update — Bauhaus Theme"/>
       </a>
-      <br/><sub><b>macOS — DMG Install</b></sub>
+      <br/><sub><b>Plugins Update — Bauhaus Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/11-plugin-update-success-brutalist-theme.png">
+        <img src="screenshots/11-plugin-update-success-brutalist-theme.png" width="340" alt="Plugin Update Success — Brutalist Theme"/>
+      </a>
+      <br/><sub><b>Plugin Update Success — Brutalist Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/12-deno-reinstall-button-blue-bird-theme.png">
+        <img src="screenshots/12-deno-reinstall-button-blue-bird-theme.png" width="340" alt="Deno Reinstall Button — Blue Bird Theme"/>
+      </a>
+      <br/><sub><b>Deno Reinstall — Blue Bird Theme</b></sub>
     </td>
   </tr>
 </table>
-
 ## 📥 Download
 
 ### Windows
