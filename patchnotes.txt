@@ -27,6 +27,8 @@ v1.1 IGNITION — Phase 2: Fetch & Display
 
   TODO (cosmetic, non-blocking):
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast to refresh open BrowserWindows
+  • Remove version number from header title ("EGM Downloader v1.0.4") — redundant with footer pill and title bar
+  • Replace hourglass emoji on fetching videos with inline SVG
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
