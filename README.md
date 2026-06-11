@@ -331,7 +331,14 @@
 - 🔧 Card toggle contrast fix — Show/Hide readable across all 400 themes
 
 **v1.1 — IGNITION:**
-- 📡 Subscriptions — save any channel or playlist once, automatically download what's new
+- 📡 Subscriptions — save any channel or playlist, automatically fetch and display what's new
+- 🗂️ Dedicated subscriptions window — sidebar list, detail pane, collapsible, size/position remembered
+- 🖼️ Video list with thumbnails, durations, and upload dates — sortable by Latest or Oldest
+- 📄 Client-side pagination — 20 videos shown, Load More adds 20 at a time
+- 🔄 Auto-fetch-on-open toggle per channel — selects and fetches automatically on window open
+- 🔒 Per-channel download folder validated on save — rejects system roots, traversal, unwritable paths
+- ⚙️ Site Cookies merged into Settings panel — one toggle controls both
+- 🧪 Preload bridge parity test broadened — full function surface locked across all 3 platforms
 - The engine fires here. Subscriptions touch backend, UI, and update flow — given room to land right
 
 **v1.2 — [TBD]:**
