@@ -312,6 +312,13 @@ function renderDetail() {
           <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
           Auto-fetch on open
         </label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:4px">
+          Format:
+          <select id="format-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.6rem;border-radius:3px;padding:1px 4px;cursor:pointer">
+            <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>Video</option>
+            <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
+          </select>
+        </label>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.65rem;border-radius:3px;padding:2px 4px;cursor:pointer">
@@ -372,6 +379,18 @@ function renderDetail() {
         body: JSON.stringify({ id: activeSub.id, auto_fetch_on_open: e.target.checked })
       });
       activeSub.auto_fetch_on_open = e.target.checked;
+    });
+  }
+
+  const formatSelect = document.getElementById('format-select');
+  if (formatSelect) {
+    formatSelect.addEventListener('change', async (e) => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, format: e.target.value })
+      });
+      activeSub.format = e.target.value;
     });
   }
 
