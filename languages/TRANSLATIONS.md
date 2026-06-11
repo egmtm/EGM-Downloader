@@ -41,6 +41,10 @@ Fixes applied across 5 languages:
 **Dutch (nl)**
 - `themes.filter.seasonal`: shortened "Seizoensgebonden ✦" → "Seizoens ✦" for UI fit (filter pill width)
 
+
+### 2026-06-11 — Fetch term correction in Spanish and Portuguese
+
+- `url.btn.fetch` and `url.btn.paste_fetch`: replaced "Buscar" (search) with "Obtener" (ES) and "Obter" (PT) — more precise distinction between fetch (retrieve metadata) and download (save file)
 ---
 
 ### 2026-04-26 — Initial translation set (v0.97.5)
