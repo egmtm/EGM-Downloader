@@ -29,10 +29,10 @@
 
 <p align="center">
   <a href="#-download">⬇ Downloads</a> ·
-  <a href="#️-screenshots">📸 Screenshots</a> ·
+  <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#-quick-start">🚀 Quick Start</a> ·
-  <a href="#️-roadmap">🗺️ Roadmap</a> ·
-  <a href="#-system-requirements">📋 Requirements</a>
+  <a href="#roadmap">🗺️ Roadmap</a> ·
+  <a href="#system-requirements">📋 Requirements</a>
 </p>
 
 ## ✨ Features
@@ -55,6 +55,8 @@
 - 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 
 ---
+
+<a id="screenshots"></a>
 
 ## 🖼️ Screenshots
 
@@ -244,6 +246,8 @@
 - Cookies are stored locally on your machine and are never transmitted
 
 ---
+
+<a id="roadmap"></a>
 
 ## 🗺️ Roadmap
 
