@@ -33,6 +33,15 @@ v1.1 IGNITION — Phase 3: Downloads
   • [ALL] New: Inline download state machine — Queued → Downloading (progress bar + speed) → Downloaded
   • [ALL] New: Cancel button on active downloads, Clear button on completed/errored
   • [ALL] New: Downloads from subscriptions appear in main app download history automatically
+  • [ALL] New: Sub-app mode — main window hides when subscriptions opens, restores on close
+  • [ALL] New: Default subscriptions window size increased to 1100×700
+  • [ALL] Polish: Site Cookies merged into Settings panel — one Show/Hide toggle controls both
+  • [ALL] Security: video_id allowlist (_safe_video_id) — rejects attribute-breakout XSS payloads before storage
+  • [ALL] Security: attrEsc() for all attribute-context interpolations in subscriptions template
+  • [ALL] Security: Hardened status handling — TERMINAL_STATES inversion prevents unknown backend status from silently dropping jobs
+  • [ALL] Fix: Full download state lifecycle — Queued → Downloading → Converting… → Downloaded
+  • [ALL] Fix: Download state persists across subscription switches (global allJobs Map + restoreJobStates)
+  • [ALL] Fix: Polling reentrancy guard prevents concurrent poll overlaps
 
   TODO (cosmetic, non-blocking):
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast to refresh open BrowserWindows
