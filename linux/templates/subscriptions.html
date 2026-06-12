@@ -288,7 +288,6 @@ function renderSidebar() {
     <div class="sub-actions">
       <button data-action="fetch" data-id="${s.id}">Fetch</button>
       <button data-action="force" data-id="${s.id}">Force</button>
-      <button data-action="delete" data-id="${s.id}">Delete</button>
     </div>
   `}).join('');
 
@@ -466,8 +465,9 @@ function renderDetail() {
           <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
           <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
         </select>
-        <button class="fetch-btn" onclick="fetchVideos('${activeSub.id}', false)">Fetch</button>
-        <button class="fetch-btn" onclick="fetchVideos('${activeSub.id}', true)">Force</button>
+        <button class="fetch-btn" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)">Fetch</button>
+        <button class="fetch-btn" onclick="fetchVideos('${attrEsc(activeSub.id)}', true)">Force</button>
+        <button class="fetch-btn" style="color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
       </div>
     </div>
     <div class="video-list" id="video-list">
