@@ -25,6 +25,15 @@ v1.1 IGNITION — Phase 2: Fetch & Display
   • [ALL] Polish: Site Cookies merged into Settings panel — one Show/Hide toggle controls both
   • [ALL] Security: Per-channel download_folder validated on save via _validate_download_dir — rejects system roots, traversal, unwritable paths; stores resolved canonical path
 
+v1.1 IGNITION — Phase 3: Downloads
+  • [ALL] New: Checkbox selection on subscription videos — select individual or select all
+  • [ALL] New: "Download selected" button with live selection count
+  • [ALL] New: Per-channel format toggle (Video/Audio) — saved per subscription
+  • [ALL] New: Download flow reuses main app pipeline — semaphore, progress, history integration
+  • [ALL] New: Inline download state machine — Queued → Downloading (progress bar + speed) → Downloaded
+  • [ALL] New: Cancel button on active downloads, Clear button on completed/errored
+  • [ALL] New: Downloads from subscriptions appear in main app download history automatically
+
   TODO (cosmetic, non-blocking):
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast to refresh open BrowserWindows
   • Remove version number from header title ("EGM Downloader v1.0.4") — redundant with footer pill and title bar
