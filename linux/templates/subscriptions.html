@@ -30,6 +30,16 @@
 
     .sub-list { flex:1;overflow-y:auto;padding:4px 0; }
     .sidebar.collapsed .sub-list { display:none; }
+    .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 0;overflow-y:auto; }
+    .sidebar.collapsed .mini-list { display:flex; }
+    .mini-thumb {
+      width:28px;height:28px;border-radius:50%;background:var(--surf2);
+      cursor:pointer;border:2px solid transparent;overflow:hidden;
+      display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text2);
+      flex-shrink:0;background-size:cover;background-position:center;
+    }
+    .mini-thumb:hover { border-color:var(--acc); }
+    .mini-thumb.active { border-color:var(--acc); }
 
     .sub-item {
       padding:8px 10px;font-size:.72rem;color:var(--text2);cursor:pointer;
@@ -195,6 +205,7 @@
     </div>
 
     <div class="sub-list" id="sub-list"></div>
+    <div class="mini-list" id="mini-list"></div>
 
     <div class="sidebar-footer">
       <button id="back-btn">← Back to app</button>
@@ -309,6 +320,25 @@ function renderSidebar() {
       else if (btn.dataset.action === 'force') fetchVideos(id, true);
     });
   });
+
+  // Render mini thumbnails for collapsed sidebar
+  const miniList = document.getElementById('mini-list');
+  if (miniList) {
+    miniList.innerHTML = subs.map(s => {
+      const isActive = activeSub && activeSub.id === s.id;
+      const initial = (s.name || '?')[0].toUpperCase();
+      return s.thumbnail_url
+        ? `<div class="mini-thumb${isActive ? ' active' : ''}" data-id="${attrEsc(s.id)}" style="background-image:url('${esc(s.thumbnail_url)}')" title="${attrEsc(s.name || s.url)}"></div>`
+        : `<div class="mini-thumb${isActive ? ' active' : ''}" data-id="${attrEsc(s.id)}" title="${attrEsc(s.name || s.url)}">${esc(initial)}</div>`;
+    }).join('');
+    miniList.querySelectorAll('.mini-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        activeSub = subs.find(s => s.id === thumb.dataset.id) || null;
+        renderSidebar();
+        renderDetail();
+      });
+    });
+  }
 }
 
 // ── Global download state — persists across subscription switches ────────────
