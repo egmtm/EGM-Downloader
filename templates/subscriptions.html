@@ -307,7 +307,7 @@ const allJobs = new Map(); // videoId → { jobId, status, data }
 let pollTimer = null;
 
 function updateVideoState(videoId, status, data) {
-  const metaEl = document.getElementById('meta-' + CSS.escape(videoId));
+  const metaEl = document.getElementById('meta-' + videoId);
   if (!metaEl) return;
   const info = allJobs.get(videoId);
   const jobId = info ? info.jobId : '';
@@ -359,7 +359,7 @@ function restoreJobStates() {
 }
 
 function startPolling() {
-  if (pollTimer) return;
+  if (pollTimer) clearInterval(pollTimer);
   pollTimer = setInterval(pollJobs, 1500);
 }
 
@@ -590,7 +590,9 @@ function renderDetail() {
       updateSelectionCount();
       dlBtn.textContent = 'Download selected';
 
-      if (!pollTimer) startPolling();
+      // Start polling and run an immediate check
+      startPolling();
+      pollJobs();
     });
   }
 
