@@ -544,8 +544,8 @@ function loadSubsBounds() {
       return saved.x < b.x + b.width && saved.x + saved.width > b.x &&
              saved.y < b.y + b.height && saved.y + saved.height > b.y;
     });
-    return onScreen ? saved : { width: 900, height: 600 };
-  } catch { return { width: 900, height: 600 }; }
+    return onScreen ? saved : { width: 1100, height: 700 };
+  } catch { return { width: 1100, height: 700 }; }
 }
 
 function saveSubsBounds(win) {
@@ -564,11 +564,15 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
   });
   subsWindow.loadURL(APP_URL + '/subscriptions-page');
   hardenWindow(subsWindow);
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
   let saveTimer = null;
   const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveSubsBounds(subsWindow), 500); };
   subsWindow.on('resize', debouncedSave);
   subsWindow.on('move', debouncedSave);
-  subsWindow.on('closed', () => { subsWindow = null; });
+  subsWindow.on('closed', () => {
+    subsWindow = null;
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+  });
 });
 
 ipcMain.handle('close-subscriptions', async (event) => {
