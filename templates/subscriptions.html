@@ -335,6 +335,13 @@ function updateVideoState(videoId, status, data) {
       <span>${speed}</span>
       <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
     </div>`;
+  } else if (status === 'converting') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status downloading">Converting…</span>
+      <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+    </div>`;
   } else if (status === 'done') {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status done">Downloaded</span>
@@ -359,7 +366,7 @@ function updateVideoState(videoId, status, data) {
 function restoreJobStates() {
   for (const [videoId, info] of allJobs) {
     updateVideoState(videoId, info.status, info.data || {});
-    if (['queued', 'downloading'].includes(info.status)) {
+    if (['queued', 'downloading', 'converting'].includes(info.status)) {
       const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
       if (cb) cb.disabled = true;
     }
@@ -377,7 +384,7 @@ async function pollJobs() {
   _polling = true;
   try {
     for (const [videoId, info] of allJobs) {
-      if (!['queued', 'downloading'].includes(info.status)) continue;
+      if (!['queued', 'downloading', 'converting'].includes(info.status)) continue;
       try {
         const resp = await fetch(`/api/status/${info.jobId}`);
         const data = await resp.json();
@@ -564,7 +571,7 @@ function renderDetail() {
 
       for (const cb of checked) {
         const videoId = cb.dataset.videoId;
-        if (allJobs.has(videoId) && ['queued','downloading'].includes(allJobs.get(videoId).status)) continue;
+        if (allJobs.has(videoId) && ['queued','downloading','converting'].includes(allJobs.get(videoId).status)) continue;
 
         // Find video data from cache
         const video = (activeSub.videos || []).find(v => (v.video_id || '') === videoId);
