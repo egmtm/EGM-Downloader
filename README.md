@@ -215,7 +215,7 @@
 
 ## 💡 Usage
 
-1. **Paste URL** - Copy any video URL and paste it into the app
+1. **Paste URL** - Copy any video URL and paste it into the app and click "Fetch", or after copying video, click "Paste & Fetch"
 2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
 3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
 4. **Edit Filename** (Optional) - Click the filename to customize it
@@ -226,8 +226,8 @@
 
 **Playlist Downloads:**
 - Paste playlist URL
-- Select "Download All" or choose specific videos
-- Videos download in sequence
+- Select "Download All" or choose specific videos, select your resolution, also you can "Download All Audio" and select your desired bitrate
+- Videos/Audio download in sequence
 
 **Batch Downloads:**
 - Add multiple URLs to the queue
@@ -236,7 +236,7 @@
 - Cancel individual downloads anytime
 
 **Plugin Updates:**
-- Click "Update Plugins" in settings
+- Click "Update Plugins" in Advanced Settings
 - Update yt-dlp for newest site support
 - Update ffmpeg for latest codecs
 
@@ -294,8 +294,19 @@
 - ⚡ Electron 42.3.2 — latest stable runtime
 
 **v1.1 — IGNITION:**
-- 📡 Subscriptions — save any channel or playlist once, automatically download what's new
-- The engine fires here. Subscriptions touch backend, UI, and update flow — given room to land right
+- 📡 Subscriptions — save any channel or playlist, automatically fetch and display what's new
+- 🗂️ Dedicated subscriptions window — sidebar list, detail pane, collapsible, size/position remembered
+- 🖼️ Video list with thumbnails, durations, and upload dates — sortable by Latest or Oldest
+- 📄 Client-side pagination — 20 videos shown, Load More adds 20 at a time
+- ✅ Checkbox selection — select individual videos or all, download selected with live count
+- 📥 Per-channel format toggle (Video/Audio) — saved per subscription
+- ⚡ Full download pipeline — Queued → Downloading (progress + speed) → Downloaded; integrates with main history
+- 🔄 Auto-fetch-on-open toggle per channel — selects and fetches automatically on window open
+- 🔒 Per-channel download folder validated on save — rejects system roots, traversal, unwritable paths
+- 🔒 Video ID allowlist + attribute escaping — closes XSS surfaces in subscriptions template
+- ⚙️ Site Cookies merged into Settings panel — one toggle controls both
+- 🌍 10 languages — AR · DE · EN · ES · FR · IT · JA · NL · PT · RU (268 keys, full audit pass)
+- 🧪 Preload bridge parity test broadened — full function surface locked across all 3 platforms
 
 **v1.2 — [TBD]:**
 - 🔭 Next chapter — details after v1.1 ships
