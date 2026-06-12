@@ -41,7 +41,7 @@
 - 🎬 **Video & Audio Downloads** - MP4 or MKV video; MP3, M4A, OPUS, or FLAC audio
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 📋 **Playlist Support** - Download entire playlists with one click
-- ⚡ **Batch Downloads** - Queue multiple URLs and download them all at once
+- ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 🎨 **360 Themes** - 350 permanent across 20+ categories + 10 seasonal easter eggs with smooth transitions
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
@@ -52,7 +52,7 @@
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
-- 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, no data transmitted anywhere. Site cookies are handled locally and never pass through our servers or any other network.
+- 🔒 **Privacy First** - No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 
 ---
 
@@ -170,7 +170,7 @@
 **Latest:** v1.0.3 Build 126  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
 **SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
-**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
+**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
@@ -189,12 +189,12 @@
 ### Windows
 1. Extract `EGMd.zip`
 2. Run `egm-setup.exe` and follow the installer
-3. Paste a video URL and click Download!
+3. Paste a video URL, fetch the video info, then click Download!
 
 ### Windows Portable
 1. Extract `EGMd-portable.zip` to any folder or USB drive
 2. Run `EGM Downloader.exe`
-3. Paste a video URL and click Download!
+3. Paste a video URL, fetch the video info, then click Download!
 
 > Settings and data stay in the same folder — take it anywhere.
 
@@ -215,7 +215,7 @@
 
 ## 💡 Usage
 
-1. **Paste URL** - Copy any video URL and paste it into the app and click "Fetch", or after copying video, click "Paste & Fetch"
+1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
 2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
 3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
 4. **Edit Filename** (Optional) - Click the filename to customize it
@@ -226,17 +226,17 @@
 
 **Playlist Downloads:**
 - Paste playlist URL
-- Select "Download All" or choose specific videos, select your resolution, also you can "Download All Audio" and select your desired bitrate
-- Videos/Audio download in sequence
+- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
+- Videos and audio downloads are processed in sequence.
 
 **Batch Downloads:**
 - Add multiple URLs to the queue
 - Select format (MP4/MP3) and quality for each
-- Download all at once
+- Start all queued downloads together
 - Cancel individual downloads anytime
 
 **Plugin Updates:**
-- Click "Update Plugins" in Advanced Settings
+- Click "Update Plugins" in the Advanced panel
 - Update yt-dlp for newest site support
 - Update ffmpeg for latest codecs
 
@@ -578,7 +578,7 @@ Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, eleme
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
 
 **What this means:**
-- ✅ Free for personal and non-commercial use
+- ✅ Free to use, modify, and distribute under AGPL-3.0 terms
 - ✅ Modification allowed (must share modifications)
 - ✅ Distribution allowed (must include source code)
 - ✅ Patent protection included
