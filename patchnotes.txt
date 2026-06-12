@@ -38,6 +38,9 @@ v1.1 IGNITION — Phase 3: Downloads
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast to refresh open BrowserWindows
   • Remove version number from header title ("EGM Downloader v1.0.4") — redundant with footer pill and title bar
   • Replace hourglass emoji on fetching videos with inline SVG
+  • Sticky download bar in subscriptions — stays visible when scrolling through videos
+  • Persist "Downloaded" status across window close/reopen — update v.downloaded in egm_subscriptions.json when download completes
+  • Members-only badge (Option B) — show video with badge, disable checkbox
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
