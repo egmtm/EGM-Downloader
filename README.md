@@ -275,46 +275,20 @@
 - 🔍 Strict image magic byte detection — canonical pattern matching replaces loose checks
 - 🛡️ Content-Type header validation on thumbnail fetches — defense-in-depth on top of existing HTTPS-only + size cap stack
 
-**v1.0 — CORNERSTONE:** ✅ Shipped
-- 🧱 The foundation release — everything built since v0.93 comes together here
-- 🎨 400 themes — mythology, sports, decades, memes, cities, space, planets, Conejo Malo series, and more
-- ⭐ Theme Favorites + Random Launch — heart any theme, optionally start fresh every session
-- 🎮 Keyboard-first themes — arrow keys navigate cards, Enter applies, F favorites, Escape clears search
-- 🪟 Windows portable fully isolated — no settings leak between installed and portable versions
-- 🪟 Windows app identity — EGM Downloader shows correctly across all system views
-- 🔧 YouTube signature fix — yt-dlp remote components resolve playback issues
-- 🔧 Save/rename modal stays open on overlay click — Cancel, Save, or Escape only
-- ⚡ ffmpeg loads in background — app opens immediately, no frozen splash on slow connections
-- 🔄 yt-dlp and ffmpeg channel toggles (Stable / Nightly) in Advanced panel
-- 🔒 IPC hardening — sender validation, atomic writes, signed manifest verification, file import cap, zip-slip guard
-- 🧪 32 automated tests — security parity across all 3 platforms, theme consistency, template integrity
-- ✨ Source split — index, scripts, styles, and theme data in dedicated files; rendered output identical
-- ⚡ Electron 42.3.2 — latest stable runtime
+**v1.0 — CORNERSTONE:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.0)
+400 themes, YouTube fix, Theme Favorites, keyboard navigation, IPC hardening, 32 tests, source split, Electron 42.3.2
 
-**v1.0.1:** ✅ Shipped
-- 🔧 Update Plugins panel moved into hamburger → Advanced tab — cleaner main page
-- 🔧 Collapsible plugins grid with Show/Hide toggle — state remembered across restarts
-- 🔧 Section dividers in Advanced tab — Channels, Plugins, Maintenance grouping
-- 🔧 Clear cache moved to maintenance zone
-- 🔧 Auto-collapse plugins panel after check when all plugins are current
-- 🔧 Update modal now scrollable — max-height 90vh, buttons stay fixed
+**v1.0.1:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.1)
+Plugins panel moved to Advanced tab, collapsible grid, scroll-safe modal
 
-**v1.0.2:** ✅ Shipped
-- 🧭 Direct-access navigation buttons replace the hamburger — one tap to History, Themes, or Advanced
-- 🖼️ Enlarged logo (76px) with vertical nav stack — cleaner header layout
-- 🔧 History panel loads correctly on every navigation path — tab switch and nav-while-open both handled
+**v1.0.2:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.2)
+Direct-access nav buttons, enlarged logo, history panel fix
 
-**v1.0.3:** ✅ Shipped
-- 🔒 Server-side download concurrency cap (BoundedSemaphore) — prevents unbounded process spawns
-- 🔒 Resolve-first download directory validation — closes path traversal bypass
-- 🔒 TOCTOU locks on update and Deno install — prevents double-spawn race on simultaneous requests
-- 🔧 First-run ffmpeg queues downloads instead of 503 — new users can download immediately after install
-- ⚡ Electron 42.4.0 — Mac and Linux; includes CVE-2026-9115 + CVE-2026-9116 backports, Chromium 148.0.7778.254, Node.js v24.16.0
+**v1.0.3 — Locksmith:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.3)
+Concurrency backstop, path traversal fix, TOCTOU locks, Electron 42.4.0 + CVE-2026-9115/9116
 
-**v1.0.4:** ✅ Shipped
-- 🎨 Full SVG icon upgrade — all emoji replaced with inline SVGs, theme-compatible via currentColor
-- 🧭 Nav buttons 2-column layout — History/Themes stacked left, separator, Advanced isolated right
-- 🔧 Card toggle contrast fix — Show/Hide readable across all 400 themes
+**v1.0.4 — Sharp:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.4)
+Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 
 **v1.1 — IGNITION:**
 - 📡 Subscriptions — save any channel or playlist, automatically fetch and display what's new
