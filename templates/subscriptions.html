@@ -208,6 +208,10 @@
     <div class="mini-list" id="mini-list"></div>
 
     <div class="sidebar-footer">
+      <button id="history-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        Download History
+      </button>
       <button id="back-btn">← Back to app</button>
     </div>
   </div>
@@ -792,6 +796,14 @@ document.getElementById('collapse-btn').addEventListener('click', () => {
 });
 
 // ── Back to app ──────────────────────────────────────────────────────────────
+document.getElementById('history-btn').addEventListener('click', () => {
+  if (window.electronAPI && window.electronAPI.openHistoryWindow) {
+    window.electronAPI.openHistoryWindow();
+  } else {
+    window.open('/history-page', '_blank');
+  }
+});
+
 document.getElementById('back-btn').addEventListener('click', () => {
   if (window.electronAPI && window.electronAPI.closeSubscriptions) {
     window.electronAPI.closeSubscriptions();
