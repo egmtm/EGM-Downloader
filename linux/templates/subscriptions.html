@@ -313,6 +313,9 @@ function renderSidebar() {
 // ── Global download state — persists across subscription switches ────────────
 const allJobs = new Map(); // videoId → { jobId, status, data }
 let pollTimer = null;
+// Terminal backend states — everything else (queued/downloading/converting/
+// or any future status) is treated as active so a job is never silently dropped.
+const TERMINAL_STATES = ['done', 'error', 'cancelled'];
 
 function updateVideoState(videoId, status, data) {
   const metaEl = document.getElementById('meta-' + videoId);
@@ -360,13 +363,23 @@ function updateVideoState(videoId, status, data) {
       <div style="flex:1"></div>
       <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
     </div>`;
+  } else {
+    // Unknown, non-terminal status from the backend (forward-compat). Render a
+    // generic active state with Cancel rather than no-op'ing (which would let a
+    // re-render drop the card back to the bare date — the old 'converting' bug).
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status downloading">Processing…</span>
+      <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+    </div>`;
   }
 }
 
 function restoreJobStates() {
   for (const [videoId, info] of allJobs) {
     updateVideoState(videoId, info.status, info.data || {});
-    if (['queued', 'downloading', 'converting'].includes(info.status)) {
+    if (!TERMINAL_STATES.includes(info.status)) {
       const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
       if (cb) cb.disabled = true;
     }
@@ -384,7 +397,7 @@ async function pollJobs() {
   _polling = true;
   try {
     for (const [videoId, info] of allJobs) {
-      if (!['queued', 'downloading', 'converting'].includes(info.status)) continue;
+      if (TERMINAL_STATES.includes(info.status)) continue;
       try {
         const resp = await fetch(`/api/status/${info.jobId}`);
         const data = await resp.json();
@@ -395,7 +408,7 @@ async function pollJobs() {
         info.status = data.status;
         info.data = data;
         updateVideoState(videoId, data.status, data);
-        if (['done', 'error', 'cancelled'].includes(data.status)) {
+        if (TERMINAL_STATES.includes(data.status)) {
           const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
           if (cb) cb.disabled = false;
         }
@@ -571,7 +584,7 @@ function renderDetail() {
 
       for (const cb of checked) {
         const videoId = cb.dataset.videoId;
-        if (allJobs.has(videoId) && ['queued','downloading','converting'].includes(allJobs.get(videoId).status)) continue;
+        if (allJobs.has(videoId) && !TERMINAL_STATES.includes(allJobs.get(videoId).status)) continue;
 
         // Find video data from cache
         const video = (activeSub.videos || []).find(v => (v.video_id || '') === videoId);
