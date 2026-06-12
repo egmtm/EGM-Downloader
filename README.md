@@ -247,19 +247,19 @@
 
 ## 🗺️ Roadmap
 
-**v0.99.9 — COMMAND CENTER:** ✅ Shipped
+**v0.99.9 — COMMAND CENTER:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.9)
 Advanced panel in hamburger, splash polish, +20 themes
 
-**v0.99.10 — DIRECTOR'S CUT:** ✅ Shipped
+**v0.99.10 — DIRECTOR'S CUT:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.10)
 Video thumbnails in history, expanded audio quality, +20 themes
 
-**v0.99.11 — FOUNDER'S EDITION:** ✅ Shipped
+**v0.99.11 — FOUNDER'S EDITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.11)
 Puerto Rico Collection (22 themes), 67 new themes total, HTTPS-only thumbnail fetching
 
-**v0.99.12 — VAULT:** ✅ Shipped
+**v0.99.12 — VAULT:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.12)
 Signed update manifests, security event logging, unit test suite (13 tests), contrast fixes
 
-**v0.99.13 — SOLID:** ✅ Shipped
+**v0.99.13 — SOLID:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.13)
 Atomic file writes, strict image magic byte validation, Content-Type enforcement on thumbnails
 
 **v1.0 — CORNERSTONE:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.0)
