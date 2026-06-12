@@ -367,15 +367,13 @@ function restoreJobStates() {
 }
 
 function startPolling() {
-  if (pollTimer) clearInterval(pollTimer);
+  if (pollTimer) return;
   pollTimer = setInterval(pollJobs, 1500);
 }
 
 async function pollJobs() {
-  let hasActive = false;
   for (const [videoId, info] of allJobs) {
     if (!['queued', 'downloading'].includes(info.status)) continue;
-    hasActive = true;
     try {
       const resp = await fetch(`/api/status/${info.jobId}`);
       const data = await resp.json();
@@ -391,10 +389,6 @@ async function pollJobs() {
         if (cb) cb.disabled = false;
       }
     } catch {}
-  }
-  if (!hasActive) {
-    clearInterval(pollTimer);
-    pollTimer = null;
   }
 }
 
