@@ -686,6 +686,17 @@ def _safe_thumb_url(url) -> str:
         return ""
     return url
 
+_VIDEO_ID_RE = _re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
+
+def _safe_video_id(vid) -> str:
+    """Validate a video id from yt-dlp metadata before storing it. Allowlist
+    covers YouTube ids ([A-Za-z0-9_-]) plus '.' and ':' used by some other
+    extractors; rejects quotes/spaces/HTML chars that could break out of an
+    attribute context when the id is interpolated in subscriptions.html."""
+    if not vid or not isinstance(vid, str):
+        return ""
+    return vid if _VIDEO_ID_RE.fullmatch(vid) else ""
+
 _SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/boot",
                  "/sys", "/proc",
                  "C:\\Windows", "C:\\Program Files", "C:\\Program Files (x86)",
@@ -2029,7 +2040,7 @@ def fetch_subscription_videos():
             except Exception:
                 continue
 
-            vid = entry.get("id", "")
+            vid = _safe_video_id(entry.get("id", ""))
             if not vid or (vid in existing_ids and not force):
                 continue
 

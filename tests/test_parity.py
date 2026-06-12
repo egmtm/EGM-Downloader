@@ -210,6 +210,7 @@ def test_security_markers_in_all_app_py():
         "_TOKEN_EXEMPT_PREFIX",     # consolidated token exemption
         "_safe_urlopen",            # timeout-enforced HTTP opens
         "_atomic_write_text",       # crash-safe file writes
+        "_safe_video_id",           # video id allowlist (attribute-context XSS guard)
     ]
     for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
         source = read_source(path)
@@ -423,3 +424,44 @@ def test_preload_bridge_full_parity():
         f"Windows-only bridge functions not in allowlist: {unexpected}. "
         f"If cross-platform, port to Mac/Linux. If truly Windows-only, add to allowlist."
     )
+
+def test_video_id_xss_guard():
+    """Phase 3 regression guard — a malicious video_id from yt-dlp metadata
+    must not be able to break out of an attribute context in subscriptions.html.
+
+    Two layers, both checked on every platform/template:
+    1. Server: _safe_video_id() allowlists the id charset before storage.
+    2. Client: every video_id attribute interpolation uses attrEsc() (which,
+       unlike esc(), escapes quotes), and the onclick handlers don't use
+       CSS.escape (wrong escaper for an HTML attribute / JS string context).
+    """
+    # 1. Server-side allowlist behaves correctly on all 3 app.py
+    id_re = re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        assert '_safe_video_id(entry.get("id", ""))' in source, \
+            f"{name}/app.py does not sanitize video_id at the storage site"
+        m = re.search(r'_VIDEO_ID_RE\s*=\s*_re\.compile\(r"([^"]+)"\)', source)
+        assert m and m.group(1) == id_re.pattern, \
+            f"{name}/app.py _VIDEO_ID_RE drifted from the expected allowlist"
+
+    # The allowlist itself: good ids pass, breakout payloads fail
+    assert id_re.fullmatch("dQw4w9WgXcQ")                      # YouTube
+    assert id_re.fullmatch("abc.def:123_-x")                   # other extractors
+    for bad in ('" onmouseover="alert(1)', "x' y", "a b", "<svg>", "", "x"*129):
+        assert not id_re.fullmatch(bad), f"allowlist accepted breakout id: {bad!r}"
+
+    # 2. Client-side: attribute contexts use attrEsc, not esc/CSS.escape
+    for tpl in ("templates/subscriptions.html", "linux/templates/subscriptions.html"):
+        src = read_source(tpl)
+        assert "function attrEsc" in src, f"{tpl} missing attrEsc()"
+        for needle in (
+            'data-video-id="${attrEsc(v.video_id',
+            'id="meta-${attrEsc(v.video_id',
+            "cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')",
+            "clearVideoState('${attrEsc(videoId)}')",
+        ):
+            assert needle in src, f"{tpl} attribute site not using attrEsc: {needle}"
+        assert "onclick=\"cancelJob('${jobId}'" not in src
+        for stale in ('data-video-id="${esc(v.video_id', 'id="meta-${esc(v.video_id'):
+            assert stale not in src, f"{tpl} still uses esc() in attribute context"

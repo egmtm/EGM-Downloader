@@ -251,6 +251,14 @@ function esc(s) {
   return d.innerHTML;
 }
 
+// ── Attribute-context escape — esc() does not escape quotes, which is enough
+// for text nodes but NOT for `attr="${...}"` interpolations (a `"` would
+// terminate the attribute). Escapes &, <, >, " and '.
+function attrEsc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
 // ── Load subscriptions ───────────────────────────────────────────────────────
 async function loadSubs() {
   try {
@@ -316,7 +324,7 @@ function updateVideoState(videoId, status, data) {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status queued">Queued</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
     </div>`;
   } else if (status === 'downloading') {
     const pct = Math.round(data.progress || 0);
@@ -325,25 +333,25 @@ function updateVideoState(videoId, status, data) {
       <span class="video-status downloading">${pct}%</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
       <span>${speed}</span>
-      <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
     </div>`;
   } else if (status === 'done') {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status done">Downloaded</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
     </div>`;
   } else if (status === 'error') {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status error">${esc(data.error || 'Error')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
     </div>`;
   } else if (status === 'cancelled') {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status error">Cancelled</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
     </div>`;
   }
 }
@@ -454,15 +462,15 @@ function renderDetail() {
           <button class="dl-bar-btn" id="dl-selected-btn" disabled>Download selected</button>
         </div>`;
         return dlBar + visible.map(v => `
-          <div class="video-card" data-video-id="${esc(v.video_id || '')}">
-            <input type="checkbox" class="video-check" data-video-id="${esc(v.video_id || '')}" style="accent-color:var(--acc);cursor:pointer;width:16px;height:16px;flex-shrink:0">
+          <div class="video-card" data-video-id="${attrEsc(v.video_id || '')}">
+            <input type="checkbox" class="video-check" data-video-id="${attrEsc(v.video_id || '')}" style="accent-color:var(--acc);cursor:pointer;width:16px;height:16px;flex-shrink:0">
             <div class="video-thumb" ${v.thumbnail_url ? `style="background-image:url('${esc(v.thumbnail_url)}')"` : ''}>
               ${!v.thumbnail_url ? '🎬' : ''}
               ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
             </div>
             <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta" id="meta-${esc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
+              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
             </div>
           </div>
         `).join('') + (hasMore ? `
