@@ -8,6 +8,11 @@
     * { margin:0;padding:0;box-sizing:border-box; }
     body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden; }
 
+    ::-webkit-scrollbar { width:8px;height:8px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border2);border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover { background:var(--text2); }
+
     /* ── Sidebar ── */
     .sidebar {
       width:180px;background:var(--surf);border-right:1px solid var(--border);
@@ -48,16 +53,6 @@
     }
     .sub-item:hover { color:var(--text);background:var(--surf2); }
     .sub-item.active { color:var(--acc);border-left-color:var(--acc);background:var(--surf2); }
-
-    .sub-actions {
-      display:none;padding:4px 10px;gap:6px;font-size:.65rem;
-    }
-    .sub-item.active + .sub-actions { display:flex; }
-    .sub-actions button {
-      background:var(--surf2);border:1px solid var(--border);color:var(--text2);
-      padding:2px 8px;border-radius:3px;cursor:pointer;font-size:.65rem;
-    }
-    .sub-actions button:hover { border-color:var(--acc);color:var(--acc); }
 
     .sidebar-footer {
       padding:8px 10px;border-top:1px solid var(--border);
@@ -128,6 +123,7 @@
       display:flex;align-items:center;gap:8px;padding:6px 18px;
       border-bottom:1px solid var(--border);
       position:sticky;top:0;z-index:2;background:var(--bg);
+      margin:-8px -18px 0;
     }
     .dl-bar-btn {
       padding:4px 12px;border-radius:4px;font-size:.65rem;cursor:pointer;
@@ -300,10 +296,6 @@ function renderSidebar() {
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
     </div>
-    <div class="sub-actions">
-      <button data-action="fetch" data-id="${s.id}">Fetch</button>
-      <button data-action="force" data-id="${s.id}">Force</button>
-    </div>
   `}).join('');
 
   // Wire clicks
@@ -312,16 +304,6 @@ function renderSidebar() {
       activeSub = subs.find(s => s.id === item.dataset.id) || null;
       renderSidebar();
       renderDetail();
-    });
-  });
-
-  list.querySelectorAll('.sub-actions button').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const id = btn.dataset.id;
-      if (btn.dataset.action === 'delete') removeSub(id);
-      else if (btn.dataset.action === 'fetch') fetchVideos(id, false);
-      else if (btn.dataset.action === 'force') fetchVideos(id, true);
     });
   });
 
@@ -743,6 +725,7 @@ async function addSub() {
       activeSub = r.subscription;
       renderSidebar();
       renderDetail();
+      fetchVideos(r.subscription.id, false);
     } else {
       input.style.borderColor = 'var(--red, #e04040)';
       setTimeout(() => input.style.borderColor = '', 1500);
