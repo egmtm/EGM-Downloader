@@ -248,32 +248,19 @@
 ## 🗺️ Roadmap
 
 **v0.99.9 — COMMAND CENTER:** ✅ Shipped
-- 🎛️ Advanced panel moves to dedicated hamburger tab — History | Themes | Advanced
-- 🖥️ Splash screen polish and escape fix
-- 🎨 +20 new themes
-- 🔍 Windows tray menu density research deferred to v0.99.10
+Advanced panel in hamburger, splash polish, +20 themes
 
 **v0.99.10 — DIRECTOR'S CUT:** ✅ Shipped
-- 🖼️ Video thumbnails in download history
-- 🎵 Expanded audio quality options
-- 🎨 +20 new themes
+Video thumbnails in history, expanded audio quality, +20 themes
 
 **v0.99.11 — FOUNDER'S EDITION:** ✅ Shipped
-- 🇵🇷 Puerto Rico Collection — 22 deeply personal themes celebrating Ponce, the island, holidays, and culture
-- 🎨 67 new themes total — bringing the library to 360
-- 🖼️ Dedicated Puerto Rico section in the themes sidebar
-- 🔒 Thumbnail fetching restricted to HTTPS-only
+Puerto Rico Collection (22 themes), 67 new themes total, HTTPS-only thumbnail fetching
 
 **v0.99.12 — VAULT:** ✅ Shipped
-- 🔧 Theme placeholder + section label contrast fix — as promised from v0.99.11 known issues
-- 🔒 Signed update manifests — cryptographically verified (ed25519) before any update installs
-- 📋 Structured security event logging — all security-relevant events logged to rotating `security.log`
-- 🧪 Unit test suite — ~13 tests covering Tier 1 parity, Tier 2 security, and historical regressions; wired into CI
+Signed update manifests, security event logging, unit test suite (13 tests), contrast fixes
 
 **v0.99.13 — SOLID:** ✅ Shipped
-- ⚛️ Atomic file writes — history, settings, cookies and reset paths hardened against corruption
-- 🔍 Strict image magic byte detection — canonical pattern matching replaces loose checks
-- 🛡️ Content-Type header validation on thumbnail fetches — defense-in-depth on top of existing HTTPS-only + size cap stack
+Atomic file writes, strict image magic byte validation, Content-Type enforcement on thumbnails
 
 **v1.0 — CORNERSTONE:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.0)
 400 themes, YouTube fix, Theme Favorites, keyboard navigation, IPC hardening, 32 tests, source split, Electron 42.3.2
