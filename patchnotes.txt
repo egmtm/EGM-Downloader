@@ -67,6 +67,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Expanded per-channel settings (format, channel info)
   • Incremental fetch (only new videos)
   • Export/import integration
+  • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
