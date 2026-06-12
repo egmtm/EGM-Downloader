@@ -143,6 +143,12 @@
     .video-status.downloading { color:var(--acc);background:rgba(45,212,191,.1); }
     .video-status.done { color:var(--green);background:rgba(34,197,94,.1); }
     .video-status.error { color:var(--red);background:rgba(248,113,113,.1); }
+    .video-action-btn {
+      background:none;border:1px solid var(--border);border-radius:3px;
+      color:var(--text2);font-size:.5rem;padding:1px 6px;cursor:pointer;
+      font-family:inherit;white-space:nowrap;
+    }
+    .video-action-btn:hover { border-color:var(--acc);color:var(--text); }
 
     .video-thumb {
       width:120px;height:68px;border-radius:4px;background:var(--surf2);
@@ -510,24 +516,42 @@ function renderDetail() {
   function updateVideoState(videoId, status, data) {
     const metaEl = document.getElementById('meta-' + CSS.escape(videoId));
     if (!metaEl) return;
+    const info = activeJobs.get(videoId);
+    const jobId = info ? info.jobId : '';
 
     if (status === 'queued') {
-      metaEl.innerHTML = '<span class="video-status queued">Queued</span>';
+      metaEl.innerHTML = `<div class="video-progress">
+        <span class="video-status queued">Queued</span>
+        <div style="flex:1"></div>
+        <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
+      </div>`;
     } else if (status === 'downloading') {
       const pct = Math.round(data.progress || 0);
       const speed = data.speed || '';
-      metaEl.innerHTML = `
-        <div class="video-progress">
-          <span class="video-status downloading">${pct}%</span>
-          <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
-          <span>${speed}</span>
-        </div>`;
+      metaEl.innerHTML = `<div class="video-progress">
+        <span class="video-status downloading">${pct}%</span>
+        <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
+        <span>${speed}</span>
+        <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
+      </div>`;
     } else if (status === 'done') {
-      metaEl.innerHTML = '<span class="video-status done">Downloaded</span>';
+      metaEl.innerHTML = `<div class="video-progress">
+        <span class="video-status done">Downloaded</span>
+        <div style="flex:1"></div>
+        <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+      </div>`;
     } else if (status === 'error') {
-      metaEl.innerHTML = `<span class="video-status error">Error: ${esc(data.error || 'unknown')}</span>`;
+      metaEl.innerHTML = `<div class="video-progress">
+        <span class="video-status error">${esc(data.error || 'Error')}</span>
+        <div style="flex:1"></div>
+        <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+      </div>`;
     } else if (status === 'cancelled') {
-      metaEl.innerHTML = '<span class="video-status error">Cancelled</span>';
+      metaEl.innerHTML = `<div class="video-progress">
+        <span class="video-status error">Cancelled</span>
+        <div style="flex:1"></div>
+        <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+      </div>`;
     }
   }
 
@@ -565,6 +589,20 @@ function renderDetail() {
       pollTimer = null;
     }
   }
+}
+
+async function cancelJob(jobId, videoId) {
+  try {
+    await fetch(`/api/cancel/${jobId}`, { method: 'POST' });
+  } catch {}
+}
+
+function clearVideoState(videoId) {
+  const metaEl = document.getElementById('meta-' + videoId);
+  if (!metaEl) return;
+  // Restore original date from cached video data
+  const video = (activeSub?.videos || []).find(v => (v.id || v.url || '') === videoId);
+  metaEl.textContent = video?.upload_date ? formatDate(video.upload_date) : '—';
 }
 
 let currentSort = 'latest';
