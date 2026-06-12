@@ -405,83 +405,28 @@ EGM-Downloader/
 │
 ├── app.py                          ← Flask backend         [shared — all platforms]
 ├── templates/                      ← UI templates          [shared — Windows + Mac]
-│   ├── index.html                  ← Main UI
-│   ├── history.html                ← Version history
+│   ├── index.html                  ← Main UI shell
+│   ├── index_scripts.html          ← JS extracted
+│   ├── index_styles.html           ← CSS extracted
+│   ├── theme_data.html             ← THEME_DATA + THEMES array
+│   ├── history.html                ← Download history
 │   ├── themes.html                 ← Theme picker
 │   └── theme_styles.html           ← Theme CSS definitions
 ├── static/                         ← App icons             [shared — all platforms]
 ├── languages/                      ← i18n language files   [shared — all platforms]
-│   └── en.json, es.json, fr.json, pt.json, de.json, it.json, ...
 │
 ├── windows/                        ← Windows platform files
 ├── mac/                            ← macOS platform files
 ├── linux/                          ← Linux platform files
 ├── scripts/                        ← Build automation
-│   ├── bump-version.py             ← Version management
-│   ├── validate-version-sync.py    ← Version sync validator (CI)
-│   ├── gen-update-json.py          ← Update JSON generation
-│   └── add-patchnote.py            ← Changelog management
-│
-├── version.json                    ← Single source of truth
-├── requirements.txt                ← Python dependencies
-└── patchnotes.txt                  ← Version history
+└── tests/                          ← Automated test suite
 ```
 
-### Build Workflow
-
-**1. Bump version:**
-```bash
-python scripts/bump-version.py
-# Or bump version string:
-python scripts/bump-version.py --version 0.92
-```
-
-**2. Add patch notes:**
-```bash
-python scripts/add-patchnote.py "Fixed bug" "Added feature"
-```
-
-**3. Generate update JSONs:**
-```bash
-python scripts/gen-update-json.py --notes "Fixed X; Added Y"
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for complete development guide.
-
-### Build Artifacts
-
-EGM Downloader desktop app build artifacts (`EGMd.zip`, `EGMdM.zip`, `EGMdL.zip`, `EGMd-portable.zip`) are uploaded to the server manually by EGM after each release build. They are **NOT** in this repo and **NOT** touched by the auto-deploy pipeline.
-
-JSON update feeds (`egm-version.json`, `egmac-update.json`, `egmlinux-update.json`, `egm-portable-version.json`) are maintained in the [egerena-website](https://github.com/egmtm/egerena-website) repo and deployed through its pipeline.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version management workflow, and CI details.
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Whether it's:
-- 🐛 Bug reports
-- 💡 Feature requests
-- 📝 Documentation improvements
-- 🔧 Code contributions
-
-**Get started:**
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
-2. Fork the repository
-3. Create a feature branch
-4. Make your changes
-5. Submit a pull request
-
-**Code Quality:**
-- ✅ Python linting (flake8, isort)
-- ✅ JavaScript linting (ESLint)
-- ✅ Version sync validation
-- ✅ Automated quality checks
-
-All pull requests are automatically tested via GitHub Actions.
-
----
-
-## 📊 Platform Status
+## 📦 Platforms
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
@@ -490,7 +435,15 @@ All pull requests are automatically tested via GitHub Actions.
 | macOS    | ✅ Live | Build 128 | EGMdM.zip | ✅ Yes |
 | Linux    | ✅ Live | Build 128 | EGMdL.zip | ❌ Manual |
 
-**All platforms are production-ready and actively maintained.**
+### System Requirements
+
+**Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
+
+**macOS:** macOS 11.0+ · Apple Silicon (M1–M5) · ~300 MB disk space
+
+**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support
+Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
+> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
 
 ---
 
@@ -511,154 +464,33 @@ See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
 
 ---
 
-## 🔄 Version Management
-
-`version.json` is the single source of truth. Never edit version numbers manually — always use:
-
-```bash
-python scripts/bump-version.py
-```
-
-This ensures all platform files stay synchronized.
-
----
-
-## 🧪 Continuous Integration
-
-Automated quality checks run on every push and pull request:
-
-- **Version Sync Validation** - Prevents version drift across platforms
-- **Python Linting** - Code quality (flake8, isort)
-- **JavaScript Linting** - Frontend quality (ESLint)
-- **First Contributor Welcome** - Automated onboarding
-
-View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions)
-
----
-
-## 📋 System Requirements
-
-### Windows
-- Windows 10 (64-bit) or Windows 11
-- ~800 MB free disk space (after first run)
-- Internet connection (first launch only)
-
-### macOS
-- macOS 11.0 (Big Sur) or later
-- Apple Silicon (M1/M2/M3/M4/M5)
-- 300 MB free disk space
-
-### Linux
-- 64-bit distribution (see supported list below)
-- 300 MB free disk space
-- FUSE support (pre-installed on most distros)
-
-**Supported Linux Distributions:**
-Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
-
-> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
-
----
-
 ## 🐛 Troubleshooting
 
-### Windows
-**App won't start:**
-- Run `launch.bat` to see error messages
-- Check `logs/` folder for details
+**Windows — app won't start:** Run `launch.bat` to see error messages · check `logs/` folder
 
-**Download fails:**
-- Update yt-dlp via "Update Plugins"
-- Check internet connection
-- Try different quality/format
+**macOS — download stuck:** Update plugins → restart the app → check Console.app for errors
 
-### macOS
-**Download stuck:**
-- Update plugins
-- Restart the app
-- Check Console.app for errors
-
-### Linux
-**AppImage won't launch:**
+**Linux — AppImage won't launch:**
 - Ensure executable: `chmod +x "EGM Downloader.AppImage"`
 - Install FUSE: `sudo apt install libfuse2` (Ubuntu/Debian)
 - Run from terminal to see errors
 
-**Need more help?** Open an issue on GitHub!
+**Need more help?** [Open an issue on GitHub](https://github.com/egmtm/EGM-Downloader/issues)
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see the [LICENSE](LICENSE) file for details.
 
-**What this means:**
 - ✅ Free for personal and non-commercial use
-- ✅ Modification allowed (must share modifications)
-- ✅ Distribution allowed (must include source code)
-- ✅ Patent protection included
-- ⚠️ Network use triggers copyleft (modifications must be shared)
-- ⚠️ Liability and warranty not provided
+- ✅ Modification and distribution allowed (must share modifications + source)
+- ⚠️ Network use triggers copyleft
 
 ---
 
-## 🙏 Acknowledgments
+## 📞 Support & Security
 
-Huge thanks to:
-- The **yt-dlp** team for the incredible download engine
-- The **open source community** for the amazing tools and libraries
-- **Contributors** who help improve this project
-- **Users** who report bugs and suggest features
-
-See [CREDITS.md](CREDITS.md) for detailed acknowledgments.
-
----
-
-## 📞 Support
-
-- 🐛 **Bug Reports:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
-- 💡 **Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
-- 📖 **Documentation:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
-- 🔒 **Security Issues:** See [Security Policy](#security)
-
----
-
-## 🔒 Security
-
-Found a security vulnerability? **Please do not open a public issue.**
-
-Instead:
-1. Email security concerns to: contact@egerena.com
-2. Include: description, steps to reproduce, potential impact
-3. We'll respond within 48 hours
-4. We'll work with you on a fix and responsible disclosure
-
-Alternatively, you can report via GitHub's private vulnerability reporting feature.
-
----
-
-## 📈 Project Stats
-
-- **Version:** 1.0.4
-- **Build:** 128
-- **Supported Sites:** 1000+
-- **Platforms:** 3 (Windows, macOS, Linux)
-- **License:** AGPL-3.0
-- **Language:** Python + JavaScript
-
----
-
-## ⭐ Show Your Support
-
-If you find EGM Downloader useful, please consider:
-- ⭐ **Starring this repository**
-- 🐛 **Reporting bugs** to help improve it
-- 💡 **Suggesting features** you'd like to see
-- 🤝 **Contributing** code or documentation
-- 📢 **Sharing** with others who might find it useful
-
-**Every bit of support helps make this project better!**
-
----
-
-**Built brick by brick by egmtm**
+- 🐛 **Bug Reports / Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
+- 📖 **Contributing:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
+- 🔒 **Security Vulnerabilities:** Do not open a public issue — email contact@egerena.com or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We'll respond within 48 hours.
