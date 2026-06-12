@@ -371,24 +371,31 @@ function startPolling() {
   pollTimer = setInterval(pollJobs, 1500);
 }
 
+let _polling = false;
 async function pollJobs() {
-  for (const [videoId, info] of allJobs) {
-    if (!['queued', 'downloading'].includes(info.status)) continue;
-    try {
-      const resp = await fetch(`/api/status/${info.jobId}`);
-      const data = await resp.json();
-      if (data.error === 'Job not found') {
-        allJobs.delete(videoId);
-        continue;
-      }
-      info.status = data.status;
-      info.data = data;
-      updateVideoState(videoId, data.status, data);
-      if (['done', 'error', 'cancelled'].includes(data.status)) {
-        const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
-        if (cb) cb.disabled = false;
-      }
-    } catch {}
+  if (_polling) return;
+  _polling = true;
+  try {
+    for (const [videoId, info] of allJobs) {
+      if (!['queued', 'downloading'].includes(info.status)) continue;
+      try {
+        const resp = await fetch(`/api/status/${info.jobId}`);
+        const data = await resp.json();
+        if (data.error === 'Job not found') {
+          allJobs.delete(videoId);
+          continue;
+        }
+        info.status = data.status;
+        info.data = data;
+        updateVideoState(videoId, data.status, data);
+        if (['done', 'error', 'cancelled'].includes(data.status)) {
+          const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
+          if (cb) cb.disabled = false;
+        }
+      } catch {}
+    }
+  } finally {
+    _polling = false;
   }
 }
 
