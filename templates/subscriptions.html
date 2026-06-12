@@ -366,15 +366,15 @@ function renderDetail() {
           <button class="dl-bar-btn" id="dl-selected-btn" disabled>Download selected</button>
         </div>`;
         return dlBar + visible.map(v => `
-          <div class="video-card" data-video-id="${esc(v.id || v.url || '')}">
-            <input type="checkbox" class="video-check" data-video-id="${esc(v.id || v.url || '')}" style="accent-color:var(--acc);cursor:pointer;width:16px;height:16px;flex-shrink:0">
+          <div class="video-card" data-video-id="${esc(v.video_id || '')}">
+            <input type="checkbox" class="video-check" data-video-id="${esc(v.video_id || '')}" style="accent-color:var(--acc);cursor:pointer;width:16px;height:16px;flex-shrink:0">
             <div class="video-thumb" ${v.thumbnail_url ? `style="background-image:url('${esc(v.thumbnail_url)}')"` : ''}>
               ${!v.thumbnail_url ? '🎬' : ''}
               ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
             </div>
             <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta" id="meta-${esc(v.id || v.url || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
+              <div class="video-meta" id="meta-${esc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
             </div>
           </div>
         `).join('') + (hasMore ? `
@@ -473,8 +473,8 @@ function renderDetail() {
         if (activeJobs.has(videoId)) continue; // already downloading
 
         // Find video data from cache
-        const video = (activeSub.videos || []).find(v => (v.id || v.url || '') === videoId);
-        const videoUrl = video ? (video.url || `https://www.youtube.com/watch?v=${video.id}`) : videoId;
+        const video = (activeSub.videos || []).find(v => (v.video_id || '') === videoId);
+        const videoUrl = video ? `https://www.youtube.com/watch?v=${video.video_id}` : videoId;
 
         try {
           const resp = await fetch('/api/download', {
@@ -601,7 +601,7 @@ function clearVideoState(videoId) {
   const metaEl = document.getElementById('meta-' + videoId);
   if (!metaEl) return;
   // Restore original date from cached video data
-  const video = (activeSub?.videos || []).find(v => (v.id || v.url || '') === videoId);
+  const video = (activeSub?.videos || []).find(v => (v.video_id || '') === videoId);
   metaEl.textContent = video?.upload_date ? formatDate(video.upload_date) : '—';
 }
 
