@@ -71,6 +71,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Remove Fetch/Force from sidebar — channel header already has both; sidebar items become clean name + count
   • Auto-fetch channel on first add (call fetchVideos after add response)
   • Fix sticky download bar top gap (video-list padding offset)
+  • Scrollbars not theming on subscriptions window (missing custom scrollbar CSS)
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
