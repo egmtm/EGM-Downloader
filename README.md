@@ -41,7 +41,7 @@
 - 🎬 **Video & Audio Downloads** - MP4 or MKV video; MP3, M4A, OPUS, or FLAC audio
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 📋 **Playlist Support** - Download entire playlists with one click
-- ⚡ **Batch Downloads** - Queue multiple URLs and download them all at once
+- ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 🎨 **400 Themes** - 390 permanent across 20+ categories + 10 seasonal easter eggs with smooth transitions
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
@@ -52,7 +52,7 @@
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
-- 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, no data transmitted anywhere. Site cookies are handled locally and never pass through our servers or any other network.
+- 🔒 **Privacy First** - Runs entirely on your machine. Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 
 ---
 
@@ -168,7 +168,7 @@
 **Latest:** v1.0.4 Build 128  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (128 MB · ~300 MB after install)  
 **SHA256:** `82c678fb51003a11e781baf71d017c80f3fe8c6aaae3740a55bfb3e6cdeef924`  
-**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only
+**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
@@ -187,12 +187,12 @@
 ### Windows
 1. Extract `EGMd.zip`
 2. Run `egm-setup.exe` and follow the installer
-3. Paste a video URL and click Download!
+3. Paste a video URL, fetch the video info, then click Download!
 
 ### Windows Portable
 1. Extract `EGMd-portable.zip` to any folder or USB drive
 2. Run `EGM Downloader.exe`
-3. Paste a video URL and click Download!
+3. Paste a video URL, fetch the video info, then click Download!
 
 > Settings and data stay in the same folder — take it anywhere.
 
@@ -230,7 +230,7 @@
 **Batch Downloads:**
 - Add multiple URLs to the queue
 - Select format (MP4/MP3) and quality for each
-- Download all at once
+- Start all queued downloads together
 - Cancel individual downloads anytime
 
 **Plugin Updates:**
@@ -445,7 +445,7 @@ See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see the [LICENSE](LICENSE) file for details.
 
-- ✅ Free for personal and non-commercial use
+- ✅ Free to use, modify, and distribute under AGPL-3.0 terms
 - ✅ Modification and distribution allowed (must share modifications + source)
 - ⚠️ Network use triggers copyleft
 
@@ -455,4 +455,4 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 
 - 🐛 **Bug Reports / Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
 - 📖 **Contributing:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
-- 🔒 **Security Vulnerabilities:** Do not open a public issue — email contact@egerena.com or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We'll respond within 48 hours.
+- 🔒 **Security Vulnerabilities:** Do not open a public issue — email contact@egerena.com or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We aim to respond within 48 hours.
