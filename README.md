@@ -58,96 +58,490 @@
 
 <a id="screenshots"></a>
 
+<a id="screenshots"></a>
+
+<a id="screenshots"></a>
+
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v0.99.13 running on Linux. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.0.4 — Sharp. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/01-loading.png">
-        <img src="screenshots/01-loading.png" width="340" alt="Loading Screen"/>
+      <a href="screenshots/01-main-ui-the-10s-theme.png">
+        <img src="screenshots/01-main-ui-the-10s-theme.png" width="340" alt="Main UI — The 10s Theme"/>
       </a>
-      <br/><sub><b>Loading Screen</b></sub>
+      <br/><sub><b>Main UI — The 10s Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-ghost-theme.png">
-        <img src="screenshots/02-main-ui-ghost-theme.png" width="340" alt="Main UI — Ghost Theme"/>
+      <a href="screenshots/02-main-ui-settings-hidden-millenium-bug-theme.png">
+        <img src="screenshots/02-main-ui-settings-hidden-millenium-bug-theme.png" width="340" alt="Main UI — Millennium Bug Theme"/>
       </a>
-      <br/><sub><b>Main UI — Ghost Theme</b></sub>
+      <br/><sub><b>Main UI — Millennium Bug Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/03-themes-window.png">
-        <img src="screenshots/03-themes-window.png" width="340" alt="Themes Window — 360 Themes"/>
+      <a href="screenshots/03-fetching-videos-ghost-theme.png">
+        <img src="screenshots/03-fetching-videos-ghost-theme.png" width="340" alt="Fetching Videos — Ghost Theme"/>
       </a>
-      <br/><sub><b>Themes Window — 360 Themes</b></sub>
+      <br/><sub><b>Fetching Videos — Ghost Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/04-fetching-videos.png">
-        <img src="screenshots/04-fetching-videos.png" width="340" alt="Fetching Videos"/>
+      <a href="screenshots/04-download-all-videos-zion-theme.png">
+        <img src="screenshots/04-download-all-videos-zion-theme.png" width="340" alt="Download All Videos — Zion Theme"/>
       </a>
-      <br/><sub><b>Fetching Videos</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/05-fetched-videos.png">
-        <img src="screenshots/05-fetched-videos.png" width="340" alt="Fetched Videos — Ready to Download"/>
-      </a>
-      <br/><sub><b>Fetched Videos — Ready to Download</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/06-downloading-videos.png">
-        <img src="screenshots/06-downloading-videos.png" width="340" alt="Downloading Videos"/>
-      </a>
-      <br/><sub><b>Downloading Videos</b></sub>
+      <br/><sub><b>Download All Videos — Zion Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/07-hamburger-history.png">
-        <img src="screenshots/07-hamburger-history.png" width="340" alt="Hamburger Panel — Download History"/>
+      <a href="screenshots/05-downloading-videos-midnight-theme.png">
+        <img src="screenshots/05-downloading-videos-midnight-theme.png" width="340" alt="Downloading Videos — Midnight Theme"/>
       </a>
-      <br/><sub><b>Hamburger — Download History</b></sub>
+      <br/><sub><b>Downloading Videos — Midnight Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/08-hamburger-themes.png">
-        <img src="screenshots/08-hamburger-themes.png" width="340" alt="Hamburger Panel — Themes"/>
+      <a href="screenshots/06-download-history-la-guancha-theme.png">
+        <img src="screenshots/06-download-history-la-guancha-theme.png" width="340" alt="Download History — La Guancha Theme"/>
       </a>
-      <br/><sub><b>Hamburger — Themes Tab</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/09-hamburger-advanced.png">
-        <img src="screenshots/09-hamburger-advanced.png" width="340" alt="Hamburger Panel — Advanced Settings"/>
-      </a>
-      <br/><sub><b>Hamburger — Advanced Settings</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/10-expanded-history.png">
-        <img src="screenshots/10-expanded-history.png" width="340" alt="Expanded Download History"/>
-      </a>
-      <br/><sub><b>Expanded Download History</b></sub>
+      <br/><sub><b>Download History — La Guancha Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/11-plugins-panel.png">
-        <img src="screenshots/11-plugins-panel.png" width="340" alt="Plugins Update Panel"/>
+      <a href="screenshots/07-themes-main-ui-the-witness-theme.png">
+        <img src="screenshots/07-themes-main-ui-the-witness-theme.png" width="340" alt="Themes — The Witness Theme"/>
       </a>
-      <br/><sub><b>Plugins Update Panel</b></sub>
+      <br/><sub><b>Themes Window — The Witness Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/12-video-output.png">
-        <img src="screenshots/12-video-output.png" width="340" alt="Video Output"/>
+      <a href="screenshots/08-all-themes-n64-theme.png">
+        <img src="screenshots/08-all-themes-n64-theme.png" width="340" alt="All Themes — N64 Theme"/>
       </a>
-      <br/><sub><b>Video Output</b></sub>
+      <br/><sub><b>All Themes — N64 Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/09-advanced-options-old-san-juan-theme.png">
+        <img src="screenshots/09-advanced-options-old-san-juan-theme.png" width="340" alt="Advanced Options — Old San Juan Theme"/>
+      </a>
+      <br/><sub><b>Advanced Options — Old San Juan Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/10-plugins-update-advanced-bauhaus-theme.png">
+        <img src="screenshots/10-plugins-update-advanced-bauhaus-theme.png" width="340" alt="Plugins Update — Bauhaus Theme"/>
+      </a>
+      <br/><sub><b>Plugins Update — Bauhaus Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/11-plugin-update-success-brutalist-theme.png">
+        <img src="screenshots/11-plugin-update-success-brutalist-theme.png" width="340" alt="Plugin Update Success — Brutalist Theme"/>
+      </a>
+      <br/><sub><b>Plugin Update Success — Brutalist Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/12-deno-reinstall-button-blue-bird-theme.png">
+        <img src="screenshots/12-deno-reinstall-button-blue-bird-theme.png" width="340" alt="Deno Reinstall Button — Blue Bird Theme"/>
+      </a>
+      <br/><sub><b>Deno Reinstall — Blue Bird Theme</b></sub>
     </td>
   </tr>
 </table>
+
+## 📥 Download
+
+### Windows
+**Latest:** v1.0.4 Build 128  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (422 KB · ~800 MB after install)  
+**SHA256:** `45c8010b75cf9c6f5d4212b064cda8f6981a879ca559e52427d3bf89dbac41bb`  
+**Requirements:** Windows 10/11 (64-bit)  
+**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### Windows Portable
+**Latest:** v1.0.4 Build 128  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (394 KB · ~800 MB after first run)  
+**SHA256:** `70b8f8f77b7408083860633c69b1ea9017ec9c1bb42cae3d53f541f9f3c8462b`  
+**Requirements:** Windows 10/11 (64-bit)  
+**No installer, no registry** — runs from any folder or USB drive  
+**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### macOS
+**Latest:** v1.0.4 Build 128  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (128 MB · ~300 MB after install)  
+**SHA256:** `82c678fb51003a11e781baf71d017c80f3fe8c6aaae3740a55bfb3e6cdeef924`  
+**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
+**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
+
+### Linux
+**Latest:** v1.0.4 Build 128  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
+**SHA256:** `120a7b0693ad6d19998c2cd0353548ff4beb60ae4de9366ccb864dbc2a6ae6a7`  
+**Format:** AppImage (Universal)  
+**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
+
+> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
+
+---
+
+## 🚀 Quick Start
+
+### Windows
+1. Extract `EGMd.zip`
+2. Run `egm-setup.exe` and follow the installer
+3. Paste a video URL, fetch the video info, then click Download!
+
+### Windows Portable
+1. Extract `EGMd-portable.zip` to any folder or USB drive
+2. Run `EGM Downloader.exe`
+3. Paste a video URL, fetch the video info, then click Download!
+
+> Settings and data stay in the same folder — take it anywhere.
+
+### macOS
+1. Extract `EGMdM.zip`
+2. Open the `.dmg` file
+3. Drag "EGM Downloader" to Applications
+4. Launch from Applications folder
+
+### Linux
+1. Extract `EGMdL.zip`
+2. Make executable: `chmod +x "EGM Downloader.AppImage"`
+3. Double-click to launch (or run from terminal)
+
+**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
+
+---
+
+## 💡 Usage
+
+1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
+2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
+3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
+4. **Edit Filename** (Optional) - Click the filename to customize it
+5. **Download** - Click the download button and wait for completion
+6. **Open Folder** - Click "Open Folder" to view your downloaded files
+
+### Advanced Features
+
+**Playlist Downloads:**
+- Paste playlist URL
+- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
+- Videos and audio downloads are processed in sequence.
+
+**Batch Downloads:**
+- Add multiple URLs to the queue
+- Select format (MP4/MP3) and quality for each
+- Start all queued downloads together
+- Cancel individual downloads anytime
+
+**Plugin Updates:**
+- Click "Update Plugins" in the Advanced panel
+- Update yt-dlp for newest site support
+- Update ffmpeg for latest codecs
+
+**Cookies / Login-Required Content:**
+- Some sites require browser cookies for premium or age-restricted content
+- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
+- Cookies are stored locally on your machine and are never transmitted
+
+---
+
+## 📥 Download
+
+### Windows
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
+**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
+**Requirements:** Windows 10/11 (64-bit)  
+**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### Windows Portable
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
+**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
+**Requirements:** Windows 10/11 (64-bit)  
+**No installer, no registry** — runs from any folder or USB drive  
+**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### macOS
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
+**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
+**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
+**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
+
+### Linux
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
+**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
+**Format:** AppImage (Universal)  
+**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
+
+> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
+
+---
+
+## 🚀 Quick Start
+
+### Windows
+1. Extract `EGMd.zip`
+2. Run `egm-setup.exe` and follow the installer
+3. Paste a video URL, fetch the video info, then click Download!
+
+### Windows Portable
+1. Extract `EGMd-portable.zip` to any folder or USB drive
+2. Run `EGM Downloader.exe`
+3. Paste a video URL, fetch the video info, then click Download!
+
+> Settings and data stay in the same folder — take it anywhere.
+
+### macOS
+1. Extract `EGMdM.zip`
+2. Open the `.dmg` file
+3. Drag "EGM Downloader" to Applications
+4. Launch from Applications folder
+
+### Linux
+1. Extract `EGMdL.zip`
+2. Make executable: `chmod +x "EGM Downloader.AppImage"`
+3. Double-click to launch (or run from terminal)
+
+**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
+
+---
+
+## 💡 Usage
+
+1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
+2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
+3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
+4. **Edit Filename** (Optional) - Click the filename to customize it
+5. **Download** - Click the download button and wait for completion
+6. **Open Folder** - Click "Open Folder" to view your downloaded files
+
+### Advanced Features
+
+**Playlist Downloads:**
+- Paste playlist URL
+- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
+- Videos and audio downloads are processed in sequence.
+
+**Batch Downloads:**
+- Add multiple URLs to the queue
+- Select format (MP4/MP3) and quality for each
+- Start all queued downloads together
+- Cancel individual downloads anytime
+
+**Plugin Updates:**
+- Click "Update Plugins" in the Advanced panel
+- Update yt-dlp for newest site support
+- Update ffmpeg for latest codecs
+
+**Cookies / Login-Required Content:**
+- Some sites require browser cookies for premium or age-restricted content
+- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
+- Cookies are stored locally on your machine and are never transmitted
+
+---
+
+## 📥 Download
+
+### Windows
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
+**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
+**Requirements:** Windows 10/11 (64-bit)  
+**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### Windows Portable
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
+**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
+**Requirements:** Windows 10/11 (64-bit)  
+**No installer, no registry** — runs from any folder or USB drive  
+**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### macOS
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
+**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
+**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
+**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
+
+### Linux
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
+**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
+**Format:** AppImage (Universal)  
+**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
+
+> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
+
+---
+
+## 🚀 Quick Start
+
+### Windows
+1. Extract `EGMd.zip`
+2. Run `egm-setup.exe` and follow the installer
+3. Paste a video URL, fetch the video info, then click Download!
+
+### Windows Portable
+1. Extract `EGMd-portable.zip` to any folder or USB drive
+2. Run `EGM Downloader.exe`
+3. Paste a video URL, fetch the video info, then click Download!
+
+> Settings and data stay in the same folder — take it anywhere.
+
+### macOS
+1. Extract `EGMdM.zip`
+2. Open the `.dmg` file
+3. Drag "EGM Downloader" to Applications
+4. Launch from Applications folder
+
+### Linux
+1. Extract `EGMdL.zip`
+2. Make executable: `chmod +x "EGM Downloader.AppImage"`
+3. Double-click to launch (or run from terminal)
+
+**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
+
+---
+
+## 💡 Usage
+
+1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
+2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
+3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
+4. **Edit Filename** (Optional) - Click the filename to customize it
+5. **Download** - Click the download button and wait for completion
+6. **Open Folder** - Click "Open Folder" to view your downloaded files
+
+### Advanced Features
+
+**Playlist Downloads:**
+- Paste playlist URL
+- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
+- Videos and audio downloads are processed in sequence.
+
+**Batch Downloads:**
+- Add multiple URLs to the queue
+- Select format (MP4/MP3) and quality for each
+- Start all queued downloads together
+- Cancel individual downloads anytime
+
+**Plugin Updates:**
+- Click "Update Plugins" in the Advanced panel
+- Update yt-dlp for newest site support
+- Update ffmpeg for latest codecs
+
+**Cookies / Login-Required Content:**
+- Some sites require browser cookies for premium or age-restricted content
+- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
+- Cookies are stored locally on your machine and are never transmitted
+
+---
+
+## 📥 Download
+
+### Windows
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
+**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
+**Requirements:** Windows 10/11 (64-bit)  
+**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### Windows Portable
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
+**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
+**Requirements:** Windows 10/11 (64-bit)  
+**No installer, no registry** — runs from any folder or USB drive  
+**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+
+### macOS
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
+**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
+**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
+**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
+
+### Linux
+**Latest:** v1.0.3 Build 126  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
+**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
+**Format:** AppImage (Universal)  
+**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
+
+> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
+
+---
+
+## 🚀 Quick Start
+
+### Windows
+1. Extract `EGMd.zip`
+2. Run `egm-setup.exe` and follow the installer
+3. Paste a video URL, fetch the video info, then click Download!
+
+### Windows Portable
+1. Extract `EGMd-portable.zip` to any folder or USB drive
+2. Run `EGM Downloader.exe`
+3. Paste a video URL, fetch the video info, then click Download!
+
+> Settings and data stay in the same folder — take it anywhere.
+
+### macOS
+1. Extract `EGMdM.zip`
+2. Open the `.dmg` file
+3. Drag "EGM Downloader" to Applications
+4. Launch from Applications folder
+
+### Linux
+1. Extract `EGMdL.zip`
+2. Make executable: `chmod +x "EGM Downloader.AppImage"`
+3. Double-click to launch (or run from terminal)
+
+**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
+
+---
+
+## 💡 Usage
+
+1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
+2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
+3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
+4. **Edit Filename** (Optional) - Click the filename to customize it
+5. **Download** - Click the download button and wait for completion
+6. **Open Folder** - Click "Open Folder" to view your downloaded files
+
+### Advanced Features
+
+**Playlist Downloads:**
+- Paste playlist URL
+- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
+- Videos and audio downloads are processed in sequence.
+
+**Batch Downloads:**
+- Add multiple URLs to the queue
+- Select format (MP4/MP3) and quality for each
+- Start all queued downloads together
+- Cancel individual downloads anytime
+
+**Plugin Updates:**
+- Click "Update Plugins" in the Advanced panel
+- Update yt-dlp for newest site support
+- Update ffmpeg for latest codecs
+
+**Cookies / Login-Required Content:**
+- Some sites require browser cookies for premium or age-restricted content
+- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
+- Cookies are stored locally on your machine and are never transmitted
 
 ---
 
