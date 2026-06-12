@@ -60,7 +60,7 @@ v1.1 IGNITION — Phase 4: Polish
   TODO (non-blocking):
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast
   • Persist "Downloaded" status across window close/reopen — update v.downloaded in egm_subscriptions.json
-  • Members-only badge (Option B) — show video with badge, disable checkbox
+  • Members-only badge — informational only, checkboxes stay enabled; cookies handle auth, errors show per-video if not a member
   • Queue panel in subscriptions — shows all active downloads across channels (discuss placement)
   • Subscriptions sorting/reordering
   • "New" badge on videos newer than last_fetched (needs ISO vs YYYYMMDD normalization)
