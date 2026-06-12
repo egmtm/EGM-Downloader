@@ -127,6 +127,22 @@
     .dl-bar-btn.outline {
       background:transparent;color:var(--text2);border-color:var(--border);
     }
+    .video-progress {
+      display:flex;align-items:center;gap:6px;margin-top:3px;font-size:.55rem;color:var(--text2);
+    }
+    .video-progress-bar {
+      flex:1;height:4px;background:var(--surf2);border-radius:2px;overflow:hidden;
+    }
+    .video-progress-fill {
+      height:100%;background:var(--acc);border-radius:2px;transition:width .3s;
+    }
+    .video-status {
+      font-size:.55rem;font-weight:500;padding:1px 6px;border-radius:3px;white-space:nowrap;
+    }
+    .video-status.queued { color:var(--yellow);background:rgba(245,158,11,.1); }
+    .video-status.downloading { color:var(--acc);background:rgba(45,212,191,.1); }
+    .video-status.done { color:var(--green);background:rgba(34,197,94,.1); }
+    .video-status.error { color:var(--red);background:rgba(248,113,113,.1); }
 
     .video-thumb {
       width:120px;height:68px;border-radius:4px;background:var(--surf2);
@@ -350,9 +366,9 @@ function renderDetail() {
               ${!v.thumbnail_url ? '🎬' : ''}
               ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
             </div>
-            <div class="video-info">
+            <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
+              <div class="video-meta" id="meta-${esc(v.id || v.url || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
             </div>
           </div>
         `).join('') + (hasMore ? `
@@ -423,6 +439,132 @@ function renderDetail() {
       updateSelectionCount();
     }
   });
+
+  // ── Download orchestration ────────────────────────────────────────────────
+  const activeJobs = new Map(); // videoId → { jobId, status }
+  let pollTimer = null;
+
+  const dlBtn = document.getElementById('dl-selected-btn');
+  if (dlBtn) {
+    dlBtn.addEventListener('click', async () => {
+      const checked = document.querySelectorAll('.video-check:checked');
+      if (!checked.length) return;
+
+      // Get subscription settings
+      const subFormat = activeSub.format || 'video';
+      const subFolder = activeSub.download_folder || null;
+
+      // Get main app settings as fallback
+      let appSettings = {};
+      try { appSettings = await fetch('/api/settings').then(r => r.json()); } catch {}
+      const dlDir = subFolder || appSettings.last_folder || '';
+
+      dlBtn.disabled = true;
+      dlBtn.textContent = 'Starting...';
+
+      for (const cb of checked) {
+        const videoId = cb.dataset.videoId;
+        if (activeJobs.has(videoId)) continue; // already downloading
+
+        // Find video data from cache
+        const video = (activeSub.videos || []).find(v => (v.id || v.url || '') === videoId);
+        const videoUrl = video ? (video.url || `https://www.youtube.com/watch?v=${video.id}`) : videoId;
+
+        try {
+          const resp = await fetch('/api/download', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: videoUrl,
+              format: subFormat,
+              download_dir: dlDir,
+              title: video?.title || '',
+              thumbnail: video?.thumbnail_url || '',
+              embed_metadata: true,
+              subtitles: false
+            })
+          });
+          const result = await resp.json();
+          if (result.job_id) {
+            activeJobs.set(videoId, { jobId: result.job_id, status: 'queued' });
+            updateVideoState(videoId, 'queued', {});
+            // Uncheck and disable the checkbox
+            cb.checked = false;
+            cb.disabled = true;
+          }
+        } catch (e) {
+          console.error('Download start failed:', videoId, e);
+        }
+      }
+
+      updateSelectionCount();
+      dlBtn.textContent = 'Download selected';
+
+      // Start polling if we have active jobs
+      if (activeJobs.size > 0 && !pollTimer) {
+        pollTimer = setInterval(pollJobs, 1500);
+      }
+    });
+  }
+
+  function updateVideoState(videoId, status, data) {
+    const metaEl = document.getElementById('meta-' + CSS.escape(videoId));
+    if (!metaEl) return;
+
+    if (status === 'queued') {
+      metaEl.innerHTML = '<span class="video-status queued">Queued</span>';
+    } else if (status === 'downloading') {
+      const pct = Math.round(data.progress || 0);
+      const speed = data.speed || '';
+      metaEl.innerHTML = `
+        <div class="video-progress">
+          <span class="video-status downloading">${pct}%</span>
+          <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
+          <span>${speed}</span>
+        </div>`;
+    } else if (status === 'done') {
+      metaEl.innerHTML = '<span class="video-status done">Downloaded</span>';
+    } else if (status === 'error') {
+      metaEl.innerHTML = `<span class="video-status error">Error: ${esc(data.error || 'unknown')}</span>`;
+    } else if (status === 'cancelled') {
+      metaEl.innerHTML = '<span class="video-status error">Cancelled</span>';
+    }
+  }
+
+  async function pollJobs() {
+    if (activeJobs.size === 0) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+      return;
+    }
+
+    for (const [videoId, info] of activeJobs) {
+      try {
+        const resp = await fetch(`/api/status/${info.jobId}`);
+        const data = await resp.json();
+        if (data.error === 'Job not found') {
+          activeJobs.delete(videoId);
+          continue;
+        }
+
+        info.status = data.status;
+        updateVideoState(videoId, data.status, data);
+
+        if (data.status === 'done' || data.status === 'error' || data.status === 'cancelled') {
+          // Re-enable checkbox after terminal state
+          const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
+          if (cb) cb.disabled = false;
+          activeJobs.delete(videoId);
+        }
+      } catch {}
+    }
+
+    // Stop polling when no active jobs remain
+    if (activeJobs.size === 0) {
+      clearInterval(pollTimer);
+      pollTimer = null;
+    }
+  }
 }
 
 let currentSort = 'latest';
