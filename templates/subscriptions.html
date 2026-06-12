@@ -302,6 +302,94 @@ function renderSidebar() {
   });
 }
 
+// ── Global download state — persists across subscription switches ────────────
+const allJobs = new Map(); // videoId → { jobId, status, data }
+let pollTimer = null;
+
+function updateVideoState(videoId, status, data) {
+  const metaEl = document.getElementById('meta-' + CSS.escape(videoId));
+  if (!metaEl) return;
+  const info = allJobs.get(videoId);
+  const jobId = info ? info.jobId : '';
+
+  if (status === 'queued') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status queued">Queued</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
+    </div>`;
+  } else if (status === 'downloading') {
+    const pct = Math.round(data.progress || 0);
+    const speed = data.speed || '';
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status downloading">${pct}%</span>
+      <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
+      <span>${speed}</span>
+      <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
+    </div>`;
+  } else if (status === 'done') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status done">Downloaded</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+    </div>`;
+  } else if (status === 'error') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status error">${esc(data.error || 'Error')}</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+    </div>`;
+  } else if (status === 'cancelled') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status error">Cancelled</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
+    </div>`;
+  }
+}
+
+function restoreJobStates() {
+  for (const [videoId, info] of allJobs) {
+    updateVideoState(videoId, info.status, info.data || {});
+    if (['queued', 'downloading'].includes(info.status)) {
+      const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
+      if (cb) cb.disabled = true;
+    }
+  }
+}
+
+function startPolling() {
+  if (pollTimer) return;
+  pollTimer = setInterval(pollJobs, 1500);
+}
+
+async function pollJobs() {
+  let hasActive = false;
+  for (const [videoId, info] of allJobs) {
+    if (!['queued', 'downloading'].includes(info.status)) continue;
+    hasActive = true;
+    try {
+      const resp = await fetch(`/api/status/${info.jobId}`);
+      const data = await resp.json();
+      if (data.error === 'Job not found') {
+        allJobs.delete(videoId);
+        continue;
+      }
+      info.status = data.status;
+      info.data = data;
+      updateVideoState(videoId, data.status, data);
+      if (['done', 'error', 'cancelled'].includes(data.status)) {
+        const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
+        if (cb) cb.disabled = false;
+      }
+    } catch {}
+  }
+  if (!hasActive) {
+    clearInterval(pollTimer);
+    pollTimer = null;
+  }
+}
+
 // ── Render detail ────────────────────────────────────────────────────────────
 function renderDetail() {
   const detail = document.getElementById('detail');
@@ -446,10 +534,7 @@ function renderDetail() {
     }
   });
 
-  // ── Download orchestration ────────────────────────────────────────────────
-  const activeJobs = new Map(); // videoId → { jobId, status }
-  let pollTimer = null;
-
+  // ── Download orchestration (global state — persists across subscription switches) ──
   const dlBtn = document.getElementById('dl-selected-btn');
   if (dlBtn) {
     dlBtn.addEventListener('click', async () => {
@@ -470,7 +555,7 @@ function renderDetail() {
 
       for (const cb of checked) {
         const videoId = cb.dataset.videoId;
-        if (activeJobs.has(videoId)) continue; // already downloading
+        if (allJobs.has(videoId) && ['queued','downloading'].includes(allJobs.get(videoId).status)) continue;
 
         // Find video data from cache
         const video = (activeSub.videos || []).find(v => (v.video_id || '') === videoId);
@@ -492,9 +577,8 @@ function renderDetail() {
           });
           const result = await resp.json();
           if (result.job_id) {
-            activeJobs.set(videoId, { jobId: result.job_id, status: 'queued' });
+            allJobs.set(videoId, { jobId: result.job_id, status: 'queued', data: {} });
             updateVideoState(videoId, 'queued', {});
-            // Uncheck and disable the checkbox
             cb.checked = false;
             cb.disabled = true;
           }
@@ -506,89 +590,12 @@ function renderDetail() {
       updateSelectionCount();
       dlBtn.textContent = 'Download selected';
 
-      // Start polling if we have active jobs
-      if (activeJobs.size > 0 && !pollTimer) {
-        pollTimer = setInterval(pollJobs, 1500);
-      }
+      if (!pollTimer) startPolling();
     });
   }
 
-  function updateVideoState(videoId, status, data) {
-    const metaEl = document.getElementById('meta-' + CSS.escape(videoId));
-    if (!metaEl) return;
-    const info = activeJobs.get(videoId);
-    const jobId = info ? info.jobId : '';
-
-    if (status === 'queued') {
-      metaEl.innerHTML = `<div class="video-progress">
-        <span class="video-status queued">Queued</span>
-        <div style="flex:1"></div>
-        <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
-      </div>`;
-    } else if (status === 'downloading') {
-      const pct = Math.round(data.progress || 0);
-      const speed = data.speed || '';
-      metaEl.innerHTML = `<div class="video-progress">
-        <span class="video-status downloading">${pct}%</span>
-        <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
-        <span>${speed}</span>
-        <button class="video-action-btn" onclick="cancelJob('${jobId}','${CSS.escape(videoId)}')">Cancel</button>
-      </div>`;
-    } else if (status === 'done') {
-      metaEl.innerHTML = `<div class="video-progress">
-        <span class="video-status done">Downloaded</span>
-        <div style="flex:1"></div>
-        <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
-      </div>`;
-    } else if (status === 'error') {
-      metaEl.innerHTML = `<div class="video-progress">
-        <span class="video-status error">${esc(data.error || 'Error')}</span>
-        <div style="flex:1"></div>
-        <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
-      </div>`;
-    } else if (status === 'cancelled') {
-      metaEl.innerHTML = `<div class="video-progress">
-        <span class="video-status error">Cancelled</span>
-        <div style="flex:1"></div>
-        <button class="video-action-btn" onclick="clearVideoState('${CSS.escape(videoId)}')">Clear</button>
-      </div>`;
-    }
-  }
-
-  async function pollJobs() {
-    if (activeJobs.size === 0) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-      return;
-    }
-
-    for (const [videoId, info] of activeJobs) {
-      try {
-        const resp = await fetch(`/api/status/${info.jobId}`);
-        const data = await resp.json();
-        if (data.error === 'Job not found') {
-          activeJobs.delete(videoId);
-          continue;
-        }
-
-        info.status = data.status;
-        updateVideoState(videoId, data.status, data);
-
-        if (data.status === 'done' || data.status === 'error' || data.status === 'cancelled') {
-          // Re-enable checkbox after terminal state
-          const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
-          if (cb) cb.disabled = false;
-          activeJobs.delete(videoId);
-        }
-      } catch {}
-    }
-
-    // Stop polling when no active jobs remain
-    if (activeJobs.size === 0) {
-      clearInterval(pollTimer);
-      pollTimer = null;
-    }
-  }
+  // Restore states for any tracked jobs visible in the current view
+  restoreJobStates();
 }
 
 async function cancelJob(jobId, videoId) {
@@ -598,9 +605,9 @@ async function cancelJob(jobId, videoId) {
 }
 
 function clearVideoState(videoId) {
+  allJobs.delete(videoId);
   const metaEl = document.getElementById('meta-' + videoId);
   if (!metaEl) return;
-  // Restore original date from cached video data
   const video = (activeSub?.videos || []).find(v => (v.video_id || '') === videoId);
   metaEl.textContent = video?.upload_date ? formatDate(video.upload_date) : '—';
 }
