@@ -43,13 +43,27 @@ v1.1 IGNITION — Phase 3: Downloads
   • [ALL] Fix: Download state persists across subscription switches (global allJobs Map + restoreJobStates)
   • [ALL] Fix: Polling reentrancy guard prevents concurrent poll overlaps
 
-  TODO (cosmetic, non-blocking):
-  • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast to refresh open BrowserWindows
-  • Remove version number from header title ("EGM Downloader v1.0.4") — redundant with footer pill and title bar
-  • Replace hourglass emoji on fetching videos with inline SVG
-  • Sticky download bar in subscriptions — stays visible when scrolling through videos
-  • Persist "Downloaded" status across window close/reopen — update v.downloaded in egm_subscriptions.json when download completes
+v1.1 IGNITION — Phase 4: Polish
+  • [ALL] Polish: Remove version number from header title — redundant with footer pill and title bar
+  • [ALL] Polish: Hourglass emoji replaced with spinning SVG loader on fetch
+  • [ALL] Polish: Sticky download bar — stays visible when scrolling video list
+  • [ALL] Polish: 2×2 nav grid — History/Themes top, Subs/Advanced bottom, no separator
+  • [ALL] Polish: Bigger "Back to app" button (centered, .78rem, font-weight 500)
+  • [ALL] Polish: Larger video thumbnails (120×68 → 160×90), bigger title and date text
+  • [ALL] Polish: Delete button moved from sidebar to channel header (red styled)
+  • [ALL] Polish: Minimized sidebar shows circular channel thumbnails for quick switching
+  • [ALL] New: Download History button in subscriptions sidebar footer
+
+  TODO (non-blocking):
+  • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast
+  • Persist "Downloaded" status across window close/reopen — update v.downloaded in egm_subscriptions.json
   • Members-only badge (Option B) — show video with badge, disable checkbox
+  • Queue panel in subscriptions — shows all active downloads across channels (discuss placement)
+  • Subscriptions sorting/reordering
+  • "New" badge on videos newer than last_fetched (needs ISO vs YYYYMMDD normalization)
+  • Expanded per-channel settings (format, channel info)
+  • Incremental fetch (only new videos)
+  • Export/import integration
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
