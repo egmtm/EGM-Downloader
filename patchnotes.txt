@@ -53,6 +53,10 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] Polish: Delete button moved from sidebar to channel header (red styled)
   • [ALL] Polish: Minimized sidebar shows circular channel thumbnails for quick switching
   • [ALL] New: Download History button in subscriptions sidebar footer
+  • [ALL] Polish: Sidebar decluttered — Fetch/Force removed, clean name + video count only
+  • [ALL] New: Auto-fetch on first add — videos load immediately after adding a channel
+  • [ALL] Fix: Sticky download bar gap eliminated
+  • [ALL] Fix: Scrollbar theming on subscriptions window
   • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
@@ -68,10 +72,6 @@ v1.1 IGNITION — Phase 4: Polish
   • Incremental fetch (only new videos)
   • Export/import integration
   • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
-  • Remove Fetch/Force from sidebar — channel header already has both; sidebar items become clean name + count
-  • Auto-fetch channel on first add (call fetchVideos after add response)
-  • Fix sticky download bar top gap (video-list padding offset)
-  • Scrollbars not theming on subscriptions window (missing custom scrollbar CSS)
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
