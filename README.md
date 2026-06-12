@@ -212,7 +212,7 @@
 
 ## 💡 Usage
 
-1. **Paste URL** - Copy any video URL and paste it into the app
+1. **Paste URL** - Copy any video URL and paste it into the app and click "Fetch", or after copying video, click "Paste & Fetch"
 2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
 3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
 4. **Edit Filename** (Optional) - Click the filename to customize it
@@ -223,8 +223,8 @@
 
 **Playlist Downloads:**
 - Paste playlist URL
-- Select "Download All" or choose specific videos
-- Videos download in sequence
+- Select "Download All" or choose specific videos, select your resolution, also you can "Download All Audio" and select your desired bitrate
+- Videos/Audio download in sequence
 
 **Batch Downloads:**
 - Add multiple URLs to the queue
@@ -233,7 +233,7 @@
 - Cancel individual downloads anytime
 
 **Plugin Updates:**
-- Click "Update Plugins" in settings
+- Click "Update Plugins" in Advanced Settings
 - Update yt-dlp for newest site support
 - Update ffmpeg for latest codecs
 
