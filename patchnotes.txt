@@ -53,6 +53,8 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] Polish: Delete button moved from sidebar to channel header (red styled)
   • [ALL] Polish: Minimized sidebar shows circular channel thumbnails for quick switching
   • [ALL] New: Download History button in subscriptions sidebar footer
+  • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
+  • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
 
   TODO (non-blocking):
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast
