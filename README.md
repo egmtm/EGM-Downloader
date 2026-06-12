@@ -52,7 +52,7 @@
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
-- 🔒 **Privacy First** - Runs entirely on your machine. Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
+- 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 
 ---
 
@@ -213,7 +213,7 @@
 
 ## 💡 Usage
 
-1. **Paste URL** - Copy any video URL and paste it into the app and click "Fetch", or after copying video, click "Paste & Fetch"
+1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
 2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
 3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
 4. **Edit Filename** (Optional) - Click the filename to customize it
@@ -224,8 +224,8 @@
 
 **Playlist Downloads:**
 - Paste playlist URL
-- Select "Download All" or choose specific videos, select your resolution, also you can "Download All Audio" and select your desired bitrate
-- Videos/Audio download in sequence
+- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
+- Videos and audio downloads are processed in sequence.
 
 **Batch Downloads:**
 - Add multiple URLs to the queue
@@ -234,7 +234,7 @@
 - Cancel individual downloads anytime
 
 **Plugin Updates:**
-- Click "Update Plugins" in Advanced Settings
+- Click "Update Plugins" in the Advanced panel
 - Update yt-dlp for newest site support
 - Update ffmpeg for latest codecs
 
