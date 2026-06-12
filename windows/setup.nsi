@@ -209,6 +209,7 @@ Section "Uninstall"
 
   ; ── Remove app files ──
   Delete "$INSTDIR\EGM Downloader.exe"
+  Delete "$INSTDIR\EGM Downloader.vbs"
   Delete "$INSTDIR\launch.bat"
   Delete "$INSTDIR\launch.py"
   Delete "$INSTDIR\instructions.txt"
