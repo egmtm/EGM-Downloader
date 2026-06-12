@@ -30,28 +30,24 @@
     </svg>
   </div>
   <div class="header-text">
-    <h1>EGM Downloader <span id="version-badge" style="font-size:.65rem;font-weight:500;color:var(--text2);vertical-align:middle">v1.0.3</span></h1>
+    <h1>EGM Downloader</h1>
     <p>Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
   </div>
-  <!-- Subscriptions button — matches hamburger spec (Wizard) -->
-  <button id="subs-btn" title="Subscriptions" aria-label="Subscriptions" style="width:34px;height:34px;background:var(--surf);border:1px solid var(--border2);border-radius:var(--rs);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);flex-shrink:0;margin-left:auto;transition:border-color .15s,color .15s;padding:0">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-  </button>
-
-  <!-- Navigation buttons — direct access to panel tabs -->
+  <!-- Navigation grid — 2×2 direct access -->
   <div style="flex-shrink:0;position:relative">
-    <div id="nav-buttons" style="display:flex;align-items:center;gap:10px">
-      <div style="display:flex;flex-direction:column;gap:3px">
-        <button class="nav-btn" data-nav="history" title="View download history">
-          <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
-          History
-        </button>
-        <button class="nav-btn" data-nav="themes" title="Browse and switch themes">
-          <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"/><path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
-          Themes
-        </button>
-      </div>
-      <div style="width:1px;height:28px;background:var(--border)"></div>
+    <div id="nav-buttons" style="display:grid;grid-template-columns:auto auto;gap:3px">
+      <button class="nav-btn" data-nav="history" title="View download history">
+        <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        History
+      </button>
+      <button class="nav-btn" data-nav="themes" title="Browse and switch themes">
+        <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"/><path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
+        Themes
+      </button>
+      <button class="nav-btn" id="subs-btn" title="Subscriptions">
+        <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+        Subs
+      </button>
       <button class="nav-btn" data-nav="advanced" title="Channels, plugins, and settings">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/><path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 18l11 0"/><path d="M19 18l1 0"/></svg>
         Advanced
