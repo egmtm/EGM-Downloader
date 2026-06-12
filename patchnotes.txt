@@ -68,6 +68,9 @@ v1.1 IGNITION — Phase 4: Polish
   • Incremental fetch (only new videos)
   • Export/import integration
   • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
+  • Remove Fetch/Force from sidebar — channel header already has both; sidebar items become clean name + count
+  • Auto-fetch channel on first add (call fetchVideos after add response)
+  • Fix sticky download bar top gap (video-list padding offset)
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
