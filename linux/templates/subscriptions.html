@@ -482,6 +482,12 @@ function renderDetail() {
             <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
           </select>
         </label>
+        <div style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:4px">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
+          <span id="dl-folder-label" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : 'Default')}</span>
+          <button id="dl-folder-browse" class="fetch-btn" style="font-size:.55rem;padding:1px 5px">Browse</button>
+          ${activeSub.download_folder ? '<button id="dl-folder-reset" class="fetch-btn" style="font-size:.55rem;padding:1px 5px;color:var(--text2)">Reset</button>' : ''}
+        </div>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
         <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.65rem;border-radius:3px;padding:2px 4px;cursor:pointer">
@@ -555,6 +561,38 @@ function renderDetail() {
         body: JSON.stringify({ id: activeSub.id, format: e.target.value })
       });
       activeSub.format = e.target.value;
+    });
+  }
+
+  const dlFolderBrowse = document.getElementById('dl-folder-browse');
+  if (dlFolderBrowse) {
+    dlFolderBrowse.addEventListener('click', async () => {
+      const picked = window.electronAPI?.pickFolder
+        ? await window.electronAPI.pickFolder(activeSub.download_folder || '')
+        : prompt('Enter download folder path:');
+      if (!picked) return;
+      const resp = await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, download_folder: picked })
+      }).then(r => r.json());
+      if (resp.ok) {
+        activeSub.download_folder = picked;
+        renderDetail();
+      }
+    });
+  }
+
+  const dlFolderReset = document.getElementById('dl-folder-reset');
+  if (dlFolderReset) {
+    dlFolderReset.addEventListener('click', async () => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, download_folder: null })
+      });
+      activeSub.download_folder = null;
+      renderDetail();
     });
   }
 

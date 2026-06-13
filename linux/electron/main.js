@@ -373,7 +373,8 @@ ipcMain.handle('quit-app', (event) => {
 // ── IPC: folder picker ────────────────────────────────────────────────────────
 ipcMain.handle('pick-folder', async (event, defaultPath) => {
   if (!isTrustedSender(event)) return null;
-  const result = await dialog.showOpenDialog(mainWindow, {
+  const parentWin = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+  const result = await dialog.showOpenDialog(parentWin, {
     title:      'Select download folder',
     defaultPath: defaultPath,
     properties: ['openDirectory', 'createDirectory'],
@@ -438,7 +439,8 @@ ipcMain.handle('open-file', async (event, options) => {
 // ── IPC: open cookies file dialog (kept for backward compat) ─────────────────
 ipcMain.handle('open-cookies-file', async (event) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-  const result = await dialog.showOpenDialog(mainWindow, {
+  const parentWin = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+  const result = await dialog.showOpenDialog(parentWin, {
     title:      'Select cookies.txt',
     filters:    [{ name: 'Text files', extensions: ['txt'] }, { name: 'All files', extensions: ['*'] }],
     properties: ['openFile'],
