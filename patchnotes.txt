@@ -70,7 +70,6 @@ v1.1 IGNITION — Phase 4: Polish
   • Queue panel in subscriptions — shows all active downloads across channels (discuss placement)
   • Subscriptions sorting/reordering
   • Expanded per-channel settings (format, channel info)
-  • Incremental fetch (only new videos)
   • Export/import integration
   • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
 
