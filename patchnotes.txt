@@ -78,10 +78,19 @@ v1.1 IGNITION — Phase 4: Polish
   • Download bar sticky gap — negative margin didn't fully close the space above Select All
   • Per-channel folder picker: display stays "Default" after selection, downloads go to default — resp.ok check + activeSub sync issue
   • Add "Open" button next to Browse for per-channel folder
+  • Update plugins checking on startup — remove auto-check, leave manual only
+  • Members-only badge not displaying — yt-dlp flat-playlist may not include availability field
+  • Members-only download error shows "No video formats found!" — needs clearer error message
+  • History re-add button still shows when opened from subscriptions (already in TODO)
 
   POLISH (next session):
   • Move Force to kebab menu, keep Fetch as single prominent button
   • Tooltips on Fetch ("Check for new videos") and Force ("Re-fetch all videos from scratch")
+  • Right-click on minimized sidebar thumbnails — show same kebab menu options
+  • Video titles more attractive styling (font, weight, spacing)
+  • Date styling more attractive
+  • Resizable sidebar + channel thumbnails next to names when expanded
+  • Sidebar resize must handle Download History and Back to app buttons gracefully
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
