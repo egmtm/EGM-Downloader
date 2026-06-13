@@ -120,7 +120,7 @@
     .channel-info h2 { font-size:.9rem;font-weight:600; }
     .channel-info p { font-size:.68rem;color:var(--text2);margin-top:2px; }
 
-    .video-list { flex:1;overflow-y:auto;padding:8px 18px; }
+    .video-list { flex:1;overflow-y:auto;padding:0 18px 8px; }
 
     .empty-state {
       text-align:center;padding:40px;color:var(--text2);font-size:.75rem;
@@ -142,7 +142,7 @@
       display:flex;align-items:center;gap:8px;padding:6px 18px;
       border-bottom:1px solid var(--border);
       position:sticky;top:0;z-index:2;background:var(--bg);
-      margin:-8px -18px 0;
+      margin:0 -18px;
     }
     .dl-bar-btn {
       padding:4px 12px;border-radius:4px;font-size:.65rem;cursor:pointer;
@@ -320,6 +320,8 @@ function renderSidebar() {
         <button onclick="reorderSub('${attrEsc(s.id)}','up')" ${i === 0 ? 'disabled' : ''}>Move up</button>
         <button onclick="reorderSub('${attrEsc(s.id)}','down')" ${i === subs.length - 1 ? 'disabled' : ''}>Move down</button>
         <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
+        <div style="border-top:1px solid var(--border);margin:3px 0"></div>
+        <button onclick="fetchVideos('${attrEsc(s.id)}', true)" title="Re-fetch all videos from scratch">Force refresh</button>
       </div>
     </div>
   `}).join('');
@@ -518,8 +520,7 @@ function renderDetail() {
           <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
           <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
         </select>
-        <button class="fetch-btn" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)">Fetch</button>
-        <button class="fetch-btn" onclick="fetchVideos('${attrEsc(activeSub.id)}', true)">Force</button>
+        <button class="fetch-btn" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
         <button class="fetch-btn" style="color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
       </div>
     </div>
@@ -922,11 +923,33 @@ document.getElementById('history-btn').addEventListener('click', () => {
   }
 });
 
+function hasActiveDownloads() {
+  return [...allJobs.values()].some(j => !TERMINAL_STATES.includes(j.status));
+}
+
+function confirmClose() {
+  if (!hasActiveDownloads()) return true;
+  return confirm(
+    'Downloads are still in progress.\n\n' +
+    '• If you close this window, downloads will continue in the background as long as the app stays open.\n' +
+    '• If you close the entire app, active downloads will be cancelled.\n\n' +
+    'Close anyway?'
+  );
+}
+
 document.getElementById('back-btn').addEventListener('click', () => {
+  if (!confirmClose()) return;
   if (window.electronAPI && window.electronAPI.closeSubscriptions) {
     window.electronAPI.closeSubscriptions();
   } else {
     window.close();
+  }
+});
+
+window.addEventListener('beforeunload', (e) => {
+  if (hasActiveDownloads()) {
+    e.preventDefault();
+    e.returnValue = '';
   }
 });
 
