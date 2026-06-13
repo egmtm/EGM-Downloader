@@ -420,7 +420,8 @@ ipcMain.handle('quit-app', (event) => {
 // ── IPC: folder picker ────────────────────────────────────────────────────────
 ipcMain.handle('pick-folder', async (event, defaultPath) => {
   if (!isTrustedSender(event)) return null;
-  const result = await dialog.showOpenDialog(mainWindow, {
+  const parentWin = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+  const result = await dialog.showOpenDialog(parentWin, {
     title:       'Select download folder',
     defaultPath: defaultPath,
     properties:  ['openDirectory', 'createDirectory'],
