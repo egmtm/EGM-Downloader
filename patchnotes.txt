@@ -76,8 +76,9 @@ v1.1 IGNITION — Phase 4: Polish
   BUGS (found in testing):
   • Kebab menu (⋮) click doesn't show options — document click listener likely closes it immediately
   • Download bar sticky gap — negative margin didn't fully close the space above Select All
-  • Per-channel folder picker: display stays "Default" after selection, downloads go to default — resp.ok check + activeSub sync issue
+  • Per-channel folder picker: saves correctly but display doesn't update until reopen — activeSub sync issue in frontend response handler
   • Add "Open" button next to Browse for per-channel folder
+  • Clear button missing on persisted "Downloaded" videos — need API to set v.downloaded=false
   • Update plugins checking on startup — remove auto-check, leave manual only
   • Members-only badge not displaying — yt-dlp flat-playlist may not include availability field
   • Members-only download error shows "No video formats found!" — needs clearer error message
@@ -92,6 +93,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Date styling more attractive
   • Resizable sidebar + channel thumbnails next to names when expanded
   • Sidebar resize must handle Download History and Back to app buttons gracefully
+  • Confirmation dialog when closing subs with active downloads — "Downloads will continue if app stays open. If the entire app is closed, active downloads will be cancelled."
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
