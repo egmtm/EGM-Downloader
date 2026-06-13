@@ -43,7 +43,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
-- 🎨 **360 Themes** - 350 permanent across 20+ categories + 10 seasonal easter eggs with smooth transitions
+- 🎨 **400 Themes** - 390 permanent across 20+ categories + 10 seasonal easter eggs with smooth transitions
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
 - 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
@@ -52,13 +52,9 @@
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
-- 🔒 **Privacy First** - No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
+- 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 
 ---
-
-<a id="screenshots"></a>
-
-<a id="screenshots"></a>
 
 <a id="screenshots"></a>
 
@@ -251,445 +247,39 @@
 
 ---
 
-## 📥 Download
-
-### Windows
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
-**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
-**Requirements:** Windows 10/11 (64-bit)  
-**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### Windows Portable
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
-**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
-**Requirements:** Windows 10/11 (64-bit)  
-**No installer, no registry** — runs from any folder or USB drive  
-**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### macOS
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
-**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
-**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
-**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
-
-### Linux
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
-**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
-**Format:** AppImage (Universal)  
-**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
-
-> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
-
----
-
-## 🚀 Quick Start
-
-### Windows
-1. Extract `EGMd.zip`
-2. Run `egm-setup.exe` and follow the installer
-3. Paste a video URL, fetch the video info, then click Download!
-
-### Windows Portable
-1. Extract `EGMd-portable.zip` to any folder or USB drive
-2. Run `EGM Downloader.exe`
-3. Paste a video URL, fetch the video info, then click Download!
-
-> Settings and data stay in the same folder — take it anywhere.
-
-### macOS
-1. Extract `EGMdM.zip`
-2. Open the `.dmg` file
-3. Drag "EGM Downloader" to Applications
-4. Launch from Applications folder
-
-### Linux
-1. Extract `EGMdL.zip`
-2. Make executable: `chmod +x "EGM Downloader.AppImage"`
-3. Double-click to launch (or run from terminal)
-
-**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
-
----
-
-## 💡 Usage
-
-1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
-2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
-3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
-4. **Edit Filename** (Optional) - Click the filename to customize it
-5. **Download** - Click the download button and wait for completion
-6. **Open Folder** - Click "Open Folder" to view your downloaded files
-
-### Advanced Features
-
-**Playlist Downloads:**
-- Paste playlist URL
-- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
-- Videos and audio downloads are processed in sequence.
-
-**Batch Downloads:**
-- Add multiple URLs to the queue
-- Select format (MP4/MP3) and quality for each
-- Start all queued downloads together
-- Cancel individual downloads anytime
-
-**Plugin Updates:**
-- Click "Update Plugins" in the Advanced panel
-- Update yt-dlp for newest site support
-- Update ffmpeg for latest codecs
-
-**Cookies / Login-Required Content:**
-- Some sites require browser cookies for premium or age-restricted content
-- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
-- Cookies are stored locally on your machine and are never transmitted
-
----
-
-## 📥 Download
-
-### Windows
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
-**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
-**Requirements:** Windows 10/11 (64-bit)  
-**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### Windows Portable
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
-**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
-**Requirements:** Windows 10/11 (64-bit)  
-**No installer, no registry** — runs from any folder or USB drive  
-**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### macOS
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
-**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
-**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
-**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
-
-### Linux
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
-**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
-**Format:** AppImage (Universal)  
-**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
-
-> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
-
----
-
-## 🚀 Quick Start
-
-### Windows
-1. Extract `EGMd.zip`
-2. Run `egm-setup.exe` and follow the installer
-3. Paste a video URL, fetch the video info, then click Download!
-
-### Windows Portable
-1. Extract `EGMd-portable.zip` to any folder or USB drive
-2. Run `EGM Downloader.exe`
-3. Paste a video URL, fetch the video info, then click Download!
-
-> Settings and data stay in the same folder — take it anywhere.
-
-### macOS
-1. Extract `EGMdM.zip`
-2. Open the `.dmg` file
-3. Drag "EGM Downloader" to Applications
-4. Launch from Applications folder
-
-### Linux
-1. Extract `EGMdL.zip`
-2. Make executable: `chmod +x "EGM Downloader.AppImage"`
-3. Double-click to launch (or run from terminal)
-
-**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
-
----
-
-## 💡 Usage
-
-1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
-2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
-3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
-4. **Edit Filename** (Optional) - Click the filename to customize it
-5. **Download** - Click the download button and wait for completion
-6. **Open Folder** - Click "Open Folder" to view your downloaded files
-
-### Advanced Features
-
-**Playlist Downloads:**
-- Paste playlist URL
-- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
-- Videos and audio downloads are processed in sequence.
-
-**Batch Downloads:**
-- Add multiple URLs to the queue
-- Select format (MP4/MP3) and quality for each
-- Start all queued downloads together
-- Cancel individual downloads anytime
-
-**Plugin Updates:**
-- Click "Update Plugins" in the Advanced panel
-- Update yt-dlp for newest site support
-- Update ffmpeg for latest codecs
-
-**Cookies / Login-Required Content:**
-- Some sites require browser cookies for premium or age-restricted content
-- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
-- Cookies are stored locally on your machine and are never transmitted
-
----
-
-## 📥 Download
-
-### Windows
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
-**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
-**Requirements:** Windows 10/11 (64-bit)  
-**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### Windows Portable
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
-**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
-**Requirements:** Windows 10/11 (64-bit)  
-**No installer, no registry** — runs from any folder or USB drive  
-**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### macOS
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
-**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
-**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
-**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
-
-### Linux
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
-**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
-**Format:** AppImage (Universal)  
-**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
-
-> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
-
----
-
-## 🚀 Quick Start
-
-### Windows
-1. Extract `EGMd.zip`
-2. Run `egm-setup.exe` and follow the installer
-3. Paste a video URL, fetch the video info, then click Download!
-
-### Windows Portable
-1. Extract `EGMd-portable.zip` to any folder or USB drive
-2. Run `EGM Downloader.exe`
-3. Paste a video URL, fetch the video info, then click Download!
-
-> Settings and data stay in the same folder — take it anywhere.
-
-### macOS
-1. Extract `EGMdM.zip`
-2. Open the `.dmg` file
-3. Drag "EGM Downloader" to Applications
-4. Launch from Applications folder
-
-### Linux
-1. Extract `EGMdL.zip`
-2. Make executable: `chmod +x "EGM Downloader.AppImage"`
-3. Double-click to launch (or run from terminal)
-
-**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
-
----
-
-## 💡 Usage
-
-1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
-2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
-3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
-4. **Edit Filename** (Optional) - Click the filename to customize it
-5. **Download** - Click the download button and wait for completion
-6. **Open Folder** - Click "Open Folder" to view your downloaded files
-
-### Advanced Features
-
-**Playlist Downloads:**
-- Paste playlist URL
-- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
-- Videos and audio downloads are processed in sequence.
-
-**Batch Downloads:**
-- Add multiple URLs to the queue
-- Select format (MP4/MP3) and quality for each
-- Start all queued downloads together
-- Cancel individual downloads anytime
-
-**Plugin Updates:**
-- Click "Update Plugins" in the Advanced panel
-- Update yt-dlp for newest site support
-- Update ffmpeg for latest codecs
-
-**Cookies / Login-Required Content:**
-- Some sites require browser cookies for premium or age-restricted content
-- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
-- Cookies are stored locally on your machine and are never transmitted
-
----
-
-## 📥 Download
-
-### Windows
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (346 KB · ~800 MB after install)  
-**SHA256:** `ef6fd4f7edc2bb178e65d40899cda6630a07045355665e2a41c05899351addb6`  
-**Requirements:** Windows 10/11 (64-bit)  
-**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### Windows Portable
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (351 KB · ~800 MB after first run)  
-**SHA256:** `9b973f6bdb054c402b29ea0670f4f482eca5f976dc9f2e01e6e5ed71281515a4`  
-**Requirements:** Windows 10/11 (64-bit)  
-**No installer, no registry** — runs from any folder or USB drive  
-**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
-
-### macOS
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (126 MB · ~300 MB after install)  
-**SHA256:** `87438655ea173bc7a656fdd44c69454131890a249126710860973e2ebbaa9d5e`  
-**Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
-**Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
-
-### Linux
-**Latest:** v1.0.3 Build 126  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (140 MB · ~300 MB after install)  
-**SHA256:** `73b1fc8782579eb7f0f7a38db746d25859578e6a8fa042a390421259991f97b6`  
-**Format:** AppImage (Universal)  
-**Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
-
-> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
-
----
-
-## 🚀 Quick Start
-
-### Windows
-1. Extract `EGMd.zip`
-2. Run `egm-setup.exe` and follow the installer
-3. Paste a video URL, fetch the video info, then click Download!
-
-### Windows Portable
-1. Extract `EGMd-portable.zip` to any folder or USB drive
-2. Run `EGM Downloader.exe`
-3. Paste a video URL, fetch the video info, then click Download!
-
-> Settings and data stay in the same folder — take it anywhere.
-
-### macOS
-1. Extract `EGMdM.zip`
-2. Open the `.dmg` file
-3. Drag "EGM Downloader" to Applications
-4. Launch from Applications folder
-
-### Linux
-1. Extract `EGMdL.zip`
-2. Make executable: `chmod +x "EGM Downloader.AppImage"`
-3. Double-click to launch (or run from terminal)
-
-**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
-
----
-
-## 💡 Usage
-
-1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
-2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
-3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
-4. **Edit Filename** (Optional) - Click the filename to customize it
-5. **Download** - Click the download button and wait for completion
-6. **Open Folder** - Click "Open Folder" to view your downloaded files
-
-### Advanced Features
-
-**Playlist Downloads:**
-- Paste playlist URL
-- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
-- Videos and audio downloads are processed in sequence.
-
-**Batch Downloads:**
-- Add multiple URLs to the queue
-- Select format (MP4/MP3) and quality for each
-- Start all queued downloads together
-- Cancel individual downloads anytime
-
-**Plugin Updates:**
-- Click "Update Plugins" in the Advanced panel
-- Update yt-dlp for newest site support
-- Update ffmpeg for latest codecs
-
-**Cookies / Login-Required Content:**
-- Some sites require browser cookies for premium or age-restricted content
-- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
-- Cookies are stored locally on your machine and are never transmitted
-
----
-
 <a id="roadmap"></a>
 
 ## 🗺️ Roadmap
 
-**v0.99.9 — COMMAND CENTER:** ✅ Shipped
-- 🎛️ Advanced panel moves to dedicated hamburger tab — History | Themes | Advanced
-- 🖥️ Splash screen polish and escape fix
-- 🎨 +20 new themes
-- 🔍 Windows tray menu density research deferred to v0.99.10
+**v0.99.9 — COMMAND CENTER:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.9)
+Advanced panel in hamburger, splash polish, +20 themes
 
-**v0.99.10 — DIRECTOR'S CUT:** ✅ Shipped
-- 🖼️ Video thumbnails in download history
-- 🎵 Expanded audio quality options
-- 🎨 +20 new themes
+**v0.99.10 — DIRECTOR'S CUT:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.10)
+Video thumbnails in history, expanded audio quality, +20 themes
 
-**v0.99.11 — FOUNDER'S EDITION:** ✅ Shipped
-- 🇵🇷 Puerto Rico Collection — 22 deeply personal themes celebrating Ponce, the island, holidays, and culture
-- 🎨 67 new themes total — bringing the library to 360
-- 🖼️ Dedicated Puerto Rico section in the themes sidebar
-- 🔒 Thumbnail fetching restricted to HTTPS-only
+**v0.99.11 — FOUNDER'S EDITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.11)
+Puerto Rico Collection (22 themes), 67 new themes total, HTTPS-only thumbnail fetching
 
-**v0.99.12 — VAULT:** ✅ Shipped
-- 🔧 Theme placeholder + section label contrast fix — as promised from v0.99.11 known issues
-- 🔒 Signed update manifests — cryptographically verified (ed25519) before any update installs
-- 📋 Structured security event logging — all security-relevant events logged to rotating `security.log`
-- 🧪 Unit test suite — ~13 tests covering Tier 1 parity, Tier 2 security, and historical regressions; wired into CI
+**v0.99.12 — VAULT:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.12)
+Signed update manifests, security event logging, unit test suite (13 tests), contrast fixes
 
-**v0.99.13 — SOLID:** ✅ Shipped
-- ⚛️ Atomic file writes — history, settings, cookies and reset paths hardened against corruption
-- 🔍 Strict image magic byte detection — canonical pattern matching replaces loose checks
-- 🛡️ Content-Type header validation on thumbnail fetches — defense-in-depth on top of existing HTTPS-only + size cap stack
+**v0.99.13 — SOLID:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.13)
+Atomic file writes, strict image magic byte validation, Content-Type enforcement on thumbnails
 
-**v1.0 — CORNERSTONE:** 🔨 In progress
-- 🧱 The foundation release — everything built since v0.93 comes together here
-- 🎨 400 themes — mythology, sports, decades, memes, cities, space, planets, Conejo Malo series, and more
-- ⭐ Theme Favorites + Random Launch — heart any theme, optionally start fresh every session
-- 🎮 Keyboard-first themes — arrow keys navigate cards, Enter applies, F favorites, Escape clears search
-- 🪟 Windows portable fully isolated — no settings leak between installed and portable versions
-- 🪟 Windows app identity — EGM Downloader shows correctly across all system views
-- 🔧 YouTube signature fix — yt-dlp remote components resolve playback issues
-- 🔧 Save/rename modal stays open on overlay click — Cancel, Save, or Escape only
-- ⚡ ffmpeg loads in background — app opens immediately, no frozen splash on slow connections
-- 🔄 yt-dlp and ffmpeg channel toggles (Stable / Nightly) in Advanced panel
-- 🔒 IPC hardening — sender validation, atomic writes, signed manifest verification, file import cap, zip-slip guard
-- 🧪 32 automated tests — security parity across all 3 platforms, theme consistency, template integrity
-- ✨ Source split — index, scripts, styles, and theme data in dedicated files; rendered output identical
-- ⚡ Electron 42.3.2 — latest stable runtime
+**v1.0 — CORNERSTONE:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.0)
+400 themes, YouTube fix, Theme Favorites, keyboard navigation, IPC hardening, 32 tests, source split, Electron 42.3.2
+
+**v1.0.1:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.1)
+Plugins panel moved to Advanced tab, collapsible grid, scroll-safe modal
+
+**v1.0.2:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.2)
+Direct-access nav buttons, enlarged logo, history panel fix
+
+**v1.0.3 — Locksmith:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.3)
+Concurrency backstop, path traversal fix, TOCTOU locks, Electron 42.4.0 + CVE-2026-9115/9116
+
+**v1.0.4 — Sharp:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.4)
+Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 
 **v1.1 — IGNITION:**
 - 📡 Subscriptions — save any channel or playlist, automatically fetch and display what's new
@@ -798,92 +388,45 @@ EGM-Downloader/
 │
 ├── app.py                          ← Flask backend         [shared — all platforms]
 ├── templates/                      ← UI templates          [shared — Windows + Mac]
-│   ├── index.html                  ← Main UI
-│   ├── history.html                ← Version history
+│   ├── index.html                  ← Main UI shell
+│   ├── index_scripts.html          ← JS extracted
+│   ├── index_styles.html           ← CSS extracted
+│   ├── theme_data.html             ← THEME_DATA + THEMES array
+│   ├── history.html                ← Download history
 │   ├── themes.html                 ← Theme picker
 │   └── theme_styles.html           ← Theme CSS definitions
 ├── static/                         ← App icons             [shared — all platforms]
 ├── languages/                      ← i18n language files   [shared — all platforms]
-│   └── en.json, es.json, fr.json, pt.json, de.json, it.json, ...
 │
 ├── windows/                        ← Windows platform files
 ├── mac/                            ← macOS platform files
 ├── linux/                          ← Linux platform files
 ├── scripts/                        ← Build automation
-│   ├── bump-version.py             ← Version management
-│   ├── validate-version-sync.py    ← Version sync validator (CI)
-│   ├── gen-update-json.py          ← Update JSON generation
-│   └── add-patchnote.py            ← Changelog management
-│
-├── version.json                    ← Single source of truth
-├── requirements.txt                ← Python dependencies
-└── patchnotes.txt                  ← Version history
+└── tests/                          ← Automated test suite
 ```
 
-### Build Workflow
-
-**1. Bump version:**
-```bash
-python scripts/bump-version.py
-# Or bump version string:
-python scripts/bump-version.py --version 0.92
-```
-
-**2. Add patch notes:**
-```bash
-python scripts/add-patchnote.py "Fixed bug" "Added feature"
-```
-
-**3. Generate update JSONs:**
-```bash
-python scripts/gen-update-json.py --notes "Fixed X; Added Y"
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for complete development guide.
-
-### Build Artifacts
-
-EGM Downloader desktop app build artifacts (`EGMd.zip`, `EGMdM.zip`, `EGMdL.zip`, `EGMd-portable.zip`) are uploaded to the server manually by EGM after each release build. They are **NOT** in this repo and **NOT** touched by the auto-deploy pipeline.
-
-JSON update feeds (`egm-version.json`, `egmac-update.json`, `egmlinux-update.json`, `egm-portable-version.json`) are maintained in the [egerena-website](https://github.com/egmtm/egerena-website) repo and deployed through its pipeline.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version management workflow, and CI details.
 
 ---
 
-## 🤝 Contributing
-
-We welcome contributions! Whether it's:
-- 🐛 Bug reports
-- 💡 Feature requests
-- 📝 Documentation improvements
-- 🔧 Code contributions
-
-**Get started:**
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md)
-2. Fork the repository
-3. Create a feature branch
-4. Make your changes
-5. Submit a pull request
-
-**Code Quality:**
-- ✅ Python linting (flake8, isort)
-- ✅ JavaScript linting (ESLint)
-- ✅ Version sync validation
-- ✅ Automated quality checks
-
-All pull requests are automatically tested via GitHub Actions.
-
----
-
-## 📊 Platform Status
+## 📦 Platforms
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 121 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 121 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 121 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 121 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 128 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 128 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 128 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 128 | EGMdL.zip | ❌ Manual |
 
-**All platforms are production-ready and actively maintained.**
+### System Requirements
+
+**Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
+
+**macOS:** macOS 11.0+ · Apple Silicon (M1–M5) · ~300 MB disk space
+
+**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support
+Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
+> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
 
 ---
 
@@ -893,6 +436,7 @@ EGM Downloader is powered by incredible open source projects:
 
 - **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - Download engine (1000+ sites)
 - **[bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider)** - YouTube PO Token generation (proof-of-origin)
+- **[yt-dlp/ejs](https://github.com/yt-dlp/ejs)** - EJS remote components for YouTube signature solving
 - **[Flask](https://flask.palletsprojects.com/)** - Web framework
 - **[Electron](https://www.electronjs.org/)** - Cross-platform desktop wrapper
 - **[FFmpeg](https://ffmpeg.org/)** - Video/audio processing
@@ -903,154 +447,33 @@ See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
 
 ---
 
-## 🔄 Version Management
-
-`version.json` is the single source of truth. Never edit version numbers manually — always use:
-
-```bash
-python scripts/bump-version.py
-```
-
-This ensures all platform files stay synchronized.
-
----
-
-## 🧪 Continuous Integration
-
-Automated quality checks run on every push and pull request:
-
-- **Version Sync Validation** - Prevents version drift across platforms
-- **Python Linting** - Code quality (flake8, isort)
-- **JavaScript Linting** - Frontend quality (ESLint)
-- **First Contributor Welcome** - Automated onboarding
-
-View workflows: [GitHub Actions](https://github.com/egmtm/EGM-Downloader/actions)
-
----
-
-## 📋 System Requirements
-
-### Windows
-- Windows 10 (64-bit) or Windows 11
-- ~800 MB free disk space (after first run)
-- Internet connection (first launch only)
-
-### macOS
-- macOS 11.0 (Big Sur) or later
-- Apple Silicon (M1/M2/M3/M4/M5)
-- 300 MB free disk space
-
-### Linux
-- 64-bit distribution (see supported list below)
-- 300 MB free disk space
-- FUSE support (pre-installed on most distros)
-
-**Supported Linux Distributions:**
-Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
-
-> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
-
----
-
 ## 🐛 Troubleshooting
 
-### Windows
-**App won't start:**
-- Run `launch.bat` to see error messages
-- Check `logs/` folder for details
+**Windows — app won't start:** Run `launch.bat` to see error messages · check `logs/` folder
 
-**Download fails:**
-- Update yt-dlp via "Update Plugins"
-- Check internet connection
-- Try different quality/format
+**macOS — download stuck:** Update plugins → restart the app → check Console.app for errors
 
-### macOS
-**Download stuck:**
-- Update plugins
-- Restart the app
-- Check Console.app for errors
-
-### Linux
-**AppImage won't launch:**
+**Linux — AppImage won't launch:**
 - Ensure executable: `chmod +x "EGM Downloader.AppImage"`
 - Install FUSE: `sudo apt install libfuse2` (Ubuntu/Debian)
 - Run from terminal to see errors
 
-**Need more help?** Open an issue on GitHub!
+**Need more help?** [Open an issue on GitHub](https://github.com/egmtm/EGM-Downloader/issues)
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see the [LICENSE](LICENSE) file for details.
 
-**What this means:**
 - ✅ Free to use, modify, and distribute under AGPL-3.0 terms
-- ✅ Modification allowed (must share modifications)
-- ✅ Distribution allowed (must include source code)
-- ✅ Patent protection included
-- ⚠️ Network use triggers copyleft (modifications must be shared)
-- ⚠️ Liability and warranty not provided
+- ✅ Modification and distribution allowed (must share modifications + source)
+- ⚠️ Network use triggers copyleft
 
 ---
 
-## 🙏 Acknowledgments
+## 📞 Support & Security
 
-Huge thanks to:
-- The **yt-dlp** team for the incredible download engine
-- The **open source community** for the amazing tools and libraries
-- **Contributors** who help improve this project
-- **Users** who report bugs and suggest features
-
-See [CREDITS.md](CREDITS.md) for detailed acknowledgments.
-
----
-
-## 📞 Support
-
-- 🐛 **Bug Reports:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
-- 💡 **Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
-- 📖 **Documentation:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
-- 🔒 **Security Issues:** See [Security Policy](#security)
-
----
-
-## 🔒 Security
-
-Found a security vulnerability? **Please do not open a public issue.**
-
-Instead:
-1. Email security concerns to: contact@egerena.com
-2. Include: description, steps to reproduce, potential impact
-3. We'll respond within 48 hours
-4. We'll work with you on a fix and responsible disclosure
-
-Alternatively, you can report via GitHub's private vulnerability reporting feature.
-
----
-
-## 📈 Project Stats
-
-- **Version:** 1.0.3
-- **Build:** 126
-- **Supported Sites:** 1000+
-- **Platforms:** 3 (Windows, macOS, Linux)
-- **License:** AGPL-3.0
-- **Language:** Python + JavaScript
-
----
-
-## ⭐ Show Your Support
-
-If you find EGM Downloader useful, please consider:
-- ⭐ **Starring this repository**
-- 🐛 **Reporting bugs** to help improve it
-- 💡 **Suggesting features** you'd like to see
-- 🤝 **Contributing** code or documentation
-- 📢 **Sharing** with others who might find it useful
-
-**Every bit of support helps make this project better!**
-
----
-
-**Built brick by brick by egmtm**
+- 🐛 **Bug Reports / Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
+- 📖 **Contributing:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
+- 🔒 **Security Vulnerabilities:** Do not open a public issue — email contact@egerena.com or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We aim to respond within 48 hours.
