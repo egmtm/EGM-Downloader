@@ -701,6 +701,12 @@
 - ⚡ Full download pipeline — Queued → Downloading (progress + speed) → Converting → Downloaded; integrates with main history
 - 📌 Sticky download bar — stays visible while scrolling the video list
 - 🔄 Auto-fetch-on-open toggle per channel — selects and fetches automatically on window open
+- 🔄 Auto-fetch on first add — videos load immediately after adding a channel
+- 🪟 Sub-app mode — main window hides when subscriptions opens, restores on close
+- 💾 Downloaded status persists across window close/reopen
+- 🆕 "New" badge on recently fetched videos — clears on next fetch
+- 📁 Per-channel download folder picker — Browse, Reset to default, persists per subscription
+- ⬆️ Subscription reordering via kebab menu — move to top/up/down/bottom, persists
 - 🔒 Per-channel download folder validated on save — rejects system roots, traversal, unwritable paths
 - 🔒 Video ID allowlist + attribute escaping — closes XSS surfaces in subscriptions template
 - ⚙️ Site Cookies merged into Settings panel — one toggle controls both
