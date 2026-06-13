@@ -61,6 +61,7 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] New: Downloaded status persists across window close/reopen — stored in egm_subscriptions.json
   • [ALL] New: Per-channel download folder picker — Browse button, Reset to default, persists across sessions
   • [ALL] New: "New" badge on recently fetched videos — teal badge, clears on next fetch
+  • [ALL] New: Subscription reordering via kebab menu (⋮) — Move to top/up/down/bottom, persists
   • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
@@ -68,7 +69,6 @@ v1.1 IGNITION — Phase 4: Polish
   TODO (non-blocking):
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast
   • Queue panel in subscriptions — shows all active downloads across channels (discuss placement)
-  • Subscriptions sorting/reordering
   • Expanded per-channel settings (format, channel info)
   • Export/import integration
   • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
