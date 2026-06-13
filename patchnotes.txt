@@ -73,6 +73,16 @@ v1.1 IGNITION — Phase 4: Polish
   • Export/import integration
   • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
 
+  BUGS (found in testing):
+  • Kebab menu (⋮) click doesn't show options — document click listener likely closes it immediately
+  • Download bar sticky gap — negative margin didn't fully close the space above Select All
+  • Per-channel folder picker: display stays "Default" after selection, downloads go to default — resp.ok check + activeSub sync issue
+  • Add "Open" button next to Browse for per-channel folder
+
+  POLISH (next session):
+  • Move Force to kebab menu, keep Fetch as single prominent button
+  • Tooltips on Fetch ("Check for new videos") and Force ("Re-fetch all videos from scratch")
+
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
   • [ALL] Polish: All UI icons upgraded from emoji to inline SVGs — sharper rendering, consistent across platforms
