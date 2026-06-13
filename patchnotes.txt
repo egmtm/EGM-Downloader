@@ -62,6 +62,11 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] New: Per-channel download folder picker — Browse button, Reset to default, persists across sessions
   • [ALL] New: "New" badge on recently fetched videos — teal badge, clears on next fetch
   • [ALL] New: Subscription reordering via kebab menu (⋮) — Move to top/up/down/bottom, persists
+  • [ALL] Fix: Download bar sticky gap eliminated
+  • [ALL] Fix: Plugins auto-check on startup removed — manual check only
+  • [ALL] Polish: Force moved to kebab menu as "Force refresh" with tooltip
+  • [ALL] Polish: Fetch button tooltip — "Check for new videos"
+  • [ALL] New: Confirmation dialog when closing subscriptions with active downloads
   • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
@@ -74,8 +79,6 @@ v1.1 IGNITION — Phase 4: Polish
   • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
 
   BUGS (remaining):
-  • Download bar sticky gap — negative margin didn't fully close the space above Select All
-  • Update plugins checking on startup — remove auto-check, leave manual only
   • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
   • History re-add button still shows when opened from subscriptions (already in TODO)
 
@@ -85,16 +88,15 @@ v1.1 IGNITION — Phase 4: Polish
   • Conversion bar — stray flex:1 spacer removed, bar now full width
   • Open button added for per-channel custom folder
   • Clear button on persisted "Downloaded" videos — sets v.downloaded=false via API
+  • Download bar sticky gap — removed top padding from video-list
+  • Plugins auto-check on startup removed — manual only now
 
   POLISH (next session):
-  • Move Force to kebab menu, keep Fetch as single prominent button
-  • Tooltips on Fetch ("Check for new videos") and Force ("Re-fetch all videos from scratch")
   • Right-click on minimized sidebar thumbnails — show same kebab menu options
   • Video titles more attractive styling (font, weight, spacing)
   • Date styling more attractive
   • Resizable sidebar + channel thumbnails next to names when expanded
   • Sidebar resize must handle Download History and Back to app buttons gracefully
-  • Confirmation dialog when closing subs with active downloads — "Downloads will continue if app stays open. If the entire app is closed, active downloads will be cancelled."
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
