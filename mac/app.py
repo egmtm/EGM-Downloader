@@ -2098,6 +2098,24 @@ def fetch_subscription_videos():
     except Exception as e:
         return jsonify({"error": str(e)[:500]}), 500
 
+@app.route("/api/subscriptions/mark-downloaded", methods=["POST"])
+def mark_downloaded():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("sub_id") or "").strip()
+    video_id = (data.get("video_id") or "").strip()
+    if not sub_id or not video_id:
+        return jsonify({"error": "sub_id and video_id required"}), 400
+    subs = _load_subscriptions()
+    for s in subs:
+        if s.get("id") == sub_id:
+            for v in (s.get("videos") or []):
+                if v.get("video_id") == video_id:
+                    v["downloaded"] = True
+                    _save_subscriptions(subs)
+                    return jsonify({"ok": True})
+            return jsonify({"error": "Video not found"}), 404
+    return jsonify({"error": "Subscription not found"}), 404
+
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Clean shutdown requested by Electron before-quit.
