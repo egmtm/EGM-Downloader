@@ -75,16 +75,16 @@ v1.1 IGNITION — Phase 4: Polish
 
   BUGS (remaining):
   • Download bar sticky gap — negative margin didn't fully close the space above Select All
-  • Add "Open" button next to Browse for per-channel folder
-  • Clear button missing on persisted "Downloaded" videos — need API to set v.downloaded=false
   • Update plugins checking on startup — remove auto-check, leave manual only
   • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
   • History re-add button still shows when opened from subscriptions (already in TODO)
 
-  FIXED (Claude Code diagnostics):
+  FIXED (Claude Code + CODEMASTER):
   • Kebab menu — CSS overflow clip, fixed with position:fixed overlay + viewport anchoring
   • Folder picker — wrong response key (resp.ok → resp.subscription), now updates immediately
   • Conversion bar — stray flex:1 spacer removed, bar now full width
+  • Open button added for per-channel custom folder
+  • Clear button on persisted "Downloaded" videos — sets v.downloaded=false via API
 
   POLISH (next session):
   • Move Force to kebab menu, keep Fetch as single prominent button
