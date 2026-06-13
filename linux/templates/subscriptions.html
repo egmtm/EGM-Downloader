@@ -60,7 +60,7 @@
     }
     .kebab-btn:hover { color:var(--text); }
     .kebab-menu {
-      position:absolute;right:4px;top:100%;z-index:10;
+      position:fixed;z-index:1000;
       background:var(--surf);border:1px solid var(--border);border-radius:5px;
       box-shadow:0 4px 12px rgba(0,0,0,.3);min-width:120px;padding:4px 0;
       font-size:.62rem;
@@ -314,7 +314,7 @@ function renderSidebar() {
     <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}" style="display:flex;align-items:center;gap:4px;position:relative">
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
-      <button class="kebab-btn" data-kebab="${attrEsc(s.id)}" onclick="event.stopPropagation();toggleKebab('${attrEsc(s.id)}')">⋮</button>
+      <button class="kebab-btn" data-kebab="${attrEsc(s.id)}" onclick="event.stopPropagation();toggleKebab('${attrEsc(s.id)}', this)">⋮</button>
       <div class="kebab-menu" id="kebab-${attrEsc(s.id)}" style="display:none">
         <button onclick="reorderSub('${attrEsc(s.id)}','top')" ${i === 0 ? 'disabled' : ''}>Move to top</button>
         <button onclick="reorderSub('${attrEsc(s.id)}','up')" ${i === 0 ? 'disabled' : ''}>Move up</button>
@@ -385,7 +385,6 @@ function updateVideoState(videoId, status, data) {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status downloading">Converting…</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
-      <div style="flex:1"></div>
       <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
     </div>`;
   } else if (status === 'done') {
@@ -413,7 +412,6 @@ function updateVideoState(videoId, status, data) {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status downloading">Processing…</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
-      <div style="flex:1"></div>
       <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
     </div>`;
   }
@@ -602,9 +600,11 @@ function renderDetail() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id: activeSub.id, download_folder: picked })
       }).then(r => r.json());
-      if (resp.ok) {
-        activeSub.download_folder = picked;
+      if (resp.subscription) {
+        activeSub.download_folder = resp.subscription.download_folder; // resolved path from backend
         renderDetail();
+      } else if (resp.error) {
+        alert(resp.error);
       }
     });
   }
@@ -724,13 +724,27 @@ async function cancelJob(jobId, videoId) {
   } catch {}
 }
 
-function toggleKebab(subId) {
-  // Close all other kebab menus first
-  document.querySelectorAll('.kebab-menu').forEach(m => {
-    if (m.id !== 'kebab-' + subId) m.style.display = 'none';
-  });
+function toggleKebab(subId, btn) {
   const menu = document.getElementById('kebab-' + subId);
-  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+  // Close every other open menu
+  document.querySelectorAll('.kebab-menu').forEach(m => { if (m !== menu) m.style.display = 'none'; });
+  if (!menu) return;
+  if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+  // The menu is position:fixed so it escapes the .sub-list overflow:auto clip.
+  // Anchor it under the kebab button, right-aligned, clamped to the viewport.
+  menu.style.display = 'block';
+  const anchor = btn || document.querySelector('.kebab-btn[data-kebab="' + (window.CSS && CSS.escape ? CSS.escape(subId) : subId) + '"]');
+  if (anchor) {
+    const r = anchor.getBoundingClientRect();
+    const mw = menu.offsetWidth || 120;
+    const mh = menu.offsetHeight || 0;
+    let left = r.right - mw;
+    if (left < 4) left = 4;
+    let top = r.bottom + 2;
+    if (top + mh > window.innerHeight - 4) top = Math.max(4, r.top - mh - 2); // flip up if no room below
+    menu.style.left = Math.round(left) + 'px';
+    menu.style.top  = Math.round(top) + 'px';
+  }
 }
 
 // Close kebab on outside click
