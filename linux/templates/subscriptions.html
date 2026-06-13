@@ -52,6 +52,25 @@
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
     .sub-item:hover { color:var(--text);background:var(--surf2); }
+    .sub-item:hover .kebab-btn { opacity:1; }
+    .kebab-btn {
+      background:none;border:none;color:var(--text2);cursor:pointer;
+      font-size:14px;line-height:1;padding:2px 4px;opacity:0;transition:opacity .15s;
+      flex-shrink:0;
+    }
+    .kebab-btn:hover { color:var(--text); }
+    .kebab-menu {
+      position:absolute;right:4px;top:100%;z-index:10;
+      background:var(--surf);border:1px solid var(--border);border-radius:5px;
+      box-shadow:0 4px 12px rgba(0,0,0,.3);min-width:120px;padding:4px 0;
+      font-size:.62rem;
+    }
+    .kebab-menu button {
+      display:block;width:100%;text-align:left;background:none;border:none;
+      color:var(--text2);padding:5px 10px;cursor:pointer;font-family:inherit;font-size:.62rem;
+    }
+    .kebab-menu button:hover { background:var(--surf2);color:var(--text); }
+    .kebab-menu button:disabled { opacity:.3;cursor:default; }
     .sub-item.active { color:var(--acc);border-left-color:var(--acc);background:var(--surf2); }
 
     .sidebar-footer {
@@ -288,13 +307,20 @@ function renderSidebar() {
     list.innerHTML = '<div class="empty-state">No subscriptions yet</div>';
     return;
   }
-  list.innerHTML = subs.map(s => {
+  list.innerHTML = subs.map((s, i) => {
     const count = (s.videos || []).length;
     const badge = count > 0 ? `<span style="margin-left:auto;font-size:.55rem;color:var(--text2);opacity:0.7">${count}</span>` : '';
     return `
-    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}" style="display:flex;align-items:center;gap:4px">
+    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}" style="display:flex;align-items:center;gap:4px;position:relative">
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
+      <button class="kebab-btn" data-kebab="${attrEsc(s.id)}" onclick="event.stopPropagation();toggleKebab('${attrEsc(s.id)}')">⋮</button>
+      <div class="kebab-menu" id="kebab-${attrEsc(s.id)}" style="display:none">
+        <button onclick="reorderSub('${attrEsc(s.id)}','top')" ${i === 0 ? 'disabled' : ''}>Move to top</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','up')" ${i === 0 ? 'disabled' : ''}>Move up</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','down')" ${i === subs.length - 1 ? 'disabled' : ''}>Move down</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
+      </div>
     </div>
   `}).join('');
 
@@ -695,6 +721,34 @@ function renderDetail() {
 async function cancelJob(jobId, videoId) {
   try {
     await fetch(`/api/cancel/${jobId}`, { method: 'POST' });
+  } catch {}
+}
+
+function toggleKebab(subId) {
+  // Close all other kebab menus first
+  document.querySelectorAll('.kebab-menu').forEach(m => {
+    if (m.id !== 'kebab-' + subId) m.style.display = 'none';
+  });
+  const menu = document.getElementById('kebab-' + subId);
+  if (menu) menu.style.display = menu.style.display === 'none' ? 'block' : 'none';
+}
+
+// Close kebab on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.kebab-btn') && !e.target.closest('.kebab-menu')) {
+    document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+  }
+});
+
+async function reorderSub(subId, direction) {
+  try {
+    await fetch('/api/subscriptions/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: subId, direction })
+    });
+    await loadSubs();
+    renderSidebar();
   } catch {}
 }
 
