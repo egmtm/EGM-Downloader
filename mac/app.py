@@ -2027,6 +2027,9 @@ def fetch_subscription_videos():
         existing_ids = set()
         if not force:
             existing_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
+        # Clear "new" flag on existing videos before adding fresh batch
+        for v in (sub.get("videos") or []):
+            v["is_new"] = False
 
         new_videos = []
         channel_name = sub.get("name") or ""
@@ -2073,6 +2076,7 @@ def fetch_subscription_videos():
                 "upload_date": upload_date,
                 "thumbnail_url": vid_thumb,
                 "availability": entry.get("availability") or "public",
+                "is_new": True,
                 "formats": [],
                 "downloaded": False,
                 "download_path": None
