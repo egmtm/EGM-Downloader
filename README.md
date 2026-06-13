@@ -705,14 +705,17 @@
 - 🪟 Sub-app mode — main window hides when subscriptions opens, restores on close
 - 💾 Downloaded status persists across window close/reopen
 - 🆕 "New" badge on recently fetched videos — clears on next fetch
-- 📁 Per-channel download folder picker — Browse, Reset to default, persists per subscription
+- 📁 Per-channel download folder picker — Browse, Open, Reset to default, persists per subscription
 - ⬆️ Subscription reordering via kebab menu — move to top/up/down/bottom, persists
+- 🎨 Theme propagation — changing theme updates all open windows live
+- 🔔 Close confirmation when subscriptions has active downloads
 - 🔒 Per-channel download folder validated on save — rejects system roots, traversal, unwritable paths
 - 🔒 Video ID allowlist + attribute escaping — closes XSS surfaces in subscriptions template
 - ⚙️ Site Cookies merged into Settings panel — one toggle controls both
 - 🧭 2×2 nav grid — History/Themes top, Subscriptions/Advanced bottom
 - ✨ Spinning SVG loader replaces hourglass emoji on fetch
 - 🪟 Pre-splash window flash eliminated on warm starts (Windows)
+- 🔌 Plugins auto-check on startup removed — manual only
 - 🌍 10 languages — AR · DE · EN · ES · FR · IT · JA · NL · PT · RU (268 keys, full audit pass)
 - 🧪 Preload bridge parity test broadened — full function surface locked across all 3 platforms
 
