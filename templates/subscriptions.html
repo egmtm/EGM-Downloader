@@ -510,7 +510,7 @@ function renderDetail() {
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
           <span id="dl-folder-label" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : 'Default')}</span>
           <button id="dl-folder-browse" class="fetch-btn" style="font-size:.55rem;padding:1px 5px">Browse</button>
-          ${activeSub.download_folder ? '<button id="dl-folder-reset" class="fetch-btn" style="font-size:.55rem;padding:1px 5px;color:var(--text2)">Reset</button>' : ''}
+          ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.55rem;padding:1px 5px">Open</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.55rem;padding:1px 5px;color:var(--text2)">Reset</button>' : ''}
         </div>
       </div>
       <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
@@ -546,7 +546,7 @@ function renderDetail() {
             </div>
             <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">New</span>' : ''}${v.downloaded ? ' <span class="video-status done">Downloaded</span>' : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
+              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">New</span>' : ''}${v.downloaded ? ' <span class="video-status done">Downloaded</span> <button class="video-action-btn" onclick="clearDownloaded(\'${attrEsc(v.video_id || '')}\')">Clear</button>' : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
             </div>
           </div>
         `).join('') + (hasMore ? `
@@ -610,6 +610,14 @@ function renderDetail() {
   }
 
   const dlFolderReset = document.getElementById('dl-folder-reset');
+  const dlFolderOpen = document.getElementById('dl-folder-open');
+  if (dlFolderOpen) {
+    dlFolderOpen.addEventListener('click', () => {
+      if (window.electronAPI?.openFolder) {
+        window.electronAPI.openFolder(activeSub.download_folder);
+      }
+    });
+  }
   if (dlFolderReset) {
     dlFolderReset.addEventListener('click', async () => {
       await fetch('/api/subscriptions/update', {
@@ -772,6 +780,20 @@ function clearVideoState(videoId) {
   if (!metaEl) return;
   const video = (activeSub?.videos || []).find(v => (v.video_id || '') === videoId);
   metaEl.textContent = video?.upload_date ? formatDate(video.upload_date) : '—';
+}
+
+async function clearDownloaded(videoId) {
+  if (!activeSub) return;
+  try {
+    await fetch('/api/subscriptions/mark-downloaded', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sub_id: activeSub.id, video_id: videoId, downloaded: false })
+    });
+    const video = (activeSub.videos || []).find(v => (v.video_id || '') === videoId);
+    if (video) video.downloaded = false;
+    renderDetail();
+  } catch {}
 }
 
 let currentSort = 'latest';
