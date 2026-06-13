@@ -100,7 +100,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Date styling more attractive
   • Resizable sidebar + channel thumbnails next to names when expanded
   • Sidebar resize must handle Download History and Back to app buttons gracefully
-  • Logo/title left-aligned with Video/Playlist URLs card (matches button alignment on right)
+  • Logo left-aligned with Video/Playlist URLs card edge — title and subtitle stay centered
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
