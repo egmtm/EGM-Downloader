@@ -67,20 +67,19 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] Polish: Force moved to kebab menu as "Force refresh" with tooltip
   • [ALL] Polish: Fetch button tooltip — "Check for new videos"
   • [ALL] New: Confirmation dialog when closing subscriptions with active downloads
+  • [ALL] New: History re-add button hidden when opened from subscriptions
+  • [ALL] New: Theme propagation — changing theme updates all open windows live
   • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
   TODO (non-blocking):
-  • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast
   • Queue panel in subscriptions — shows all active downloads across channels (discuss placement)
   • Expanded per-channel settings (format, channel info)
   • Export/import integration
-  • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
 
   BUGS (remaining):
   • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
-  • History re-add button still shows when opened from subscriptions (already in TODO)
 
   FIXED (Claude Code + CODEMASTER):
   • Kebab menu — CSS overflow clip, fixed with position:fixed overlay + viewport anchoring
@@ -91,8 +90,11 @@ v1.1 IGNITION — Phase 4: Polish
   • Download bar sticky gap — removed top padding from video-list
   • Plugins auto-check on startup removed — manual only now
   • No-buttons regression — single-quote vs backtick template literal in Clear button onclick
+  • Close confirmation — native dialog via main.js (replaced broken beforeunload)
+  • History re-add hidden from subs — CSS driven by ?from=subs query param
+  • Theme broadcast — all open windows update live on theme change
 
-  POLISH (next session):
+  POLISH (remaining):
   • Right-click on minimized sidebar thumbnails — show same kebab menu options
   • Video titles more attractive styling (font, weight, spacing)
   • Date styling more attractive
