@@ -82,6 +82,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Members-only badge not displaying — yt-dlp flat-playlist may not include availability field
   • Members-only download error shows "No video formats found!" — needs clearer error message
   • History re-add button still shows when opened from subscriptions (already in TODO)
+  • Conversion progress bar only fills ~50% — may appear stuck (completes fine); verify backend progress value during converting state
 
   POLISH (next session):
   • Move Force to kebab menu, keep Fetch as single prominent button
