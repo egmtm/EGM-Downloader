@@ -2053,6 +2053,9 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     }));
   }
 
+  // Guard: when applying a theme received FROM another window, don't re-broadcast
+  // it (prevents an IPC ping-pong between windows).
+  let _applyingRemoteTheme = false;
   function applyTheme(name) {
     document.body.classList.remove(...THEMES);
     if (name && name !== 'void') document.body.classList.add(name);
@@ -2060,6 +2063,11 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     saveRecents(name || 'void');
     renderPicker(name || 'void');
     post('/api/settings/save', { theme: name || 'void' }).catch(() => {});
+    // Broadcast to all other open windows (History/Themes/Subscriptions) so they
+    // update live. main.js fans this out to every window except the sender.
+    if (!_applyingRemoteTheme && window.electronAPI && window.electronAPI.setTheme) {
+      window.electronAPI.setTheme(name || 'void');
+    }
   }
 
   const saved = localStorage.getItem('egm-theme') || 'void';
@@ -2079,7 +2087,10 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
   // Listen for theme changes from themes window (via IPC)
   if (window.electronAPI && window.electronAPI.onThemeChanged) {
-    window.electronAPI.onThemeChanged(theme => applyTheme(theme));
+    window.electronAPI.onThemeChanged(theme => {
+      _applyingRemoteTheme = true;
+      try { applyTheme(theme); } finally { _applyingRemoteTheme = false; }
+    });
   }
 
   // Open themes window

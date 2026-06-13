@@ -467,6 +467,7 @@ async function pollJobs() {
   } finally {
     _polling = false;
   }
+  syncCloseGuard();
 }
 
 // ── Render detail ────────────────────────────────────────────────────────────
@@ -720,6 +721,7 @@ function renderDetail() {
       // Start polling and run an immediate check
       startPolling();
       pollJobs();
+      syncCloseGuard();
     });
   }
 
@@ -777,6 +779,7 @@ async function reorderSub(subId, direction) {
 
 function clearVideoState(videoId) {
   allJobs.delete(videoId);
+  syncCloseGuard();
   const metaEl = document.getElementById('meta-' + videoId);
   if (!metaEl) return;
   const video = (activeSub?.videos || []).find(v => (v.video_id || '') === videoId);
@@ -917,7 +920,7 @@ document.getElementById('collapse-btn').addEventListener('click', () => {
 // ── Back to app ──────────────────────────────────────────────────────────────
 document.getElementById('history-btn').addEventListener('click', () => {
   if (window.electronAPI && window.electronAPI.openHistoryWindow) {
-    window.electronAPI.openHistoryWindow();
+    window.electronAPI.openHistoryWindow('subs');
   } else {
     window.open('/history-page', '_blank');
   }
@@ -927,29 +930,27 @@ function hasActiveDownloads() {
   return [...allJobs.values()].some(j => !TERMINAL_STATES.includes(j.status));
 }
 
-function confirmClose() {
-  if (!hasActiveDownloads()) return true;
-  return confirm(
-    'Downloads are still in progress.\n\n' +
-    '• If you close this window, downloads will continue in the background as long as the app stays open.\n' +
-    '• If you close the entire app, active downloads will be cancelled.\n\n' +
-    'Close anyway?'
-  );
+// Push the active-downloads state to the main process so it can show a native
+// confirmation if the window is closed (X or "Back to app") while downloads run.
+// Electron's beforeunload can't show a dialog reliably, so the close is gated in
+// main.js via subsWindow.on('close'); this just keeps main.js's flag in sync.
+let _lastCloseGuard = null;
+function syncCloseGuard() {
+  const active = hasActiveDownloads();
+  if (active === _lastCloseGuard) return;
+  _lastCloseGuard = active;
+  if (window.electronAPI && window.electronAPI.notifySubsDownloads) {
+    window.electronAPI.notifySubsDownloads(active);
+  }
 }
 
 document.getElementById('back-btn').addEventListener('click', () => {
-  if (!confirmClose()) return;
+  // The confirmation (when downloads are active) is handled in main.js's close
+  // interceptor — closing here routes through the same on('close') path as the X.
   if (window.electronAPI && window.electronAPI.closeSubscriptions) {
     window.electronAPI.closeSubscriptions();
   } else {
     window.close();
-  }
-});
-
-window.addEventListener('beforeunload', (e) => {
-  if (hasActiveDownloads()) {
-    e.preventDefault();
-    e.returnValue = '';
   }
 });
 

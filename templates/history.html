@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Download History — EGM Downloader</title>
 <style>
+    body.from-subs .rb[title="Re-add"] { display: none; }
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
     --bg:#0b1120;--surf:#111c2e;--surf2:#162338;--surf3:#1c2d47;
@@ -153,6 +154,13 @@
   if (window.electronAPI && window.electronAPI.onThemeChanged) {
     window.electronAPI.onThemeChanged(t => applyHistTheme(t));
   }
+  // When History is opened from the Subscriptions window, the "Re-add to main"
+  // action is out of context — hide it (driven by the ?from=subs URL param).
+  try {
+    if (new URLSearchParams(location.search).get('from') === 'subs') {
+      document.body.classList.add('from-subs');
+    }
+  } catch {}
 
   const AUDIO_FMTS = ['mp3','aac','flac','wav','ogg','m4a','opus'];
   const PER_PAGE = 10;
