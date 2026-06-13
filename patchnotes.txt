@@ -101,6 +101,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Resizable sidebar + channel thumbnails next to names when expanded
   • Sidebar resize must handle Download History and Back to app buttons gracefully
   • Logo left-aligned with Video/Playlist URLs card edge — title and subtitle stay centered
+  • Explore SVG wordmark for "EGM Downloader" title (replace plain h1 text with styled SVG)
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
