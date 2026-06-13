@@ -73,17 +73,18 @@ v1.1 IGNITION — Phase 4: Polish
   • Export/import integration
   • Hide "re-add" button in History when opened from subscriptions (pass ?from=subs query param)
 
-  BUGS (found in testing):
-  • Kebab menu (⋮) click doesn't show options — document click listener likely closes it immediately
+  BUGS (remaining):
   • Download bar sticky gap — negative margin didn't fully close the space above Select All
-  • Per-channel folder picker: saves correctly but display doesn't update until reopen — activeSub sync issue in frontend response handler
   • Add "Open" button next to Browse for per-channel folder
   • Clear button missing on persisted "Downloaded" videos — need API to set v.downloaded=false
   • Update plugins checking on startup — remove auto-check, leave manual only
-  • Members-only badge not displaying — yt-dlp flat-playlist may not include availability field
-  • Members-only download error shows "No video formats found!" — needs clearer error message
+  • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
   • History re-add button still shows when opened from subscriptions (already in TODO)
-  • Conversion progress bar only fills ~50% — may appear stuck (completes fine); verify backend progress value during converting state
+
+  FIXED (Claude Code diagnostics):
+  • Kebab menu — CSS overflow clip, fixed with position:fixed overlay + viewport anchoring
+  • Folder picker — wrong response key (resp.ok → resp.subscription), now updates immediately
+  • Conversion bar — stray flex:1 spacer removed, bar now full width
 
   POLISH (next session):
   • Move Force to kebab menu, keep Fetch as single prominent button
