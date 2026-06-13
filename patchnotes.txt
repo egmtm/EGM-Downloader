@@ -57,14 +57,14 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] New: Auto-fetch on first add — videos load immediately after adding a channel
   • [ALL] Fix: Sticky download bar gap eliminated
   • [ALL] Fix: Scrollbar theming on subscriptions window
+  • [ALL] New: Members-only badge — informational amber badge, checkboxes stay enabled
+  • [ALL] New: Downloaded status persists across window close/reopen — stored in egm_subscriptions.json
   • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
   TODO (non-blocking):
   • Theme change from nav panel doesn't propagate to already-open History/Themes windows — needs IPC broadcast
-  • Persist "Downloaded" status across window close/reopen — update v.downloaded in egm_subscriptions.json
-  • Members-only badge — informational only, checkboxes stay enabled; cookies handle auth, errors show per-video if not a member
   • Queue panel in subscriptions — shows all active downloads across channels (discuss placement)
   • Subscriptions sorting/reordering
   • "New" badge on videos newer than last_fetched (needs ISO vs YYYYMMDD normalization)
