@@ -509,7 +509,7 @@ function renderDetail() {
             </div>
             <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}</div>
+              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
             </div>
           </div>
         `).join('') + (hasMore ? `

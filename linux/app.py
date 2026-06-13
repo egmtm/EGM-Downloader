@@ -1902,6 +1902,7 @@ def fetch_subscription_videos():
                 "duration": entry.get("duration") or 0,
                 "upload_date": upload_date,
                 "thumbnail_url": vid_thumb,
+                "availability": entry.get("availability") or "public",
                 "formats": [],
                 "downloaded": False,
                 "download_path": None
