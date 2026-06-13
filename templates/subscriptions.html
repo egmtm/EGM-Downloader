@@ -428,6 +428,13 @@ async function pollJobs() {
         if (TERMINAL_STATES.includes(data.status)) {
           const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
           if (cb) cb.disabled = false;
+          if (data.status === 'done' && info.subId) {
+            fetch('/api/subscriptions/mark-downloaded', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sub_id: info.subId, video_id: videoId })
+            }).catch(() => {});
+          }
         }
       } catch {}
     }
@@ -509,7 +516,7 @@ function renderDetail() {
             </div>
             <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
+              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.downloaded ? ' <span class="video-status done">Downloaded</span>' : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
             </div>
           </div>
         `).join('') + (hasMore ? `
@@ -624,7 +631,7 @@ function renderDetail() {
           });
           const result = await resp.json();
           if (result.job_id) {
-            allJobs.set(videoId, { jobId: result.job_id, status: 'queued', data: {} });
+            allJobs.set(videoId, { jobId: result.job_id, status: 'queued', data: {}, subId: activeSub.id });
             updateVideoState(videoId, 'queued', {});
             cb.checked = false;
             cb.disabled = true;
