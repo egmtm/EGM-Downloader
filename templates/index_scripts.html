@@ -353,20 +353,6 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
   } catch {}
 })();
 
-// ── Silent plugin check on launch — populates Update Plugins grid in background ──
-// User sees real version data when expanding the panel instead of "checking…" placeholder
-setTimeout(async () => {
-  try {
-    const [data, deno] = await Promise.all([
-      fetch('/api/check-updates').then(r => r.json()),
-      fetch('/api/deno/status').then(r => r.json()),
-    ]);
-    data.deno = deno;
-    if (typeof renderUpdGrid === 'function') renderUpdGrid(data);
-    if (typeof syncInstallBtn === 'function') syncInstallBtn();
-  } catch {}
-}, 2000);
-
 // ── Cross-window readd: receive URLs from full history window ─────────────────
 // Two paths: Electron IPC (preferred, most reliable) and BroadcastChannel (web fallback).
 // History window in Electron has no window.opener (separate BrowserWindow).
