@@ -59,6 +59,7 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] Fix: Scrollbar theming on subscriptions window
   • [ALL] New: Members-only badge — informational amber badge, checkboxes stay enabled
   • [ALL] New: Downloaded status persists across window close/reopen — stored in egm_subscriptions.json
+  • [ALL] New: Per-channel download folder picker — Browse button, Reset to default, persists across sessions
   • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
