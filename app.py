@@ -2171,6 +2171,31 @@ def mark_downloaded():
             return jsonify({"error": "Video not found"}), 404
     return jsonify({"error": "Subscription not found"}), 404
 
+@app.route("/api/subscriptions/reorder", methods=["POST"])
+def reorder_subscription():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    direction = (data.get("direction") or "").strip()
+    if not sub_id or direction not in ("top", "up", "down", "bottom"):
+        return jsonify({"error": "id and direction (top/up/down/bottom) required"}), 400
+    subs = _load_subscriptions()
+    idx = next((i for i, s in enumerate(subs) if s.get("id") == sub_id), None)
+    if idx is None:
+        return jsonify({"error": "Subscription not found"}), 404
+    item = subs.pop(idx)
+    if direction == "top":
+        subs.insert(0, item)
+    elif direction == "up" and idx > 0:
+        subs.insert(idx - 1, item)
+    elif direction == "down" and idx < len(subs):
+        subs.insert(idx + 1, item)
+    elif direction == "bottom":
+        subs.append(item)
+    else:
+        subs.insert(idx, item)
+    _save_subscriptions(subs)
+    return jsonify({"ok": True})
+
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Clean shutdown requested by Electron before-quit.
