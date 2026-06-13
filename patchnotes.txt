@@ -90,6 +90,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Clear button on persisted "Downloaded" videos — sets v.downloaded=false via API
   • Download bar sticky gap — removed top padding from video-list
   • Plugins auto-check on startup removed — manual only now
+  • No-buttons regression — single-quote vs backtick template literal in Clear button onclick
 
   POLISH (next session):
   • Right-click on minimized sidebar thumbnails — show same kebab menu options
