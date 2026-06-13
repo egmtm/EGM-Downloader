@@ -306,7 +306,6 @@ Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 - ✨ Spinning SVG loader replaces hourglass emoji on fetch
 - 🪟 Pre-splash window flash eliminated on warm starts (Windows)
 - 🔌 Plugins auto-check on startup removed — manual only
-- 🌍 10 languages — AR · DE · EN · ES · FR · IT · JA · NL · PT · RU (268 keys, full audit pass)
 - 🧪 Preload bridge parity test broadened — full function surface locked across all 3 platforms
 
 **v1.2 — [TBD]:**
