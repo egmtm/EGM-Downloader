@@ -92,6 +92,7 @@ v1.1 IGNITION — Phase 4: Polish
 
   BUGS (remaining):
   • Force refresh in kebab menu not triggering — onclick may not fire or activeSub not set for that channel
+  • Channel delete temporarily freezes add — cannot add new channels for a period after deleting one (pre-existing bug)
   • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
 
   FIXED (Claude Code + CODEMASTER):
