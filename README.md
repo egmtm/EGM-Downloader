@@ -304,8 +304,10 @@ Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 - ⚙️ Site Cookies merged into Settings panel — one toggle controls both
 - 🧭 2×2 nav grid — History/Themes top, Subscriptions/Advanced bottom
 - ✨ Spinning SVG loader replaces hourglass emoji on fetch
+- 🗂️ Download queue panel — all active downloads across channels, auto-clears, cancel per-job, collapsed sidebar icon
 - 🪟 Pre-splash window flash eliminated on warm starts (Windows)
 - 🔌 Plugins auto-check on startup removed — manual only
+- 🪟 Desktop shortcut now targets .exe — legacy .vbs launcher removed and cleaned up (Windows)
 - 🧪 Preload bridge parity test broadened — full function surface locked across all 3 platforms
 
 **v1.2 — [TBD]:**
