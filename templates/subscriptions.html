@@ -73,6 +73,18 @@
     .kebab-menu button:disabled { opacity:.3;cursor:default; }
     .sub-item.active { color:var(--acc);border-left-color:var(--acc);background:var(--surf2); }
 
+    .queue-item {
+      padding:8px 10px;font-size:.68rem;font-weight:500;color:var(--acc);
+      border-left:2px solid var(--acc);background:var(--acc-dim);
+      display:flex;align-items:center;gap:6px;cursor:pointer;
+      border-bottom:1px solid var(--border);
+    }
+    .queue-item:hover { background:rgba(45,212,191,.12); }
+    .queue-badge {
+      margin-left:auto;background:rgba(45,212,191,.15);color:var(--acc);
+      font-size:.5rem;padding:1px 6px;border-radius:8px;font-weight:500;
+    }
+
     .sidebar-footer {
       padding:8px 10px;border-top:1px solid var(--border);
       display:flex;flex-direction:column;gap:6px;
@@ -275,6 +287,7 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
 
 let subs = [];
 let activeSub = null;
+let showQueue = false;
 
 // ── HTML escape — prevents stored XSS from user-controlled data ──────────────
 function esc(s) {
@@ -307,7 +320,14 @@ function renderSidebar() {
     list.innerHTML = '<div class="empty-state">No subscriptions yet</div>';
     return;
   }
-  list.innerHTML = subs.map((s, i) => {
+  const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
+  const queueHtml = activeCount > 0 ? `<div class="queue-item" id="queue-sidebar-item" onclick="showQueue=true;activeSub=null;renderSidebar();renderQueue();">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+    Queue
+    <span class="queue-badge">${activeCount}</span>
+  </div>` : '';
+
+  list.innerHTML = queueHtml + subs.map((s, i) => {
     const count = (s.videos || []).length;
     const badge = count > 0 ? `<span style="margin-left:auto;font-size:.55rem;color:var(--text2);opacity:0.7">${count}</span>` : '';
     return `
@@ -329,6 +349,7 @@ function renderSidebar() {
   // Wire clicks
   list.querySelectorAll('.sub-item').forEach(item => {
     item.addEventListener('click', () => {
+      showQueue = false;
       activeSub = subs.find(s => s.id === item.dataset.id) || null;
       renderSidebar();
       renderDetail();
@@ -347,6 +368,7 @@ function renderSidebar() {
     }).join('');
     miniList.querySelectorAll('.mini-thumb').forEach(thumb => {
       thumb.addEventListener('click', () => {
+        showQueue = false;
         activeSub = subs.find(s => s.id === thumb.dataset.id) || null;
         renderSidebar();
         renderDetail();
@@ -466,13 +488,72 @@ async function pollJobs() {
     }
   } finally {
     _polling = false;
+    // Update queue view and sidebar badge
+    const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
+    const queueItem = document.getElementById('queue-sidebar-item');
+    const badge = queueItem?.querySelector('.queue-badge');
+    if (activeCount > 0) {
+      if (badge) badge.textContent = activeCount;
+      if (showQueue) renderQueue();
+    } else {
+      if (queueItem) queueItem.remove();
+      if (showQueue) { showQueue = false; renderQueue(); }
+    }
   }
   syncCloseGuard();
 }
 
 // ── Render detail ────────────────────────────────────────────────────────────
+function renderQueue() {
+  const detail = document.getElementById('detail');
+  const activeJobs = [...allJobs.entries()].filter(([, j]) => !TERMINAL_STATES.includes(j.status));
+
+  if (activeJobs.length === 0) {
+    detail.innerHTML = `<div class="detail-empty"><div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:8px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+      <div>No active downloads</div>
+    </div></div>`;
+    return;
+  }
+
+  let html = `<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+    <span style="font-weight:600;font-size:.85rem">Download queue</span>
+    <span style="font-size:.65rem;color:var(--text2)">${activeJobs.length} active</span>
+  </div>`;
+
+  html += '<div style="flex:1;overflow-y:auto;padding:0 18px 8px">';
+  for (const [videoId, job] of activeJobs) {
+    const pct = Math.round(job.data?.progress || 0);
+    const speed = job.data?.speed || '';
+    const statusLabel = job.status === 'queued' ? 'Queued'
+      : job.status === 'downloading' ? `${pct}%`
+      : job.status === 'converting' ? 'Converting…'
+      : 'Processing…';
+
+    html += `<div class="video-card" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center">
+      <div class="video-thumb" style="width:120px;height:68px">
+        ${job.thumbnailUrl ? `<img src="${esc(job.thumbnailUrl)}" style="width:100%;height:100%;object-fit:cover">` : ''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.78rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(job.title)}</div>
+        <div style="font-size:.62rem;color:var(--text2);margin-top:2px">${esc(job.channelName)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
+          <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? 100 : pct}%"></div></div>
+          ${speed ? `<span style="font-size:.55rem;color:var(--text2)">${speed}</span>` : ''}
+          <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+  detail.innerHTML = html;
+}
+
 function renderDetail() {
   const detail = document.getElementById('detail');
+  if (showQueue) { renderQueue(); return; }
   if (!activeSub) {
     detail.innerHTML = `<div class="detail-empty"><div>
       <div style="font-size:2rem;margin-bottom:8px">📡</div>
@@ -705,7 +786,13 @@ function renderDetail() {
           });
           const result = await resp.json();
           if (result.job_id) {
-            allJobs.set(videoId, { jobId: result.job_id, status: 'queued', data: {}, subId: activeSub.id });
+            allJobs.set(videoId, {
+              jobId: result.job_id, status: 'queued', data: {},
+              subId: activeSub.id,
+              title: video?.title || videoId,
+              channelName: activeSub.name || 'Unknown',
+              thumbnailUrl: video?.thumbnail_url || ''
+            });
             updateVideoState(videoId, 'queued', {});
             cb.checked = false;
             cb.disabled = true;
@@ -722,6 +809,7 @@ function renderDetail() {
       startPolling();
       pollJobs();
       syncCloseGuard();
+      renderSidebar();
     });
   }
 
