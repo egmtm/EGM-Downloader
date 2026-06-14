@@ -100,13 +100,14 @@ v1.1 IGNITION — Phase 4: Polish
   • History re-add hidden from subs — CSS driven by ?from=subs query param
   • Theme broadcast — all open windows update live on theme change
 
+  • [ALL] Polish: Logo left-aligned with card edge, title truly centered
+  • [ALL] Polish: Video titles — bolder, 2-line clamp, tighter letter-spacing
+  • [ALL] Polish: Date text refined — slightly larger, better spacing
+
   POLISH (remaining):
   • Right-click on minimized sidebar thumbnails — show same kebab menu options
-  • Video titles more attractive styling (font, weight, spacing)
-  • Date styling more attractive
   • Resizable sidebar + channel thumbnails next to names when expanded
   • Sidebar resize must handle Download History and Back to app buttons gracefully
-  • Logo left-aligned with Video/Playlist URLs card edge — title and subtitle stay centered
   • Explore SVG wordmark for "EGM Downloader" title (replace plain h1 text with styled SVG)
 
 v1.0.4 - Build 128 (6/2026)
