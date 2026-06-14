@@ -79,7 +79,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Export/import integration
 
 
-  FIXED (Claude Code + CODEMASTER):
+  FIXED:
   • Kebab menu — CSS overflow clip, fixed with position:fixed overlay + viewport anchoring
   • Folder picker — wrong response key (resp.ok → resp.subscription), now updates immediately
   • Conversion bar — stray flex:1 spacer removed, bar now full width
@@ -97,7 +97,7 @@ v1.1 IGNITION — Phase 4: Polish
   BUGS (remaining):
   • Members-only badge: yt-dlp limitation — wiring correct, friendly error message now shown on download failure
 
-  FIXED (Claude Code + CODEMASTER):
+  FIXED:
   • Close confirmation — native dialog via main.js (replaced broken beforeunload)
   • History re-add hidden from subs — CSS driven by ?from=subs query param
   • Theme broadcast — all open windows update live on theme change
