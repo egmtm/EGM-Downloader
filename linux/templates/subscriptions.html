@@ -544,7 +544,7 @@ function renderQueue() {
       : job.status === 'converting' ? 'Converting…'
       : 'Processing…';
 
-    html += `<div class="video-card" style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:center">
+    html += `<div class="video-card" style="display:flex;gap:12px;padding:10px 12px;margin:4px 0;border-radius:6px;align-items:center">
       <div class="video-thumb" style="width:120px;height:68px">
         ${job.thumbnailUrl ? `<img src="${esc(job.thumbnailUrl)}" style="width:100%;height:100%;object-fit:cover">` : ''}
       </div>
