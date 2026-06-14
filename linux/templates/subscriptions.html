@@ -284,7 +284,11 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
     if (typeof orig !== 'function') return;
     window[name] = function(...args) {
       const result = orig.apply(window, args);
+      // A sandboxed renderer's window.focus() does NOT restore OS-level focus after
+      // a native dialog — the main process must do it. Ask it to via IPC (and keep
+      // window.focus() as a harmless fallback for the non-Electron/web case).
       try { window.focus(); } catch (e) {}
+      try { window.electronAPI && window.electronAPI.refocusWindow && window.electronAPI.refocusWindow(); } catch (e) {}
       return result;
     };
   });
