@@ -2165,7 +2165,7 @@ def mark_downloaded():
         if s.get("id") == sub_id:
             for v in (s.get("videos") or []):
                 if v.get("video_id") == video_id:
-                    v["downloaded"] = bool(data.get("downloaded", True))
+                    v["downloaded"] = data.get("downloaded", True) is True
                     _save_subscriptions(subs)
                     return jsonify({"ok": True})
             return jsonify({"error": "Video not found"}), 404
