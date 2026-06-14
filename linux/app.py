@@ -1785,39 +1785,6 @@ def add_subscription():
         return jsonify({"error": err[0]}), err[1]
     return jsonify({"subscription": sub})
 
-@app.route("/api/subscriptions/metadata", methods=["POST"])
-def subscription_metadata():
-    """Fast async channel metadata (name + avatar only — no video list). Called
-    by the client right after an instant add so the sidebar fills in within a few
-    seconds, without blocking the UI or waiting for the full video fetch.
-    Idempotent — only fills fields that are still empty."""
-    data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
-    if not sub_id:
-        return jsonify({"error": "ID is required"}), 400
-    sub0 = next((s for s in _load_subscriptions() if s.get("id") == sub_id), None)
-    if not sub0:
-        return jsonify({"error": "Not found"}), 404
-    # Already populated — nothing to do (avoids a needless yt-dlp call).
-    if sub0.get("name") and sub0.get("thumbnail_url"):
-        return jsonify({"subscription": sub0})
-    name, thumb = _fetch_channel_meta(sub0.get("url", ""))   # yt-dlp OUTSIDE the lock
-
-    def _patch(subs):
-        sub = next((s for s in subs if s.get("id") == sub_id), None)
-        if sub is None:
-            return None
-        if name and not sub.get("name"):
-            sub["name"] = name
-        if thumb and not sub.get("thumbnail_url"):
-            sub["thumbnail_url"] = thumb
-        return sub
-    sub = _mutate_subscriptions(_patch)
-    if sub is None:
-        return jsonify({"error": "Not found"}), 404
-    return jsonify({"subscription": sub})
-
-
 @app.route("/api/subscriptions/remove", methods=["POST"])
 def remove_subscription():
     data = request.get_json(silent=True) or {}
@@ -1874,30 +1841,6 @@ def update_subscription():
     return jsonify({"subscription": payload})
 
 
-def _fetch_channel_meta(url):
-    """Lightweight channel metadata — name + avatar only, no video list. Uses a
-    1-item playlist dump so it returns in a few seconds (not the full listing).
-    Returns (name, thumbnail_url); ("", "") on any failure. Run OUTSIDE the subs
-    lock, then patch the result in atomically."""
-    try:
-        mr = _ytdlp("--flat-playlist", "--dump-single-json",
-                    "--playlist-end", "1", url, timeout=30)
-        if mr.returncode == 0 and mr.stdout:
-            meta = json.loads(mr.stdout.strip())
-            cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
-            name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
-            thumb = ""
-            thumbs = meta.get("thumbnails") or []
-            if thumbs and isinstance(thumbs, list):
-                avatars = [t for t in thumbs if isinstance(t, dict) and
-                           t.get("id", "").startswith("avatar")]
-                src = avatars[-1] if avatars else thumbs[-1]
-                thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
-            return name, thumb
-    except Exception:
-        pass
-    return "", ""
-
 @app.route("/api/subscriptions/fetch", methods=["POST"])
 def fetch_subscription_videos():
     data = request.get_json(silent=True) or {}
@@ -1922,7 +1865,21 @@ def fetch_subscription_videos():
         # subscription stays instant.
         meta_name, meta_thumb = "", ""
         if need_meta:
-            meta_name, meta_thumb = _fetch_channel_meta(url)
+            try:
+                mr = _ytdlp("--flat-playlist", "--dump-single-json",
+                            "--playlist-end", "1", url, timeout=30)
+                if mr.returncode == 0 and mr.stdout:
+                    meta = json.loads(mr.stdout.strip())
+                    cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
+                    meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
+                    thumbs = meta.get("thumbnails") or []
+                    if thumbs and isinstance(thumbs, list):
+                        avatars = [t for t in thumbs if isinstance(t, dict) and
+                                   t.get("id", "").startswith("avatar")]
+                        src = avatars[-1] if avatars else thumbs[-1]
+                        meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
+            except Exception:
+                pass
 
         # Flat-playlist with approximate_date — fast and gives dates for sorting
         # Drop cookies/ejs/deno for listing (no formats/signatures needed)
