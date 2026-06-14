@@ -82,7 +82,7 @@
     .queue-item:hover { background:rgba(45,212,191,.12); }
     .queue-badge {
       margin-left:auto;background:rgba(45,212,191,.15);color:var(--acc);
-      font-size:.5rem;padding:1px 6px;border-radius:8px;font-weight:500;
+      font-size:.58rem;padding:2px 7px;border-radius:8px;font-weight:500;
     }
 
     .sidebar-footer {
@@ -359,7 +359,11 @@ function renderSidebar() {
   // Render mini thumbnails for collapsed sidebar
   const miniList = document.getElementById('mini-list');
   if (miniList) {
-    miniList.innerHTML = subs.map(s => {
+    const queueMini = activeCount > 0 ? `<div class="mini-thumb${showQueue ? ' active' : ''}" id="mini-queue" title="Queue (${activeCount} active)" style="background:var(--acc-dim);color:var(--acc);font-size:12px;border-bottom:1px solid var(--border)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+    </div>` : '';
+
+    miniList.innerHTML = queueMini + subs.map(s => {
       const isActive = activeSub && activeSub.id === s.id;
       const initial = (s.name || '?')[0].toUpperCase();
       return s.thumbnail_url
@@ -374,6 +378,15 @@ function renderSidebar() {
         renderDetail();
       });
     });
+    const miniQueue = document.getElementById('mini-queue');
+    if (miniQueue) {
+      miniQueue.addEventListener('click', () => {
+        showQueue = true;
+        activeSub = null;
+        renderSidebar();
+        renderQueue();
+      });
+    }
   }
 }
 
