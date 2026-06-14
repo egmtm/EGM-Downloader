@@ -202,10 +202,12 @@
 
     .video-info { flex:1;min-width:0; }
     .video-title {
-      font-size:.8rem;font-weight:500;color:var(--text);
-      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+      font-size:.82rem;font-weight:600;color:var(--text);letter-spacing:-.01em;
+      overflow:hidden;text-overflow:ellipsis;
+      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+      white-space:normal;line-height:1.3;
     }
-    .video-meta { font-size:.68rem;color:var(--text2);margin-top:3px; }
+    .video-meta { font-size:.7rem;color:var(--text2);margin-top:4px;letter-spacing:.01em; }
 
     .fetch-btn {
       background:var(--surf2);border:1px solid var(--border);color:var(--text2);
