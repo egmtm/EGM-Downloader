@@ -69,12 +69,12 @@ v1.1 IGNITION — Phase 4: Polish
   • [ALL] New: Confirmation dialog when closing subscriptions with active downloads
   • [ALL] New: History re-add button hidden when opened from subscriptions
   • [ALL] New: Theme propagation — changing theme updates all open windows live
+  • [ALL] New: Download queue panel — all active downloads across channels, auto-clears, cancel per-job, collapsed sidebar icon
   • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
   TODO (non-blocking):
-  • Queue panel in subscriptions — shows all active downloads across channels (discuss placement)
   • Expanded per-channel settings (format, channel info)
   • Export/import integration
 
