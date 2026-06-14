@@ -202,12 +202,10 @@
 
     .video-info { flex:1;min-width:0; }
     .video-title {
-      font-size:.82rem;font-weight:600;color:var(--text);letter-spacing:-.01em;
-      overflow:hidden;text-overflow:ellipsis;
-      display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
-      white-space:normal;line-height:1.3;
+      font-size:.8rem;font-weight:500;color:var(--text);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
     }
-    .video-meta { font-size:.7rem;color:var(--text2);margin-top:4px;letter-spacing:.01em; }
+    .video-meta { font-size:.68rem;color:var(--text2);margin-top:3px; }
 
     .fetch-btn {
       background:var(--surf2);border:1px solid var(--border);color:var(--text2);
@@ -343,7 +341,7 @@ function renderSidebar() {
         <button onclick="reorderSub('${attrEsc(s.id)}','down')" ${i === subs.length - 1 ? 'disabled' : ''}>Move down</button>
         <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
         <div style="border-top:1px solid var(--border);margin:3px 0"></div>
-        <button onclick="fetchVideos('${attrEsc(s.id)}', true)" title="Re-fetch all videos from scratch">Force refresh</button>
+        <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(s.id)}')" title="Re-fetch all videos from scratch">Force refresh</button>
       </div>
     </div>
   `}).join('');
@@ -922,6 +920,20 @@ function formatDate(d) {
 
 // ── Fetch videos ─────────────────────────────────────────────────────────────
 let visibleCount = 20;
+
+// Force refresh from the kebab menu. The menu buttons live inside .sub-item, so
+// without stopPropagation the click also fires the sub-item select handler, whose
+// synchronous renderDetail() wipes the "Fetching…" indicator and the fetch looks
+// like it did nothing. Here we explicitly select the target channel (so the
+// refresh is visible), close the menu, then re-fetch from scratch.
+function forceRefreshSub(id) {
+  showQueue = false;
+  activeSub = subs.find(s => s.id === id) || activeSub;
+  document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+  renderSidebar();
+  renderDetail();
+  fetchVideos(id, true);
+}
 
 async function fetchVideos(id, force) {
   visibleCount = 20; // reset on new fetch
