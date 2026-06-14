@@ -91,9 +91,11 @@ v1.1 IGNITION — Phase 4: Polish
   • Queue thumbnail attrEsc + downloaded strict bool coercion (delta security review nits)
   • Force refresh — event bubbling to sub-item handler, fixed with forceRefreshSub + stopPropagation
   • Add freeze after delete — blocking yt-dlp on add + single-threaded server; instant add + threaded=True + atomic writes
+  • Connection pool saturation (~80s freeze) — browser 6-conn limit; client-side async semaphore caps fetches to 3
+  • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
 
   BUGS (remaining):
-  • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
+  • Members-only badge: yt-dlp limitation — wiring correct, friendly error message now shown on download failure
 
   FIXED (Claude Code + CODEMASTER):
   • Close confirmation — native dialog via main.js (replaced broken beforeunload)
