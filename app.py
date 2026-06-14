@@ -2063,6 +2063,120 @@ def update_subscription():
         return jsonify({"error": "Not found"}), 404
     return jsonify({"subscription": payload})
 
+# ── Subscription fetch jobs ───────────────────────────────────────────────────
+# A channel fetch calls yt-dlp (up to ~90s). Running it inside the HTTP request
+# would hold a browser connection that whole time, saturating the per-host pool
+# and freezing add/delete. So we run fetches as background jobs and let the
+# client poll a tiny status endpoint — every HTTP request stays sub-second.
+_subfetch_jobs: dict = {}
+_subfetch_lock = threading.Lock()
+_subfetch_sem  = threading.BoundedSemaphore(4)   # bound concurrent yt-dlp listings
+
+def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
+    try:
+        with _subfetch_sem:   # excess fetches wait here (status stays "pending"); no held connection
+            meta_name, meta_thumb = "", ""
+            if need_meta:
+                try:
+                    mr = _ytdlp("--flat-playlist", "--dump-single-json",
+                                "--playlist-end", "1", url, timeout=30)
+                    if mr.returncode == 0 and mr.stdout:
+                        meta = json.loads(mr.stdout.strip())
+                        cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
+                        meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
+                        thumbs = meta.get("thumbnails") or []
+                        if thumbs and isinstance(thumbs, list):
+                            avatars = [t for t in thumbs if isinstance(t, dict) and
+                                       t.get("id", "").startswith("avatar")]
+                            src = avatars[-1] if avatars else thumbs[-1]
+                            meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
+                except Exception:
+                    pass
+
+            r = _run_yt(
+                sys.executable, "-m", "yt_dlp",
+                "--flat-playlist", "-j",
+                "--playlist-end", "200",
+                "--extractor-args", "youtubetab:approximate_date",
+                url, timeout=90
+            )
+            if r.returncode != 0:
+                result = {"status": "error", "error": "Failed to fetch videos",
+                          "detail": (r.stderr or "")[:500]}
+            else:
+                fetched = []          # all parsed entries; dedup happens in the atomic merge
+                entry_channel = ""
+                for line in (r.stdout or "").strip().split("\n"):
+                    if not line.strip():
+                        continue
+                    try:
+                        entry = json.loads(line)
+                    except Exception:
+                        continue
+                    vid = _safe_video_id(entry.get("id", ""))
+                    if not vid:
+                        continue
+                    if not entry_channel:
+                        entry_channel = (entry.get("channel") or entry.get("uploader") or "")[:200]
+                        entry_channel = entry_channel.replace(" - Videos", "").replace(" - Playlists", "").strip()
+                    vid_thumb = ""
+                    vid_thumbs = entry.get("thumbnails") or []
+                    if vid_thumbs and isinstance(vid_thumbs, list):
+                        vid_thumb = _safe_thumb_url(vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else "")
+                    if not vid_thumb:
+                        vid_thumb = _safe_thumb_url(entry.get("thumbnail") or "")
+                    upload_date = ""
+                    if entry.get("upload_date"):
+                        upload_date = str(entry["upload_date"])
+                    elif entry.get("timestamp"):
+                        import datetime as dt
+                        upload_date = dt.datetime.utcfromtimestamp(entry["timestamp"]).strftime("%Y%m%d")
+                    fetched.append({
+                        "video_id": vid,
+                        "title": (entry.get("title") or "Untitled")[:300],
+                        "duration": entry.get("duration") or 0,
+                        "upload_date": upload_date,
+                        "thumbnail_url": vid_thumb,
+                        "availability": entry.get("availability") or "public",
+                        "is_new": True,
+                        "formats": [],
+                        "downloaded": False,
+                        "download_path": None
+                    })
+
+                def _merge(subs):
+                    sub = next((s for s in subs if s.get("id") == sub_id), None)
+                    if sub is None:
+                        return None
+                    for v in (sub.get("videos") or []):
+                        v["is_new"] = False
+                    if force:
+                        new_videos = fetched
+                        sub["videos"] = list(new_videos)
+                    else:
+                        cur_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
+                        new_videos = [v for v in fetched if v["video_id"] not in cur_ids]
+                        sub["videos"] = new_videos + (sub.get("videos") or [])
+                    if meta_name and not sub.get("name"):
+                        sub["name"] = meta_name
+                    if meta_thumb and not sub.get("thumbnail_url"):
+                        sub["thumbnail_url"] = meta_thumb
+                    if entry_channel and not sub.get("name"):
+                        sub["name"] = entry_channel
+                    sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                    return {"sub": sub, "new_count": len(new_videos)}
+                merged = _mutate_subscriptions(_merge)
+                if merged is None:
+                    result = {"status": "error", "error": "Subscription not found"}
+                else:
+                    result = {"status": "done", "subscription": merged["sub"],
+                              "new_count": merged["new_count"], "total": len(merged["sub"]["videos"])}
+    except Exception as e:
+        result = {"status": "error", "error": str(e)[:500]}
+    result["_ts"] = time.time()
+    with _subfetch_lock:
+        _subfetch_jobs[fetch_id] = result
+
 @app.route("/api/subscriptions/fetch", methods=["POST"])
 def fetch_subscription_videos():
     data = request.get_json(silent=True) or {}
@@ -2070,9 +2184,6 @@ def fetch_subscription_videos():
     force = bool(data.get("force", False))
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
-
-    # Read only what we need; the slow yt-dlp work runs WITHOUT the subs lock and
-    # results are merged atomically afterwards (so a concurrent edit is never lost).
     sub0 = next((s for s in _load_subscriptions() if s.get("id") == sub_id), None)
     if not sub0:
         return jsonify({"error": "Not found"}), 404
@@ -2081,122 +2192,29 @@ def fetch_subscription_videos():
         return jsonify({"error": "No URL"}), 400
     need_meta = (not sub0.get("name")) or (not sub0.get("thumbnail_url"))
 
-    try:
-        # First fetch of a new channel: grab channel name + avatar (playlist-level
-        # metadata). Done here in the background fetch — NOT in /add — so adding a
-        # subscription stays instant.
-        meta_name, meta_thumb = "", ""
-        if need_meta:
-            try:
-                mr = _ytdlp("--flat-playlist", "--dump-single-json",
-                            "--playlist-end", "1", url, timeout=30)
-                if mr.returncode == 0 and mr.stdout:
-                    meta = json.loads(mr.stdout.strip())
-                    cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
-                    meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
-                    thumbs = meta.get("thumbnails") or []
-                    if thumbs and isinstance(thumbs, list):
-                        avatars = [t for t in thumbs if isinstance(t, dict) and
-                                   t.get("id", "").startswith("avatar")]
-                        src = avatars[-1] if avatars else thumbs[-1]
-                        meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
-            except Exception:
-                pass
+    fetch_id = str(uuid.uuid4())
+    now = time.time()
+    with _subfetch_lock:
+        # Lazy GC: drop finished jobs whose result was never collected (window closed).
+        for k in [k for k, v in _subfetch_jobs.items()
+                  if v.get("status") in ("done", "error") and now - v.get("_ts", now) > 120]:
+            _subfetch_jobs.pop(k, None)
+        _subfetch_jobs[fetch_id] = {"status": "pending", "_ts": now}
+    threading.Thread(target=_run_subfetch,
+                     args=(fetch_id, sub_id, url, force, need_meta), daemon=True).start()
+    return jsonify({"fetch_id": fetch_id})
 
-        # Flat-playlist with approximate_date — fast and gives dates for sorting
-        # Drop cookies/ejs/deno for listing (no formats/signatures needed)
-        r = _run_yt(
-            sys.executable, "-m", "yt_dlp",
-            "--flat-playlist", "-j",
-            "--playlist-end", "200",
-            "--extractor-args", "youtubetab:approximate_date",
-            url, timeout=90
-        )
-        if r.returncode != 0:
-            return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
-
-        fetched = []          # all parsed entries; dedup happens in the atomic merge
-        entry_channel = ""
-        for line in (r.stdout or "").strip().split("\n"):
-            if not line.strip():
-                continue
-            try:
-                entry = json.loads(line)
-            except Exception:
-                continue
-
-            vid = _safe_video_id(entry.get("id", ""))
-            if not vid:
-                continue
-
-            # Channel name fallback from the first entry
-            if not entry_channel:
-                entry_channel = (entry.get("channel") or entry.get("uploader") or "")[:200]
-                entry_channel = entry_channel.replace(" - Videos", "").replace(" - Playlists", "").strip()
-
-            # Thumbnail
-            vid_thumb = ""
-            vid_thumbs = entry.get("thumbnails") or []
-            if vid_thumbs and isinstance(vid_thumbs, list):
-                vid_thumb = _safe_thumb_url(vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else "")
-            if not vid_thumb:
-                vid_thumb = _safe_thumb_url(entry.get("thumbnail") or "")
-
-            # upload_date from approximate_date (returns int timestamp or ISO string)
-            upload_date = ""
-            if entry.get("upload_date"):
-                upload_date = str(entry["upload_date"])
-            elif entry.get("timestamp"):
-                import datetime as dt
-                upload_date = dt.datetime.utcfromtimestamp(entry["timestamp"]).strftime("%Y%m%d")
-
-            fetched.append({
-                "video_id": vid,
-                "title": (entry.get("title") or "Untitled")[:300],
-                "duration": entry.get("duration") or 0,
-                "upload_date": upload_date,
-                "thumbnail_url": vid_thumb,
-                "availability": entry.get("availability") or "public",
-                "is_new": True,
-                "formats": [],
-                "downloaded": False,
-                "download_path": None
-            })
-
-        # Atomic merge into the CURRENT state — re-find the sub under the lock so
-        # a concurrent rename/reorder/mark isn't clobbered by this fetch.
-        def _merge(subs):
-            sub = next((s for s in subs if s.get("id") == sub_id), None)
-            if sub is None:
-                return None
-            for v in (sub.get("videos") or []):
-                v["is_new"] = False
-            if force:
-                new_videos = fetched
-                sub["videos"] = list(new_videos)
-            else:
-                cur_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
-                new_videos = [v for v in fetched if v["video_id"] not in cur_ids]
-                sub["videos"] = new_videos + (sub.get("videos") or [])
-            if meta_name and not sub.get("name"):
-                sub["name"] = meta_name
-            if meta_thumb and not sub.get("thumbnail_url"):
-                sub["thumbnail_url"] = meta_thumb
-            if entry_channel and not sub.get("name"):
-                sub["name"] = entry_channel
-            sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-            return {"sub": sub, "new_count": len(new_videos)}
-        merged = _mutate_subscriptions(_merge)
-        if merged is None:
-            return jsonify({"error": "Not found"}), 404
-        return jsonify({
-            "subscription": merged["sub"],
-            "new_count": merged["new_count"],
-            "total": len(merged["sub"]["videos"])
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)[:500]}), 500
+@app.route("/api/subscriptions/fetch-status", methods=["POST"])
+def fetch_subscription_status():
+    data = request.get_json(silent=True) or {}
+    fetch_id = (data.get("fetch_id") or "").strip()
+    with _subfetch_lock:
+        job = _subfetch_jobs.get(fetch_id)
+        if job and job.get("status") in ("done", "error"):
+            job = _subfetch_jobs.pop(fetch_id)   # one-shot delivery of the terminal result
+    if job is None:
+        return jsonify({"status": "unknown"}), 200
+    return jsonify({k: v for k, v in job.items() if k != "_ts"})
 
 @app.route("/api/subscriptions/mark-downloaded", methods=["POST"])
 def mark_downloaded():
