@@ -7,6 +7,7 @@ import hmac
 import subprocess
 import re as _re
 import time
+import copy
 import threading
 import urllib.request
 import urllib.parse
@@ -479,22 +480,51 @@ def _get_last_folder() -> str:
 _subs_cache = None
 _subs_lock  = threading.Lock()
 
-def _load_subscriptions() -> list:
+def _load_subscriptions_unlocked() -> list:
     global _subs_cache
+    if _subs_cache is None:
+        try:
+            data = json.loads(SUBS_FILE.read_text(encoding="utf-8"))
+            _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
+        except Exception:
+            _subs_cache = []
+    return list(_subs_cache)
+
+def _save_subscriptions_unlocked(subs: list):
+    global _subs_cache
+    _subs_cache = subs
+    _atomic_write_text(SUBS_FILE, json.dumps({"subscriptions": subs}, indent=2), owner_only=True)
+
+def _load_subscriptions() -> list:
     with _subs_lock:
-        if _subs_cache is None:
-            try:
-                data = json.loads(SUBS_FILE.read_text(encoding="utf-8"))
-                _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
-            except Exception:
-                _subs_cache = []
-        return list(_subs_cache)
+        return _load_subscriptions_unlocked()
 
 def _save_subscriptions(subs: list):
-    global _subs_cache
     with _subs_lock:
-        _subs_cache = subs
-        _atomic_write_text(SUBS_FILE, json.dumps({"subscriptions": subs}, indent=2), owner_only=True)
+        _save_subscriptions_unlocked(subs)
+
+class _AbortMutation(Exception):
+    """Raised inside a _mutate_subscriptions callback to abort WITHOUT saving
+    (e.g. a validation failure). Its .result is returned to the caller."""
+    def __init__(self, result):
+        self.result = result
+
+def _mutate_subscriptions(fn):
+    """Atomic read-modify-write of the subscriptions list under a single lock
+    hold. The server is multi-threaded, so concurrent writers would otherwise
+    clobber each other (each previously did load -> modify -> save with the lock
+    released in between, losing updates). fn(subs) mutates a private deep copy in
+    place; the change is committed (cache + file) only if fn returns normally.
+    Raise _AbortMutation(result) to abort without saving. NEVER run slow work
+    (yt-dlp) inside fn — do that first, then merge the result here."""
+    with _subs_lock:
+        subs = copy.deepcopy(_load_subscriptions_unlocked())
+        try:
+            result = fn(subs)
+        except _AbortMutation as a:
+            return a.result
+        _save_subscriptions_unlocked(subs)
+        return result
 
 jobs: dict = {}
 _jobs_lock = threading.Lock()
@@ -1947,15 +1977,6 @@ def add_subscription():
 
     name = (data.get("name") or "")[:200].strip()
 
-    subs = _load_subscriptions()
-
-    if len(subs) >= 500:
-        return jsonify({"error": "Subscription limit reached (500)"}), 400
-
-    # Prevent duplicates
-    if any(s.get("url") == url for s in subs):
-        return jsonify({"error": "Already subscribed"}), 409
-
     sub = {
         "id": str(uuid.uuid4()),
         "url": url,
@@ -1970,30 +1991,20 @@ def add_subscription():
         "videos": []
     }
 
-    # Get channel metadata — dump-single-json gives playlist-level data (name, avatar)
-    if not name:
-        try:
-            r = _ytdlp("--flat-playlist", "--dump-single-json",
-                       "--playlist-end", "1", url, timeout=30)
-            if r.returncode == 0 and r.stdout:
-                meta = json.loads(r.stdout.strip())
-                # Channel name from playlist-level field
-                cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
-                cname = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
-                sub["name"] = cname
-                # Channel avatar — playlist-level thumbnails (not entry thumbnails)
-                thumbs = meta.get("thumbnails") or []
-                if thumbs and isinstance(thumbs, list):
-                    # Filter for likely avatar (square-ish, not banners)
-                    avatars = [t for t in thumbs if isinstance(t, dict) and
-                               t.get("id", "").startswith("avatar")]
-                    src = avatars[-1] if avatars else thumbs[-1]
-                    sub["thumbnail_url"] = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
-        except Exception:
-            pass
-
-    subs.append(sub)
-    _save_subscriptions(subs)
+    # Add is INSTANT: validate + append atomically and return immediately. The
+    # channel name + avatar are filled in by the first fetch (kicked off by the
+    # client right after add). Previously this route ran a blocking yt-dlp
+    # metadata fetch (up to 30s) that froze the add UI.
+    def _add(subs):
+        if len(subs) >= 500:
+            raise _AbortMutation(("Subscription limit reached (500)", 400))
+        if any(s.get("url") == url for s in subs):
+            raise _AbortMutation(("Already subscribed", 409))
+        subs.append(sub)
+        return None
+    err = _mutate_subscriptions(_add)
+    if err:
+        return jsonify({"error": err[0]}), err[1]
     return jsonify({"subscription": sub})
 
 @app.route("/api/subscriptions/remove", methods=["POST"])
@@ -2003,13 +2014,13 @@ def remove_subscription():
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
-    subs = _load_subscriptions()
-    before = len(subs)
-    subs = [s for s in subs if s.get("id") != sub_id]
-    if len(subs) == before:
+    def _remove(subs):
+        before = len(subs)
+        subs[:] = [s for s in subs if s.get("id") != sub_id]
+        return len(subs) != before
+    removed = _mutate_subscriptions(_remove)
+    if not removed:
         return jsonify({"error": "Not found"}), 404
-
-    _save_subscriptions(subs)
     return jsonify({"ok": True})
 
 @app.route("/api/subscriptions/update", methods=["POST"])
@@ -2020,30 +2031,36 @@ def update_subscription():
         return jsonify({"error": "ID is required"}), 400
 
     allowed = {"name", "download_folder", "format", "auto_fetch_on_open"}
-    subs = _load_subscriptions()
-    for s in subs:
-        if s.get("id") == sub_id:
-            for k, v in data.items():
-                if k not in allowed:
-                    continue
-                if k == "name":
-                    v = str(v)[:200].strip()
-                elif k == "download_folder":
-                    if v:
-                        ok, resolved, err = _validate_download_dir(str(v))
-                        if not ok:
-                            return jsonify({"error": err}), 400
-                        v = resolved
-                    else:
-                        v = None
-                elif k == "format":
-                    v = v if v in ("video", "audio") else "video"
-                elif k == "auto_fetch_on_open":
-                    v = bool(v)
-                s[k] = v
-            _save_subscriptions(subs)
-            return jsonify({"subscription": s})
-    return jsonify({"error": "Not found"}), 404
+
+    def _update(subs):
+        for s in subs:
+            if s.get("id") == sub_id:
+                for k, v in data.items():
+                    if k not in allowed:
+                        continue
+                    if k == "name":
+                        v = str(v)[:200].strip()
+                    elif k == "download_folder":
+                        if v:
+                            ok, resolved, err = _validate_download_dir(str(v))
+                            if not ok:
+                                raise _AbortMutation(("err", err))
+                            v = resolved
+                        else:
+                            v = None
+                    elif k == "format":
+                        v = v if v in ("video", "audio") else "video"
+                    elif k == "auto_fetch_on_open":
+                        v = bool(v)
+                    s[k] = v
+                return ("ok", s)
+        return ("notfound", None)
+    status, payload = _mutate_subscriptions(_update)
+    if status == "err":
+        return jsonify({"error": payload}), 400
+    if status == "notfound":
+        return jsonify({"error": "Not found"}), 404
+    return jsonify({"subscription": payload})
 
 @app.route("/api/subscriptions/fetch", methods=["POST"])
 def fetch_subscription_videos():
@@ -2053,16 +2070,38 @@ def fetch_subscription_videos():
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
-    subs = _load_subscriptions()
-    sub = next((s for s in subs if s.get("id") == sub_id), None)
-    if not sub:
+    # Read only what we need; the slow yt-dlp work runs WITHOUT the subs lock and
+    # results are merged atomically afterwards (so a concurrent edit is never lost).
+    sub0 = next((s for s in _load_subscriptions() if s.get("id") == sub_id), None)
+    if not sub0:
         return jsonify({"error": "Not found"}), 404
-
-    url = sub.get("url", "")
+    url = sub0.get("url", "")
     if not url:
         return jsonify({"error": "No URL"}), 400
+    need_meta = (not sub0.get("name")) or (not sub0.get("thumbnail_url"))
 
     try:
+        # First fetch of a new channel: grab channel name + avatar (playlist-level
+        # metadata). Done here in the background fetch — NOT in /add — so adding a
+        # subscription stays instant.
+        meta_name, meta_thumb = "", ""
+        if need_meta:
+            try:
+                mr = _ytdlp("--flat-playlist", "--dump-single-json",
+                            "--playlist-end", "1", url, timeout=30)
+                if mr.returncode == 0 and mr.stdout:
+                    meta = json.loads(mr.stdout.strip())
+                    cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
+                    meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
+                    thumbs = meta.get("thumbnails") or []
+                    if thumbs and isinstance(thumbs, list):
+                        avatars = [t for t in thumbs if isinstance(t, dict) and
+                                   t.get("id", "").startswith("avatar")]
+                        src = avatars[-1] if avatars else thumbs[-1]
+                        meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
+            except Exception:
+                pass
+
         # Flat-playlist with approximate_date — fast and gives dates for sorting
         # Drop cookies/ejs/deno for listing (no formats/signatures needed)
         r = _run_yt(
@@ -2075,17 +2114,8 @@ def fetch_subscription_videos():
         if r.returncode != 0:
             return jsonify({"error": "Failed to fetch videos", "detail": (r.stderr or "")[:500]}), 502
 
-        existing_ids = set()
-        if not force:
-            existing_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
-        # Clear "new" flag on existing videos before adding fresh batch
-        for v in (sub.get("videos") or []):
-            v["is_new"] = False
-
-        new_videos = []
-        channel_name = sub.get("name") or ""
-        channel_thumb = sub.get("thumbnail_url") or ""
-
+        fetched = []          # all parsed entries; dedup happens in the atomic merge
+        entry_channel = ""
         for line in (r.stdout or "").strip().split("\n"):
             if not line.strip():
                 continue
@@ -2095,13 +2125,13 @@ def fetch_subscription_videos():
                 continue
 
             vid = _safe_video_id(entry.get("id", ""))
-            if not vid or (vid in existing_ids and not force):
+            if not vid:
                 continue
 
-            # Extract channel info from first entry if not set
-            if not channel_name:
-                channel_name = (entry.get("channel") or entry.get("uploader") or "")[:200]
-                channel_name = channel_name.replace(" - Videos", "").replace(" - Playlists", "").strip()
+            # Channel name fallback from the first entry
+            if not entry_channel:
+                entry_channel = (entry.get("channel") or entry.get("uploader") or "")[:200]
+                entry_channel = entry_channel.replace(" - Videos", "").replace(" - Playlists", "").strip()
 
             # Thumbnail
             vid_thumb = ""
@@ -2116,11 +2146,10 @@ def fetch_subscription_videos():
             if entry.get("upload_date"):
                 upload_date = str(entry["upload_date"])
             elif entry.get("timestamp"):
-                # Convert unix timestamp to YYYYMMDD
                 import datetime as dt
                 upload_date = dt.datetime.utcfromtimestamp(entry["timestamp"]).strftime("%Y%m%d")
 
-            new_videos.append({
+            fetched.append({
                 "video_id": vid,
                 "title": (entry.get("title") or "Untitled")[:300],
                 "duration": entry.get("duration") or 0,
@@ -2133,21 +2162,36 @@ def fetch_subscription_videos():
                 "download_path": None
             })
 
-        # Merge
-        if force:
-            sub["videos"] = new_videos
-        else:
-            sub["videos"] = new_videos + (sub.get("videos") or [])
-
-        if channel_name and not sub.get("name"):
-            sub["name"] = channel_name
-        sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-
-        _save_subscriptions(subs)
+        # Atomic merge into the CURRENT state — re-find the sub under the lock so
+        # a concurrent rename/reorder/mark isn't clobbered by this fetch.
+        def _merge(subs):
+            sub = next((s for s in subs if s.get("id") == sub_id), None)
+            if sub is None:
+                return None
+            for v in (sub.get("videos") or []):
+                v["is_new"] = False
+            if force:
+                new_videos = fetched
+                sub["videos"] = list(new_videos)
+            else:
+                cur_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
+                new_videos = [v for v in fetched if v["video_id"] not in cur_ids]
+                sub["videos"] = new_videos + (sub.get("videos") or [])
+            if meta_name and not sub.get("name"):
+                sub["name"] = meta_name
+            if meta_thumb and not sub.get("thumbnail_url"):
+                sub["thumbnail_url"] = meta_thumb
+            if entry_channel and not sub.get("name"):
+                sub["name"] = entry_channel
+            sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+            return {"sub": sub, "new_count": len(new_videos)}
+        merged = _mutate_subscriptions(_merge)
+        if merged is None:
+            return jsonify({"error": "Not found"}), 404
         return jsonify({
-            "subscription": sub,
-            "new_count": len(new_videos),
-            "total": len(sub["videos"])
+            "subscription": merged["sub"],
+            "new_count": merged["new_count"],
+            "total": len(merged["sub"]["videos"])
         })
 
     except Exception as e:
@@ -2160,16 +2204,23 @@ def mark_downloaded():
     video_id = (data.get("video_id") or "").strip()
     if not sub_id or not video_id:
         return jsonify({"error": "sub_id and video_id required"}), 400
-    subs = _load_subscriptions()
-    for s in subs:
-        if s.get("id") == sub_id:
-            for v in (s.get("videos") or []):
-                if v.get("video_id") == video_id:
-                    v["downloaded"] = data.get("downloaded", True) is True
-                    _save_subscriptions(subs)
-                    return jsonify({"ok": True})
-            return jsonify({"error": "Video not found"}), 404
-    return jsonify({"error": "Subscription not found"}), 404
+    downloaded = data.get("downloaded", True) is True
+
+    def _mark(subs):
+        for s in subs:
+            if s.get("id") == sub_id:
+                for v in (s.get("videos") or []):
+                    if v.get("video_id") == video_id:
+                        v["downloaded"] = downloaded
+                        return "ok"
+                return "novideo"
+        return "nosub"
+    res = _mutate_subscriptions(_mark)
+    if res == "novideo":
+        return jsonify({"error": "Video not found"}), 404
+    if res == "nosub":
+        return jsonify({"error": "Subscription not found"}), 404
+    return jsonify({"ok": True})
 
 @app.route("/api/subscriptions/reorder", methods=["POST"])
 def reorder_subscription():
@@ -2178,22 +2229,25 @@ def reorder_subscription():
     direction = (data.get("direction") or "").strip()
     if not sub_id or direction not in ("top", "up", "down", "bottom"):
         return jsonify({"error": "id and direction (top/up/down/bottom) required"}), 400
-    subs = _load_subscriptions()
-    idx = next((i for i, s in enumerate(subs) if s.get("id") == sub_id), None)
-    if idx is None:
+    def _reorder(subs):
+        idx = next((i for i, s in enumerate(subs) if s.get("id") == sub_id), None)
+        if idx is None:
+            return False
+        item = subs.pop(idx)
+        if direction == "top":
+            subs.insert(0, item)
+        elif direction == "up" and idx > 0:
+            subs.insert(idx - 1, item)
+        elif direction == "down" and idx < len(subs):
+            subs.insert(idx + 1, item)
+        elif direction == "bottom":
+            subs.append(item)
+        else:
+            subs.insert(idx, item)
+        return True
+    ok = _mutate_subscriptions(_reorder)
+    if not ok:
         return jsonify({"error": "Subscription not found"}), 404
-    item = subs.pop(idx)
-    if direction == "top":
-        subs.insert(0, item)
-    elif direction == "up" and idx > 0:
-        subs.insert(idx - 1, item)
-    elif direction == "down" and idx < len(subs):
-        subs.insert(idx + 1, item)
-    elif direction == "bottom":
-        subs.append(item)
-    else:
-        subs.insert(idx, item)
-    _save_subscriptions(subs)
     return jsonify({"ok": True})
 
 @app.route("/api/shutdown", methods=["POST"])
@@ -2255,7 +2309,7 @@ if __name__ == "__main__":
         return 8899
     port = _resolve_port()
     host = "127.0.0.1"  # always localhost — never exposed to network
-    threading.Thread(target=lambda: app.run(host=host,port=port,use_reloader=False),
+    threading.Thread(target=lambda: app.run(host=host,port=port,threaded=True,use_reloader=False),
                      daemon=True, name="flask").start()
 
     # Under Electron: keep Flask alive; Electron manages the window and lifecycle.
