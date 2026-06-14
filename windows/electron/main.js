@@ -689,6 +689,15 @@ ipcMain.on('subs-active-downloads', (event, active) => {
   subsActiveDownloads = !!active;
 });
 
+// Restore OS-level window focus after a native dialog. A sandboxed +
+// contextIsolated renderer can't reliably re-focus its own BrowserWindow with
+// window.focus(); the main process must call .focus() on the sender's window.
+ipcMain.on('refocus-window', (event) => {
+  if (!isTrustedSender(event)) return;
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (win && !win.isDestroyed()) win.focus();
+});
+
 // ── IPC: relay theme change from themes window to main window ─────────────────
 
 // Theme key validation — alphanumeric only, prevents IPC injection while
