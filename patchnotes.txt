@@ -91,7 +91,7 @@ v1.1 IGNITION — Phase 4: Polish
   • Queue thumbnail attrEsc + downloaded strict bool coercion (delta security review nits)
   • Force refresh — event bubbling to sub-item handler, fixed with forceRefreshSub + stopPropagation
   • Add freeze after delete — blocking yt-dlp on add + single-threaded server; instant add + threaded=True + atomic writes
-  • Connection pool saturation (~80s freeze) — browser 6-conn limit; client-side async semaphore caps fetches to 3
+  • Add-freeze (definitive) — channel fetch converted to background job + short poll; no request ever holds a browser connection
   • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
 
   BUGS (remaining):
