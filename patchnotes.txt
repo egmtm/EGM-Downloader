@@ -89,10 +89,10 @@ v1.1 IGNITION — Phase 4: Polish
   • Plugins auto-check on startup removed — manual only now
   • No-buttons regression — single-quote vs backtick template literal in Clear button onclick
   • Queue thumbnail attrEsc + downloaded strict bool coercion (delta security review nits)
+  • Force refresh — event bubbling to sub-item handler, fixed with forceRefreshSub + stopPropagation
+  • Add freeze after delete — blocking yt-dlp on add + single-threaded server; instant add + threaded=True + atomic writes
 
   BUGS (remaining):
-  • Force refresh in kebab menu not triggering — onclick may not fire or activeSub not set for that channel
-  • Channel delete temporarily freezes add — cannot add new channels for a period after deleting one (pre-existing bug)
   • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
 
   FIXED (Claude Code + CODEMASTER):
