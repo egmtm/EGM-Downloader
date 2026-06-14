@@ -504,12 +504,14 @@ async function pollJobs() {
     // Update queue view and sidebar badge
     const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
     const queueItem = document.getElementById('queue-sidebar-item');
+    const miniQueueItem = document.getElementById('mini-queue');
     const badge = queueItem?.querySelector('.queue-badge');
     if (activeCount > 0) {
       if (badge) badge.textContent = activeCount;
       if (showQueue) renderQueue();
     } else {
       if (queueItem) queueItem.remove();
+      if (miniQueueItem) miniQueueItem.remove();
       if (showQueue) { showQueue = false; renderQueue(); }
     }
   }
