@@ -962,6 +962,32 @@ async function fetchVideos(id, force) {
 }
 
 // ── Add subscription ─────────────────────────────────────────────────────────
+// Lightweight channel metadata (name + avatar only) fetched asynchronously after
+// an instant add, so the sidebar populates within a few seconds without blocking
+// the UI or waiting for the full video list. Patches only name/thumbnail on the
+// in-memory sub (never videos), so it can't race the video fetch.
+async function refreshSubMeta(id) {
+  try {
+    const r = await fetch('/api/subscriptions/metadata', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    }).then(r => r.json());
+    if (!r || !r.subscription) return;
+    const idx = subs.findIndex(s => s.id === id);
+    if (idx >= 0) {
+      subs[idx].name = r.subscription.name;
+      subs[idx].thumbnail_url = r.subscription.thumbnail_url;
+    }
+    if (activeSub && activeSub.id === id) {
+      activeSub.name = r.subscription.name;
+      activeSub.thumbnail_url = r.subscription.thumbnail_url;
+    }
+    renderSidebar();
+    if (activeSub && activeSub.id === id) renderDetail();
+  } catch {}
+}
+
 async function addSub() {
   const input = document.getElementById('add-url');
   const url = input.value.trim();
@@ -981,6 +1007,9 @@ async function addSub() {
       activeSub = r.subscription;
       renderSidebar();
       renderDetail();
+      // Fast async name+avatar grab — fills the sidebar within seconds (the full
+      // video fetch below is slower). Neither is awaited, so add stays instant.
+      refreshSubMeta(r.subscription.id);
       fetchVideos(r.subscription.id, false);
     } else {
       input.style.borderColor = 'var(--red, #e04040)';
