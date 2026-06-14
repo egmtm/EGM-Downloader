@@ -944,11 +944,34 @@ function kebabDeleteSub(id) {
   removeSub(id);
 }
 
+// ── Channel-fetch concurrency limiter ────────────────────────────────────────
+// A channel fetch calls yt-dlp and can run up to ~90s. The browser allows only a
+// handful of connections per host, so firing many at once (auto-fetch-on-open
+// across several channels, or rapid manual fetches) saturates the pool — and then
+// add / delete / loadSubs queue *in the browser* behind those long requests, so
+// the UI looks frozen for ~80s (until a fetch hits its timeout and frees a slot).
+// Capping concurrent fetches keeps connections free for user actions.
+const _MAX_CONCURRENT_FETCHES = 3;
+let _activeFetches = 0;
+const _fetchWaiters = [];
+function _acquireFetchSlot() {
+  if (_activeFetches < _MAX_CONCURRENT_FETCHES) { _activeFetches++; return Promise.resolve(); }
+  return new Promise(resolve => _fetchWaiters.push(resolve));
+}
+function _releaseFetchSlot() {
+  const next = _fetchWaiters.shift();
+  if (next) next();            // hand the slot straight to the next waiter
+  else _activeFetches--;
+}
+
 async function fetchVideos(id, force) {
   visibleCount = 20; // reset on new fetch
   const list = document.getElementById('video-list');
   if (list) list.innerHTML = '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> Fetching videos...</div>';
 
+  // Only open the network connection once a slot is free, so a backlog of long
+  // fetches never starves add / delete / navigate of a browser connection.
+  await _acquireFetchSlot();
   try {
     const r = await fetch('/api/subscriptions/fetch', {
       method: 'POST',
@@ -967,6 +990,8 @@ async function fetchVideos(id, force) {
     }
   } catch {
     if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';
+  } finally {
+    _releaseFetchSlot();
   }
 }
 

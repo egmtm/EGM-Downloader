@@ -490,6 +490,7 @@ _ERROR_MAP = [
     (_re.compile(r"HTTP Error 429|Too many requests",                 _re.I), "Too many requests. Please wait a moment before trying again."),
     (_re.compile(r"This live event will begin|premiere",              _re.I), "This video is a scheduled premiere and hasn't started yet."),
     (_re.compile(r"members.only|membership required",                 _re.I), "This video is for channel members only."),
+    (_re.compile(r"No video formats found|No formats found",          _re.I), "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted."),
 ]
 
 def _friendly_error(raw: str) -> str:
