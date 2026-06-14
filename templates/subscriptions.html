@@ -272,36 +272,22 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
   });
 }
 
-// ════════════ EGM DIAGNOSTICS (temporary — remove after we find the freeze) ════
+// ── Restore focus after native dialogs ───────────────────────────────────────
+// In Electron, window.confirm/alert/prompt show a native modal that steals the
+// renderer's focus, and focus is NOT returned when the dialog closes. That
+// silently breaks the add bar: clipboard paste (navigator.clipboard.readText
+// rejects when unfocused) and keyboard typing both stop working until the window
+// is re-focused. Wrap the dialogs once so focus is always restored afterwards.
 (function(){
-  const T = () => new Date().toISOString().substr(11, 12);
-  const L = (...a) => { try { console.log('[EGM ' + T() + ']', ...a); } catch(e){} };
-  window.__egmPolls = 0;
-  window.__egmLog = L;
-  window.__egmDiag = function(tag){
-    const probe = (id) => {
-      const el = document.getElementById(id);
-      if (!el) return id + ':MISSING';
-      const r = el.getBoundingClientRect();
-      const top = document.elementFromPoint(r.left + r.width/2, r.top + r.height/2);
-      const topDesc = top ? (top.id || top.className || top.tagName) : 'null';
-      return id + ' clickable=' + (top === el || el.contains(top)) + ' topEl=' + topDesc;
+  ['confirm', 'alert', 'prompt'].forEach((name) => {
+    const orig = window[name];
+    if (typeof orig !== 'function') return;
+    window[name] = function(...args) {
+      const result = orig.apply(window, args);
+      try { window.focus(); } catch (e) {}
+      return result;
     };
-    const input = document.getElementById('add-url');
-    L('DIAG' + (tag ? '('+tag+')' : ''),
-      '|', probe('add-btn'),
-      '|', probe('paste-btn'),
-      '| inputDisabled=' + (input ? input.disabled : 'n/a'),
-      '| focused=' + document.hasFocus(),
-      '| active=' + (document.activeElement ? (document.activeElement.id || document.activeElement.tagName) : 'null'),
-      '| openMenus=' + [...document.querySelectorAll('.kebab-menu')].filter(m=>getComputedStyle(m).display!=='none').length,
-      '| fetchPolls=' + window.__egmPolls);
-  };
-  setInterval(() => window.__egmDiag('tick'), 2000);
-  document.addEventListener('click', (e) => L('CLICK reached doc on:', e.target.id || e.target.className || e.target.tagName), true);
-  window.addEventListener('error', (e) => L('JS ERROR:', e.message, '@', (e.filename||'')+':'+e.lineno));
-  window.addEventListener('unhandledrejection', (e) => L('UNHANDLED PROMISE:', (e.reason && e.reason.message) || e.reason));
-  L('diagnostics armed — reproduce the freeze, then copy the console output');
+  });
 })();
 
 // ── API token interceptor ────────────────────────────────────────────────────
@@ -977,9 +963,6 @@ function kebabDeleteSub(id) {
 }
 
 async function fetchVideos(id, force) {
-  window.__egmPolls = (window.__egmPolls || 0) + 1;
-  window.__egmLog && window.__egmLog('fetchVideos START id=' + id + ' (polls=' + window.__egmPolls + ')');
-  try {
   visibleCount = 20; // reset on new fetch
   const list = document.getElementById('video-list');
   if (list) list.innerHTML = '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> Fetching videos...</div>';
@@ -1023,14 +1006,10 @@ async function fetchVideos(id, force) {
   } catch {
     if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';
   }
-  } finally {
-    window.__egmPolls = Math.max(0, (window.__egmPolls || 1) - 1);
-    window.__egmLog && window.__egmLog('fetchVideos END id=' + id + ' (polls=' + window.__egmPolls + ')');
-  }
 }
+
 // ── Add subscription ─────────────────────────────────────────────────────────
 async function addSub() {
-  window.__egmLog && window.__egmLog('addSub CLICKED');
   const input = document.getElementById('add-url');
   const url = input.value.trim();
   if (!url) return;
@@ -1065,7 +1044,6 @@ document.getElementById('add-url').addEventListener('keydown', (e) => {
 document.getElementById('add-btn').addEventListener('click', addSub);
 
 document.getElementById('paste-btn').addEventListener('click', async () => {
-  window.__egmLog && window.__egmLog('paste CLICKED');
   try {
     const text = await navigator.clipboard.readText();
     document.getElementById('add-url').value = text;
@@ -1074,19 +1052,16 @@ document.getElementById('paste-btn').addEventListener('click', async () => {
 
 // ── Remove subscription ──────────────────────────────────────────────────────
 async function removeSub(id) {
-  window.__egmLog && window.__egmLog('removeSub START id=' + id);
   const sub = subs.find(s => s.id === id);
   const name = sub ? (sub.name || sub.url) : 'this subscription';
   if (!confirm(`Remove "${name}"? This cannot be undone.`)) return;
 
-  window.__egmLog && window.__egmLog('removeSub: confirm passed');
   // Optimistic UI: remove locally first, then sync with server
   subs = subs.filter(s => s.id !== id);
   if (activeSub && activeSub.id === id) activeSub = null;
   renderSidebar();
   renderDetail();
 
-  window.__egmLog && window.__egmLog('removeSub: render done'); setTimeout(() => window.__egmDiag('after-delete'), 150);
   // Re-enable input in case it was stuck
   const input = document.getElementById('add-url');
   if (input) input.disabled = false;
