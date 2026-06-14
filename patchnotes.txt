@@ -92,7 +92,8 @@ v1.1 IGNITION — Phase 4: Polish
   • Force refresh — event bubbling to sub-item handler, fixed with forceRefreshSub + stopPropagation
   • Add freeze after delete — blocking yt-dlp on add + single-threaded server; instant add + threaded=True + atomic writes
   • Add-freeze (definitive) — channel fetch converted to background job + short poll; no request ever holds a browser connection
-  • Dialog focus restore — Electron confirm/alert/prompt steal renderer focus; universal wrapper restores it after every dialog
+  • Dialog focus restore (IPC) — renderer window.focus() insufficient in sandbox; new refocus-window IPC calls BrowserWindow.focus() from main process
+  • Logo left-alignment — CSS grid (1fr auto 1fr) positions logo at card edge, title truly centered, nav at right
   • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
 
   BUGS (remaining):
