@@ -97,6 +97,8 @@ v1.1 IGNITION — Phase 4: Polish
   • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
 
   BUGS (remaining):
+  • Dialog focus restore still not working — IPC refocusWindow applied but delete/readd still hangs; DevTools opening fixes it instantly. May need win.focusOnWebView() or timing delay. Next: Claude Code debug with console verification that IPC fires.
+  • Logo alignment still off — CSS grid applied but logo not aligned with card edge (see screenshot). May need margin/padding adjustment or different grid approach.
   • Members-only badge: yt-dlp limitation — wiring correct, friendly error message now shown on download failure
 
   FIXED:
