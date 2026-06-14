@@ -342,6 +342,8 @@ function renderSidebar() {
         <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
         <div style="border-top:1px solid var(--border);margin:3px 0"></div>
         <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(s.id)}')" title="Re-fetch all videos from scratch">Force refresh</button>
+        <div style="border-top:1px solid var(--border);margin:3px 0"></div>
+        <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(s.id)}')" style="color:var(--red)">Delete channel</button>
       </div>
     </div>
   `}).join('');
@@ -933,6 +935,13 @@ function forceRefreshSub(id) {
   renderSidebar();
   renderDetail();
   fetchVideos(id, true);
+}
+
+function kebabDeleteSub(id) {
+  document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+  const sub = subs.find(s => s.id === id);
+  const name = sub ? sub.name || sub.url : id;
+  removeSub(id);
 }
 
 async function fetchVideos(id, force) {
