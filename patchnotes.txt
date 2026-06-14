@@ -78,8 +78,6 @@ v1.1 IGNITION — Phase 4: Polish
   • Expanded per-channel settings (format, channel info)
   • Export/import integration
 
-  BUGS (remaining):
-  • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
 
   FIXED (Claude Code + CODEMASTER):
   • Kebab menu — CSS overflow clip, fixed with position:fixed overlay + viewport anchoring
@@ -91,6 +89,12 @@ v1.1 IGNITION — Phase 4: Polish
   • Plugins auto-check on startup removed — manual only now
   • No-buttons regression — single-quote vs backtick template literal in Clear button onclick
   • Queue thumbnail attrEsc + downloaded strict bool coercion (delta security review nits)
+
+  BUGS (remaining):
+  • Force refresh in kebab menu not triggering — onclick may not fire or activeSub not set for that channel
+  • Members-only badge: yt-dlp limitation — extractor skips Members tab, wiring correct but data rarely available
+
+  FIXED (Claude Code + CODEMASTER):
   • Close confirmation — native dialog via main.js (replaced broken beforeunload)
   • History re-add hidden from subs — CSS driven by ?from=subs query param
   • Theme broadcast — all open windows update live on theme change
