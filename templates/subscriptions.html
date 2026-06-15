@@ -18,7 +18,7 @@
       width:180px;background:var(--surf);border-right:1px solid var(--border);
       display:flex;flex-direction:column;transition:width .2s ease;overflow:hidden;
     }
-    .sidebar.collapsed { width:40px; }
+    .sidebar.collapsed { width:80px; }
 
     .sidebar-header {
       padding:10px;display:flex;align-items:center;justify-content:space-between;
@@ -38,7 +38,7 @@
     .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 0;overflow-y:auto; }
     .sidebar.collapsed .mini-list { display:flex; }
     .mini-thumb {
-      width:28px;height:28px;border-radius:50%;background:var(--surf2);
+      width:70px;height:70px;border-radius:50%;background:var(--surf2);
       cursor:pointer;border:2px solid transparent;overflow:hidden;
       display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text2);
       flex-shrink:0;background-size:cover;background-position:center;
@@ -180,7 +180,7 @@
     .video-status.queued { color:var(--yellow);background:rgba(245,158,11,.1); }
     .video-status.downloading { color:var(--acc);background:rgba(45,212,191,.1); }
     .video-status.done { color:var(--green);background:rgba(34,197,94,.1); }
-    .video-status.error { color:var(--red);background:rgba(248,113,113,.1); }
+    .video-status.error { color:var(--red);background:rgba(248,113,113,.1);white-space:normal;word-wrap:break-word;line-height:1.3;padding:4px 8px;margin-top:4px;display:block; }
     .video-action-btn {
       background:none;border:1px solid var(--border);border-radius:3px;
       color:var(--text2);font-size:.5rem;padding:1px 6px;cursor:pointer;
