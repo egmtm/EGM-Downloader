@@ -279,6 +279,10 @@ def _find_npm(node_exe):
         if p.exists(): return [str(p)]
     js = NODE_DIR/"node_modules"/"npm"/"bin"/"npm-cli.js"
     if js.exists(): return [node_exe, str(js)]
+    # System-wide Node: resolve npm.cmd via PATH (bare "npm" fails on Windows
+    # because CreateProcess doesn't resolve .cmd extensions)
+    which_npm = shutil.which("npm")
+    if which_npm: return [which_npm]
     return ["npm"]
 
 # ── Electron process naming (Task Manager) ────────────────────────────────────
