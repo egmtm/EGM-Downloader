@@ -77,6 +77,7 @@ v1.1 IGNITION — Phase 4: Polish
   TODO (non-blocking):
   • Expanded per-channel settings (format, channel info)
   • Export/import integration
+  • ThreadPoolExecutor for subfetch (replace thread-per-request + semaphore, caps waiting threads)
 
 
   FIXED:
