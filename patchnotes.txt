@@ -74,10 +74,20 @@ v1.1 IGNITION — Phase 4: Polish
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
+  POLISH ROADMAP (ordered by implementation):
+  Group A — Sidebar polish (frontend only):
+    1. Collapsed thumbnails 2.5× bigger (CSS)
+    2. Right-click minimized thumbnails → kebab menu
+    3. Resizable sidebar + expanded thumbnails
+  Group B — Header (frontend only):
+    4. SVG wordmark for "EGM Downloader" title
+  Group C — Backend:
+    5. ThreadPoolExecutor for subfetch (replace thread-per-request)
+  Group D — Features (needs discussion):
+    6. Expanded per-channel settings (format, quality, channel info)
+    7. Export/import subscriptions (integrate into settings export)
+
   TODO (non-blocking):
-  • Expanded per-channel settings (format, channel info)
-  • Export/import integration
-  • ThreadPoolExecutor for subfetch (replace thread-per-request + semaphore, caps waiting threads)
 
 
   FIXED:
