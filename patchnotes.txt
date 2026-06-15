@@ -74,16 +74,13 @@ v1.1 IGNITION — Phase 4: Polish
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
-  FIXES (pending):
-  • Members-only error text overflows as single line — needs word-wrap/paragraph styling to fit within video card
-
   POLISH ROADMAP (ordered by implementation):
   Group A — Sidebar polish (frontend only):
-    1. Collapsed thumbnails 2.5× bigger (CSS)
+    1. ✓ Collapsed thumbnails 2× bigger (CSS)
     2. Right-click minimized thumbnails → kebab menu
     3. Resizable sidebar + expanded thumbnails
   Group B — Header (frontend only):
-    4. SVG wordmark for "EGM Downloader" title
+    4. ✓ SVG wordmark for "EGM Downloader" title + splash screens
   Group C — Backend:
     5. ThreadPoolExecutor for subfetch (replace thread-per-request)
   Group D — Features (needs discussion):
@@ -108,6 +105,11 @@ v1.1 IGNITION — Phase 4: Polish
   • Add-freeze (definitive) — channel fetch converted to background job + short poll; no request ever holds a browser connection
   • Dialog focus restore (in-page modal) — native confirm() replaced with themed modal; eliminates Electron focus theft entirely
   • Logo optical alignment — header padding matches card content box, badge aligned with card text edge
+  • [ALL] Polish: SVG wordmark — ultra-light modern "EGM DOWNLOADER" with separator line, theme-adaptive
+  • [ALL] Polish: SVG wordmark applied to all 3 splash screens
+  • [ALL] Polish: Collapsed sidebar thumbnails 2× bigger (28→56px)
+  • [ALL] Fix: Members-only error text wraps as paragraph instead of single-line overflow
+  • [ALL] Polish: All native confirm/alert/prompt replaced with in-page themed modals
   • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
 
 
