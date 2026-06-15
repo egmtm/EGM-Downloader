@@ -16,7 +16,7 @@
             box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
             object-fit: cover;
         }
-        .title { font-size: 28px; font-weight: 600; margin-bottom: 36px; }
+        .title { margin-bottom: 36px; text-align: center; }
         .spinner {
             width: 36px; height: 36px;
             border: 3px solid rgba(255,255,255,0.1);
@@ -47,7 +47,13 @@
 </head>
 <body>
     <img class="logo" src="../static/icon-128.png" alt="EGM">
-    <div class="title">EGM Downloader</div>
+    <div class="title">
+      <svg viewBox="0 0 320 30" xmlns="http://www.w3.org/2000/svg" width="320" height="30" role="img" aria-label="EGM Downloader">
+        <text x="0" y="18" fill="#3b82f6" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="600" letter-spacing="8">EGM</text>
+        <text x="105" y="18" fill="#e2e8f6" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="200" letter-spacing="3">DOWNLOADER</text>
+        <line x1="0" y1="26" x2="320" y2="26" stroke="#94a3b8" stroke-width=".5" stroke-opacity=".4"/>
+      </svg>
+    </div>
     <div class="spinner"></div>
     <div class="status">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
 </body>
