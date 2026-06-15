@@ -214,6 +214,25 @@
     .fetch-btn:hover { border-color:var(--acc);color:var(--acc); }
 
     {% include 'theme_styles.html' %}
+    /* ── Custom confirmation modal ── */
+    .egm-modal-overlay {
+      display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
+      z-index:9999;align-items:center;justify-content:center;
+    }
+    .egm-modal-overlay.open { display:flex; }
+    .egm-modal {
+      background:var(--surf);border:1px solid var(--border);border-radius:8px;
+      padding:20px 24px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4);
+    }
+    .egm-modal-msg { font-size:.82rem;color:var(--text);line-height:1.4;margin-bottom:16px; }
+    .egm-modal-actions { display:flex;gap:8px;justify-content:flex-end; }
+    .egm-modal-btn {
+      font-size:.72rem;padding:6px 16px;border-radius:5px;cursor:pointer;
+      border:1px solid var(--border);background:var(--surf2);color:var(--text2);
+    }
+    .egm-modal-btn:hover { background:var(--surf3,var(--surf2));filter:brightness(1.1); }
+    .egm-modal-btn.danger { background:var(--red,#e04040);color:#fff;border-color:var(--red,#e04040); }
+    .egm-modal-btn.danger:hover { filter:brightness(1.15); }
   </style>
 </head>
 <body class="void">
@@ -248,6 +267,16 @@
       <div>
         <div style="font-size:2rem;margin-bottom:8px">📡</div>
         <div>Add a channel or playlist URL to get started</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="egm-modal-overlay" id="egm-confirm-overlay">
+    <div class="egm-modal">
+      <div class="egm-modal-msg" id="egm-confirm-msg"></div>
+      <div class="egm-modal-actions">
+        <button class="egm-modal-btn" id="egm-confirm-cancel">Cancel</button>
+        <button class="egm-modal-btn danger" id="egm-confirm-ok">Delete</button>
       </div>
     </div>
   </div>
@@ -293,6 +322,34 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
     };
   });
 })();
+
+// ── In-page confirmation modal ──────────────────────────────────────────────
+// Replaces native confirm() to avoid Electron focus theft. Returns a Promise<boolean>.
+function egmConfirm(msg, okLabel = 'Delete') {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('egm-confirm-overlay');
+    const msgEl = document.getElementById('egm-confirm-msg');
+    const okBtn = document.getElementById('egm-confirm-ok');
+    const cancelBtn = document.getElementById('egm-confirm-cancel');
+    msgEl.textContent = msg;
+    okBtn.textContent = okLabel;
+    overlay.classList.add('open');
+    okBtn.focus();
+    function close(result) {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      resolve(result);
+    }
+    function onOk() { close(true); }
+    function onCancel() { close(false); }
+    function onOverlay(e) { if (e.target === overlay) close(false); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+  });
+}
 
 // ── API token interceptor ────────────────────────────────────────────────────
 (function() {
@@ -1058,7 +1115,7 @@ document.getElementById('paste-btn').addEventListener('click', async () => {
 async function removeSub(id) {
   const sub = subs.find(s => s.id === id);
   const name = sub ? (sub.name || sub.url) : 'this subscription';
-  if (!confirm(`Remove "${name}"? This cannot be undone.`)) return;
+  if (!await egmConfirm(`Remove "${name}"? This cannot be undone.`)) return;
 
   // Optimistic UI: remove locally first, then sync with server
   subs = subs.filter(s => s.id !== id);
