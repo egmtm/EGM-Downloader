@@ -92,13 +92,11 @@ v1.1 IGNITION — Phase 4: Polish
   • Force refresh — event bubbling to sub-item handler, fixed with forceRefreshSub + stopPropagation
   • Add freeze after delete — blocking yt-dlp on add + single-threaded server; instant add + threaded=True + atomic writes
   • Add-freeze (definitive) — channel fetch converted to background job + short poll; no request ever holds a browser connection
-  • Dialog focus restore (IPC) — renderer window.focus() insufficient in sandbox; new refocus-window IPC calls BrowserWindow.focus() from main process
-  • Logo left-alignment — CSS grid (1fr auto 1fr) positions logo at card edge, title truly centered, nav at right
+  • Dialog focus restore (in-page modal) — native confirm() replaced with themed modal; eliminates Electron focus theft entirely
+  • Logo optical alignment — header padding matches card content box, badge aligned with card text edge
   • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
 
   BUGS (remaining):
-  • Dialog focus restore still not working — IPC refocusWindow applied but delete/readd still hangs; DevTools opening fixes it instantly. May need win.focusOnWebView() or timing delay. Next: Claude Code debug with console verification that IPC fires.
-  • Logo alignment still off — CSS grid applied but logo not aligned with card edge (see screenshot). May need margin/padding adjustment or different grid approach.
   • Members-only badge: yt-dlp limitation — wiring correct, friendly error message now shown on download failure
 
   FIXED:
