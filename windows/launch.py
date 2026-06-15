@@ -51,9 +51,11 @@ if sys.platform == "win32" and not os.environ.get("EGM_SILENT"):
 # ── Tkinter GUI helpers ───────────────────────────────────────────────────────
 _root = None
 _lbl  = None
+_gui_tried = False   # one-shot guard — a failed Tk init isn't retried per message
 
 def _gui_init(title="EGM Downloader"):
-    global _root, _lbl
+    global _root, _lbl, _gui_tried
+    _gui_tried = True
     try:
         import tkinter as tk
         _root = tk.Tk()
@@ -75,6 +77,12 @@ def _gui_init(title="EGM Downloader"):
     except Exception: pass
 
 def _gui_msg(msg):
+    # Lazy init: the window is only created the first time there is actual
+    # progress to report (first-run installs, downloads, errors). A warm start
+    # never calls this, so no pre-splash window flashes — launch goes straight
+    # to the Electron splash, matching Mac/Linux.
+    if _root is None and not _gui_tried:
+        _gui_init()
     if _lbl:
         try: _lbl.config(text=msg); _root.update()
         except Exception: pass
@@ -413,8 +421,10 @@ def launch_electron():
         stderr=subprocess.DEVNULL, creationflags=NO_WIN,
     )
     # Brief pause lets Electron begin rendering before Python/Tkinter exits —
-    # bridges the visual gap between the two windows
-    time.sleep(0.5)
+    # bridges the visual gap between the two windows (skip on warm starts
+    # where no Tk window was shown)
+    if _root is not None:
+        time.sleep(0.5)
 
 # ── Main ─────────────────────────────────────────────────────────────────────
 def _signal_running_instance():
@@ -440,7 +450,6 @@ if __name__ == "__main__":
     if _signal_running_instance():
         sys.exit(0)
 
-    _gui_init()
     ensure_python_deps()
     node_exe = ensure_node()
 
@@ -475,5 +484,6 @@ if __name__ == "__main__":
                 except Exception:
                     pass
 
-    _gui_msg("Launching...")
+    if _root is not None:
+        _gui_msg("Launching...")
     launch_electron()
