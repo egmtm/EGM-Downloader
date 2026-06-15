@@ -1,6 +1,6 @@
 v1.0.5 - Build 129 (6/2026)
 -----------------------------------------
-  • [WINDOWS] Fix: npm resolution for system-wide Node — shutil.which('npm') resolves npm.cmd via PATH, fixing WinError 2 crash on first launch when system Node is present but no portable node_bin (Issue #4)
+  • [WINDOWS] Fix: npm resolution for system-wide Node — shutil.which('npm') resolves npm.cmd via PATH, fixing WinError 2 crash on first launch when system Node is present but no portable node_bin (Issue #4, reported by @Floffye)
 
 v1.0.4 - Build 128 (6/2026)
 -----------------------------------------
