@@ -96,8 +96,6 @@ v1.1 IGNITION — Phase 4: Polish
   • Logo optical alignment — header padding matches card content box, badge aligned with card text edge
   • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
 
-  BUGS (remaining):
-  • Members-only badge: yt-dlp limitation — wiring correct, friendly error message now shown on download failure
 
   FIXED:
   • Close confirmation — native dialog via main.js (replaced broken beforeunload)
