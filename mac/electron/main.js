@@ -570,7 +570,22 @@ ipcMain.on('subs-active-downloads', (event, active) => {
 ipcMain.on('refocus-window', (event) => {
   if (!isTrustedSender(event)) return;
   const win = BrowserWindow.fromWebContents(event.sender);
-  if (win && !win.isDestroyed()) win.focus();
+  if (!win || win.isDestroyed()) return;
+  // win.focus() restores the OS window but NOT the web page's INPUT focus, so
+  // document.hasFocus() stays false and clipboard/keyboard stay dead after a
+  // native dialog. webContents.focus() is what actually restores it — it's what
+  // opening DevTools does under the hood. Retry once after the dialog finishes
+  // tearing down, to win the focus race.
+  const refocus = () => {
+    if (win.isDestroyed()) return;
+    try { win.focus(); } catch (e) {}
+    try {
+      const wc = win.webContents;
+      if (wc && !wc.isDestroyed()) wc.focus();
+    } catch (e) {}
+  };
+  refocus();
+  setTimeout(refocus, 60);
 });
 
 // Theme key validation — alphanumeric only, prevents IPC injection while
