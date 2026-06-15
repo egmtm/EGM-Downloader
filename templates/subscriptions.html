@@ -274,6 +274,7 @@
   <div class="egm-modal-overlay" id="egm-confirm-overlay">
     <div class="egm-modal">
       <div class="egm-modal-msg" id="egm-confirm-msg"></div>
+      <input type="text" class="egm-modal-input" id="egm-confirm-input" style="display:none;width:100%;padding:6px 8px;margin-bottom:12px;border-radius:5px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:.78rem;box-sizing:border-box">
       <div class="egm-modal-actions">
         <button class="egm-modal-btn" id="egm-confirm-cancel">Cancel</button>
         <button class="egm-modal-btn danger" id="egm-confirm-ok">Delete</button>
@@ -302,53 +303,57 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
 }
 
 // ── Restore focus after native dialogs ───────────────────────────────────────
-// In Electron, window.confirm/alert/prompt show a native modal that steals the
-// renderer's focus, and focus is NOT returned when the dialog closes. That
-// silently breaks the add bar: clipboard paste (navigator.clipboard.readText
-// rejects when unfocused) and keyboard typing both stop working until the window
-// is re-focused. Wrap the dialogs once so focus is always restored afterwards.
-(function(){
-  ['confirm', 'alert', 'prompt'].forEach((name) => {
-    const orig = window[name];
-    if (typeof orig !== 'function') return;
-    window[name] = function(...args) {
-      const result = orig.apply(window, args);
-      // A sandboxed renderer's window.focus() does NOT restore OS-level focus after
-      // a native dialog — the main process must do it. Ask it to via IPC (and keep
-      // window.focus() as a harmless fallback for the non-Electron/web case).
-      try { window.focus(); } catch (e) {}
-      try { window.electronAPI && window.electronAPI.refocusWindow && window.electronAPI.refocusWindow(); } catch (e) {}
-      return result;
-    };
-  });
-})();
+// Native confirm/alert/prompt replaced with in-page modals (egmConfirm,
+// egmAlert, egmPrompt) to avoid Electron focus theft. No wrapper needed.
 
-// ── In-page confirmation modal ──────────────────────────────────────────────
-// Replaces native confirm() to avoid Electron focus theft. Returns a Promise<boolean>.
-function egmConfirm(msg, okLabel = 'Delete') {
+// ── In-page dialog modals ────────────────────────────────────────────────────
+// Replaces native confirm/alert/prompt to avoid Electron focus theft.
+function _egmDialog(msg, { okLabel = 'OK', showCancel = true, showInput = false, defaultValue = '', danger = false } = {}) {
   return new Promise((resolve) => {
     const overlay = document.getElementById('egm-confirm-overlay');
     const msgEl = document.getElementById('egm-confirm-msg');
     const okBtn = document.getElementById('egm-confirm-ok');
     const cancelBtn = document.getElementById('egm-confirm-cancel');
+    const inputEl = document.getElementById('egm-confirm-input');
     msgEl.textContent = msg;
     okBtn.textContent = okLabel;
+    okBtn.className = danger ? 'egm-modal-btn danger' : 'egm-modal-btn';
+    if (!danger) okBtn.style.cssText = 'background:var(--acc);color:#fff;border-color:var(--acc)';
+    else okBtn.style.cssText = '';
+    cancelBtn.style.display = showCancel ? '' : 'none';
+    inputEl.style.display = showInput ? '' : 'none';
+    if (showInput) { inputEl.value = defaultValue; }
     overlay.classList.add('open');
-    okBtn.focus();
+    if (showInput) { inputEl.focus(); inputEl.select(); } else { okBtn.focus(); }
     function close(result) {
       overlay.classList.remove('open');
       okBtn.removeEventListener('click', onOk);
       cancelBtn.removeEventListener('click', onCancel);
       overlay.removeEventListener('click', onOverlay);
+      inputEl.removeEventListener('keydown', onKey);
       resolve(result);
     }
-    function onOk() { close(true); }
-    function onCancel() { close(false); }
-    function onOverlay(e) { if (e.target === overlay) close(false); }
+    function onOk() { close(showInput ? inputEl.value : true); }
+    function onCancel() { close(showInput ? null : false); }
+    function onOverlay(e) { if (e.target === overlay) close(showInput ? null : false); }
+    function onKey(e) { if (e.key === 'Enter') onOk(); if (e.key === 'Escape') onCancel(); }
     okBtn.addEventListener('click', onOk);
     cancelBtn.addEventListener('click', onCancel);
     overlay.addEventListener('click', onOverlay);
+    if (showInput) inputEl.addEventListener('keydown', onKey);
   });
+}
+
+function egmConfirm(msg, okLabel = 'Delete') {
+  return _egmDialog(msg, { okLabel, showCancel: true, danger: true });
+}
+
+function egmAlert(msg) {
+  return _egmDialog(msg, { okLabel: 'OK', showCancel: false, danger: false });
+}
+
+function egmPrompt(msg, defaultValue = '') {
+  return _egmDialog(msg, { okLabel: 'OK', showCancel: true, showInput: true, defaultValue, danger: false });
 }
 
 // ── API token interceptor ────────────────────────────────────────────────────
@@ -772,7 +777,7 @@ function renderDetail() {
     dlFolderBrowse.addEventListener('click', async () => {
       const picked = window.electronAPI?.pickFolder
         ? await window.electronAPI.pickFolder(activeSub.download_folder || '')
-        : prompt('Enter download folder path:');
+        : await egmPrompt('Enter download folder path:', activeSub.download_folder || '');
       if (!picked) return;
       const resp = await fetch('/api/subscriptions/update', {
         method: 'POST',
@@ -783,7 +788,7 @@ function renderDetail() {
         activeSub.download_folder = resp.subscription.download_folder; // resolved path from backend
         renderDetail();
       } else if (resp.error) {
-        alert(resp.error);
+        egmAlert(resp.error);
       }
     });
   }
