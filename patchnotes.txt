@@ -74,6 +74,9 @@ v1.1 IGNITION — Phase 4: Polish
   • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
+  FIXES (pending):
+  • Members-only error text overflows as single line — needs word-wrap/paragraph styling to fit within video card
+
   POLISH ROADMAP (ordered by implementation):
   Group A — Sidebar polish (frontend only):
     1. Collapsed thumbnails 2.5× bigger (CSS)
