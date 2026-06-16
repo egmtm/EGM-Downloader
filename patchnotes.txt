@@ -1,5 +1,11 @@
 v1.0.5 - Build 129 (6/15/2026)
 -----------------------------------------
+  Portable re-pack (6/16/2026):
+  • [WINDOWS] Fix: Removed stale launch.bat from portable — called removed .vbs launcher (Issue #5, reported by @derigoleks-wq)
+  • [WINDOWS] Fix: Desktop shortcut now points to .exe instead of removed .vbs
+  • [WINDOWS] Fix: Python 3.10+ version gate — clear error dialog if Python too old or missing
+  Note: Portable re-packed under same version/build per re-pack rule. If you downloaded the portable before 6/16/2026, please re-download.
+
   • [WINDOWS] Fix: npm resolution for system-wide Node — shutil.which('npm') resolves npm.cmd via PATH, fixing WinError 2 crash on first launch when system Node is present but no portable node_bin (Issue #4, reported by @Floffye)
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
