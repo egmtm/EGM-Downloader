@@ -464,6 +464,23 @@ function renderSidebar() {
         renderSidebar();
         renderDetail();
       });
+      thumb.addEventListener('contextmenu', (e) => {
+        if (!thumb.dataset.id) return;
+        e.preventDefault();
+        const subId = thumb.dataset.id;
+        const menu = document.getElementById('kebab-' + subId);
+        if (!menu) return;
+        document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+        menu.style.display = 'block';
+        const mw = menu.offsetWidth || 120;
+        const mh = menu.offsetHeight || 0;
+        let left = e.clientX;
+        let top = e.clientY;
+        if (left + mw > window.innerWidth - 4) left = window.innerWidth - mw - 4;
+        if (top + mh > window.innerHeight - 4) top = Math.max(4, top - mh);
+        menu.style.left = Math.round(left) + 'px';
+        menu.style.top = Math.round(top) + 'px';
+      });
     });
     const miniQueue = document.getElementById('mini-queue');
     if (miniQueue) {
