@@ -135,7 +135,6 @@ Section "Install"
 
   ; ── Root files ──
   File "${REPO_ROOT}/windows/EGM Downloader.exe"
-  File "${REPO_ROOT}/windows/launch.bat"
   File "${REPO_ROOT}/windows/launch.py"
   File "${REPO_ROOT}/windows/instructions.txt"
   File "${REPO_ROOT}/app.py"
@@ -209,8 +208,6 @@ Section "Uninstall"
 
   ; ── Remove app files ──
   Delete "$INSTDIR\EGM Downloader.exe"
-  Delete "$INSTDIR\EGM Downloader.vbs"
-  Delete "$INSTDIR\launch.bat"
   Delete "$INSTDIR\launch.py"
   Delete "$INSTDIR\instructions.txt"
   Delete "$INSTDIR\app.py"
