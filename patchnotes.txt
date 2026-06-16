@@ -90,7 +90,11 @@ v1.1 IGNITION — Phase 4: Polish
     • Cookies row alignment — match Download Folder layout (label + Browse aligned)
     • Smooth fade-in transitions on page load
   Group D — Features (needs discussion):
-    6. Expanded per-channel settings (format, quality, channel info)
+    6. Expanded per-channel settings (APPROVED DESIGN):
+       - Channel name (15px bold) → URL (accent) → stats (muted) on separate lines
+       - Settings pill bar: folder (Browse/Open) | Format dropdown | Quality dropdown
+       - Quality options: Video → Best/2160p/1440p/1080p/720p/480p, Audio → MP3 320/128/FLAC/WAV
+       - Action buttons (Latest/Fetch/Delete) top-right with breathing room
     7. Export/import subscriptions (integrate into settings export)
     8. Portable Python isolation — embedded Python for portable to avoid sharing yt-dlp/packages with installer version
 
