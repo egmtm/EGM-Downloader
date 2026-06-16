@@ -16,10 +16,12 @@
 
     /* ── Sidebar ── */
     .sidebar {
-      width:180px;background:var(--surf);border-right:1px solid var(--border);
-      display:flex;flex-direction:column;transition:width .2s ease;overflow:hidden;
+      width:180px;min-width:140px;max-width:400px;
+      background:var(--surf);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;transition:width .2s ease;
+      overflow:auto;resize:horizontal;
     }
-    .sidebar.collapsed { width:66px; }
+    .sidebar.collapsed { width:66px;min-width:66px;max-width:66px;resize:none; }
 
     .sidebar-header {
       padding:10px;display:flex;align-items:center;justify-content:space-between;
