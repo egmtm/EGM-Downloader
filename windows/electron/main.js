@@ -642,7 +642,7 @@ ipcMain.on('send-url-to-main', (event, url) => {
 ipcMain.handle('create-shortcut', async (event) => {
   try {
     if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-    const lnkTarget = path.join(__dirname, '..', 'EGM Downloader.vbs');
+    const lnkTarget = path.join(__dirname, '..', 'EGM Downloader.exe');
     const workDir   = path.join(__dirname, '..');
     const iconPath  = path.join(__dirname, '..', 'static', 'icon.ico');
     const tmpVbs    = path.join(os.tmpdir(), `egm_sc_${Date.now()}.vbs`);

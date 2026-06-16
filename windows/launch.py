@@ -2,6 +2,27 @@
 import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib, re
 from pathlib import Path
 
+# ── Python version gate ───────────────────────────────────────────────────────
+# Portable edition runs on the user's own Python (the .exe launcher picks the
+# first python/python3/py on PATH, which may be older than we need). Fail fast
+# with a clear native dialog instead of a confusing traceback deeper in startup.
+# (Uses %-formatting + ctypes only, so this still works on old interpreters.)
+_PY_MIN = (3, 10)
+if sys.version_info < _PY_MIN:
+    _msg = ("EGM Downloader needs Python %d.%d or newer.\n\n"
+            "Detected: Python %d.%d.%d\n\n"
+            "Install Python %d.%d+ from https://python.org\n"
+            "(tick \"Add Python to PATH\" during install), then relaunch."
+            % (_PY_MIN[0], _PY_MIN[1], sys.version_info[0], sys.version_info[1],
+               sys.version_info[2], _PY_MIN[0], _PY_MIN[1]))
+    try:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(None, _msg, "EGM Downloader", 0x10)  # MB_ICONERROR
+    except Exception:
+        sys.stderr.write(_msg + "\n")
+    sys.exit(1)
+
+
 ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
 ELECTRON_DIR = ROOT / "electron"

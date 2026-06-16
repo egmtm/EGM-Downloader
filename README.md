@@ -162,8 +162,8 @@
 **Latest:** v1.0.5 Build 129  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (395 KB · ~800 MB after first run)  
 **SHA256:** `ae6b175540764b7accf80deca729f210c1a96a97d12dde027a5928acdd3118b0`  
-**Requirements:** Windows 10/11 (64-bit)  
-**No installer, no registry** — runs from any folder or USB drive  
+**Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
+**No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
@@ -192,6 +192,8 @@
 3. Paste a video URL, fetch the video info, then click Download!
 
 ### Windows Portable
+> **Requires [Python 3.10+](https://www.python.org/downloads/)** on your system (tick “Add Python to PATH” during install). Everything else is fetched automatically on first run.
+
 1. Extract `EGMd-portable.zip` to any folder or USB drive
 2. Run `EGM Downloader.exe`
 3. Paste a video URL, fetch the video info, then click Download!
@@ -285,19 +287,33 @@ Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issue #4)
 
 **v1.1 — IGNITION:**
-- 📡 Subscriptions — save channels and playlists, fetch new videos automatically
-- 🗂️ Full subscriptions window — sidebar with channel list, video pane, collapsible, remembers size/position
-- 🖼️ Rich video list — thumbnails, durations, upload dates, sortable, paginated, "New" badge on recent videos
-- ✅ Download from subscriptions — select videos, choose format, full progress pipeline integrating with main history
-- 📌 Queue panel + sticky download bar — track all active downloads across channels, cancel per-job
-- 📁 Per-channel settings — custom download folder, Video/Audio toggle, reordering, all persisted
-- 🪟 Sub-app mode — main window steps aside when subscriptions opens, restores on close
-- 🎨 Visual identity — SVG wordmark across app + all splash screens, live theme propagation, video titles refined, date styling polished, sidebar thumbnails 2× bigger
-- 🔒 Security hardened — video ID allowlist, attribute escaping, download folder validation, TERMINAL_STATES guard
-- 🔒 Members-only graceful error — actionable message guides users to load cookies when format unavailable
-- ⚙️ Settings & polish — Cookies merged into Settings, 2×2 nav grid, SVG loader, queue icon, plugins manual-only, resizable sidebar, all native dialogs replaced with themed modals
-- 🪟 Windows polish — pre-splash flash fix, .exe shortcut, uninstaller cleanup
-- 🧪 Preload bridge parity locked across all 3 platforms
+- 📡 Subscriptions — save any channel or playlist, automatically fetch and display what's new
+- 🗂️ Dedicated subscriptions window — sidebar with circular channel thumbnails, collapsible, size/position remembered
+- 🖼️ Video list with thumbnails (160×90), durations, and upload dates — sortable by Latest or Oldest
+- 📄 Client-side pagination — 20 videos shown, Load More adds 20 at a time
+- ✅ Checkbox selection — select individual videos or all, download selected with live count
+- 📥 Per-channel format toggle (Video/Audio) — saved per subscription
+- ⚡ Full download pipeline — Queued → Downloading (progress + speed) → Converting → Downloaded; integrates with main history
+- 📌 Sticky download bar — stays visible while scrolling the video list
+- 🔄 Auto-fetch-on-open toggle per channel — selects and fetches automatically on window open
+- 🔄 Auto-fetch on first add — videos load immediately after adding a channel
+- 🪟 Sub-app mode — main window hides when subscriptions opens, restores on close
+- 💾 Downloaded status persists across window close/reopen
+- 🆕 "New" badge on recently fetched videos — clears on next fetch
+- 📁 Per-channel download folder picker — Browse, Open, Reset to default, persists per subscription
+- ⬆️ Subscription reordering via kebab menu — move to top/up/down/bottom, persists
+- 🎨 Theme propagation — changing theme updates all open windows live
+- 🔔 Close confirmation when subscriptions has active downloads
+- 🔒 Per-channel download folder validated on save — rejects system roots, traversal, unwritable paths
+- 🔒 Video ID allowlist + attribute escaping — closes XSS surfaces in subscriptions template
+- ⚙️ Site Cookies merged into Settings panel — one toggle controls both
+- 🧭 2×2 nav grid — History/Themes top, Subscriptions/Advanced bottom
+- ✨ Spinning SVG loader replaces hourglass emoji on fetch
+- 🗂️ Download queue panel — all active downloads across channels, auto-clears, cancel per-job, collapsed sidebar icon
+- 🪟 Pre-splash window flash eliminated on warm starts (Windows)
+- 🔌 Plugins auto-check on startup removed — manual only
+- 🪟 Desktop shortcut now targets .exe — legacy .vbs launcher removed and cleaned up (Windows)
+- 🧪 Preload bridge parity test broadened — full function surface locked across all 3 platforms
 
 **v1.2 — [TBD]:**
 - 🔭 Next chapter — details after v1.1 ships
@@ -439,7 +455,7 @@ See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
 
 ## 🐛 Troubleshooting
 
-**Windows — app won't start:** Run `launch.bat` to see error messages · check `logs/` folder
+**Windows — app won't start:** Make sure [Python 3.10+](https://www.python.org/downloads/) is installed and on PATH · check the `logs/` folder · for detailed errors, open a command prompt in the app folder and run `python launch.py`
 
 **macOS — download stuck:** Update plugins → restart the app → check Console.app for errors
 
