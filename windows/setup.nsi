@@ -237,6 +237,7 @@ Choose No to keep them for faster reinstall." \
     /SD IDNO IDNO skip_components
 
   RMDir /r "$INSTDIR\node_bin"
+  RMDir /r "$INSTDIR\python"
   RMDir /r "$INSTDIR\runtime"
   RMDir /r "$INSTDIR\ffmpeg_bin"
   RMDir /r "$INSTDIR\electron\node_modules"
