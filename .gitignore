@@ -6,6 +6,7 @@ __pycache__/
 .Python
 linux/python/
 mac/python/
+windows/python/
 
 # ── Virtual environments ───────────────────────────────────────
 venv/
@@ -90,4 +91,3 @@ egm-portable-version.json
 egmac-update.json
 egmlinux-update.json
 _DELETED_FILES.txt
-egm_subscriptions.json
