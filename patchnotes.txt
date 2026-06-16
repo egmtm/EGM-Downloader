@@ -83,6 +83,9 @@ v1.1 IGNITION — Phase 4: Polish
     4. ✓ SVG wordmark for "EGM Downloader" title + splash screens
   Group C — Backend:
     5. ✓ ThreadPoolExecutor for subfetch (replaces thread-per-request)
+  FIXED:
+  • [WINDOWS] Stale launch.bat removed from portable build — called removed .vbs launcher, causing startup failure (Issue #5, reported by @derigoleks-wq)
+
   Additional polish:
     • Cookies row alignment — match Download Folder layout (label + Browse aligned)
     • Smooth fade-in transitions on page load

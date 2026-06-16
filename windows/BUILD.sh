@@ -57,7 +57,7 @@ echo ""
 # ── Verify all source files present ─────────────────────────────────────────
 echo "📋 Verifying source files..."
 MISSING=0
-for f in windows/launcher.c windows/launcher.rc windows/launch.bat windows/launch.py \
+for f in windows/launcher.c windows/launcher.rc windows/launch.py \
          windows/instructions.txt app.py requirements.txt patchnotes.txt README.md \
          templates/index.html templates/history.html static/icon.ico static/icon-512.png \
          windows/electron/main.js windows/electron/preload.js windows/electron/package.json; do
@@ -205,7 +205,6 @@ mkdir -p "$PORTABLE_STAGE/templates" "$PORTABLE_STAGE/static" "$PORTABLE_STAGE/e
 
 # Root files — must exactly match what NSIS installs (validated by validate-version-sync.py)
 cp "$REPO_ROOT/windows/EGM Downloader.exe"   "$PORTABLE_STAGE/"
-cp "$REPO_ROOT/windows/launch.bat"            "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/launch.py"             "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/instructions.txt"      "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/app.py"                        "$PORTABLE_STAGE/"
