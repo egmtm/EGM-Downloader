@@ -161,7 +161,7 @@
 ### Windows Portable
 **Latest:** v1.0.5 Build 129  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (395 KB · ~800 MB after first run)  
-**SHA256:** `ae6b175540764b7accf80deca729f210c1a96a97d12dde027a5928acdd3118b0`  
+**SHA256:** `cdbecb1945b4b922d1753c5ec8e06de33b3678973b0b905d869466d489efa715`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
