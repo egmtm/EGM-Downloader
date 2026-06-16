@@ -21,7 +21,7 @@
       display:flex;flex-direction:column;transition:width .2s ease;
       overflow:hidden;position:relative;
     }
-    .sidebar.collapsed { width:66px;min-width:66px;max-width:66px; }
+    .sidebar.collapsed { width:55px;min-width:55px;max-width:55px; }
     .sidebar-resize {
       position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;z-index:10;
     }
@@ -41,7 +41,7 @@
     }
     .collapse-btn:hover { color:var(--acc); }
     .sidebar.collapsed .collapse-btn {
-      width:56px;height:56px;font-size:18px;border-radius:50%;
+      width:45px;height:45px;font-size:18px;border-radius:50%;
       display:flex;align-items:center;justify-content:center;
       margin:6px auto 0;
     }
@@ -51,7 +51,7 @@
     .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 0;overflow-y:auto; }
     .sidebar.collapsed .mini-list { display:flex; }
     .mini-thumb {
-      width:56px;height:56px;border-radius:50%;background:var(--surf2);
+      width:45px;height:45px;border-radius:50%;background:var(--surf2);
       cursor:pointer;border:2px solid transparent;overflow:hidden;
       display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text2);
       flex-shrink:0;background-size:cover;background-position:center;
@@ -999,6 +999,7 @@ document.addEventListener('click', (e) => {
 });
 
 async function reorderSub(subId, direction) {
+  document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
   try {
     await fetch('/api/subscriptions/reorder', {
       method: 'POST',
@@ -1187,8 +1188,14 @@ async function removeSub(id) {
 }
 
 // ── Sidebar collapse ─────────────────────────────────────────────────────────
+// Restore sidebar collapsed state
+if (localStorage.getItem('egm-sidebar-collapsed') === 'true') {
+  document.getElementById('sidebar').classList.add('collapsed');
+}
 document.getElementById('collapse-btn').addEventListener('click', () => {
-  document.getElementById('sidebar').classList.toggle('collapsed');
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('collapsed');
+  localStorage.setItem('egm-sidebar-collapsed', sidebar.classList.contains('collapsed'));
 });
 
 // ── Back to app ──────────────────────────────────────────────────────────────
