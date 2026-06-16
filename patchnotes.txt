@@ -77,8 +77,8 @@ v1.1 IGNITION — Phase 4: Polish
   POLISH ROADMAP (ordered by implementation):
   Group A — Sidebar polish (frontend only):
     1. ✓ Collapsed thumbnails 2× bigger (CSS)
-    2. Right-click minimized thumbnails → kebab menu
-    3. Resizable sidebar + expanded thumbnails
+    2. ✓ Right-click minimized thumbnails → kebab menu
+    3. ✓ Resizable sidebar (CSS resize: horizontal, 140–400px)
   Group B — Header (frontend only):
     4. ✓ SVG wordmark for "EGM Downloader" title + splash screens
   Group C — Backend:
