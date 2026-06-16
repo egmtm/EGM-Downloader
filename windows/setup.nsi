@@ -135,7 +135,6 @@ Section "Install"
 
   ; ── Root files ──
   File "${REPO_ROOT}/windows/EGM Downloader.exe"
-  File "${REPO_ROOT}/windows/launch.bat"
   File "${REPO_ROOT}/windows/launch.py"
   File "${REPO_ROOT}/windows/instructions.txt"
   File "${REPO_ROOT}/app.py"
