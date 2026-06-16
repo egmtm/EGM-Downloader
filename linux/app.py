@@ -9,6 +9,7 @@ import re as _re
 import time
 import copy
 import threading
+import concurrent.futures
 import urllib.request
 import urllib.parse
 import zipfile
@@ -1849,28 +1850,27 @@ def update_subscription():
 # client poll a tiny status endpoint — every HTTP request stays sub-second.
 _subfetch_jobs: dict = {}
 _subfetch_lock = threading.Lock()
-_subfetch_sem  = threading.BoundedSemaphore(4)   # bound concurrent yt-dlp listings
+_subfetch_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="subfetch")
 
 def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
     try:
-        with _subfetch_sem:   # excess fetches wait here (status stays "pending"); no held connection
-            meta_name, meta_thumb = "", ""
-            if need_meta:
-                try:
-                    mr = _ytdlp("--flat-playlist", "--dump-single-json",
-                                "--playlist-end", "1", url, timeout=30)
-                    if mr.returncode == 0 and mr.stdout:
-                        meta = json.loads(mr.stdout.strip())
-                        cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
-                        meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
-                        thumbs = meta.get("thumbnails") or []
-                        if thumbs and isinstance(thumbs, list):
-                            avatars = [t for t in thumbs if isinstance(t, dict) and
-                                       t.get("id", "").startswith("avatar")]
-                            src = avatars[-1] if avatars else thumbs[-1]
-                            meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
-                except Exception:
-                    pass
+        meta_name, meta_thumb = "", ""
+        if need_meta:
+            try:
+                mr = _ytdlp("--flat-playlist", "--dump-single-json",
+                            "--playlist-end", "1", url, timeout=30)
+                if mr.returncode == 0 and mr.stdout:
+                    meta = json.loads(mr.stdout.strip())
+                    cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
+                    meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
+                    thumbs = meta.get("thumbnails") or []
+                    if thumbs and isinstance(thumbs, list):
+                        avatars = [t for t in thumbs if isinstance(t, dict) and
+                                   t.get("id", "").startswith("avatar")]
+                        src = avatars[-1] if avatars else thumbs[-1]
+                        meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
+            except Exception:
+                pass
 
             r = _run_yt(
                 sys.executable, "-m", "yt_dlp",
@@ -1979,8 +1979,7 @@ def fetch_subscription_videos():
                   if v.get("status") in ("done", "error") and now - v.get("_ts", now) > 120]:
             _subfetch_jobs.pop(k, None)
         _subfetch_jobs[fetch_id] = {"status": "pending", "_ts": now}
-    threading.Thread(target=_run_subfetch,
-                     args=(fetch_id, sub_id, url, force, need_meta), daemon=True).start()
+    _subfetch_pool.submit(_run_subfetch, fetch_id, sub_id, url, force, need_meta)
     return jsonify({"fetch_id": fetch_id})
 
 @app.route("/api/subscriptions/fetch-status", methods=["POST"])

@@ -9,6 +9,7 @@ import re as _re
 import time
 import copy
 import threading
+import concurrent.futures
 import urllib.request
 import urllib.parse
 import zipfile
@@ -2070,107 +2071,106 @@ def update_subscription():
 # client poll a tiny status endpoint — every HTTP request stays sub-second.
 _subfetch_jobs: dict = {}
 _subfetch_lock = threading.Lock()
-_subfetch_sem  = threading.BoundedSemaphore(4)   # bound concurrent yt-dlp listings
+_subfetch_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="subfetch")
 
 def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
     try:
-        with _subfetch_sem:   # excess fetches wait here (status stays "pending"); no held connection
-            meta_name, meta_thumb = "", ""
-            if need_meta:
+        meta_name, meta_thumb = "", ""
+        if need_meta:
+            try:
+                mr = _ytdlp("--flat-playlist", "--dump-single-json",
+                            "--playlist-end", "1", url, timeout=30)
+                if mr.returncode == 0 and mr.stdout:
+                    meta = json.loads(mr.stdout.strip())
+                    cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
+                    meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
+                    thumbs = meta.get("thumbnails") or []
+                    if thumbs and isinstance(thumbs, list):
+                        avatars = [t for t in thumbs if isinstance(t, dict) and
+                                   t.get("id", "").startswith("avatar")]
+                        src = avatars[-1] if avatars else thumbs[-1]
+                        meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
+            except Exception:
+                pass
+
+        r = _run_yt(
+            sys.executable, "-m", "yt_dlp",
+            "--flat-playlist", "-j",
+            "--playlist-end", "200",
+            "--extractor-args", "youtubetab:approximate_date",
+            url, timeout=90
+        )
+        if r.returncode != 0:
+            result = {"status": "error", "error": "Failed to fetch videos",
+                      "detail": (r.stderr or "")[:500]}
+        else:
+            fetched = []          # all parsed entries; dedup happens in the atomic merge
+            entry_channel = ""
+            for line in (r.stdout or "").strip().split("\n"):
+                if not line.strip():
+                    continue
                 try:
-                    mr = _ytdlp("--flat-playlist", "--dump-single-json",
-                                "--playlist-end", "1", url, timeout=30)
-                    if mr.returncode == 0 and mr.stdout:
-                        meta = json.loads(mr.stdout.strip())
-                        cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
-                        meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
-                        thumbs = meta.get("thumbnails") or []
-                        if thumbs and isinstance(thumbs, list):
-                            avatars = [t for t in thumbs if isinstance(t, dict) and
-                                       t.get("id", "").startswith("avatar")]
-                            src = avatars[-1] if avatars else thumbs[-1]
-                            meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
+                    entry = json.loads(line)
                 except Exception:
-                    pass
+                    continue
+                vid = _safe_video_id(entry.get("id", ""))
+                if not vid:
+                    continue
+                if not entry_channel:
+                    entry_channel = (entry.get("channel") or entry.get("uploader") or "")[:200]
+                    entry_channel = entry_channel.replace(" - Videos", "").replace(" - Playlists", "").strip()
+                vid_thumb = ""
+                vid_thumbs = entry.get("thumbnails") or []
+                if vid_thumbs and isinstance(vid_thumbs, list):
+                    vid_thumb = _safe_thumb_url(vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else "")
+                if not vid_thumb:
+                    vid_thumb = _safe_thumb_url(entry.get("thumbnail") or "")
+                upload_date = ""
+                if entry.get("upload_date"):
+                    upload_date = str(entry["upload_date"])
+                elif entry.get("timestamp"):
+                    import datetime as dt
+                    upload_date = dt.datetime.utcfromtimestamp(entry["timestamp"]).strftime("%Y%m%d")
+                fetched.append({
+                    "video_id": vid,
+                    "title": (entry.get("title") or "Untitled")[:300],
+                    "duration": entry.get("duration") or 0,
+                    "upload_date": upload_date,
+                    "thumbnail_url": vid_thumb,
+                    "availability": entry.get("availability") or "public",
+                    "is_new": True,
+                    "formats": [],
+                    "downloaded": False,
+                    "download_path": None
+                })
 
-            r = _run_yt(
-                sys.executable, "-m", "yt_dlp",
-                "--flat-playlist", "-j",
-                "--playlist-end", "200",
-                "--extractor-args", "youtubetab:approximate_date",
-                url, timeout=90
-            )
-            if r.returncode != 0:
-                result = {"status": "error", "error": "Failed to fetch videos",
-                          "detail": (r.stderr or "")[:500]}
-            else:
-                fetched = []          # all parsed entries; dedup happens in the atomic merge
-                entry_channel = ""
-                for line in (r.stdout or "").strip().split("\n"):
-                    if not line.strip():
-                        continue
-                    try:
-                        entry = json.loads(line)
-                    except Exception:
-                        continue
-                    vid = _safe_video_id(entry.get("id", ""))
-                    if not vid:
-                        continue
-                    if not entry_channel:
-                        entry_channel = (entry.get("channel") or entry.get("uploader") or "")[:200]
-                        entry_channel = entry_channel.replace(" - Videos", "").replace(" - Playlists", "").strip()
-                    vid_thumb = ""
-                    vid_thumbs = entry.get("thumbnails") or []
-                    if vid_thumbs and isinstance(vid_thumbs, list):
-                        vid_thumb = _safe_thumb_url(vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else "")
-                    if not vid_thumb:
-                        vid_thumb = _safe_thumb_url(entry.get("thumbnail") or "")
-                    upload_date = ""
-                    if entry.get("upload_date"):
-                        upload_date = str(entry["upload_date"])
-                    elif entry.get("timestamp"):
-                        import datetime as dt
-                        upload_date = dt.datetime.utcfromtimestamp(entry["timestamp"]).strftime("%Y%m%d")
-                    fetched.append({
-                        "video_id": vid,
-                        "title": (entry.get("title") or "Untitled")[:300],
-                        "duration": entry.get("duration") or 0,
-                        "upload_date": upload_date,
-                        "thumbnail_url": vid_thumb,
-                        "availability": entry.get("availability") or "public",
-                        "is_new": True,
-                        "formats": [],
-                        "downloaded": False,
-                        "download_path": None
-                    })
-
-                def _merge(subs):
-                    sub = next((s for s in subs if s.get("id") == sub_id), None)
-                    if sub is None:
-                        return None
-                    for v in (sub.get("videos") or []):
-                        v["is_new"] = False
-                    if force:
-                        new_videos = fetched
-                        sub["videos"] = list(new_videos)
-                    else:
-                        cur_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
-                        new_videos = [v for v in fetched if v["video_id"] not in cur_ids]
-                        sub["videos"] = new_videos + (sub.get("videos") or [])
-                    if meta_name and not sub.get("name"):
-                        sub["name"] = meta_name
-                    if meta_thumb and not sub.get("thumbnail_url"):
-                        sub["thumbnail_url"] = meta_thumb
-                    if entry_channel and not sub.get("name"):
-                        sub["name"] = entry_channel
-                    sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
-                    return {"sub": sub, "new_count": len(new_videos)}
-                merged = _mutate_subscriptions(_merge)
-                if merged is None:
-                    result = {"status": "error", "error": "Subscription not found"}
+            def _merge(subs):
+                sub = next((s for s in subs if s.get("id") == sub_id), None)
+                if sub is None:
+                    return None
+                for v in (sub.get("videos") or []):
+                    v["is_new"] = False
+                if force:
+                    new_videos = fetched
+                    sub["videos"] = list(new_videos)
                 else:
-                    result = {"status": "done", "subscription": merged["sub"],
-                              "new_count": merged["new_count"], "total": len(merged["sub"]["videos"])}
+                    cur_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
+                    new_videos = [v for v in fetched if v["video_id"] not in cur_ids]
+                    sub["videos"] = new_videos + (sub.get("videos") or [])
+                if meta_name and not sub.get("name"):
+                    sub["name"] = meta_name
+                if meta_thumb and not sub.get("thumbnail_url"):
+                    sub["thumbnail_url"] = meta_thumb
+                if entry_channel and not sub.get("name"):
+                    sub["name"] = entry_channel
+                sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                return {"sub": sub, "new_count": len(new_videos)}
+            merged = _mutate_subscriptions(_merge)
+            if merged is None:
+                result = {"status": "error", "error": "Subscription not found"}
+            else:
+                result = {"status": "done", "subscription": merged["sub"],
+                          "new_count": merged["new_count"], "total": len(merged["sub"]["videos"])}
     except Exception as e:
         result = {"status": "error", "error": str(e)[:500]}
     result["_ts"] = time.time()
@@ -2200,8 +2200,7 @@ def fetch_subscription_videos():
                   if v.get("status") in ("done", "error") and now - v.get("_ts", now) > 120]:
             _subfetch_jobs.pop(k, None)
         _subfetch_jobs[fetch_id] = {"status": "pending", "_ts": now}
-    threading.Thread(target=_run_subfetch,
-                     args=(fetch_id, sub_id, url, force, need_meta), daemon=True).start()
+    _subfetch_pool.submit(_run_subfetch, fetch_id, sub_id, url, force, need_meta)
     return jsonify({"fetch_id": fetch_id})
 
 @app.route("/api/subscriptions/fetch-status", methods=["POST"])
