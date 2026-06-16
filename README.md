@@ -289,9 +289,10 @@ Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 - 📌 Queue panel + sticky download bar — track all active downloads across channels, cancel per-job
 - 📁 Per-channel settings — custom download folder, Video/Audio toggle, reordering, all persisted
 - 🪟 Sub-app mode — main window steps aside when subscriptions opens, restores on close
-- 🎨 Live theme propagation — all open windows update instantly on theme change
+- 🎨 Visual identity — SVG wordmark across app + all splash screens, live theme propagation, video titles refined, date styling polished, sidebar thumbnails 2× bigger
 - 🔒 Security hardened — video ID allowlist, attribute escaping, download folder validation, TERMINAL_STATES guard
-- ⚙️ Settings & polish — Cookies merged into Settings, 2×2 nav grid, SVG loader, queue icon, plugins manual-only
+- 🔒 Members-only graceful error — actionable message guides users to load cookies when format unavailable
+- ⚙️ Settings & polish — Cookies merged into Settings, 2×2 nav grid, SVG loader, queue icon, plugins manual-only, resizable sidebar, all native dialogs replaced with themed modals
 - 🪟 Windows polish — pre-splash flash fix, .exe shortcut, uninstaller cleanup
 - 🧪 Preload bridge parity locked across all 3 platforms
 
