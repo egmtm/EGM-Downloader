@@ -82,7 +82,10 @@ v1.1 IGNITION — Phase 4: Polish
   Group B — Header (frontend only):
     4. ✓ SVG wordmark for "EGM Downloader" title + splash screens
   Group C — Backend:
-    5. ThreadPoolExecutor for subfetch (replace thread-per-request)
+    5. ✓ ThreadPoolExecutor for subfetch (replaces thread-per-request)
+  Additional polish:
+    • Cookies row alignment — match Download Folder layout (label + Browse aligned)
+    • Smooth fade-in transitions on page load
   Group D — Features (needs discussion):
     6. Expanded per-channel settings (format, quality, channel info)
     7. Export/import subscriptions (integrate into settings export)
