@@ -92,6 +92,7 @@ v1.1 IGNITION — Phase 4: Polish
   Group D — Features (needs discussion):
     6. Expanded per-channel settings (format, quality, channel info)
     7. Export/import subscriptions (integrate into settings export)
+    8. Portable Python isolation — embedded Python for portable to avoid sharing yt-dlp/packages with installer version
 
   TODO (non-blocking):
 
