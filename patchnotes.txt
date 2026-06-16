@@ -86,6 +86,10 @@ v1.1 IGNITION — Phase 4: Polish
   FIXED:
   • [WINDOWS] Stale launch.bat removed from portable build — called removed .vbs launcher, causing startup failure (Issue #5, reported by @derigoleks-wq)
 
+  • [ALL] Polish: Logo + nav button alignment — flush with card border edges
+  • [WINDOWS] Feat: Portable embedded Python — downloads + isolates Python 3.12.10 on first run, SHA-256 verified, system Python never touched again
+  • [WINDOWS] Fix: NSIS uninstaller now cleans up runtime-created python/ directory
+
   Additional polish:
     • Cookies row alignment — match Download Folder layout (label + Browse aligned)
     • Smooth fade-in transitions on page load
@@ -96,7 +100,7 @@ v1.1 IGNITION — Phase 4: Polish
        - Quality options: Video → Best/2160p/1440p/1080p/720p/480p, Audio → MP3 320/128/FLAC/WAV
        - Action buttons (Latest/Fetch/Delete) top-right with breathing room
     7. Export/import subscriptions (integrate into settings export)
-    8. Portable Python isolation — embedded Python for portable to avoid sharing yt-dlp/packages with installer version
+    8. ✓ Portable Python isolation — embedded Python 3.12.10, fully self-contained, zero shared packages
 
   TODO (non-blocking):
 
