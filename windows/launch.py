@@ -2,25 +2,15 @@
 import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib, re
 from pathlib import Path
 
-# ── Python version gate ───────────────────────────────────────────────────────
-# Portable edition runs on the user's own Python (the .exe launcher picks the
-# first python/python3/py on PATH, which may be older than we need). Fail fast
-# with a clear native dialog instead of a confusing traceback deeper in startup.
-# (Uses %-formatting + ctypes only, so this still works on old interpreters.)
+# ── Python requirement ────────────────────────────────────────────────────────
+# The app runs on its OWN embedded Python (set up below by ensure_python), so it
+# no longer depends on — or shares site-packages with — any system/installer
+# Python. _PY_MIN is the version we require of that *embedded* interpreter (it's
+# pinned to PY_VERSION, so it always satisfies this); ensure_python verifies it.
+# The system Python only needs to run this stdlib-only bootstrap script on the
+# very first launch (before the embedded Python has been downloaded).
 _PY_MIN = (3, 10)
-if sys.version_info < _PY_MIN:
-    _msg = ("EGM Downloader needs Python %d.%d or newer.\n\n"
-            "Detected: Python %d.%d.%d\n\n"
-            "Install Python %d.%d+ from https://python.org\n"
-            "(tick \"Add Python to PATH\" during install), then relaunch."
-            % (_PY_MIN[0], _PY_MIN[1], sys.version_info[0], sys.version_info[1],
-               sys.version_info[2], _PY_MIN[0], _PY_MIN[1]))
-    try:
-        import ctypes
-        ctypes.windll.user32.MessageBoxW(None, _msg, "EGM Downloader", 0x10)  # MB_ICONERROR
-    except Exception:
-        sys.stderr.write(_msg + "\n")
-    sys.exit(1)
+
 
 ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
@@ -36,6 +26,25 @@ NODE_SHASUMS_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/SHASUMS256.txt"
 NODE_ZIP_DIR = f"node-v{NODE_VERSION}-win-x64"
 NODE_EXE     = NODE_DIR / "node.exe"
 NO_WIN       = 0x08000000 if sys.platform == "win32" else 0
+
+# ── Embedded Python (portable isolation) ──────────────────────────────────────
+# Downloaded + SHA-256-verified + cached on first run, exactly like Node.js. The
+# app then runs on THIS interpreter, so a system/installer Python can never leak
+# packages into it (the cause of the yt-dlp cross-contamination). main.js's
+# findPython() already prefers <app>/python/python.exe, so app.py runs here too.
+PY_DIR        = ROOT / "python"
+PY_EXE        = PY_DIR / "python.exe"
+PY_VERSION    = "3.12.10"   # embeddable build to download (cp312 wheels on PyPI)
+PY_ZIP_NAME   = f"python-{PY_VERSION}-embed-amd64.zip"
+PY_ZIP_URL    = f"https://www.python.org/ftp/python/{PY_VERSION}/{PY_ZIP_NAME}"
+# python.org has no machine-readable SHASUMS file for the embed zips, so the hash
+# is PINNED (same fail-closed model as RCEDIT_SHA256 below). It MUST be set to the
+# real SHA-256 of the exact zip above before building — compute it with:
+#   certutil -hash python-3.12.10-embed-amd64.zip SHA256   (Windows)
+#   sha256sum  python-3.12.10-embed-amd64.zip              (Linux/Mac)
+PY_SHA256     = "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3"
+# Versioned get-pip for this Python minor (e.g. .../pip/3.12/get-pip.py), over TLS.
+GETPIP_URL    = f"https://bootstrap.pypa.io/pip/{PY_VERSION.rsplit('.', 1)[0]}/get-pip.py"
 
 
 def _verify_node_zip(zip_path):
@@ -119,18 +128,148 @@ def _progress(count, block, total):
     if total > 0: _gui_progress(min(100, count*block*100//total))
 
 # ── Python deps ───────────────────────────────────────────────────────────────
-def ensure_python_deps():
-    # Keep this list in sync with requirements.txt. cryptography is REQUIRED for
-    # signed-manifest verification (Windows auto-update); mutagen for audio
-    # metadata/thumbnail embedding. The sentinel imports must include them so a
-    # missing one triggers (re)install. (pyzipper was unused and is dropped.)
+def _verify_py_zip(zip_path):
+    """Return True iff zip_path's SHA-256 matches the pinned PY_SHA256.
+    Fail-closed: an unset/invalid pin or any mismatch returns False, so we never
+    run an unverified interpreter."""
+    expected = (PY_SHA256 or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        return False
     try:
-        import flask, yt_dlp, cryptography, mutagen; return
-    except ImportError: pass
+        h = hashlib.sha256()
+        with open(zip_path, "rb") as fh:
+            for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+                h.update(chunk)
+        return h.hexdigest().lower() == expected
+    except Exception:
+        return False
+
+
+def _py_version(exe):
+    try:
+        r = subprocess.run([str(exe), "-c", "import sys;print('%d.%d.%d'%sys.version_info[:3])"],
+                           capture_output=True, text=True, timeout=10, creationflags=NO_WIN)
+        if r.returncode == 0 and r.stdout.strip():
+            return tuple(int(x) for x in r.stdout.strip().split("."))
+    except Exception:
+        pass
+    return (0, 0, 0)
+
+
+def _setup_embedded_pip():
+    """Make pip usable in the embedded Python: (1) enable `import site` and add
+    Lib\\site-packages in the pythonNNN._pth so installed packages are importable,
+    (2) bootstrap pip via get-pip.py. Returns True on success."""
+    try:
+        # (1) ._pth: uncomment `import site`, ensure Lib\site-packages is present.
+        pths = list(PY_DIR.glob("python*._pth"))
+        if not pths:
+            return False
+        pth = pths[0]
+        out, has_site, has_sp = [], False, False
+        for ln in pth.read_text(encoding="utf-8", errors="replace").splitlines():
+            t = ln.strip()
+            if t in ("#import site", "# import site", "import site"):
+                out.append("import site"); has_site = True
+            else:
+                out.append(ln)
+                if t.lower() in ("lib\\site-packages", "lib/site-packages"):
+                    has_sp = True
+        if not has_sp:
+            out.append("Lib\\site-packages")
+        if not has_site:
+            out.append("import site")
+        pth.write_text("\n".join(out) + "\n", encoding="utf-8")
+
+        (PY_DIR / "Lib" / "site-packages").mkdir(parents=True, exist_ok=True)
+
+        # (2) get-pip.py over TLS, then run it with the embedded interpreter.
+        _gui_msg("Setting up pip…")
+        getpip = PY_DIR / "get-pip.py"
+        urllib.request.urlretrieve(GETPIP_URL, getpip)
+        r = subprocess.run([str(PY_EXE), str(getpip), "--no-warn-script-location"],
+                           capture_output=True, timeout=300, creationflags=NO_WIN)
+        try: getpip.unlink(missing_ok=True)
+        except Exception: pass
+        if r.returncode != 0:
+            return False
+        chk = subprocess.run([str(PY_EXE), "-m", "pip", "--version"],
+                             capture_output=True, timeout=60, creationflags=NO_WIN)
+        return chk.returncode == 0
+    except Exception:
+        return False
+
+
+def ensure_python():
+    """Ensure the embedded Python exists (download -> verify -> extract -> enable
+    pip), cached across runs like ensure_node(). Returns the python.exe path str,
+    or None on failure."""
+    # Fast path: a good cached interpreter.
+    if PY_EXE.exists() and _py_version(PY_EXE) >= _PY_MIN:
+        return str(PY_EXE)
+    if PY_DIR.exists():
+        # present but broken/old — wipe and rebuild
+        _gui_msg("Updating embedded Python…")
+        try: shutil.rmtree(PY_DIR, ignore_errors=True)
+        except Exception: pass
+
+    _gui_msg(f"Downloading Python {PY_VERSION}…")
+    PY_DIR.mkdir(parents=True, exist_ok=True)
+    tmp = PY_DIR / "py_tmp.zip"
+    try:
+        urllib.request.urlretrieve(PY_ZIP_URL, tmp, reporthook=_progress)
+        _gui_msg("Verifying Python download…")
+        if not _verify_py_zip(tmp):
+            _gui_msg("ERROR: Python checksum verification failed")
+            try: tmp.unlink(missing_ok=True)
+            except Exception: pass
+            time.sleep(4); return None
+        _gui_msg("Extracting Python…")
+        # The embeddable zip extracts flat (no top-level folder). Zip-slip guarded.
+        with zipfile.ZipFile(tmp, "r") as z:
+            for m in z.namelist():
+                rel = m.lstrip("/\\")
+                if not rel or ".." in Path(rel).parts or Path(rel).is_absolute():
+                    continue
+                dest = PY_DIR / rel
+                try: dest.resolve().relative_to(PY_DIR.resolve())
+                except ValueError: continue
+                if m.endswith("/"):
+                    dest.mkdir(parents=True, exist_ok=True)
+                else:
+                    dest.parent.mkdir(parents=True, exist_ok=True)
+                    with z.open(m) as src, open(dest, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+        tmp.unlink(missing_ok=True)
+        if not PY_EXE.exists():
+            _gui_msg("ERROR: python.exe missing after extract"); time.sleep(4); return None
+        if not _setup_embedded_pip():
+            _gui_msg("ERROR: could not enable pip in embedded Python"); time.sleep(4); return None
+        if _py_version(PY_EXE) < _PY_MIN:
+            _gui_msg("ERROR: embedded Python older than required"); time.sleep(4); return None
+        return str(PY_EXE)
+    except Exception as e:
+        _gui_msg(f"ERROR: {e}")
+        try: tmp.unlink(missing_ok=True)
+        except Exception: pass
+        time.sleep(4); return None
+
+
+def ensure_python_deps(py_exe):
+    # Install into the EMBEDDED Python's site-packages (isolated from any system /
+    # installer Python). Keep this list in sync with requirements.txt: cryptography
+    # is REQUIRED for signed-manifest verification (auto-update); mutagen for audio
+    # metadata/thumbnails. Sentinel-import first so we only pip on a miss.
+    try:
+        subprocess.run([str(py_exe), "-c", "import flask, yt_dlp, cryptography, mutagen"],
+                       check=True, capture_output=True, timeout=30, creationflags=NO_WIN)
+        return
+    except Exception:
+        pass
     _gui_msg("Installing Python packages…")
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q",
+    subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
                     "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography"],
-                   check=True, timeout=300, creationflags=NO_WIN)
+                   check=True, timeout=600, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
 VERSION_CACHE = NODE_DIR / ".node_version"   # persists detected node path across runs
@@ -440,9 +579,9 @@ def launch_electron():
         stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL, creationflags=NO_WIN,
     )
-    # Brief pause lets Electron begin rendering before the Tkinter window goes
-    # away — only relevant when the pre-splash was actually shown (first run /
-    # installs). On a warm start there is no window, so exit immediately.
+    # Brief pause lets Electron begin rendering before Python/Tkinter exits —
+    # bridges the visual gap between the two windows (skip on warm starts
+    # where no Tk window was shown)
     if _root is not None:
         time.sleep(0.5)
 
@@ -470,9 +609,11 @@ if __name__ == "__main__":
     if _signal_running_instance():
         sys.exit(0)
 
-    # No _gui_init() here — the progress window is created lazily by _gui_msg()
-    # the first time setup work needs reporting. Warm starts show no window.
-    ensure_python_deps()
+    py_exe = ensure_python()
+    if not py_exe:
+        _gui_msg("ERROR: could not set up the embedded Python runtime")
+        time.sleep(5); sys.exit(1)
+    ensure_python_deps(py_exe)
     node_exe = ensure_node()
 
     # Check for Electron reinstall marker (set by Advanced → Reinstall Electron)
@@ -491,9 +632,9 @@ if __name__ == "__main__":
     _portable_marker = Path(__file__).parent / ".portable"
     if _portable_marker.exists():
         _to_hide = [
-            "app.py", "launch.bat", "launch.py", ".portable", "rcedit-x64.exe",
+            "app.py", "launch.py", ".portable", "rcedit-x64.exe",
             "electron", "static", "templates",
-            "data", "ffmpeg_bin", "node_bin", "runtime", "electron-data",
+            "data", "ffmpeg_bin", "node_bin", "python", "runtime", "electron-data",
         ]
         for _name in _to_hide:
             _p = Path(__file__).parent / _name

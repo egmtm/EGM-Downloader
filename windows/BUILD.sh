@@ -59,7 +59,7 @@ echo "📋 Verifying source files..."
 MISSING=0
 for f in windows/launcher.c windows/launcher.rc windows/launch.py \
          windows/instructions.txt app.py requirements.txt patchnotes.txt README.md \
-         templates/index.html templates/history.html static/icon.ico static/icon-512.png \
+         templates/index.html templates/history.html templates/subscriptions.html static/icon.ico static/icon-512.png \
          windows/electron/main.js windows/electron/preload.js windows/electron/package.json; do
     if [ ! -e "$REPO_ROOT/$f" ]; then
         echo "   ❌ MISSING: $f"
@@ -218,7 +218,7 @@ cp "$REPO_ROOT/templates/history.html"        "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/themes.html"         "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/theme_styles.html"   "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/theme_data.html"      "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/subscriptions.html"  "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/subscriptions.html"   "$PORTABLE_STAGE/templates/"
 
 # Static
 cp "$REPO_ROOT/static/icon.ico"               "$PORTABLE_STAGE/static/"
@@ -255,12 +255,17 @@ Runs from any folder, USB stick, or network drive.
 REQUIREMENTS
 ─────────────
   • Windows 10 or 11 (64-bit)
-  • Python 3.10 or newer
+  • Python 3.10 or newer — for the FIRST launch only
       Download: https://www.python.org/downloads/
       IMPORTANT: During install, check "Add Python to PATH"
 
-  Everything else (Node.js, Electron, ffmpeg, Deno) is downloaded
-  automatically on first launch — no manual setup required.
+      The first launch uses your system Python just to bootstrap. It then
+      downloads its OWN private copy of Python and installs every package
+      into it, so the app is fully self-contained from then on — it never
+      shares packages with (or depends on) your system Python again.
+
+  Everything else (a private Python, Node.js, Electron, ffmpeg, Deno) is
+  downloaded automatically on first launch — no manual setup required.
 
 
 HOW TO RUN
@@ -269,6 +274,7 @@ HOW TO RUN
   2. Double-click "EGM Downloader.exe" to launch
   3. On first launch, the app downloads required components:
 
+       Private Python      ~35 MB   (one time only)
        Node.js + Electron  ~280 MB  (one time only)
        Deno                ~35 MB   (one time only, background)
 
@@ -295,8 +301,9 @@ DIFFERENCES FROM THE INSTALLER VERSION
       4. Delete the old folder
   • "Update Plugins" panel is hidden in portable mode.
     To manually update yt-dlp or mutagen, open a command prompt
-    in this folder and run:
-        python -m pip install --upgrade yt-dlp mutagen
+    in this folder and run (note: target the app's OWN bundled Python,
+    not your system Python — that is the copy the app actually uses):
+        python\python.exe -m pip install --upgrade yt-dlp mutagen
 
 
 TO REMOVE
