@@ -603,28 +603,17 @@ def _signal_running_instance():
     except Exception:
         return False
 
-def _is_portable():
-    """Portable = NOT running from %LOCALAPPDATA%\\EGM Downloader."""
-    local = os.environ.get("LOCALAPPDATA", "")
-    if not local: return True
-    installed_path = str(Path(local) / "EGM Downloader").lower()
-    return not str(ROOT).lower().startswith(installed_path)
-
 if __name__ == "__main__":
     # Check if the app is already running — if so, signal it to show and exit.
     # Must happen before _gui_init() so no Tkinter window ever flashes.
     if _signal_running_instance():
         sys.exit(0)
 
-    if _is_portable():
-        py_exe = ensure_python()
-        if not py_exe:
-            _gui_msg("ERROR: could not set up the embedded Python runtime")
-            time.sleep(5); sys.exit(1)
-        ensure_python_deps(py_exe)
-    else:
-        # Installer edition: use system Python, deps already managed by pip
-        ensure_python_deps(sys.executable)
+    py_exe = ensure_python()
+    if not py_exe:
+        _gui_msg("ERROR: could not set up the embedded Python runtime")
+        time.sleep(5); sys.exit(1)
+    ensure_python_deps(py_exe)
     node_exe = ensure_node()
 
     # Check for Electron reinstall marker (set by Advanced → Reinstall Electron)
