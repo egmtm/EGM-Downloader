@@ -484,15 +484,20 @@
       display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 14px;
       position: relative; z-index: 10;
     }
-    /* Header padding (20px) matches the card's, so the logo column + nav align with
-       the card's content edges. The -16px margin pulls the logo badge left by its
-       internal padding (the circular badge sits ~16px inside its 76px box), so the
-       badge optically lines up with the "Video / Playlist URLs" text. */
-    .logo { width: 76px; height: 76px; flex-shrink: 0; justify-self: start; }
+    /* Logo + nav align with the CARD's outer border edges (not its inner text
+       edge), so they visually frame the card. The card's own border sits 21px
+       outside its text (20px padding + 1px border), and the header has 21px
+       padding, so each header item is nudged 21px past its column to reach the
+       border line:
+         • nav  → margin-right -21px lands its right edge on the card's right border.
+         • logo → the circular badge also sits ~20.6px inside its 76px SVG box, so it
+                  needs -21px (padding) - 20.6px (badge inset) ≈ -41.6px for the
+                  badge's left edge to land on the card's left border. */
+    .logo { width: 76px; height: 76px; flex-shrink: 0; justify-self: start; margin-left: -41.6px; }
     .logo img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
     .header-text { text-align: center; }
-    /* nav grid (last header child) → right edge of the 3rd column */
-    header > div:last-child { justify-self: end; }
+    /* nav grid (last header child) → card's right border edge */
+    header > div:last-child { justify-self: end; margin-right: -21px; }
     header h1 {
       font-size: 1.55rem; font-weight: 700; letter-spacing: -.01em;
       color: var(--acc);

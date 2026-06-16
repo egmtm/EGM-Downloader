@@ -5,9 +5,11 @@
  *
  * Behavior:
  *   1. Resolve the directory this .exe lives in
- *   2. Try to launch "python launch.py", then "python3 launch.py", then "py launch.py"
+ *   2. Prefer the bundled embedded Python at "<dir>\python\python.exe" (set up on
+ *      the portable's first run); otherwise fall back to system "python",
+ *      "python3", then "py" to run launch.py
  *   3. Process is started with SW_HIDE so no console window flashes
- *   4. If no Python is found, show a friendly MessageBox pointing to python.org
+ *   4. If no Python is found at all, show a friendly MessageBox pointing to python.org
  *
  * Build (cross-compile from Linux):
  *   x86_64-w64-mingw32-windres launcher.rc -O coff -o launcher.res
@@ -54,7 +56,20 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nSho
     wchar_t script_path[MAX_PATH];
     _snwprintf_s(script_path, MAX_PATH, _TRUNCATE, L"%s\\launch.py", exe_path);
 
-    /* Try python, python3, then py */
+    /* Prefer the portable's bundled embedded Python, so a warm portable launch
+     * never touches the system interpreter (the whole point of the isolation).
+     * It only exists after the first run sets it up; the installer never creates
+     * it, so there it simply isn't found and we fall through to system Python. */
+    wchar_t embedded_py[MAX_PATH];
+    _snwprintf_s(embedded_py, MAX_PATH, _TRUNCATE, L"%s\\python\\python.exe", exe_path);
+    DWORD attrs = GetFileAttributesW(embedded_py);
+    if (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+        if (try_launch(embedded_py, script_path)) {
+            return 0;
+        }
+    }
+
+    /* First-run / installer / fallback: system python, python3, then py. */
     const wchar_t *candidates[] = { L"python", L"python3", L"py" };
     for (int i = 0; i < 3; i++) {
         if (try_launch(candidates[i], script_path)) {

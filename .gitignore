@@ -20,6 +20,7 @@ node_modules/
 
 # ── Windows runtime (downloaded on first launch) ───────────────
 windows/node_bin/
+windows/python/
 windows/electron/node_modules/
 windows/electron/dist/
 
