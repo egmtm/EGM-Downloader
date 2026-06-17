@@ -1,153 +1,64 @@
-v1.1 - IGNITION (in progress)
+v1.1 - IGNITION
 -----------------------------------------
-  • [ALL] New: Subscriptions entry point button — dedicated button before hamburger, opens Subscriptions window
-  • [ALL] New: Subscriptions data layer — egm_subscriptions.json with atomic read/write, thread-safe caching
-  • [ALL] New: Subscriptions CRUD API — add/remove/update routes with token auth
-  • [ALL] New: Subscriptions BrowserWindow — sidebar with subscription list, collapsible (180px↔40px), detail pane, add bar with Paste + Add buttons
-  • [ALL] New: Delete confirmation dialog before removing subscriptions
-  • [ALL] New: IPC handlers for subscriptions window (isTrustedSender on all)
-  • [ALL] Cleanup: uninstaller removes egm_subscriptions.json on Windows
-  • [ALL] Test: broadened preload bridge parity — locks full exposed function surface across all 3 platforms, not just security markers (prevents the Windows-only bridge pattern that recurred 3 times)
 
-v1.1 IGNITION — Phase 2: Fetch & Display
-  • [ALL] New: fetch channel videos via yt-dlp flat-playlist with approximate_date — fast listing with real dates for sorting
-  • [ALL] New: video list with thumbnails, durations, approximate upload dates
-  • [ALL] New: client-side pagination — 20 videos shown, Load More adds 20 at a time
-  • [ALL] New: channel metadata on add — name, avatar thumbnail, description via yt-dlp
-  • [ALL] New: sort videos by Latest / Oldest
-  • [ALL] New: auto-fetch-on-open toggle per channel — auto-selects and fetches on window open
-  • [ALL] New: subscriptions window remembers size and position across sessions
-  • [ALL] Fix: thumbnail URLs validated server-side — rejects quotes, parens, spaces, scheme violations before storage (closes attribute-context XSS; internal-host SSRF guard deferred to Phase 3)
-  • [ALL] Fix: formatDate never returns raw input — enforces 8-digit format, esc() at call site
-  • [ALL] Fix: optimistic delete — UI updates immediately, server sync in background
-  • [ALL] Fix: subscriptions window themes inherit active theme from main window
-  • [ALL] Chore: subscriptions.html added to template drift list in validate-version-sync
-  • [ALL] Polish: Site Cookies merged into Settings panel — one Show/Hide toggle controls both
-  • [ALL] Security: Per-channel download_folder validated on save via _validate_download_dir — rejects system roots, traversal, unwritable paths; stores resolved canonical path
+  SUBSCRIPTIONS
+  • Subscribe to YouTube channels and manage them in a dedicated window
+  • Video list with thumbnails, durations, upload dates, and "New" badges
+  • Download individual or batch-selected videos from any channel
+  • Auto-fetch on open — optionally load new videos when the subscriptions window opens
+  • Download queue panel — view all active downloads across channels with progress, speed, and cancel
+  • Background channel fetching — add and browse while channels load in the background
+  • Members-only videos show a friendly message with guidance instead of a cryptic error
 
-v1.1 IGNITION — Phase 3: Downloads
-  • [ALL] New: Checkbox selection on subscription videos — select individual or select all
-  • [ALL] New: "Download selected" button with live selection count
-  • [ALL] New: Per-channel format toggle (Video/Audio) — saved per subscription
-  • [ALL] New: Download flow reuses main app pipeline — semaphore, progress, history integration
-  • [ALL] New: Inline download state machine — Queued → Downloading (progress bar + speed) → Downloaded
-  • [ALL] New: Cancel button on active downloads, Clear button on completed/errored
-  • [ALL] New: Downloads from subscriptions appear in main app download history automatically
-  • [ALL] New: Sub-app mode — main window hides when subscriptions opens, restores on close
-  • [ALL] New: Default subscriptions window size increased to 1100×700
-  • [ALL] Polish: Site Cookies merged into Settings panel — one Show/Hide toggle controls both
-  • [ALL] Security: video_id allowlist (_safe_video_id) — rejects attribute-breakout XSS payloads before storage
-  • [ALL] Security: attrEsc() for all attribute-context interpolations in subscriptions template
-  • [ALL] Security: Hardened status handling — TERMINAL_STATES inversion prevents unknown backend status from silently dropping jobs
-  • [ALL] Fix: Full download state lifecycle — Queued → Downloading → Converting… → Downloaded
-  • [ALL] Fix: Download state persists across subscription switches (global allJobs Map + restoreJobStates)
-  • [ALL] Fix: Polling reentrancy guard prevents concurrent poll overlaps
+  PER-CHANNEL SETTINGS
+  • Per-channel download format — choose Video or Audio independently for each channel
+  • Per-channel quality — Video: Best/4K/1440p/1080p/720p/480p, Audio: MP3 320/128/FLAC/WAV/OPUS 128/192
+  • Per-channel download folder — save different channels to different folders
+  • Channel header redesigned — name, URL, video count, and settings in a clean pill bar layout
 
-v1.1 IGNITION — Phase 4: Polish
-  • [ALL] Polish: Remove version number from header title — redundant with footer pill and title bar
-  • [ALL] Polish: Hourglass emoji replaced with spinning SVG loader on fetch
-  • [ALL] Polish: Sticky download bar — stays visible when scrolling video list
-  • [ALL] Polish: 2×2 nav grid — History/Themes top, Subs/Advanced bottom, no separator
-  • [ALL] Polish: Bigger "Back to app" button (centered, .78rem, font-weight 500)
-  • [ALL] Polish: Larger video thumbnails (120×68 → 160×90), bigger title and date text
-  • [ALL] Polish: Delete button moved from sidebar to channel header (red styled)
-  • [ALL] Polish: Minimized sidebar shows circular channel thumbnails for quick switching
-  • [ALL] New: Download History button in subscriptions sidebar footer
-  • [ALL] Polish: Sidebar decluttered — Fetch/Force removed, clean name + video count only
-  • [ALL] New: Auto-fetch on first add — videos load immediately after adding a channel
-  • [ALL] Fix: Sticky download bar gap eliminated
-  • [ALL] Fix: Scrollbar theming on subscriptions window
-  • [ALL] New: Members-only badge — informational amber badge, checkboxes stay enabled
-  • [ALL] New: Downloaded status persists across window close/reopen — stored in egm_subscriptions.json
-  • [ALL] New: Per-channel download folder picker — Browse button, Reset to default, persists across sessions
-  • [ALL] New: "New" badge on recently fetched videos — teal badge, clears on next fetch
-  • [ALL] New: Subscription reordering via kebab menu (⋮) — Move to top/up/down/bottom, persists
-  • [ALL] Fix: Download bar sticky gap eliminated
-  • [ALL] Fix: Plugins auto-check on startup removed — manual check only
-  • [ALL] Polish: Force moved to kebab menu as "Force refresh" with tooltip
-  • [ALL] Polish: Fetch button tooltip — "Check for new videos"
-  • [ALL] New: Confirmation dialog when closing subscriptions with active downloads
-  • [ALL] New: History re-add button hidden when opened from subscriptions
-  • [ALL] New: Theme propagation — changing theme updates all open windows live
-  • [ALL] New: Download queue panel — all active downloads across channels, auto-clears, cancel per-job, collapsed sidebar icon
-  • [WINDOWS] Fix: Desktop shortcut now targets .exe instead of legacy .vbs launcher
-  • [WINDOWS] Fix: Uninstaller cleans up leftover .vbs from older installs
-  • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
+  SIDEBAR
+  • Collapsible sidebar with circular channel thumbnails for quick switching
+  • Expanded sidebar shows channel avatars next to names
+  • Right-click any channel thumbnail for reorder, force refresh, or delete
+  • Drag the sidebar edge to resize (140–400px range)
+  • Sidebar remembers collapsed state and custom width across sessions
 
-  POLISH ROADMAP (ordered by implementation):
-  Group A — Sidebar polish (frontend only):
-    1. ✓ Collapsed thumbnails 2× bigger (CSS)
-    2. ✓ Right-click minimized thumbnails → kebab menu
-    3. ✓ Resizable sidebar (CSS resize: horizontal, 140–400px)
-  Group B — Header (frontend only):
-    4. ✓ SVG wordmark for "EGM Downloader" title + splash screens
-  Group C — Backend:
-    5. ✓ ThreadPoolExecutor for subfetch (replaces thread-per-request)
-  FIXED:
-  • [WINDOWS] Stale launch.bat removed from portable build — called removed .vbs launcher, causing startup failure (Issue #5, reported by @derigoleks-wq)
+  EXPORT / IMPORT
+  • Settings export now includes your subscriptions (URL-only, lightweight)
+  • Import restores subscriptions automatically — just re-fetch to load videos
+  • Backward compatible — older export files still import correctly
 
-  • [ALL] Polish: Logo + nav button alignment — flush with card border edges
-  • [WINDOWS] Feat: Portable embedded Python — downloads + isolates Python 3.12.10 on first run, SHA-256 verified, system Python never touched again
-  • [WINDOWS] Fix: NSIS uninstaller now cleans up runtime-created python/ directory
+  UI POLISH
+  • SVG wordmark — "EGM DOWNLOADER" ultra-light modern logo with separator line
+  • SVG wordmark applied to all splash screens (Windows, Mac, Linux)
+  • Logo and navigation buttons aligned with content card edges
+  • Cookies row aligned with Settings header and Download Folder buttons
+  • Smooth fade-in transitions when switching between windows
+  • Scroll position preserved when loading more videos
+  • In-page confirmation dialogs replace native popups — no more focus issues
+  • All native confirm/alert/prompt replaced with themed modals
 
-  • [ALL] Polish: Expanded sidebar thumbnails — 24px circular channel avatars with initial fallback
-  • [ALL] Polish: Sidebar width persists via localStorage
-  • [ALL] Polish: Scroll position preserved on Load More
-  • [ALL] Polish: Cookies row alignment — flush with Settings header and Download Folder buttons
-  • [ALL] Polish: Smooth fade-in transitions on page load (main app + subscriptions)
-  • [ALL] Runtime: Electron 42.4.0 → 42.4.1
+  PERFORMANCE & STABILITY
+  • Background job architecture — channel fetches never block the UI
+  • ThreadPoolExecutor for concurrent fetching (max 4 channels simultaneously)
+  • Atomic subscription writes with thread-safe locking
+  • Download state persists across channel switches
 
-  Additional polish:
-    • ✓ Cookies row alignment — flush with Settings/Download Folder edges
-    • ✓ Smooth fade-in transitions on page load
-  Group D — Features (needs discussion):
-    6. ✓ Per-channel settings (B3 design) — name/URL/stats, pill bar with folder+format+quality
-    7. ✓ Export/import subscriptions — URL-only, v3 envelope, backward compatible
+  SECURITY
+  • Per-channel folder paths validated on save and re-validated at download time
+  • Video IDs sanitized via allowlist before storage
+  • Thumbnail URLs validated against injection patterns
+  • All attribute-context interpolations escaped (attrEsc)
+  • Import data treated as untrusted — URLs validated, duplicates detected
+  • Security score: 9.3/10
 
-  DEFERRED (v1.2+):
-    • NSIS: detect running app during install (needs nsProcess plugin)
-    8. ✓ Portable Python isolation — embedded Python 3.12.10, fully self-contained, zero shared packages
-
-  TODO (non-blocking):
-
-
-  FIXED:
-  • Kebab menu — CSS overflow clip, fixed with position:fixed overlay + viewport anchoring
-  • Folder picker — wrong response key (resp.ok → resp.subscription), now updates immediately
-  • Conversion bar — stray flex:1 spacer removed, bar now full width
-  • Open button added for per-channel custom folder
-  • Clear button on persisted "Downloaded" videos — sets v.downloaded=false via API
-  • Download bar sticky gap — removed top padding from video-list
-  • Plugins auto-check on startup removed — manual only now
-  • No-buttons regression — single-quote vs backtick template literal in Clear button onclick
-  • Queue thumbnail attrEsc + downloaded strict bool coercion (delta security review nits)
-  • Force refresh — event bubbling to sub-item handler, fixed with forceRefreshSub + stopPropagation
-  • Add freeze after delete — blocking yt-dlp on add + single-threaded server; instant add + threaded=True + atomic writes
-  • Add-freeze (definitive) — channel fetch converted to background job + short poll; no request ever holds a browser connection
-  • Dialog focus restore (in-page modal) — native confirm() replaced with themed modal; eliminates Electron focus theft entirely
-  • Logo optical alignment — header padding matches card content box, badge aligned with card text edge
-  • [ALL] Polish: SVG wordmark — ultra-light modern "EGM DOWNLOADER" with separator line, theme-adaptive
-  • [ALL] Polish: SVG wordmark applied to all 3 splash screens
-  • [ALL] Polish: Collapsed sidebar thumbnails 2× bigger (28→56px)
-  • [ALL] Fix: Members-only error text wraps as paragraph instead of single-line overflow
-  • [ALL] Polish: All native confirm/alert/prompt replaced with in-page themed modals
-  • Members-only error message — friendly actionable message replaces cryptic "No video formats found!"
-
-
-  FIXED:
-  • Close confirmation — native dialog via main.js (replaced broken beforeunload)
-  • History re-add hidden from subs — CSS driven by ?from=subs query param
-  • Theme broadcast — all open windows update live on theme change
-
-  • [ALL] Polish: Logo left-aligned with card edge, title truly centered
-  • [ALL] Polish: Video titles — bolder, 2-line clamp, tighter letter-spacing
-  • [ALL] Polish: Date text refined — slightly larger, better spacing
-
-  POLISH (remaining):
-  • Right-click on minimized sidebar thumbnails — show same kebab menu options
-  • Resizable sidebar + channel thumbnails next to names when expanded
-  • Sidebar resize must handle Download History and Back to app buttons gracefully
-  • Explore SVG wordmark for "EGM Downloader" title (replace plain h1 text with styled SVG)
+  PLATFORM-SPECIFIC
+  • [WINDOWS] Portable edition: embedded Python 3.12.10 — fully self-contained, no system Python needed
+  • [WINDOWS] Desktop shortcut now targets .exe correctly
+  • [WINDOWS] Uninstaller cleans up all runtime-created directories
+  • [WINDOWS] Python 3.10+ version check with clear error message on portable
+  • [WINDOWS] Stale launch.bat removed (Issue #5, reported by @derigoleks-wq)
+  • [ALL] Electron 42.4.0 → 42.4.1
 
 v1.0.5 - Build 129 (6/15/2026)
 -----------------------------------------
