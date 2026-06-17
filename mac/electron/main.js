@@ -491,6 +491,7 @@ ipcMain.handle('open-themes-window', async (event) => {
 let subsWindow = null;
 let subsActiveDownloads = false;
 let subsForceClose = false;
+const WINDOW_STATE_DIR = app.getPath('userData');
 const SUBS_BOUNDS_FILE = path.join(WINDOW_STATE_DIR, 'egm_subs_window.json');
 
 function loadSubsBounds() {
