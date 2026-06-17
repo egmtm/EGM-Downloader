@@ -2472,7 +2472,8 @@ function videoQualityBgClick(e) {
       let subUrls = [];
       try {
         const subsData = await fetch('/api/subscriptions').then(r => r.json());
-        if (Array.isArray(subsData)) subUrls = subsData.map(s => s.url).filter(Boolean);
+        const subsList = subsData && Array.isArray(subsData.subscriptions) ? subsData.subscriptions : [];
+        subUrls = subsList.map(s => s.url).filter(Boolean);
       } catch {}
       // Collect all egm-* localStorage keys (themes, custom theme, recents, etc.)
       const lsKeys = {};
@@ -2556,7 +2557,8 @@ function videoQualityBgClick(e) {
       if (subsToImport.length > 0) {
         try {
           const existing = await fetch('/api/subscriptions').then(r => r.json());
-          const existingUrls = new Set((Array.isArray(existing) ? existing : []).map(s => s.url));
+          const existingList = existing && Array.isArray(existing.subscriptions) ? existing.subscriptions : [];
+          const existingUrls = new Set(existingList.map(s => s.url));
           for (const url of subsToImport) {
             if (typeof url !== 'string' || !url.trim()) continue;
             if (existingUrls.has(url.trim())) continue;
