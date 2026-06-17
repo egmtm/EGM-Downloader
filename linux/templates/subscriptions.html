@@ -61,7 +61,7 @@
     .mini-thumb.active { border-color:var(--acc); }
 
     .sub-item {
-      padding:8px 10px;font-size:.72rem;color:var(--text2);cursor:pointer;
+      padding:8px 10px;font-size:.78rem;color:var(--text2);cursor:pointer;
       border-left:2px solid transparent;transition:all .1s;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
@@ -432,8 +432,12 @@ function renderSidebar() {
   list.innerHTML = queueHtml + subs.map((s, i) => {
     const count = (s.videos || []).length;
     const badge = count > 0 ? `<span style="margin-left:auto;font-size:.55rem;color:var(--text2);opacity:0.7">${count}</span>` : '';
+    const thumb = s.thumbnail_url
+      ? `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);background-image:url('${esc(s.thumbnail_url)}');background-size:cover;background-position:center;overflow:hidden"></div>`
+      : `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text2)">${esc((s.name || '?')[0])}</div>`;
     return `
-    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}" style="display:flex;align-items:center;gap:4px;position:relative">
+    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${s.id}" style="display:flex;align-items:center;gap:8px;position:relative">
+      ${thumb}
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
       <button class="kebab-btn" data-kebab="${attrEsc(s.id)}" onclick="event.stopPropagation();toggleKebab('${attrEsc(s.id)}', this)">⋮</button>
