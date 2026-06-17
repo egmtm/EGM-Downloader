@@ -799,7 +799,7 @@ function renderDetail() {
             </div>
           </div>
         `).join('') + (hasMore ? `
-          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const st=document.getElementById('detail').scrollTop;visibleCount+=20;renderDetail();document.getElementById('detail').scrollTop=st">Load more (${visible.length} of ${sortedVideos.length})</button>
+          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const d=document.getElementById('detail'),st=d.scrollTop;visibleCount+=20;renderDetail();requestAnimationFrame(()=>{d.scrollTop=st})">Load more (${visible.length} of ${sortedVideos.length})</button>
         ` : `<div style="text-align:center;padding:10px;font-size:.6rem;color:var(--text2);opacity:0.5">${sortedVideos.length} videos total</div>`);
       })()}
     </div>
