@@ -90,16 +90,19 @@ v1.1 IGNITION — Phase 4: Polish
   • [WINDOWS] Feat: Portable embedded Python — downloads + isolates Python 3.12.10 on first run, SHA-256 verified, system Python never touched again
   • [WINDOWS] Fix: NSIS uninstaller now cleans up runtime-created python/ directory
 
+  • [ALL] Polish: Expanded sidebar thumbnails — 24px circular channel avatars with initial fallback
+  • [ALL] Polish: Sidebar width persists via localStorage
+  • [ALL] Polish: Scroll position preserved on Load More
+  • [ALL] Polish: Cookies row alignment — flush with Settings header and Download Folder buttons
+  • [ALL] Polish: Smooth fade-in transitions on page load (main app + subscriptions)
+  • [ALL] Runtime: Electron 42.4.0 → 42.4.1
+
   Additional polish:
-    • Cookies row alignment — match Download Folder layout (label + Browse aligned)
-    • Smooth fade-in transitions on page load
+    • ✓ Cookies row alignment — flush with Settings/Download Folder edges
+    • ✓ Smooth fade-in transitions on page load
   Group D — Features (needs discussion):
-    6. Expanded per-channel settings (APPROVED DESIGN):
-       - Channel name (15px bold) → URL (accent) → stats (muted) on separate lines
-       - Settings pill bar: folder (Browse/Open) | Format dropdown | Quality dropdown
-       - Quality options: Video → Best/2160p/1440p/1080p/720p/480p, Audio → MP3 320/128/FLAC/WAV
-       - Action buttons (Latest/Fetch/Delete) top-right with breathing room
-    7. Export/import subscriptions (integrate into settings export)
+    6. ✓ Per-channel settings (B3 design) — name/URL/stats, pill bar with folder+format+quality
+    7. ✓ Export/import subscriptions — URL-only, v3 envelope, backward compatible
 
   DEFERRED (v1.2+):
     • NSIS: detect running app during install (needs nsProcess plugin)
