@@ -137,11 +137,12 @@
 
     .channel-header {
       padding:14px 18px;border-bottom:1px solid var(--border);
-      display:flex;align-items:center;gap:12px;
+      display:flex;align-items:flex-start;gap:14px;
     }
     .channel-thumb {
-      width:48px;height:48px;border-radius:8px;background:var(--surf2);
-      display:flex;align-items:center;justify-content:center;font-size:24px;
+      width:52px;height:52px;border-radius:50%;background:var(--surf2);
+      display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;
+      overflow:hidden;
     }
     .channel-info h2 { font-size:.9rem;font-weight:600; }
     .channel-info p { font-size:.68rem;color:var(--text2);margin-top:2px; }
@@ -719,37 +720,52 @@ function renderDetail() {
       <div class="channel-thumb" ${activeSub.thumbnail_url ? `style="background-image:url('${esc(activeSub.thumbnail_url)}');background-size:cover;background-position:center"` : ''}>
         ${!activeSub.thumbnail_url ? '📺' : ''}
       </div>
-      <div class="channel-info">
-        <h2>${esc(activeSub.name || 'Untitled')}</h2>
-        <p>${esc(activeSub.url)}</p>
-        <p style="font-size:.6rem;color:var(--text2);margin-top:2px">
-          ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
-        </p>
-        <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:4px;cursor:pointer">
-          <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
-          Auto-fetch on open
-        </label>
-        <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:4px">
-          Format:
-          <select id="format-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.6rem;border-radius:3px;padding:1px 4px;cursor:pointer">
-            <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>Video</option>
-            <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
-          </select>
-        </label>
-        <div style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:4px">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
-          <span id="dl-folder-label" style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : 'Default')}</span>
-          <button id="dl-folder-browse" class="fetch-btn" style="font-size:.55rem;padding:1px 5px">Browse</button>
-          ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.55rem;padding:1px 5px">Open</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.55rem;padding:1px 5px;color:var(--text2)">Reset</button>' : ''}
+      <div class="channel-info" style="flex:1;min-width:0">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <h2 style="font-size:.92rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
+            <p style="font-size:.65rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
+            <p style="font-size:.6rem;color:var(--text2)">
+              ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
+            </p>
+            <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:5px;cursor:pointer">
+              <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+              Auto-fetch on open
+            </label>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px">
+            <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.7rem;border-radius:5px;padding:5px 10px;cursor:pointer;height:28px">
+              <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
+              <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
+            </select>
+            <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
+            <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
+          </div>
         </div>
-      </div>
-      <div style="margin-left:auto;display:flex;gap:6px;align-items:center">
-        <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.65rem;border-radius:3px;padding:2px 4px;cursor:pointer">
-          <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
-          <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
-        </select>
-        <button class="fetch-btn" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
-        <button class="fetch-btn" style="color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
+        <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
+            <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : 'Default')}</span>
+            <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Browse</button>
+            ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Open</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">Reset</button>' : ''}
+          </div>
+          <span style="color:var(--border)">|</span>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:.65rem;color:var(--text2)">Format</span>
+            <select id="format-select" style="background:transparent;border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
+              <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>Video</option>
+              <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:.65rem;color:var(--text2)">Quality</span>
+            <select id="quality-select" style="background:transparent;border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
+              ${(activeSub.format || 'video') === 'video' ?
+                '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
+              : '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'}
+            </select>
+          </div>
+        </div>
       </div>
     </div>
     <div class="video-list" id="video-list">
@@ -806,6 +822,24 @@ function renderDetail() {
   }
 
   const formatSelect = document.getElementById('format-select');
+  const qualitySelect = document.getElementById('quality-select');
+  
+  function updateQualityOptions(format) {
+    if (!qualitySelect) return;
+    const savedQuality = activeSub.quality || 'best';
+    if (format === 'audio') {
+      qualitySelect.innerHTML = '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>';
+    } else {
+      qualitySelect.innerHTML = '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
+    }
+    const opt = qualitySelect.querySelector(`option[value="${savedQuality}"]`);
+    if (opt) opt.selected = true;
+  }
+  if (qualitySelect && activeSub.quality) {
+    const opt = qualitySelect.querySelector(`option[value="${activeSub.quality}"]`);
+    if (opt) opt.selected = true;
+  }
+
   if (formatSelect) {
     formatSelect.addEventListener('change', async (e) => {
       await fetch('/api/subscriptions/update', {
@@ -814,6 +848,18 @@ function renderDetail() {
         body: JSON.stringify({ id: activeSub.id, format: e.target.value })
       });
       activeSub.format = e.target.value;
+      updateQualityOptions(e.target.value);
+    });
+  }
+
+  if (qualitySelect) {
+    qualitySelect.addEventListener('change', async (e) => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, quality: e.target.value })
+      });
+      activeSub.quality = e.target.value;
     });
   }
 

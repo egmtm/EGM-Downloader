@@ -1810,7 +1810,10 @@ def update_subscription():
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
-    allowed = {"name", "download_folder", "format", "auto_fetch_on_open"}
+    allowed = {"name", "download_folder", "format", "quality", "auto_fetch_on_open"}
+
+    _VALID_QUALITY = {"best", "2160", "1440", "1080", "720", "480",
+                      "mp3_320", "mp3_128", "flac", "wav", "opus_128", "opus_192"}
 
     def _update(subs):
         for s in subs:
@@ -1830,6 +1833,8 @@ def update_subscription():
                             v = None
                     elif k == "format":
                         v = v if v in ("video", "audio") else "video"
+                    elif k == "quality":
+                        v = v if v in _VALID_QUALITY else "best"
                     elif k == "auto_fetch_on_open":
                         v = bool(v)
                     s[k] = v
