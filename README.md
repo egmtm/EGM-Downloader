@@ -286,34 +286,22 @@ Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 **v1.0.5:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.5)
 Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issue #4)
 
-**v1.1 — IGNITION:**
-- 📡 Subscriptions — save any channel or playlist, automatically fetch and display what's new
-- 🗂️ Dedicated subscriptions window — sidebar with circular channel thumbnails, collapsible, size/position remembered
-- 🖼️ Video list with thumbnails (160×90), durations, and upload dates — sortable by Latest or Oldest
-- 📄 Client-side pagination — 20 videos shown, Load More adds 20 at a time
-- ✅ Checkbox selection — select individual videos or all, download selected with live count
-- 📥 Per-channel format toggle (Video/Audio) — saved per subscription
-- ⚡ Full download pipeline — Queued → Downloading (progress + speed) → Converting → Downloaded; integrates with main history
-- 📌 Sticky download bar — stays visible while scrolling the video list
-- 🔄 Auto-fetch-on-open toggle per channel — selects and fetches automatically on window open
-- 🔄 Auto-fetch on first add — videos load immediately after adding a channel
-- 🪟 Sub-app mode — main window hides when subscriptions opens, restores on close
-- 💾 Downloaded status persists across window close/reopen
-- 🆕 "New" badge on recently fetched videos — clears on next fetch
-- 📁 Per-channel download folder picker — Browse, Open, Reset to default, persists per subscription
-- ⬆️ Subscription reordering via kebab menu — move to top/up/down/bottom, persists
-- 🎨 Theme propagation — changing theme updates all open windows live
-- 🔔 Close confirmation when subscriptions has active downloads
-- 🔒 Per-channel download folder validated on save — rejects system roots, traversal, unwritable paths
-- 🔒 Video ID allowlist + attribute escaping — closes XSS surfaces in subscriptions template
-- ⚙️ Site Cookies merged into Settings panel — one toggle controls both
-- 🧭 2×2 nav grid — History/Themes top, Subscriptions/Advanced bottom
-- ✨ Spinning SVG loader replaces hourglass emoji on fetch
-- 🗂️ Download queue panel — all active downloads across channels, auto-clears, cancel per-job, collapsed sidebar icon
-- 🪟 Pre-splash window flash eliminated on warm starts (Windows)
-- 🔌 Plugins auto-check on startup removed — manual only
-- 🪟 Desktop shortcut now targets .exe — legacy .vbs launcher removed and cleaned up (Windows)
-- 🧪 Preload bridge parity test broadened — full function surface locked across all 3 platforms
+**v1.1 — IGNITION:** *(Shipping June 17, 2026)*
+- 📡 Subscriptions — save channels and playlists, fetch new videos automatically
+- 🗂️ Full subscriptions window — sidebar with channel list, video pane, collapsible, resizable, remembers size/position
+- 🖼️ Rich video list — thumbnails, durations, upload dates, sortable, paginated, "New" badge on recent videos
+- ✅ Download from subscriptions — select videos, choose format and quality per channel, full progress pipeline integrating with main history
+- 📌 Queue panel + sticky download bar — track all active downloads across channels, cancel per-job
+- 📁 Per-channel settings — custom download folder, format and quality (Video: Best/4K/1080p/720p; Audio: MP3/FLAC/WAV/OPUS), reordering, all persisted
+- 💾 Subscriptions export/import — channel list included in settings backup, URL-only and lightweight, backward compatible
+- 🪟 Sub-app mode — main window steps aside when subscriptions opens, restores on close
+- 🎨 Visual identity — SVG wordmark across app + all splash screens, live theme propagation, video titles refined, fade-in transitions
+- 🔒 Security hardened — video ID allowlist, attribute escaping, folder validation, TERMINAL_STATES guard, import data treated as untrusted
+- 🔒 Members-only graceful error — actionable message guides users to load cookies when format unavailable
+- ⚙️ Settings & polish — Cookies merged into Settings, 2×2 nav grid, queue icon, plugins manual-only, resizable sidebar, all native dialogs replaced with themed modals
+- 🪟 Windows polish — embedded Python 3.12.10 in portable (no system Python needed), .exe shortcut, uninstaller cleanup
+- ⚡ Electron 42.4.1
+- 🧪 Preload bridge parity locked across all 3 platforms
 
 **v1.2 — [TBD]:**
 - 🔭 Next chapter — details after v1.1 ships
