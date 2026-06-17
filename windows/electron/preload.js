@@ -23,8 +23,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveFile:           (name, content)  => ipcRenderer.invoke('save-file', name, content),
   openFile:           (options)         => ipcRenderer.invoke('open-file', options),
   openCookiesFile:    ()               => ipcRenderer.invoke('open-cookies-file'),
-  openHistoryWindow:  ()               => ipcRenderer.invoke('open-history-window'),
+  openHistoryWindow:  (from)           => ipcRenderer.invoke('open-history-window', from),
   openThemesWindow:   ()               => ipcRenderer.invoke('open-themes-window'),
+  openSubscriptions:  ()               => ipcRenderer.invoke('open-subscriptions-window'),
+  closeSubscriptions: ()               => ipcRenderer.invoke('close-subscriptions'),
+  notifySubsDownloads: (active)        => ipcRenderer.send('subs-active-downloads', !!active),
+  refocusWindow:       ()                 => ipcRenderer.send('refocus-window'),
   setTheme:           (theme)          => { if (isStr(theme) && THEME_RE.test(theme)) ipcRenderer.send('set-theme', theme); },
   sendUrlToMain:      (url)            => { if (isHttpUrl(url)) ipcRenderer.send('send-url-to-main', url); },
   // Listener registrars return an unsubscribe fn so callers can clean up and avoid

@@ -7,7 +7,9 @@ import hmac
 import subprocess
 import re as _re
 import time
+import copy
 import threading
+import concurrent.futures
 import urllib.request
 import urllib.parse
 import zipfile
@@ -241,8 +243,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "1.0.5"
-APP_BUILD             = 129
+APP_VERSION           = "1.1.0"
+APP_BUILD             = 130
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
@@ -253,6 +255,7 @@ UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "
 # survives app updates (DATA_DIR is never touched when dragging a new .app).
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
 HISTORY_FILE  = DATA_DIR / "egm_history.json"
+SUBS_FILE     = DATA_DIR / "egm_subscriptions.json"
 
 # ── Cookies: path to cookies.txt — managed via Settings UI ───────────────────
 COOKIES_FILE = DATA_DIR / "cookies.txt"
@@ -416,6 +419,56 @@ def _save_settings(data: dict):
 def _get_last_folder() -> str:
     return _load_settings().get("last_folder", "")
 
+# ── Subscriptions data ────────────────────────────────────────────────────────
+_subs_cache = None
+_subs_lock  = threading.Lock()
+
+def _load_subscriptions_unlocked() -> list:
+    global _subs_cache
+    if _subs_cache is None:
+        try:
+            data = json.loads(SUBS_FILE.read_text(encoding="utf-8"))
+            _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
+        except Exception:
+            _subs_cache = []
+    return list(_subs_cache)
+
+def _save_subscriptions_unlocked(subs: list):
+    global _subs_cache
+    _subs_cache = subs
+    _atomic_write_text(SUBS_FILE, json.dumps({"subscriptions": subs}, indent=2), owner_only=True)
+
+def _load_subscriptions() -> list:
+    with _subs_lock:
+        return _load_subscriptions_unlocked()
+
+def _save_subscriptions(subs: list):
+    with _subs_lock:
+        _save_subscriptions_unlocked(subs)
+
+class _AbortMutation(Exception):
+    """Raised inside a _mutate_subscriptions callback to abort WITHOUT saving
+    (e.g. a validation failure). Its .result is returned to the caller."""
+    def __init__(self, result):
+        self.result = result
+
+def _mutate_subscriptions(fn):
+    """Atomic read-modify-write of the subscriptions list under a single lock
+    hold. The server is multi-threaded, so concurrent writers would otherwise
+    clobber each other (each previously did load -> modify -> save with the lock
+    released in between, losing updates). fn(subs) mutates a private deep copy in
+    place; the change is committed (cache + file) only if fn returns normally.
+    Raise _AbortMutation(result) to abort without saving. NEVER run slow work
+    (yt-dlp) inside fn — do that first, then merge the result here."""
+    with _subs_lock:
+        subs = copy.deepcopy(_load_subscriptions_unlocked())
+        try:
+            result = fn(subs)
+        except _AbortMutation as a:
+            return a.result
+        _save_subscriptions_unlocked(subs)
+        return result
+
 jobs: dict = {}
 _jobs_lock = threading.Lock()
 
@@ -424,16 +477,9 @@ _jobs_lock = threading.Lock()
 _active_procs: dict = {}
 _active_procs_lock  = threading.Lock()
 
-# ── Concurrency backstop ──────────────────────────────────────────────────────
-# The UI paces concurrent downloads to the user's "concurrency" setting (max 20).
-# This server-side hard ceiling guarantees nothing — a fast client, a bulk action,
-# or a future bulk-fetch — can spawn unbounded yt-dlp/ffmpeg process trees and
-# exhaust the machine. Set above the UI max so it never affects normal use.
 _MAX_CONCURRENT_DOWNLOADS = 24
 _download_sem = threading.BoundedSemaphore(_MAX_CONCURRENT_DOWNLOADS)
 
-# Guard the check-and-start of the singleton update / deno-install workers so two
-# near-simultaneous requests can't both spawn a worker (TOCTOU on "running").
 _update_lock       = threading.Lock()
 _deno_install_lock = threading.Lock()
 
@@ -468,6 +514,7 @@ _ERROR_MAP = [
     (_re.compile(r"HTTP Error 429|Too many requests",                 _re.I), "Too many requests. Please wait a moment before trying again."),
     (_re.compile(r"This live event will begin|premiere",              _re.I), "This video is a scheduled premiere and hasn't started yet."),
     (_re.compile(r"members.only|membership required",                 _re.I), "This video is for channel members only."),
+    (_re.compile(r"No video formats found|No formats found",          _re.I), "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted."),
 ]
 
 def _friendly_error(raw: str) -> str:
@@ -657,32 +704,38 @@ def _ytdlp(*extra, timeout=None):
                    *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
-# ── Download directory validation ─────────────────────────────────────────────
-# Self-harm protection for the user's own machine: the native folder picker is
-# the normal path; this guards hand-entered or API-supplied values. Deliberately
-# NOT an allowlist — external drives (D:\, /Volumes, /mnt) stay fully supported.
+def _safe_thumb_url(url) -> str:
+    """Validate thumbnail URL — reject chars that could break out of a CSS url()
+    or style attribute context. Rejecting ')' is context-independent: safe
+    regardless of whether the interpolation is quoted or unquoted.
+    Note: only validates scheme + chars; internal-host SSRF guard is applied
+    at download time via _download_thumbnail (Phase 3)."""
+    if not url or not isinstance(url, str):
+        return ""
+    url = url.strip()
+    # Must be http(s), no breakout chars (quotes, parens, spaces, angle brackets)
+    if not url.startswith(("https://", "http://")) or any(c in url for c in ('"', "'", ' ', '<', '>', '(', ')')):
+        return ""
+    return url
+
+_VIDEO_ID_RE = _re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
+
+def _safe_video_id(vid) -> str:
+    """Validate a video id from yt-dlp metadata before storing it. Allowlist
+    covers YouTube ids ([A-Za-z0-9_-]) plus '.' and ':' used by some other
+    extractors; rejects quotes/spaces/HTML chars that could break out of an
+    attribute context when the id is interpolated in subscriptions.html."""
+    if not vid or not isinstance(vid, str):
+        return ""
+    return vid if _VIDEO_ID_RE.fullmatch(vid) else ""
+
 _SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/boot",
                  "/sys", "/proc",
                  "C:\\Windows", "C:\\Program Files", "C:\\Program Files (x86)",
                  "C:\\System32")
 
 def _validate_download_dir(dl_dir):
-    """Validate a download directory. Returns (ok, resolved_path_str, error).
-
-    1. RESOLVE first (collapses '..', follows symlinks) so the system-root check
-       can't be bypassed via 'C:\\Users\\..\\Windows' or a symlinked folder.
-    2. Boundary-aware system-root check on the RESOLVED path — '/etc/x' is
-       rejected but '/etcetera' is fine (the old prefix match got this wrong,
-       which is also why 'Program Files (x86)' is now listed explicitly).
-    3. Reachability + writability probe on the deepest EXISTING ancestor (the
-       directory itself may not exist yet — run_download creates it). Catches
-       unplugged drives, read-only mounts and permission errors up front with a
-       clear message instead of a mid-download worker failure. os.access is a
-       best-effort probe (Windows ACLs may not be fully reflected); the worker's
-       mkdir remains the final arbiter.
-
-    Also used by subscriptions per-channel download folders (Phase 3).
-    """
+    """Validate a download directory. Returns (ok, resolved_path_str, error)."""
     if not dl_dir or not isinstance(dl_dir, str) or not dl_dir.strip():
         return False, "", "No download directory provided."
     try:
@@ -740,10 +793,7 @@ def _build_audio_formats(info):
 
 # ── Download worker ────────────────────────────────────────────────────────────
 def _run_download_slot(job_id, *rest):
-    """Hold a concurrency slot for the whole download and wait out first-run ffmpeg.
-    The backstop bounds concurrent process trees regardless of client pacing; the
-    ffmpeg wait means a download started before first-run setup finishes just stays
-    'queued' until ffmpeg is ready, instead of the endpoint rejecting it."""
+    """Hold a concurrency slot for the whole download and wait out first-run ffmpeg."""
     _download_sem.acquire()
     try:
         job = jobs.get(job_id)
@@ -1081,13 +1131,10 @@ def start_download():
     job_id = uuid.uuid4().hex[:10]
     dl_dir = data.get("download_dir") or _get_last_folder() or str(Path.home())
 
-    # Validate + resolve the download directory: traversal-proof system-root
-    # check plus reachability/writability probe. The RESOLVED path is what the
-    # job uses, so history and yt-dlp see the canonical location.
-    _dl_ok, _dl_resolved, _dl_err = _validate_download_dir(dl_dir)
-    if not _dl_ok:
-        return jsonify({"error": _dl_err}), 400
-    dl_dir = _dl_resolved
+    ok, resolved_dir, err = _validate_download_dir(dl_dir)
+    if not ok:
+        return jsonify({"error": err}), 400
+    dl_dir = resolved_dir
 
     # #13 — format_id validation: only safe yt-dlp selector characters allowed
     raw_format_id = data.get("format_id") or ""
@@ -1425,7 +1472,7 @@ def check_updates():
 def run_update():
     with _update_lock:
         if update_status.get("running"): return jsonify({"error": "Already running"}), 409
-        update_status["running"] = True   # claim the slot before spawning (no TOCTOU)
+        update_status["running"] = True
     data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
                      args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False))),
@@ -1570,7 +1617,7 @@ def install_deno():
             return jsonify({"error": "Install already running"}), 409
         if DENO_EXE.exists():
             return jsonify({"error": "Deno already installed"}), 400
-        deno_install_status["running"] = True   # claim before spawning (no TOCTOU)
+        deno_install_status["running"] = True
     threading.Thread(target=_run_deno_install, daemon=True).start()
     return jsonify({"started": True})
 
@@ -1862,6 +1909,320 @@ def history_page(): return render_template("history.html", egm_token=_API_TOKEN)
 @app.route("/themes-page")
 def themes_page(): return render_template("themes.html", egm_token=_API_TOKEN)
 
+@app.route("/subscriptions-page")
+def subscriptions_page(): return render_template("subscriptions.html", egm_token=_API_TOKEN)
+
+# ── Subscriptions API ─────────────────────────────────────────────────────────
+
+@app.route("/api/subscriptions", methods=["GET"])
+def get_subscriptions():
+    return jsonify({"subscriptions": _load_subscriptions()})
+
+@app.route("/api/subscriptions/add", methods=["POST"])
+def add_subscription():
+    data = request.get_json(silent=True) or {}
+    url = (data.get("url") or "").strip()
+    if not url or not url.startswith(("http://", "https://")):
+        return jsonify({"error": "Valid HTTP(S) URL is required"}), 400
+
+    name = (data.get("name") or "")[:200].strip()
+
+    sub = {
+        "id": str(uuid.uuid4()),
+        "url": url,
+        "name": name,
+        "description": "",
+        "thumbnail_url": "",
+        "added_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "last_fetched": None,
+        "auto_fetch_on_open": False,
+        "download_folder": None,
+        "format": "video",
+        "videos": []
+    }
+
+    # Add is INSTANT: validate + append atomically and return immediately. The
+    # channel name + avatar are filled in by the first fetch (kicked off by the
+    # client right after add). Previously this route ran a blocking yt-dlp
+    # metadata fetch (up to 30s) that froze the add UI.
+    def _add(subs):
+        if len(subs) >= 500:
+            raise _AbortMutation(("Subscription limit reached (500)", 400))
+        if any(s.get("url") == url for s in subs):
+            raise _AbortMutation(("Already subscribed", 409))
+        subs.append(sub)
+        return None
+    err = _mutate_subscriptions(_add)
+    if err:
+        return jsonify({"error": err[0]}), err[1]
+    return jsonify({"subscription": sub})
+
+@app.route("/api/subscriptions/remove", methods=["POST"])
+def remove_subscription():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    if not sub_id:
+        return jsonify({"error": "ID is required"}), 400
+
+    def _remove(subs):
+        before = len(subs)
+        subs[:] = [s for s in subs if s.get("id") != sub_id]
+        return len(subs) != before
+    removed = _mutate_subscriptions(_remove)
+    if not removed:
+        return jsonify({"error": "Not found"}), 404
+    return jsonify({"ok": True})
+
+@app.route("/api/subscriptions/update", methods=["POST"])
+def update_subscription():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    if not sub_id:
+        return jsonify({"error": "ID is required"}), 400
+
+    allowed = {"name", "download_folder", "format", "quality", "auto_fetch_on_open"}
+
+    _VALID_QUALITY = {"best", "2160", "1440", "1080", "720", "480",
+                      "mp3_320", "mp3_128", "flac", "wav", "opus_128", "opus_192"}
+
+    def _update(subs):
+        for s in subs:
+            if s.get("id") == sub_id:
+                for k, v in data.items():
+                    if k not in allowed:
+                        continue
+                    if k == "name":
+                        v = str(v)[:200].strip()
+                    elif k == "download_folder":
+                        if v:
+                            ok, resolved, err = _validate_download_dir(str(v))
+                            if not ok:
+                                raise _AbortMutation(("err", err))
+                            v = resolved
+                        else:
+                            v = None
+                    elif k == "format":
+                        v = v if v in ("video", "audio") else "video"
+                    elif k == "quality":
+                        v = v if v in _VALID_QUALITY else "best"
+                    elif k == "auto_fetch_on_open":
+                        v = bool(v)
+                    s[k] = v
+                return ("ok", s)
+        return ("notfound", None)
+    status, payload = _mutate_subscriptions(_update)
+    if status == "err":
+        return jsonify({"error": payload}), 400
+    if status == "notfound":
+        return jsonify({"error": "Not found"}), 404
+    return jsonify({"subscription": payload})
+
+
+# ── Subscription fetch jobs ───────────────────────────────────────────────────
+# A channel fetch calls yt-dlp (up to ~90s). Running it inside the HTTP request
+# would hold a browser connection that whole time, saturating the per-host pool
+# and freezing add/delete. So we run fetches as background jobs and let the
+# client poll a tiny status endpoint — every HTTP request stays sub-second.
+_subfetch_jobs: dict = {}
+_subfetch_lock = threading.Lock()
+_subfetch_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="subfetch")
+
+def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
+    try:
+        meta_name, meta_thumb = "", ""
+        if need_meta:
+            try:
+                mr = _ytdlp("--flat-playlist", "--dump-single-json",
+                            "--playlist-end", "1", url, timeout=30)
+                if mr.returncode == 0 and mr.stdout:
+                    meta = json.loads(mr.stdout.strip())
+                    cname = (meta.get("channel") or meta.get("uploader") or meta.get("title") or "")
+                    meta_name = cname.replace(" - Videos", "").replace(" - Playlists", "").strip()[:200]
+                    thumbs = meta.get("thumbnails") or []
+                    if thumbs and isinstance(thumbs, list):
+                        avatars = [t for t in thumbs if isinstance(t, dict) and
+                                   t.get("id", "").startswith("avatar")]
+                        src = avatars[-1] if avatars else thumbs[-1]
+                        meta_thumb = _safe_thumb_url(src.get("url", "") if isinstance(src, dict) else "")
+            except Exception:
+                pass
+
+        r = _run_yt(
+            sys.executable, "-m", "yt_dlp",
+            "--flat-playlist", "-j",
+            "--playlist-end", "200",
+            "--extractor-args", "youtubetab:approximate_date",
+            url, timeout=90
+        )
+        if r.returncode != 0:
+            result = {"status": "error", "error": "Failed to fetch videos",
+                      "detail": (r.stderr or "")[:500]}
+        else:
+            fetched = []          # all parsed entries; dedup happens in the atomic merge
+            entry_channel = ""
+            for line in (r.stdout or "").strip().split("\n"):
+                if not line.strip():
+                    continue
+                try:
+                    entry = json.loads(line)
+                except Exception:
+                    continue
+                vid = _safe_video_id(entry.get("id", ""))
+                if not vid:
+                    continue
+                if not entry_channel:
+                    entry_channel = (entry.get("channel") or entry.get("uploader") or "")[:200]
+                    entry_channel = entry_channel.replace(" - Videos", "").replace(" - Playlists", "").strip()
+                vid_thumb = ""
+                vid_thumbs = entry.get("thumbnails") or []
+                if vid_thumbs and isinstance(vid_thumbs, list):
+                    vid_thumb = _safe_thumb_url(vid_thumbs[-1].get("url", "") if isinstance(vid_thumbs[-1], dict) else "")
+                if not vid_thumb:
+                    vid_thumb = _safe_thumb_url(entry.get("thumbnail") or "")
+                upload_date = ""
+                if entry.get("upload_date"):
+                    upload_date = str(entry["upload_date"])
+                elif entry.get("timestamp"):
+                    import datetime as dt
+                    upload_date = dt.datetime.utcfromtimestamp(entry["timestamp"]).strftime("%Y%m%d")
+                fetched.append({
+                    "video_id": vid,
+                    "title": (entry.get("title") or "Untitled")[:300],
+                    "duration": entry.get("duration") or 0,
+                    "upload_date": upload_date,
+                    "thumbnail_url": vid_thumb,
+                    "availability": entry.get("availability") or "public",
+                    "is_new": True,
+                    "formats": [],
+                    "downloaded": False,
+                    "download_path": None
+                })
+
+            def _merge(subs):
+                sub = next((s for s in subs if s.get("id") == sub_id), None)
+                if sub is None:
+                    return None
+                for v in (sub.get("videos") or []):
+                    v["is_new"] = False
+                if force:
+                    new_videos = fetched
+                    sub["videos"] = list(new_videos)
+                else:
+                    cur_ids = {v.get("video_id") for v in (sub.get("videos") or [])}
+                    new_videos = [v for v in fetched if v["video_id"] not in cur_ids]
+                    sub["videos"] = new_videos + (sub.get("videos") or [])
+                if meta_name and not sub.get("name"):
+                    sub["name"] = meta_name
+                if meta_thumb and not sub.get("thumbnail_url"):
+                    sub["thumbnail_url"] = meta_thumb
+                if entry_channel and not sub.get("name"):
+                    sub["name"] = entry_channel
+                sub["last_fetched"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+                return {"sub": sub, "new_count": len(new_videos)}
+            merged = _mutate_subscriptions(_merge)
+            if merged is None:
+                result = {"status": "error", "error": "Subscription not found"}
+            else:
+                result = {"status": "done", "subscription": merged["sub"],
+                          "new_count": merged["new_count"], "total": len(merged["sub"]["videos"])}
+    except Exception as e:
+        result = {"status": "error", "error": str(e)[:500]}
+    result["_ts"] = time.time()
+    with _subfetch_lock:
+        _subfetch_jobs[fetch_id] = result
+
+@app.route("/api/subscriptions/fetch", methods=["POST"])
+def fetch_subscription_videos():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    force = bool(data.get("force", False))
+    if not sub_id:
+        return jsonify({"error": "ID is required"}), 400
+    sub0 = next((s for s in _load_subscriptions() if s.get("id") == sub_id), None)
+    if not sub0:
+        return jsonify({"error": "Not found"}), 404
+    url = sub0.get("url", "")
+    if not url:
+        return jsonify({"error": "No URL"}), 400
+    need_meta = (not sub0.get("name")) or (not sub0.get("thumbnail_url"))
+
+    fetch_id = str(uuid.uuid4())
+    now = time.time()
+    with _subfetch_lock:
+        # Lazy GC: drop finished jobs whose result was never collected (window closed).
+        for k in [k for k, v in _subfetch_jobs.items()
+                  if v.get("status") in ("done", "error") and now - v.get("_ts", now) > 120]:
+            _subfetch_jobs.pop(k, None)
+        _subfetch_jobs[fetch_id] = {"status": "pending", "_ts": now}
+    _subfetch_pool.submit(_run_subfetch, fetch_id, sub_id, url, force, need_meta)
+    return jsonify({"fetch_id": fetch_id})
+
+@app.route("/api/subscriptions/fetch-status", methods=["POST"])
+def fetch_subscription_status():
+    data = request.get_json(silent=True) or {}
+    fetch_id = (data.get("fetch_id") or "").strip()
+    with _subfetch_lock:
+        job = _subfetch_jobs.get(fetch_id)
+        if job and job.get("status") in ("done", "error"):
+            job = _subfetch_jobs.pop(fetch_id)   # one-shot delivery of the terminal result
+    if job is None:
+        return jsonify({"status": "unknown"}), 200
+    return jsonify({k: v for k, v in job.items() if k != "_ts"})
+
+@app.route("/api/subscriptions/mark-downloaded", methods=["POST"])
+def mark_downloaded():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("sub_id") or "").strip()
+    video_id = (data.get("video_id") or "").strip()
+    if not sub_id or not video_id:
+        return jsonify({"error": "sub_id and video_id required"}), 400
+    downloaded = data.get("downloaded", True) is True
+
+    def _mark(subs):
+        for s in subs:
+            if s.get("id") == sub_id:
+                for v in (s.get("videos") or []):
+                    if v.get("video_id") == video_id:
+                        v["downloaded"] = downloaded
+                        return "ok"
+                return "novideo"
+        return "nosub"
+    res = _mutate_subscriptions(_mark)
+    if res == "novideo":
+        return jsonify({"error": "Video not found"}), 404
+    if res == "nosub":
+        return jsonify({"error": "Subscription not found"}), 404
+    return jsonify({"ok": True})
+
+
+@app.route("/api/subscriptions/reorder", methods=["POST"])
+def reorder_subscription():
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    direction = (data.get("direction") or "").strip()
+    if not sub_id or direction not in ("top", "up", "down", "bottom"):
+        return jsonify({"error": "id and direction (top/up/down/bottom) required"}), 400
+    def _reorder(subs):
+        idx = next((i for i, s in enumerate(subs) if s.get("id") == sub_id), None)
+        if idx is None:
+            return False
+        item = subs.pop(idx)
+        if direction == "top":
+            subs.insert(0, item)
+        elif direction == "up" and idx > 0:
+            subs.insert(idx - 1, item)
+        elif direction == "down" and idx < len(subs):
+            subs.insert(idx + 1, item)
+        elif direction == "bottom":
+            subs.append(item)
+        else:
+            subs.insert(idx, item)
+        return True
+    ok = _mutate_subscriptions(_reorder)
+    if not ok:
+        return jsonify({"error": "Subscription not found"}), 404
+    return jsonify({"ok": True})
+
 @app.route("/api/shutdown", methods=["POST"])
 def shutdown():
     """Clean shutdown requested by Electron before-quit.
@@ -1913,7 +2274,7 @@ if __name__ == "__main__":
         return 8899
     port = _resolve_port()
     host = "127.0.0.1"  # always localhost — never exposed to network
-    threading.Thread(target=lambda: app.run(host=host,port=port,use_reloader=False),
+    threading.Thread(target=lambda: app.run(host=host,port=port,threaded=True,use_reloader=False),
                      daemon=True, name="flask").start()
 
     # Under Electron: keep Flask alive; Electron manages the window and lifecycle.

@@ -17,8 +17,8 @@ jobs:
     - name: Greet first-time contributor
       uses: actions/first-interaction@1c4688942c71f71d4f5502a26ea67c331730fa4d  # v3
       with:
-        repo_token: ${{ secrets.GITHUB_TOKEN }}
-        issue_message: |
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        issue-message: |
           👋 **Welcome to EGM Downloader!**
           
           Thank you for opening your first issue! We appreciate you taking the time to help improve the project.
@@ -30,7 +30,7 @@ jobs:
           
           Thanks for being part of the community! 🎉
           
-        pr_message: |
+        pr-message: |
           👋 **Welcome to EGM Downloader!**
           
           Thank you for opening your first pull request! We're excited to review your contribution.

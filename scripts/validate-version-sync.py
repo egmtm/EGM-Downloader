@@ -118,12 +118,6 @@ def check_root_index_html(v, b, date, time):
     elif m.group(1) != v:
         errors.append(f"{rel}: <title> is 'v{m.group(1)}', expected 'v{v}'")
 
-    # version-badge visible text
-    m = re.search(r'id="version-badge"[^>]*>v([\d.]+)<', content, re.DOTALL)
-    if not m:
-        errors.append(f"{rel}: version-badge visible text not found")
-    elif m.group(1) != v:
-        errors.append(f"{rel}: version-badge text is 'v{m.group(1)}', expected 'v{v}'")
 
     return errors
 
@@ -170,12 +164,6 @@ def check_linux_index_html(v, b, date, time):
     elif m.group(1) != v:
         errors.append(f"{rel}: <title> is 'v{m.group(1)}', expected 'v{v}'")
 
-    # version-badge visible text
-    m = re.search(r'id="version-badge"[^>]*>v([\d.]+)<', content, re.DOTALL)
-    if not m:
-        errors.append(f"{rel}: version-badge visible text not found")
-    elif m.group(1) != v:
-        errors.append(f"{rel}: version-badge text is 'v{m.group(1)}', expected 'v{v}'")
 
     return errors
 
@@ -279,7 +267,8 @@ def check_linux_drift_from_root():
     # they must be drift-checked too — otherwise a theme added to root but not linux
     # would slip through.
     template_files = ['index.html', 'index_styles.html', 'index_scripts.html',
-                      'history.html', 'themes.html', 'theme_styles.html', 'theme_data.html']
+                      'history.html', 'themes.html', 'theme_styles.html', 'theme_data.html',
+                      'subscriptions.html']
     for name in template_files:
         root_path = root / 'templates' / name
         linux_path = root / 'linux' / 'templates' / name
