@@ -281,19 +281,21 @@ Concurrency backstop, path traversal fix, TOCTOU locks, Electron 42.4.0 + CVE-20
 **v1.0.4 — Sharp:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.4)
 Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 
-**v1.1 — IGNITION:**
+**v1.1 — IGNITION:** *(Shipping June 17, 2026)*
 - 📡 Subscriptions — save channels and playlists, fetch new videos automatically
-- 🗂️ Full subscriptions window — sidebar with channel list, video pane, collapsible, remembers size/position
+- 🗂️ Full subscriptions window — sidebar with channel list, video pane, collapsible, resizable, remembers size/position
 - 🖼️ Rich video list — thumbnails, durations, upload dates, sortable, paginated, "New" badge on recent videos
-- ✅ Download from subscriptions — select videos, choose format, full progress pipeline integrating with main history
+- ✅ Download from subscriptions — select videos, choose format and quality per channel, full progress pipeline integrating with main history
 - 📌 Queue panel + sticky download bar — track all active downloads across channels, cancel per-job
-- 📁 Per-channel settings — custom download folder, Video/Audio toggle, reordering, all persisted
+- 📁 Per-channel settings — custom download folder, format and quality (Video: Best/4K/1080p/720p; Audio: MP3/FLAC/WAV/OPUS), reordering, all persisted
+- 💾 Subscriptions export/import — channel list included in settings backup, URL-only and lightweight, backward compatible
 - 🪟 Sub-app mode — main window steps aside when subscriptions opens, restores on close
-- 🎨 Visual identity — SVG wordmark across app + all splash screens, live theme propagation, video titles refined, date styling polished, sidebar thumbnails 2× bigger
-- 🔒 Security hardened — video ID allowlist, attribute escaping, download folder validation, TERMINAL_STATES guard
+- 🎨 Visual identity — SVG wordmark across app + all splash screens, live theme propagation, video titles refined, fade-in transitions
+- 🔒 Security hardened — video ID allowlist, attribute escaping, folder validation, TERMINAL_STATES guard, import data treated as untrusted
 - 🔒 Members-only graceful error — actionable message guides users to load cookies when format unavailable
-- ⚙️ Settings & polish — Cookies merged into Settings, 2×2 nav grid, SVG loader, queue icon, plugins manual-only, resizable sidebar, all native dialogs replaced with themed modals
-- 🪟 Windows polish — pre-splash flash fix, .exe shortcut, uninstaller cleanup
+- ⚙️ Settings & polish — Cookies merged into Settings, 2×2 nav grid, queue icon, plugins manual-only, resizable sidebar, all native dialogs replaced with themed modals
+- 🪟 Windows polish — embedded Python 3.12.10 in portable (no system Python needed), .exe shortcut, uninstaller cleanup
+- ⚡ Electron 42.4.1
 - 🧪 Preload bridge parity locked across all 3 platforms
 
 **v1.2 — [TBD]:**
