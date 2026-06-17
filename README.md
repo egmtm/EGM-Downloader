@@ -42,15 +42,17 @@
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
-- 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
+- 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
 - 🎨 **400 Themes** - 378 permanent across 28 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 400, seasonal themes appear during their respective time of year.
+- 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
-- 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
 - 📝 **Custom Filenames** - Edit filenames before downloading
+- 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions
+- 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
 - 🛠️ **Plugin Updates** - Update yt-dlp and ffmpeg without reinstalling
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
-- 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry
+- 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, includes embedded Python
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
 - 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 
