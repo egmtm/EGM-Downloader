@@ -100,6 +100,9 @@ v1.1 IGNITION — Phase 4: Polish
        - Quality options: Video → Best/2160p/1440p/1080p/720p/480p, Audio → MP3 320/128/FLAC/WAV
        - Action buttons (Latest/Fetch/Delete) top-right with breathing room
     7. Export/import subscriptions (integrate into settings export)
+
+  DEFERRED (v1.2+):
+    • NSIS: detect running app during install (needs nsProcess plugin)
     8. ✓ Portable Python isolation — embedded Python 3.12.10, fully self-contained, zero shared packages
 
   TODO (non-blocking):
