@@ -353,20 +353,6 @@ document.getElementById('footer-update-btn').addEventListener('click', checkForU
   } catch {}
 })();
 
-// ── Silent plugin check on launch — populates Update Plugins grid in background ──
-// User sees real version data when expanding the panel instead of "checking…" placeholder
-setTimeout(async () => {
-  try {
-    const [data, deno] = await Promise.all([
-      fetch('/api/check-updates').then(r => r.json()),
-      fetch('/api/deno/status').then(r => r.json()),
-    ]);
-    data.deno = deno;
-    if (typeof renderUpdGrid === 'function') renderUpdGrid(data);
-    if (typeof syncInstallBtn === 'function') syncInstallBtn();
-  } catch {}
-}, 2000);
-
 // ── Cross-window readd: receive URLs from full history window ─────────────────
 // Two paths: Electron IPC (preferred, most reliable) and BroadcastChannel (web fallback).
 // History window in Electron has no window.opener (separate BrowserWindow).
@@ -1759,11 +1745,9 @@ function toast(msg, type='') {
     const currentTab = getActiveTab();
 
     if (isOpen && currentTab === target) {
-      // Same button — close panel
       panel.classList.remove('open');
       setActiveNav(null);
     } else {
-      // Open panel to this tab (or switch tab if already open)
       switchTab(target);
       setActiveNav(target);
       if (!isOpen) {
@@ -1772,13 +1756,11 @@ function toast(msg, type='') {
     }
   }));
 
-  // Clicking inside panel tabs still works
   tabs.forEach(t => t.addEventListener('click', () => {
     switchTab(t.dataset.tab);
     setActiveNav(t.dataset.tab);
   }));
 
-  // Close on outside click
   document.addEventListener('click', (e) => {
     if (!panel.contains(e.target) && !e.target.closest('.nav-btn')) {
       panel.classList.remove('open');
@@ -2071,6 +2053,9 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     }));
   }
 
+  // Guard: when applying a theme received FROM another window, don't re-broadcast
+  // it (prevents an IPC ping-pong between windows).
+  let _applyingRemoteTheme = false;
   function applyTheme(name) {
     document.body.classList.remove(...THEMES);
     if (name && name !== 'void') document.body.classList.add(name);
@@ -2078,6 +2063,11 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
     saveRecents(name || 'void');
     renderPicker(name || 'void');
     post('/api/settings/save', { theme: name || 'void' }).catch(() => {});
+    // Broadcast to all other open windows (History/Themes/Subscriptions) so they
+    // update live. main.js fans this out to every window except the sender.
+    if (!_applyingRemoteTheme && window.electronAPI && window.electronAPI.setTheme) {
+      window.electronAPI.setTheme(name || 'void');
+    }
   }
 
   const saved = localStorage.getItem('egm-theme') || 'void';
@@ -2097,7 +2087,10 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
   // Listen for theme changes from themes window (via IPC)
   if (window.electronAPI && window.electronAPI.onThemeChanged) {
-    window.electronAPI.onThemeChanged(theme => applyTheme(theme));
+    window.electronAPI.onThemeChanged(theme => {
+      _applyingRemoteTheme = true;
+      try { applyTheme(theme); } finally { _applyingRemoteTheme = false; }
+    });
   }
 
   // Open themes window
@@ -2112,6 +2105,15 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   };
 
 })(); // ── End theme picker IIFE ───────────────────────────────────────────────
+
+// ── Subscriptions button ─────────────────────────────────────────────────────
+document.getElementById('subs-btn').addEventListener('click', () => {
+  if (window.electronAPI && window.electronAPI.openSubscriptions) {
+    window.electronAPI.openSubscriptions();
+  } else {
+    window.open('/subscriptions-page', '_blank');
+  }
+});
 
 // ── Theme import / export ─────────────────────────────────────────────────────
 (function() {
@@ -2466,6 +2468,13 @@ function videoQualityBgClick(e) {
         fetch('/api/settings').then(r => r.json()),
         fetch('/api/history?page=1&per_page=10000').then(r => r.json()),
       ]);
+      // Fetch subscription URLs for export (URL-only, re-fetch on import)
+      let subUrls = [];
+      try {
+        const subsData = await fetch('/api/subscriptions').then(r => r.json());
+        const subsList = subsData && Array.isArray(subsData.subscriptions) ? subsData.subscriptions : [];
+        subUrls = subsList.map(s => s.url).filter(Boolean);
+      } catch {}
       // Collect all egm-* localStorage keys (themes, custom theme, recents, etc.)
       const lsKeys = {};
       try {
@@ -2477,17 +2486,18 @@ function videoQualityBgClick(e) {
         }
       } catch {}
       const envelope = {
-        _egm_export_version: 2,
+        _egm_export_version: 3,
         exported_at: new Date().toISOString(),
         settings: s || {},
         history: (h && Array.isArray(h.items)) ? h.items : [],
+        subscriptions: subUrls,
         localStorage: lsKeys,
       };
       const content = JSON.stringify(envelope, null, 2);
       if (window.electronAPI?.saveFile) {
         const r = await window.electronAPI.saveFile('egm-settings.json', content);
         if (r.canceled) return;
-        if (r.ok) toast(`Exported ✓  (${envelope.history.length} history entries, ${Object.keys(lsKeys).length} preferences)`, 'ok');
+        if (r.ok) toast(`Exported ✓  (${envelope.history.length} history, ${subUrls.length} subscriptions, ${Object.keys(lsKeys).length} preferences)`, 'ok');
         else toast('Export failed: ' + (r.error || 'unknown'), 'err');
       } else {
         await navigator.clipboard.writeText(content);
@@ -2525,7 +2535,7 @@ function videoQualityBgClick(e) {
         const r = await post('/api/history/import', { items: historyToImport });
         if (r && r.ok) msg += ` + ${r.count} history entries (thumbnails not included)`;
       }
-      // Restore localStorage keys (v2 envelopes) — captures custom themes, recents, etc.
+      // Restore localStorage keys (v2+ envelopes) — captures custom themes, recents, etc.
       try {
         if (lsToImport) {
           Object.entries(lsToImport).forEach(([k, v]) => {
@@ -2541,7 +2551,30 @@ function videoQualityBgClick(e) {
         }
       } catch {}
 
-      toast(`${msg} — reloading…`, 'ok');
+      // Import subscriptions (v3+): URL-only, skip duplicates, user re-fetches
+      let subCount = 0;
+      const subsToImport = (isEnvelope && Array.isArray(data.subscriptions)) ? data.subscriptions : [];
+      if (subsToImport.length > 0) {
+        try {
+          const existing = await fetch('/api/subscriptions').then(r => r.json());
+          const existingList = existing && Array.isArray(existing.subscriptions) ? existing.subscriptions : [];
+          const existingUrls = new Set(existingList.map(s => s.url));
+          for (const url of subsToImport) {
+            if (typeof url !== 'string' || !url.trim()) continue;
+            if (existingUrls.has(url.trim())) continue;
+            try {
+              await fetch('/api/subscriptions/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url.trim() })
+              });
+              subCount++;
+            } catch {}
+          }
+        } catch {}
+      }
+
+      toast(`${msg}${subCount > 0 ? ` + ${subCount} subscriptions (re-fetch to load videos)` : ''} — reloading…`, 'ok');
       setTimeout(() => location.reload(), 800);
     } catch { toast('Could not import settings — file may not be valid settings JSON', 'err'); }
   });

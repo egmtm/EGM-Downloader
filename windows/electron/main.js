@@ -420,7 +420,8 @@ ipcMain.handle('quit-app', (event) => {
 // ── IPC: folder picker ────────────────────────────────────────────────────────
 ipcMain.handle('pick-folder', async (event, defaultPath) => {
   if (!isTrustedSender(event)) return null;
-  const result = await dialog.showOpenDialog(mainWindow, {
+  const parentWin = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+  const result = await dialog.showOpenDialog(parentWin, {
     title:       'Select download folder',
     defaultPath: defaultPath,
     properties:  ['openDirectory', 'createDirectory'],
@@ -539,9 +540,10 @@ function saveHistoryBounds(win) {
   } catch {}
 }
 
-ipcMain.handle('open-history-window', async (event) => {
+ipcMain.handle('open-history-window', async (event, from) => {
   if (!isTrustedSender(event)) return;
   if (historyWindow && !historyWindow.isDestroyed()) {
+    if (from === 'subs') historyWindow.loadURL(`${APP_URL}/history-page?from=subs`);
     historyWindow.focus();
     return;
   }
@@ -553,7 +555,7 @@ ipcMain.handle('open-history-window', async (event) => {
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
-  historyWindow.loadURL(`${APP_URL}/history-page`);
+  historyWindow.loadURL(`${APP_URL}/history-page${from === 'subs' ? '?from=subs' : ''}`);
   hardenWindow(historyWindow);
   let saveTimer = null;
   const debouncedSave = () => {
@@ -607,6 +609,110 @@ ipcMain.handle('open-themes-window', async (event) => {
   themesWindow.on('closed', () => { themesWindow = null; });
 });
 
+// ── IPC: open subscriptions window ────────────────────────────────────────────
+let subsWindow = null;
+let subsActiveDownloads = false;
+let subsForceClose = false;
+const SUBS_BOUNDS_FILE = path.join(WINDOW_STATE_DIR, 'egm_subs_window.json');
+
+function loadSubsBounds() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(SUBS_BOUNDS_FILE, 'utf8'));
+    const displays = require('electron').screen.getAllDisplays();
+    const onScreen = displays.some(d => {
+      const b = d.bounds;
+      return saved.x < b.x + b.width && saved.x + saved.width > b.x &&
+             saved.y < b.y + b.height && saved.y + saved.height > b.y;
+    });
+    return onScreen ? saved : { width: 1100, height: 700 };
+  } catch { return { width: 1100, height: 700 }; }
+}
+
+function saveSubsBounds(win) {
+  try { fs.writeFileSync(SUBS_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
+}
+
+ipcMain.handle('open-subscriptions-window', async (event) => {
+  if (!isTrustedSender(event)) return;
+  if (subsWindow && !subsWindow.isDestroyed()) { subsWindow.focus(); return; }
+  const bounds = loadSubsBounds();
+  subsWindow = new BrowserWindow({
+    ...bounds, minWidth: 600, minHeight: 400,
+    title: 'Subscriptions — EGM Downloader',
+    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    autoHideMenuBar: true,
+  });
+  subsWindow.loadURL(`${APP_URL}/subscriptions-page`);
+  hardenWindow(subsWindow);
+  // Sub-app mode: hide main window when subscriptions opens
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide();
+  subsActiveDownloads = false; subsForceClose = false;
+  let saveTimer = null;
+  const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveSubsBounds(subsWindow), 500); };
+  subsWindow.on('resize', debouncedSave);
+  subsWindow.on('move', debouncedSave);
+  subsWindow.on('close', (e) => {
+    // Item 1: if downloads are active, intercept the close (X button or the
+    // renderer's "Back to app" → close-subscriptions) and confirm natively.
+    if (subsForceClose || !subsActiveDownloads) return;
+    e.preventDefault();
+    const choice = dialog.showMessageBoxSync(subsWindow, {
+      type: 'warning',
+      buttons: ['Close anyway', 'Keep open'],
+      defaultId: 1,
+      cancelId: 1,
+      noLink: true,
+      title: 'Downloads in progress',
+      message: 'Downloads are still in progress.',
+      detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
+    });
+    if (choice === 0) { subsForceClose = true; subsWindow.close(); }
+  });
+  subsWindow.on('closed', () => {
+    subsWindow = null;
+    subsActiveDownloads = false; subsForceClose = false;
+    // Restore main window when subscriptions closes
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+  });
+});
+
+ipcMain.handle('close-subscriptions', async (event) => {
+  if (!isTrustedSender(event)) return;
+  if (subsWindow && !subsWindow.isDestroyed()) subsWindow.close();
+});
+
+// Item 1: renderer keeps main.js informed whether subscriptions has active
+// downloads, so subsWindow.on('close') above can decide whether to confirm.
+ipcMain.on('subs-active-downloads', (event, active) => {
+  if (!isTrustedSender(event)) return;
+  subsActiveDownloads = !!active;
+});
+
+// Restore OS-level window focus after a native dialog. A sandboxed +
+// contextIsolated renderer can't reliably re-focus its own BrowserWindow with
+// window.focus(); the main process must call .focus() on the sender's window.
+ipcMain.on('refocus-window', (event) => {
+  if (!isTrustedSender(event)) return;
+  const win = BrowserWindow.fromWebContents(event.sender);
+  if (!win || win.isDestroyed()) return;
+  // win.focus() restores the OS window but NOT the web page's INPUT focus, so
+  // document.hasFocus() stays false and clipboard/keyboard stay dead after a
+  // native dialog. webContents.focus() is what actually restores it — it's what
+  // opening DevTools does under the hood. Retry once after the dialog finishes
+  // tearing down, to win the focus race.
+  const refocus = () => {
+    if (win.isDestroyed()) return;
+    try { win.focus(); } catch (e) {}
+    try {
+      const wc = win.webContents;
+      if (wc && !wc.isDestroyed()) wc.focus();
+    } catch (e) {}
+  };
+  refocus();
+  setTimeout(refocus, 60);
+});
+
 // ── IPC: relay theme change from themes window to main window ─────────────────
 
 // Theme key validation — alphanumeric only, prevents IPC injection while
@@ -614,9 +720,12 @@ ipcMain.handle('open-themes-window', async (event) => {
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
 ipcMain.on('set-theme', (event, theme) => {
   if (!isTrustedSender(event)) return;
-  if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return; // reject malformed theme keys
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('theme-changed', theme);
+  if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return;
+  // Item 3: broadcast to every open window except the sender, so all child
+  // windows (main, history, themes, subscriptions) update live on theme change.
+  for (const win of BrowserWindow.getAllWindows()) {
+    if (win.isDestroyed() || win.webContents.id === event.sender.id) continue;
+    win.webContents.send('theme-changed', theme);
   }
 });
 

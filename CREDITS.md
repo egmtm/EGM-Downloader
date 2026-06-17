@@ -37,17 +37,6 @@ yt-dlp is an actively maintained fork of youtube-dl with additional features and
 
 ---
 
-### yt-dlp/ejs
-**EJS remote components for YouTube signature solving**
-
-- **What it does:** Provides the EJS runtime components used by yt-dlp to solve YouTube's signature cipher, enabling downloads of signature-protected content
-- **License:** MIT
-- **Repository:** https://github.com/yt-dlp/ejs
-
-**Thank you** to the yt-dlp team for maintaining this companion component.
-
----
-
 ### Flask
 **Web framework for the backend**
 
@@ -174,6 +163,15 @@ Deno provides the secure runtime environment needed for bgutil-ytdlp-pot-provide
 
 ---
 
+### isort
+**Python import sorting**
+
+- **License:** MIT
+- **Repository:** https://github.com/PyCQA/isort
+- **Purpose:** Maintains consistent import organization
+
+---
+
 ### ESLint
 **JavaScript linting**
 
@@ -231,7 +229,7 @@ To everyone who contributes to open source software - from bug reports to docume
 EGM Downloader is released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, which is compatible with all the dependencies listed above.
 
 ### License Summary:
-- **MIT License:** Electron, Deno, bgutil-ytdlp-pot-provider, yt-dlp/ejs, electron-builder, flake8, ESLint, Node.js
+- **MIT License:** Electron, Deno, bgutil-ytdlp-pot-provider, electron-builder, flake8, isort, ESLint, Node.js
 - **BSD-3-Clause:** Flask (Pallets)
 - **GPL-2.0:** mutagen
 - **Unlicense (Public Domain):** yt-dlp
@@ -266,6 +264,6 @@ We strive to properly credit all contributions to this project.
 
 ---
 
-**Last Updated:** June 12, 2026
+**Last Updated:** April 28, 2026
 
 **Thank you to everyone who makes open source possible!** ❤️

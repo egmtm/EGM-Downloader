@@ -149,6 +149,7 @@ Section "Install"
   File "${REPO_ROOT}/templates/themes.html"
   File "${REPO_ROOT}/templates/theme_styles.html"
   File "${REPO_ROOT}/templates/theme_data.html"
+  File "${REPO_ROOT}/templates/subscriptions.html"
 
   ; ── static\ ──
   SetOutPath "$INSTDIR\static"
@@ -207,7 +208,6 @@ Section "Uninstall"
 
   ; ── Remove app files ──
   Delete "$INSTDIR\EGM Downloader.exe"
-  Delete "$INSTDIR\launch.bat"
   Delete "$INSTDIR\launch.py"
   Delete "$INSTDIR\instructions.txt"
   Delete "$INSTDIR\app.py"
@@ -237,6 +237,7 @@ Choose No to keep them for faster reinstall." \
     /SD IDNO IDNO skip_components
 
   RMDir /r "$INSTDIR\node_bin"
+  RMDir /r "$INSTDIR\python"
   RMDir /r "$INSTDIR\runtime"
   RMDir /r "$INSTDIR\ffmpeg_bin"
   RMDir /r "$INSTDIR\electron\node_modules"
@@ -251,6 +252,7 @@ Choose No to keep them for a faster setup on next install." \
 
   Delete "$INSTDIR\egm_settings.json"
   Delete "$INSTDIR\egm_history.json"
+  Delete "$INSTDIR\egm_subscriptions.json"
   Delete "$INSTDIR\cookies.txt"
   RMDir /r "$INSTDIR\thumbnails"
   RMDir /r "$INSTDIR\data"

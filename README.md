@@ -60,123 +60,136 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.0.4 — Sharp. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.1 — IGNITION. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/01-main-ui-the-10s-theme.png">
-        <img src="screenshots/01-main-ui-the-10s-theme.png" width="340" alt="Main UI — The 10s Theme"/>
+      <a href="screenshots/01-splash-screen.png">
+        <img src="screenshots/01-splash-screen.png" width="340" alt="Splash Screen"/>
       </a>
-      <br/><sub><b>Main UI — The 10s Theme</b></sub>
+      <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-settings-hidden-millenium-bug-theme.png">
-        <img src="screenshots/02-main-ui-settings-hidden-millenium-bug-theme.png" width="340" alt="Main UI — Millennium Bug Theme"/>
+      <a href="screenshots/02-main-ui-prism-theme.png">
+        <img src="screenshots/02-main-ui-prism-theme.png" width="340" alt="Main UI — Prism Theme"/>
       </a>
-      <br/><sub><b>Main UI — Millennium Bug Theme</b></sub>
+      <br/><sub><b>Main UI — Prism Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/03-fetching-videos-ghost-theme.png">
-        <img src="screenshots/03-fetching-videos-ghost-theme.png" width="340" alt="Fetching Videos — Ghost Theme"/>
+      <a href="screenshots/03-main-ui-settings-hidden-prague-theme.png">
+        <img src="screenshots/03-main-ui-settings-hidden-prague-theme.png" width="340" alt="Main UI — Prague Theme"/>
       </a>
-      <br/><sub><b>Fetching Videos — Ghost Theme</b></sub>
+      <br/><sub><b>Main UI — Prague Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/04-download-all-videos-zion-theme.png">
-        <img src="screenshots/04-download-all-videos-zion-theme.png" width="340" alt="Download All Videos — Zion Theme"/>
+      <a href="screenshots/04-videos-fetched-quality-selector-la-parguera-theme.png">
+        <img src="screenshots/04-videos-fetched-quality-selector-la-parguera-theme.png" width="340" alt="Videos Fetched — La Parguera Theme"/>
       </a>
-      <br/><sub><b>Download All Videos — Zion Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/05-downloading-videos-midnight-theme.png">
-        <img src="screenshots/05-downloading-videos-midnight-theme.png" width="340" alt="Downloading Videos — Midnight Theme"/>
-      </a>
-      <br/><sub><b>Downloading Videos — Midnight Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/06-download-history-la-guancha-theme.png">
-        <img src="screenshots/06-download-history-la-guancha-theme.png" width="340" alt="Download History — La Guancha Theme"/>
-      </a>
-      <br/><sub><b>Download History — La Guancha Theme</b></sub>
+      <br/><sub><b>Videos Fetched — La Parguera Theme 🇵🇷</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/07-themes-main-ui-the-witness-theme.png">
-        <img src="screenshots/07-themes-main-ui-the-witness-theme.png" width="340" alt="Themes — The Witness Theme"/>
+      <a href="screenshots/09-subscriptions-main-ui-conejo-malo-theme.png">
+        <img src="screenshots/09-subscriptions-main-ui-conejo-malo-theme.png" width="340" alt="Subscriptions — Conejo Malo 3.0 Theme"/>
       </a>
-      <br/><sub><b>Themes Window — The Witness Theme</b></sub>
+      <br/><sub><b>Subscriptions — Conejo Malo 3.0 Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/08-all-themes-n64-theme.png">
-        <img src="screenshots/08-all-themes-n64-theme.png" width="340" alt="All Themes — N64 Theme"/>
+      <a href="screenshots/10-subscriptions-sidebar-minimized-ghost-theme.png">
+        <img src="screenshots/10-subscriptions-sidebar-minimized-ghost-theme.png" width="340" alt="Subscriptions Sidebar — Ghost Theme"/>
       </a>
-      <br/><sub><b>All Themes — N64 Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/09-advanced-options-old-san-juan-theme.png">
-        <img src="screenshots/09-advanced-options-old-san-juan-theme.png" width="340" alt="Advanced Options — Old San Juan Theme"/>
-      </a>
-      <br/><sub><b>Advanced Options — Old San Juan Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/10-plugins-update-advanced-bauhaus-theme.png">
-        <img src="screenshots/10-plugins-update-advanced-bauhaus-theme.png" width="340" alt="Plugins Update — Bauhaus Theme"/>
-      </a>
-      <br/><sub><b>Plugins Update — Bauhaus Theme</b></sub>
+      <br/><sub><b>Subscriptions Sidebar — Ghost Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/11-plugin-update-success-brutalist-theme.png">
-        <img src="screenshots/11-plugin-update-success-brutalist-theme.png" width="340" alt="Plugin Update Success — Brutalist Theme"/>
+      <a href="screenshots/11-subscriptions-download-queue-windows95-theme.png">
+        <img src="screenshots/11-subscriptions-download-queue-windows95-theme.png" width="340" alt="Download Queue — Windows 95 Theme"/>
       </a>
-      <br/><sub><b>Plugin Update Success — Brutalist Theme</b></sub>
+      <br/><sub><b>Download Queue — Windows 95 Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/12-deno-reinstall-button-blue-bird-theme.png">
-        <img src="screenshots/12-deno-reinstall-button-blue-bird-theme.png" width="340" alt="Deno Reinstall Button — Blue Bird Theme"/>
+      <a href="screenshots/07-all-themes-northern-lights-theme.png">
+        <img src="screenshots/07-all-themes-northern-lights-theme.png" width="340" alt="All Themes — Northern Lights Theme"/>
       </a>
-      <br/><sub><b>Deno Reinstall — Blue Bird Theme</b></sub>
+      <br/><sub><b>All Themes — Northern Lights Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/08-download-history-n64-theme.png">
+        <img src="screenshots/08-download-history-n64-theme.png" width="340" alt="Download History — N64 Theme"/>
+      </a>
+      <br/><sub><b>Download History — N64 Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/05-advanced-options-plugins-savathun-theme.png">
+        <img src="screenshots/05-advanced-options-plugins-savathun-theme.png" width="340" alt="Advanced Options — Savathûn Theme"/>
+      </a>
+      <br/><sub><b>Advanced Options — Savathûn Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/06-plugins-update-complete-ps1-theme.png">
+        <img src="screenshots/06-plugins-update-complete-ps1-theme.png" width="340" alt="Plugins Update Complete — PS1 Theme"/>
+      </a>
+      <br/><sub><b>Plugins Update Complete — PS1 Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/12-export-settings-haze-theme.png">
+        <img src="screenshots/12-export-settings-haze-theme.png" width="340" alt="Export Settings — Haze Theme"/>
+      </a>
+      <br/><sub><b>Export Settings — Haze Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/13-reinstall-deno-dream-dust-theme.png">
+        <img src="screenshots/13-reinstall-deno-dream-dust-theme.png" width="340" alt="Reinstall Deno — Dream Dust Theme"/>
+      </a>
+      <br/><sub><b>Reinstall Deno — Dream Dust Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/14-last-10-used-themes-mumbai-theme.png">
+        <img src="screenshots/14-last-10-used-themes-mumbai-theme.png" width="340" alt="Last 10 Used Themes — Mumbai Theme"/>
+      </a>
+      <br/><sub><b>Last 10 Used Themes — Mumbai Theme</b></sub>
     </td>
   </tr>
 </table>
-
 ## 📥 Download
 
 ### Windows
-**Latest:** v1.0.5 Build 129  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (423 KB · ~800 MB after install)  
-**SHA256:** `3c1bdf6dab48341ec03934202049808f775d85e1a6dacdf8a783d8011e2fe214`  
+**Latest:** v1.1.0 Build 130  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (441 KB · ~800 MB after install)  
+**SHA256:** `0cf540b857f29df5eabcecf9fbdea753d9f77a8a92989e6b43b196cf5b8d7e88`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
-**Latest:** v1.0.5 Build 129  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (395 KB · ~800 MB after first run)  
-**SHA256:** `cdbecb1945b4b922d1753c5ec8e06de33b3678973b0b905d869466d489efa715`  
+**Latest:** v1.1.0 Build 130  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (420 KB · ~800 MB after first run)  
+**SHA256:** `bb8a38d0238048471852a4ee20a55a68e6b53945ffb83d54b8feb050015676ff`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
-**Latest:** v1.0.5 Build 129  
+**Latest:** v1.1.0 Build 130  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (125 MB · ~300 MB after install)  
-**SHA256:** `98a75f78bc84364f99009a71256b317771d396c0f41ba6a3185adcf084ec6b75`  
+**SHA256:** `068655ea8d63945ddc2e11f325f5d0a77f6a10aaf2b26fd20878429fadabcc5e`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v1.0.5 Build 129  
+**Latest:** v1.1.0 Build 130  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `3fceb3324513b475180ef95681d51642ecfdd260e6276afddac88b50c199de98`  
+**SHA256:** `2fc79b0619cc3d23eb0d899cda03f85927e214f77ee3bda38332ef247e73b844`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -286,23 +299,8 @@ Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
 **v1.0.5:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.5)
 Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issue #4)
 
-**v1.1 — IGNITION:** *(Shipping June 17, 2026)*
-- 📡 Subscriptions — save channels and playlists, fetch new videos automatically
-- 🗂️ Full subscriptions window — sidebar with channel list, video pane, collapsible, resizable, remembers size/position
-- 🖼️ Rich video list — thumbnails, durations, upload dates, sortable, paginated, "New" badge on recent videos
-- ✅ Download from subscriptions — select videos, choose format and quality per channel, full progress pipeline integrating with main history
-- 📌 Queue panel + sticky download bar — track all active downloads across channels, cancel per-job
-- 📁 Per-channel settings — custom download folder, format and quality (Video: Best/4K/1080p/720p; Audio: MP3/FLAC/WAV/OPUS), reordering, all persisted
-- 💾 Subscriptions export/import — channel list included in settings backup, URL-only and lightweight, backward compatible
-- 🪟 Sub-app mode — main window steps aside when subscriptions opens, restores on close
-- 🎨 Visual identity — SVG wordmark across app + all splash screens, live theme propagation, video titles refined, fade-in transitions
-- 🔒 Security hardened — video ID allowlist, attribute escaping, folder validation, TERMINAL_STATES guard, import data treated as untrusted
-- 🔒 Members-only graceful error — actionable message guides users to load cookies when format unavailable
-- ⚙️ Settings & polish — Cookies merged into Settings, 2×2 nav grid, queue icon, plugins manual-only, resizable sidebar, all native dialogs replaced with themed modals
-- 🪟 Windows polish — embedded Python 3.12.10 in portable (no system Python needed), .exe shortcut, uninstaller cleanup
-- ⚡ Electron 42.4.1
-- 🧪 Preload bridge parity locked across all 3 platforms
-
+**v1.1 — IGNITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.0)
+Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordmark, live theme propagation, embedded Python (Windows Portable), Electron 42.4.1, security score 9.3/10
 **v1.2 — [TBD]:**
 - 🔭 Next chapter — details after v1.1 ships
 - 🧩 *Browser extension in the works — send URLs straight to EGM Downloader without leaving your browser. Details TBD.*
@@ -407,10 +405,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version man
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 129 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 129 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 129 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 129 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 130 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 130 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 130 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 130 | EGMdL.zip | ❌ Manual |
 
 ### System Requirements
 

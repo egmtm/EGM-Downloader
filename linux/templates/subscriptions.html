@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Subscriptions — EGM Downloader</title>
+  <style>
+    * { margin:0;padding:0;box-sizing:border-box; }
+    body { font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;animation:fadeIn .3s ease-out; }
+    @keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+
+    ::-webkit-scrollbar { width:8px;height:8px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border2);border-radius:4px; }
+    ::-webkit-scrollbar-thumb:hover { background:var(--text2); }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width:180px;min-width:140px;max-width:400px;
+      background:var(--surf);border-right:1px solid var(--border);
+      display:flex;flex-direction:column;transition:width .2s ease;
+      overflow:hidden;position:relative;
+    }
+    .sidebar.collapsed { width:55px;min-width:55px;max-width:55px; }
+    .sidebar-resize {
+      position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;z-index:10;
+    }
+    .sidebar-resize:hover { background:var(--acc);opacity:.3; }
+    .sidebar.collapsed .sidebar-resize { display:none; }
+
+    .sidebar-header {
+      padding:10px;display:flex;align-items:center;justify-content:space-between;
+      border-bottom:1px solid var(--border);min-height:42px;
+    }
+    .sidebar.collapsed .sidebar-header { justify-content:center;padding:6px; }
+    .sidebar-title { font-size:.75rem;font-weight:600;white-space:nowrap;overflow:hidden; }
+    .sidebar.collapsed .sidebar-title { display:none; }
+
+    .collapse-btn {
+      background:none;border:none;color:var(--text2);cursor:pointer;font-size:14px;
+      padding:4px;border-radius:4px;flex-shrink:0;
+    }
+    .collapse-btn:hover { color:var(--acc); }
+    .sidebar.collapsed .collapse-btn {
+      width:45px;height:45px;font-size:18px;border-radius:50%;
+      display:flex;align-items:center;justify-content:center;
+      margin:6px auto 0;
+    }
+
+    .sub-list { flex:1;overflow-y:auto;padding:4px 0; }
+    .sidebar.collapsed .sub-list { display:none; }
+    .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 0;overflow-y:auto; }
+    .sidebar.collapsed .mini-list { display:flex; }
+    .mini-thumb {
+      width:45px;height:45px;border-radius:50%;background:var(--surf2);
+      cursor:pointer;border:2px solid transparent;overflow:hidden;
+      display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--text2);
+      flex-shrink:0;background-size:cover;background-position:center;
+    }
+    .mini-thumb:hover { border-color:var(--acc); }
+    .mini-thumb.active { border-color:var(--acc); }
+
+    .sub-item {
+      padding:8px 10px;font-size:.78rem;color:var(--text2);cursor:pointer;
+      border-left:2px solid transparent;transition:all .1s;
+      white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    }
+    .sub-item:hover { color:var(--text);background:var(--surf2); }
+    .sub-item:hover .kebab-btn { opacity:1; }
+    .kebab-btn {
+      background:none;border:none;color:var(--text2);cursor:pointer;
+      font-size:14px;line-height:1;padding:2px 4px;opacity:0;transition:opacity .15s;
+      flex-shrink:0;
+    }
+    .kebab-btn:hover { color:var(--text); }
+    .kebab-menu {
+      position:fixed;z-index:1000;
+      background:var(--surf);border:1px solid var(--border);border-radius:5px;
+      box-shadow:0 4px 12px rgba(0,0,0,.3);min-width:120px;padding:4px 0;
+      font-size:.62rem;
+    }
+    .kebab-menu button {
+      display:block;width:100%;text-align:left;background:none;border:none;
+      color:var(--text2);padding:5px 10px;cursor:pointer;font-family:inherit;font-size:.62rem;
+    }
+    .kebab-menu button:hover { background:var(--surf2);color:var(--text); }
+    .kebab-menu button:disabled { opacity:.3;cursor:default; }
+    .sub-item.active { color:var(--acc);border-left-color:var(--acc);background:var(--surf2); }
+
+    .queue-item {
+      padding:8px 10px;font-size:.68rem;font-weight:500;color:var(--acc);
+      border-left:2px solid var(--acc);background:var(--acc-dim);
+      display:flex;align-items:center;gap:6px;cursor:pointer;
+      border-bottom:1px solid var(--border);
+    }
+    .queue-item:hover { background:rgba(45,212,191,.12); }
+    .queue-badge {
+      margin-left:auto;background:rgba(45,212,191,.15);color:var(--acc);
+      font-size:.58rem;padding:2px 7px;border-radius:8px;font-weight:500;
+    }
+
+    .sidebar-footer {
+      padding:8px 10px;border-top:1px solid var(--border);
+      display:flex;flex-direction:column;gap:6px;
+    }
+    .sidebar.collapsed .sidebar-footer { display:none; }
+
+    .sidebar-footer button {
+      background:none;border:1px solid var(--border);color:var(--text2);
+      padding:8px 12px;border-radius:5px;cursor:pointer;font-size:.78rem;
+      text-align:center;font-weight:500;
+    }
+    .sidebar-footer button:hover { border-color:var(--acc);color:var(--acc); }
+
+    /* ── Add subscription bar ── */
+    .add-bar {
+      padding:8px 10px;border-bottom:1px solid var(--border);
+    }
+    .sidebar.collapsed .add-bar { display:none; }
+    .add-bar input {
+      width:100%;padding:5px 8px;font-size:.7rem;
+      background:var(--surf2);border:1px solid var(--border);border-radius:4px;
+      color:var(--text);outline:none;
+    }
+    .add-bar input:focus { border-color:var(--acc); }
+    .add-bar input::placeholder { color:var(--text2);opacity:0.5; }
+
+    /* ── Detail pane ── */
+    .detail {
+      flex:1;display:flex;flex-direction:column;overflow:hidden;
+    }
+
+    .detail-empty {
+      flex:1;display:flex;align-items:center;justify-content:center;
+      color:var(--text2);font-size:.8rem;
+    }
+
+    .channel-header {
+      padding:14px 18px;border-bottom:1px solid var(--border);
+      display:flex;align-items:flex-start;gap:14px;
+    }
+    .channel-thumb {
+      width:52px;height:52px;border-radius:50%;background:var(--surf2);
+      display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0;
+      overflow:hidden;
+    }
+    .channel-info h2 { font-size:.9rem;font-weight:600; }
+    .channel-info p { font-size:.68rem;color:var(--text2);margin-top:2px; }
+
+    .video-list { flex:1;overflow-y:auto;padding:0 18px 8px; }
+
+    .empty-state {
+      text-align:center;padding:40px;color:var(--text2);font-size:.75rem;
+    }
+
+    /* ── Video cards ── */
+    .video-card {
+      display:flex;gap:10px;padding:8px;border-radius:6px;
+      transition:background .1s;cursor:default;align-items:center;
+    }
+    .video-card:hover { background:var(--surf2); }
+    .video-check {
+      width:16px;height:16px;flex-shrink:0;cursor:pointer;
+      accent-color:var(--acc);
+    }
+    .video-card.checked { background:var(--surf2); }
+
+    .dl-bar {
+      display:flex;align-items:center;gap:8px;padding:6px 18px;
+      border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:2;background:var(--bg);
+      margin:0 -18px;
+    }
+    .dl-bar-btn {
+      padding:4px 12px;border-radius:4px;font-size:.65rem;cursor:pointer;
+      border:1px solid var(--acc);background:var(--acc);color:var(--btn-on-accent, #fff);
+      font-family:inherit;font-weight:500;
+    }
+    .dl-bar-btn:disabled { opacity:.4;cursor:default; }
+    .dl-bar-btn.outline {
+      background:transparent;color:var(--text2);border-color:var(--border);
+    }
+    .video-progress {
+      display:flex;align-items:center;gap:6px;margin-top:3px;font-size:.55rem;color:var(--text2);
+    }
+    .video-progress-bar {
+      flex:1;height:4px;background:var(--surf2);border-radius:2px;overflow:hidden;
+    }
+    .video-progress-fill {
+      height:100%;background:var(--acc);border-radius:2px;transition:width .3s;
+    }
+    .video-status {
+      font-size:.55rem;font-weight:500;padding:1px 6px;border-radius:3px;white-space:nowrap;
+    }
+    .video-status.queued { color:var(--yellow);background:rgba(245,158,11,.1); }
+    .video-status.downloading { color:var(--acc);background:rgba(45,212,191,.1); }
+    .video-status.done { color:var(--green);background:rgba(34,197,94,.1); }
+    .video-status.error { color:var(--red);background:rgba(248,113,113,.1);white-space:normal;word-wrap:break-word;line-height:1.3;padding:4px 8px;margin-top:4px;display:block; }
+    .video-action-btn {
+      background:none;border:1px solid var(--border);border-radius:3px;
+      color:var(--text2);font-size:.5rem;padding:1px 6px;cursor:pointer;
+      font-family:inherit;white-space:nowrap;
+    }
+    .video-action-btn:hover { border-color:var(--acc);color:var(--text); }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .video-thumb {
+      width:160px;height:90px;border-radius:4px;background:var(--surf2);
+      flex-shrink:0;display:flex;align-items:center;justify-content:center;
+      font-size:20px;color:var(--text2);position:relative;overflow:hidden;
+      background-size:cover;background-position:center;
+    }
+    .video-duration {
+      position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,.8);
+      color:#fff;font-size:.55rem;padding:1px 4px;border-radius:2px;
+    }
+
+    .video-info { flex:1;min-width:0; }
+    .video-title {
+      font-size:.8rem;font-weight:500;color:var(--text);
+      overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+    }
+    .video-meta { font-size:.68rem;color:var(--text2);margin-top:3px; }
+
+    .fetch-btn {
+      background:var(--surf2);border:1px solid var(--border);color:var(--text2);
+      padding:3px 10px;border-radius:3px;cursor:pointer;font-size:.65rem;
+    }
+    .fetch-btn:hover { border-color:var(--acc);color:var(--acc); }
+
+    {% include 'theme_styles.html' %}
+    /* ── Custom confirmation modal ── */
+    .egm-modal-overlay {
+      display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
+      z-index:9999;align-items:center;justify-content:center;
+    }
+    .egm-modal-overlay.open { display:flex; }
+    .egm-modal {
+      background:var(--surf);border:1px solid var(--border);border-radius:8px;
+      padding:20px 24px;max-width:360px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.4);
+    }
+    .egm-modal-msg { font-size:.82rem;color:var(--text);line-height:1.4;margin-bottom:16px; }
+    .egm-modal-actions { display:flex;gap:8px;justify-content:flex-end; }
+    .egm-modal-btn {
+      font-size:.72rem;padding:6px 16px;border-radius:5px;cursor:pointer;
+      border:1px solid var(--border);background:var(--surf2);color:var(--text2);
+    }
+    .egm-modal-btn:hover { background:var(--surf3,var(--surf2));filter:brightness(1.1); }
+    .egm-modal-btn.danger { background:var(--red,#e04040);color:#fff;border-color:var(--red,#e04040); }
+    .egm-modal-btn.danger:hover { filter:brightness(1.15); }
+  </style>
+</head>
+<body class="void">
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-resize" id="sidebar-resize"></div>
+    <div class="sidebar-header">
+      <span class="sidebar-title">Subscriptions</span>
+      <button class="collapse-btn" id="collapse-btn" title="Toggle sidebar">☰</button>
+    </div>
+
+    <div class="add-bar">
+      <input type="text" id="add-url" placeholder="Paste URL here..." />
+      <div style="display:flex;gap:4px;margin-top:4px">
+        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Paste from clipboard">📋 Paste</button>
+        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Add subscription">+ Add</button>
+      </div>
+    </div>
+
+    <div class="sub-list" id="sub-list"></div>
+    <div class="mini-list" id="mini-list"></div>
+
+    <div class="sidebar-footer">
+      <button id="history-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
+        Download History
+      </button>
+      <button id="back-btn">← Back to app</button>
+    </div>
+  </div>
+
+  <div class="detail" id="detail">
+    <div class="detail-empty" id="empty-state">
+      <div>
+        <div style="font-size:2rem;margin-bottom:8px">📡</div>
+        <div>Add a channel or playlist URL to get started</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="kebab-menu" id="floating-kebab" style="display:none"></div>
+
+  <div class="egm-modal-overlay" id="egm-confirm-overlay">
+    <div class="egm-modal">
+      <div class="egm-modal-msg" id="egm-confirm-msg"></div>
+      <input type="text" class="egm-modal-input" id="egm-confirm-input" style="display:none;width:100%;padding:6px 8px;margin-bottom:12px;border-radius:5px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:.78rem;box-sizing:border-box">
+      <div class="egm-modal-actions">
+        <button class="egm-modal-btn" id="egm-confirm-cancel">Cancel</button>
+        <button class="egm-modal-btn danger" id="egm-confirm-ok">Delete</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+{% raw %}
+// ── Theme support — read active theme from localStorage and apply ────────────
+function applyBodyTheme(name) {
+  if (name && /^[a-z0-9-]+$/.test(name)) {
+    document.body.className = name;
+  }
+}
+applyBodyTheme(localStorage.getItem('egm-theme') || 'void');
+
+// Listen for theme changes from main window
+if (window.electronAPI && window.electronAPI.onThemeChanged) {
+  window.electronAPI.onThemeChanged((theme) => {
+    if (theme) {
+      localStorage.setItem('egm-theme', theme);
+      applyBodyTheme(theme);
+    }
+  });
+}
+
+// ── Restore focus after native dialogs ───────────────────────────────────────
+// Native confirm/alert/prompt replaced with in-page modals (egmConfirm,
+// egmAlert, egmPrompt) to avoid Electron focus theft. No wrapper needed.
+
+// ── In-page dialog modals ────────────────────────────────────────────────────
+// Replaces native confirm/alert/prompt to avoid Electron focus theft.
+function _egmDialog(msg, { okLabel = 'OK', showCancel = true, showInput = false, defaultValue = '', danger = false } = {}) {
+  return new Promise((resolve) => {
+    const overlay = document.getElementById('egm-confirm-overlay');
+    const msgEl = document.getElementById('egm-confirm-msg');
+    const okBtn = document.getElementById('egm-confirm-ok');
+    const cancelBtn = document.getElementById('egm-confirm-cancel');
+    const inputEl = document.getElementById('egm-confirm-input');
+    msgEl.textContent = msg;
+    okBtn.textContent = okLabel;
+    okBtn.className = danger ? 'egm-modal-btn danger' : 'egm-modal-btn';
+    if (!danger) okBtn.style.cssText = 'background:var(--acc);color:#fff;border-color:var(--acc)';
+    else okBtn.style.cssText = '';
+    cancelBtn.style.display = showCancel ? '' : 'none';
+    inputEl.style.display = showInput ? '' : 'none';
+    if (showInput) { inputEl.value = defaultValue; }
+    overlay.classList.add('open');
+    if (showInput) { inputEl.focus(); inputEl.select(); } else { okBtn.focus(); }
+    function close(result) {
+      overlay.classList.remove('open');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      overlay.removeEventListener('click', onOverlay);
+      inputEl.removeEventListener('keydown', onKey);
+      resolve(result);
+    }
+    function onOk() { close(showInput ? inputEl.value : true); }
+    function onCancel() { close(showInput ? null : false); }
+    function onOverlay(e) { if (e.target === overlay) close(showInput ? null : false); }
+    function onKey(e) { if (e.key === 'Enter') onOk(); if (e.key === 'Escape') onCancel(); }
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    overlay.addEventListener('click', onOverlay);
+    if (showInput) inputEl.addEventListener('keydown', onKey);
+  });
+}
+
+function egmConfirm(msg, okLabel = 'Delete') {
+  return _egmDialog(msg, { okLabel, showCancel: true, danger: true });
+}
+
+function egmAlert(msg) {
+  return _egmDialog(msg, { okLabel: 'OK', showCancel: false, danger: false });
+}
+
+function egmPrompt(msg, defaultValue = '') {
+  return _egmDialog(msg, { okLabel: 'OK', showCancel: true, showInput: true, defaultValue, danger: false });
+}
+
+// ── API token interceptor ────────────────────────────────────────────────────
+(function() {
+  const _t = '{% endraw %}{{ egm_token }}{% raw %}';
+  const _f = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/') && _t) {
+      opts = opts || {};
+      opts.headers = Object.assign({}, opts.headers || {}, { 'X-EGM-Token': _t });
+    }
+    return _f.call(this, url, opts);
+  };
+})();
+
+let subs = [];
+let activeSub = null;
+let showQueue = false;
+
+// ── HTML escape — prevents stored XSS from user-controlled data ──────────────
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s || '';
+  return d.innerHTML;
+}
+
+// ── Attribute-context escape — esc() does not escape quotes, which is enough
+// for text nodes but NOT for `attr="${...}"` interpolations (a `"` would
+// terminate the attribute). Escapes &, <, >, " and '.
+function attrEsc(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ── Load subscriptions ───────────────────────────────────────────────────────
+async function loadSubs() {
+  try {
+    const r = await fetch('/api/subscriptions').then(r => r.json());
+    subs = r.subscriptions || [];
+  } catch { subs = []; }
+  renderSidebar();
+}
+
+// ── Render sidebar ───────────────────────────────────────────────────────────
+function renderSidebar() {
+  const list = document.getElementById('sub-list');
+  if (!subs.length) {
+    list.innerHTML = '<div class="empty-state">No subscriptions yet</div>';
+    return;
+  }
+  const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
+  const queueHtml = activeCount > 0 ? `<div class="queue-item" id="queue-sidebar-item" onclick="showQueue=true;activeSub=null;renderSidebar();renderQueue();">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+    Queue
+    <span class="queue-badge">${activeCount}</span>
+  </div>` : '';
+
+  list.innerHTML = queueHtml + subs.map((s, i) => {
+    const count = (s.videos || []).length;
+    const badge = count > 0 ? `<span style="margin-left:auto;font-size:.55rem;color:var(--text2);opacity:0.7">${count}</span>` : '';
+    const thumb = s.thumbnail_url
+      ? `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);background-image:url('${esc(s.thumbnail_url)}');background-size:cover;background-position:center;overflow:hidden"></div>`
+      : `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text2)">${esc((s.name || '?')[0])}</div>`;
+    return `
+    <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${attrEsc(s.id)}" style="display:flex;align-items:center;gap:8px;position:relative">
+      ${thumb}
+      <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
+      ${badge}
+      <button class="kebab-btn" data-kebab="${attrEsc(s.id)}" onclick="event.stopPropagation();toggleKebab('${attrEsc(s.id)}', this)">⋮</button>
+      <div class="kebab-menu" id="kebab-${attrEsc(s.id)}" style="display:none">
+        <button onclick="reorderSub('${attrEsc(s.id)}','top')" ${i === 0 ? 'disabled' : ''}>Move to top</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','up')" ${i === 0 ? 'disabled' : ''}>Move up</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','down')" ${i === subs.length - 1 ? 'disabled' : ''}>Move down</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
+        <div style="border-top:1px solid var(--border);margin:3px 0"></div>
+        <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(s.id)}')" title="Re-fetch all videos from scratch">Force refresh</button>
+        <div style="border-top:1px solid var(--border);margin:3px 0"></div>
+        <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(s.id)}')" style="color:var(--red)">Delete channel</button>
+      </div>
+    </div>
+  `}).join('');
+
+  // Wire clicks
+  list.querySelectorAll('.sub-item').forEach(item => {
+    item.addEventListener('click', () => {
+      showQueue = false;
+      activeSub = subs.find(s => s.id === item.dataset.id) || null;
+      renderSidebar();
+      renderDetail();
+    });
+  });
+
+  // Render mini thumbnails for collapsed sidebar
+  const miniList = document.getElementById('mini-list');
+  if (miniList) {
+    const queueMini = activeCount > 0 ? `<div class="mini-thumb${showQueue ? ' active' : ''}" id="mini-queue" title="Queue (${activeCount} active)" style="background:var(--acc-dim);color:var(--acc);font-size:12px;border-bottom:1px solid var(--border)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+    </div>` : '';
+
+    miniList.innerHTML = queueMini + subs.map(s => {
+      const isActive = activeSub && activeSub.id === s.id;
+      const initial = (s.name || '?')[0].toUpperCase();
+      return s.thumbnail_url
+        ? `<div class="mini-thumb${isActive ? ' active' : ''}" data-id="${attrEsc(s.id)}" style="background-image:url('${esc(s.thumbnail_url)}')" title="${attrEsc(s.name || s.url)}"></div>`
+        : `<div class="mini-thumb${isActive ? ' active' : ''}" data-id="${attrEsc(s.id)}" title="${attrEsc(s.name || s.url)}">${esc(initial)}</div>`;
+    }).join('');
+    miniList.querySelectorAll('.mini-thumb').forEach(thumb => {
+      thumb.addEventListener('click', () => {
+        showQueue = false;
+        activeSub = subs.find(s => s.id === thumb.dataset.id) || null;
+        renderSidebar();
+        renderDetail();
+      });
+      thumb.addEventListener('contextmenu', (e) => {
+        if (!thumb.dataset.id) return;
+        e.preventDefault();
+        const subId = thumb.dataset.id;
+        const sub = subs.find(s => s.id === subId);
+        if (!sub) return;
+        const idx = subs.indexOf(sub);
+        const menu = document.getElementById('floating-kebab');
+        document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+        menu.innerHTML = `
+          <button onclick="reorderSub('${attrEsc(subId)}','top')" ${idx === 0 ? 'disabled' : ''}>Move to top</button>
+          <button onclick="reorderSub('${attrEsc(subId)}','up')" ${idx === 0 ? 'disabled' : ''}>Move up</button>
+          <button onclick="reorderSub('${attrEsc(subId)}','down')" ${idx === subs.length - 1 ? 'disabled' : ''}>Move down</button>
+          <button onclick="reorderSub('${attrEsc(subId)}','bottom')" ${idx === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
+          <div style="border-top:1px solid var(--border);margin:3px 0"></div>
+          <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(subId)}')" title="Re-fetch all videos from scratch">Force refresh</button>
+          <div style="border-top:1px solid var(--border);margin:3px 0"></div>
+          <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(subId)}')" style="color:var(--red)">Delete channel</button>`;
+        menu.style.display = 'block';
+        const mw = menu.offsetWidth || 120;
+        const mh = menu.offsetHeight || 0;
+        let left = e.clientX;
+        let top = e.clientY;
+        if (left + mw > window.innerWidth - 4) left = window.innerWidth - mw - 4;
+        if (top + mh > window.innerHeight - 4) top = Math.max(4, top - mh);
+        menu.style.left = Math.round(left) + 'px';
+        menu.style.top = Math.round(top) + 'px';
+      });
+    });
+    const miniQueue = document.getElementById('mini-queue');
+    if (miniQueue) {
+      miniQueue.addEventListener('click', () => {
+        showQueue = true;
+        activeSub = null;
+        renderSidebar();
+        renderQueue();
+      });
+    }
+  }
+}
+
+// ── Global download state — persists across subscription switches ────────────
+const allJobs = new Map(); // videoId → { jobId, status, data }
+let pollTimer = null;
+// Terminal backend states — everything else (queued/downloading/converting/
+// or any future status) is treated as active so a job is never silently dropped.
+const TERMINAL_STATES = ['done', 'error', 'cancelled'];
+
+function updateVideoState(videoId, status, data) {
+  const metaEl = document.getElementById('meta-' + videoId);
+  if (!metaEl) return;
+  const info = allJobs.get(videoId);
+  const jobId = info ? info.jobId : '';
+
+  if (status === 'queued') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status queued">Queued</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+    </div>`;
+  } else if (status === 'downloading') {
+    const pct = Math.round(data.progress || 0);
+    const speed = data.speed || '';
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status downloading">${pct}%</span>
+      <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
+      <span>${speed}</span>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+    </div>`;
+  } else if (status === 'converting') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status downloading">Converting…</span>
+      <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+    </div>`;
+  } else if (status === 'done') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status done">Downloaded</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+    </div>`;
+  } else if (status === 'error') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status error">${esc(data.error || 'Error')}</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+    </div>`;
+  } else if (status === 'cancelled') {
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status error">Cancelled</span>
+      <div style="flex:1"></div>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+    </div>`;
+  } else {
+    // Unknown, non-terminal status from the backend (forward-compat). Render a
+    // generic active state with Cancel rather than no-op'ing (which would let a
+    // re-render drop the card back to the bare date — the old 'converting' bug).
+    metaEl.innerHTML = `<div class="video-progress">
+      <span class="video-status downloading">Processing…</span>
+      <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+    </div>`;
+  }
+}
+
+function restoreJobStates() {
+  for (const [videoId, info] of allJobs) {
+    updateVideoState(videoId, info.status, info.data || {});
+    if (!TERMINAL_STATES.includes(info.status)) {
+      const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
+      if (cb) cb.disabled = true;
+    }
+  }
+}
+
+function startPolling() {
+  if (pollTimer) return;
+  pollTimer = setInterval(pollJobs, 1500);
+}
+
+let _polling = false;
+async function pollJobs() {
+  if (_polling) return;
+  _polling = true;
+  try {
+    for (const [videoId, info] of allJobs) {
+      if (TERMINAL_STATES.includes(info.status)) continue;
+      try {
+        const resp = await fetch(`/api/status/${info.jobId}`);
+        const data = await resp.json();
+        if (data.error === 'Job not found') {
+          allJobs.delete(videoId);
+          continue;
+        }
+        info.status = data.status;
+        info.data = data;
+        updateVideoState(videoId, data.status, data);
+        if (TERMINAL_STATES.includes(data.status)) {
+          const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
+          if (cb) cb.disabled = false;
+          if (data.status === 'done' && info.subId) {
+            fetch('/api/subscriptions/mark-downloaded', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sub_id: info.subId, video_id: videoId })
+            }).catch(() => {});
+          }
+        }
+      } catch {}
+    }
+  } finally {
+    _polling = false;
+    // Update queue view and sidebar badge
+    const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
+    const queueItem = document.getElementById('queue-sidebar-item');
+    const miniQueueItem = document.getElementById('mini-queue');
+    const badge = queueItem?.querySelector('.queue-badge');
+    if (activeCount > 0) {
+      if (badge) badge.textContent = activeCount;
+      if (showQueue) renderQueue();
+    } else {
+      if (queueItem) queueItem.remove();
+      if (miniQueueItem) miniQueueItem.remove();
+      if (showQueue) { showQueue = false; renderQueue(); }
+    }
+  }
+  syncCloseGuard();
+}
+
+// ── Render detail ────────────────────────────────────────────────────────────
+function renderQueue() {
+  const detail = document.getElementById('detail');
+  const activeJobs = [...allJobs.entries()].filter(([, j]) => !TERMINAL_STATES.includes(j.status));
+
+  if (activeJobs.length === 0) {
+    detail.innerHTML = `<div class="detail-empty"><div>
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:8px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+      <div>No active downloads</div>
+    </div></div>`;
+    return;
+  }
+
+  let html = `<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
+    <span style="font-weight:600;font-size:.85rem">Download queue</span>
+    <span style="font-size:.65rem;color:var(--text2)">${activeJobs.length} active</span>
+  </div>`;
+
+  html += '<div style="flex:1;overflow-y:auto;padding:0 18px 8px">';
+  for (const [videoId, job] of activeJobs) {
+    const pct = Math.round(job.data?.progress || 0);
+    const speed = job.data?.speed || '';
+    const statusLabel = job.status === 'queued' ? 'Queued'
+      : job.status === 'downloading' ? `${pct}%`
+      : job.status === 'converting' ? 'Converting…'
+      : 'Processing…';
+
+    html += `<div class="video-card" style="display:flex;gap:12px;padding:10px 12px;margin:4px 0;border-radius:6px;align-items:center">
+      <div class="video-thumb" style="width:120px;height:68px">
+        ${job.thumbnailUrl ? `<img src="${attrEsc(job.thumbnailUrl)}" style="width:100%;height:100%;object-fit:cover">` : ''}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:.78rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(job.title)}</div>
+        <div style="font-size:.62rem;color:var(--text2);margin-top:2px">${esc(job.channelName)}</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+          <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
+          <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? 100 : pct}%"></div></div>
+          ${speed ? `<span style="font-size:.55rem;color:var(--text2)">${speed}</span>` : ''}
+          <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">Cancel</button>
+        </div>
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+  detail.innerHTML = html;
+}
+
+function renderDetail() {
+  const detail = document.getElementById('detail');
+  if (showQueue) { renderQueue(); return; }
+  if (!activeSub) {
+    detail.innerHTML = `<div class="detail-empty"><div>
+      <div style="font-size:2rem;margin-bottom:8px">📡</div>
+      <div>Select a subscription to view details</div>
+    </div></div>`;
+    return;
+  }
+
+  const videos = activeSub.videos || [];
+  const sortedVideos = [...videos].sort((a, b) => {
+    if (currentSort === 'oldest') return (a.upload_date || '').localeCompare(b.upload_date || '');
+    return (b.upload_date || '').localeCompare(a.upload_date || '');
+  });
+
+  detail.innerHTML = `
+    <div class="channel-header">
+      <div class="channel-thumb" ${activeSub.thumbnail_url ? `style="background-image:url('${esc(activeSub.thumbnail_url)}');background-size:cover;background-position:center"` : ''}>
+        ${!activeSub.thumbnail_url ? '📺' : ''}
+      </div>
+      <div class="channel-info" style="flex:1;min-width:0">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between">
+          <div>
+            <h2 style="font-size:1.05rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
+            <p style="font-size:.72rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
+            <p style="font-size:.68rem;color:var(--text2)">
+              ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
+            </p>
+            <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:5px;cursor:pointer">
+              <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+              Auto-fetch on open
+            </label>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px">
+            <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.7rem;border-radius:5px;padding:5px 10px;cursor:pointer;height:28px">
+              <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
+              <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
+            </select>
+            <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
+            <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
+          </div>
+        </div>
+        <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
+          <div style="display:flex;align-items:center;gap:6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
+            <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : 'Default')}</span>
+            <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Browse</button>
+            ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Open</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">Reset</button>' : ''}
+          </div>
+          <span style="color:var(--border)">|</span>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:.65rem;color:var(--text2)">Format</span>
+            <select id="format-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
+              <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>Video</option>
+              <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:center;gap:5px">
+            <span style="font-size:.65rem;color:var(--text2)">Quality</span>
+            <select id="quality-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
+              ${(activeSub.format || 'video') === 'video' ?
+                '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
+              : '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'}
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="video-list" id="video-list">
+      ${videos.length === 0 ? `
+        <div class="empty-state">Click "Fetch" to load videos from this channel</div>
+      ` : (() => {
+        const visible = sortedVideos.slice(0, visibleCount);
+        const hasMore = sortedVideos.length > visibleCount;
+        const dlBar = `<div class="dl-bar">
+          <label style="display:flex;align-items:center;gap:4px;font-size:.62rem;color:var(--text2);cursor:pointer">
+            <input type="checkbox" id="select-all-check" style="accent-color:var(--acc);cursor:pointer"> Select all
+          </label>
+          <span id="dl-count" style="font-size:.6rem;color:var(--text2)"></span>
+          <div style="flex:1"></div>
+          <button class="dl-bar-btn" id="dl-selected-btn" disabled>Download selected</button>
+        </div>`;
+        return dlBar + visible.map(v => `
+          <div class="video-card" data-video-id="${attrEsc(v.video_id || '')}">
+            <input type="checkbox" class="video-check" data-video-id="${attrEsc(v.video_id || '')}" style="accent-color:var(--acc);cursor:pointer;width:16px;height:16px;flex-shrink:0">
+            <div class="video-thumb" ${v.thumbnail_url ? `style="background-image:url('${esc(v.thumbnail_url)}')"` : ''}>
+              ${!v.thumbnail_url ? '🎬' : ''}
+              ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
+            </div>
+            <div class="video-info" style="flex:1;min-width:0">
+              <div class="video-title">${esc(v.title)}</div>
+              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">New</span>' : ''}${v.downloaded ? ` <span class="video-status done">Downloaded</span> <button class="video-action-btn" onclick="clearDownloaded('${attrEsc(v.video_id || '')}')">Clear</button>` : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
+            </div>
+          </div>
+        `).join('') + (hasMore ? `
+          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const vl=document.getElementById('video-list'),st=vl?vl.scrollTop:0;visibleCount+=20;renderDetail();const nv=document.getElementById('video-list');if(nv){nv.scrollTop=st;requestAnimationFrame(()=>{nv.scrollTop=st})}">Load more (${visible.length} of ${sortedVideos.length})</button>
+        ` : `<div style="text-align:center;padding:10px;font-size:.6rem;color:var(--text2);opacity:0.5">${sortedVideos.length} videos total</div>`);
+      })()}
+    </div>
+  `;
+
+  const sortSelect = document.getElementById('sort-select');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      currentSort = e.target.value;
+      renderDetail();
+    });
+  }
+
+  const autoFetch = document.getElementById('auto-fetch-toggle');
+  if (autoFetch) {
+    autoFetch.addEventListener('change', async (e) => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, auto_fetch_on_open: e.target.checked })
+      });
+      activeSub.auto_fetch_on_open = e.target.checked;
+    });
+  }
+
+  const formatSelect = document.getElementById('format-select');
+  const qualitySelect = document.getElementById('quality-select');
+  
+  function updateQualityOptions(format) {
+    if (!qualitySelect) return;
+    const savedQuality = activeSub.quality || 'best';
+    if (format === 'audio') {
+      qualitySelect.innerHTML = '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>';
+    } else {
+      qualitySelect.innerHTML = '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
+    }
+    const opt = qualitySelect.querySelector(`option[value="${savedQuality}"]`);
+    if (opt) opt.selected = true;
+  }
+  if (qualitySelect && activeSub.quality) {
+    const opt = qualitySelect.querySelector(`option[value="${activeSub.quality}"]`);
+    if (opt) opt.selected = true;
+  }
+
+  if (formatSelect) {
+    formatSelect.addEventListener('change', async (e) => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, format: e.target.value })
+      });
+      activeSub.format = e.target.value;
+      updateQualityOptions(e.target.value);
+    });
+  }
+
+  if (qualitySelect) {
+    qualitySelect.addEventListener('change', async (e) => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, quality: e.target.value })
+      });
+      activeSub.quality = e.target.value;
+    });
+  }
+
+  const dlFolderBrowse = document.getElementById('dl-folder-browse');
+  if (dlFolderBrowse) {
+    dlFolderBrowse.addEventListener('click', async () => {
+      const picked = window.electronAPI?.pickFolder
+        ? await window.electronAPI.pickFolder(activeSub.download_folder || '')
+        : await egmPrompt('Enter download folder path:', activeSub.download_folder || '');
+      if (!picked) return;
+      const resp = await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, download_folder: picked })
+      }).then(r => r.json());
+      if (resp.subscription) {
+        activeSub.download_folder = resp.subscription.download_folder; // resolved path from backend
+        renderDetail();
+      } else if (resp.error) {
+        egmAlert(resp.error);
+      }
+    });
+  }
+
+  const dlFolderReset = document.getElementById('dl-folder-reset');
+  const dlFolderOpen = document.getElementById('dl-folder-open');
+  if (dlFolderOpen) {
+    dlFolderOpen.addEventListener('click', () => {
+      if (window.electronAPI?.openFolder) {
+        window.electronAPI.openFolder(activeSub.download_folder);
+      }
+    });
+  }
+  if (dlFolderReset) {
+    dlFolderReset.addEventListener('click', async () => {
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, download_folder: null })
+      });
+      activeSub.download_folder = null;
+      renderDetail();
+    });
+  }
+
+  // ── Checkbox selection ────────────────────────────────────────────────────
+  function updateSelectionCount() {
+    const checks = document.querySelectorAll('.video-check:checked');
+    const countEl = document.getElementById('dl-count');
+    const dlBtn = document.getElementById('dl-selected-btn');
+    const selectAll = document.getElementById('select-all-check');
+    const allChecks = document.querySelectorAll('.video-check');
+    if (countEl) countEl.textContent = checks.length > 0 ? `${checks.length} selected` : '';
+    if (dlBtn) dlBtn.disabled = checks.length === 0;
+    if (selectAll && allChecks.length > 0) selectAll.checked = checks.length === allChecks.length;
+  }
+
+  const selectAll = document.getElementById('select-all-check');
+  if (selectAll) {
+    selectAll.addEventListener('change', (e) => {
+      document.querySelectorAll('.video-check').forEach(cb => {
+        cb.checked = e.target.checked;
+        cb.closest('.video-card')?.classList.toggle('checked', e.target.checked);
+      });
+      updateSelectionCount();
+    });
+  }
+
+  document.getElementById('video-list')?.addEventListener('change', (e) => {
+    if (e.target.classList.contains('video-check')) {
+      e.target.closest('.video-card')?.classList.toggle('checked', e.target.checked);
+      updateSelectionCount();
+    }
+  });
+
+  // ── Download orchestration (global state — persists across subscription switches) ──
+  const dlBtn = document.getElementById('dl-selected-btn');
+  if (dlBtn) {
+    dlBtn.addEventListener('click', async () => {
+      const checked = document.querySelectorAll('.video-check:checked');
+      if (!checked.length) return;
+
+      // Get subscription settings
+      const subFormat = activeSub.format || 'video';
+      const subFolder = activeSub.download_folder || null;
+
+      // Get main app settings as fallback
+      let appSettings = {};
+      try { appSettings = await fetch('/api/settings').then(r => r.json()); } catch {}
+      const dlDir = subFolder || appSettings.last_folder || '';
+
+      dlBtn.disabled = true;
+      dlBtn.textContent = 'Starting...';
+
+      for (const cb of checked) {
+        const videoId = cb.dataset.videoId;
+        if (allJobs.has(videoId) && !TERMINAL_STATES.includes(allJobs.get(videoId).status)) continue;
+
+        // Find video data from cache
+        const video = (activeSub.videos || []).find(v => (v.video_id || '') === videoId);
+        const videoUrl = video ? `https://www.youtube.com/watch?v=${video.video_id}` : videoId;
+
+        try {
+          const resp = await fetch('/api/download', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              url: videoUrl,
+              format: subFormat,
+              download_dir: dlDir,
+              title: video?.title || '',
+              thumbnail: video?.thumbnail_url || '',
+              embed_metadata: true,
+              subtitles: false
+            })
+          });
+          const result = await resp.json();
+          if (result.job_id) {
+            allJobs.set(videoId, {
+              jobId: result.job_id, status: 'queued', data: {},
+              subId: activeSub.id,
+              title: video?.title || videoId,
+              channelName: activeSub.name || 'Unknown',
+              thumbnailUrl: video?.thumbnail_url || ''
+            });
+            updateVideoState(videoId, 'queued', {});
+            cb.checked = false;
+            cb.disabled = true;
+          }
+        } catch (e) {
+          console.error('Download start failed:', videoId, e);
+        }
+      }
+
+      updateSelectionCount();
+      dlBtn.textContent = 'Download selected';
+
+      // Start polling and run an immediate check
+      startPolling();
+      pollJobs();
+      syncCloseGuard();
+      renderSidebar();
+    });
+  }
+
+  // Restore states for any tracked jobs visible in the current view
+  restoreJobStates();
+}
+
+async function cancelJob(jobId, videoId) {
+  try {
+    await fetch(`/api/cancel/${jobId}`, { method: 'POST' });
+  } catch {}
+}
+
+function toggleKebab(subId, btn) {
+  const menu = document.getElementById('kebab-' + subId);
+  // Close every other open menu
+  document.querySelectorAll('.kebab-menu').forEach(m => { if (m !== menu) m.style.display = 'none'; });
+  if (!menu) return;
+  if (menu.style.display === 'block') { menu.style.display = 'none'; return; }
+  // The menu is position:fixed so it escapes the .sub-list overflow:auto clip.
+  // Anchor it under the kebab button, right-aligned, clamped to the viewport.
+  menu.style.display = 'block';
+  const anchor = btn || document.querySelector('.kebab-btn[data-kebab="' + (window.CSS && CSS.escape ? CSS.escape(subId) : subId) + '"]');
+  if (anchor) {
+    const r = anchor.getBoundingClientRect();
+    const mw = menu.offsetWidth || 120;
+    const mh = menu.offsetHeight || 0;
+    let left = r.right - mw;
+    if (left < 4) left = 4;
+    let top = r.bottom + 2;
+    if (top + mh > window.innerHeight - 4) top = Math.max(4, r.top - mh - 2); // flip up if no room below
+    menu.style.left = Math.round(left) + 'px';
+    menu.style.top  = Math.round(top) + 'px';
+  }
+}
+
+// Close kebab on outside click
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.kebab-btn') && !e.target.closest('.kebab-menu')) {
+    document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+  }
+});
+
+async function reorderSub(subId, direction) {
+  document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+  try {
+    await fetch('/api/subscriptions/reorder', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: subId, direction })
+    });
+    await loadSubs();
+    renderSidebar();
+  } catch {}
+}
+
+function clearVideoState(videoId) {
+  allJobs.delete(videoId);
+  syncCloseGuard();
+  const metaEl = document.getElementById('meta-' + videoId);
+  if (!metaEl) return;
+  const video = (activeSub?.videos || []).find(v => (v.video_id || '') === videoId);
+  metaEl.textContent = video?.upload_date ? formatDate(video.upload_date) : '—';
+}
+
+async function clearDownloaded(videoId) {
+  if (!activeSub) return;
+  try {
+    await fetch('/api/subscriptions/mark-downloaded', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sub_id: activeSub.id, video_id: videoId, downloaded: false })
+    });
+    const video = (activeSub.videos || []).find(v => (v.video_id || '') === videoId);
+    if (video) video.downloaded = false;
+    renderDetail();
+  } catch {}
+}
+
+let currentSort = 'latest';
+
+function formatDuration(sec) {
+  if (!sec) return '';
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
+}
+
+function formatDate(d) {
+  if (!d || typeof d !== 'string' || d.length !== 8 || !/^\d{8}$/.test(d)) return '';
+  return `${d.slice(0,4)}-${d.slice(4,6)}-${d.slice(6,8)}`;
+}
+
+// ── Fetch videos ─────────────────────────────────────────────────────────────
+let visibleCount = 20;
+
+// Force refresh from the kebab menu. The menu buttons live inside .sub-item, so
+// without stopPropagation the click also fires the sub-item select handler, whose
+// synchronous renderDetail() wipes the "Fetching…" indicator and the fetch looks
+// like it did nothing. Here we explicitly select the target channel (so the
+// refresh is visible), close the menu, then re-fetch from scratch.
+function forceRefreshSub(id) {
+  showQueue = false;
+  activeSub = subs.find(s => s.id === id) || activeSub;
+  document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+  renderSidebar();
+  renderDetail();
+  fetchVideos(id, true);
+}
+
+function kebabDeleteSub(id) {
+  document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
+  const sub = subs.find(s => s.id === id);
+  const name = sub ? sub.name || sub.url : id;
+  removeSub(id);
+}
+
+async function fetchVideos(id, force) {
+  visibleCount = 20; // reset on new fetch
+  const list = document.getElementById('video-list');
+  if (list) list.innerHTML = '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> Fetching videos...</div>';
+
+  // The fetch runs as a background job on the server; we just start it and poll a
+  // tiny status endpoint. Every request here is sub-second, so a slow channel
+  // never holds a browser connection (which would saturate the pool and freeze
+  // add / delete / navigate).
+  try {
+    const start = await fetch('/api/subscriptions/fetch', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, force })
+    }).then(r => r.json());
+
+    if (!start || !start.fetch_id) {
+      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((start && start.error) || 'Unknown')}</div>`;
+      return;
+    }
+
+    let data = null;
+    for (let i = 0; i < 250; i++) {            // generous ceiling; backend GCs stale jobs
+      await new Promise(res => setTimeout(res, 1200));
+      data = await fetch('/api/subscriptions/fetch-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fetch_id: start.fetch_id })
+      }).then(r => r.json()).catch(() => null);
+      if (!data || data.status === 'done' || data.status === 'error' || data.status === 'unknown') break;
+    }
+
+    if (data && data.status === 'done' && data.subscription) {
+      const idx = subs.findIndex(s => s.id === id);
+      if (idx >= 0) subs[idx] = data.subscription;
+      if (activeSub && activeSub.id === id) activeSub = data.subscription;
+      renderSidebar();
+      renderDetail();
+    } else {
+      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || 'Fetch failed')}</div>`;
+    }
+  } catch {
+    if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';
+  }
+}
+
+// ── Add subscription ─────────────────────────────────────────────────────────
+async function addSub() {
+  const input = document.getElementById('add-url');
+  const url = input.value.trim();
+  if (!url) return;
+
+  input.disabled = true;
+  try {
+    const r = await fetch('/api/subscriptions/add', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url })
+    }).then(r => r.json());
+
+    if (r.subscription) {
+      input.value = '';
+      await loadSubs();
+      activeSub = r.subscription;
+      renderSidebar();
+      renderDetail();
+      fetchVideos(r.subscription.id, false);
+    } else {
+      input.style.borderColor = 'var(--red, #e04040)';
+      setTimeout(() => input.style.borderColor = '', 1500);
+    }
+  } catch {}
+  input.disabled = false;
+}
+
+document.getElementById('add-url').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') addSub();
+});
+
+document.getElementById('add-btn').addEventListener('click', addSub);
+
+document.getElementById('paste-btn').addEventListener('click', async () => {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('add-url').value = text;
+  } catch {}
+});
+
+// ── Remove subscription ──────────────────────────────────────────────────────
+async function removeSub(id) {
+  const sub = subs.find(s => s.id === id);
+  const name = sub ? (sub.name || sub.url) : 'this subscription';
+  if (!await egmConfirm(`Remove "${name}"? This cannot be undone.`)) return;
+
+  // Optimistic UI: remove locally first, then sync with server
+  subs = subs.filter(s => s.id !== id);
+  if (activeSub && activeSub.id === id) activeSub = null;
+  renderSidebar();
+  renderDetail();
+
+  // Re-enable input in case it was stuck
+  const input = document.getElementById('add-url');
+  if (input) input.disabled = false;
+
+  // Background sync
+  try {
+    await fetch('/api/subscriptions/remove', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id })
+    });
+  } catch {}
+}
+
+// ── Sidebar collapse ─────────────────────────────────────────────────────────
+// Restore sidebar collapsed state
+if (localStorage.getItem('egm-sidebar-collapsed') === 'true') {
+  document.getElementById('sidebar').classList.add('collapsed');
+}
+document.getElementById('collapse-btn').addEventListener('click', () => {
+  const sidebar = document.getElementById('sidebar');
+  sidebar.classList.toggle('collapsed');
+  localStorage.setItem('egm-sidebar-collapsed', sidebar.classList.contains('collapsed'));
+});
+
+// ── Back to app ──────────────────────────────────────────────────────────────
+document.getElementById('history-btn').addEventListener('click', () => {
+  if (window.electronAPI && window.electronAPI.openHistoryWindow) {
+    window.electronAPI.openHistoryWindow('subs');
+  } else {
+    window.open('/history-page', '_blank');
+  }
+});
+
+function hasActiveDownloads() {
+  return [...allJobs.values()].some(j => !TERMINAL_STATES.includes(j.status));
+}
+
+// Push the active-downloads state to the main process so it can show a native
+// confirmation if the window is closed (X or "Back to app") while downloads run.
+// Electron's beforeunload can't show a dialog reliably, so the close is gated in
+// main.js via subsWindow.on('close'); this just keeps main.js's flag in sync.
+let _lastCloseGuard = null;
+function syncCloseGuard() {
+  const active = hasActiveDownloads();
+  if (active === _lastCloseGuard) return;
+  _lastCloseGuard = active;
+  if (window.electronAPI && window.electronAPI.notifySubsDownloads) {
+    window.electronAPI.notifySubsDownloads(active);
+  }
+}
+
+document.getElementById('back-btn').addEventListener('click', () => {
+  // The confirmation (when downloads are active) is handled in main.js's close
+  // interceptor — closing here routes through the same on('close') path as the X.
+  if (window.electronAPI && window.electronAPI.closeSubscriptions) {
+    window.electronAPI.closeSubscriptions();
+  } else {
+    window.close();
+  }
+});
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+loadSubs().then(() => {
+  const autoFetchSubs = subs.filter(s => s.auto_fetch_on_open);
+  if (autoFetchSubs.length > 0) {
+    // Select first auto-fetch channel so user sees it loading
+    activeSub = autoFetchSubs[0];
+    renderSidebar();
+    renderDetail();
+    autoFetchSubs.forEach(s => fetchVideos(s.id, false));
+  }
+});
+{% endraw %}
+// ── Sidebar drag resize ─────────────────────────────────────────────────────
+(function() {
+  const handle = document.getElementById('sidebar-resize');
+  const sidebar = document.getElementById('sidebar');
+  if (!handle || !sidebar) return;
+  let dragging = false, startX, startW;
+  handle.addEventListener('mousedown', (e) => {
+    if (sidebar.classList.contains('collapsed')) return;
+    dragging = true;
+    startX = e.clientX;
+    startW = sidebar.offsetWidth;
+    sidebar.style.transition = 'none';
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+    e.preventDefault();
+  });
+  document.addEventListener('mousemove', (e) => {
+    if (!dragging) return;
+    const w = Math.min(400, Math.max(140, startW + (e.clientX - startX)));
+    sidebar.style.width = w + 'px';
+  });
+  document.addEventListener('mouseup', () => {
+    if (!dragging) return;
+    dragging = false;
+    sidebar.style.transition = '';
+    document.body.style.cursor = '';
+    document.body.style.userSelect = '';
+    localStorage.setItem('egm-sidebar-width', sidebar.style.width);
+  });
+  // Restore saved width
+  const savedWidth = localStorage.getItem('egm-sidebar-width');
+  if (savedWidth && !sidebar.classList.contains('collapsed')) {
+    sidebar.style.width = savedWidth;
+  }
+})();
+
+</script>
+</body>
+</html>

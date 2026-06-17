@@ -20,6 +20,7 @@ node_modules/
 
 # ── Windows runtime (downloaded on first launch) ───────────────
 windows/node_bin/
+windows/python/
 windows/electron/node_modules/
 windows/electron/dist/
 
@@ -90,3 +91,4 @@ egm-portable-version.json
 egmac-update.json
 egmlinux-update.json
 _DELETED_FILES.txt
+egm_subscriptions.json

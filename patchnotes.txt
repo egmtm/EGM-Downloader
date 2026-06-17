@@ -1,11 +1,67 @@
+v1.1 - IGNITION
+-----------------------------------------
+
+  SUBSCRIPTIONS
+  • Subscribe to YouTube channels and manage them in a dedicated window
+  • Video list with thumbnails, durations, upload dates, and "New" badges
+  • Download individual or batch-selected videos from any channel
+  • Auto-fetch on open — optionally load new videos when the subscriptions window opens
+  • Download queue panel — view all active downloads across channels with progress, speed, and cancel
+  • Background channel fetching — add and browse while channels load in the background
+  • Members-only videos show a friendly message with guidance instead of a cryptic error
+
+  PER-CHANNEL SETTINGS
+  • Per-channel download format — choose Video or Audio independently for each channel
+  • Per-channel quality — Video: Best/4K/1440p/1080p/720p/480p, Audio: MP3 320/128/FLAC/WAV/OPUS 128/192
+  • Per-channel download folder — save different channels to different folders
+  • Channel header redesigned — name, URL, video count, and settings in a clean pill bar layout
+
+  SIDEBAR
+  • Collapsible sidebar with circular channel thumbnails for quick switching
+  • Expanded sidebar shows channel avatars next to names
+  • Right-click any channel thumbnail for reorder, force refresh, or delete
+  • Drag the sidebar edge to resize (140–400px range)
+  • Sidebar remembers collapsed state and custom width across sessions
+
+  EXPORT / IMPORT
+  • Settings export now includes your subscriptions (URL-only, lightweight)
+  • Import restores subscriptions automatically — just re-fetch to load videos
+  • Backward compatible — older export files still import correctly
+
+  UI POLISH
+  • SVG wordmark — "EGM DOWNLOADER" ultra-light modern logo with separator line
+  • SVG wordmark applied to all splash screens (Windows, Mac, Linux)
+  • Logo and navigation buttons aligned with content card edges
+  • Cookies row aligned with Settings header and Download Folder buttons
+  • Smooth fade-in transitions when switching between windows
+  • Scroll position preserved when loading more videos
+  • In-page confirmation dialogs replace native popups — no more focus issues
+  • All native confirm/alert/prompt replaced with themed modals
+
+  PERFORMANCE & STABILITY
+  • Background job architecture — channel fetches never block the UI
+  • ThreadPoolExecutor for concurrent fetching (max 4 channels simultaneously)
+  • Atomic subscription writes with thread-safe locking
+  • Download state persists across channel switches
+
+  SECURITY
+  • Per-channel folder paths validated on save and re-validated at download time
+  • Video IDs sanitized via allowlist before storage
+  • Thumbnail URLs validated against injection patterns
+  • All attribute-context interpolations escaped (attrEsc)
+  • Import data treated as untrusted — URLs validated, duplicates detected
+  • Security score: 9.3/10
+
+  PLATFORM-SPECIFIC
+  • [WINDOWS] Portable edition: embedded Python 3.12.10 — fully self-contained, no system Python needed
+  • [WINDOWS] Desktop shortcut now targets .exe correctly
+  • [WINDOWS] Uninstaller cleans up all runtime-created directories
+  • [WINDOWS] Python 3.10+ version check with clear error message on portable
+  • [WINDOWS] Stale launch.bat removed (Issue #5, reported by @derigoleks-wq)
+  • [ALL] Electron 42.4.0 → 42.4.1
+
 v1.0.5 - Build 129 (6/15/2026)
 -----------------------------------------
-  Portable re-pack (6/16/2026):
-  • [WINDOWS] Fix: Removed stale launch.bat from portable — called removed .vbs launcher (Issue #5, reported by @derigoleks-wq)
-  • [WINDOWS] Fix: Desktop shortcut now points to .exe instead of removed .vbs
-  • [WINDOWS] Fix: Python 3.10+ version gate — clear error dialog if Python too old or missing
-  Note: Portable re-packed under same version/build per re-pack rule. If you downloaded the portable before 6/16/2026, please re-download.
-
   • [WINDOWS] Fix: npm resolution for system-wide Node — shutil.which('npm') resolves npm.cmd via PATH, fixing WinError 2 crash on first launch when system Node is present but no portable node_bin (Issue #4, reported by @Floffye)
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
@@ -17,7 +73,7 @@ v1.0.4 - Build 128 (6/10/2026)
   • [ALL] Polish: Nav layout refined — History and Themes grouped, Advanced isolated with visual separator
   • [ALL] Fix: Improved contrast on Show/Hide toggle across all themes
 
-v1.0.3 - Build 127 (6/10/2026)
+v1.0.3 - Build 127 (6/2026)
 -----------------------------------------
   • [ALL] Security: Server-side download concurrency backstop — BoundedSemaphore (cap 24) prevents unbounded process spawns regardless of client pacing
   • [ALL] Security: Resolve-first download directory validation replaces denylist — closes path traversal bypass, adds boundary-aware root check and writability probe
