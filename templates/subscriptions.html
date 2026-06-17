@@ -1325,7 +1325,13 @@ loadSubs().then(() => {
     sidebar.style.transition = '';
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
+    localStorage.setItem('egm-sidebar-width', sidebar.style.width);
   });
+  // Restore saved width
+  const savedWidth = localStorage.getItem('egm-sidebar-width');
+  if (savedWidth && !sidebar.classList.contains('collapsed')) {
+    sidebar.style.width = savedWidth;
+  }
 })();
 
 </script>
