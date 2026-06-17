@@ -723,9 +723,9 @@ function renderDetail() {
       <div class="channel-info" style="flex:1;min-width:0">
         <div style="display:flex;align-items:flex-start;justify-content:space-between">
           <div>
-            <h2 style="font-size:.92rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
-            <p style="font-size:.65rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
-            <p style="font-size:.6rem;color:var(--text2)">
+            <h2 style="font-size:1.05rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
+            <p style="font-size:.72rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
+            <p style="font-size:.68rem;color:var(--text2)">
               ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
             </p>
             <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:5px;cursor:pointer">
@@ -752,14 +752,14 @@ function renderDetail() {
           <span style="color:var(--border)">|</span>
           <div style="display:flex;align-items:center;gap:5px">
             <span style="font-size:.65rem;color:var(--text2)">Format</span>
-            <select id="format-select" style="background:transparent;border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
+            <select id="format-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
               <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>Video</option>
               <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
             </select>
           </div>
           <div style="display:flex;align-items:center;gap:5px">
             <span style="font-size:.65rem;color:var(--text2)">Quality</span>
-            <select id="quality-select" style="background:transparent;border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
+            <select id="quality-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
               ${(activeSub.format || 'video') === 'video' ?
                 '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
               : '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'}
