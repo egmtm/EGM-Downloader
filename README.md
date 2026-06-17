@@ -301,6 +301,7 @@ Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issu
 
 **v1.1 — IGNITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.0)
 Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordmark, live theme propagation, embedded Python (Windows Portable), Electron 42.4.1, security score 9.3/10
+
 **v1.2 — [TBD]:**
 - 🔭 Next chapter — details after v1.1 ships
 - 🧩 *Browser extension in the works — send URLs straight to EGM Downloader without leaving your browser. Details TBD.*
