@@ -37,6 +37,7 @@ v1.1 - IGNITION
   • Scroll position preserved when loading more videos
   • In-page confirmation dialogs replace native popups — no more focus issues
   • All native confirm/alert/prompt replaced with themed modals
+  • [ALL] Fix: Theme changes now propagate live to all open windows (History, Themes, Subscriptions) — previously required reopening windows to apply (Issue #3)
 
   PERFORMANCE & STABILITY
   • Background job architecture — channel fetches never block the UI
