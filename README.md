@@ -307,13 +307,16 @@ Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issu
 **v1.1 — IGNITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.0)
 Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordmark, live theme propagation, embedded Python (Windows Portable), Electron 42.4.1, security score 9.3/10
 
-**v1.2 — [TBD]:**
-- 🔭 Next chapter — details after v1.1 ships
-- 🧩 *Browser extension in the works — send URLs straight to EGM Downloader without leaving your browser. Details TBD.*
+**v1.2 — CANVAS:**
+- 🎨 Theme Creator — build your own theme with a live preview color picker, export as `.json`
+- 🔧 Fixes — Electron bumps and any bugs that surface post-v1.1
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
 - 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
+
+**v1.4 and beyond:**
+- 🧩 *Browser extension — send URLs straight to EGM Downloader without leaving your browser. Revisiting when the userbase is stronger.*
 
 **See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
