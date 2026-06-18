@@ -63,3 +63,4 @@ SUPPORT
 ────────────────────────────────────────
 www.egerena.com
 github.com/egmtm/EGM-Downloader
+x.com/EGMDownloader
