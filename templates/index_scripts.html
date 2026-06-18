@@ -2125,6 +2125,17 @@ document.getElementById('subs-btn').addEventListener('click', () => {
                          '--btn-primary-text','--btn-on-accent','--btn-red-border',
                          '--audio-btn-color','--dur-bg','--dur-text'];
 
+  // Theme var values get injected into CSS (a <style> rule AND the preview swatches'
+  // style="" attributes), so an untrusted value must be neutralised first. Safe only
+  // if it has no context-breakout chars ({}<>;"'` — which escape the rule, the style
+  // attribute, or the tag) AND no fetching CSS functions (url()/image-set()/
+  // expression()/-moz-binding → silent network beacons when the var is used as a
+  // background). rgb()/rgba()/hsl()/gradients are untouched, so real colors still work.
+  const _cssVarSafe = (v) =>
+    typeof v === 'string' && v.length < 200 &&
+    /^[^{}<>;"'`]*$/.test(v) &&
+    !/(?:url|image-set|expression|-moz-binding)\s*\(/i.test(v);
+
   // Restore custom theme from localStorage on load
   const saved = localStorage.getItem('egm-custom-theme');
   if (saved) {
@@ -2134,11 +2145,9 @@ document.getElementById('subs-btn').addEventListener('click', () => {
   function _applyCustomTheme(theme) {
     let el = document.getElementById('custom-theme-style');
     if (!el) { el = document.createElement('style'); el.id = 'custom-theme-style'; document.head.appendChild(el); }
-    // F1 fix: validate each var value before injecting into <style> — reject any value
-    // containing CSS breakout chars that could escape body.custom{} context.
-    const CSS_SAFE_RE = /^[^{}<>;"'`]*$/;
-    const safePairs = Object.entries(theme.vars)
-      .filter(([k, v]) => typeof v === 'string' && CSS_SAFE_RE.test(v) && v.length < 200);
+    // F1: only inject values that pass _cssVarSafe — blocks both a body.custom{}
+    // breakout (via {}<>;"') and a url()/image-set() network beacon.
+    const safePairs = Object.entries(theme.vars).filter(([k, v]) => _cssVarSafe(v));
     const vars = safePairs.map(([k,v]) => `${k}:${v}`).join(';');
     el.textContent = `body.custom{${vars}}`;
     // Update custom row swatches + name
@@ -2197,11 +2206,13 @@ document.getElementById('subs-btn').addEventListener('click', () => {
       const missing = REQUIRED_VARS.filter(v => !theme.vars[v]);
       if (missing.length) { toast(`✗ Missing required vars: ${missing.slice(0,3).join(', ')}${missing.length>3?' …':''}`, 'err'); return; }
 
-      // Show preview modal
-      const bg  = theme.vars['--bg']   || '#000';
-      const sf  = theme.vars['--surf'] || '#111';
-      const ac  = theme.vars['--acc']  || '#3b82f6';
-      const tx  = theme.vars['--text'] || '#fff';
+      // Show preview modal. F2: these are interpolated into style="" attributes, so a
+      // hostile value like '#000"><img onerror=…>' would inject HTML — validate first
+      // and fall back to a default when the value isn't a safe CSS token.
+      const bg  = _cssVarSafe(theme.vars['--bg'])   ? theme.vars['--bg']   : '#000';
+      const sf  = _cssVarSafe(theme.vars['--surf']) ? theme.vars['--surf'] : '#111';
+      const ac  = _cssVarSafe(theme.vars['--acc'])  ? theme.vars['--acc']  : '#3b82f6';
+      const tx  = _cssVarSafe(theme.vars['--text']) ? theme.vars['--text'] : '#fff';
       const nm  = esc(theme.name);
 
       const backdrop = document.createElement('div');
