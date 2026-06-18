@@ -1,6 +1,10 @@
 v1.1.1 - (in progress)
 -----------------------------------------
 
+  SECURITY
+  • [ALL] Theme import: theme name is now escaped before rendering — prevents XSS via crafted theme files
+  • [ALL] Theme import: CSS variable values validated before applying — prevents CSS injection via imported themes
+
   FIXES
   • [WINDOWS] Installer now detects if EGM Downloader is running before installing — prompts to close it automatically or cancel
   • [WINDOWS] Portable edition now correctly isolates yt-dlp — was picking up system-installed version instead of its own bundled copy
