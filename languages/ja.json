@@ -171,7 +171,7 @@
     "subscriptions.btn.delete": "削除",
     "subscriptions.detail.empty": "詳細を表示するには購読を選択",
     "subscriptions.detail.hint": "「取得」をクリックしてこのチャンネルの動画を読み込む",
-    "subscriptions.btn.download_selected": "選択してダウンロード",
+    "subscriptions.btn.download_selected": "選択項目をダウンロード",
     "subscriptions.btn.load_more": "さらに読み込む ({0} / {1})",
     "subscriptions.error.fetch_failed": "取得に失敗しました",
     "update.available.title": "🎉 アップデートが利用可能!",
