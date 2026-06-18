@@ -2134,7 +2134,12 @@ document.getElementById('subs-btn').addEventListener('click', () => {
   function _applyCustomTheme(theme) {
     let el = document.getElementById('custom-theme-style');
     if (!el) { el = document.createElement('style'); el.id = 'custom-theme-style'; document.head.appendChild(el); }
-    const vars = Object.entries(theme.vars).map(([k,v]) => `${k}:${v}`).join(';');
+    // F1 fix: validate each var value before injecting into <style> — reject any value
+    // containing CSS breakout chars that could escape body.custom{} context.
+    const CSS_SAFE_RE = /^[^{}<>;"'`]*$/;
+    const safePairs = Object.entries(theme.vars)
+      .filter(([k, v]) => typeof v === 'string' && CSS_SAFE_RE.test(v) && v.length < 200);
+    const vars = safePairs.map(([k,v]) => `${k}:${v}`).join(';');
     el.textContent = `body.custom{${vars}}`;
     // Update custom row swatches + name
     const row = document.getElementById('custom-theme-row');
@@ -2197,7 +2202,7 @@ document.getElementById('subs-btn').addEventListener('click', () => {
       const sf  = theme.vars['--surf'] || '#111';
       const ac  = theme.vars['--acc']  || '#3b82f6';
       const tx  = theme.vars['--text'] || '#fff';
-      const nm  = theme.name;
+      const nm  = esc(theme.name);
 
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
@@ -2224,7 +2229,7 @@ document.getElementById('subs-btn').addEventListener('click', () => {
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
         applyTheme('custom');
-        toast(`Theme "${theme.name}" applied ✓`, 'ok');
+        toast(`Theme "${esc(theme.name)}" applied ✓`, 'ok');
       });
 
     } catch { toast('✗ Could not import theme', 'err'); }
