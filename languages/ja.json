@@ -4,11 +4,11 @@
   "_language_english": "Japanese",
   "_code": "ja",
   "_direction": "ltr",
-  "_version": "1.0.3",
+  "_version": "1.1.0",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-06-11",
+  "_last_updated": "2026-06-17",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & 他{0}サイト",
