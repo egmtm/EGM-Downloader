@@ -171,15 +171,15 @@
 
 ### Windows
 **Latest:** v1.1.0 Build 130  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (441 KB · ~800 MB after install)  
-**SHA256:** `0cf540b857f29df5eabcecf9fbdea753d9f77a8a92989e6b43b196cf5b8d7e88`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (442 KB · ~800 MB after install)  
+**SHA256:** `c9872798122924f1fe2f3fddfc7584c6c2dc091679fe1d6dc4bd892b8421664a`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.1.0 Build 130  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (420 KB · ~800 MB after first run)  
-**SHA256:** `bb8a38d0238048471852a4ee20a55a68e6b53945ffb83d54b8feb050015676ff`  
+**SHA256:** `6fdcd016583c5f88a066bfcd7ee884cb18a0c27f716fb81d60c9d9592a9cfa11`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
@@ -187,14 +187,14 @@
 ### macOS
 **Latest:** v1.1.0 Build 130  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (125 MB · ~300 MB after install)  
-**SHA256:** `068655ea8d63945ddc2e11f325f5d0a77f6a10aaf2b26fd20878429fadabcc5e`  
+**SHA256:** `18faf15da15102e8dbf5ac7d0a279d57fa3f1bc97824985b05baf77fca359221`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.1.0 Build 130  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `2fc79b0619cc3d23eb0d899cda03f85927e214f77ee3bda38332ef247e73b844`  
+**SHA256:** `7e5ad8b044b2746e5943ead4435ab5d7e5689e0c59e54fc638ffe18d7ce0a974`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
