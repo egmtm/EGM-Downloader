@@ -313,6 +313,7 @@ Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordm
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
+- 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
 
 **v1.4 and beyond:**
 - 🧩 *Browser extension — send URLs straight to EGM Downloader without leaving your browser. Revisiting when the userbase is stronger.*
