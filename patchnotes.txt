@@ -13,6 +13,9 @@ v1.1.1 - (in progress)
   • [ALL] @EGMDownloader X/Twitter account added to app footer and all platform instructions
   • [ALL] Support links in platform instructions now point to their respective platform pages
 
+  PENDING
+  • [ALL] Import/Export selector — checkbox modal to choose what to include (Settings, History, Themes, Subscriptions); default all selected; import adapts to file contents
+
 v1.1 - IGNITION
 -----------------------------------------
 
