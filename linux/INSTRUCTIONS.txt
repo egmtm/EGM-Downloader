@@ -61,6 +61,6 @@ Delete those too if you want a clean removal.
 
 SUPPORT
 ────────────────────────────────────────
-www.egerena.com
-github.com/egmtm/EGM-Downloader
-x.com/EGMDownloader
+https://egerena.com/apps/egml.html
+https://github.com/egmtm/EGM-Downloader
+https://x.com/EGMDownloader
