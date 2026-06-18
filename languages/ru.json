@@ -167,7 +167,7 @@
     "subscriptions.empty": "Добавьте URL канала или плейлиста, чтобы начать",
     "subscriptions.empty.no_subs": "Подписок пока нет",
     "subscriptions.btn.fetch": "Получить",
-    "subscriptions.btn.force": "Принудительно",
+    "subscriptions.btn.force": "Принудить",
     "subscriptions.btn.delete": "Удалить",
     "subscriptions.detail.empty": "Выберите подписку для просмотра подробностей",
     "subscriptions.detail.hint": "Нажмите «Получить», чтобы загрузить видео с этого канала",
