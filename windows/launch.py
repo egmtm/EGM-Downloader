@@ -331,9 +331,10 @@ def ensure_python():
 def ensure_python_deps_embedded(py_exe):
     """Install the app's deps into the EMBEDDED interpreter's own site-packages
     (isolated from any system/installer Python). Sentinel-import via subprocess
-    first — it's a different interpreter, so we can't import in-process."""
+    first — it's a different interpreter, so we can't import in-process.
+    Uses -I (isolated mode) so system site-packages are never visible."""
     try:
-        subprocess.run([str(py_exe), "-c", "import flask, yt_dlp, cryptography, mutagen"],
+        subprocess.run([str(py_exe), "-I", "-c", "import flask, yt_dlp, cryptography, mutagen"],
                        check=True, capture_output=True, timeout=30, creationflags=NO_WIN)
         return
     except Exception:
