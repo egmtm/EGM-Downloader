@@ -793,9 +793,7 @@ function renderDetail() {
             <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
           </div>
         </div>
-        ${videos.some(v => v.is_new) ? `<div style="display:flex;justify-content:flex-end;margin-top:6px;margin-right:0">
-          <button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen('${attrEsc(activeSub.id)}')">Mark all seen</button>
-        </div>` : ''}
+        ${videos.some(v => v.is_new) ? '<div style="display:flex;justify-content:flex-end;margin-top:6px"><button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">Mark all seen</button></div>' : ''}
         <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
           <div style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
