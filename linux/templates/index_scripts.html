@@ -257,6 +257,9 @@ async function checkForUpdatesOnLaunch() {
 
 
 document.getElementById('footer-update-btn').addEventListener('click', checkForUpdates);
+document.getElementById('footer-help-btn')?.addEventListener('click', () => {
+  document.getElementById('help-modal').style.display = 'flex';
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 (async () => {
