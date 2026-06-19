@@ -1797,7 +1797,8 @@ function toast(msg, type='') {
 let _historyPage = 1;         // current batch (1-based, newest first)
 let _historyTotal = 0;
 let _historyBatches = [];     // [{page, items}] — already loaded pages
-let _pinnedIds = new Set(JSON.parse(localStorage.getItem('egm-history-pins') || '[]').map(String));
+let _pinnedIds = new Set();
+try { _pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') || '[]') || []).map(String)); } catch {}
 const HBATCH = 10;
 
 function _fmtSize(b) {
