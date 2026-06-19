@@ -583,9 +583,19 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
 
     // Panel shortcuts (only when no field is focused)
     if (mod && !inField) {
-      if (e.key.toLowerCase() === 'h') { e.preventDefault(); switchTab('history'); return; }
-      if (e.key.toLowerCase() === 't') { e.preventDefault(); switchTab('themes'); return; }
-      if (e.key === ',')               { e.preventDefault(); switchTab('advanced'); return; }
+      const openPanel = (tab) => {
+        const p = document.getElementById('hamburger-panel');
+        if (!p) return;
+        window.switchTab(tab);
+        p.classList.add('open');
+        // sync nav active state
+        document.querySelectorAll('.nav-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.nav === tab);
+        });
+      };
+      if (e.key.toLowerCase() === 'h') { e.preventDefault(); openPanel('history'); return; }
+      if (e.key.toLowerCase() === 't') { e.preventDefault(); openPanel('themes'); return; }
+      if (e.key === ',')               { e.preventDefault(); openPanel('advanced'); return; }
       if (e.key.toLowerCase() === 's') { e.preventDefault(); document.getElementById('subs-btn')?.click(); return; }
     }
   });
