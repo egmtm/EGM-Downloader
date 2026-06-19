@@ -8,6 +8,7 @@ v1.1.1 - (in progress)
   FIXES
   • [WINDOWS] Installer now detects if EGM Downloader is running before installing — prompts to close it automatically or cancel
   • [WINDOWS] Portable edition now correctly isolates yt-dlp — was picking up system-installed version instead of its own bundled copy; no manual folder deletion required
+  • [ALL] Fixed console error when switching tabs before all panels are loaded
 
   IMPROVEMENTS
   • [ALL] @EGMDownloader X/Twitter account added to app footer and all platform instructions
