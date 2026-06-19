@@ -67,6 +67,7 @@
     }
     .sub-item:hover { color:var(--text);background:var(--surf2); }
     .sub-item:hover .kebab-btn { opacity:1; }
+    .sub-item.drag-over { background:var(--acc-dim);border-left-color:var(--acc); }
     .kebab-btn {
       background:none;border:none;color:var(--text2);cursor:pointer;
       font-size:14px;line-height:1;padding:2px 4px;opacity:0;transition:opacity .15s;
@@ -437,6 +438,7 @@ function renderSidebar() {
       : `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text2)">${esc((s.name || '?')[0])}</div>`;
     return `
     <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${attrEsc(s.id)}" style="display:flex;align-items:center;gap:8px;position:relative">
+      <span class="drag-handle" title="Drag to reorder" style="cursor:grab;color:var(--border2);font-size:11px;flex-shrink:0;opacity:0.6;user-select:none">⠿</span>
       ${thumb}
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
@@ -461,6 +463,51 @@ function renderSidebar() {
       activeSub = subs.find(s => s.id === item.dataset.id) || null;
       renderSidebar();
       renderDetail();
+    });
+  });
+
+  // Drag reorder — sidebar sub-items
+  let _dragSrc = null;
+  list.querySelectorAll('.sub-item').forEach(item => {
+    const handle = item.querySelector('.drag-handle');
+    if (!handle) return;
+    handle.addEventListener('mousedown', () => { item.draggable = true; });
+    item.addEventListener('dragstart', e => {
+      _dragSrc = item;
+      e.dataTransfer.effectAllowed = 'move';
+      setTimeout(() => item.style.opacity = '0.4', 0);
+    });
+    item.addEventListener('dragend', () => {
+      item.style.opacity = '';
+      item.draggable = false;
+      list.querySelectorAll('.sub-item').forEach(i => i.classList.remove('drag-over'));
+    });
+    item.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (item !== _dragSrc) {
+        list.querySelectorAll('.sub-item').forEach(i => i.classList.remove('drag-over'));
+        item.classList.add('drag-over');
+      }
+    });
+    item.addEventListener('drop', async e => {
+      e.preventDefault();
+      if (!_dragSrc || _dragSrc === item) return;
+      const srcId = _dragSrc.dataset.id;
+      const tgtId = item.dataset.id;
+      const srcIdx = subs.findIndex(s => s.id === srcId);
+      const tgtIdx = subs.findIndex(s => s.id === tgtId);
+      if (srcIdx === -1 || tgtIdx === -1) return;
+      // Optimistic reorder
+      const [moved] = subs.splice(srcIdx, 1);
+      subs.splice(tgtIdx, 0, moved);
+      renderSidebar();
+      // Persist
+      await fetch('/api/subscriptions/reorder-absolute', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ ids: subs.map(s => s.id) })
+      }).catch(() => {});
     });
   });
 
@@ -746,6 +793,9 @@ function renderDetail() {
             <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
           </div>
         </div>
+        ${videos.some(v => v.is_new) ? `<div style="display:flex;justify-content:flex-end;margin-top:6px;margin-right:0">
+          <button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen('${attrEsc(activeSub.id)}')">Mark all seen</button>
+        </div>` : ''}
         <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
           <div style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
@@ -906,6 +956,18 @@ function renderDetail() {
       });
       activeSub.download_folder = null;
       renderDetail();
+    });
+  }
+
+  // Size "Mark all seen" button to match Fetch + Delete + gap
+  const markAllBtn = document.getElementById('mark-all-seen-btn');
+  if (markAllBtn) {
+    requestAnimationFrame(() => {
+      const fetchBtn = document.querySelector('.fetch-btn[onclick*="fetchVideos"]');
+      const delBtn = document.querySelector('.fetch-btn[onclick*="removeSub"]');
+      if (fetchBtn && delBtn) {
+        markAllBtn.style.width = (fetchBtn.offsetWidth + delBtn.offsetWidth + 8) + 'px';
+      }
     });
   }
 
@@ -1213,6 +1275,23 @@ document.getElementById('paste-btn').addEventListener('click', async () => {
 });
 
 // ── Remove subscription ──────────────────────────────────────────────────────
+async function markAllSeen(id) {
+  const r = await fetch('/api/subscriptions/mark-all-seen', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ id })
+  });
+  if (!r.ok) return;
+  // Update local state
+  const sub = subs.find(s => s.id === id);
+  if (sub) sub.videos.forEach(v => v.is_new = false);
+  // Re-render channel detail (hides the button since no more New)
+  if (activeSub && activeSub.id === id) {
+    activeSub = sub;
+    renderDetail();
+  }
+}
+
 async function removeSub(id) {
   const sub = subs.find(s => s.id === id);
   const name = sub ? (sub.name || sub.url) : 'this subscription';

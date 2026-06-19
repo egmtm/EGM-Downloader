@@ -1797,6 +1797,7 @@ function toast(msg, type='') {
 let _historyPage = 1;         // current batch (1-based, newest first)
 let _historyTotal = 0;
 let _historyBatches = [];     // [{page, items}] — already loaded pages
+let _pinnedIds = new Set(JSON.parse(localStorage.getItem('egm-history-pins') || '[]').map(String));
 const HBATCH = 10;
 
 function _fmtSize(b) {
@@ -1824,6 +1825,8 @@ function _buildEntry(item) {
   const div = document.createElement('div');
   div.className = 'hentry';
   const isAudio = ['mp3','aac','flac','wav','ogg','m4a'].includes(item.format);
+  const pinned = _pinnedIds.has(String(item.id));
+  if (pinned) div.classList.add('pinned');
   const thumbHtml = item.thumbnail
     ? `<img class="hthumb" src="/api/thumbnail/${item.thumbnail}" alt="" onerror="this.outerHTML='<div class=\\'hthumb\\'>${isAudio ? '♫' : '▶'}</div>'">`
     : `<div class="hthumb">${isAudio ? '♫' : '▶'}</div>`;
@@ -1834,11 +1837,22 @@ function _buildEntry(item) {
       <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
     </div>
     <div class="hbtns">
+      <button class="hbtn pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin' : 'Pin to top'}">${pinned ? '★' : '☆'}</button>
       <button class="hbtn" title="Re-add URL">↺</button>
       <button class="hbtn" title="Open folder">🗁</button>
       <button class="hbtn red" title="Remove">✕</button>
     </div>`;
-  const [btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
+  const [btnPin, btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
+  btnPin.addEventListener('click', () => {
+    const id = String(item.id);
+    if (_pinnedIds.has(id)) {
+      _pinnedIds.delete(id);
+    } else {
+      _pinnedIds.add(id);
+    }
+    try { localStorage.setItem('egm-history-pins', JSON.stringify([..._pinnedIds])); } catch {}
+    loadHistoryPanel();
+  });
   btnReadd.addEventListener('click', () => {
     const ta = document.getElementById('urls');
     if (!ta) return;
@@ -1896,6 +1910,11 @@ async function loadHistoryPanel(page = 1) {
   const frag = document.createDocumentFragment();
   const items = (d && Array.isArray(d.items)) ? d.items : [];
 
+  // Pinned items float to top
+  const pinned = items.filter(it => _pinnedIds.has(String(it.id)));
+  const unpinned = items.filter(it => !_pinnedIds.has(String(it.id)));
+  const sorted = [...pinned, ...unpinned];
+
   if (items.length === 0) {
     const empty = document.createElement('div');
     empty.id = 'history-empty';
@@ -1904,8 +1923,8 @@ async function loadHistoryPanel(page = 1) {
     empty.textContent = total > 0 ? `${total} downloads (refresh to load)` : 'No downloads yet';
     frag.appendChild(empty);
   } else {
-    const shown = items.slice(0, 5);
-    const hidden = items.length - shown.length;
+    const shown = sorted.slice(0, 5);
+    const hidden = sorted.length - shown.length;
     shown.forEach(item => frag.appendChild(_buildEntry(item)));
     if (hidden > 0) {
       const more = document.createElement('p');
