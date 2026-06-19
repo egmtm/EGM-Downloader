@@ -1721,10 +1721,14 @@ function toast(msg, type='') {
     tabs.forEach(t => {
       t.classList.toggle('active', t.dataset.tab === tab);
     });
-    document.getElementById('hpanel-history').style.display  = tab === 'history'  ? '' : 'none';
-    document.getElementById('hpanel-themes').style.display   = tab === 'themes'   ? '' : 'none';
-    document.getElementById('hpanel-advanced').style.display  = tab === 'advanced' ? '' : 'none';
+    const ph = document.getElementById('hpanel-history');
+    const pt = document.getElementById('hpanel-themes');
+    const pa = document.getElementById('hpanel-advanced');
+    if (ph) ph.style.display = tab === 'history'  ? '' : 'none';
+    if (pt) pt.style.display = tab === 'themes'   ? '' : 'none';
+    if (pa) pa.style.display = tab === 'advanced' ? '' : 'none';
     const el = document.getElementById(`hpanel-${tab}`);
+    if (!el) return;
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
     if (tab === 'history') loadHistoryPanel();
   }
