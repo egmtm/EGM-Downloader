@@ -312,6 +312,8 @@ Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordm
 **v1.1.1:** 🔨 In progress
 - 🔒 Theme import hardened — CSS values fully validated, blocks XSS, CSS injection, and network beacon attempts (`url()`/`image-set()`) via crafted theme files
 - 📦 Import/Export selector — choose exactly what to include (Settings, History, Themes, Subscriptions); default all selected
+- ⌨️ Keyboard shortcuts — Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
+- ⬆️ Back to top arrow in subscriptions video list
 - 🪟 Windows installer detects running app — prompts to close before installing
 - 🪟 Windows Portable yt-dlp isolation fix — was picking up system version instead of bundled copy
 
