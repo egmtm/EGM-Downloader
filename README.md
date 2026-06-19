@@ -314,6 +314,7 @@ Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordm
 - 📦 Import/Export selector — choose exactly what to include (Settings, History, Themes, Subscriptions); default all selected
 - ⌨️ Keyboard shortcuts — Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
 - ⬆️ Back to top arrow in subscriptions video list
+- 🎨 10 new Animation themes — Yellow Family, Quahog, Mountain Town, Hollow, Beach City, Jump City, Halloween Town, Stop Motion, Super Saiyan, Odd Cab
 - 🪟 Windows installer detects running app — prompts to close before installing
 - 🪟 Windows Portable yt-dlp isolation fix — was picking up system version instead of bundled copy
 
