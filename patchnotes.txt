@@ -20,6 +20,7 @@ v1.1.1 - (in progress)
   • [ALL] Pin to top — star icon on history entries; pinned items float to top with teal tint; persists across sessions
   • [ALL] Mark all seen — button in subscriptions channel detail clears all New badges in one click
   • [ALL] Subscriptions drag reorder — drag handle on sidebar items to reorder channels
+  • [ALL] Help modal — keyboard shortcuts and tips accessible from the footer
 
 v1.1 - IGNITION
 -----------------------------------------
