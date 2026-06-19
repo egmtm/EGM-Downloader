@@ -64,6 +64,9 @@
   .rb{font-size:9px;padding:2px 6px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2)}
   .rb:hover{color:var(--acc);border-color:var(--acc)}
   .rb.red:hover{color:var(--red);border-color:rgba(239,68,68,.5)}
+  .rb.pin-rb{color:var(--border2)}
+  .rb.pin-rb.pinned{color:var(--acc);border-color:var(--acc)}
+  .row.row-pinned{background:rgba(45,212,191,.05);border-left:2px solid rgba(45,212,191,.3)}
   /* lint-allow-muted: empty-state */
   .empty-state{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px}
 
@@ -232,10 +235,15 @@
     if (currentFilter === 'flac')  items = items.filter(i => (i.format||'').toLowerCase() === 'flac');
     // Sort
     if (sortAsc) items = [...items].reverse();
-    filtered = items;
+    const pinned = items.filter(i => pinnedIds.has(String(i.id)));
+    const unpinned = items.filter(i => !pinnedIds.has(String(i.id)));
+    filtered = [...pinned, ...unpinned];
     currentPage = 1;
     render();
   }
+
+  let pinnedIds = new Set();
+  try { pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') || '[]') || []).map(String)); } catch {}
 
   function render() {
     const wrap = document.getElementById('table-wrap');

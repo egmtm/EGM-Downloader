@@ -1743,6 +1743,7 @@ function toast(msg, type='') {
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
     if (tab === 'history') loadHistoryPanel();
   }
+  window.switchTab = switchTab;
 
   function setActiveNav(tab) {
     navBtns.forEach(b => b.classList.toggle('active', b.dataset.nav === tab));
