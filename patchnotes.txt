@@ -17,6 +17,9 @@ v1.1.1 - (in progress)
   • [ALL] Keyboard shortcuts: Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
   • [ALL] Back to top arrow in subscriptions video list
   • [ALL] 10 new Animation themes: Yellow Family, Quahog, Mountain Town, Hollow, Beach City, Jump City, Halloween Town, Stop Motion, Super Saiyan, Odd Cab
+  • [ALL] Pin to top — star icon on history entries; pinned items float to top with teal tint; persists across sessions
+  • [ALL] Mark all seen — button in subscriptions channel detail clears all New badges in one click
+  • [ALL] Subscriptions drag reorder — drag handle on sidebar items to reorder channels
 
 v1.1 - IGNITION
 -----------------------------------------
