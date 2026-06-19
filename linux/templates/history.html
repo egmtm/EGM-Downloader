@@ -280,11 +280,25 @@
         <div class="col hi">${fmtSize(item.size_bytes)}</div>
         <div class="col">${fmtDate(item.completed_at)}</div>
         <div class="row-btns">
+          <button class="rb pin-rb" title="Pin to top">☆</button>
           <button class="rb" title="Re-add">↺</button>
           <button class="rb" title="Open folder">🗁</button>
           <button class="rb red" title="Remove">✕</button>
         </div>`;
-      const [btnReadd, btnOpen, btnDel] = row.querySelectorAll('.rb');
+      const [btnPin, btnReadd, btnOpen, btnDel] = row.querySelectorAll('.rb');
+      if (pinnedIds.has(String(item.id))) {
+        row.classList.add('row-pinned');
+        btnPin.textContent = '★';
+        btnPin.classList.add('pinned');
+        btnPin.title = 'Unpin';
+      }
+      btnPin.addEventListener('click', () => {
+        const id = String(item.id);
+        if (pinnedIds.has(id)) { pinnedIds.delete(id); }
+        else { pinnedIds.add(id); }
+        try { localStorage.setItem('egm-history-pins', JSON.stringify([...pinnedIds])); } catch {}
+        applyFilters();
+      });
       btnReadd.addEventListener('click', () => {
         // Helper to apply append-with-dedup logic to a target window's textarea
         const applyToTextarea = (targetWindow) => {
