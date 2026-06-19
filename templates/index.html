@@ -1960,6 +1960,7 @@
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
     <a href="https://x.com/EGMDownloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">@EGMDownloader</a>
     <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.1.0</span>
+    <button id="footer-help-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Help</button>
   </div>
   <div style="margin-top:7px;text-align:center">
     <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
@@ -2066,7 +2067,49 @@
 </div>
 
 <!-- What's New modal — shown once per version -->
-<div class="modal-backdrop" id="whats-new-modal" style="display:none">
+<!-- Help modal -->
+<div class="modal-backdrop" id="help-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:420px;width:90%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin:0">Help</h3>
+      <button class="btn btn-ghost" onclick="document.getElementById('help-modal').style.display='none'" style="padding:2px 8px;font-size:14px;line-height:1">✕</button>
+    </div>
+    <div style="display:flex;gap:18px">
+      <div style="flex:1">
+        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Keyboard shortcuts</p>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Fetch Info</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>↵</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Paste &amp; Fetch</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>V</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Clear input</td><td style="text-align:right;white-space:nowrap"><kbd>Esc</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">History</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>H</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Themes</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>T</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Advanced</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>,</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Subscriptions</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>S</kbd></td></tr>
+        </table>
+      </div>
+      <div style="width:0.5px;background:var(--border);flex-shrink:0"></div>
+      <div style="flex:1">
+        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tips</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">⤵</span>
+            <div><p style="font-size:.78rem;color:var(--text)">Drag &amp; drop URLs</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Drop URLs directly into the input</p></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">★</span>
+            <div><p style="font-size:.78rem;color:var(--text)">Pin history items</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Star a download to keep it at the top</p></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">⠿</span>
+            <div><p style="font-size:.78rem;color:var(--text)">Reorder subscriptions</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Drag the handle to rearrange channels</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- What's New modal -->
   <div class="modal" id="whats-new-modal-inner">
     <h3>🎉 What's New in <span id="whats-new-version">v1.1.0</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
