@@ -315,6 +315,10 @@ Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordm
 - ⌨️ Keyboard shortcuts — Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
 - ⬆️ Back to top arrow in subscriptions video list
 - 🎨 10 new Animation themes — Yellow Family, Quahog, Mountain Town, Hollow, Beach City, Jump City, Halloween Town, Stop Motion, Super Saiyan, Odd Cab
+- 📌 Pin to top in history — star icon floats entries to top with teal tint, persists across sessions
+- ✅ Mark all seen — clears all New badges in one click per channel
+- ↕️ Subscriptions drag reorder — drag handle on sidebar to reorder channels
+- ❓ Help modal — keyboard shortcuts and tips accessible from the footer
 - 🪟 Windows installer detects running app — prompts to close before installing
 - 🪟 Windows Portable yt-dlp isolation fix — was picking up system version instead of bundled copy
 
