@@ -309,6 +309,12 @@ Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issu
 **v1.1 — IGNITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.0)
 Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordmark, live theme propagation, embedded Python (Windows Portable), Electron 42.4.1, security score 9.3/10
 
+**v1.1.1:** 🔨 In progress
+- 🔒 Theme import hardened — CSS values fully validated, blocks XSS, CSS injection, and network beacon attempts (`url()`/`image-set()`) via crafted theme files
+- 📦 Import/Export selector — choose exactly what to include (Settings, History, Themes, Subscriptions); default all selected
+- 🪟 Windows installer detects running app — prompts to close before installing
+- 🪟 Windows Portable yt-dlp isolation fix — was picking up system version instead of bundled copy
+
 **v1.2 — CANVAS:**
 - 🎨 Theme Creator — build your own theme with a live preview color picker, export as `.json`
 - 🔧 Fixes — Electron bumps and any bugs that surface post-v1.1
