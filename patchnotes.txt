@@ -14,6 +14,8 @@ v1.1.1 - (in progress)
   • [ALL] @EGMDownloader X/Twitter account added to app footer and all platform instructions
   • [ALL] Support links in platform instructions now point to their respective platform pages
   • [ALL] Import/Export selector — choose exactly what to include (Settings, History, Themes, Subscriptions); import adapts to what's in the file; default all selected
+  • [ALL] Keyboard shortcuts: Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
+  • [ALL] Back to top arrow in subscriptions video list
 
 v1.1 - IGNITION
 -----------------------------------------
