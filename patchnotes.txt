@@ -16,6 +16,7 @@ v1.1.1 - (in progress)
   • [ALL] Import/Export selector — choose exactly what to include (Settings, History, Themes, Subscriptions); import adapts to what's in the file; default all selected
   • [ALL] Keyboard shortcuts: Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
   • [ALL] Back to top arrow in subscriptions video list
+  • [ALL] 10 new Animation themes: Yellow Family, Quahog, Mountain Town, Hollow, Beach City, Jump City, Halloween Town, Stop Motion, Super Saiyan, Odd Cab
 
 v1.1 - IGNITION
 -----------------------------------------
