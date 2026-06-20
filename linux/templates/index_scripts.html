@@ -1764,7 +1764,9 @@ function toast(msg, type='') {
     return active ? active.dataset.tab : 'history';
   }
 
-  navBtns.forEach(b => b.addEventListener('click', (e) => {
+  navBtns.forEach(b => {
+    if (b.id === 'subs-btn') return; // subs-btn has its own dedicated handler
+    b.addEventListener('click', (e) => {
     e.stopPropagation();
     const target = b.dataset.nav;
     const isOpen = panel.classList.contains('open');
@@ -1780,7 +1782,8 @@ function toast(msg, type='') {
         panel.classList.add('open');
       }
     }
-  }));
+    });
+  });
 
   tabs.forEach(t => t.addEventListener('click', () => {
     switchTab(t.dataset.tab);
