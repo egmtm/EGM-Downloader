@@ -1047,6 +1047,11 @@ function renderDetail() {
         const videoUrl = video ? `https://www.youtube.com/watch?v=${video.video_id}` : videoId;
 
         try {
+          // Map channel quality token → validated /api/download fields
+          const q = activeSub.quality || '';
+          const qualityFields = subFormat === 'audio'
+            ? { audio_quality: q || '320', audio_codec: q.startsWith('opus') ? 'opus' : q === 'flac' ? 'flac' : q === 'wav' ? 'wav' : 'mp3' }
+            : (q && q !== 'best' ? { video_height: q } : {});
           const resp = await fetch('/api/download', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1057,7 +1062,8 @@ function renderDetail() {
               title: video?.title || '',
               thumbnail: video?.thumbnail_url || '',
               embed_metadata: true,
-              subtitles: false
+              subtitles: false,
+              ...qualityFields
             })
           });
           const result = await resp.json();
