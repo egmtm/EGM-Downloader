@@ -1111,13 +1111,21 @@ function makePh(url) {
 function makeCardEl() { const el=document.createElement('div'); el.className='vcard'; return el; }
 
 function updateQueueArrows() {
-  const idleItems = items.filter(i => i.status === 'idle');
-  idleItems.forEach((item, pos) => {
-    const wrap = document.getElementById(`qarrows${item.id}`);
+  const results = document.getElementById('results');
+  if (!results) return;
+  // Use DOM order as source of truth — items[] may drift from DOM after swaps
+  const idleCards = [...results.querySelectorAll('.vcard')].filter(card => {
+    const id = card.querySelector('.qarrow')?.dataset.id;
+    if (!id) return false;
+    const item = items.find(i => String(i.id) === String(id));
+    return item && item.status === 'idle';
+  });
+  idleCards.forEach((card, pos) => {
+    const wrap = card.querySelector('[id^="qarrows"]');
     if (!wrap) return;
     const [up, down] = wrap.querySelectorAll('.qarrow');
     if (up)   up.style.visibility   = pos === 0 ? 'hidden' : 'visible';
-    if (down) down.style.visibility = pos === idleItems.length - 1 ? 'hidden' : 'visible';
+    if (down) down.style.visibility = pos === idleCards.length - 1 ? 'hidden' : 'visible';
   });
 }
 

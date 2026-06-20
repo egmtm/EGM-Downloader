@@ -403,20 +403,6 @@
   });
 
   loadAll();
-
-  // Back to top
-  const wrap = document.getElementById('table-wrap');
-  const topBtn = document.createElement('button');
-  topBtn.textContent = '↑';
-  topBtn.title = 'Back to top';
-  topBtn.style.cssText = 'display:none;position:fixed;bottom:40px;right:20px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:700;z-index:100;opacity:.85;transition:opacity .2s';
-  topBtn.onmouseenter = () => topBtn.style.opacity = '1';
-  topBtn.onmouseleave = () => topBtn.style.opacity = '.85';
-  topBtn.onclick = () => wrap.scrollTo({ top: 0, behavior: 'smooth' });
-  document.body.appendChild(topBtn);
-  wrap.addEventListener('scroll', () => {
-    topBtn.style.display = wrap.scrollTop > 200 ? 'block' : 'none';
-  });
 })();
 </script>
 </body>
