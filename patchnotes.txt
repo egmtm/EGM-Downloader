@@ -25,6 +25,7 @@ v1.1.1 - (in progress)
   • [ALL] Theme subcategory order — subcategories sorted alphabetically within each section
   • [ALL] Settings: Site Cookies row moved above toggles, within the quality/format panel for quicker access
   • [ALL] Subscriptions: channel quality setting (video height / audio quality) now correctly applied when downloading — was saved but not sent to the download engine
+  • [ALL] Subscriptions: per-video quality override — each video row has its own Quality selector; overrides the channel default for that download only; resets on channel format change
 
 v1.1 - IGNITION
 -----------------------------------------
