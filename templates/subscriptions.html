@@ -784,16 +784,18 @@ function renderDetail() {
               Auto-fetch on open
             </label>
           </div>
-          <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;margin-left:16px">
-            <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.7rem;border-radius:5px;padding:5px 10px;cursor:pointer;height:28px">
-              <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
-              <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
-            </select>
-            <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
-            <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;margin-left:16px">
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.7rem;border-radius:5px;padding:5px 10px;cursor:pointer;height:28px">
+                <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
+                <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
+              </select>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
+            </div>
+            ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">Mark all seen</button>' : ''}
           </div>
         </div>
-        ${videos.some(v => v.is_new) ? '<div style="display:flex;justify-content:flex-end;margin-top:6px"><button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">Mark all seen</button></div>' : ''}
         <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
           <div style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
