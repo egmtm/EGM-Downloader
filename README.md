@@ -45,7 +45,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
-- 🎨 **400 Themes** - 378 permanent across 28 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 400, seasonal themes appear during their respective time of year.
+- 🎨 **410 Themes** - 388 permanent across 28 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 410, seasonal themes appear during their respective time of year.
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
@@ -64,7 +64,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.1 — IGNITION. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.1.1 — TRULY YOURS. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -174,14 +174,14 @@
 ### Windows
 **Latest:** v1.1.1 Build 131  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (442 KB · ~800 MB after install)  
-**SHA256:** `c9872798122924f1fe2f3fddfc7584c6c2dc091679fe1d6dc4bd892b8421664a`  
+**SHA256:** `0f4fa0c8eaa481868476b93c6e4fdd0ed7d3d13f54c16ae262771ca7985eae73`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.1.1 Build 131  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (420 KB · ~800 MB after first run)  
-**SHA256:** `6fdcd016583c5f88a066bfcd7ee884cb18a0c27f716fb81d60c9d9592a9cfa11`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (430 KB · ~800 MB after first run)  
+**SHA256:** `450ecae492983be3598dbd2402ffbbf718082b738c594e6fcc565ced71ab3ced`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
@@ -189,14 +189,14 @@
 ### macOS
 **Latest:** v1.1.1 Build 131  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (125 MB · ~300 MB after install)  
-**SHA256:** `18faf15da15102e8dbf5ac7d0a279d57fa3f1bc97824985b05baf77fca359221`  
+**SHA256:** `e1b0fdd5283f71c3181bb7516ad5d8bb93b696414d649b271dd37272fcac0fa1`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.1.1 Build 131  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `7e5ad8b044b2746e5943ead4435ab5d7e5689e0c59e54fc638ffe18d7ce0a974`  
+**SHA256:** `41d1052c366418e6fb8d28ecb096907c014925c818dcb5f63ab540c37fd87cac`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -309,21 +309,8 @@ Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issu
 **v1.1 — IGNITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.0)
 Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordmark, live theme propagation, embedded Python (Windows Portable), Electron 42.4.1, security score 9.3/10
 
-**v1.1.1 — TRULY YOURS:** *(Shipping June 20, 2026)*
-- 🔒 Theme import hardened — CSS values fully validated, blocks XSS, CSS injection, and network beacon attempts (`url()`/`image-set()`) via crafted theme files
-- 📦 Import/Export selector — choose exactly what to include (Settings, History, Themes, Subscriptions); default all selected
-- ⌨️ Keyboard shortcuts — Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
-- ⬆️ Back to top arrow in subscriptions video list
-- 🎨 10 new Animation themes — Yellow Family, Quahog, Mountain Town, Hollow, Beach City, Jump City, Halloween Town, Stop Motion, Super Saiyan, Odd Cab
-- 📌 Pin to top in history — star icon floats entries to top with teal tint, persists across sessions
-- ✅ Mark all seen — clears all New badges in one click per channel
-- ↕️ Subscriptions drag reorder — drag handle on sidebar to reorder channels
-- ❓ Help modal — keyboard shortcuts and tips accessible from the footer
-- 🔢 Download queue reorder — up/down arrows on queued cards to reprioritize before downloading
-- 🎛️ Per-video quality override — each video row has its own Quality selector, overrides channel default for that download
-- 🪟 Windows installer detects running app — prompts to close before installing
-- 🪟 Windows Portable yt-dlp isolation fix — was picking up system version instead of bundled copy
-
+**v1.1.1 — TRULY YOURS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.1)
+Theme import security, import/export selector, keyboard shortcuts, animation themes, pin to top, drag reorder, per-video quality override, Windows installer running-app detection
 **v1.2 — CANVAS:**
 - 🎨 Theme Creator — build your own theme with a live preview color picker, export as `.json`
 - 🔧 Fixes — Electron bumps and any bugs that surface post-v1.1
@@ -431,10 +418,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version man
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 130 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 130 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 130 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 130 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 131 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 131 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 131 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 131 | EGMdL.zip | ❌ Manual |
 
 ### System Requirements
 
