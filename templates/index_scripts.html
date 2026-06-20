@@ -1235,21 +1235,24 @@ function renderCard(el, item) {
   el.querySelectorAll('.qarrow').forEach(btn => {
     btn.addEventListener('click', () => {
       const dir = btn.dataset.dir;
-      const idx = items.indexOf(item);
-      if (idx === -1) return;
-      const swap = dir === 'up' ? idx - 1 : idx + 1;
-      if (swap < 0 || swap >= items.length) return;
-      // Only swap if both are idle
-      if (items[swap].status !== 'idle' || item.status !== 'idle') return;
-      [items[idx], items[swap]] = [items[swap], items[idx]];
-      // Swap DOM nodes
       const results = document.getElementById('results');
       const cards = [...results.querySelectorAll('.vcard')];
-      const a = cards[idx], b = cards[swap];
-      if (!a || !b) return;
-      const refA = a.nextSibling;
-      results.insertBefore(a, b);
-      results.insertBefore(b, refA);
+      const domIdx = cards.indexOf(el);
+      if (domIdx === -1) return;
+      const swapIdx = dir === 'up' ? domIdx - 1 : domIdx + 1;
+      if (swapIdx < 0 || swapIdx >= cards.length) return;
+      const other = cards[swapIdx];
+      if (!other) return;
+      // Find items by card position
+      const itemA = items[domIdx];
+      const itemB = items[swapIdx];
+      if (!itemA || !itemB || itemA.status !== 'idle' || itemB.status !== 'idle') return;
+      // Swap items array
+      [items[domIdx], items[swapIdx]] = [items[swapIdx], items[domIdx]];
+      // Swap DOM nodes
+      const refA = el.nextSibling;
+      results.insertBefore(el, other);
+      results.insertBefore(other, refA);
       updateQueueArrows();
     });
   });
