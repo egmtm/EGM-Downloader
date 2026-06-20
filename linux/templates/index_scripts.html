@@ -1007,6 +1007,7 @@ async function fetchSingle(url, ph) {
   if (fetchAbort) { ph.remove(); return; }
   if (info.error) throw new Error(info.error);
   renderCard(ph, addItem(url, info));
+  updateQueueArrows();
 }
 
 // Enqueue all playlist entries as stub cards, then fetch full info in parallel
@@ -1109,6 +1110,17 @@ function makePh(url) {
 }
 function makeCardEl() { const el=document.createElement('div'); el.className='vcard'; return el; }
 
+function updateQueueArrows() {
+  const idleItems = items.filter(i => i.status === 'idle');
+  idleItems.forEach((item, pos) => {
+    const wrap = document.getElementById(`qarrows${item.id}`);
+    if (!wrap) return;
+    const [up, down] = wrap.querySelectorAll('.qarrow');
+    if (up)   up.style.visibility   = pos === 0 ? 'hidden' : 'visible';
+    if (down) down.style.visibility = pos === idleItems.length - 1 ? 'hidden' : 'visible';
+  });
+}
+
 
 function renderErr(el, url, msg) {
   el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
@@ -1173,6 +1185,10 @@ function renderCard(el, item) {
           <span class="badge b-dl" style="font-size:.7rem"><span class="spinner"></span></span></div>` : ''}
       </div>
       <div class="vcontrols">
+        <div style="display:flex;gap:3px;flex-shrink:0" id="qarrows${n}">
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="Move up" style="padding:2px 6px;font-size:11px">↑</button>
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
+        </div>
         <span class="badge b-wait" id="st${n}">Ready</span>
         <button class="btn btn-primary btn-sm" id="dl${n}">⬇ Download</button>
       </div>
@@ -1206,6 +1222,29 @@ function renderCard(el, item) {
   }
 
   document.getElementById(`dl${n}`).addEventListener('click', () => startDl(item, n));
+
+  // Queue reorder arrows — only shown on idle cards
+  el.querySelectorAll('.qarrow').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = btn.dataset.dir;
+      const idx = items.indexOf(item);
+      if (idx === -1) return;
+      const swap = dir === 'up' ? idx - 1 : idx + 1;
+      if (swap < 0 || swap >= items.length) return;
+      // Only swap if both are idle
+      if (items[swap].status !== 'idle' || item.status !== 'idle') return;
+      [items[idx], items[swap]] = [items[swap], items[idx]];
+      // Swap DOM nodes
+      const results = document.getElementById('results');
+      const cards = [...results.querySelectorAll('.vcard')];
+      const a = cards[idx], b = cards[swap];
+      if (!a || !b) return;
+      const refA = a.nextSibling;
+      results.insertBefore(a, b);
+      results.insertBefore(b, refA);
+      updateQueueArrows();
+    });
+  });
 
 }
 
@@ -1267,6 +1306,7 @@ async function startDl(item, n) {
       item.info = i2;
       const card = dlBtn?.closest?.('.vcard');
       if (card) renderCard(card, item);
+      updateQueueArrows();
       return startDl(item, n);
     } catch (e) {
       setBadge(document.getElementById(`st${n}`), 'error', e.message);
