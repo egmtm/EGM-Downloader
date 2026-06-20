@@ -24,6 +24,7 @@ v1.1.1 - (in progress)
   • [ALL] Download queue reorder — up/down arrows on idle cards to reprioritize before downloading
   • [ALL] Theme subcategory order — subcategories sorted alphabetically within each section
   • [ALL] Settings: Site Cookies row moved above toggles, within the quality/format panel for quicker access
+  • [ALL] Subscriptions: channel quality setting (video height / audio quality) now correctly applied when downloading — was saved but not sent to the download engine
 
 v1.1 - IGNITION
 -----------------------------------------
