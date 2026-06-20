@@ -816,7 +816,7 @@ function renderDetail() {
             <select id="quality-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
               ${(activeSub.format || 'video') === 'video' ?
                 '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
-              : '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'}
+              : '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'}
             </select>
           </div>
         </div>
@@ -852,7 +852,7 @@ function renderDetail() {
               <select class="vq-sel" data-video-id="${attrEsc(v.video_id || '')}" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
                 <option value="">Channel default</option>
                 ${(activeSub.format || 'video') === 'audio'
-                  ? '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
+                  ? '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
                   : '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'}
               </select>
             </div>
@@ -891,7 +891,7 @@ function renderDetail() {
     if (!qualitySelect) return;
     const savedQuality = activeSub.quality || 'best';
     if (format === 'audio') {
-      qualitySelect.innerHTML = '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>';
+      qualitySelect.innerHTML = '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>';
     } else {
       qualitySelect.innerHTML = '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
     }
@@ -899,7 +899,7 @@ function renderDetail() {
     if (opt) opt.selected = true;
     // Sync per-row selects to new format options; clear any stored overrides
     const rowOpts = format === 'audio'
-      ? '<option value="">Channel default</option><option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
+      ? '<option value="">Channel default</option><option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
       : '<option value="">Channel default</option><option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
     document.querySelectorAll('.vq-sel').forEach(s => { s.innerHTML = rowOpts; });
     videoQualityOverride = {};
