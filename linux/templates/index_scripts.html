@@ -2626,6 +2626,7 @@ function videoQualityBgClick(e) {
       box.appendChild(ftr);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
+      overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(null); } });
     });
   };
 
