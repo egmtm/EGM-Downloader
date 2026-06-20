@@ -1007,12 +1007,10 @@ function renderDetail() {
   }
 
   // Per-row quality override map (one-time, cleared on format change)
-  if (typeof videoQualityOverride === 'undefined') { var videoQualityOverride = {}; }
+  const videoQualityOverride = {};
   document.querySelectorAll('.vq-sel').forEach(sel => {
-    const vid = sel.dataset.videoId;
-    if (videoQualityOverride[vid]) sel.value = videoQualityOverride[vid];
     sel.addEventListener('change', () => {
-      videoQualityOverride[vid] = sel.value;
+      videoQualityOverride[sel.dataset.videoId] = sel.value;
     });
   });
 
@@ -1077,8 +1075,9 @@ function renderDetail() {
           // Per-video override takes precedence over channel default
           const rowOverride = videoQualityOverride[videoId] || '';
           const q = rowOverride || activeSub.quality || '';
+          const aq = q === 'mp3_320' ? '320' : q === 'mp3_128' ? '128' : q || '320';
           const qualityFields = subFormat === 'audio'
-            ? { audio_quality: q || '320', audio_codec: q.startsWith('opus') ? 'opus' : q === 'flac' ? 'flac' : q === 'wav' ? 'wav' : 'mp3' }
+            ? { audio_quality: aq }
             : (q && q !== 'best' ? { video_height: q } : {});
           const resp = await fetch('/api/download', {
             method: 'POST',
