@@ -1249,10 +1249,17 @@ function renderCard(el, item) {
       if (!itemA || !itemB || itemA.status !== 'idle' || itemB.status !== 'idle') return;
       // Swap items array
       [items[domIdx], items[swapIdx]] = [items[swapIdx], items[domIdx]];
-      // Swap DOM nodes
-      const refA = el.nextSibling;
-      results.insertBefore(el, other);
-      results.insertBefore(other, refA);
+      // Swap DOM nodes. el and other are always ADJACENT cards, so a single
+      // insertBefore swaps them. The previous two-step dance captured
+      // el.nextSibling BEFORE mutating the DOM, so the second insertBefore used a
+      // stale reference — depending on the surrounding nodes it either no-op'd or
+      // un-did the first move, leaving the card unmoved (and the items array now
+      // out of sync with the DOM → the "wrong card moves" follow-on).
+      if (dir === 'up') {
+        results.insertBefore(el, other);    // el moves above other
+      } else {
+        results.insertBefore(other, el);    // other moves above el (el moves down)
+      }
       updateQueueArrows();
     });
   });
