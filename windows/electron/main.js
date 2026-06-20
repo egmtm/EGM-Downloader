@@ -672,27 +672,10 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
   subsWindow.on('closed', () => {
     subsWindow = null;
     subsActiveDownloads = false; subsForceClose = false;
-    // Restore main window when subscriptions closes.
     if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.show();
-      // Windows refuses SetForegroundWindow for a window that was hidden while
-      // another window held the foreground (the OS "foreground lock"), so a plain
-      // show()+focus() leaves the main window visible but NOT activated — the
-      // first click is swallowed just to activate it, which reads to the user as
-      // an invisible overlay blocking the UI. Briefly flagging the window
-      // always-on-top forces it to the foreground through a path the lock doesn't
-      // gate; we release it on the next tick so it doesn't actually stay pinned
-      // above other apps. (Toggling synchronously can be coalesced by the OS, so
-      // the release is deferred.)
-      mainWindow.setAlwaysOnTop(true);
       mainWindow.focus();
-      setTimeout(() => {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.setAlwaysOnTop(false);
-          mainWindow.focus();
-        }
-      }, 80);
     }
   });
 });
