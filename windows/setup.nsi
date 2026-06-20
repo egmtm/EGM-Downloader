@@ -131,6 +131,32 @@ FunctionEnd
 
 ; ── Install Section ──────────────────────────────────────────
 Section "Install"
+  ; ── Guard: never install over a RUNNING app (locked files → corrupt/partial
+  ;    copy or silent failure). nsProcess isn't in our build environment, so we
+  ;    detect with tasklist piped to find: find's exit code is 0 only when the
+  ;    image name appears in tasklist's output. We match the IMAGE NAME (not
+  ;    tasklist's "no tasks" line, which is localized), so this is locale-robust.
+  ;    Both the launcher and the renamed Electron runtime run as
+  ;    "EGM Downloader.exe", so this one image name covers the whole app. ──
+  check_running:
+    nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq ${APPNAME}.exe" /NH | find /I "${APPNAME}.exe"'
+    Pop $0   ; process exit code (= find's: 0 = running, 1 = not running)
+    Pop $1   ; captured stdout (unused)
+    ${If} $0 == 0
+      MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+        "${APPNAME} is currently running.$\r$\n$\r$\n\
+Close it before continuing, or let the installer close it for you.$\r$\n$\r$\n\
+OK      →  Close it for me$\r$\n\
+Cancel  →  Cancel installation" \
+        /SD IDOK IDOK kill_running
+      Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
+      kill_running:
+        ; Same image name as the uninstaller's kill; /T also takes child processes.
+        nsExec::Exec 'taskkill /F /T /IM "${APPNAME}.exe"'
+        Sleep 1000
+        Goto check_running   ; re-verify it actually closed before we write files
+    ${EndIf}
+
   SetOutPath "$INSTDIR"
 
   ; ── Root files ──

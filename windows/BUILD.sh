@@ -160,6 +160,8 @@ h.update(open('$REPO_ROOT/dist/EGMd.zip', 'rb').read())
 print(h.hexdigest())
 ")
 echo "   ✓ SHA256: $CHECKSUM"
+SIZE=$(python3 -c "import os; print(os.path.getsize('$REPO_ROOT/dist/EGMd.zip'))")
+echo "   ✓ size: $SIZE bytes"
 echo ""
 
 # ── Generate update JSON ─────────────────────────────────────────────────────
@@ -190,10 +192,10 @@ for line in pn.splitlines():
 print('|||'.join(bullets))
 ")
 if [ -n "$NOTES" ]; then
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --notes "$NOTES" --checksum "$CHECKSUM"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --notes "$NOTES" --checksum "$CHECKSUM" --size-bytes "$SIZE"
 else
     echo "   ⚠️  No [WINDOWS] or [ALL] bullets found in patchnotes.txt — generating with empty notes"
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --checksum "$CHECKSUM"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows --checksum "$CHECKSUM" --size-bytes "$SIZE"
 fi
 echo ""
 
@@ -363,6 +365,8 @@ h.update(open('$REPO_ROOT/dist/EGMd-portable.zip', 'rb').read())
 print(h.hexdigest())
 ")
 echo "   ✓ SHA256: $PORTABLE_CHECKSUM"
+PORTABLE_SIZE=$(python3 -c "import os; print(os.path.getsize('$REPO_ROOT/dist/EGMd-portable.zip'))")
+echo "   ✓ size: $PORTABLE_SIZE bytes"
 
 # Cleanup stage
 rm -rf "$PORTABLE_STAGE"
@@ -370,9 +374,9 @@ rm -rf "$PORTABLE_STAGE"
 # Generate portable update JSON
 echo "   Generating egm-portable-version.json..."
 if [ -n "$NOTES" ]; then
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows-portable --notes "$NOTES" --checksum "$PORTABLE_CHECKSUM"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows-portable --notes "$NOTES" --checksum "$PORTABLE_CHECKSUM" --size-bytes "$PORTABLE_SIZE"
 else
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows-portable --checksum "$PORTABLE_CHECKSUM"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform windows-portable --checksum "$PORTABLE_CHECKSUM" --size-bytes "$PORTABLE_SIZE"
 fi
 echo ""
 

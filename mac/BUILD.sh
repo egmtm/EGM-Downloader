@@ -167,7 +167,7 @@ cat > INSTRUCTIONS.txt << 'EOF'
   EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-VERSION: v1.1.0
+VERSION: v1.1.1
 PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
 MINIMUM MACOS: 11.0 (Big Sur) or later
 
@@ -224,7 +224,6 @@ FEATURES:
 Website: https://egerena.com/apps/egmac.html
 GitHub: https://github.com/egmtm/EGM-Downloader
 X: https://x.com/EGMDownloader
-Email: contact@egerena.com
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   LICENSE
@@ -256,12 +255,15 @@ h.update(open('$REPO_ROOT/dist/EGMdM.zip', 'rb').read())
 print(h.hexdigest())
 ")
 echo "   ✓ SHA256: $MAC_CHECKSUM"
-echo "   → Provide this checksum to Claude when generating egmac-update.json"
+MAC_SIZE=$(python3 -c "import os; print(os.path.getsize('$REPO_ROOT/dist/EGMdM.zip'))" 2>/dev/null || echo "")
+echo "   ✓ size: ${MAC_SIZE:-?} bytes"
+echo "   → Provide this checksum AND size when generating egmac-update.json"
 echo ""
 
 # ── Update JSON ───────────────────────────────────────────────────────────────
 # JSON feed (egmac-update.json) is provided by Claude directly — no local generation needed.
-# Pass the SHA256 above as the --checksum arg: gen-update-json.py --platform mac --checksum "$MAC_CHECKSUM"
+# Pass both: gen-update-json.py --platform mac --checksum "$MAC_CHECKSUM" --size-bytes "$MAC_SIZE"
+# (the feed validator requires size_bytes > 0 on every feed.)
 
 # ── GitHub push disabled — user pushes manually after verifying the build ─────
 # (Previous auto-push failed because the user's extracted source zip is not a

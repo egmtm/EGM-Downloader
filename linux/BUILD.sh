@@ -176,6 +176,8 @@ h.update(open('$REPO_ROOT/dist/EGMdL.zip', 'rb').read())
 print(h.hexdigest())
 ")
 echo "   ✓ SHA256: $CHECKSUM"
+SIZE=$(python3 -c "import os; print(os.path.getsize('$REPO_ROOT/dist/EGMdL.zip'))")
+echo "   ✓ size: $SIZE bytes"
 echo ""
 
 # ── Generate update JSON ──────────────────────────────────────────────────────
@@ -204,10 +206,10 @@ for line in pn.splitlines():
 print('|||'.join(bullets))
 ")
 if [ -n "$NOTES" ]; then
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform linux --notes "$NOTES" --checksum "$CHECKSUM"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform linux --notes "$NOTES" --checksum "$CHECKSUM" --size-bytes "$SIZE"
 else
     echo "   ⚠️  No [LINUX] or [ALL] bullets found in patchnotes.txt — generating with empty notes"
-    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform linux --checksum "$CHECKSUM"
+    python3 "$REPO_ROOT/scripts/gen-update-json.py" --platform linux --checksum "$CHECKSUM" --size-bytes "$SIZE"
 fi
 echo ""
 

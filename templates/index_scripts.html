@@ -257,6 +257,9 @@ async function checkForUpdatesOnLaunch() {
 
 
 document.getElementById('footer-update-btn').addEventListener('click', checkForUpdates);
+document.getElementById('footer-help-btn')?.addEventListener('click', () => {
+  document.getElementById('help-modal').style.display = 'flex';
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 (async () => {
@@ -576,6 +579,24 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
       e.preventDefault();
       document.getElementById('paste-fetch-btn').click();
       return;
+    }
+
+    // Panel shortcuts (only when no field is focused)
+    if (mod && !inField) {
+      const openPanel = (tab) => {
+        const p = document.getElementById('hamburger-panel');
+        if (!p) return;
+        window.switchTab(tab);
+        p.classList.add('open');
+        // sync nav active state
+        document.querySelectorAll('.nav-btn').forEach(b => {
+          b.classList.toggle('active', b.dataset.nav === tab);
+        });
+      };
+      if (e.key.toLowerCase() === 'h') { e.preventDefault(); openPanel('history'); return; }
+      if (e.key.toLowerCase() === 't') { e.preventDefault(); openPanel('themes'); return; }
+      if (e.key === ',')               { e.preventDefault(); openPanel('advanced'); return; }
+      if (e.key.toLowerCase() === 's') { e.preventDefault(); document.getElementById('subs-btn')?.click(); return; }
     }
   });
 })();
@@ -986,6 +1007,7 @@ async function fetchSingle(url, ph) {
   if (fetchAbort) { ph.remove(); return; }
   if (info.error) throw new Error(info.error);
   renderCard(ph, addItem(url, info));
+  updateQueueArrows();
 }
 
 // Enqueue all playlist entries as stub cards, then fetch full info in parallel
@@ -1088,6 +1110,25 @@ function makePh(url) {
 }
 function makeCardEl() { const el=document.createElement('div'); el.className='vcard'; return el; }
 
+function updateQueueArrows() {
+  const results = document.getElementById('results');
+  if (!results) return;
+  // Use DOM order as source of truth — items[] may drift from DOM after swaps
+  const idleCards = [...results.querySelectorAll('.vcard')].filter(card => {
+    const id = card.querySelector('.qarrow')?.dataset.id;
+    if (!id) return false;
+    const item = items.find(i => String(i.id) === String(id));
+    return item && item.status === 'idle';
+  });
+  idleCards.forEach((card, pos) => {
+    const wrap = card.querySelector('[id^="qarrows"]');
+    if (!wrap) return;
+    const [up, down] = wrap.querySelectorAll('.qarrow');
+    if (up)   up.style.visibility   = pos === 0 ? 'hidden' : 'visible';
+    if (down) down.style.visibility = pos === idleCards.length - 1 ? 'hidden' : 'visible';
+  });
+}
+
 
 function renderErr(el, url, msg) {
   el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
@@ -1152,6 +1193,10 @@ function renderCard(el, item) {
           <span class="badge b-dl" style="font-size:.7rem"><span class="spinner"></span></span></div>` : ''}
       </div>
       <div class="vcontrols">
+        <div style="display:flex;gap:3px;flex-shrink:0" id="qarrows${n}">
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="Move up" style="padding:2px 6px;font-size:11px">↑</button>
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
+        </div>
         <span class="badge b-wait" id="st${n}">Ready</span>
         <button class="btn btn-primary btn-sm" id="dl${n}">⬇ Download</button>
       </div>
@@ -1185,6 +1230,39 @@ function renderCard(el, item) {
   }
 
   document.getElementById(`dl${n}`).addEventListener('click', () => startDl(item, n));
+
+  // Queue reorder arrows — only shown on idle cards
+  el.querySelectorAll('.qarrow').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = btn.dataset.dir;
+      const results = document.getElementById('results');
+      const cards = [...results.querySelectorAll('.vcard')];
+      const domIdx = cards.indexOf(el);
+      if (domIdx === -1) return;
+      const swapIdx = dir === 'up' ? domIdx - 1 : domIdx + 1;
+      if (swapIdx < 0 || swapIdx >= cards.length) return;
+      const other = cards[swapIdx];
+      if (!other) return;
+      // Find items by card position
+      const itemA = items[domIdx];
+      const itemB = items[swapIdx];
+      if (!itemA || !itemB || itemA.status !== 'idle' || itemB.status !== 'idle') return;
+      // Swap items array
+      [items[domIdx], items[swapIdx]] = [items[swapIdx], items[domIdx]];
+      // Swap DOM nodes. el and other are always ADJACENT cards, so a single
+      // insertBefore swaps them. The previous two-step dance captured
+      // el.nextSibling BEFORE mutating the DOM, so the second insertBefore used a
+      // stale reference — depending on the surrounding nodes it either no-op'd or
+      // un-did the first move, leaving the card unmoved (and the items array now
+      // out of sync with the DOM → the "wrong card moves" follow-on).
+      if (dir === 'up') {
+        results.insertBefore(el, other);    // el moves above other
+      } else {
+        results.insertBefore(other, el);    // other moves above el (el moves down)
+      }
+      updateQueueArrows();
+    });
+  });
 
 }
 
@@ -1246,6 +1324,7 @@ async function startDl(item, n) {
       item.info = i2;
       const card = dlBtn?.closest?.('.vcard');
       if (card) renderCard(card, item);
+      updateQueueArrows();
       return startDl(item, n);
     } catch (e) {
       setBadge(document.getElementById(`st${n}`), 'error', e.message);
@@ -1721,13 +1800,18 @@ function toast(msg, type='') {
     tabs.forEach(t => {
       t.classList.toggle('active', t.dataset.tab === tab);
     });
-    document.getElementById('hpanel-history').style.display  = tab === 'history'  ? '' : 'none';
-    document.getElementById('hpanel-themes').style.display   = tab === 'themes'   ? '' : 'none';
-    document.getElementById('hpanel-advanced').style.display  = tab === 'advanced' ? '' : 'none';
+    const ph = document.getElementById('hpanel-history');
+    const pt = document.getElementById('hpanel-themes');
+    const pa = document.getElementById('hpanel-advanced');
+    if (ph) ph.style.display = tab === 'history'  ? '' : 'none';
+    if (pt) pt.style.display = tab === 'themes'   ? '' : 'none';
+    if (pa) pa.style.display = tab === 'advanced' ? '' : 'none';
     const el = document.getElementById(`hpanel-${tab}`);
+    if (!el) return;
     el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
     if (tab === 'history') loadHistoryPanel();
   }
+  window.switchTab = switchTab;
 
   function setActiveNav(tab) {
     navBtns.forEach(b => b.classList.toggle('active', b.dataset.nav === tab));
@@ -1738,7 +1822,9 @@ function toast(msg, type='') {
     return active ? active.dataset.tab : 'history';
   }
 
-  navBtns.forEach(b => b.addEventListener('click', (e) => {
+  navBtns.forEach(b => {
+    if (b.id === 'subs-btn') return; // subs-btn has its own dedicated handler
+    b.addEventListener('click', (e) => {
     e.stopPropagation();
     const target = b.dataset.nav;
     const isOpen = panel.classList.contains('open');
@@ -1754,7 +1840,8 @@ function toast(msg, type='') {
         panel.classList.add('open');
       }
     }
-  }));
+    });
+  });
 
   tabs.forEach(t => t.addEventListener('click', () => {
     switchTab(t.dataset.tab);
@@ -1785,6 +1872,8 @@ function toast(msg, type='') {
 let _historyPage = 1;         // current batch (1-based, newest first)
 let _historyTotal = 0;
 let _historyBatches = [];     // [{page, items}] — already loaded pages
+let _pinnedIds = new Set();
+try { _pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') || '[]') || []).map(String)); } catch {}
 const HBATCH = 10;
 
 function _fmtSize(b) {
@@ -1812,6 +1901,8 @@ function _buildEntry(item) {
   const div = document.createElement('div');
   div.className = 'hentry';
   const isAudio = ['mp3','aac','flac','wav','ogg','m4a'].includes(item.format);
+  const pinned = _pinnedIds.has(String(item.id));
+  if (pinned) div.classList.add('pinned');
   const thumbHtml = item.thumbnail
     ? `<img class="hthumb" src="/api/thumbnail/${item.thumbnail}" alt="" onerror="this.outerHTML='<div class=\\'hthumb\\'>${isAudio ? '♫' : '▶'}</div>'">`
     : `<div class="hthumb">${isAudio ? '♫' : '▶'}</div>`;
@@ -1822,11 +1913,22 @@ function _buildEntry(item) {
       <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
     </div>
     <div class="hbtns">
+      <button class="hbtn pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin' : 'Pin to top'}">${pinned ? '★' : '☆'}</button>
       <button class="hbtn" title="Re-add URL">↺</button>
       <button class="hbtn" title="Open folder">🗁</button>
       <button class="hbtn red" title="Remove">✕</button>
     </div>`;
-  const [btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
+  const [btnPin, btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
+  btnPin.addEventListener('click', () => {
+    const id = String(item.id);
+    if (_pinnedIds.has(id)) {
+      _pinnedIds.delete(id);
+    } else {
+      _pinnedIds.add(id);
+    }
+    try { localStorage.setItem('egm-history-pins', JSON.stringify([..._pinnedIds])); } catch {}
+    loadHistoryPanel();
+  });
   btnReadd.addEventListener('click', () => {
     const ta = document.getElementById('urls');
     if (!ta) return;
@@ -1884,6 +1986,11 @@ async function loadHistoryPanel(page = 1) {
   const frag = document.createDocumentFragment();
   const items = (d && Array.isArray(d.items)) ? d.items : [];
 
+  // Pinned items float to top
+  const pinned = items.filter(it => _pinnedIds.has(String(it.id)));
+  const unpinned = items.filter(it => !_pinnedIds.has(String(it.id)));
+  const sorted = [...pinned, ...unpinned];
+
   if (items.length === 0) {
     const empty = document.createElement('div');
     empty.id = 'history-empty';
@@ -1892,8 +1999,8 @@ async function loadHistoryPanel(page = 1) {
     empty.textContent = total > 0 ? `${total} downloads (refresh to load)` : 'No downloads yet';
     frag.appendChild(empty);
   } else {
-    const shown = items.slice(0, 5);
-    const hidden = items.length - shown.length;
+    const shown = sorted.slice(0, 5);
+    const hidden = sorted.length - shown.length;
     shown.forEach(item => frag.appendChild(_buildEntry(item)));
     if (hidden > 0) {
       const more = document.createElement('p');
@@ -1954,7 +2061,8 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 
 // ── Theme picker (inside Themes tab) ──────────────────────────────────────────
 (function() {
-  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','espresso','matcha','honey','merlot','saffron','goldenhour','overcast','northernlights','thunderstorm','sirocco','nebula','pulsar','solarflare','eventhorizon','andromeda','brutalist','artdeco','blueprint','marble','gothic','discofever','summeroflove','neonpunk','grunge','millenniumbug','drivein','woodstock','prohibition','spacerace','wallstreet','olympus','tartarus','elysium','valhalla','asgard','hades','avalon','aztecsun','anubis','dragoncourt','lunarnewyear','dayofthedead','eid','carnival','pride','nowruz','midautumn','kwanzaa','midsummer','oktoberfest','montmartre','niledusk','hangang','londonfog','carnivalcity','lagospulse','redplanet','icegiant','theringedone','io','europa','alien','lostintranslation','theshining','scream','pager','floppy','laserdisc','betamax','opera','punk','reggae','flamenco','solitude','rage','bauhaus','pagoda','pantheon','mudejar','mosaic','burgerjoint','takoyaki','jerkshack','nightmarket','shawarma','blizzard','downpour','heatwave','fogbank','hurricane','codemaster','overseer','gittymaster','webwizard','artist','sansebastian','nochedesanjuan','lasparrandas','elyunque','laparguera','coqui','flamboyan','conejomalo','conejomalo2','conejomalo3','conejomalo4','conejomalo5','titotrinidad','parquedebombas','lacruceta','laguancha','lasletras','plazalasdelicias','sananton','oldsanjuan','laperla','islaculebra','elmorro','plena','vejigante','mofongo','windows95','windows98','windowsxp','windowsvista','windows7','windows11','macos9','macosxaqua','macosbigsur','macossequoia','ubuntu','archlinux','kalilinux','fedora','beos','amiga','dos','nextstep','os2warp','solaris','unix','bsd','shiva','kali','amaterasu','susanoo','quetzalcoatl','tezcatlipoca','perun','morrigan','osiris','ogun','boxing','basketball','soccer','baseball','mma','tennis','hockey','surfing','athletics','aew','twenties','forties','fifties','sixties','seventies','eighties','nineties','twothousands','tens','twentytwenties','doge','thisisfine','drake','trollface','nyancat','sixseven','newyork','mumbai','istanbul','mexicocity','saopaulo','shanghai','nairobi','moscow','buenosaires','athens','marrakech','kyoto','amsterdam','sydney','berlin','lisbon','tehran','singapore','kinshasa','toronto','pitch','blanc','obsidian','wraith','porcelain','paranoia','wanderlust','catharsis','hypnotic','masterchief','cloudstrife','mario','sonic','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson','bologna','seoul','bangkok','miami','medellin','beirut','prague','hochiminhcity','sanjuan','ponce','neural','quantum','singularity','cybercore','dyson','terraform','biopunk','nanite','posthuman','mercury','venus','jupiter','uranus','earth','pluto','titan','darkmatter','magnetar','exoplanet','redcan','goldenarches','mermaid','bigblue','everythingstore','swoosh','bitten','littlebluebox','redbottom','goldenbow','threestripes','prancinghorse','purplecrown','brownparcel','pinkdonut','bluebird','silverwings','yellowshell','greenowl','redtarget','theoldlady','thetheatre','sansiro','thegarden','theo2','maracana','campnou','lascala','thecolosseum','wembley','darkworld','dungeoncrawl','makoreactor','bossfight','gameover','insertcoin','belmont','chapel','mushroomkingdom','greenhillzone'];
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','espresso','matcha','honey','merlot','saffron','goldenhour','overcast','northernlights','thunderstorm','sirocco','nebula','pulsar','solarflare','eventhorizon','andromeda','brutalist','artdeco','blueprint','marble','gothic','discofever','summeroflove','neonpunk','grunge','millenniumbug','drivein','woodstock','prohibition','spacerace','wallstreet','olympus','tartarus','elysium','valhalla','asgard','hades','avalon','aztecsun','anubis','dragoncourt','lunarnewyear','dayofthedead','eid','carnival','pride','nowruz','midautumn','kwanzaa','midsummer','oktoberfest','montmartre','niledusk','hangang','londonfog','carnivalcity','lagospulse','redplanet','icegiant','theringedone','io','europa','alien','lostintranslation','theshining','scream','pager','floppy','laserdisc','betamax','opera','punk','reggae','flamenco','solitude','rage','bauhaus','pagoda','pantheon','mudejar','mosaic','burgerjoint','takoyaki','jerkshack','nightmarket','shawarma','blizzard','downpour','heatwave','fogbank','hurricane','codemaster','overseer','gittymaster','webwizard','artist','sansebastian','nochedesanjuan','lasparrandas','elyunque','laparguera','coqui','flamboyan','conejomalo','conejomalo2','conejomalo3','conejomalo4','conejomalo5','titotrinidad','parquedebombas','lacruceta','laguancha','lasletras','plazalasdelicias','sananton','oldsanjuan','laperla','islaculebra','elmorro','plena','vejigante','mofongo','windows95','windows98','windowsxp','windowsvista','windows7','windows11','macos9','macosxaqua','macosbigsur','macossequoia','ubuntu','archlinux','kalilinux','fedora','beos','amiga','dos','nextstep','os2warp','solaris','unix','bsd','shiva','kali','amaterasu','susanoo','quetzalcoatl','tezcatlipoca','perun','morrigan','osiris','ogun','boxing','basketball','soccer','baseball','mma','tennis','hockey','surfing','athletics','aew','twenties','forties','fifties','sixties','seventies','eighties','nineties','twothousands','tens','twentytwenties','doge','thisisfine','drake','trollface','nyancat','sixseven','newyork','mumbai','istanbul','mexicocity','saopaulo','shanghai','nairobi','moscow','buenosaires','athens','marrakech','kyoto','amsterdam','sydney','berlin','lisbon','tehran','singapore','kinshasa','toronto','pitch','blanc','obsidian','wraith','porcelain','paranoia','wanderlust','catharsis','hypnotic','masterchief','cloudstrife','mario','sonic','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson','bologna','seoul','bangkok','miami','medellin','beirut','prague','hochiminhcity','sanjuan','ponce','neural','quantum','singularity','cybercore','dyson','terraform','biopunk','nanite','posthuman','mercury','venus','jupiter','uranus','earth','pluto','titan','darkmatter','magnetar','exoplanet','redcan','goldenarches','mermaid','bigblue','everythingstore','swoosh','bitten','littlebluebox','redbottom','goldenbow','threestripes','prancinghorse','purplecrown','brownparcel','pinkdonut','bluebird','silverwings','yellowshell','greenowl','redtarget','theoldlady','thetheatre','sansiro','thegarden','theo2','maracana','campnou','lascala','thecolosseum','wembley','darkworld','dungeoncrawl','makoreactor','bossfight','gameover','insertcoin','belmont','chapel','mushroomkingdom','greenhillzone',
+    'yellowfamily','quahog','mountaintown','hollow','beachcity','jumpcity','halloweentown','stopmotion','supersaiyan','oddcab'];
 
   // ── Seasonal theme visibility ────────────────────────────────────────────────
   (function() {
@@ -2107,7 +2215,8 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
 })(); // ── End theme picker IIFE ───────────────────────────────────────────────
 
 // ── Subscriptions button ─────────────────────────────────────────────────────
-document.getElementById('subs-btn').addEventListener('click', () => {
+document.getElementById('subs-btn').addEventListener('click', (e) => {
+  e.currentTarget.blur();
   if (window.electronAPI && window.electronAPI.openSubscriptions) {
     window.electronAPI.openSubscriptions();
   } else {
@@ -2125,6 +2234,17 @@ document.getElementById('subs-btn').addEventListener('click', () => {
                          '--btn-primary-text','--btn-on-accent','--btn-red-border',
                          '--audio-btn-color','--dur-bg','--dur-text'];
 
+  // Theme var values get injected into CSS (a <style> rule AND the preview swatches'
+  // style="" attributes), so an untrusted value must be neutralised first. Safe only
+  // if it has no context-breakout chars ({}<>;"'` — which escape the rule, the style
+  // attribute, or the tag) AND no fetching CSS functions (url()/image-set()/
+  // expression()/-moz-binding → silent network beacons when the var is used as a
+  // background). rgb()/rgba()/hsl()/gradients are untouched, so real colors still work.
+  const _cssVarSafe = (v) =>
+    typeof v === 'string' && v.length < 200 &&
+    /^[^{}<>;"'`]*$/.test(v) &&
+    !/(?:url|image-set|expression|-moz-binding)\s*\(/i.test(v);
+
   // Restore custom theme from localStorage on load
   const saved = localStorage.getItem('egm-custom-theme');
   if (saved) {
@@ -2134,7 +2254,10 @@ document.getElementById('subs-btn').addEventListener('click', () => {
   function _applyCustomTheme(theme) {
     let el = document.getElementById('custom-theme-style');
     if (!el) { el = document.createElement('style'); el.id = 'custom-theme-style'; document.head.appendChild(el); }
-    const vars = Object.entries(theme.vars).map(([k,v]) => `${k}:${v}`).join(';');
+    // F1: only inject values that pass _cssVarSafe — blocks both a body.custom{}
+    // breakout (via {}<>;"') and a url()/image-set() network beacon.
+    const safePairs = Object.entries(theme.vars).filter(([k, v]) => _cssVarSafe(v));
+    const vars = safePairs.map(([k,v]) => `${k}:${v}`).join(';');
     el.textContent = `body.custom{${vars}}`;
     // Update custom row swatches + name
     const row = document.getElementById('custom-theme-row');
@@ -2192,12 +2315,14 @@ document.getElementById('subs-btn').addEventListener('click', () => {
       const missing = REQUIRED_VARS.filter(v => !theme.vars[v]);
       if (missing.length) { toast(`✗ Missing required vars: ${missing.slice(0,3).join(', ')}${missing.length>3?' …':''}`, 'err'); return; }
 
-      // Show preview modal
-      const bg  = theme.vars['--bg']   || '#000';
-      const sf  = theme.vars['--surf'] || '#111';
-      const ac  = theme.vars['--acc']  || '#3b82f6';
-      const tx  = theme.vars['--text'] || '#fff';
-      const nm  = theme.name;
+      // Show preview modal. F2: these are interpolated into style="" attributes, so a
+      // hostile value like '#000"><img onerror=…>' would inject HTML — validate first
+      // and fall back to a default when the value isn't a safe CSS token.
+      const bg  = _cssVarSafe(theme.vars['--bg'])   ? theme.vars['--bg']   : '#000';
+      const sf  = _cssVarSafe(theme.vars['--surf']) ? theme.vars['--surf'] : '#111';
+      const ac  = _cssVarSafe(theme.vars['--acc'])  ? theme.vars['--acc']  : '#3b82f6';
+      const tx  = _cssVarSafe(theme.vars['--text']) ? theme.vars['--text'] : '#fff';
+      const nm  = esc(theme.name);
 
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
@@ -2224,7 +2349,7 @@ document.getElementById('subs-btn').addEventListener('click', () => {
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
         applyTheme('custom');
-        toast(`Theme "${theme.name}" applied ✓`, 'ok');
+        toast(`Theme "${esc(theme.name)}" applied ✓`, 'ok');
       });
 
     } catch { toast('✗ Could not import theme', 'err'); }
@@ -2459,49 +2584,175 @@ function videoQualityBgClick(e) {
   });
 
   // Export settings
+  // ── Export/Import selector modal ─────────────────────────────────────────────
+  function _showExportSelector(counts, onConfirm) {
+    const items = [
+      { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences' },
+      { key:'history',       icon:'🕓', label:'History',             sub:`${counts.history} download records` },
+      { key:'themes',        icon:'🎨', label:'Themes & preferences', sub:'Active theme, custom themes, UI preferences' },
+      { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub:`${counts.subscriptions} channels` },
+    ];
+    const state = { settings:true, history:true, themes:true, subscriptions:true };
+    egmAlert('', '', {
+      _custom: true,
+      title: '↑ Export settings',
+      hint: 'Choose what to include in your export file.',
+      items, state,
+      confirmLabel: '↑ Export',
+      confirmClass: 'btn-export',
+      onConfirm,
+    });
+  }
+
+  function _showImportSelector(data, onConfirm) {
+    const isEnvelope = data._egm_export_version !== undefined;
+    const histCount = isEnvelope && Array.isArray(data.history) ? data.history.length : 0;
+    const subCount  = isEnvelope && Array.isArray(data.subscriptions) ? data.subscriptions.length : 0;
+    const hasLs     = isEnvelope && data.localStorage && typeof data.localStorage === 'object';
+    const items = [
+      { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available: true },
+      { key:'history',       icon:'🕓', label:'History',             sub: histCount > 0 ? `${histCount} records in file` : 'Not found in this file', available: histCount > 0 },
+      { key:'themes',        icon:'🎨', label:'Themes & preferences', sub: hasLs ? 'Active theme, custom themes, UI preferences' : 'Not found in this file', available: hasLs },
+      { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub: subCount > 0 ? `${subCount} channels in file` : 'Not found in this file', available: subCount > 0 },
+    ];
+    const state = { settings:true, history:histCount>0, themes:!!hasLs, subscriptions:subCount>0 };
+    egmAlert('', '', {
+      _custom: true,
+      title: '↓ Import settings',
+      hint: 'Choose what to restore. Existing data will be merged or replaced.',
+      items, state,
+      confirmLabel: '↓ Import',
+      confirmClass: 'btn-import',
+      onConfirm,
+    });
+  }
+
+  // Patch egmAlert to support the custom selector style
+  const _origEgmAlert = window.egmAlert;
+  window._egmSelectorModal = function(opts) {
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'egm-dialog-overlay';
+      overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9999';
+      const box = document.createElement('div');
+      box.style.cssText = 'background:var(--surf);border:0.5px solid var(--border);border-radius:10px;width:300px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.4)';
+      // Header
+      const hdr = document.createElement('div');
+      hdr.style.cssText = 'padding:14px 16px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between';
+      hdr.innerHTML = `<span style="font-size:13px;font-weight:500;color:var(--text)">${opts.title}</span><button onclick="this.closest('.egm-dialog-overlay').remove()" style="background:none;border:none;color:var(--text2);font-size:14px;cursor:pointer">✕</button>`;
+      // Body
+      const body = document.createElement('div');
+      body.style.cssText = 'padding:14px 16px;display:flex;flex-direction:column;gap:6px';
+      const hint = document.createElement('div');
+      hint.style.cssText = 'font-size:11px;color:var(--text2);margin-bottom:4px;line-height:1.5';
+      hint.textContent = opts.hint;
+      body.appendChild(hint);
+      opts.items.forEach(item => {
+        const row = document.createElement('div');
+        const avail = item.available !== false;
+        row.style.cssText = `display:flex;align-items:center;justify-content:space-between;padding:8px 10px;border-radius:6px;background:var(--bg);border:0.5px solid var(--surf2);cursor:${avail?'pointer':'not-allowed'};opacity:${avail?1:0.4}`;
+        const left = document.createElement('div');
+        left.style.cssText = 'display:flex;align-items:center;gap:9px';
+        left.innerHTML = `<span style="font-size:14px">${item.icon}</span><div><div style="font-size:12px;color:var(--text)">${item.label}</div><div style="font-size:10px;color:var(--text2);margin-top:1px">${item.sub}</div></div>`;
+        const cb = document.createElement('div');
+        const updateCb = () => {
+          cb.style.cssText = `width:16px;height:16px;border-radius:4px;border:1.5px solid ${opts.state[item.key]?'var(--acc)':'var(--border)'};background:${opts.state[item.key]?'var(--acc)':'var(--surf2)'};display:flex;align-items:center;justify-content:center;flex-shrink:0`;
+          cb.innerHTML = opts.state[item.key] ? '<span style="font-size:10px;color:var(--bg);font-weight:700">✓</span>' : '';
+        };
+        updateCb();
+        if (avail) {
+          row.addEventListener('click', () => {
+            opts.state[item.key] = !opts.state[item.key];
+            updateCb();
+          });
+        }
+        row.appendChild(left);
+        row.appendChild(cb);
+        body.appendChild(row);
+      });
+      // Footer
+      const ftr = document.createElement('div');
+      ftr.style.cssText = 'padding:12px 16px;border-top:0.5px solid var(--border);display:flex;gap:8px';
+      const cancelBtn = document.createElement('button');
+      cancelBtn.textContent = 'Cancel';
+      cancelBtn.style.cssText = 'flex:1;padding:7px 0;font-size:12px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit';
+      cancelBtn.onclick = () => { overlay.remove(); resolve(null); };
+      const confirmBtn = document.createElement('button');
+      confirmBtn.textContent = opts.confirmLabel;
+      confirmBtn.style.cssText = `flex:1;padding:7px 0;font-size:12px;border-radius:6px;border:0.5px solid var(--acc);background:var(--surf2);color:var(--acc);cursor:pointer;font-family:inherit`;
+      confirmBtn.onclick = () => { overlay.remove(); resolve(opts.state); };
+      ftr.appendChild(cancelBtn);
+      ftr.appendChild(confirmBtn);
+      box.appendChild(hdr);
+      box.appendChild(body);
+      box.appendChild(ftr);
+      overlay.appendChild(box);
+      document.body.appendChild(overlay);
+      overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(null); } });
+    });
+  };
+
   document.getElementById('adv-export-btn').addEventListener('click', async () => {
     try {
-      // Bundle settings + history + localStorage into a single envelope so import
-      // can restore everything including custom themes and recent-themes lists,
-      // which live only in localStorage and aren't tracked server-side.
+      // Fetch data first so we can show counts
       const [s, h] = await Promise.all([
         fetch('/api/settings').then(r => r.json()),
         fetch('/api/history?page=1&per_page=10000').then(r => r.json()),
       ]);
-      // Fetch subscription URLs for export (URL-only, re-fetch on import)
       let subUrls = [];
       try {
         const subsData = await fetch('/api/subscriptions').then(r => r.json());
         const subsList = subsData && Array.isArray(subsData.subscriptions) ? subsData.subscriptions : [];
         subUrls = subsList.map(s => s.url).filter(Boolean);
       } catch {}
-      // Collect all egm-* localStorage keys (themes, custom theme, recents, etc.)
       const lsKeys = {};
       try {
         for (let i = 0; i < localStorage.length; i++) {
           const k = localStorage.key(i);
-          if (k && (k.startsWith('egm-') || k.startsWith('egm_'))) {
-            lsKeys[k] = localStorage.getItem(k);
-          }
+          if (k && (k.startsWith('egm-') || k.startsWith('egm_'))) lsKeys[k] = localStorage.getItem(k);
         }
       } catch {}
+      const histItems = (h && Array.isArray(h.items)) ? h.items : [];
+
+      // Show selector
+      const sel = await window._egmSelectorModal({
+        title: '↑ Export settings',
+        hint: 'Choose what to include in your export file.',
+        items: [
+          { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available:true },
+          { key:'history',       icon:'🕓', label:'History',             sub:`${histItems.length} download records`, available:true },
+          { key:'themes',        icon:'🎨', label:'Themes & preferences', sub:'Active theme, custom themes, UI preferences', available:true },
+          { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub:`${subUrls.length} channels`, available:true },
+        ],
+        state: { settings:true, history:true, themes:true, subscriptions:true },
+        confirmLabel: '↑ Export',
+      });
+      if (!sel) return;
+
       const envelope = {
         _egm_export_version: 3,
         exported_at: new Date().toISOString(),
-        settings: s || {},
-        history: (h && Array.isArray(h.items)) ? h.items : [],
-        subscriptions: subUrls,
-        localStorage: lsKeys,
+        settings:       sel.settings       ? (s || {})      : {},
+        history:        sel.history        ? histItems       : [],
+        subscriptions:  sel.subscriptions  ? subUrls         : [],
+        localStorage:   sel.themes         ? lsKeys          : {},
       };
       const content = JSON.stringify(envelope, null, 2);
+      const parts = [
+        sel.settings      ? 'settings'                           : null,
+        sel.history       ? `${histItems.length} history`        : null,
+        sel.subscriptions ? `${subUrls.length} subscriptions`    : null,
+        sel.themes        ? `${Object.keys(lsKeys).length} preferences` : null,
+      ].filter(Boolean).join(', ');
+
       if (window.electronAPI?.saveFile) {
         const r = await window.electronAPI.saveFile('egm-settings.json', content);
         if (r.canceled) return;
-        if (r.ok) toast(`Exported ✓  (${envelope.history.length} history, ${subUrls.length} subscriptions, ${Object.keys(lsKeys).length} preferences)`, 'ok');
+        if (r.ok) toast(`Exported ✓  (${parts})`, 'ok');
         else toast('Export failed: ' + (r.error || 'unknown'), 'err');
       } else {
         await navigator.clipboard.writeText(content);
-        toast('Settings + history copied to clipboard ✓', 'ok');
+        toast('Settings copied to clipboard ✓', 'ok');
       }
     } catch { toast('Could not export settings', 'err'); }
   });
@@ -2520,62 +2771,69 @@ function videoQualityBgClick(e) {
       }
       const data = JSON.parse(text);
       if (typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid format');
-      // Detect envelope format:
-      //   v2: { settings, history, localStorage }  ← current full export
-      //   v1: { settings, history }                ← legacy, no localStorage
-      //   plain: { ...settings }                   ← oldest format
+
       const isEnvelope = data._egm_export_version !== undefined;
+      const histItems  = isEnvelope && Array.isArray(data.history) ? data.history : [];
+      const subUrls    = isEnvelope && Array.isArray(data.subscriptions) ? data.subscriptions : [];
+      const lsData     = isEnvelope && data.localStorage && typeof data.localStorage === 'object' ? data.localStorage : null;
+
+      // Show selector — only enable rows that exist in the file
+      const sel = await window._egmSelectorModal({
+        title: '↓ Import settings',
+        hint: 'Choose what to restore. Existing data will be merged or replaced.',
+        items: [
+          { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available:true },
+          { key:'history',       icon:'🕓', label:'History',             sub: histItems.length > 0 ? `${histItems.length} records in file` : 'Not found in this file', available:histItems.length>0 },
+          { key:'themes',        icon:'🎨', label:'Themes & preferences', sub: lsData ? 'Active theme, custom themes, UI preferences' : 'Not found in this file', available:!!lsData },
+          { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub: subUrls.length > 0 ? `${subUrls.length} channels in file` : 'Not found in this file', available:subUrls.length>0 },
+        ],
+        state: { settings:true, history:histItems.length>0, themes:!!lsData, subscriptions:subUrls.length>0 },
+        confirmLabel: '↓ Import',
+      });
+      if (!sel) return;
+
       const settingsToImport = isEnvelope ? (data.settings || {}) : data;
-      const historyToImport  = isEnvelope ? (data.history  || null) : null;
-      const lsToImport       = (isEnvelope && data.localStorage && typeof data.localStorage === 'object') ? data.localStorage : null;
+      let msg = '';
 
-      await post('/api/settings/save', settingsToImport);
-      let msg = 'Settings imported';
-      if (historyToImport && Array.isArray(historyToImport)) {
-        const r = await post('/api/history/import', { items: historyToImport });
-        if (r && r.ok) msg += ` + ${r.count} history entries (thumbnails not included)`;
+      if (sel.settings) {
+        await post('/api/settings/save', settingsToImport);
+        msg = 'Settings imported';
       }
-      // Restore localStorage keys (v2+ envelopes) — captures custom themes, recents, etc.
-      try {
-        if (lsToImport) {
-          Object.entries(lsToImport).forEach(([k, v]) => {
-            if (typeof v === 'string' && (k.startsWith('egm-') || k.startsWith('egm_'))) {
-              localStorage.setItem(k, v);
-            }
+      if (sel.history && histItems.length > 0) {
+        const r = await post('/api/history/import', { items: histItems });
+        if (r && r.ok) msg += `${msg?` + `:''}${r.count} history entries`;
+      }
+      if (sel.themes && lsData) {
+        try {
+          Object.entries(lsData).forEach(([k, v]) => {
+            if (typeof v === 'string' && (k.startsWith('egm-') || k.startsWith('egm_'))) localStorage.setItem(k, v);
           });
-        }
-        // v1/plain compat: server-side settings.theme exists but no localStorage block.
-        // Write settings.theme to localStorage so the theme picker picks it up on reload.
-        if (settingsToImport && typeof settingsToImport.theme === 'string') {
-          localStorage.setItem('egm-theme', settingsToImport.theme);
-        }
-      } catch {}
+        } catch {}
+      }
+      if (sel.settings && settingsToImport && typeof settingsToImport.theme === 'string') {
+        try { localStorage.setItem('egm-theme', settingsToImport.theme); } catch {}
+      }
 
-      // Import subscriptions (v3+): URL-only, skip duplicates, user re-fetches
       let subCount = 0;
-      const subsToImport = (isEnvelope && Array.isArray(data.subscriptions)) ? data.subscriptions : [];
-      if (subsToImport.length > 0) {
+      if (sel.subscriptions && subUrls.length > 0) {
         try {
           const existing = await fetch('/api/subscriptions').then(r => r.json());
           const existingList = existing && Array.isArray(existing.subscriptions) ? existing.subscriptions : [];
           const existingUrls = new Set(existingList.map(s => s.url));
-          for (const url of subsToImport) {
+          for (const url of subUrls) {
             if (typeof url !== 'string' || !url.trim()) continue;
             if (existingUrls.has(url.trim())) continue;
             try {
-              await fetch('/api/subscriptions/add', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ url: url.trim() })
-              });
+              await fetch('/api/subscriptions/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ url: url.trim() }) });
               subCount++;
             } catch {}
           }
         } catch {}
       }
 
-      toast(`${msg}${subCount > 0 ? ` + ${subCount} subscriptions (re-fetch to load videos)` : ''} — reloading…`, 'ok');
-      setTimeout(() => location.reload(), 800);
+      const parts = [msg, subCount>0?`${subCount} subscriptions (re-fetch to load videos)`:null].filter(Boolean).join(' + ');
+      toast(`${parts || 'Nothing selected'} — reloading…`, parts ? 'ok' : 'err');
+      if (parts) setTimeout(() => location.reload(), 800);
     } catch { toast('Could not import settings — file may not be valid settings JSON', 'err'); }
   });
 })();

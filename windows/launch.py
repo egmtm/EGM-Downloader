@@ -330,14 +330,25 @@ def ensure_python():
 
 def ensure_python_deps_embedded(py_exe):
     """Install the app's deps into the EMBEDDED interpreter's own site-packages
-    (isolated from any system/installer Python). Sentinel-import via subprocess
-    first — it's a different interpreter, so we can't import in-process."""
-    try:
-        subprocess.run([str(py_exe), "-c", "import flask, yt_dlp, cryptography, mutagen"],
-                       check=True, capture_output=True, timeout=30, creationflags=NO_WIN)
+    (isolated from any system/installer Python).
+
+    The sentinel is a FILESYSTEM check of the embedded Lib\\site-packages — NOT a
+    subprocess `import`. The embeddable's ._pth has `import site` enabled (pip needs
+    it, and it's what makes Lib\\site-packages importable), and with site active even
+    `-I`/`-E`/`-s` don't reliably hide a system-installed copy — so an import sentinel
+    can PASS against the system's yt_dlp, pip then gets skipped, and the embedded
+    interpreter never receives its own copy (the exact bug we hit). Checking the
+    package directories on disk is unambiguous: it's true only when the packages live
+    in OUR site-packages, and is unsatisfiable by anything on the system. (The ._pth +
+    `import site` setup is left intact — only this check changes; pip still installs
+    into the embedded interpreter exactly as before.)
+    """
+    site_packages = PY_DIR / "Lib" / "site-packages"
+    # Top-level package dirs pip drops in site-packages. NB import name, not pip name:
+    # the "yt-dlp" distribution installs the "yt_dlp" package directory.
+    required = ("flask", "yt_dlp", "cryptography", "mutagen")
+    if site_packages.is_dir() and all((site_packages / pkg).is_dir() for pkg in required):
         return
-    except Exception:
-        pass
     _gui_msg("Installing Python packages…")
     subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
                     "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography"],

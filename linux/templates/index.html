@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v1.1.0</title>
+  <title>EGM Downloader v1.1.1</title>
   <style>
 {% include 'index_styles.html' %}  </style>
 </head>
@@ -1633,6 +1633,46 @@
   <div class="theme-swatches"><div class="theme-sw" style="background:#041008"></div><div class="theme-sw" style="background:#082010"></div><div class="theme-sw" style="background:#40e828"></div></div>
   <span class="theme-name">Green Hill Zone</span><div class="theme-check"></div>
 </div>
+<div class="theme-row" data-theme="yellowfamily">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#0c0a00"></div><div class="theme-sw" style="background:#181600"></div><div class="theme-sw" style="background:#f8d000"></div></div>
+  <span class="theme-name">Yellow Family</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="quahog">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#080600"></div><div class="theme-sw" style="background:#141000"></div><div class="theme-sw" style="background:#c89040"></div></div>
+  <span class="theme-name">Quahog</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="mountaintown">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#060a10"></div><div class="theme-sw" style="background:#0c1018"></div><div class="theme-sw" style="background:#e83020"></div></div>
+  <span class="theme-name">Mountain Town</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="hollow">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#06020e"></div><div class="theme-sw" style="background:#0e0618"></div><div class="theme-sw" style="background:#d0c8f8"></div></div>
+  <span class="theme-name">Hollow</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="beachcity">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#0e0610"></div><div class="theme-sw" style="background:#1a0e1c"></div><div class="theme-sw" style="background:#f080c0"></div></div>
+  <span class="theme-name">Beach City</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="jumpcity">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#020610"></div><div class="theme-sw" style="background:#060c1a"></div><div class="theme-sw" style="background:#6040e8"></div></div>
+  <span class="theme-name">Jump City</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="halloweentown">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#04020c"></div><div class="theme-sw" style="background:#0a0618"></div><div class="theme-sw" style="background:#f07020"></div></div>
+  <span class="theme-name">Halloween Town</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="stopmotion">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#060606"></div><div class="theme-sw" style="background:#101010"></div><div class="theme-sw" style="background:#f8f0d0"></div></div>
+  <span class="theme-name">Stop Motion</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="supersaiyan">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#080400"></div><div class="theme-sw" style="background:#140c00"></div><div class="theme-sw" style="background:#f8d000"></div></div>
+  <span class="theme-name">Super Saiyan</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="oddcab">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#060810"></div><div class="theme-sw" style="background:#0c1018"></div><div class="theme-sw" style="background:#d8c840"></div></div>
+  <span class="theme-name">Odd Cab</span><div class="theme-check"></div>
+</div>
   <span class="theme-name">Wembley</span><div class="theme-check"></div>
 </div>
   <span class="theme-name">Red Target</span><div class="theme-check"></div>
@@ -1695,11 +1735,11 @@
       <!-- Advanced tab -->
       <div class="hpanel-content" id="hpanel-advanced" style="display:none">
         <div style="padding:5px;display:flex;flex-direction:column;gap:4px">
+          <button class="adv-btn-full" id="footer-update-btn" title="Check if a new version of EGM Downloader is available">
+            <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></span>Check for app update
+          </button>
           <button class="adv-btn-full" id="adv-shortcut-btn" title="Creates a shortcut on your desktop for easier access">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10"/><path d="M7 20h10"/><path d="M9 16v4"/><path d="M15 16v4"/></svg></span>Desktop shortcut
-          </button>
-          <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
-            <span class="adv-btn-icon amber"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg></span>Clear cache
           </button>
           <button class="adv-btn-full" id="adv-export-btn" title="Export your settings to a file">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg></span>Export settings
@@ -1862,6 +1902,23 @@
           </select>
         </div>
       </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
+        <div style="display:flex;align-items:center;gap:8px">
+          <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M8 13v.01"/><path d="M12 17v.01"/><path d="M12 12v.01"/><path d="M16 14v.01"/><path d="M11 8v.01"/><path d="M13.148 3.476l2.667 1.104a4 4 0 0 0 4.656 6.14l.053 .132a3 3 0 0 1 0 2.296q -.745 1.18 -1.024 1.852q -.283 .684 -.66 2.216a3 3 0 0 1 -1.624 1.623q -1.572 .394 -2.216 .661q -.712 .295 -1.852 1.024a3 3 0 0 1 -2.296 0q -1.203 -.754 -1.852 -1.024q -.707 -.292 -2.216 -.66a3 3 0 0 1 -1.623 -1.624q -.397 -1.577 -.661 -2.216q -.298 -.718 -1.024 -1.852a3 3 0 0 1 0 -2.296q .719 -1.116 1.024 -1.852q .257 -.62 .66 -2.216a3 3 0 0 1 1.624 -1.623q 1.547 -.384 2.216 -.661q .687 -.285 1.852 -1.024a3 3 0 0 1 2.296 0"/></svg> Site Cookies</span>
+          <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+          <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px">
+          <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0">Cookies: not loaded</span>
+          <div id="ck-not-loaded" style="display:flex;align-items:center;flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
+          </div>
+          <div id="ck-loaded" style="display:none;align-items:center;gap:4px;flex-shrink:0">
+            <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Replace</button>
+            <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Unload</button>
+          </div>
+        </div>
+      </div>
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
         <div class="sw-wrap">
           <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
@@ -1882,24 +1939,6 @@
       </div>
     </div>
 
-  <!-- Cookies — last row inside settings, hides with Settings toggle -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-top:1px solid var(--border)">
-    <div style="display:flex;align-items:center;gap:8px">
-      <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M8 13v.01"/><path d="M12 17v.01"/><path d="M12 12v.01"/><path d="M16 14v.01"/><path d="M11 8v.01"/><path d="M13.148 3.476l2.667 1.104a4 4 0 0 0 4.656 6.14l.053 .132a3 3 0 0 1 0 2.296q -.745 1.18 -1.024 1.852q -.283 .684 -.66 2.216a3 3 0 0 1 -1.624 1.623q -1.572 .394 -2.216 .661q -.712 .295 -1.852 1.024a3 3 0 0 1 -2.296 0q -1.203 -.754 -1.852 -1.024q -.707 -.292 -2.216 -.66a3 3 0 0 1 -1.623 -1.624q -.397 -1.577 -.661 -2.216q -.298 -.718 -1.024 -1.852a3 3 0 0 1 0 -2.296q .719 -1.116 1.024 -1.852q .257 -.62 .66 -2.216a3 3 0 0 1 1.624 -1.623q 1.547 -.384 2.216 -.661q .687 -.285 1.852 -1.024a3 3 0 0 1 2.296 0"/></svg> Site Cookies</span>
-      <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
-      <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
-    </div>
-    <div style="display:flex;align-items:center;gap:7px">
-      <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0">Cookies: not loaded</span>
-      <div id="ck-not-loaded" style="display:flex;align-items:center;flex-shrink:0">
-        <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
-      </div>
-      <div id="ck-loaded" style="display:none;align-items:center;gap:4px;flex-shrink:0">
-        <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Replace</button>
-        <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Unload</button>
-      </div>
-    </div>
-  </div>
   </div>
 
 </div>
@@ -1918,8 +1957,9 @@
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
-    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.1.0</span>
-    <button id="footer-update-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Check for Updates</button>
+    <a href="https://x.com/EGMDownloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">@EGMDownloader</a>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.1.1</span>
+    <button id="footer-help-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Help</button>
   </div>
   <div style="margin-top:7px;text-align:center">
     <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
@@ -1929,7 +1969,7 @@
 
 <!-- Audio quality modal — shown before bulk audio download -->
 <div class="modal-backdrop" id="audio-quality-modal" style="display:none" onclick="audioQualityBgClick(event)">
-  <div class="modal" id="audio-quality-modal">
+  <div class="modal">
     <h3>♫ Audio Quality</h3>
     <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all audio downloads.</p>
     <div class="quality-options">
@@ -2026,9 +2066,52 @@
 </div>
 
 <!-- What's New modal — shown once per version -->
+<!-- Help modal -->
+<div class="modal-backdrop" id="help-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:420px;width:90%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+      <h3 style="margin:0">Help</h3>
+      <button class="btn btn-ghost" onclick="document.getElementById('help-modal').style.display='none'" style="padding:2px 8px;font-size:14px;line-height:1">✕</button>
+    </div>
+    <div style="display:flex;gap:18px">
+      <div style="flex:1">
+        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Keyboard shortcuts</p>
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Fetch Info</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>↵</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Paste &amp; Fetch</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>V</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Clear input</td><td style="text-align:right;white-space:nowrap"><kbd>Esc</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">History</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>H</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Themes</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>T</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Advanced</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>,</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Subscriptions</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>S</kbd></td></tr>
+        </table>
+      </div>
+      <div style="width:0.5px;background:var(--border);flex-shrink:0"></div>
+      <div style="flex:1">
+        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tips</p>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">⤵</span>
+            <div><p style="font-size:.78rem;color:var(--text)">Drag &amp; drop URLs</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Drop URLs directly into the input</p></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">★</span>
+            <div><p style="font-size:.78rem;color:var(--text)">Pin history items</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Star a download to keep it at the top</p></div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:flex-start">
+            <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">⠿</span>
+            <div><p style="font-size:.78rem;color:var(--text)">Reorder subscriptions</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Drag the handle to rearrange channels</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- What's New modal -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3>🎉 What's New in <span id="whats-new-version">v1.1.0</span></h3>
+    <h3>🎉 What's New in <span id="whats-new-version">v1.1.1</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <!-- lint-allow-muted: loading-state -->
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
