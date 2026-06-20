@@ -21,6 +21,8 @@ v1.1.1 - (in progress)
   • [ALL] Mark all seen — button in subscriptions channel detail clears all New badges in one click
   • [ALL] Subscriptions drag reorder — drag handle on sidebar items to reorder channels
   • [ALL] Help modal — keyboard shortcuts and tips accessible from the footer
+  • [ALL] Download queue reorder — up/down arrows on idle cards to reprioritize before downloading
+  • [ALL] Theme subcategory order — subcategories sorted alphabetically within each section
 
 v1.1 - IGNITION
 -----------------------------------------
