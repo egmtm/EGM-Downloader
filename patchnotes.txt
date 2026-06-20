@@ -26,6 +26,7 @@ v1.1.1 - (in progress)
   • [ALL] Settings: Site Cookies row moved above toggles, within the quality/format panel for quicker access
   • [ALL] Subscriptions: channel quality setting (video height / audio quality) now correctly applied when downloading — was saved but not sent to the download engine
   • [ALL] Subscriptions: per-video quality override — each video row has its own Quality selector; overrides the channel default for that download only; resets on channel format change
+  • [ALL] Subscriptions: members-only video identification now works correctly — our code was always ready; requires yt-dlp Nightly (stable does not yet expose the availability flag)
 
 v1.1 - IGNITION
 -----------------------------------------
