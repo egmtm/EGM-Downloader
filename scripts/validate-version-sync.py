@@ -481,6 +481,165 @@ def check_json_feeds_purity():
                     break  # one error per bullet is enough
     return errors
 
+
+# --------------------------------------------------------------------------
+# Pre-handoff feed checks (build monotonicity, notes/headline, checksums,
+# size, cross-feed consistency, stale-feed) — all OPPORTUNISTIC: they run only
+# when dist/ feeds are present (i.e. a release build), never on a plain CI run.
+# --------------------------------------------------------------------------
+
+# All four published feeds. The portable feed is optional (only emitted when a
+# release ships the portable variant), so every check tolerates it being absent.
+ALL_FEED_FILES = [
+    'egm-version.json',           # Windows installer (auto-update)
+    'egm-portable-version.json',  # Windows portable (optional)
+    'egmac-update.json',          # Mac (informational)
+    'egmlinux-update.json',       # Linux (informational)
+]
+
+_SHA256_RE = re.compile(r'^[0-9a-f]{64}$')
+
+
+def _load_feed(name):
+    """Load a dist/ feed as JSON, or None if absent/unparseable (parse errors are
+    reported by check_json_feeds_parse, so we stay silent here)."""
+    path = ROOT / 'dist' / name
+    if not path.exists():
+        return None
+    try:
+        return json.loads(path.read_text(encoding='utf-8'))
+    except json.JSONDecodeError:
+        return None
+
+
+def check_feed_build_monotonic():
+    """Every feed's build must be strictly greater than the last released build
+    (scripts/last-released-build.txt). Catches publishing a feed without bumping
+    the build — the most common feed mistake. Skips if no baseline is configured."""
+    errors = []
+    baseline_path = ROOT / 'scripts' / 'last-released-build.txt'
+    if not baseline_path.exists():
+        return errors
+    raw = baseline_path.read_text(encoding='utf-8').strip()
+    try:
+        baseline = int(raw.split()[0])
+    except (ValueError, IndexError):
+        errors.append(f"scripts/last-released-build.txt: not a valid integer ({raw!r})")
+        return errors
+    for name in ALL_FEED_FILES:
+        d = _load_feed(name)
+        if d is None:
+            continue
+        b = d.get('build')
+        if not isinstance(b, int):
+            errors.append(f"dist/{name}: 'build' missing or not an integer ({b!r})")
+        elif b <= baseline:
+            errors.append(
+                f"dist/{name}: build {b} must be > last released build {baseline} "
+                f"— bump version.json build before generating feeds (and update "
+                f"scripts/last-released-build.txt to {b} after this release ships)."
+            )
+    return errors
+
+
+def check_feed_notes_and_headline():
+    """Every feed's _version_notes must have >= 3 bullets, and — when a keyword list
+    is configured (scripts/release-keywords.txt) — at least one bullet must mention a
+    headline keyword. Catches thin notes and the v1.1 incident where feeds shipped
+    with only maintenance bullets and never mentioned Subscriptions. An EMPTY keyword
+    file intentionally skips the headline requirement (a pure maintenance release)."""
+    errors = []
+    kw_path = ROOT / 'scripts' / 'release-keywords.txt'
+    keywords = []
+    if kw_path.exists():
+        keywords = [ln.strip().lower()
+                    for ln in kw_path.read_text(encoding='utf-8').splitlines()
+                    if ln.strip() and not ln.strip().startswith('#')]
+    for name in ALL_FEED_FILES:
+        d = _load_feed(name)
+        if d is None:
+            continue
+        notes = d.get('_version_notes', [])
+        n = len(notes) if isinstance(notes, list) else 0
+        if not isinstance(notes, list) or n < 3:
+            errors.append(f"dist/{name}: _version_notes must have >= 3 bullets (has {n})")
+            continue
+        if keywords:
+            joined = " ".join(str(x) for x in notes).lower()
+            if not any(kw in joined for kw in keywords):
+                errors.append(
+                    f"dist/{name}: no _version_notes bullet mentions a headline keyword "
+                    f"{keywords} — add the release's headline feature to the notes, or empty "
+                    f"scripts/release-keywords.txt for a pure maintenance release."
+                )
+    return errors
+
+
+def check_feed_checksums():
+    """Every feed must carry _checksums.sha256 as lowercase 64-char hex. Catches the
+    PowerShell uppercase-SHA256 issue, truncated hashes, and missing checksums."""
+    errors = []
+    for name in ALL_FEED_FILES:
+        d = _load_feed(name)
+        if d is None:
+            continue
+        cs = d.get('_checksums')
+        if not isinstance(cs, dict) or 'sha256' not in cs:
+            errors.append(f"dist/{name}: missing _checksums.sha256")
+            continue
+        sha = cs.get('sha256', '')
+        if not isinstance(sha, str) or not _SHA256_RE.match(sha):
+            if isinstance(sha, str) and sha.lower() != sha and _SHA256_RE.match(sha.lower()):
+                reason = "uppercase — must be lowercase hex"
+            elif isinstance(sha, str):
+                reason = f"not 64 lowercase-hex chars (len={len(sha)})"
+            else:
+                reason = "not a string"
+            errors.append(f"dist/{name}: _checksums.sha256 invalid ({reason}): {sha!r}")
+    return errors
+
+
+def check_feed_size_bytes():
+    """Every feed must carry a top-level integer size_bytes > 0. (Currently the
+    BUILD.sh gen-update-json calls do NOT pass --size-bytes, so this fails until the
+    build is updated to pass it — that gap is exactly what this gate surfaces.)"""
+    errors = []
+    for name in ALL_FEED_FILES:
+        d = _load_feed(name)
+        if d is None:
+            continue
+        sz = d.get('size_bytes')
+        if not isinstance(sz, int) or isinstance(sz, bool) or sz <= 0:
+            errors.append(
+                f"dist/{name}: size_bytes must be an integer > 0 ({sz!r}) — pass "
+                f"--size-bytes to gen-update-json.py in the build."
+            )
+    return errors
+
+
+def check_feed_cross_consistency(v, b):
+    """Every present feed must agree with version.json on BOTH version and build.
+    This makes all four feeds consistent with each other (covers the case where the
+    Mac feed was left stale at an old version while the others advanced)."""
+    errors = []
+    for name in ALL_FEED_FILES:
+        d = _load_feed(name)
+        if d is None:
+            continue
+        fv = d.get('version')
+        fb = d.get('build')
+        if fv != v:
+            errors.append(
+                f"dist/{name}: version '{fv}' != source-of-truth '{v}' "
+                f"(stale/forgotten feed — regenerate it)."
+            )
+        if fb != b:
+            errors.append(
+                f"dist/{name}: build {fb!r} != source-of-truth {b} (regenerate this feed)."
+            )
+    return errors
+
+
 def main():
     print("Validating version sync...")
     print()
@@ -539,7 +698,7 @@ def main():
 
     # ── Item 4: JSON feed validation (opportunistic — skipped if dist/ absent) ─
     dist = ROOT / "dist"
-    feeds_present = any((dist / f).exists() for f in FEED_BANNED_TERMS)
+    feeds_present = any((dist / f).exists() for f in ALL_FEED_FILES)
     if feeds_present:
         print("   Validating JSON feeds (parse validity)...")
         all_errors.extend(check_json_feeds_parse())
@@ -547,6 +706,16 @@ def main():
         all_errors.extend(check_json_feeds_keys())
         print("   Validating JSON feeds (cross-platform purity)...")
         all_errors.extend(check_json_feeds_purity())
+        print("   Validating JSON feeds (build > last released)...")
+        all_errors.extend(check_feed_build_monotonic())
+        print("   Validating JSON feeds (notes depth + headline keyword)...")
+        all_errors.extend(check_feed_notes_and_headline())
+        print("   Validating JSON feeds (sha256 lowercase hex)...")
+        all_errors.extend(check_feed_checksums())
+        print("   Validating JSON feeds (size_bytes present)...")
+        all_errors.extend(check_feed_size_bytes())
+        print("   Validating JSON feeds (cross-feed version/build agreement)...")
+        all_errors.extend(check_feed_cross_consistency(v, b))
     else:
         print("   JSON feeds: dist/ not present — skipping feed validation")
 

@@ -1,0 +1,12 @@
+# Release headline keywords — one per line, case-insensitive, '#' comments ignored.
+# The feed validator requires at least one _version_notes bullet to mention one of
+# these (so a release never ships without naming its headline feature in the notes).
+#
+# MAINTAINED PER RELEASE: before generating feeds, set this to the current release's
+# headline term(s). For a pure maintenance release with no headline feature, leave
+# this file empty (only comments) — the headline check then skips, but the
+# ">= 3 bullets" requirement still applies.
+subscriptions
+theme
+polyglot
+canvas

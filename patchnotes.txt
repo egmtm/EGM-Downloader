@@ -1,3 +1,33 @@
+v1.1.1 - (in progress)
+-----------------------------------------
+
+  SECURITY
+  • [ALL] Theme import: CSS variable values fully validated — blocks XSS, CSS injection, and silent network beacons (url()/image-set()) via crafted theme files
+  • [ALL] Theme import preview: color values validated before rendering — prevents XSS on import modal display
+
+  FIXES
+  • [WINDOWS] Installer now detects if EGM Downloader is running before installing — prompts to close it automatically or cancel
+  • [WINDOWS] Portable edition now correctly isolates yt-dlp — was picking up system-installed version instead of its own bundled copy; no manual folder deletion required
+  • [ALL] Fixed console error when switching tabs before all panels are loaded
+
+  IMPROVEMENTS
+  • [ALL] @EGMDownloader X/Twitter account added to app footer and all platform instructions
+  • [ALL] Support links in platform instructions now point to their respective platform pages
+  • [ALL] Import/Export selector — choose exactly what to include (Settings, History, Themes, Subscriptions); import adapts to what's in the file; default all selected
+  • [ALL] Keyboard shortcuts: Ctrl+H (History), Ctrl+T (Themes), Ctrl+, (Advanced), Ctrl+S (Subscriptions)
+  • [ALL] Back to top arrow in subscriptions video list
+  • [ALL] 10 new Animation themes: Yellow Family, Quahog, Mountain Town, Hollow, Beach City, Jump City, Halloween Town, Stop Motion, Super Saiyan, Odd Cab
+  • [ALL] Pin to top — star icon on history entries; pinned items float to top with teal tint; persists across sessions
+  • [ALL] Mark all seen — button in subscriptions channel detail clears all New badges in one click
+  • [ALL] Subscriptions drag reorder — drag handle on sidebar items to reorder channels
+  • [ALL] Help modal — keyboard shortcuts and tips accessible from the footer
+  • [ALL] Download queue reorder — up/down arrows on idle cards to reprioritize before downloading
+  • [ALL] Theme subcategory order — subcategories sorted alphabetically within each section
+  • [ALL] Settings: Site Cookies row moved above toggles, within the quality/format panel for quicker access
+  • [ALL] Subscriptions: channel quality setting (video height / audio quality) now correctly applied when downloading — was saved but not sent to the download engine
+  • [ALL] Subscriptions: per-video quality override — each video row has its own Quality selector; overrides the channel default for that download only; resets on channel format change
+  • [ALL] Subscriptions: members-only video identification now works correctly — our code was always ready; requires yt-dlp Nightly (stable does not yet expose the availability flag)
+
 v1.1 - IGNITION
 -----------------------------------------
 
@@ -62,11 +92,13 @@ v1.1 - IGNITION
   • [ALL] Electron 42.4.0 → 42.4.1
 
 v1.0.5 - Build 129 (6/15/2026)
+v1.1 - IGNITION
 -----------------------------------------
   • [WINDOWS] Fix: npm resolution for system-wide Node — shutil.which('npm') resolves npm.cmd via PATH, fixing WinError 2 crash on first launch when system Node is present but no portable node_bin (Issue #4, reported by @Floffye)
   • [WINDOWS] Fix: Eliminate pre-splash window flash on warm starts — Tk progress window now lazy-initialized, only shown during first-run installs
 
 v1.0.4 - Build 128 (6/10/2026)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Polish: All UI icons upgraded from emoji to inline SVGs — sharper rendering, consistent across platforms
   • [ALL] Polish: Nav buttons, URL panel, Settings, Advanced panel, section titles all use theme-compatible vector icons
@@ -75,6 +107,7 @@ v1.0.4 - Build 128 (6/10/2026)
   • [ALL] Fix: Improved contrast on Show/Hide toggle across all themes
 
 v1.0.3 - Build 127 (6/2026)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Security: Server-side download concurrency backstop — BoundedSemaphore (cap 24) prevents unbounded process spawns regardless of client pacing
   • [ALL] Security: Resolve-first download directory validation replaces denylist — closes path traversal bypass, adds boundary-aware root check and writability probe
@@ -84,6 +117,7 @@ v1.0.3 - Build 127 (6/2026)
   • [WINDOWS] Runtime: Electron 42.4.0 included for fresh installs; existing installs keep 42.3.2 until major bump or manual Reinstall Electron (minor bumps do not trigger automatic Electron re-download)
 
 v1.0.2 - Build 126 (6/9/2026)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New: Direct-access navigation buttons replace hamburger menu — History, Themes, Advanced each get their own button
   • [ALL] New: Enlarged app logo (76px) for balanced header layout
@@ -91,6 +125,7 @@ v1.0.2 - Build 126 (6/9/2026)
   • [ALL] Fix: History panel loads correctly when switching from another tab
 
 v1.0.1 - Build 125 (6/8/2026)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New: Update Plugins panel moved into hamburger → Advanced tab — cleaner main page
   • [ALL] New: Collapsible plugins grid with Show/Hide toggle — state remembered across app restarts
@@ -100,6 +135,7 @@ v1.0.1 - Build 125 (6/8/2026)
   • [ALL] Fix: Update modal now scrollable — max-height 90vh, body scrolls, buttons stay fixed
 
 v1.0 - CORNERSTONE
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New: 140 new themes — mythology (20), Conejo Malo series 2.0–5.0 (4), sports (10), decades (10), memes (6), cities of the world (30), Balance Pack (11), Futuristic (9), Planets & Space (10), Brands (20), Venues (10), 8-Bit Era (10) — total now 400 themes
   • [ALL] New: Theme Favorites — heart toggle on every theme card, dedicated Favorites sidebar section, persists across restart and in settings export/import, server-side validation (XSS-safe, deduped, capped)
@@ -159,6 +195,7 @@ v1.0 - CORNERSTONE
   • [WINDOWS] Polish: Task Manager shows "EGM Downloader" on all processes — rcedit stamps Electron binary's PE version resource (SHA-256 verified)
 
 v0.99.13 - Build 121 (5/26/2026 11:06 AM EST) — SOLID
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New: 22 Operating System themes — Windows (95, 98, XP, Vista, 7, 11), macOS (9, X Aqua, Big Sur, Sequoia), Linux (Ubuntu, Arch, Kali, Fedora), and retro OS (BeOS, Amiga, DOS, NeXTSTEP, OS/2 Warp, Solaris, Unix, BSD) — total now 260 themes
   • [ALL] Fix: theme registry corrections — void, aurora-deep, St. Patrick's Day, and Valentine's Day now correctly registered with proper labels and categories
@@ -168,6 +205,7 @@ v0.99.13 - Build 121 (5/26/2026 11:06 AM EST) — SOLID
   • [ALL] Fix: Content-Type header validated before reading thumbnail body — non-image responses close immediately without consuming bandwidth
 
 v0.99.12 - Build 120 (5/25/2026 11:59 AM EST) — VAULT
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Fix: placeholder text and section labels now use theme-aware color across all 238 themes — closes v0.99.11 known issue
   • [ALL] Security: signed update manifests — ed25519 signature verified on every update check before any content is trusted; unsigned or tampered manifests silently rejected
@@ -175,6 +213,7 @@ v0.99.12 - Build 120 (5/25/2026 11:59 AM EST) — VAULT
   • [ALL] Quality: unit test suite — 17 tests covering cross-platform parity, security boundaries, and historical regressions; wired into GitHub Actions CI (runs on every push to main)
 
 v0.99.11 - Build 119 (5/23/2026 10:05 AM EST) — FOUNDER'S EDITION
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New: 67 themes added — Puerto Rico Collection (22 themes celebrating Ponce, the island, holidays, icons, and culture), Team Easter Eggs (5 themes named after the team behind EGM), and category expansion (cities, space, movies, retro, music, moods, architecture, food, weather)
   • [ALL] New: Puerto Rico themes with flag identifier — featured first under Heritage
@@ -186,6 +225,7 @@ v0.99.11 - Build 119 (5/23/2026 10:05 AM EST) — FOUNDER'S EDITION
   • [ALL] Known Issues: Some placeholder text and section labels may have low contrast on certain themes. A fix is ready and will ship in the next release.
 
 v0.99.10 - Build 118 (5/22/2026 7:09 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New: video thumbnails on download history — locally cached, shown in hamburger list (cropped) and expanded history (blurred fill for vertical videos); fallback icons for audio and pre-thumbnail entries
   • [ALL] New: per-video thumbnail cleanup on history delete, bulk cleanup on cache clear
@@ -196,6 +236,7 @@ v0.99.10 - Build 118 (5/22/2026 7:09 PM EST)
   • [ALL] New: 30 themes added — Eras & Decades (10), Mythology (10), International Seasonal (10); 29 contrast readability fixes; alphabetical sort in themes window
 
 v0.99.9 - Build 117 (5/21/2026 3:45 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New: Advanced panel moved to dedicated third tab on hamburger menu — main window decluttered, all settings accessible via History/Themes/Advanced tabs
   • [ALL] Fix: auto-update check no longer fires when the toggle is off — removed unconditional 3-second timer that bypassed the setting
@@ -204,10 +245,12 @@ v0.99.9 - Build 117 (5/21/2026 3:45 PM EST)
   • [ALL] New: 20 themes added across 4 new categories — Food & Drink (Espresso, Matcha, Honey, Merlot, Saffron), Weather (Golden Hour, Overcast, Northern Lights, Thunderstorm, Sirocco), Space (Nebula, Pulsar, Solar Flare, Event Horizon, Andromeda), Architecture (Brutalist, Art Deco, Blueprint, Marble, Gothic)
 
 v0.99.8 - Build 116 (5/20/2026 4:09 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Upgrade: Electron 42.2.0 (Chromium 148) — latest stable runtime with updated security patches and performance improvements
 
 v0.99.7 - Build 115 (5/20/2026 10:38 AM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [WINDOWS] New: splash screen with progress bar during startup — shows backend initialization and ffmpeg download status instead of a blank gap after the launcher closes
   • [LINUX] Fix: splash screen no longer closes prematurely during ffmpeg/Deno downloads — the 5-second timeout fallback now starts after the page loads, not before the backend is ready
@@ -217,11 +260,13 @@ v0.99.7 - Build 115 (5/20/2026 10:38 AM EST)
   • [MAC] Polish: app icon updated with full Retina (@2x) icon set — fixes pixelated/blurry icon in Applications folder, DMG title bar, and Dock
 
 v0.99.6 - Build 114 (5/19/2026 9:48 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Security: format_id validation added at run_download use site (was endpoint-only) — defense in depth against future callers that might bypass the /api/download endpoint validation
   • [ALL] Diagnostic: invalid bitrate at the postprocessor use site now raises explicitly instead of silently substituting 192 — surfaces upstream validation gaps loudly rather than quietly
 
 v0.99.5 - Build 113 (5/19/2026 3:10 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Security: outbound HTTP requests now restricted to a whitelist of trusted hosts (GitHub, PyPI, ffmpeg sources, egerena.com) — prevents any future code path from accidentally reaching unintended destinations
   • [ALL] Security: redirect targets verified against the same whitelist — blocks redirects that lead off-list, even from legitimate hosts
@@ -231,12 +276,14 @@ v0.99.5 - Build 113 (5/19/2026 3:10 PM EST)
   • [LINUX] Theme files synchronized with canonical definitions — corrects rendering of Ghost of Sparta (Cyrillic character typo) and Neo Geo (malformed color value), aligns naming with current branding (Evergreen, Meadow, Aurora Deep), brings Linux theme picker in line with Windows/Mac
 
 v0.99.4 - Build 112 (5/18/2026 8:29 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Security: API token comparison hardened to constant-time (hmac.compare_digest) — closes theoretical timing-attack vector on the per-session token check
   • [ALL] Security: audio bitrate values validated before use in yt-dlp postprocessor args — invalid values now rejected cleanly (was: unvalidated interpolation)
   • [ALL] Security: format_id values validated against allowed character set before use in yt-dlp format selector — prevents unexpected selector injection
 
 v0.99.3 - Build 111 (5/17/2026 1:44 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Electron runtime upgraded from v29 to v41 — brings 12 major versions of Chromium security fixes and performance improvements
   • [WINDOWS] First launch after update reinstalls Electron (~250 MB) to apply the runtime upgrade — shown as "Updating Electron to new major version…"
@@ -247,6 +294,7 @@ v0.99.3 - Build 111 (5/17/2026 1:44 PM EST)
   • [ALL] Security: HTML escape helper strengthened with single-quote handling (defensive — no current vulnerability, eliminates future foot-gun)
 
 v0.99.2 - Build 110 (5/16/2026 8:51 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Security: dependency download integrity now strictly enforced — ffmpeg and Deno installs require valid upstream checksums to proceed (previously fell back silently on verification errors)
   • [ALL] Security: release notes from update feed now rendered as text only — eliminates potential script injection from compromised feeds
@@ -255,6 +303,7 @@ v0.99.2 - Build 110 (5/16/2026 8:51 PM EST)
   • [WINDOWS] Deno checksum verification — fixed checksum file URL (.sha256 → .sha256sum) and added support for Deno's PowerShell hash format
 
 v0.99.1 - Build 109 (5/15/2026 7:11 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] ffmpeg and Deno downloads now verified against upstream SHA256 checksums — protects against tampered or corrupted dependency binaries
   • [WINDOWS] [LINUX] ffmpeg checksum verification uses BtbN's published checksums.sha256
@@ -264,6 +313,7 @@ v0.99.1 - Build 109 (5/15/2026 7:11 PM EST)
   • [ALL] Subtitle temp file cleanup safety net — leftover .vtt/.srt files now reliably removed after embedded subtitle downloads
 
 v0.99.0 - Build 108 (5/14/2026 11:33 AM EST) — Security Hardening
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Electron shutdown handler now sends the API token — fixes orphan Python process on quit (Windows-visible, latent on Mac/Linux)
   • [ALL] API token authentication now fail-closed — Electron generates a per-session 32-byte token; Flask refuses to start without it
@@ -275,6 +325,7 @@ v0.99.0 - Build 108 (5/14/2026 11:33 AM EST) — Security Hardening
   • [ALL] Leftover subtitle temp files (.vtt, .srt) now properly cleaned up after embedded subtitle downloads
 
 v0.98.10 - Build 107 (5/13/2026 7:38 PM EST) — Spectrum
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New COLORS theme category — 10 gradient themes: Ocean, Peach, Mint, Lavender, Sand (light); Ember, Aurora, Midnight, Forest, Crimson (dark)
   • [ALL] Cookies age tracking fixed — date now stored reliably in settings instead of filesystem metadata
@@ -287,6 +338,7 @@ v0.98.10 - Build 107 (5/13/2026 7:38 PM EST) — Spectrum
   • [MAC] DMG volume icon configuration added to build
 
 v0.98.9 - Build 106 (5/10/2026 9:43 AM EST) — Fit & Finish
+v1.1 - IGNITION
 -----------------------------------------
   • [MAC] App is now signed and notarized with Apple Developer ID — no Gatekeeper security warnings on launch
   • [ALL] Theme improvements — four themes renamed for broader appeal. CSS class names unchanged (existing preferences preserved)
@@ -308,6 +360,7 @@ v0.98.9 - Build 106 (5/10/2026 9:43 AM EST) — Fit & Finish
   • [LINUX] Window position is now remembered between sessions (resolved in v0.98.8, noted here for completeness)
 
 v0.98.8 - Build 105 (5/9/2026 12:26 PM EST) — ...the one about security
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] API token gate — every /api/* request now requires a per-session cryptographic token (X-EGM-Token header). Token generated fresh by Electron at startup, passed to Flask via environment variable, injected into pages via Jinja. Prevents drive-by localhost requests from malicious websites or local processes
   • [ALL] Fail-closed update verification — checksum parameter is now required on /api/download-update. Returns 400 if missing, ensuring no update can proceed without SHA256 verification
@@ -316,6 +369,7 @@ v0.98.8 - Build 105 (5/9/2026 12:26 PM EST) — ...the one about security
   • [ALL] Scripts security audit — all 4 build/validation scripts reviewed: no eval/exec, subprocess limited to read-only git ls-files, all paths relative to repo root, no user-controlled path construction. Clean bill of health
 
 v0.98.7 - Build 104 (5/7/2026 8:38 PM EST) — THE POLISH
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Cookies browse now uses native file dialog instead of browser file picker — fixes cookies browse on Linux and improves reliability on all platforms
   • [ALL] Cookies section condensed to single always-visible row with extension tooltips — no more expand/collapse needed
@@ -332,6 +386,7 @@ v0.98.7 - Build 104 (5/7/2026 8:38 PM EST) — THE POLISH
   • [LINUX] Virtual machine environments (VMware, VirtualBox, etc.) may experience display rendering issues. The app is primarily designed and tested for bare-metal Linux installations.
 
 v0.98.6 - Build 103 (5/4/2026 11:10 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Open folder from expanded download history panel now works correctly (history window was missing API bridge that prevented folder actions)
   • [ALL] Video thumbnail aspect ratio corrected — widescreen (16:9) videos now display at proper proportions instead of appearing stretched vertically
@@ -344,6 +399,7 @@ v0.98.6 - Build 103 (5/4/2026 11:10 PM EST)
   • [LINUX] Virtual machine environments (VMware, VirtualBox, etc.) may experience display rendering issues. The app is primarily designed and tested for bare-metal Linux installations.
 
 v0.98.5 - Build 102 (5/2/2026 2:25 AM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Electron runtime upgraded to v41.5.0 (security and compatibility improvements; v29 line is end-of-life with no security backports — this upgrade incorporates accumulated Chromium security fixes and backported CVEs from the Electron security advisory line)
   • [ALL] electron-builder updated to v26.8.1 (build toolchain compatibility with Electron 41)
@@ -356,6 +412,7 @@ v0.98.5 - Build 102 (5/2/2026 2:25 AM EST)
 
 
 v0.98 - Build 101 (4/28/2026 1:47 AM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] URL input pane redesigned — compact unified buttons (28px), textarea shrinks to 3 lines by default and auto-grows as URLs are added, "Max videos" caption replaces "Videos"
   • [ALL] Drag and drop URLs directly into the URL textarea — visual drag-over feedback, filters comment lines, appends cleanly
@@ -386,6 +443,7 @@ v0.98 - Build 101 (4/28/2026 1:47 AM EST)
   • [WINDOWS] Build pipeline now produces both installer and portable zips in one pass
 
 v0.97.5 - Build 100 (4/26/2026 10:25 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Mac auto-update — now opens download page in browser instead of attempting installer launch; no false error
   • [ALL] Footer spacing — gap between Advanced panel and footer reduced to match top spacing
@@ -396,6 +454,7 @@ v0.97.5 - Build 100 (4/26/2026 10:25 PM EST)
   • [ALL] Music, Cities, Moods category tabs added to themes window; total theme count reaches 100
 
 v0.97 - Build 99 (4/26/2026 12:00 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] 76 themes total — 66 permanent across 8 categories plus 10 seasonal easter eggs that automatically appear near their holiday and hide after
   • [ALL] 46 new permanent themes across 6 categories: Nature, Consoles, Characters, Movies, Retro, Experimental — each with a unique static background texture
@@ -416,6 +475,7 @@ v0.97 - Build 99 (4/26/2026 12:00 PM EST)
 
 
 v0.96 - Build 98 (4/25/2026 10:00 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Download History — hamburger (B4 grid) button in header replaces theme picker; History + Themes tabs; sliding window 10×10 with collapsed pills; ⤢ Open full history window; per-entry re-add, open folder, remove; count badge
   • [ALL] Full history window — search, filter (All/Video/Audio/FLAC), sort, paginated table with format badges and file sizes; Clear All; persists across launches in egm_history.json
@@ -439,6 +499,7 @@ v0.96 - Build 98 (4/25/2026 10:00 PM EST)
 
 
 v0.95 - Build 97 (4/25/2026 3:32 PM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] New logo — Transmission Halo design, inline SVG using CSS variables; adapts automatically to every theme without any image files
   • [ALL] 6 themes — Void (default), Eclipse (deep purple), Ghost (GitHub green), Frost (cool blue-gray light), Bone (warm cream light), Haze (green-gray light); replaces binary dark/light toggle
@@ -464,6 +525,7 @@ v0.95 - Build 97 (4/25/2026 3:32 PM EST)
 
 
 v0.94 - Build 96 (4/25/2026 9:30 AM EST)
+v1.1 - IGNITION
 -----------------------------------------
   • [ALL] Light theme added — Cool Slate palette, toggleable via moon/sun button in header top-right. Preference saved via localStorage and restored on next launch. Dark mode remains the default.
   • [ALL] All hardcoded surface/button/overlay colors moved to CSS variables — both themes respect every UI element including thumbnails, modals, log panel, and status badges.

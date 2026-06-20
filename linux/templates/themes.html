@@ -191,11 +191,11 @@
 
 // Sidebar structure: ordered sections + categories per section
 const SECTIONS = [
-  { label: 'Style',         cats: ['dark', 'light', 'space', 'futuristic', 'retro'] },
-  { label: 'Vibe',          cats: ['music', 'nature', 'cities', 'moods', 'food', 'weather', 'sports'] },
-  { label: 'Pop Culture',   cats: ['movies', 'consoles', 'characters', 'memes', 'brands', 'eightbit'] },
-  { label: 'Heritage',      cats: ['puerto_rico', 'mythology', 'architecture', 'eras', 'decades', 'venues'] },
-  { label: 'Other',         cats: ['os', 'experimental', 'custom'] },
+  { label: 'Style',         cats: ['dark', 'futuristic', 'light', 'retro', 'space'] },
+  { label: 'Vibe',          cats: ['cities', 'food', 'moods', 'music', 'nature', 'sports', 'weather'] },
+  { label: 'Pop Culture',   cats: ['eightbit', 'animation', 'brands', 'characters', 'consoles', 'memes', 'movies'] },
+  { label: 'Heritage',      cats: ['architecture', 'decades', 'eras', 'mythology', 'puerto_rico', 'venues'] },
+  { label: 'Other',         cats: ['experimental', 'os', 'custom'] },
 ];
 
 const CAT_LABELS = {
@@ -211,6 +211,7 @@ const CAT_LABELS = {
   space:'Space', eras:'Eras',
   futuristic:'Futuristic', brands:'Brands', venues:'Venues',
   eightbit:'8-Bit Era',
+  animation:'Animation',
 };
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';

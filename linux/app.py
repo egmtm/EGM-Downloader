@@ -231,8 +231,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "1.1.0"
-APP_BUILD             = 130
+APP_VERSION           = "1.1.1"
+APP_BUILD             = 131
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
@@ -2024,6 +2024,40 @@ def mark_downloaded():
         return jsonify({"error": "Subscription not found"}), 404
     return jsonify({"ok": True})
 
+
+
+@app.route("/api/subscriptions/mark-all-seen", methods=["POST"])
+def mark_all_seen():
+    """Mark all videos for a subscription as seen (is_new = False)."""
+    data = request.get_json(silent=True) or {}
+    sub_id = (data.get("id") or "").strip()
+    if not sub_id:
+        return jsonify({"error": "id required"}), 400
+    def _mark(subs):
+        sub = next((s for s in subs if s.get("id") == sub_id), None)
+        if sub is None:
+            return False
+        for v in sub.get("videos", []):
+            v["is_new"] = False
+        return True
+    ok = _mutate_subscriptions(_mark)
+    if not ok:
+        return jsonify({"error": "Subscription not found"}), 404
+    return jsonify({"ok": True})
+
+@app.route("/api/subscriptions/reorder-absolute", methods=["POST"])
+def reorder_subscription_absolute():
+    """Reorder subscriptions to match a provided full ID order."""
+    data = request.get_json(silent=True) or {}
+    ids = data.get("ids", [])
+    if not isinstance(ids, list) or not all(isinstance(i, str) for i in ids):
+        return jsonify({"error": "ids must be a list of strings"}), 400
+    def _reorder(subs):
+        order = {sid: idx for idx, sid in enumerate(ids)}
+        subs.sort(key=lambda s: order.get(s.get("id", ""), len(ids)))
+        return True
+    _mutate_subscriptions(_reorder)
+    return jsonify({"ok": True})
 
 @app.route("/api/subscriptions/reorder", methods=["POST"])
 def reorder_subscription():

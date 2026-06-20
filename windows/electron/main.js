@@ -672,8 +672,11 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
   subsWindow.on('closed', () => {
     subsWindow = null;
     subsActiveDownloads = false; subsForceClose = false;
-    // Restore main window when subscriptions closes
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.show();
+      mainWindow.focus();
+    }
   });
 });
 
