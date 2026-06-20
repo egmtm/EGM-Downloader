@@ -845,6 +845,15 @@ function renderDetail() {
               <div class="video-title">${esc(v.title)}</div>
               <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">New</span>' : ''}${v.downloaded ? ` <span class="video-status done">Downloaded</span> <button class="video-action-btn" onclick="clearDownloaded('${attrEsc(v.video_id || '')}')">Clear</button>` : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
             </div>
+            <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
+              <span style="font-size:.65rem;color:var(--text2)">Quality</span>
+              <select class="vq-sel" data-video-id="${attrEsc(v.video_id || '')}" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
+                <option value="">Channel default</option>
+                ${(activeSub.format || 'video') === 'audio'
+                  ? '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
+                  : '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'}
+              </select>
+            </div>
           </div>
         `).join('') + (hasMore ? `
           <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const vl=document.getElementById('video-list'),st=vl?vl.scrollTop:0;visibleCount+=20;renderDetail();const nv=document.getElementById('video-list');if(nv){nv.scrollTop=st;requestAnimationFrame(()=>{nv.scrollTop=st})}">Load more (${visible.length} of ${sortedVideos.length})</button>
@@ -886,6 +895,12 @@ function renderDetail() {
     }
     const opt = qualitySelect.querySelector(`option[value="${savedQuality}"]`);
     if (opt) opt.selected = true;
+    // Sync per-row selects to new format options; clear any stored overrides
+    const rowOpts = format === 'audio'
+      ? '<option value="">Channel default</option><option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="wav">WAV</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
+      : '<option value="">Channel default</option><option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
+    document.querySelectorAll('.vq-sel').forEach(s => { s.innerHTML = rowOpts; });
+    videoQualityOverride = {};
   }
   if (qualitySelect && activeSub.quality) {
     const opt = qualitySelect.querySelector(`option[value="${activeSub.quality}"]`);
@@ -989,6 +1004,16 @@ function renderDetail() {
     });
   }
 
+  // Per-row quality override map (one-time, cleared on format change)
+  if (typeof videoQualityOverride === 'undefined') { var videoQualityOverride = {}; }
+  document.querySelectorAll('.vq-sel').forEach(sel => {
+    const vid = sel.dataset.videoId;
+    if (videoQualityOverride[vid]) sel.value = videoQualityOverride[vid];
+    sel.addEventListener('change', () => {
+      videoQualityOverride[vid] = sel.value;
+    });
+  });
+
   // ── Checkbox selection ────────────────────────────────────────────────────
   function updateSelectionCount() {
     const checks = document.querySelectorAll('.video-check:checked');
@@ -1047,8 +1072,9 @@ function renderDetail() {
         const videoUrl = video ? `https://www.youtube.com/watch?v=${video.video_id}` : videoId;
 
         try {
-          // Map channel quality token → validated /api/download fields
-          const q = activeSub.quality || '';
+          // Per-video override takes precedence over channel default
+          const rowOverride = videoQualityOverride[videoId] || '';
+          const q = rowOverride || activeSub.quality || '';
           const qualityFields = subFormat === 'audio'
             ? { audio_quality: q || '320', audio_codec: q.startsWith('opus') ? 'opus' : q === 'flac' ? 'flac' : q === 'wav' ? 'wav' : 'mp3' }
             : (q && q !== 'best' ? { video_height: q } : {});
