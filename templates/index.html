@@ -888,6 +888,46 @@
               <div class="theme-swatches"><div class="theme-sw" style="background:#080000"></div><div class="theme-sw" style="background:#140000"></div><div class="theme-sw" style="background:#e82020"></div></div>
               <span class="theme-name">Flamenco</span><div class="theme-check"></div>
             </div>
+            <div class="theme-row" data-theme="collegedropout">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0e0800"></div><div class="theme-sw" style="background:#1c1200"></div><div class="theme-sw" style="background:#d4940a"></div></div>
+              <span class="theme-name">College Dropout</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="lateregistration">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0a0004"></div><div class="theme-sw" style="background:#160008"></div><div class="theme-sw" style="background:#b82040"></div></div>
+              <span class="theme-name">Late Registration</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="graduation">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#08040e"></div><div class="theme-sw" style="background:#10081c"></div><div class="theme-sw" style="background:#c040f8"></div></div>
+              <span class="theme-name">Graduation</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="eightoheights">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#060810"></div><div class="theme-sw" style="background:#0c1020"></div><div class="theme-sw" style="background:#8098c0"></div></div>
+              <span class="theme-name">808s</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="darkfantasy">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#080010"></div><div class="theme-sw" style="background:#100020"></div><div class="theme-sw" style="background:#d4a020"></div></div>
+              <span class="theme-name">Dark Fantasy</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="watchthethrone">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#020202"></div><div class="theme-sw" style="background:#080808"></div><div class="theme-sw" style="background:#c8980a"></div></div>
+              <span class="theme-name">Watch the Throne</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="yeezus">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#000000"></div><div class="theme-sw" style="background:#060606"></div><div class="theme-sw" style="background:#ffffff"></div></div>
+              <span class="theme-name">Yeezus</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="lifeofpablo">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#0c0400"></div><div class="theme-sw" style="background:#1a0800"></div><div class="theme-sw" style="background:#ff6600"></div></div>
+              <span class="theme-name">Life of Pablo</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="yealbum">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#040c04"></div><div class="theme-sw" style="background:#081808"></div><div class="theme-sw" style="background:#78c878"></div></div>
+              <span class="theme-name">Ye</span><div class="theme-check"></div>
+            </div>
+            <div class="theme-row" data-theme="bully">
+              <div class="theme-swatches"><div class="theme-sw" style="background:#000000"></div><div class="theme-sw" style="background:#080808"></div><div class="theme-sw" style="background:#a8a8a8"></div></div>
+              <span class="theme-name">Bully</span><div class="theme-check"></div>
+            </div>
             <div class="theme-row" data-theme="solitude">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0c0e10"></div><div class="theme-sw" style="background:#141618"></div><div class="theme-sw" style="background:#8898a8"></div></div>
               <span class="theme-name">Solitude</span><div class="theme-check"></div>
@@ -1871,20 +1911,22 @@
     </div>
   </div>
   <div class="sec-body collapsed" id="settings-body">
-    <span class="opt-label">Download folder</span>
-    <div class="path-row">
-      <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
-      <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
-      <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> Open</button>
-    </div>
-
-    <!-- Daily-use controls promoted from Advanced — format selectors + toggles -->
-    <div style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-top:10px">
-      <div style="display:flex;align-items:center;gap:0;padding-bottom:8px;border-bottom:1px solid var(--border);margin-bottom:8px">
-        <div style="flex:1;display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:flex-end;gap:0">
+      <div style="flex:1.4;min-width:0">
+        <span class="opt-label">Download folder</span>
+        <div class="path-row">
+          <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
+          <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
+          <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> Open</button>
+        </div>
+      </div>
+      <div style="width:1px;background:var(--border);align-self:stretch;margin:20px 14px 0;flex-shrink:0"></div>
+      <div style="flex:1;min-width:0">
+        <span class="opt-label">Format / Quality</span>
+        <div style="display:flex;align-items:center;gap:8px">
           <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
           <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
-            <option value="320">MP3 320 kbps (default)</option>
+            <option value="320">MP3 320 kbps</option>
             <option value="192">MP3 192 kbps</option>
             <option value="128">MP3 128 kbps</option>
             <option value="flac">FLAC</option>
@@ -1892,16 +1934,17 @@
             <option value="opus_192">OPUS 192 kbps</option>
             <option value="opus_128">OPUS 128 kbps</option>
           </select>
-        </div>
-        <div style="width:1px;height:28px;background:var(--border);margin:0 14px;flex-shrink:0"></div>
-        <div style="flex:1;display:flex;align-items:center;gap:8px">
+          <div style="width:1px;height:28px;background:var(--border);flex-shrink:0"></div>
           <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Video</span>
           <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
-            <option value="mp4" selected>MP4 (default)</option>
+            <option value="mp4" selected>MP4</option>
             <option value="mkv">MKV</option>
           </select>
         </div>
       </div>
+    </div>
+
+    <div style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-top:10px">
       <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
         <div style="display:flex;align-items:center;gap:8px">
           <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M8 13v.01"/><path d="M12 17v.01"/><path d="M12 12v.01"/><path d="M16 14v.01"/><path d="M11 8v.01"/><path d="M13.148 3.476l2.667 1.104a4 4 0 0 0 4.656 6.14l.053 .132a3 3 0 0 1 0 2.296q -.745 1.18 -1.024 1.852q -.283 .684 -.66 2.216a3 3 0 0 1 -1.624 1.623q -1.572 .394 -2.216 .661q -.712 .295 -1.852 1.024a3 3 0 0 1 -2.296 0q -1.203 -.754 -1.852 -1.024q -.707 -.292 -2.216 -.66a3 3 0 0 1 -1.623 -1.624q -.397 -1.577 -.661 -2.216q -.298 -.718 -1.024 -1.852a3 3 0 0 1 0 -2.296q .719 -1.116 1.024 -1.852q .257 -.62 .66 -2.216a3 3 0 0 1 1.624 -1.623q 1.547 -.384 2.216 -.661q .687 -.285 1.852 -1.024a3 3 0 0 1 2.296 0"/></svg> Site Cookies</span>

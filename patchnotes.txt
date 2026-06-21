@@ -1,4 +1,24 @@
-v1.1.1 - (in progress)
+v1.1.2 - (in progress)
+-----------------------------------------
+
+  THEMES
+  • [ALL] 10 new Kanye West album themes in Music category: College Dropout, Late Registration, Graduation, 808s & Heartbreak, Dark Fantasy, Watch the Throne, Yeezus, Life of Pablo, Ye, Bully
+
+  IMPROVEMENTS
+  • [ALL] Settings: Download folder and Format/Quality side by side with divider — cleaner layout
+  • [ALL] Subscriptions: SVG spinner replaces placeholder on fetch cards
+  • [ALL] Subscriptions: Fetch All button — refresh all channels in one click; per-channel status badges; soft cancel
+  • [ALL] Subscriptions: Checkbox selections preserved when loading more videos
+  • [ALL] Scrollbar theming — Download History and Themes sidebar scrollbars now follow the active theme
+
+  FIXES
+  • [ALL] Import/Export settings modal — clicking outside no longer dismisses it; only Cancel closes it
+  • [ALL] Download all videos/audio modal — same focus lock applied
+  • [ALL] Subscriptions: Download queue scroll position preserved when download status updates
+  • [ALL] Single-instance lock — relaunching while subscriptions window is open no longer shows both windows
+
+
+v1.1.1 - TRULY YOURS (Build 131)
 -----------------------------------------
 
   SECURITY

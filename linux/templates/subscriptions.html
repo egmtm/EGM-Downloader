@@ -118,6 +118,7 @@
       padding:8px 10px;border-bottom:1px solid var(--border);
     }
     .sidebar.collapsed .add-bar { display:none; }
+    .sidebar.collapsed #fetch-all-bar { display:none !important; }
     .add-bar input {
       width:100%;padding:5px 8px;font-size:.7rem;
       background:var(--surf2);border:1px solid var(--border);border-radius:4px;
@@ -267,6 +268,16 @@
       </div>
     </div>
 
+    <div id="fetch-all-bar" style="padding:4px 8px;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:3px">
+      <div style="display:flex;gap:4px">
+        <button id="fetch-all-btn" onclick="fetchAllChannels()" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:5px 8px;border-radius:5px;font-size:.68rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+          Fetch All
+        </button>
+        <button id="fetch-all-cancel-btn" onclick="cancelFetchAll()" style="display:none;background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:.68rem;cursor:pointer">Cancel</button>
+      </div>
+      <div id="fetch-all-progress" style="display:none;font-size:.6rem;color:var(--text2);text-align:center;padding:1px 0"></div>
+    </div>
     <div class="sub-list" id="sub-list"></div>
     <div class="mini-list" id="mini-list"></div>
 
@@ -417,6 +428,104 @@ async function loadSubs() {
 }
 
 // ── Render sidebar ───────────────────────────────────────────────────────────
+// ── Fetch All state ──────────────────────────────────────────────────────────
+let _fetchAllJobs = {};   // { sub_id: { fetch_id, status, newCount } }
+let _fetchAllTimer = null;
+
+async function fetchAllChannels() {
+  const btn = document.getElementById('fetch-all-btn');
+  const cancelBtn = document.getElementById('fetch-all-cancel-btn');
+  const progress = document.getElementById('fetch-all-progress');
+  if (btn) btn.disabled = true;
+
+  _fetchAllJobs = {};
+  if (_fetchAllTimer) { clearInterval(_fetchAllTimer); _fetchAllTimer = null; }
+
+  try {
+    const resp = await fetch('/api/subscriptions/fetch-all', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ force: false })
+    });
+    const data = await resp.json();
+    if (!data.jobs) throw new Error('No jobs returned');
+
+    // Seed all channels to Queued
+    for (const [sub_id, fetch_id] of Object.entries(data.jobs)) {
+      _fetchAllJobs[sub_id] = { fetch_id, status: 'pending', newCount: 0 };
+    }
+    if (cancelBtn) cancelBtn.style.display = 'block';
+    renderSidebar();
+    _fetchAllTimer = setInterval(pollFetchAll, 1500);
+  } catch {
+    if (btn) btn.disabled = false;
+  }
+}
+
+async function pollFetchAll() {
+  const pending = Object.entries(_fetchAllJobs)
+    .filter(([, j]) => j.status === 'pending' || j.status === 'running');
+
+  if (!pending.length) {
+    clearInterval(_fetchAllTimer); _fetchAllTimer = null;
+    const btn = document.getElementById('fetch-all-btn');
+    const cancelBtn = document.getElementById('fetch-all-cancel-btn');
+    const progress = document.getElementById('fetch-all-progress');
+    if (btn) btn.disabled = false;
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (progress) progress.style.display = 'none';
+    await loadSubs();
+    // Re-sync activeSub to refreshed data so video list updates without reopen
+    if (activeSub) {
+      const refreshed = subs.find(s => s.id === activeSub.id);
+      if (refreshed) { activeSub = refreshed; renderDetail(); }
+    }
+    return;
+  }
+
+  const total = Object.keys(_fetchAllJobs).length;
+  const done = total - pending.length;
+  const progress = document.getElementById('fetch-all-progress');
+  if (progress) { progress.style.display = 'block'; progress.textContent = `Fetching ${done}/${total} channels…`; }
+
+  for (const [sub_id, job] of pending) {
+    try {
+      const resp = await fetch('/api/subscriptions/fetch-status', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fetch_id: job.fetch_id })
+      });
+      const data = await resp.json();
+      if (data.status && data.status !== 'unknown') {
+        _fetchAllJobs[sub_id].status = data.status;
+        if (data.status === 'done') {
+          _fetchAllJobs[sub_id].newCount = data.new_count || 0;
+        }
+      }
+    } catch {}
+  }
+  renderSidebar();
+}
+
+async function cancelFetchAll() {
+  const fetch_ids = Object.values(_fetchAllJobs)
+    .filter(j => j.status === 'pending' || j.status === 'running')
+    .map(j => j.fetch_id);
+  if (fetch_ids.length) {
+    await fetch('/api/subscriptions/fetch-cancel', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ fetch_ids })
+    }).catch(() => {});
+  }
+  clearInterval(_fetchAllTimer); _fetchAllTimer = null;
+  _fetchAllJobs = {};
+  const btn = document.getElementById('fetch-all-btn');
+  const cancelBtn = document.getElementById('fetch-all-cancel-btn');
+  const progress = document.getElementById('fetch-all-progress');
+  if (btn) btn.disabled = false;
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  if (progress) progress.style.display = 'none';
+  renderSidebar();
+}
+
 function renderSidebar() {
   const list = document.getElementById('sub-list');
   if (!subs.length) {
@@ -442,6 +551,17 @@ function renderSidebar() {
       ${thumb}
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
+      ${_fetchAllJobs[s.id] ? `<span style="font-size:.55rem;padding:1px 5px;border-radius:8px;flex-shrink:0;font-weight:600;${
+        _fetchAllJobs[s.id].status==='pending'  ? 'background:rgba(59,130,246,.12);color:var(--acc)' :
+        _fetchAllJobs[s.id].status==='running'  ? 'background:rgba(245,158,11,.12);color:var(--yellow)' :
+        _fetchAllJobs[s.id].status==='done'     ? 'background:rgba(34,197,94,.12);color:var(--green)' :
+                                                   'background:rgba(239,68,68,.12);color:var(--red)'
+      }">${
+        _fetchAllJobs[s.id].status==='pending' ? 'Queued' :
+        _fetchAllJobs[s.id].status==='running' ? 'Fetching' :
+        _fetchAllJobs[s.id].status==='done'    ? (_fetchAllJobs[s.id].newCount > 0 ? `+${_fetchAllJobs[s.id].newCount}` : '✓') :
+                                                  'Error'
+      }</span>` : ''}
       <button class="kebab-btn" data-kebab="${attrEsc(s.id)}" onclick="event.stopPropagation();toggleKebab('${attrEsc(s.id)}', this)">⋮</button>
       <div class="kebab-menu" id="kebab-${attrEsc(s.id)}" style="display:none">
         <button onclick="reorderSub('${attrEsc(s.id)}','top')" ${i === 0 ? 'disabled' : ''}>Move to top</button>
@@ -746,10 +866,20 @@ function renderQueue() {
     </div>`;
   }
   html += '</div>';
+  const _qs = detail.querySelector('div[style*="overflow-y:auto"]');
+  const _st = _qs ? _qs.scrollTop : 0;
   detail.innerHTML = html;
+  if (_st) {
+    const _qsNew = detail.querySelector('div[style*="overflow-y:auto"]');
+    if (_qsNew) _qsNew.scrollTop = _st;
+  }
 }
 
 function renderDetail() {
+  // Save checked video IDs before re-render (load more wipes DOM)
+  const _savedChecked = new Set(
+    [...document.querySelectorAll('.video-check:checked')].map(c => c.dataset.videoId)
+  );
   const detail = document.getElementById('detail');
   if (showQueue) { renderQueue(); return; }
   if (!activeSub) {
@@ -986,26 +1116,6 @@ function renderDetail() {
     });
   }
 
-  // Back to top button — wire after video-list is in the DOM
-  const vl = document.getElementById('video-list');
-  if (vl) {
-    let btn = document.getElementById('subs-back-top');
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id = 'subs-back-top';
-      btn.title = 'Back to top';
-      btn.textContent = '↑';
-      btn.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:700;z-index:100;opacity:.85;transition:opacity .2s';
-      btn.onmouseenter = () => btn.style.opacity = '1';
-      btn.onmouseleave = () => btn.style.opacity = '.85';
-      document.body.appendChild(btn);
-    }
-    btn.onclick = () => vl.scrollTo({ top: 0, behavior: 'smooth' });
-    vl.addEventListener('scroll', () => {
-      btn.style.display = vl.scrollTop > 200 ? 'block' : 'none';
-    });
-  }
-
   // Per-row quality override map (one-time, cleared on format change)
   const videoQualityOverride = {};
   document.querySelectorAll('.vq-sel').forEach(sel => {
@@ -1013,6 +1123,14 @@ function renderDetail() {
       videoQualityOverride[sel.dataset.videoId] = sel.value;
     });
   });
+
+  // Restore checkbox state after re-render
+  if (_savedChecked.size) {
+    document.querySelectorAll('.video-check').forEach(cb => {
+      if (_savedChecked.has(cb.dataset.videoId)) cb.checked = true;
+    });
+    updateSelectionCount();
+  }
 
   // ── Checkbox selection ────────────────────────────────────────────────────
   function updateSelectionCount() {

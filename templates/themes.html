@@ -146,7 +146,13 @@
       /* lint-allow-muted: empty-state */
       color:var(--muted);font-size:.82rem;
     }
-  </style>
+  
+    /* ── Scrollbar theming ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
+</style>
 </head>
 <body>
 
