@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# EGM Downloader — pre-push hook
+# Runs the full validation suite before any push reaches GitHub.
+# Blocks the push if version sync, parity, or tests fail.
+#
+# Install once per clone:
+#   git config core.hooksPath .githooks
+#
+# Requires: pip install flask mutagen cryptography pytest
+#
+# Note: bypass with --no-verify only if you know what you're doing
+# and intend to fix on the next commit.
+
+set -e
+
+echo "⏳ Running version sync + parity check..."
+python3 scripts/validate-version-sync.py
+echo "✅ Version sync clean"
+
+echo ""
+echo "⏳ Running test suite..."
+cd tests
+EGM_API_TOKEN=ci-test-token-not-secret python3 -m pytest . -q --tb=short
+echo "✅ Tests passed"
+
+echo ""
+echo "✅ All pre-push checks passed — pushing."
