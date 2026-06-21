@@ -711,6 +711,8 @@
 
     .spinner { width: 10px; height: 10px; border-radius: 50%; border: 2px solid currentColor; border-top-color: transparent; animation: spin .7s linear infinite; display: inline-block; }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spin-svg { to { transform: rotate(360deg); } }
+    @keyframes dash { 0% { stroke-dashoffset: 88; } 50% { stroke-dashoffset: 22; stroke-dasharray: 22 66; } 100% { stroke-dashoffset: 88; } }
     .prog { height: 3px; background: var(--surf3); border-radius: 999px; overflow: hidden; margin-top: 5px; }
     .prog-inner { height: 100%; width: 0%; background: linear-gradient(90deg, var(--acc), var(--acc-h)); border-radius: 999px; transition: width .4s ease; }
     .prog-inner.indeterminate { animation: pani 1.6s ease infinite; }
