@@ -2384,8 +2384,7 @@ let _selectedAudioQuality = '320';
 })();
 
 function audioQualityBgClick(e) {
-  if (e.target === document.getElementById('audio-quality-modal'))
-    document.getElementById('audio-quality-modal').style.display = 'none';
+  // Outside-click intentionally disabled — Cancel is the only dismiss path
 }
 
 // ── Video quality popup ───────────────────────────────────────────────────────
@@ -2439,8 +2438,7 @@ function showVideoQualityModal() {
   modal.style.display = 'flex';
 }
 function videoQualityBgClick(e) {
-  if (e.target === document.getElementById('video-quality-modal'))
-    document.getElementById('video-quality-modal').style.display = 'none';
+  // Outside-click intentionally disabled — Cancel is the only dismiss path
 }
 
 // ── What's New — show once per version ───────────────────────────────────────
@@ -2688,7 +2686,7 @@ function videoQualityBgClick(e) {
       box.appendChild(ftr);
       overlay.appendChild(box);
       document.body.appendChild(overlay);
-      overlay.addEventListener('click', e => { if (e.target === overlay) { overlay.remove(); resolve(null); } });
+      // Outside-click intentionally disabled — Cancel is the only dismiss path
     });
   };
 
