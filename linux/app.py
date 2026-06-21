@@ -1855,9 +1855,18 @@ def update_subscription():
 # client poll a tiny status endpoint — every HTTP request stays sub-second.
 _subfetch_jobs: dict = {}
 _subfetch_lock = threading.Lock()
+_subfetch_cancel: set = set()
 _subfetch_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="subfetch")
 
 def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
+    with _subfetch_lock:
+        if fetch_id in _subfetch_cancel:
+            _subfetch_cancel.discard(fetch_id)
+            _subfetch_jobs[fetch_id] = {"status": "error", "error": "Cancelled", "_ts": time.time()}
+            return
+        j = _subfetch_jobs.get(fetch_id)
+        if j and j.get("status") == "pending":
+            j["status"] = "running"
     try:
         meta_name, meta_thumb = "", ""
         if need_meta:
@@ -1998,6 +2007,40 @@ def fetch_subscription_status():
     if job is None:
         return jsonify({"status": "unknown"}), 200
     return jsonify({k: v for k, v in job.items() if k != "_ts"})
+
+@app.route("/api/subscriptions/fetch-all", methods=["POST"])
+def fetch_all_subscriptions():
+    data  = request.get_json(silent=True) or {}
+    force = bool(data.get("force", False))
+    now   = time.time()
+    out   = {}
+    with _subfetch_lock:
+        for k in [k for k, v in _subfetch_jobs.items()
+                  if v.get("status") in ("done", "error") and now - v.get("_ts", now) > 120]:
+            _subfetch_jobs.pop(k, None)
+        _subfetch_cancel.difference_update(
+            _subfetch_cancel - _subfetch_jobs.keys())
+        for s in _load_subscriptions():
+            sub_id, url = s.get("id"), s.get("url", "")
+            if not sub_id or not url:
+                continue
+            need_meta = (not s.get("name")) or (not s.get("thumbnail_url"))
+            fetch_id  = str(uuid.uuid4())
+            _subfetch_jobs[fetch_id] = {"status": "pending", "_ts": now}
+            out[sub_id] = fetch_id
+            _subfetch_pool.submit(_run_subfetch, fetch_id, sub_id, url, force, need_meta)
+    return jsonify({"jobs": out})
+
+@app.route("/api/subscriptions/fetch-cancel", methods=["POST"])
+def fetch_cancel():
+    ids = (request.get_json(silent=True) or {}).get("fetch_ids") or []
+    if not isinstance(ids, list):
+        return jsonify({"error": "fetch_ids list required"}), 400
+    with _subfetch_lock:
+        for fid in ids:
+            if isinstance(fid, str):
+                _subfetch_cancel.add(fid)
+    return jsonify({"ok": True})
 
 @app.route("/api/subscriptions/mark-downloaded", methods=["POST"])
 def mark_downloaded():
