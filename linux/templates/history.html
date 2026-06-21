@@ -83,6 +83,12 @@
   .statusbar{display:flex;align-items:center;justify-content:space-between;padding:4px 14px;background:var(--surf2);border-top:1px solid var(--border);flex-shrink:0}
   /* lint-allow-muted: supplementary-metadata */
   .sb-text{font-size:9px;color:var(--muted)}
+
+    /* ── Scrollbar theming ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text2); }
 </style>
 </head>
 <body>
