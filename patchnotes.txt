@@ -13,7 +13,7 @@ v1.1.2 - YOURS TO KEEP (Build 132)
   • [ALL] Import/Export settings modal — clicking outside no longer dismisses it; only Cancel closes it
   • [ALL] Download all videos/audio modal — clicking outside no longer dismisses it; only Cancel closes it
   • [ALL] Subscriptions: Download queue scroll position preserved when download status updates
-  • [ALL] Single-instance lock — relaunching while subscriptions window is open no longer shows both windows
+  • [ALL] Single-instance lock — relaunching the app while Subscriptions is open no longer shows both panels simultaneously
 
 v1.1.1 - TRULY YOURS (Build 131)
 -----------------------------------------
