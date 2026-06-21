@@ -653,6 +653,7 @@ function startPolling() {
 }
 
 let _polling = false;
+let _wasDownloading = false;
 async function pollJobs() {
   if (_polling) return;
   _polling = true;
@@ -690,14 +691,18 @@ async function pollJobs() {
     const miniQueueItem = document.getElementById('mini-queue');
     const badge = queueItem?.querySelector('.queue-badge');
     if (activeCount > 0) {
+      _wasDownloading = true;
       if (badge) badge.textContent = activeCount;
       if (showQueue) renderQueue();
     } else {
+      if (_wasDownloading) {
+        const _btt = document.getElementById('subs-back-top');
+        if (_btt) _btt.remove();
+        _wasDownloading = false;
+      }
       if (queueItem) queueItem.remove();
       if (miniQueueItem) miniQueueItem.remove();
       if (showQueue) { showQueue = false; renderQueue(); }
-      const _btt = document.getElementById('subs-back-top');
-      if (_btt) _btt.remove();
     }
   }
   syncCloseGuard();
