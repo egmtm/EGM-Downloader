@@ -653,7 +653,6 @@ function startPolling() {
 }
 
 let _polling = false;
-let _wasDownloading = false;
 async function pollJobs() {
   if (_polling) return;
   _polling = true;
@@ -691,15 +690,9 @@ async function pollJobs() {
     const miniQueueItem = document.getElementById('mini-queue');
     const badge = queueItem?.querySelector('.queue-badge');
     if (activeCount > 0) {
-      _wasDownloading = true;
       if (badge) badge.textContent = activeCount;
       if (showQueue) renderQueue();
     } else {
-      if (_wasDownloading) {
-        const _btt = document.getElementById('subs-back-top');
-        if (_btt) _btt.remove();
-        _wasDownloading = false;
-      }
       if (queueItem) queueItem.remove();
       if (miniQueueItem) miniQueueItem.remove();
       if (showQueue) { showQueue = false; renderQueue(); }
@@ -753,7 +746,13 @@ function renderQueue() {
     </div>`;
   }
   html += '</div>';
+  const _qs = detail.querySelector('div[style*="overflow-y:auto"]');
+  const _st = _qs ? _qs.scrollTop : 0;
   detail.innerHTML = html;
+  if (_st) {
+    const _qsNew = detail.querySelector('div[style*="overflow-y:auto"]');
+    if (_qsNew) _qsNew.scrollTop = _st;
+  }
 }
 
 function renderDetail() {
@@ -994,26 +993,6 @@ function renderDetail() {
       if (fetchBtn && delBtn) {
         markAllBtn.style.width = (fetchBtn.offsetWidth + delBtn.offsetWidth + 8) + 'px';
       }
-    });
-  }
-
-  // Back to top button — wire after video-list is in the DOM
-  const vl = document.getElementById('video-list');
-  if (vl) {
-    let btn = document.getElementById('subs-back-top');
-    if (!btn) {
-      btn = document.createElement('button');
-      btn.id = 'subs-back-top';
-      btn.title = 'Back to top';
-      btn.textContent = '↑';
-      btn.style.cssText = 'display:none;position:fixed;bottom:20px;right:20px;width:30px;height:30px;border-radius:50%;background:var(--acc);color:var(--bg);border:none;cursor:pointer;font-size:14px;font-weight:700;z-index:100;opacity:.85;transition:opacity .2s';
-      btn.onmouseenter = () => btn.style.opacity = '1';
-      btn.onmouseleave = () => btn.style.opacity = '.85';
-      document.body.appendChild(btn);
-    }
-    btn.onclick = () => vl.scrollTo({ top: 0, behavior: 'smooth' });
-    vl.addEventListener('scroll', () => {
-      btn.style.display = vl.scrollTop > 200 ? 'block' : 'none';
     });
   }
 
