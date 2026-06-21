@@ -311,6 +311,15 @@ Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordm
 
 **v1.1.1 — TRULY YOURS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.1)
 Theme import security, import/export selector, keyboard shortcuts, animation themes, pin to top, drag reorder, per-video quality override, Windows installer running-app detection
+**v1.1.2 — YOURS TO KEEP:** 🔨 In progress
+- 🎨 10 new Music themes — Kanye West album series (College Dropout through Bully)
+- ⚙️ Settings layout redesign — Download folder and Format/Quality side by side
+- ⏳ SVG spinner on subscription fetch cards
+- 🔄 Fetch all channels button — refresh every subscription in one click
+- ✅ Checkbox selections preserved when loading more videos in subscriptions
+- ⬆️ Back-to-top arrow visibility fix in subscriptions + history sidebar
+- 🪟 Single-instance lock — relaunching with subscriptions open no longer shows both windows
+
 **v1.2 — CANVAS:**
 - 🎨 Theme Creator — build your own theme with a live preview color picker, export as `.json`
 - 🔧 Fixes — Electron bumps and any bugs that surface post-v1.1
