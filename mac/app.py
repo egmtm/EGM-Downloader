@@ -15,7 +15,6 @@ import urllib.parse
 import zipfile
 import hashlib
 import shutil
-import platform as _platform
 from collections import deque
 from pathlib import Path
 from flask import Flask, request, jsonify, render_template, abort
@@ -29,9 +28,21 @@ app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body l
 # loopback address. Cheap belt-and-suspenders.
 _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 
-# Outbound HTTP whitelist — every external host this app contacts must be listed.
-# Enforced before urlopen() and after redirect resolution. When adding a new host,
-# document why it's needed alongside the entry.
+# Outbound HTTP whitelist for *app maintenance/update* traffic only.
+#
+# Scope — what this whitelist DOES and DOES NOT cover (keep this accurate):
+#   • COVERED: every request made through _safe_urlopen() — update feed, GitHub
+#     release metadata/binaries (ffmpeg, Deno), PyPI version checks, app installer.
+#     Enforced both before urlopen() AND after redirect resolution.
+#   • NOT COVERED by host allowlist, by design:
+#       - yt-dlp subprocesses: contact arbitrary user-supplied sites/CDNs — that is
+#         the app's core function, so they cannot be host-restricted.
+#       - pip installs (yt-dlp/ffmpeg-deps/mutagen updates): pip talks to PyPI/CDNs
+#         on its own; not routed through _safe_urlopen.
+#       - thumbnail fetches: come from third-party metadata, so they use a separate
+#         guard (_is_internal_host below: HTTPS-only + private/loopback IP blocking)
+#         rather than this allowlist, since thumbnail CDNs are open-ended.
+# When adding a new maintenance host, document why it's needed alongside the entry.
 _ALLOWED_DOWNLOAD_HOSTS = {
     "api.github.com",                        # GitHub API — release metadata (BtbN ffmpeg, Deno)
     "github.com",                            # GitHub release download URLs (pre-redirect)
@@ -58,7 +69,7 @@ def _sec_event(event: str) -> None:
     line = f"[{ts}] [SECURITY] {event}"
     print(line, flush=True)
     try:
-        log_dir  = DATA_DIR / 'logs'
+        log_dir  = get_data_dir() / 'logs'
         log_dir.mkdir(exist_ok=True)
         log_path = log_dir / 'security.log'
         if log_path.exists() and log_path.stat().st_size > 5 * 1024 * 1024:
@@ -126,21 +137,75 @@ def _safe_extract(z, member, target_dir):
     if ".." in name or name.startswith(("/", "\\")):
         raise RuntimeError(f"Suspicious archive member path: {name!r}")
     z.extract(member, target_dir)
+def _chmod_owner_only(path):
+    """Set sensitive file to owner read/write only (POSIX). No-op on Windows."""
+    if sys.platform != "win32":
+        try:
+            os.chmod(path, 0o600)
+        except OSError:
+            pass
+
+def _atomic_write_text(path: Path, content: str, *, owner_only: bool = False) -> None:
+    """Write text atomically via tmp + fsync + os.replace — prevents truncated files
+    on crash or kill -9. fsync forces the tmp file's bytes to disk before the rename,
+    so a power loss can't leave a renamed-but-empty file (matters on Linux/macOS).
+    Sets permissions on tmp before rename so the final file has correct perms from the
+    moment it exists (no race window). Cleans up the tmp file on failure and re-raises."""
+    tmp = path.with_suffix(path.suffix + ".tmp")
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(content)
+            f.flush()
+            os.fsync(f.fileno())
+        if owner_only:
+            _chmod_owner_only(tmp)
+        tmp.replace(path)
+    except Exception:
+        try: tmp.unlink(missing_ok=True)
+        except Exception: pass
+        raise
 
 def _verify_upstream_checksum(local_path, checksum_url, filename):
     """Fetch upstream checksum file, parse for filename, verify local download.
     Returns (ok: bool, message: str).
-    Fail-closed: any fetch failure, parse error, missing entry, or mismatch returns False."""
+    Fail-closed: any fetch failure, parse error, missing entry, or mismatch returns False.
+
+    Handles two checksum file formats:
+      1. Standard:    <hash>  <filename>           (BtbN, martin-riedl.de, sha256sum tool)
+      2. PowerShell:  Algorithm : SHA256           (Deno's Windows builds)
+                      Hash      : <hash>
+                      Path      : ...\\<filename>
+    """
     try:
         req = urllib.request.Request(checksum_url, headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            lines = r.read().decode().splitlines()
+            text = r.read().decode()
         expected = None
-        for line in lines:
-            parts = line.split()
-            if len(parts) >= 2 and parts[-1].lstrip("*") == filename:
-                expected = parts[0].lower()
-                break
+
+        # Try PowerShell Get-FileHash format first (Algorithm/Hash/Path block)
+        if "Hash" in text and "Path" in text:
+            hash_val = None
+            path_val = None
+            for line in text.splitlines():
+                if ":" in line:
+                    key, _, val = line.partition(":")
+                    key = key.strip()
+                    val = val.strip()
+                    if key == "Hash":   hash_val = val.lower()
+                    elif key == "Path": path_val = val
+            if hash_val and path_val:
+                # Match by trailing filename
+                if path_val.replace("\\", "/").split("/")[-1] == filename:
+                    expected = hash_val
+
+        # Fall back to standard format
+        if not expected:
+            for line in text.splitlines():
+                parts = line.split()
+                if len(parts) >= 2 and parts[-1].lstrip("*") == filename:
+                    expected = parts[0].lower()
+                    break
+
         if not expected:
             _sec_event(f"Checksum: no entry found for {filename!r} in {checksum_url}")
             return False, f"No checksum entry found for {filename} — install aborted (try again later)"
@@ -153,33 +218,6 @@ def _verify_upstream_checksum(local_path, checksum_url, filename):
     except Exception as e:
         _sec_event(f"Checksum verification error for {filename!r}: {e}")
         return False, f"Could not verify checksum ({e}) — install aborted (check network and retry)"
-
-def _chmod_owner_only(path):
-    """Set sensitive file to owner read/write only (POSIX). No-op on Windows."""
-    if sys.platform != "win32":
-        try:
-            os.chmod(path, 0o600)
-        except OSError:
-            pass
-
-def _atomic_write_text(path: Path, content: str, *, owner_only: bool = False) -> None:
-    """Write text atomically via tmp + os.replace — prevents truncated files on crash or kill -9.
-    Sets permissions on tmp before rename so the final file has correct perms from the moment
-    it exists (no race window). Cleans up the tmp file on failure and re-raises."""
-    tmp = path.with_suffix(path.suffix + ".tmp")
-    try:
-        with open(tmp, "w", encoding="utf-8") as f:
-            f.write(content)
-            f.flush()
-            os.fsync(f.fileno())          # durability parity w/ Windows
-        if owner_only:
-            _chmod_owner_only(tmp)
-        tmp.replace(path)
-    except Exception:
-        try: tmp.unlink(missing_ok=True)
-        except Exception: pass
-        raise
-
 _API_TOKEN       = os.environ.get("EGM_API_TOKEN", "")
 # /api/show-window is exempt because launch.py (second-instance signaler) has no token access
 _TOKEN_EXEMPT        = {"/api/show-window"}
@@ -220,53 +258,72 @@ def _no_cache_html(response):
         response.headers["Expires"] = "0"
     return response
 
-# ── Platform detection (Mac build — arm64 primary, x86_64 fallback) ───────────
-IS_ARM = _platform.machine().lower() in ("arm64", "aarch64")
-
 # ── Paths ──────────────────────────────────────────────────────────────────────
-# BASE_DIR: read-only bundle root (templates, static, python binary).
-# DATA_DIR: mutable user data that must survive app updates.
-#
-# When packaged inside Electron (.app bundle), app.py lives at
-# Resources/app/app.py — BASE_DIR goes up to Resources/.
-# Mutable files (ffmpeg, Deno, settings, cookies) are stored in
-# ~/Library/Application Support/EGM Downloader/ so they survive
-# every update (dragging a new .app never touches that directory).
-if os.environ.get("EGM_ELECTRON") == "1":
-    BASE_DIR = Path(__file__).parent.parent  # Resources/
-    DATA_DIR = Path.home() / "Library" / "Application Support" / "EGM Downloader"
-else:
-    BASE_DIR = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
-    DATA_DIR = BASE_DIR
+BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
 
-DATA_DIR.mkdir(parents=True, exist_ok=True)
-FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
+# ── Portable mode detection ────────────────────────────────────────────────────
+def is_portable():
+    """Return True if running as a portable installation.
+
+    Detection logic (Windows):
+      1. If a .portable marker file exists next to app.py → portable.
+      2. If running from %LOCALAPPDATA%\\EGM Downloader → installed (not portable).
+      3. Otherwise → installed (defensive default).
+    """
+    app_dir = Path(__file__).parent.resolve()
+    if (app_dir / ".portable").exists():
+        return True
+    if sys.platform == "win32":
+        local_appdata = os.environ.get("LOCALAPPDATA", "")
+        if local_appdata:
+            installed_path = Path(local_appdata) / "EGM Downloader"
+            try:
+                if app_dir.resolve() == installed_path.resolve():
+                    return False
+            except (OSError, ValueError):
+                pass
+    return False
+
+PORTABLE_MODE = is_portable()
+
+def get_data_dir() -> Path:
+    """Return the directory used for settings, history, cookies, and downloads list.
+
+    Portable installs keep data inside the portable folder (./data/) so the
+    entire app can be moved or run from USB without leaving traces elsewhere.
+    Installed builds use the standard BASE_DIR (beside app.py inside $INSTDIR).
+    """
+    if PORTABLE_MODE:
+        d = Path(__file__).parent.resolve() / "data"
+        d.mkdir(exist_ok=True)
+        return d
+    return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
 APP_VERSION           = "1.1.1"
 APP_BUILD             = 131
-APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
-APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
+APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
+APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
 # ── Update temp dir — cleaned up on startup if present ───────────────────────
 UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "egm-update"
 
-# Settings file: persists last used folder — lives in DATA_DIR so it
-# survives app updates (DATA_DIR is never touched when dragging a new .app).
-SETTINGS_FILE = DATA_DIR / "egm_settings.json"
-HISTORY_FILE  = DATA_DIR / "egm_history.json"
-SUBS_FILE     = DATA_DIR / "egm_subscriptions.json"
+# Settings / history / cookies — routed through get_data_dir() for portable support
+SETTINGS_FILE = get_data_dir() / "egm_settings.json"
+HISTORY_FILE  = get_data_dir() / "egm_history.json"
+SUBS_FILE     = get_data_dir() / "egm_subscriptions.json"
 
 # ── Cookies: path to cookies.txt — managed via Settings UI ───────────────────
-COOKIES_FILE = DATA_DIR / "cookies.txt"
+COOKIES_FILE = get_data_dir() / "cookies.txt"
 
 _settings_cache: dict = {}
 _settings_lock  = threading.Lock()
 
 # ── History ────────────────────────────────────────────────────────────────────
 _history_lock = threading.Lock()
-_HISTORY_MAX  = 500
-THUMBNAILS_DIR = DATA_DIR / "thumbnails"
+_HISTORY_MAX  = 500  # soft cap on stored entries
+THUMBNAILS_DIR = get_data_dir() / "thumbnails"
 THUMBNAILS_DIR.mkdir(exist_ok=True)
 
 def _load_history() -> list:
@@ -287,7 +344,7 @@ def _is_internal_host(host: str) -> bool:
     """Return True if host resolves to a loopback/private/link-local/reserved
     address. Thumbnail URLs come from extractor metadata (and are accepted from
     the /api/download caller), so a hostile value could otherwise make the
-    backend fetch internal services (SSRF). Fail-closed: resolution failure -> internal."""
+    backend fetch internal services (SSRF). Fail-closed: resolution failure → internal."""
     import socket, ipaddress
     if not host:
         return True
@@ -371,6 +428,7 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
         return ""
 
 def _append_history(job: dict, final_path):
+    """Append a completed download to history JSON. Newest-first, capped at _HISTORY_MAX."""
     try:
         size_bytes = 0
         try: size_bytes = final_path.stat().st_size
@@ -477,9 +535,15 @@ _jobs_lock = threading.Lock()
 _active_procs: dict = {}
 _active_procs_lock  = threading.Lock()
 
+# ── Concurrency backstop — server-side download limit ──────────────────────────
+# The client paces downloads, but the server must self-protect: a misbehaving
+# or future bulk-fetch — can spawn unbounded yt-dlp/ffmpeg process trees and
+# exhaust the machine. Set above the UI max so it never affects normal use.
 _MAX_CONCURRENT_DOWNLOADS = 24
 _download_sem = threading.BoundedSemaphore(_MAX_CONCURRENT_DOWNLOADS)
 
+# Guard the check-and-start of the singleton update / deno-install workers so two
+# near-simultaneous requests can't both spawn a worker (TOCTOU on "running").
 _update_lock       = threading.Lock()
 _deno_install_lock = threading.Lock()
 
@@ -574,88 +638,62 @@ def _popen_yt(*cmd, **kw):
     return subprocess.Popen(list(cmd), env=_yt_env(),
                             creationflags=_NO_WINDOW, **kw)
 
-# ── ffmpeg: Mac Apple Silicon builds from ffmpeg.martin-riedl.de ─────────────
-# Mac delivers ffmpeg and ffprobe as SEPARATE zip downloads (unlike Windows' single zip)
-_MARTIN_BASE = "https://ffmpeg.martin-riedl.de"
-_MARTIN_ARCH = "arm64"
+# ── ffmpeg: auto-download on first run ────────────────────────────────────────
+FFMPEG_URL_NIGHTLY = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                     "ffmpeg-master-latest-win64-gpl.zip")
+FFMPEG_URL_STABLE  = ("https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/"
+                      "ffmpeg-n8.1-latest-win64-gpl-8.1.zip")
 
-def _get_ffmpeg_build():
-    """Return 'snapshot' (nightly) or 'release' (stable) based on ffmpeg_channel setting."""
+def _get_ffmpeg_url():
     ch = _load_settings().get("ffmpeg_channel", "stable")
-    return "snapshot" if ch == "nightly" else "release"
+    return FFMPEG_URL_NIGHTLY if ch == "nightly" else FFMPEG_URL_STABLE
 
+# Keep FFMPEG_URL as the default for ensure_ffmpeg (first-run uses stable)
+FFMPEG_URL = FFMPEG_URL_STABLE
 FFMPEG_TAG_FILE = FFMPEG_DIR / "build_tag.txt"
 
 # ── Deno: bundled JS runtime required for YouTube (no admin, no PATH needed) ──
-DENO_DIR     = DATA_DIR / "runtime"
-DENO_EXE     = DENO_DIR / "deno"   # Mac: no .exe suffix
-# Apple Silicon (arm64) gets native binary; Intel Mac falls back to x86_64
-if IS_ARM:
-    DENO_ZIP_NAME = "deno-aarch64-apple-darwin.zip"
-else:
-    DENO_ZIP_NAME = "deno-x86_64-apple-darwin.zip"
-DENO_ZIP_URL = f"https://github.com/denoland/deno/releases/latest/download/{DENO_ZIP_NAME}"
+DENO_DIR     = BASE_DIR / "runtime"
+DENO_EXE     = DENO_DIR / "deno.exe"
+# Direct zip URL — single deno.exe, no installer, no UAC required
+DENO_ZIP_URL = ("https://github.com/denoland/deno/releases/latest/download/"
+                "deno-x86_64-pc-windows-msvc.zip")
 
 def ensure_ffmpeg():
-    ffmpeg_bin  = FFMPEG_DIR / "ffmpeg"
-    ffprobe_bin = FFMPEG_DIR / "ffprobe"
-    if ffmpeg_bin.exists() and ffprobe_bin.exists():
+    if (FFMPEG_DIR / "ffmpeg.exe").exists() and (FFMPEG_DIR / "ffprobe.exe").exists():
         print("[EGM] ffmpeg ready.")
         return True
-    print("[EGM] Downloading ffmpeg and ffprobe (first run only)...")
-    FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
-    tmp_ffmpeg  = FFMPEG_DIR / "ffmpeg_tmp.zip"
-    tmp_ffprobe = FFMPEG_DIR / "ffprobe_tmp.zip"
+    print("[EGM] Downloading ffmpeg (first run only)...")
+    FFMPEG_DIR.mkdir(exist_ok=True)
+    tmp = FFMPEG_DIR / "ffmpeg_tmp.zip"
     try:
-        # Download + verify ffmpeg
-        ffmpeg_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffmpeg.zip"
-        req = urllib.request.Request(ffmpeg_redirect, headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
-            final_url = r.url
-            with open(tmp_ffmpeg, "wb") as f:
-                shutil.copyfileobj(r, f)
-        ok, msg = _verify_upstream_checksum(tmp_ffmpeg, final_url + ".sha256", "ffmpeg.zip")
+        ffmpeg_url = _get_ffmpeg_url()
+        req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
+        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
+            shutil.copyfileobj(r, f)
+        ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
         print(f"[EGM] {msg}")
         if not ok:
-            tmp_ffmpeg.unlink(missing_ok=True)
-            return False
-        with zipfile.ZipFile(tmp_ffmpeg, "r") as z:
-            if "ffmpeg" not in z.namelist():
-                raise RuntimeError("ffmpeg binary not found in zip")
-            _safe_extract(z, "ffmpeg", FFMPEG_DIR)
-        tmp_ffmpeg.unlink(missing_ok=True)
-
-        # Download + verify ffprobe
-        ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffprobe.zip"
-        req = urllib.request.Request(ffprobe_redirect, headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
-            final_url = r.url
-            with open(tmp_ffprobe, "wb") as f:
-                shutil.copyfileobj(r, f)
-        ok, msg = _verify_upstream_checksum(tmp_ffprobe, final_url + ".sha256", "ffprobe.zip")
-        print(f"[EGM] {msg}")
-        if not ok:
-            tmp_ffprobe.unlink(missing_ok=True)
-            return False
-        with zipfile.ZipFile(tmp_ffprobe, "r") as z:
-            if "ffprobe" not in z.namelist():
-                raise RuntimeError("ffprobe binary not found in zip")
-            _safe_extract(z, "ffprobe", FFMPEG_DIR)
-        tmp_ffprobe.unlink(missing_ok=True)
-
-        # Make binaries executable
-        os.chmod(ffmpeg_bin,  0o755)
-        os.chmod(ffprobe_bin, 0o755)
-
+            tmp.unlink(missing_ok=True)
+            return
+        with zipfile.ZipFile(tmp, "r") as z:
+            for m in z.namelist():
+                # Zip slip guard: skip any entry with path traversal or absolute path
+                if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
+                    continue
+                fn = Path(m).name
+                if fn in ("ffmpeg.exe", "ffprobe.exe"):
+                    with z.open(m) as src, open(FFMPEG_DIR / fn, "wb") as dst:
+                        shutil.copyfileobj(src, dst)
+        tmp.unlink(missing_ok=True)
         try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
         except Exception: pass
         print("[EGM] ffmpeg ready.")
         return True
     except Exception as e:
         print(f"[EGM] ffmpeg download failed: {e}")
-        for t in (tmp_ffmpeg, tmp_ffprobe):
-            try: t.unlink(missing_ok=True)
-            except Exception: pass
+        try: tmp.unlink(missing_ok=True)
+        except Exception: pass
         return False
 
 def _ffmpeg_args():
@@ -697,10 +735,9 @@ def _bgutil_args() -> list:
     return []
 
 def _ytdlp(*extra, timeout=None):
-    # Invoke via `sys.executable -m yt_dlp` so we use the bundled Python and its
-    # installed yt-dlp, not relying on PATH. On Mac, Resources/python/bin/ is not
-    # on PATH when Electron spawns Python, so bare `yt-dlp` would fail.
-    return _run_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github", *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
+    return _run_yt(sys.executable, "-m", "yt_dlp",
+                   "--remote-components", "ejs:github",
+                   *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
                    *_bgutil_args(), *extra, timeout=timeout)
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -735,7 +772,22 @@ _SYSTEM_ROOTS = ("/etc", "/bin", "/sbin", "/usr/bin", "/usr/sbin", "/boot",
                  "C:\\System32")
 
 def _validate_download_dir(dl_dir):
-    """Validate a download directory. Returns (ok, resolved_path_str, error)."""
+    """Validate a download directory. Returns (ok, resolved_path_str, error).
+
+    1. RESOLVE first (collapses '..', follows symlinks) so the system-root check
+       can't be bypassed via 'C:\\Users\\..\\Windows' or a symlinked folder.
+    2. Boundary-aware system-root check on the RESOLVED path — '/etc/x' is
+       rejected but '/etcetera' is fine (the old prefix match got this wrong,
+       which is also why 'Program Files (x86)' is now listed explicitly).
+    3. Reachability + writability probe on the deepest EXISTING ancestor (the
+       directory itself may not exist yet — run_download creates it). Catches
+       unplugged drives, read-only mounts and permission errors up front with a
+       clear message instead of a mid-download worker failure. os.access is a
+       best-effort probe (Windows ACLs may not be fully reflected); the worker's
+       mkdir remains the final arbiter.
+
+    Also used by subscriptions per-channel download folders (Phase 3).
+    """
     if not dl_dir or not isinstance(dl_dir, str) or not dl_dir.strip():
         return False, "", "No download directory provided."
     try:
@@ -793,7 +845,10 @@ def _build_audio_formats(info):
 
 # ── Download worker ────────────────────────────────────────────────────────────
 def _run_download_slot(job_id, *rest):
-    """Hold a concurrency slot for the whole download and wait out first-run ffmpeg."""
+    """Hold a concurrency slot for the whole download and wait out first-run ffmpeg.
+    The backstop bounds concurrent process trees regardless of client pacing; the
+    ffmpeg wait means a download started before first-run setup finishes just stays
+    'queued' until ffmpeg is ready, instead of the endpoint rejecting it."""
     _download_sem.acquire()
     try:
         job = jobs.get(job_id)
@@ -802,7 +857,7 @@ def _run_download_slot(job_id, *rest):
         if job.get("cancelled"):
             job["status"] = "cancelled"; job["_finished_at"] = time.time()
             return
-        ff = FFMPEG_DIR / "ffmpeg"
+        ff = FFMPEG_DIR / "ffmpeg.exe"
         if not ff.exists():
             waited = 0
             while not ff.exists() and waited < 180:
@@ -1067,7 +1122,7 @@ def _cleanup(job_id, out_dir):
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
 @app.route("/")
-def index(): return render_template("index.html", egm_token=_API_TOKEN, platform_url="https://egerena.com/apps/egmac.html")
+def index(): return render_template("index.html", egm_token=_API_TOKEN, platform_url="https://egerena.com/apps/egm.html")
 
 @app.route("/api/info", methods=["POST"])
 def get_info():
@@ -1306,7 +1361,7 @@ def _get_ytdlp_version():
     except Exception: return "unknown"
 
 def _get_ffmpeg_version():
-    exe = FFMPEG_DIR / "ffmpeg"
+    exe = FFMPEG_DIR / "ffmpeg.exe"
     if not exe.exists(): return "not installed"
     tag = _get_ffmpeg_installed_tag()
     if tag: return tag
@@ -1321,16 +1376,11 @@ def _get_ffmpeg_installed_tag():
     except Exception: return ""
 
 def _get_latest_ffmpeg_tag():
-    """Mac: resolve build ID from martin-riedl.de redirect."""
     try:
-        import re as _re
-        build = _get_ffmpeg_build()
-        req = urllib.request.Request(
-            f"https://ffmpeg.martin-riedl.de/redirect/latest/macos/arm64/{build}/ffmpeg.zip",
-            headers={"User-Agent": "EGM-Downloader"})
+        req = urllib.request.Request("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest",
+                                     headers={"User-Agent":"EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            m = _re.search(r"/download/macos/[^/]+/([^/]+)/", r.url)
-            return m.group(1) if m else "unknown"
+            return json.loads(r.read()).get("tag_name","unknown")
     except Exception: return "unknown"
 
 def _get_latest_ytdlp_version(channel=None):
@@ -1347,7 +1397,23 @@ def _get_latest_ytdlp_version(channel=None):
 
 update_status: dict = {}
 
-def _run_update(do_ytdlp, do_ffmpeg):
+def _get_mutagen_version() -> str:
+    try:
+        import importlib.metadata
+        return importlib.metadata.version("mutagen")
+    except Exception:
+        return "not installed"
+
+
+def _get_latest_mutagen_version() -> str:
+    try:
+        with _safe_urlopen("https://pypi.org/pypi/mutagen/json", HTTP_TIMEOUT_SHORT) as r:
+            return json.loads(r.read())["info"]["version"]
+    except Exception:
+        return "unknown"
+
+
+def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
@@ -1356,21 +1422,10 @@ def _run_update(do_ytdlp, do_ffmpeg):
             channel = _load_settings().get("yt_dlp_channel", "stable")
             if channel == "nightly":
                 log("Installing yt-dlp nightly...")
-                nightly_url = "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz"
-                tmp_tar = DATA_DIR / "yt-dlp-nightly.tar.gz"
-                try:
-                    req = urllib.request.Request(nightly_url, headers={"User-Agent": "EGM-Downloader"})
-                    with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as resp, open(tmp_tar, "wb") as f:
-                        shutil.copyfileobj(resp, f)
-                except Exception as e:
-                    log(f"yt-dlp nightly download failed: {e}")
-                    try: tmp_tar.unlink(missing_ok=True)
-                    except Exception: pass
-                    return
-                r = _run(sys.executable, "-m", "pip", "install",
-                         str(tmp_tar), "--upgrade", "--force-reinstall", timeout=120)
-                try: tmp_tar.unlink(missing_ok=True)
-                except Exception: pass
+                r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                         "--force-reinstall",
+                         "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
+                         timeout=120)
             else:
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
@@ -1389,55 +1444,42 @@ def _run_update(do_ytdlp, do_ffmpeg):
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"yt-dlp update failed: {err}")
         if do_ffmpeg:
-            log("Downloading latest ffmpeg + ffprobe...")
-            FFMPEG_DIR.mkdir(parents=True, exist_ok=True)
-            tmp_ffmpeg  = FFMPEG_DIR / "ffmpeg_update.zip"
-            tmp_ffprobe = FFMPEG_DIR / "ffprobe_update.zip"
-            ffmpeg_bin  = FFMPEG_DIR / "ffmpeg"
-            ffprobe_bin = FFMPEG_DIR / "ffprobe"
-            try:
-                ffmpeg_redirect  = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffmpeg.zip"
-                ffprobe_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffprobe.zip"
-                # ffmpeg
-                req = urllib.request.Request(ffmpeg_redirect, headers={"User-Agent": "EGM-Downloader"})
-                with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
-                    final_url = r.url
-                    with open(tmp_ffmpeg, "wb") as f:
-                        shutil.copyfileobj(r, f)
-                ok, msg = _verify_upstream_checksum(tmp_ffmpeg, final_url + ".sha256", "ffmpeg.zip")
-                log(msg)
-                if not ok:
-                    tmp_ffmpeg.unlink(missing_ok=True)
-                    update_status["error"] = "Checksum mismatch — update aborted"
-                    update_status["done"]  = True
-                    return
-                # ffprobe
-                req = urllib.request.Request(ffprobe_redirect, headers={"User-Agent": "EGM-Downloader"})
-                with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
-                    final_url = r.url
-                    with open(tmp_ffprobe, "wb") as f:
-                        shutil.copyfileobj(r, f)
-                ok, msg = _verify_upstream_checksum(tmp_ffprobe, final_url + ".sha256", "ffprobe.zip")
-                log(msg)
-                if not ok:
-                    tmp_ffprobe.unlink(missing_ok=True)
-                    update_status["error"] = "Checksum mismatch — update aborted"
-                    update_status["done"]  = True
-                    return
-                log("Extracting...")
-                with zipfile.ZipFile(tmp_ffmpeg, "r") as z:
-                    _safe_extract(z, "ffmpeg", FFMPEG_DIR)
-                with zipfile.ZipFile(tmp_ffprobe, "r") as z:
-                    _safe_extract(z, "ffprobe", FFMPEG_DIR)
-                if ffmpeg_bin.exists():  os.chmod(ffmpeg_bin,  0o755)
-                if ffprobe_bin.exists(): os.chmod(ffprobe_bin, 0o755)
-            finally:
-                for t in (tmp_ffmpeg, tmp_ffprobe):
-                    try: t.unlink(missing_ok=True)
-                    except Exception: pass
+            log("Downloading latest ffmpeg...")
+            FFMPEG_DIR.mkdir(exist_ok=True)
+            tmp = FFMPEG_DIR / "ffmpeg_update.zip"
+            ffmpeg_url = _get_ffmpeg_url()
+            req = urllib.request.Request(ffmpeg_url, headers={"User-Agent": "EGM-Downloader"})
+            with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
+                shutil.copyfileobj(r, f)
+            ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
+            log(msg)
+            if not ok:
+                tmp.unlink(missing_ok=True)
+                update_status["error"] = "Checksum mismatch — update aborted"
+                update_status["done"]  = True
+                return
+            log("Extracting...")
+            with zipfile.ZipFile(tmp, "r") as z:
+                for m in z.namelist():
+                    if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
+                        continue
+                    fn = Path(m).name
+                    if fn in ("ffmpeg.exe","ffprobe.exe"):
+                        with z.open(m) as src, open(FFMPEG_DIR/fn,"wb") as dst:
+                            shutil.copyfileobj(src, dst)
+            tmp.unlink(missing_ok=True)
             try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
+        if do_mutagen:
+            log("Updating mutagen...")
+            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                     "mutagen", "--break-system-packages", timeout=60)
+            if r.returncode == 0:
+                log(f"mutagen -> {_get_mutagen_version()}")
+            else:
+                err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+                log(f"mutagen update failed: {err}")
         log("All done.")
         update_status["done"] = True
     except Exception as e:
@@ -1450,22 +1492,17 @@ def check_updates():
     cy, ly  = _get_ytdlp_version(), _get_latest_ytdlp_version()
     cf, lf  = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
     cm      = _get_mutagen_version()
-    # Mutagen on Mac is informational-only — bundled Python has no pip,
-    # so we can't upgrade in-app. latest=None / up_to_date=None tells the UI
-    # to render the "—" badge instead of green/red, and prevents the slow
-    # endpoint from clobbering the fast endpoint's correct version with
-    # undefined → "checking…" placeholder.
-    # Up to date only if installed matches latest stable exactly.
-    # Any other version (including newer nightlies) shows "Update available"
-    # so the user can install the correct stable release.
-    ytdlp_ch  = _load_settings().get("yt_dlp_channel", "stable")
-    ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
-    ytdlp_ok = cy != "unknown" and cy == ly
+    lm      = _get_latest_mutagen_version()
+    settings = _load_settings()
+    ytdlp_ch  = settings.get("yt_dlp_channel", "stable")
+    ffmpeg_ch = settings.get("ffmpeg_channel", "stable")
+    ytdlp_ok   = cy != "unknown" and cy == ly
+    mutagen_ok = cm != "not installed" and lm != "unknown" and cm == lm
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
                     "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
-        "mutagen": {"current": cm, "latest": None, "up_to_date": None},
+        "mutagen": {"current": cm, "latest": lm, "up_to_date": mutagen_ok},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -1475,7 +1512,9 @@ def run_update():
         update_status["running"] = True
     data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
-                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False))),
+                     args=(bool(data.get("ytdlp", True)),
+                           bool(data.get("ffmpeg", False)),
+                           bool(data.get("mutagen", False))),
                      daemon=True).start()
     return jsonify({"started": True})
 
@@ -1546,10 +1585,12 @@ def _run_deno_install():
         assets = release.get("assets", [])
         url = next(
             (a["browser_download_url"] for a in assets
-             if a["name"] == DENO_ZIP_NAME),
+             if a["name"] == "deno-x86_64-pc-windows-msvc.zip"),
             DENO_ZIP_URL)  # fallback to latest redirect URL
         version_label = tag or "latest"
-        log(f"Downloading Deno {version_label} for {DENO_ZIP_NAME}...")
+        log(f"Downloading Deno {version_label} (~35 MB)...")
+        deno_filename = url.split("/")[-1]
+        deno_checksum_url = url + ".sha256sum"
 
         # Stream download with progress logging every 5 MB
         downloaded = 0
@@ -1572,29 +1613,24 @@ def _run_deno_install():
                         log(f"  {mb:.0f} MB downloaded...")
                     next_report += 5 * 1024 * 1024
 
-        # Verify SHA-256 against Deno's published <asset>.sha256sum (parity w/ Windows).
-        ok, msg = _verify_upstream_checksum(tmp, url + ".sha256sum", DENO_ZIP_NAME)
+        ok, msg = _verify_upstream_checksum(tmp, deno_checksum_url, deno_filename)
         log(msg)
         if not ok:
             tmp.unlink(missing_ok=True)
             deno_install_status["error"] = "Checksum mismatch — install aborted"
             deno_install_status["done"]  = True
             return
-
-        log("Extracting deno binary...")
+        log("Extracting deno.exe...")
         with zipfile.ZipFile(tmp, "r") as z:
-            if "deno" not in z.namelist():
-                raise RuntimeError("deno binary not found in zip archive")
-            _safe_extract(z, "deno", DENO_DIR)
+            if "deno.exe" not in z.namelist():
+                raise RuntimeError("deno.exe not found in zip archive")
+            _safe_extract(z, "deno.exe", DENO_DIR)
         tmp.unlink(missing_ok=True)
-
-        # Make executable
-        os.chmod(DENO_EXE, 0o755)
 
         # Verify it actually runs
         ver = _get_deno_version()
         if ver in ("unknown", "not installed"):
-            raise RuntimeError("deno extracted but failed to run")
+            raise RuntimeError("deno.exe extracted but failed to run")
 
         log(f"Deno {ver} ready. Done.")
         deno_install_status["done"] = True
@@ -1629,14 +1665,6 @@ def deno_install_progress():
 def get_update_status():
     return jsonify(update_status or {"running": False, "done": False, "log": []})
 
-def _get_mutagen_version() -> str:
-    try:
-        import importlib.metadata
-        return importlib.metadata.version("mutagen")
-    except Exception:
-        return "not installed"
-
-
 @app.route("/api/installed-versions")
 def installed_versions():
     """Return only locally-installed versions — no network calls. Fast, for panel expand."""
@@ -1653,6 +1681,15 @@ def installed_versions():
     })
 
 
+@app.route("/api/portable-status")
+def portable_status():
+    """Return whether the app is running in portable mode and its data directory."""
+    return jsonify({
+        "portable": PORTABLE_MODE,
+        "data_dir": str(get_data_dir()),
+    })
+
+
 @app.route("/api/whats-new")
 def whats_new():
     """Return _version_notes from the platform JSON feed for the What's New modal.
@@ -1662,7 +1699,9 @@ def whats_new():
                                      headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read())
-        # Verify signed manifest before trusting release-notes content (parity w/ Windows)
+        # Verify the signed manifest before trusting any of its content — keeps the
+        # trust model consistent with /api/check-app-update. On failure, fall back to
+        # showing no notes rather than rendering unverified feed data.
         if not _verify_manifest(data):
             _sec_event("whats-new: manifest signature INVALID or MISSING — notes suppressed")
             return jsonify({"version": APP_VERSION, "notes_list": []})
@@ -1678,7 +1717,16 @@ def whats_new():
 
 @app.route("/api/check-app-update")
 def check_app_update():
-    """Fetch egm-version.json and compare to running version."""
+    """Fetch egm-version.json and compare to running version.
+    Returns portable:True and suppresses update in portable mode."""
+    if PORTABLE_MODE:
+        return jsonify({
+            "portable": True,
+            "up_to_date": True,
+            "current_version": APP_VERSION,
+            "current_build": APP_BUILD,
+            "notes": "",
+        })
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
                                      headers={"User-Agent": "EGM-Downloader"})
@@ -1708,7 +1756,6 @@ def check_app_update():
             "notes":           notes,
             "download":        download,
             "zip_url":         zip_url,
-            "download_url":    zip_url,
             "_checksums":      data.get("_checksums"),
         })
     except urllib.error.URLError:
@@ -1718,8 +1765,9 @@ def check_app_update():
 
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
-    """Download EGMdM.zip, verify SHA256 checksum, extract the DMG, mount it, and open a Finder
-    window so the user can drag EGM Downloader to Applications in one step."""
+    """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe, return installer path."""
+    if PORTABLE_MODE:
+        return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps."}), 400
     data    = request.get_json(silent=True) or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     expected_checksum = data.get("expected_checksum", "").strip().lower()
@@ -1732,17 +1780,17 @@ def download_update():
         return jsonify({"error": "Invalid update URL"}), 400
 
     UPDATE_TMP_DIR.mkdir(parents=True, exist_ok=True)
-    zip_path = UPDATE_TMP_DIR / "EGMdM.zip"
-    dmg_name = "EGM Downloader.dmg"
-    dmg_path = UPDATE_TMP_DIR / dmg_name
+    zip_path       = UPDATE_TMP_DIR / "EGMd.zip"
+    installer_path = UPDATE_TMP_DIR / "egm-setup.exe"
 
     try:
-        # 1. Download update zip
+        # Download zip — LONG timeout: this is a multi-MB installer payload, not
+        # a metadata call. SHORT (15s) would spuriously fail on slow connections.
         req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(zip_path, "wb") as f:
             shutil.copyfileobj(r, f)
 
-        # 2. Verify SHA256 checksum (required — fail-closed)
+        # Verify SHA256 checksum (required — fail-closed)
         h = hashlib.sha256()
         h.update(zip_path.read_bytes())
         actual_checksum = h.hexdigest().lower()
@@ -1750,47 +1798,17 @@ def download_update():
             zip_path.unlink(missing_ok=True)
             return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
 
-        # 3. Extract DMG from zip using standard zipfile
+        # Extract egm-setup.exe using standard zipfile
         with zipfile.ZipFile(zip_path, "r") as z:
-            if dmg_name not in z.namelist():
+            names = z.namelist()
+            if "egm-setup.exe" not in names:
                 zip_path.unlink(missing_ok=True)
-                return jsonify({"error": f"'{dmg_name}' not found in update zip"}), 500
-            _safe_extract(z, dmg_name, UPDATE_TMP_DIR)
+                return jsonify({"error": "egm-setup.exe not found in zip"}), 500
+            _safe_extract(z, "egm-setup.exe", UPDATE_TMP_DIR)
 
         zip_path.unlink(missing_ok=True)
+        return jsonify({"success": True, "installer_path": str(installer_path)})
 
-        # 3. Mount the DMG (-nobrowse suppresses auto-open so we control it)
-        result = subprocess.run(
-            ["hdiutil", "attach", str(dmg_path), "-nobrowse"],
-            capture_output=True, text=True, timeout=30
-        )
-        if result.returncode != 0:
-            return jsonify({"error": f"Could not mount update: {result.stderr.strip()}"}), 500
-
-        # 4. Parse mount point from hdiutil output (tab-separated, last field)
-        mount_point = None
-        for line in result.stdout.splitlines():
-            parts = line.split("\t")
-            if len(parts) >= 3 and "/Volumes/" in parts[-1]:
-                mount_point = parts[-1].strip()
-                break
-
-        if not mount_point:
-            return jsonify({"error": "DMG mounted but volume path not found"}), 500
-
-        # 5. Open Finder showing the mounted volume — user drags to Applications
-        subprocess.Popen(["open", mount_point])
-
-        return jsonify({
-            "success":     True,
-            "mount_point": mount_point,
-            "message":     "Drag 'EGM Downloader' to your Applications folder to update.",
-        })
-
-    except subprocess.TimeoutExpired:
-        try: zip_path.unlink(missing_ok=True)
-        except Exception: pass
-        return jsonify({"error": "DMG mount timed out — please try again"}), 500
     except Exception as e:
         try: zip_path.unlink(missing_ok=True)
         except Exception: pass
@@ -1838,10 +1856,40 @@ def deno_reinstall():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/electron/reinstall", methods=["POST"])
+def electron_reinstall():
+    """Create marker so launch.py strips Electron on next restart."""
+    try:
+        marker = BASE_DIR / ".electron-update"
+        marker.write_text("reinstall", encoding="utf-8")
+        return jsonify({"ok": True, "message": "Electron will reinstall on next restart"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# ── Show-window signal (Windows tray) ────────────────────────────────────────
+# launch.py POSTs /api/show-window when the user launches the shortcut while
+# the app is already running. main.js polls /api/show-window-check every 500ms
+# and shows the window when the flag is set. This avoids spawning a second
+# Electron process and prevents the Tkinter "launching" splash from appearing.
+_show_window_flag = threading.Event()
+
+@app.route("/api/show-window", methods=["POST"])
+def show_window():
+    """Signal from launch.py — app already running, bring window to front."""
+    _show_window_flag.set()
+    return jsonify({"ok": True})
+
+@app.route("/api/show-window-check")
+def show_window_check():
+    """Polled by main.js every 500ms — returns show:true once, then clears."""
+    if _show_window_flag.is_set():
+        _show_window_flag.clear()
+        return jsonify({"show": True})
+    return jsonify({"show": False})
+
 # ── History routes ────────────────────────────────────────────────────────────
 @app.route("/api/history")
 def get_history():
-    # Robust parse — bad query params must not 500; clamp to sane bounds (parity w/ Windows)
     page     = _clamp_int(request.args.get("page"), 1, 1, 10_000_000)
     per_page = _clamp_int(request.args.get("per_page"), 10, 1, 500)
     with _history_lock:
@@ -1857,6 +1905,7 @@ def get_history():
 def delete_history_entry(entry_id):
     with _history_lock:
         items = _load_history()
+        # Find and delete associated thumbnail
         for i in items:
             if i.get("id") == entry_id and i.get("thumbnail"):
                 try: (THUMBNAILS_DIR / i["thumbnail"]).unlink(missing_ok=True)
@@ -1869,6 +1918,7 @@ def delete_history_entry(entry_id):
 def clear_history():
     with _history_lock:
         _save_history([])
+    # Clear all thumbnails
     try:
         for f in THUMBNAILS_DIR.iterdir():
             try: f.unlink()
@@ -1878,6 +1928,8 @@ def clear_history():
 
 @app.route("/api/thumbnail/<filename>")
 def serve_thumbnail(filename):
+    """Serve a cached thumbnail image."""
+    # Validate filename — only allow safe characters
     if not _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', filename):
         _sec_event(f"Thumbnail filename rejected (invalid pattern): {filename!r}")
         return "Not found", 404
@@ -2017,7 +2069,6 @@ def update_subscription():
         return jsonify({"error": "Not found"}), 404
     return jsonify({"subscription": payload})
 
-
 # ── Subscription fetch jobs ───────────────────────────────────────────────────
 # A channel fetch calls yt-dlp (up to ~90s). Running it inside the HTTP request
 # would hold a browser connection that whole time, saturating the per-host pool
@@ -2025,9 +2076,18 @@ def update_subscription():
 # client poll a tiny status endpoint — every HTTP request stays sub-second.
 _subfetch_jobs: dict = {}
 _subfetch_lock = threading.Lock()
+_subfetch_cancel: set = set()
 _subfetch_pool = concurrent.futures.ThreadPoolExecutor(max_workers=4, thread_name_prefix="subfetch")
 
 def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
+    with _subfetch_lock:
+        if fetch_id in _subfetch_cancel:
+            _subfetch_cancel.discard(fetch_id)
+            _subfetch_jobs[fetch_id] = {"status": "error", "error": "Cancelled", "_ts": time.time()}
+            return
+        j = _subfetch_jobs.get(fetch_id)
+        if j and j.get("status") == "pending":
+            j["status"] = "running"
     try:
         meta_name, meta_thumb = "", ""
         if need_meta:
@@ -2169,6 +2229,38 @@ def fetch_subscription_status():
         return jsonify({"status": "unknown"}), 200
     return jsonify({k: v for k, v in job.items() if k != "_ts"})
 
+@app.route("/api/subscriptions/fetch-all", methods=["POST"])
+def fetch_all_subscriptions():
+    data  = request.get_json(silent=True) or {}
+    force = bool(data.get("force", False))
+    now   = time.time()
+    out   = {}
+    with _subfetch_lock:
+        for k in [k for k, v in _subfetch_jobs.items()
+                  if v.get("status") in ("done", "error") and now - v.get("_ts", now) > 120]:
+            _subfetch_jobs.pop(k, None)
+        for s in _load_subscriptions():
+            sub_id, url = s.get("id"), s.get("url", "")
+            if not sub_id or not url:
+                continue
+            need_meta = (not s.get("name")) or (not s.get("thumbnail_url"))
+            fetch_id  = str(uuid.uuid4())
+            _subfetch_jobs[fetch_id] = {"status": "pending", "_ts": now}
+            out[sub_id] = fetch_id
+            _subfetch_pool.submit(_run_subfetch, fetch_id, sub_id, url, force, need_meta)
+    return jsonify({"jobs": out})
+
+@app.route("/api/subscriptions/fetch-cancel", methods=["POST"])
+def fetch_cancel():
+    ids = (request.get_json(silent=True) or {}).get("fetch_ids") or []
+    if not isinstance(ids, list):
+        return jsonify({"error": "fetch_ids list required"}), 400
+    with _subfetch_lock:
+        for fid in ids:
+            if isinstance(fid, str):
+                _subfetch_cancel.add(fid)
+    return jsonify({"ok": True})
+
 @app.route("/api/subscriptions/mark-downloaded", methods=["POST"])
 def mark_downloaded():
     data = request.get_json(silent=True) or {}
@@ -2193,8 +2285,6 @@ def mark_downloaded():
     if res == "nosub":
         return jsonify({"error": "Subscription not found"}), 404
     return jsonify({"ok": True})
-
-
 
 @app.route("/api/subscriptions/mark-all-seen", methods=["POST"])
 def mark_all_seen():
@@ -2297,6 +2387,14 @@ if __name__ == "__main__":
         pass
 
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
+    # Electron launches Flask with PORT in the env and then polls that exact port.
+    # The env value MUST win over the persisted flask_port setting — otherwise a
+    # stale or hand-edited setting binds Flask to a port Electron never connects
+    # to, bricking the app with no visible error. Settings value is the fallback
+    # only when launched outside Electron (e.g. bare `python app.py`).
+    # Safe port resolution: env PORT (from Electron) wins; persisted flask_port is
+    # the fallback. Parse defensively and validate the range so a corrupted or
+    # hand-edited setting can never crash startup — fall back to 8899 if invalid.
     def _resolve_port():
         for candidate in (os.environ.get("PORT"), _load_settings().get("flask_port")):
             try:
