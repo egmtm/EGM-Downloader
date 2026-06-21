@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# EGM Downloader — pre-commit hook
+# Runs the version sync + template parity validator before every commit.
+# Catches linux/templates drift before it reaches CI or review.
+#
+# Install once per clone:
+#   git config core.hooksPath .githooks
+
+python3 scripts/validate-version-sync.py
+EXIT=$?
+if [ $EXIT -ne 0 ]; then
+    echo ""
+    echo "❌ Pre-commit hook failed — commit blocked."
+    echo "   Fix the errors above, then try again."
+    echo ""
+fi
+exit $EXIT
