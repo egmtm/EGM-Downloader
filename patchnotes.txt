@@ -14,9 +14,8 @@ v1.1.2 - (in progress)
   FIXES
   • [ALL] Import/Export settings modal — clicking outside no longer dismisses it; only Cancel closes it
   • [ALL] Download all videos/audio modal — same focus lock applied
-  • [ALL] Subscriptions: Back-to-top arrow no longer stays visible after downloads complete
+  • [ALL] Subscriptions: Download queue scroll position preserved when download status updates
   • [ALL] Single-instance lock — relaunching while subscriptions window is open no longer shows both windows
-  • ~ [ALL] History sidebar: Back-to-top arrow
 
 
 v1.1.1 - TRULY YOURS (Build 131)
