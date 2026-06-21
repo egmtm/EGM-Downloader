@@ -1,4 +1,11 @@
-v1.1.1 - (in progress)
+v1.1.2 - (in progress)
+-----------------------------------------
+
+  THEMES
+  • [ALL] 10 new Kanye West album themes in Music category: College Dropout, Late Registration, Graduation, 808s & Heartbreak, Dark Fantasy, Watch the Throne, Yeezus, Life of Pablo, Ye, Bully
+
+
+v1.1.1 - TRULY YOURS (Build 131)
 -----------------------------------------
 
   SECURITY
