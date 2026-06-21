@@ -696,6 +696,8 @@ async function pollJobs() {
       if (queueItem) queueItem.remove();
       if (miniQueueItem) miniQueueItem.remove();
       if (showQueue) { showQueue = false; renderQueue(); }
+      const _btt = document.getElementById('subs-back-top');
+      if (_btt) _btt.style.display = 'none';
     }
   }
   syncCloseGuard();
@@ -750,6 +752,10 @@ function renderQueue() {
 }
 
 function renderDetail() {
+  // Save checked video IDs before re-render (load more wipes DOM)
+  const _savedChecked = new Set(
+    [...document.querySelectorAll('.video-check:checked')].map(c => c.dataset.videoId)
+  );
   const detail = document.getElementById('detail');
   if (showQueue) { renderQueue(); return; }
   if (!activeSub) {
@@ -1013,6 +1019,14 @@ function renderDetail() {
       videoQualityOverride[sel.dataset.videoId] = sel.value;
     });
   });
+
+  // Restore checkbox state after re-render
+  if (_savedChecked.size) {
+    document.querySelectorAll('.video-check').forEach(cb => {
+      if (_savedChecked.has(cb.dataset.videoId)) cb.checked = true;
+    });
+    updateSelectionCount();
+  }
 
   // ── Checkbox selection ────────────────────────────────────────────────────
   function updateSelectionCount() {
