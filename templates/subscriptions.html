@@ -697,7 +697,7 @@ async function pollJobs() {
       if (miniQueueItem) miniQueueItem.remove();
       if (showQueue) { showQueue = false; renderQueue(); }
       const _btt = document.getElementById('subs-back-top');
-      if (_btt) _btt.style.display = 'none';
+      if (_btt) _btt.remove();
     }
   }
   syncCloseGuard();
