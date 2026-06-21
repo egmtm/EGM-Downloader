@@ -5,7 +5,7 @@ v1.1.2 - (in progress)
   • [ALL] 10 new Kanye West album themes in Music category: College Dropout, Late Registration, Graduation, 808s & Heartbreak, Dark Fantasy, Watch the Throne, Yeezus, Life of Pablo, Ye, Bully
 
   IMPROVEMENTS
-  • ~ [ALL] Settings: Download folder and Format/Quality side by side — cleaner layout
+  • [ALL] Settings: Download folder and Format/Quality side by side with divider — cleaner layout
   • [ALL] Subscriptions: SVG spinner replaces placeholder on fetch cards
   • ~ [ALL] Subscriptions: Fetch all channels button — refresh all channels in one click
   • [ALL] Subscriptions: Checkbox selections preserved when loading more videos
