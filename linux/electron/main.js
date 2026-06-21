@@ -135,6 +135,12 @@ if (!gotLock) {
   process.exit(0);
 }
 app.on('second-instance', () => {
+  if (subsWindow && !subsWindow.isDestroyed()) {
+    if (subsWindow.isMinimized()) subsWindow.restore();
+    subsWindow.show();
+    subsWindow.focus();
+    return;
+  }
   if (mainWindow) {
     const { bounds, maximized } = loadWindowState();
     if (maximized) {
