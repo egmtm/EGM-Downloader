@@ -166,6 +166,7 @@
     </td>
   </tr>
 </table>
+
 ## 📥 Download
 
 ### Windows
