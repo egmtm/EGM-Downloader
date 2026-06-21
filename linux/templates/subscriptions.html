@@ -474,6 +474,11 @@ async function pollFetchAll() {
     if (cancelBtn) cancelBtn.style.display = 'none';
     if (progress) progress.style.display = 'none';
     await loadSubs();
+    // Re-sync activeSub to refreshed data so video list updates without reopen
+    if (activeSub) {
+      const refreshed = subs.find(s => s.id === activeSub.id);
+      if (refreshed) { activeSub = refreshed; renderDetail(); }
+    }
     return;
   }
 
