@@ -312,10 +312,12 @@ Theme import security, import/export selector, keyboard shortcuts, animation the
 
 **v1.1.2 — YOURS TO KEEP:** 🔨 In progress
 - 🎨 10 new Music themes — Kanye West album series (College Dropout through Bully)
+- 🎨 Scrollbar theming — History and Themes sidebar scrollbars follow the active theme
 - ⚙️ Settings layout redesign — Download folder and Format/Quality side by side
 - ⏳ SVG spinner on subscription fetch cards
 - 🔄 Fetch all channels button — refresh every subscription in one click
 - ✅ Checkbox selections preserved when loading more videos in subscriptions
+- 🔒 Modal focus lock — Import/Export and Download all modals only close via Cancel
 - ⬆️ Back-to-top arrow visibility fix in subscriptions + history sidebar
 - 🪟 Single-instance lock — relaunching with subscriptions open no longer shows both windows
 
