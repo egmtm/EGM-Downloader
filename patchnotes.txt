@@ -9,8 +9,6 @@ v1.1.2 - (in progress)
   • [ALL] Subscriptions: SVG spinner replaces placeholder on fetch cards
   • ~ [ALL] Subscriptions: Fetch all channels button — refresh all channels in one click
   • [ALL] Subscriptions: Checkbox selections preserved when loading more videos
-
-  IMPROVEMENTS
   • [ALL] Scrollbar theming — Download History and Themes sidebar scrollbars now follow the active theme
 
   FIXES
