@@ -10,7 +10,12 @@ v1.1.2 - (in progress)
   • ~ [ALL] Subscriptions: Fetch all channels button — refresh all channels in one click
   • ~ [ALL] Subscriptions: Checkbox selections preserved when loading more videos
 
+  IMPROVEMENTS
+  • ~ [ALL] Scrollbar theming — Download History and Themes sidebar scrollbars now follow the active theme
+
   FIXES
+  • ~ [ALL] Import/Export settings modal — clicking outside no longer dismisses it; only Cancel closes it
+  • ~ [ALL] Download all videos/audio modal — same focus lock applied
   • ~ [ALL] Subscriptions: Back-to-top arrow no longer stays visible after downloads complete
   • ~ [ALL] Single-instance lock — relaunching while subscriptions window is open no longer shows both windows
   • ~ [ALL] History sidebar: Back-to-top arrow
