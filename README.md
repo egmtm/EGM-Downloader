@@ -75,100 +75,97 @@
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-prism-theme.png">
-        <img src="screenshots/02-main-ui-prism-theme.png" width="340" alt="Main UI — Prism Theme"/>
+      <a href="screenshots/02-help-modal-footer.png">
+        <img src="screenshots/02-help-modal-footer.png" width="340" alt="Help Modal — Footer"/>
       </a>
-      <br/><sub><b>Main UI — Prism Theme</b></sub>
+      <br/><sub><b>Help Modal — Footer</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/03-main-ui-settings-hidden-prague-theme.png">
-        <img src="screenshots/03-main-ui-settings-hidden-prague-theme.png" width="340" alt="Main UI — Prague Theme"/>
+      <a href="screenshots/03-subscriptions-drag-reorder-odd-cab-theme.png">
+        <img src="screenshots/03-subscriptions-drag-reorder-odd-cab-theme.png" width="340" alt="Subscriptions Drag Reorder — Odd Cab Theme"/>
       </a>
-      <br/><sub><b>Main UI — Prague Theme</b></sub>
+      <br/><sub><b>Subscriptions Drag Reorder — Odd Cab Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/04-videos-fetched-quality-selector-la-parguera-theme.png">
-        <img src="screenshots/04-videos-fetched-quality-selector-la-parguera-theme.png" width="340" alt="Videos Fetched — La Parguera Theme"/>
+      <a href="screenshots/04-subscriptions-members-only-mark-all-seen-4th-july-theme.png">
+        <img src="screenshots/04-subscriptions-members-only-mark-all-seen-4th-july-theme.png" width="340" alt="Subscriptions — 4th July Seasonal Theme"/>
       </a>
-      <br/><sub><b>Videos Fetched — La Parguera Theme 🇵🇷</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/09-subscriptions-main-ui-conejo-malo-theme.png">
-        <img src="screenshots/09-subscriptions-main-ui-conejo-malo-theme.png" width="340" alt="Subscriptions — Conejo Malo 3.0 Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions — Conejo Malo 3.0 Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/10-subscriptions-sidebar-minimized-ghost-theme.png">
-        <img src="screenshots/10-subscriptions-sidebar-minimized-ghost-theme.png" width="340" alt="Subscriptions Sidebar — Ghost Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions Sidebar — Ghost Theme</b></sub>
+      <br/><sub><b>Subscriptions — 4th July Seasonal Theme 🎆</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/11-subscriptions-download-queue-windows95-theme.png">
-        <img src="screenshots/11-subscriptions-download-queue-windows95-theme.png" width="340" alt="Download Queue — Windows 95 Theme"/>
+      <a href="screenshots/05-subscriptions-collapsed-sidebar-nebula-theme.png">
+        <img src="screenshots/05-subscriptions-collapsed-sidebar-nebula-theme.png" width="340" alt="Subscriptions Collapsed Sidebar — Nebula Theme"/>
       </a>
-      <br/><sub><b>Download Queue — Windows 95 Theme</b></sub>
+      <br/><sub><b>Subscriptions Sidebar — Nebula Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/07-all-themes-northern-lights-theme.png">
-        <img src="screenshots/07-all-themes-northern-lights-theme.png" width="340" alt="All Themes — Northern Lights Theme"/>
+      <a href="screenshots/06-advanced-menu-hyrule-theme.png">
+        <img src="screenshots/06-advanced-menu-hyrule-theme.png" width="340" alt="Advanced Menu — Hyrule Theme"/>
       </a>
-      <br/><sub><b>All Themes — Northern Lights Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/08-download-history-n64-theme.png">
-        <img src="screenshots/08-download-history-n64-theme.png" width="340" alt="Download History — N64 Theme"/>
-      </a>
-      <br/><sub><b>Download History — N64 Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/05-advanced-options-plugins-savathun-theme.png">
-        <img src="screenshots/05-advanced-options-plugins-savathun-theme.png" width="340" alt="Advanced Options — Savathûn Theme"/>
-      </a>
-      <br/><sub><b>Advanced Options — Savathûn Theme</b></sub>
+      <br/><sub><b>Advanced Menu — Hyrule Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/06-plugins-update-complete-ps1-theme.png">
-        <img src="screenshots/06-plugins-update-complete-ps1-theme.png" width="340" alt="Plugins Update Complete — PS1 Theme"/>
+      <a href="screenshots/07-advanced-menu-plugins-update-everything-store-theme.png">
+        <img src="screenshots/07-advanced-menu-plugins-update-everything-store-theme.png" width="340" alt="Plugins Update — Everything Store Theme"/>
       </a>
-      <br/><sub><b>Plugins Update Complete — PS1 Theme</b></sub>
+      <br/><sub><b>Plugins Update — Everything Store Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/12-export-settings-haze-theme.png">
-        <img src="screenshots/12-export-settings-haze-theme.png" width="340" alt="Export Settings — Haze Theme"/>
+      <a href="screenshots/08-advanced-menu-ytdlp-nightly-updated-snes-theme.png">
+        <img src="screenshots/08-advanced-menu-ytdlp-nightly-updated-snes-theme.png" width="340" alt="yt-dlp Nightly Updated — SNES Theme"/>
       </a>
-      <br/><sub><b>Export Settings — Haze Theme</b></sub>
+      <br/><sub><b>yt-dlp Nightly Updated — SNES Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/13-reinstall-deno-dream-dust-theme.png">
-        <img src="screenshots/13-reinstall-deno-dream-dust-theme.png" width="340" alt="Reinstall Deno — Dream Dust Theme"/>
+      <a href="screenshots/09-export-settings-lost-in-translation-theme.png">
+        <img src="screenshots/09-export-settings-lost-in-translation-theme.png" width="340" alt="Export Settings — Lost in Translation Theme"/>
       </a>
-      <br/><sub><b>Reinstall Deno — Dream Dust Theme</b></sub>
+      <br/><sub><b>Export Settings — Lost in Translation Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/14-last-10-used-themes-mumbai-theme.png">
-        <img src="screenshots/14-last-10-used-themes-mumbai-theme.png" width="340" alt="Last 10 Used Themes — Mumbai Theme"/>
+      <a href="screenshots/10-import-settings-pantheon-theme.png">
+        <img src="screenshots/10-import-settings-pantheon-theme.png" width="340" alt="Import Settings — Pantheon Theme"/>
       </a>
-      <br/><sub><b>Last 10 Used Themes — Mumbai Theme</b></sub>
+      <br/><sub><b>Import Settings — Pantheon Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/11-download-history-star-to-top-favorites.png">
+        <img src="screenshots/11-download-history-star-to-top-favorites.png" width="340" alt="Download History — Pin to Top"/>
+      </a>
+      <br/><sub><b>Download History — Pin to Top</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/12-sort-downloads-back-to-top-wembley-theme.png">
+        <img src="screenshots/12-sort-downloads-back-to-top-wembley-theme.png" width="340" alt="Sort Downloads — Wembley Theme"/>
+      </a>
+      <br/><sub><b>Sort Downloads — Wembley Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/13-download-all-videos-gitty-master-theme.png">
+        <img src="screenshots/13-download-all-videos-gitty-master-theme.png" width="340" alt="Download All Videos — Gitty Master Theme"/>
+      </a>
+      <br/><sub><b>Download All Videos — Gitty Master Theme 🫡</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/14-all-themes-windows-11-theme.png">
+        <img src="screenshots/14-all-themes-windows-11-theme.png" width="340" alt="All Themes — Windows 11 Theme"/>
+      </a>
+      <br/><sub><b>All Themes — Windows 11 Theme</b></sub>
     </td>
   </tr>
 </table>
-
----
-
 ## 📥 Download
 
 ### Windows
