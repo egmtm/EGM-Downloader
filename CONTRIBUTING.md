@@ -107,6 +107,10 @@ Have an idea? Open an issue with:
 git clone https://github.com/egmtm/EGM-Downloader.git
 cd EGM-Downloader
 
+# Wire the pre-commit hook (one-time per clone)
+# Runs the version sync + template parity validator before every commit
+git config core.hooksPath .githooks
+
 # Install Python dependencies (shared)
 pip install -r requirements.txt
 
