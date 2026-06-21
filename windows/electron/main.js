@@ -814,9 +814,15 @@ function startShowWindowPoller() {
       res.on('end', () => {
         try {
           if (JSON.parse(body).show) {
-            restoreWindowState();
-            if (!mainWindow.isVisible()) mainWindow.show();
-            mainWindow.focus();
+            if (subsWindow && !subsWindow.isDestroyed()) {
+              if (subsWindow.isMinimized()) subsWindow.restore();
+              subsWindow.show();
+              subsWindow.focus();
+            } else {
+              restoreWindowState();
+              if (!mainWindow.isVisible()) mainWindow.show();
+              mainWindow.focus();
+            }
           }
         } catch {}
       });
