@@ -472,7 +472,7 @@ async function pollFetchAll() {
     if (btn) btn.disabled = false;
     if (cancelBtn) cancelBtn.style.display = 'none';
     if (progress) progress.style.display = 'none';
-    renderSidebar();
+    await loadSubs();
     return;
   }
 
@@ -492,9 +492,6 @@ async function pollFetchAll() {
         _fetchAllJobs[sub_id].status = data.status;
         if (data.status === 'done') {
           _fetchAllJobs[sub_id].newCount = data.new_count || 0;
-          // Refresh channel data
-          const idx = subs.findIndex(s => s.id === sub_id);
-          if (idx >= 0 && data.sub) subs[idx] = data.sub;
         }
       }
     } catch {}
