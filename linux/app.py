@@ -2018,6 +2018,8 @@ def fetch_all_subscriptions():
         for k in [k for k, v in _subfetch_jobs.items()
                   if v.get("status") in ("done", "error") and now - v.get("_ts", now) > 120]:
             _subfetch_jobs.pop(k, None)
+        _subfetch_cancel.difference_update(
+            _subfetch_cancel - _subfetch_jobs.keys())
         for s in _load_subscriptions():
             sub_id, url = s.get("id"), s.get("url", "")
             if not sub_id or not url:
