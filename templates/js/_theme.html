@@ -167,7 +167,7 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
 (function() {
   const REQUIRED_VARS = ['--bg','--surf','--surf2','--surf3','--border','--border2',
                          '--acc','--acc-h','--acc-dim','--text','--text2','--muted'];
-  const ALL_VARS      = [...REQUIRED_VARS,
+  const ALL_VARS      = [...REQUIRED_VARS, '--red',
                          '--shadow','--thumb-bg','--log-bg','--log-text',
                          '--modal-overlay','--modal-shadow',
                          '--btn-primary-text','--btn-on-accent','--btn-red-border',
@@ -186,6 +186,20 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
   const saved = localStorage.getItem('egm-custom-theme');
   if (saved) {
     try { _applyCustomTheme(JSON.parse(saved)); } catch {}
+  }
+
+  // 'custom' is value-bearing, not just a body class. The Theme Creator's
+  // "Save to app" writes the new palette to localStorage (shared same-origin) then
+  // broadcasts 'custom' over the existing set-theme spine. This already-open window
+  // must re-read + re-inject so it shows the freshly-saved colors rather than the
+  // stale custom-theme-style. (The picker IIFE's onThemeChanged handles the body
+  // class; this one handles the value injection — _applyCustomTheme is in scope here.)
+  if (window.electronAPI && window.electronAPI.onThemeChanged) {
+    window.electronAPI.onThemeChanged(theme => {
+      if (theme !== 'custom') return;
+      const c = localStorage.getItem('egm-custom-theme');
+      if (c) { try { _applyCustomTheme(JSON.parse(c)); } catch {} }
+    });
   }
 
   function _applyCustomTheme(theme) {
