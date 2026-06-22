@@ -268,7 +268,7 @@ def check_linux_drift_from_root():
     # would slip through.
     template_files = ['index.html', 'index_styles.html', 'index_scripts.html',
                       'history.html', 'themes.html', 'theme_styles.html', 'theme_data.html',
-                      'subscriptions.html']
+                      'subscriptions.html', 'theme_validator.html']
     for name in template_files:
         root_path = root / 'templates' / name
         linux_path = root / 'linux' / 'templates' / name
