@@ -10,13 +10,13 @@
 (function () {
   'use strict';
 
-  // ── Shared: the 8 user-facing core vars and their starting (void) defaults ──
+  // ── Shared: the 10 user-facing core vars and their starting (void) defaults ─
   const CORE_KEYS     = ['--bg','--surf','--surf2','--surf3','--acc','--acc-h','--text','--text2','--border','--red'];
   const CORE_DEFAULTS = { '--bg':'#0b1120','--surf':'#111c2e','--surf2':'#182338','--surf3':'#1f2f47',
                           '--acc':'#3b82f6','--acc-h':'#60a5fa',
                           '--text':'#e2e8f6','--text2':'#8faecf','--border':'#243454','--red':'#ef4444' };
 
-  // ── Color math (hex → rgb, luminance, mix) for deriving the 17 non-core vars ─
+  // ── Color math (hex → rgb, luminance, mix) for deriving the remaining vars ───
   function hexToRgb(h) {
     h = String(h).trim().replace('#','');
     if (h.length === 3) h = h.split('').map(c => c + c).join('');
@@ -36,7 +36,7 @@
     return '#' + h.toLowerCase();
   }
 
-  // Derive the full 25-var theme map from the 8 core colors. Every derived value
+  // Derive the full 25-var theme map from the 10 core colors. Every derived value
   // is a plain hex / rgba color or a static box-shadow — all pass validateThemeVar.
   function deriveAll(core) {
     const acc = core['--acc'];
@@ -172,8 +172,8 @@
       if (api && api.creatorPreview) api.creatorPreview(v);   // → main window
     });
   }
-  // No local preview panel — main window is the live preview.
-  function updatePreviewName() { /* preview panel removed — no-op */ }
+  // No local preview panel in the Creator window — the main window IS the live
+  // preview (vars are fanned to it over the creator-preview IPC channel).
 
   // ── Pickers ──────────────────────────────────────────────────────────────────
   pickers.forEach(inp => {
@@ -239,8 +239,12 @@
     const surf = toHex6(seed.surf) || baseline['--surf'];
     const acc  = toHex6(seed.acc)  || baseline['--acc'];
     const text = relLum(hexToRgb(bg)) < 0.4 ? '#e8edf6' : '#14181f';
+    // Build EVERY core var. A partial core leaves the un-set pickers (--surf3,
+    // --acc-h) showing #000000 and makes recomputeDirty deref undefined; derive the
+    // two non-seeded core vars with the same formulas deriveAll uses.
     core = {
-      '--bg': bg, '--surf': surf, '--surf2': mix(surf, '#ffffff', 0.06), '--acc': acc,
+      '--bg': bg, '--surf': surf, '--surf2': mix(surf, '#ffffff', 0.06),
+      '--surf3': mix(surf, text, 0.10), '--acc': acc, '--acc-h': mix(acc, '#ffffff', 0.18),
       '--text': text, '--text2': mix(text, surf, 0.45), '--border': mix(surf, text, 0.18),
       '--red': '#ef4444',
     };
