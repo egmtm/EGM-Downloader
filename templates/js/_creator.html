@@ -171,7 +171,7 @@
     });
   }
   // No local preview panel — main window is the live preview.
-  updatePreviewName();
+  function updatePreviewName() { /* preview panel removed — no-op */ }
 
   // ── Pickers ──────────────────────────────────────────────────────────────────
   pickers.forEach(inp => {
@@ -187,7 +187,7 @@
     inp.addEventListener('input', onInput);
     inp.addEventListener('change', onInput);
   });
-  nameInput.addEventListener('input', () => { updatePreviewName(); recomputeDirty(); });
+  nameInput.addEventListener('input', () => { recomputeDirty(); });
 
   function syncPickers() { pickers.forEach(inp => { inp.value = core[inp.dataset.var]; }); }
 
