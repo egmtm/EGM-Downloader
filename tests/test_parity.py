@@ -319,7 +319,7 @@ def test_theme_counts_consistent():
 
 def test_theme_counts_linux_parity():
     """Linux templates must have identical theme counts to root templates."""
-    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html"]:
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html", "js/_creator.html"]:
         root = read_source(f"templates/{fname}")
         linux = read_source(f"linux/templates/{fname}")
         assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
