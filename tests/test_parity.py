@@ -673,3 +673,23 @@ def test_creator_core_vars_pickers_and_random_in_sync():
         f"  missing from Random: {sorted(core_keys - random_keys)}\n"
         f"  extra in Random:     {sorted(random_keys - core_keys)}")
     assert len(core_keys) == 10, f"expected 10 core vars, got {len(core_keys)}: {sorted(core_keys)}"
+
+
+def test_creator_window_restore_lifecycle():
+    """Opening the Creator shifts/shrinks main to make room; closing it must put main
+    back — including the maximized case (un-maximize to tile → re-maximize on close)
+    and a renderer-crash path that would otherwise strand main resized. Static guard
+    that the lifecycle wiring is present and mirrored on all 3 platforms (the geometry
+    itself is exercised at runtime)."""
+    markers = [
+        "isMaximized()",            # capture maximized state at open
+        "getNormalBounds()",        # remember main's normal (restore) size
+        "creatorMainWasMaximized",  # carry the flag through to close
+        ".unmaximize()",            # make room when main was maximized
+        ".maximize()",              # re-maximize on close
+        "render-process-gone",      # renderer crash → forced close → restore runs
+    ]
+    for plat in ("windows", "linux", "mac"):
+        src = read_source(f"{plat}/electron/main.js")
+        missing = [m for m in markers if m not in src]
+        assert not missing, f"{plat}/main.js missing Creator restore-lifecycle markers: {missing}"
