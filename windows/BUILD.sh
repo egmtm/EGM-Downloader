@@ -384,6 +384,7 @@ echo ""
 echo "🚀 Pushing to GitHub..."
 cd "$REPO_ROOT"
 if git status --porcelain | grep -q .; then
+    echo "$BUILD_NUM" > "$REPO_ROOT/scripts/last-released-build.txt"
     git add -A
     git commit -m "Windows v$VERSION Build $BUILD_NUM"
     git push origin main
