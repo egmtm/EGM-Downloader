@@ -236,6 +236,31 @@ def test_security_markers_in_all_main_js():
         assert not missing, f"{name}/main.js missing security markers: {missing}"
 
 
+def test_istrustedsender_count_locked():
+    """isTrustedSender must appear EXACTLY 47 times total across the 3 main.js
+    (windows 17, linux 15, mac 15). Every ipcMain handler must be gated by it;
+    locking the count auto-catches an accidental handler addition that bypasses
+    the gate — the same check done by hand every delta review. If you added a
+    legitimate, gated ipcMain handler, bump EXPECTED_TOTAL after confirming the
+    new handler calls isTrustedSender.
+    """
+    EXPECTED_TOTAL = 47
+    counts = {
+        name: read_source(path).count("isTrustedSender")
+        for name, path in (
+            ("windows", "windows/electron/main.js"),
+            ("linux",   "linux/electron/main.js"),
+            ("mac",     "mac/electron/main.js"),
+        )
+    }
+    total = sum(counts.values())
+    assert total == EXPECTED_TOTAL, (
+        f"isTrustedSender count changed: {counts} (total {total}, expected "
+        f"{EXPECTED_TOTAL}). A new ipcMain handler must call isTrustedSender; "
+        f"if this addition is intentional and gated, update EXPECTED_TOTAL."
+    )
+
+
 def test_security_markers_in_all_preload_js():
     """Every platform preload.js must contain the same bridge-layer validation."""
     REQUIRED = [
@@ -465,3 +490,48 @@ def test_video_id_xss_guard():
         assert "onclick=\"cancelJob('${jobId}'" not in src
         for stale in ('data-video-id="${esc(v.video_id', 'id="meta-${esc(v.video_id'):
             assert stale not in src, f"{tpl} still uses esc() in attribute context"
+
+
+# ── Build-feed guards ──────────────────────────────────────────────────────────
+
+def _extract_patchnote_bullets(patchnotes_text, platform_tag):
+    """Replicate windows/BUILD.sh's update-feed bullet extraction for the most
+    recent (current) patchnotes entry, filtered to [<PLATFORM>] or [ALL] tags.
+    Mirrors BUILD.sh's exact break-on-blank-line logic so this catches the same
+    early-stop bug it has."""
+    bullets, in_block = [], False
+    for line in patchnotes_text.splitlines():
+        if re.match(r'^v\d', line):
+            if in_block:
+                break
+            in_block = True
+            continue
+        if in_block:
+            if line.startswith('  • '):
+                m = re.match(rf'^\[({platform_tag}|ALL)\]\s+(.+)$', line[4:].strip())
+                if m:
+                    bullets.append(m.group(2))
+            elif line.strip() == '' and bullets:
+                break
+    return bullets
+
+
+def test_patchnotes_current_version_has_enough_bullets():
+    """The most recent patchnotes.txt entry must yield >= 3 update-feed bullets for
+    EACH platform tag, using BUILD.sh's exact extraction.
+
+    Regression: in the v1.1.2 cycle a blank line BETWEEN sections
+    (THEMES/IMPROVEMENTS/FIXES) made the extractor stop at the first blank line and
+    emit 1 bullet instead of 10 — an empty/near-empty _version_notes that was only
+    caught mid-build by the BUILD.sh validator. This runs before any build starts.
+    """
+    pn = read_source("patchnotes.txt")
+    for tag in ("WINDOWS", "MAC", "LINUX"):
+        bullets = _extract_patchnote_bullets(pn, tag)
+        assert len(bullets) >= 3, (
+            f"patchnotes.txt: the current version entry yields only {len(bullets)} "
+            f"[{tag}|ALL] bullet(s) (need >= 3). Most common cause: a blank line "
+            f"BETWEEN sections (THEMES/IMPROVEMENTS/FIXES) makes BUILD.sh's extractor "
+            f"stop early. Keep all bullets in one contiguous block (no blank lines "
+            f"between sections within a version entry)."
+        )
