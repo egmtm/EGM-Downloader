@@ -502,6 +502,7 @@ let creatorWindow           = null;
 let creatorDirty          = false;
 let creatorForceClose     = false;
 let creatorSavedMainBounds = null;
+let creatorMainWasMaximized = false;
 
 ipcMain.handle('open-theme-creator', async (event, opts) => {
   if (!isTrustedSender(event)) return;
@@ -509,20 +510,35 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
   const fromThemes = !!(opts && opts.fromThemes);
 
   const W = 360;
-  const mb = (mainWindow && !mainWindow.isDestroyed())
-    ? mainWindow.getBounds() : { x: 80, y: 80, width: 920, height: 780 };
+  const liveMain = mainWindow && !mainWindow.isDestroyed();
+  const wasMaximized = !!(liveMain && mainWindow.isMaximized());
+  const mb = liveMain ? mainWindow.getBounds() : { x: 80, y: 80, width: 920, height: 780 };
   const disp = screen.getDisplayMatching(mb).workArea;
-  // Save main bounds + shift main left to make room for Creator
-  creatorSavedMainBounds = { ...mb };
-  const newMainX = Math.max(disp.x, mb.x - W);
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setBounds({ x: newMainX, y: mb.y, width: mb.width, height: mb.height });
+  // Remember how to put main back when the Creator closes: its NORMAL (un-maximized)
+  // rectangle, plus whether it was maximized so we re-maximize rather than just resize.
+  creatorSavedMainBounds  = liveMain ? { ...mainWindow.getNormalBounds() } : { ...mb };
+  creatorMainWasMaximized = wasMaximized;
+
+  let x, y, height;
+  if (wasMaximized && liveMain) {
+    // Maximized → shifting can't make room (main already spans the display), so
+    // un-maximize and tile: main takes the work area minus the Creator column, the
+    // Creator fills that column. No overlap; main is re-maximized on close.
+    mainWindow.unmaximize();
+    mainWindow.setBounds({ x: disp.x, y: disp.y, width: Math.max(360, disp.width - W), height: disp.height });
+    x = disp.x + disp.width - W;
+    y = disp.y;
+    height = disp.height;
+  } else {
+    // Windowed → shift main left by W and open the Creator flush to its right.
+    const newMainX = Math.max(disp.x, mb.x - W);
+    if (liveMain) mainWindow.setBounds({ x: newMainX, y: mb.y, width: mb.width, height: mb.height });
+    height = Math.max(460, Math.min(mb.height, disp.height));
+    x = newMainX + mb.width;
+    if (x + W > disp.x + disp.width) x = Math.max(disp.x, mb.x - W);   // no room right → open left
+    x = Math.max(disp.x, Math.min(x, disp.x + disp.width - W));
+    y = Math.max(disp.y, Math.min(mb.y, disp.y + disp.height - height));
   }
-  const height = Math.max(460, Math.min(mb.height, disp.height));
-  let x = newMainX + mb.width;
-  if (x + W > disp.x + disp.width) x = Math.max(disp.x, mb.x - W);   // no room right → open left
-  x = Math.max(disp.x, Math.min(x, disp.x + disp.width - W));
-  const y = Math.max(disp.y, Math.min(mb.y, disp.y + disp.height - height));
 
   creatorWindow = new BrowserWindow({
     x, y, width: W, height,
@@ -558,14 +574,21 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
   creatorWindow.on('closed', () => {
     creatorWindow = null; creatorDirty = false; creatorForceClose = false;
     // Wipe any lingering live-preview overrides on main (covers save, cancel, and
-    // crash paths alike) so it shows its real (or freshly-saved) theme.
+    // crash paths alike) so it shows its real (or freshly-saved) theme, then put main
+    // back where it was: restore its normal bounds, and re-maximize if it had been.
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('creator-preview-reset');
-      if (creatorSavedMainBounds) {
-        mainWindow.setBounds(creatorSavedMainBounds);
-        creatorSavedMainBounds = null;
-      }
+      if (creatorSavedMainBounds) mainWindow.setBounds(creatorSavedMainBounds);
+      if (creatorMainWasMaximized) mainWindow.maximize();
     }
+    creatorSavedMainBounds = null;
+    creatorMainWasMaximized = false;
+  });
+
+  // A renderer crash never fires 'closed', which would strand main shrunk/un-maximized.
+  // Route it through a forced close so the restore logic above still runs.
+  creatorWindow.webContents.on('render-process-gone', () => {
+    if (creatorWindow && !creatorWindow.isDestroyed()) { creatorForceClose = true; creatorWindow.close(); }
   });
 });
 
