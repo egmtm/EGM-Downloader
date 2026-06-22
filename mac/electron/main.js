@@ -526,7 +526,7 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
 
   creatorWindow = new BrowserWindow({
     x, y, width: W, height,
-    minWidth: 520, minHeight: 460,
+    minWidth: 340, minHeight: 460,
     title: 'Theme Creator — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
