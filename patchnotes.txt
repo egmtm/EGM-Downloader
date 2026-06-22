@@ -1,3 +1,11 @@
+v1.2 - (in progress)
+-----------------------------------------
+
+  FEATURES
+  • ~ [ALL] Theme Creator — build custom themes with live preview, export or save directly to app
+  IMPROVEMENTS
+  • ~ [ALL] Theme import validation — per-type CSS allowlist, stricter than previous guard
+
 v1.1.2 - YOURS TO KEEP (Build 132)
 -----------------------------------------
 
