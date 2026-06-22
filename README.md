@@ -66,107 +66,87 @@
 
 > 📸 *Screenshots captured on v1.1.2 — YOURS TO KEEP. The UI is identical across Windows, macOS, and Linux.*
 
+<div align="center">
+  <a href="screenshots/01-splash-screen.png">
+    <img src="screenshots/01-splash-screen.png" width="520" alt="Splash Screen"/>
+  </a>
+  <br/><sub><b>Splash Screen</b></sub>
+</div>
+
+<br/>
+
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/01-splash-screen.png">
-        <img src="screenshots/01-splash-screen.png" width="340" alt="Splash Screen"/>
+      <a href="screenshots/02-main-ui-odd-cab-theme.png">
+        <img src="screenshots/02-main-ui-odd-cab-theme.png" width="340" alt="Main UI — Odd Cab Theme"/>
       </a>
-      <br/><sub><b>Splash Screen</b></sub>
+      <br/><sub><b>Main UI — Odd Cab Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/02-help-modal-footer.png">
-        <img src="screenshots/02-help-modal-footer.png" width="340" alt="Help Modal — Footer"/>
+      <a href="screenshots/03-main-ui-condensed-bully-theme.png">
+        <img src="screenshots/03-main-ui-condensed-bully-theme.png" width="340" alt="Main UI Condensed — Bully Theme"/>
       </a>
-      <br/><sub><b>Help Modal — Footer</b></sub>
+      <br/><sub><b>Main UI Condensed — Bully Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/03-subscriptions-drag-reorder-odd-cab-theme.png">
-        <img src="screenshots/03-subscriptions-drag-reorder-odd-cab-theme.png" width="340" alt="Subscriptions Drag Reorder — Odd Cab Theme"/>
+      <a href="screenshots/04-plugin-update-complete-blizzard-theme.png">
+        <img src="screenshots/04-plugin-update-complete-blizzard-theme.png" width="340" alt="Plugin Update Complete — Blizzard Theme"/>
       </a>
-      <br/><sub><b>Subscriptions Drag Reorder — Odd Cab Theme</b></sub>
+      <br/><sub><b>Plugin Update Complete — Blizzard Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/04-subscriptions-members-only-mark-all-seen-4th-july-theme.png">
-        <img src="screenshots/04-subscriptions-members-only-mark-all-seen-4th-july-theme.png" width="340" alt="Subscriptions — 4th July Seasonal Theme"/>
+      <a href="screenshots/05-plugins-updates-dreamcast-theme.png">
+        <img src="screenshots/05-plugins-updates-dreamcast-theme.png" width="340" alt="Plugins Updates — Dreamcast Theme"/>
       </a>
-      <br/><sub><b>Subscriptions — 4th July Seasonal Theme 🎆</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/05-subscriptions-collapsed-sidebar-nebula-theme.png">
-        <img src="screenshots/05-subscriptions-collapsed-sidebar-nebula-theme.png" width="340" alt="Subscriptions Collapsed Sidebar — Nebula Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions Sidebar — Nebula Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/06-advanced-menu-hyrule-theme.png">
-        <img src="screenshots/06-advanced-menu-hyrule-theme.png" width="340" alt="Advanced Menu — Hyrule Theme"/>
-      </a>
-      <br/><sub><b>Advanced Menu — Hyrule Theme</b></sub>
+      <br/><sub><b>Plugins Updates — Dreamcast Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/07-advanced-menu-plugins-update-everything-store-theme.png">
-        <img src="screenshots/07-advanced-menu-plugins-update-everything-store-theme.png" width="340" alt="Plugins Update — Everything Store Theme"/>
+      <a href="screenshots/06-import-settings-watch-the-throne-theme.png">
+        <img src="screenshots/06-import-settings-watch-the-throne-theme.png" width="340" alt="Import Settings — Watch the Throne Theme"/>
       </a>
-      <br/><sub><b>Plugins Update — Everything Store Theme</b></sub>
+      <br/><sub><b>Import Settings — Watch the Throne Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/08-advanced-menu-ytdlp-nightly-updated-snes-theme.png">
-        <img src="screenshots/08-advanced-menu-ytdlp-nightly-updated-snes-theme.png" width="340" alt="yt-dlp Nightly Updated — SNES Theme"/>
+      <a href="screenshots/07-fetch-all-subscriptions-codemaster-theme.png">
+        <img src="screenshots/07-fetch-all-subscriptions-codemaster-theme.png" width="340" alt="Fetch All Subscriptions — Codemaster Theme"/>
       </a>
-      <br/><sub><b>yt-dlp Nightly Updated — SNES Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/09-export-settings-lost-in-translation-theme.png">
-        <img src="screenshots/09-export-settings-lost-in-translation-theme.png" width="340" alt="Export Settings — Lost in Translation Theme"/>
-      </a>
-      <br/><sub><b>Export Settings — Lost in Translation Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/10-import-settings-pantheon-theme.png">
-        <img src="screenshots/10-import-settings-pantheon-theme.png" width="340" alt="Import Settings — Pantheon Theme"/>
-      </a>
-      <br/><sub><b>Import Settings — Pantheon Theme</b></sub>
+      <br/><sub><b>Fetch All Subscriptions — Codemaster Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/11-download-history-star-to-top-favorites.png">
-        <img src="screenshots/11-download-history-star-to-top-favorites.png" width="340" alt="Download History — Pin to Top"/>
+      <a href="screenshots/08-subscriptions-collapsed-sidebar-pager-theme.png">
+        <img src="screenshots/08-subscriptions-collapsed-sidebar-pager-theme.png" width="340" alt="Subscriptions Collapsed — Pager Theme"/>
       </a>
-      <br/><sub><b>Download History — Pin to Top</b></sub>
+      <br/><sub><b>Subscriptions Collapsed — Pager Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/12-sort-downloads-back-to-top-wembley-theme.png">
-        <img src="screenshots/12-sort-downloads-back-to-top-wembley-theme.png" width="340" alt="Sort Downloads — Wembley Theme"/>
+      <a href="screenshots/09-fetching-videos-mosaic-theme.png">
+        <img src="screenshots/09-fetching-videos-mosaic-theme.png" width="340" alt="Fetching Videos — Mosaic Theme"/>
       </a>
-      <br/><sub><b>Sort Downloads — Wembley Theme</b></sub>
+      <br/><sub><b>Fetching Videos — Mosaic Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/13-download-all-videos-gitty-master-theme.png">
-        <img src="screenshots/13-download-all-videos-gitty-master-theme.png" width="340" alt="Download All Videos — Gitty Master Theme"/>
+      <a href="screenshots/10-download-history-expanded-macos-sequoia-theme.png">
+        <img src="screenshots/10-download-history-expanded-macos-sequoia-theme.png" width="340" alt="Download History — macOS Sequoia Theme"/>
       </a>
-      <br/><sub><b>Download All Videos — Gitty Master Theme 🫡</b></sub>
+      <br/><sub><b>Download History — macOS Sequoia Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/14-all-themes-windows-11-theme.png">
-        <img src="screenshots/14-all-themes-windows-11-theme.png" width="340" alt="All Themes — Windows 11 Theme"/>
+      <a href="screenshots/11-all-themes-prism-theme.png">
+        <img src="screenshots/11-all-themes-prism-theme.png" width="340" alt="All Themes — Prism Theme"/>
       </a>
-      <br/><sub><b>All Themes — Windows 11 Theme</b></sub>
+      <br/><sub><b>All Themes — Prism Theme</b></sub>
     </td>
   </tr>
 </table>
-
 ## 📥 Download
 
 ### Windows
