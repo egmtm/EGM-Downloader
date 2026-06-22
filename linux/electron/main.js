@@ -544,9 +544,10 @@ ipcMain.handle('open-themes-window', async (event) => {
 // main's display — mirrors themesWindow/subsWindow. The dirty-state + close guard
 // mirror the subsWindow pattern (main owns the flag; the renderer shows the in-app
 // modal). Live preview fans a var map to the main window, re-validated there.
-let creatorWindow = null;
-let creatorDirty = false;
-let creatorForceClose = false;
+let creatorWindow           = null;
+let creatorDirty          = false;
+let creatorForceClose     = false;
+let creatorSavedMainBounds = null;
 
 ipcMain.handle('open-theme-creator', async (event, opts) => {
   if (!isTrustedSender(event)) return;
@@ -557,6 +558,12 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
   const mb = (mainWindow && !mainWindow.isDestroyed())
     ? mainWindow.getBounds() : { x: 80, y: 80, width: 920, height: 780 };
   const disp = screen.getDisplayMatching(mb).workArea;
+  // Save main bounds + shift main left to make room for Creator
+  creatorSavedMainBounds = { ...mb };
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    const newMainX = Math.max(disp.x, mb.x - W);
+    mainWindow.setBounds({ x: newMainX, y: mb.y, width: mb.width, height: mb.height });
+  }
   const height = Math.max(460, Math.min(mb.height, disp.height));
   let x = mb.x + mb.width;
   if (x + W > disp.x + disp.width) x = Math.max(disp.x, mb.x - W);   // no room right → open left
@@ -598,7 +605,13 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
     creatorWindow = null; creatorDirty = false; creatorForceClose = false;
     // Wipe any lingering live-preview overrides on main (covers save, cancel, and
     // crash paths alike) so it shows its real (or freshly-saved) theme.
-    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('creator-preview-reset');
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('creator-preview-reset');
+      if (creatorSavedMainBounds) {
+        mainWindow.setBounds(creatorSavedMainBounds);
+        creatorSavedMainBounds = null;
+      }
+    }
   });
 });
 
