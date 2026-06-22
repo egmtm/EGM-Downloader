@@ -7,7 +7,7 @@ maps to at least one regression we shipped and then had to fix.
 """
 import re
 import pytest
-from conftest import read_source, PLATFORM_APP_FILES, PLATFORM_NAMES
+from conftest import read_source, read_index_scripts, PLATFORM_APP_FILES, PLATFORM_NAMES
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -91,7 +91,7 @@ def test_frontend_settings_keys_accepted_by_backend():
     Every settings key the frontend sends via /api/settings/save must be in
     the backend ALLOWED set, or it will be silently dropped.
     """
-    index_src  = read_source("templates/index_scripts.html")  # JS extracted from index.html
+    index_src  = read_index_scripts()  # JS extracted from index.html (js/ modules resolved)
     backend_src = read_source("app.py")
 
     # Extract keys from JS save calls: post('/api/settings/save', { key: value })
@@ -121,7 +121,7 @@ def test_theme_data_matches_themes_array():
     (excluding 'custom' which is handled specially).
     Regression: new theme batches added to one structure but not the other.
     """
-    source = read_source("templates/index_scripts.html")  # JS extracted from index.html
+    source = read_index_scripts()  # JS extracted from index.html (js/ modules resolved)
 
     # Extract THEMES array
     m = re.search(r"const THEMES\s*=\s*\[([^\]]+)\]", source)
@@ -300,7 +300,7 @@ def test_theme_counts_consistent():
     must all agree on the total count. Catches corruption from bad insertions,
     merge drift, and partial integrations."""
     theme_data = read_source("templates/theme_data.html")  # single shared source now
-    scripts = read_source("templates/index_scripts.html")
+    scripts = read_index_scripts()  # js/ modules resolved
     index_html = read_source("templates/index.html")
 
     data_count = len(re.findall(r"cat:'", theme_data))
@@ -319,7 +319,7 @@ def test_theme_counts_consistent():
 
 def test_theme_counts_linux_parity():
     """Linux templates must have identical theme counts to root templates."""
-    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html"]:
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html"]:
         root = read_source(f"templates/{fname}")
         linux = read_source(f"linux/templates/{fname}")
         assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
@@ -544,7 +544,7 @@ def test_theme_validator_covers_all_vars():
     ALL_VARS (index_scripts.html). If they drift, a theme var would be silently
     rejected (missing from the type map) or an un-typed var would slip through."""
     validator = read_source("templates/theme_validator.html")
-    scripts   = read_source("templates/index_scripts.html")
+    scripts   = read_index_scripts()  # js/ modules resolved
     m = re.search(r'const THEME_VAR_TYPES\s*=\s*\{(.*?)\};', validator, re.DOTALL)
     assert m, "THEME_VAR_TYPES not found in theme_validator.html"
     type_vars = set(re.findall(r"'(--[a-z0-9-]+)'\s*:", m.group(1)))
@@ -563,7 +563,7 @@ def test_theme_validator_covers_all_vars():
 def test_theme_validator_is_the_only_gate():
     """The import path must use the shared validateThemeVar and not the old inline
     _cssVarSafe (one gate for import + Theme Creator, no fork)."""
-    src = read_source("templates/index_scripts.html")
+    src = read_index_scripts()  # js/ modules resolved
     assert "{% include 'theme_validator.html' %}" in src, "partial not included in index_scripts.html"
     assert "validateThemeVar(" in src, "import path not wired to validateThemeVar"
     assert "_cssVarSafe" not in src, "stale _cssVarSafe still present — superseded by validateThemeVar"
