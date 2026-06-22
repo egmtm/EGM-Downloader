@@ -11,8 +11,9 @@
   'use strict';
 
   // ── Shared: the 8 user-facing core vars and their starting (void) defaults ──
-  const CORE_KEYS     = ['--bg','--surf','--surf2','--acc','--text','--text2','--border','--red'];
-  const CORE_DEFAULTS = { '--bg':'#0b1120','--surf':'#111c2e','--surf2':'#182338','--acc':'#3b82f6',
+  const CORE_KEYS     = ['--bg','--surf','--surf2','--surf3','--acc','--acc-h','--text','--text2','--border','--red'];
+  const CORE_DEFAULTS = { '--bg':'#0b1120','--surf':'#111c2e','--surf2':'#182338','--surf3':'#1f2f47',
+                          '--acc':'#3b82f6','--acc-h':'#60a5fa',
                           '--text':'#e2e8f6','--text2':'#8faecf','--border':'#243454','--red':'#ef4444' };
 
   // ── Color math (hex → rgb, luminance, mix) for deriving the 17 non-core vars ─
@@ -41,7 +42,8 @@
     const acc = core['--acc'];
     const [ar, ag, ab] = hexToRgb(acc);
     const onAcc = relLum(hexToRgb(acc)) > 0.6 ? '#000000' : '#ffffff';
-    return Object.assign({}, core, {
+    // core last so user's picks overwrite auto-derived values
+    return Object.assign({}, {
       '--surf3':            mix(core['--surf2'], core['--text'], 0.06),
       '--border2':          mix(core['--border'], core['--text'], 0.20),
       '--acc-h':            mix(acc, '#ffffff', 0.18),
@@ -59,7 +61,7 @@
       '--audio-btn-color':  acc,
       '--dur-bg':           'rgba(0,0,0,0.85)',
       '--dur-text':         core['--text'],
-    });
+    }, core);
   }
   // Only emit name/value pairs the shared validator accepts (defence in depth —
   // the values are all derived/clamped, but the gate is the single source of truth).
