@@ -271,7 +271,7 @@ def check_linux_drift_from_root():
                       'subscriptions.html', 'theme_validator.html',
                       'js/_core.html', 'js/_settings.html', 'js/_download.html',
                       'js/_bulk.html', 'js/_nav_history.html', 'js/_theme.html',
-                      'js/_quality.html']
+                      'js/_quality.html', 'js/_creator.html']
     for name in template_files:
         root_path = root / 'templates' / name
         linux_path = root / 'linux' / 'templates' / name
