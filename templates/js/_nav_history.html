@@ -1,0 +1,270 @@
+// ── Navigation buttons — direct access to panel tabs ────────────────────────────
+(function() {
+  const navBtns = document.querySelectorAll('.nav-btn');
+  const panel   = document.getElementById('hamburger-panel');
+  const tabs    = document.querySelectorAll('.hpanel-tab');
+
+  function switchTab(tab) {
+    tabs.forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === tab);
+    });
+    const ph = document.getElementById('hpanel-history');
+    const pt = document.getElementById('hpanel-themes');
+    const pa = document.getElementById('hpanel-advanced');
+    if (ph) ph.style.display = tab === 'history'  ? '' : 'none';
+    if (pt) pt.style.display = tab === 'themes'   ? '' : 'none';
+    if (pa) pa.style.display = tab === 'advanced' ? '' : 'none';
+    const el = document.getElementById(`hpanel-${tab}`);
+    if (!el) return;
+    el.style.animation = 'none'; el.offsetHeight; el.style.animation = '';
+    if (tab === 'history') loadHistoryPanel();
+  }
+  window.switchTab = switchTab;
+
+  function setActiveNav(tab) {
+    navBtns.forEach(b => b.classList.toggle('active', b.dataset.nav === tab));
+  }
+
+  function getActiveTab() {
+    const active = document.querySelector('.hpanel-tab.active');
+    return active ? active.dataset.tab : 'history';
+  }
+
+  navBtns.forEach(b => {
+    if (b.id === 'subs-btn') return; // subs-btn has its own dedicated handler
+    b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const target = b.dataset.nav;
+    const isOpen = panel.classList.contains('open');
+    const currentTab = getActiveTab();
+
+    if (isOpen && currentTab === target) {
+      panel.classList.remove('open');
+      setActiveNav(null);
+    } else {
+      switchTab(target);
+      setActiveNav(target);
+      if (!isOpen) {
+        panel.classList.add('open');
+      }
+    }
+    });
+  });
+
+  tabs.forEach(t => t.addEventListener('click', () => {
+    switchTab(t.dataset.tab);
+    setActiveNav(t.dataset.tab);
+  }));
+
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && !e.target.closest('.nav-btn')) {
+      panel.classList.remove('open');
+      setActiveNav(null);
+    }
+  });
+
+  document.getElementById('open-history-window-btn').addEventListener('click', () => {
+    panel.classList.remove('open');
+    setActiveNav(null);
+    if (window.electronAPI?.openHistoryWindow) window.electronAPI.openHistoryWindow();
+    else window.open('/history-page', '_blank');
+  });
+  document.getElementById('history-clear-btn').addEventListener('click', async () => {
+    if (!confirm('Clear all download history? This cannot be undone.')) return;
+    await fetch('/api/history/clear', { method: 'POST' });
+    loadHistoryPanel();
+  });
+})();
+
+// ── History panel state & render ──────────────────────────────────────────────
+let _historyPage = 1;         // current batch (1-based, newest first)
+let _historyTotal = 0;
+let _historyBatches = [];     // [{page, items}] — already loaded pages
+let _pinnedIds = new Set();
+try { _pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') || '[]') || []).map(String)); } catch {}
+const HBATCH = 10;
+
+function _fmtSize(b) {
+  if (!b) return '';
+  if (b > 1073741824) return (b/1073741824).toFixed(1) + ' GB';
+  if (b > 1048576)    return (b/1048576).toFixed(1) + ' MB';
+  if (b > 1024)       return (b/1024).toFixed(0) + ' KB';
+  return b + ' B';
+}
+function _fmtDate(iso) {
+  try {
+    const d = new Date(iso);
+    const now = new Date();
+    const diff = (now - d) / 1000;
+    if (diff < 86400) return 'Today';
+    if (diff < 172800) return 'Yesterday';
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  } catch { return ''; }
+}
+function _fmtFmt(f) {
+  return f ? f.toUpperCase() : '';
+}
+
+function _buildEntry(item) {
+  const div = document.createElement('div');
+  div.className = 'hentry';
+  const isAudio = ['mp3','aac','flac','wav','ogg','m4a'].includes(item.format);
+  const pinned = _pinnedIds.has(String(item.id));
+  if (pinned) div.classList.add('pinned');
+  const thumbHtml = item.thumbnail
+    ? `<img class="hthumb" src="/api/thumbnail/${item.thumbnail}" alt="" onerror="this.outerHTML='<div class=\\'hthumb\\'>${isAudio ? '♫' : '▶'}</div>'">`
+    : `<div class="hthumb">${isAudio ? '♫' : '▶'}</div>`;
+  div.innerHTML = `
+    ${thumbHtml}
+    <div style="flex:1;min-width:0">
+      <p class="htitle">${item.title || item.filename || '—'}</p>
+      <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
+    </div>
+    <div class="hbtns">
+      <button class="hbtn pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin' : 'Pin to top'}">${pinned ? '★' : '☆'}</button>
+      <button class="hbtn" title="Re-add URL">↺</button>
+      <button class="hbtn" title="Open folder">🗁</button>
+      <button class="hbtn red" title="Remove">✕</button>
+    </div>`;
+  const [btnPin, btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
+  btnPin.addEventListener('click', () => {
+    const id = String(item.id);
+    if (_pinnedIds.has(id)) {
+      _pinnedIds.delete(id);
+    } else {
+      _pinnedIds.add(id);
+    }
+    try { localStorage.setItem('egm-history-pins', JSON.stringify([..._pinnedIds])); } catch {}
+    loadHistoryPanel();
+  });
+  btnReadd.addEventListener('click', () => {
+    const ta = document.getElementById('urls');
+    if (!ta) return;
+    // Append (one URL per line) instead of overwriting — allows readding multiple in a row
+    const existing = ta.value.trim();
+    const lines = existing ? existing.split(/\r?\n/).map(s => s.trim()).filter(Boolean) : [];
+    if (!lines.includes(item.url)) {
+      ta.value = lines.length ? `${lines.join('\n')}\n${item.url}` : item.url;
+      ta.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+    ta.focus();
+    // Visual feedback — flash the row briefly
+    div.style.transition = 'background .2s';
+    div.style.background = 'rgba(74,222,128,.15)';
+    setTimeout(() => { div.style.background = ''; }, 600);
+  });
+  btnOpen.addEventListener('click', () => {
+    if (window.electronAPI?.openFolder) window.electronAPI.openFolder(item.download_dir);
+  });
+  btnDel.addEventListener('click', async () => {
+    await fetch(`/api/history/${item.id}`, { method: 'DELETE' });
+    loadHistoryPanel();
+  });
+  return div;
+}
+
+async function loadHistoryPanel(page = 1) {
+  _historyPage = page;
+  _historyBatches = [];
+  const body = document.getElementById('history-panel-body');
+  if (!body) return;
+
+  // Fetch first; build the new content in a fragment; THEN swap atomically.
+  // No detached-element references, no "wipe then await" race window.
+  let d = null;
+  try {
+    d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
+  } catch {
+    body.innerHTML = '<div id="history-empty" style="padding:12px 8px;font-size:10px;color:var(--text2);text-align:center">Could not load history</div>';
+    return;
+  }
+
+  // Update count displays — these always reflect the latest fetch
+  const total = (d && typeof d.total === 'number') ? d.total : 0;
+  _historyTotal = total;
+  const countEl = document.getElementById('history-panel-count');
+  const infoEl  = document.getElementById('history-total-info');
+  if (countEl) countEl.textContent = total + ' total';
+  if (infoEl)  infoEl.textContent  = total + ' downloads';
+
+  const tabCount = document.getElementById('history-tab-count');
+  if (tabCount) tabCount.textContent = total || '';
+
+  // Build the new body content into a fragment
+  const frag = document.createDocumentFragment();
+  const items = (d && Array.isArray(d.items)) ? d.items : [];
+
+  // Pinned items float to top
+  const pinned = items.filter(it => _pinnedIds.has(String(it.id)));
+  const unpinned = items.filter(it => !_pinnedIds.has(String(it.id)));
+  const sorted = [...pinned, ...unpinned];
+
+  if (items.length === 0) {
+    const empty = document.createElement('div');
+    empty.id = 'history-empty';
+    empty.style.cssText = 'padding:12px 8px;font-size:10px;color:var(--text2);text-align:center';
+    // Edge case: server reported total > 0 but returned no items — still inform the user
+    empty.textContent = total > 0 ? `${total} downloads (refresh to load)` : 'No downloads yet';
+    frag.appendChild(empty);
+  } else {
+    const shown = sorted.slice(0, 5);
+    const hidden = sorted.length - shown.length;
+    shown.forEach(item => frag.appendChild(_buildEntry(item)));
+    if (hidden > 0) {
+      const more = document.createElement('p');
+      more.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:2px 0';
+      more.textContent = `· · · ${hidden} more in this batch · · ·`;
+      frag.appendChild(more);
+    }
+    if (d && page < d.pages) {
+      const btn = document.createElement('button');
+      btn.className = 'hpill';
+      btn.textContent = `↓ Show older (${(d.pages - page) * HBATCH} more)`;
+      btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, d.pages, body, btn));
+      frag.appendChild(btn);
+    }
+  }
+
+  // Atomic swap: clear old, append new — single synchronous operation
+  body.innerHTML = '';
+  body.appendChild(frag);
+}
+
+async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
+  const d = await fetch(`/api/history?page=${page}&per_page=${HBATCH}`).then(r => r.json());
+  if (!d.items || !d.items.length) return;
+
+  // Collapse previous entries into a pill
+  const pills = parentBody.querySelectorAll('.hentry, p, .hpill');
+  const collapseCount = parentBody.querySelectorAll('.hentry').length;
+  if (collapseCount > 0) {
+    const pill = document.createElement('button');
+    pill.className = 'hpill';
+    pill.innerHTML = `↑ Show newer <span style="background:var(--surf2);border-radius:6px;padding:0 4px;font-size:8px;border:0.5px solid var(--border)">${collapseCount}</span>`;
+    // On click: restore original page
+    pill.addEventListener('click', () => loadHistoryPanel(_historyPage));
+    [...pills].forEach(el => el.remove());
+    parentBody.insertBefore(pill, parentBody.firstChild);
+  }
+  oldBtn.remove();
+
+  // Render new batch
+  const frag = document.createDocumentFragment();
+  d.items.slice(0, 5).forEach(item => frag.appendChild(_buildEntry(item)));
+  parentBody.appendChild(frag);
+
+  if (page < totalPages) {
+    const btn = document.createElement('button');
+    btn.className = 'hpill';
+    btn.textContent = `↓ Show older (${(totalPages - page) * HBATCH} more)`;
+    btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, totalPages, parentBody, btn));
+    parentBody.appendChild(btn);
+  } else {
+    const end = document.createElement('p');
+    end.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:4px 0 2px';
+    end.textContent = '— beginning of history —';
+    parentBody.appendChild(end);
+  }
+}
+
+
