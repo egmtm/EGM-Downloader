@@ -1,0 +1,268 @@
+// ── Download All — best quality, no modal ─────────────────────────────────────
+// Helper: show/hide bulk download row together
+// Auto-hides when all items are in a finished state (done/error/cancelled)
+// to prevent the "Nothing to download" toast on repeat clicks
+function setDlAllVisible(show) {
+  // Force-hide overrides everything
+  if (!show) {
+    document.getElementById('bulk-actions').style.display = 'none';
+    return;
+  }
+  // Show requested — but only if at least one item is still actionable
+  const anyPending = items.some(i =>
+    i.status === 'idle' || i.status === 'fetching' || i.status === 'downloading'
+  );
+  document.getElementById('bulk-actions').style.display = anyPending ? 'flex' : 'none';
+}
+
+document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
+// dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
+async function downloadAll(forceFormat, audioQuality, videoQuality) {
+  if (!chosenPath) {
+    toast('Please select a download folder first', 'err');
+    document.getElementById('browse-btn').focus();
+    return;
+  }
+  const pending = items.filter(i => i.status === 'idle' || i.status === 'error');
+  if (!pending.length) { toast('Nothing to download', 'err'); return; }
+  bulkStop = false;
+  const bar       = document.getElementById('bulk-bar');
+  const modeLabel = forceFormat === 'audio' ? 'audio files' : 'videos';
+  bar.classList.add('show');
+  const dir = chosenPath;
+  const CONCURRENCY = parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
+  let done = 0, active = 0, idx = 0;
+
+  function updateBulkTxt() {
+    document.getElementById('bulk-txt').textContent =
+      `Downloading ${done} / ${pending.length} ${modeLabel} done  (${active} active)`;
+  }
+  // downloadOne: starts one item's download and resolves when finished
+  async function downloadOne(item) {
+    if (bulkStop || item.status === 'cancelled') { active--; return; }
+    const n       = item.id;
+    const stEl    = document.getElementById('st'     + n);
+    const dlBtn   = document.getElementById('dl'     + n);
+    const progEl  = document.getElementById('prog'   + n);
+    if (!stEl || !dlBtn) { done++; updateBulkTxt(); return; }
+
+    // Lazy-fetch info if needed
+    if (!item.info.formats?.length && !item.info.audio_formats?.length) {
+      setBadge(stEl, 'dl', 'Fetching...'); dlBtn.disabled = true;
+      try {
+        const i2 = await post('/api/info', { url: item.url });
+        if (!i2.error) item.info = i2;
+      } catch {}
+    }
+
+    item.status = 'downloading';
+    setBadge(stEl, 'dl', 'Queued...');
+    dlBtn.disabled = true;
+    if (progEl) progEl.style.display = '';
+
+    let cancelBtn = document.getElementById('cancel' + n);
+    if (!cancelBtn) {
+      cancelBtn = document.createElement('button');
+      cancelBtn.id = 'cancel' + n;
+      cancelBtn.className = 'btn btn-red btn-sm';
+      cancelBtn.textContent = '✕ Cancel';
+      dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
+    }
+    cancelBtn.style.display = '';
+    cancelBtn.onclick = () => cancelDownload(item, n);
+
+    try {
+      if (bulkStop || item.status === 'cancelled') { active--; return; }
+      setBadge(stEl, 'dl', 'Downloading...');
+      const res = await post('/api/download', {
+        url: item.url, format: forceFormat || item.selFmt,
+        format_id: null,
+        video_height: (forceFormat !== 'audio' && videoQuality && videoQuality !== 'best') ? parseInt(videoQuality) : null,
+        // audio_codec not sent — backend defaults to encode path (safe for unknown bestaudio)
+        concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
+        title: item.info.title || 'download',
+        download_dir: dir,
+        thumbnail: item.info?.thumbnail || '',
+        audio_quality: audioQuality || document.getElementById('default-audio-fmt-sel')?.value || '320',
+        subtitles: !!document.getElementById('subtitles-chk')?.checked,
+        embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
+        output_format: document.getElementById('output-format-sel')?.value || 'mp4',
+      });
+      if (res.error) throw new Error(res.error);
+      item.jobId = res.job_id;
+
+      await new Promise(resolve => {
+        const wiv = setInterval(async () => {
+          // Check cancellation before any fetch
+          if (item.status === 'cancelled' || bulkStop) {
+            clearInterval(wiv);
+            applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
+            done++; resolve();
+            return;
+          }
+          try {
+            const d = await fetch('/api/status/' + item.jobId).then(r => r.json());
+            // Re-check after async fetch
+            if (item.status === 'cancelled' || bulkStop) {
+              clearInterval(wiv);
+              applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
+              done++; resolve();
+              return;
+            }
+            // Re-fetch live elements in case renderCard replaced the DOM
+            // (happens when playlist full info arrives while download is running)
+            const liveStEl   = document.getElementById('st'   + n) || stEl;
+            const liveDlBtn  = document.getElementById('dl'   + n) || dlBtn;
+            const liveProgEl = document.getElementById('prog' + n) || progEl;
+            applyJobProgress(d, liveStEl, liveProgEl);
+            if (applyJobDone(d, item, liveStEl, liveDlBtn, liveProgEl, cancelBtn)) {
+              clearInterval(wiv);
+              done++; resolve();
+            }
+          } catch {}
+        }, 1000);
+      });
+    } catch (e) {
+      item.status = 'error';
+      setBadge(stEl, 'error', e.message);
+      dlBtn.disabled = false; dlBtn.style.display = '';
+      if (progEl) progEl.style.display = 'none';
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      done++;
+    }
+    active--;
+    // updateBulkTxt is called by pump() after it refills the slot,
+    // so the count shown reflects the new active count correctly.
+  }
+
+  // Concurrency pump: keep up to CONCURRENCY downloads running at once
+  await new Promise(resolve => {
+    function pump() {
+      if (bulkStop) { resolve(); return; }
+      while (active < CONCURRENCY && idx < pending.length) {
+        active++;
+        downloadOne(pending[idx++]).then(pump);
+      }
+      updateBulkTxt();  // update AFTER filling slots so count is accurate
+      if (idx >= pending.length && active === 0) resolve();
+    }
+    pump();
+  });
+
+  bar.classList.remove('show');
+  if (!bulkStop) {
+    toast('Done — ' + done + ' ' + modeLabel, 'ok');
+    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
+      setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
+    }
+  }
+}
+
+function cancelBulk() {
+  bulkStop = true;
+  document.getElementById('bulk-bar').classList.remove('show');
+  items.forEach(item => {
+    // Cancel anything in-flight: downloading (has jobId) or queued (jobId assigned but not yet running)
+    if ((item.status === 'downloading' || item.status === 'queued') && item.jobId) {
+      bulkCancelledJobs.add(item.jobId);
+      fetch('/api/cancel/' + item.jobId, { method: 'POST' }).catch(() => {});
+    }
+    // Also mark idle items that the pump hasn't started yet so they don't start
+    if (item.status === 'downloading' || item.status === 'queued' || item.status === 'idle') {
+      item.status = 'cancelled';
+      const n = item.id;
+      const stEl    = document.getElementById('st'     + n);
+      const progEl  = document.getElementById('prog'   + n);
+      const dlBtn   = document.getElementById('dl'     + n);
+      const cancelBtn = document.getElementById('cancel' + n);
+      if (stEl)      setBadge(stEl, 'cancel', 'Cancelled');
+      if (progEl)    progEl.style.display = 'none';
+      if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+      if (cancelBtn) cancelBtn.style.display = 'none';
+    }
+  });
+  toast('All downloads cancelled');
+}
+
+function clearCompleted() {
+  // Done items are auto-removed on completion. This clears stuck error + cancelled cards.
+  const before = items.length;
+  items = items.filter(item => {
+    if (item.status === 'error' || item.status === 'cancelled') {
+      const stEl = document.getElementById('st' + item.id);
+      const card = stEl ? stEl.closest('.vcard') : null;
+      if (card) card.remove();
+      return false;
+    }
+    return true;
+  });
+  const cleared = before - items.length;
+  if (cleared > 0) toast(`Cleared ${cleared} item${cleared !== 1 ? 's' : ''}`, 'ok');
+  else toast('Nothing to clear', '');
+  if (items.length <= 1) setDlAllVisible(false);
+}
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  document.getElementById('urls').value = '';
+  showEmptyState();
+  setDlAllVisible(false);
+  items = [];
+});
+
+function showEmptyState() {
+  document.getElementById('results').innerHTML =
+    '';
+}
+
+showEmptyState();
+
+// ── Scroll-to-top button ──────────────────────────────────────────────────────
+(function() {
+  const btn = document.getElementById('scroll-top');
+  function getScrollY() {
+    return window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
+  }
+  function onScroll() {
+    btn.classList.toggle('visible', getScrollY() > 150);
+  }
+  window.addEventListener('scroll', onScroll, { passive: true });
+  document.addEventListener('scroll', onScroll, { passive: true });
+  btn.addEventListener('click', () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
+})();
+
+// ── Minimize a completed download card ──────────────────────────────────────────
+
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+async function post(path, body) {
+  const r = await fetch(path, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body) });
+  return r.json();
+}
+
+function setBadge(el, type, text) {
+  if (!el) return;
+  const map = {dl:'b-dl', done:'b-done', error:'b-error', wait:'b-wait', cancel:'b-cancel'};
+  el.className = `badge ${map[type]||'b-wait'}`;
+  el.innerHTML = type==='dl' ? `<span class="spinner"></span> ${esc(text)}` : esc(text);
+}
+
+function fmtDur(s) {
+  s = Math.round(s);
+  const h=Math.floor(s/3600), m=Math.floor((s%3600)/60), ss=s%60;
+  return h ? `${h}:${pad(m)}:${pad(ss)}` : `${m}:${pad(ss)}`;
+}
+function pad(n) { return String(n).padStart(2,'0'); }
+function trunc(s,n) { s=String(s); return s.length>n ? s.slice(0,n)+'…' : s; }
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+function toast(msg, type='') {
+  const c=document.getElementById('toasts');
+  const t=document.createElement('div');
+  t.className=`toast ${type}`; t.textContent=msg;
+  c.appendChild(t); setTimeout(()=>t.remove(), TOAST_DURATION);
+}
+
+
