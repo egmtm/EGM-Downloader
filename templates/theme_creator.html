@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Theme Creator — EGM Downloader</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* Creator chrome uses a fixed neutral palette so the controls stay readable
+       no matter what colors the user is previewing. The preview vars are scoped
+       to #cv-preview only (set via JS), never to the page root. */
+    :root {
+      --c-bg:#0e1117; --c-surf:#171c24; --c-surf2:#1e2530; --c-border:#2a3340;
+      --c-text:#e6ebf2; --c-text2:#93a1b3; --c-acc:#3b82f6; --c-acc-text:#ffffff;
+      --c-danger:#ef4444; --r:9px;
+    }
+    body {
+      font-family:'Segoe UI',system-ui,sans-serif;
+      background:var(--c-bg); color:var(--c-text);
+      height:100vh; display:flex; overflow:hidden; font-size:13px;
+    }
+
+    /* ── Left: live preview ─────────────────────────────────────────────────── */
+    #cv-preview-wrap { flex:1 1 auto; min-width:280px; display:flex; flex-direction:column; border-right:1px solid var(--c-border); }
+    .cv-preview-bar {
+      display:flex; align-items:center; gap:8px; padding:10px 14px;
+      border-bottom:1px solid var(--c-border); background:var(--c-surf); flex:0 0 auto;
+    }
+    .cv-dot { width:9px; height:9px; border-radius:50%; background:var(--c-acc); box-shadow:0 0 0 3px color-mix(in srgb, var(--c-acc) 30%, transparent); }
+    .cv-preview-bar .lbl { font-size:11px; color:var(--c-text2); }
+    .cv-preview-bar #cv-preview-name { font-weight:600; color:var(--c-text); }
+
+    /* The miniature app — everything here reads the previewed theme vars. */
+    #cv-preview {
+      --bg:#0b1120; --surf:#111c2e; --surf2:#182338; --surf3:#1e2d47;
+      --border:#243454; --border2:#2d4068; --acc:#3b82f6; --acc-h:#60a5fa;
+      --acc-dim:rgba(59,130,246,.14); --text:#e2e8f6; --text2:#8faecf; --muted:#3d5470;
+      --red:#ef4444; --thumb-bg:#080808; --btn-on-accent:#000; --dur-bg:rgba(0,0,0,.85); --dur-text:#ddd;
+      flex:1 1 auto; overflow:auto; padding:16px; background:var(--bg);
+    }
+    .mp-nav { display:flex; align-items:center; gap:8px; padding:9px 12px; background:var(--surf); border:1px solid var(--border); border-radius:var(--r); margin-bottom:14px; }
+    .mp-logo { font-weight:800; color:var(--acc); letter-spacing:.5px; }
+    .mp-nav .sp { flex:1; }
+    .mp-pill { padding:4px 9px; border:1px solid var(--border2); border-radius:6px; color:var(--text2); font-size:11px; background:var(--surf2); }
+    .mp-row { display:flex; gap:8px; margin-bottom:14px; }
+    .mp-input { flex:1; padding:8px 10px; background:var(--surf2); border:1px solid var(--border); border-radius:7px; color:var(--text); font-size:12px; }
+    .mp-btn { padding:8px 14px; border-radius:7px; border:none; font-weight:600; font-size:12px; cursor:default; }
+    .mp-btn.primary { background:var(--acc); color:var(--btn-on-accent); }
+    .mp-btn.danger { background:transparent; color:var(--red); border:1px solid var(--red); }
+    .mp-card { display:flex; gap:11px; padding:11px; background:var(--surf); border:1px solid var(--border); border-radius:var(--r); margin-bottom:12px; }
+    .mp-thumb { width:84px; height:50px; border-radius:6px; background:var(--thumb-bg); flex:0 0 auto; position:relative; overflow:hidden; }
+    .mp-thumb .dur { position:absolute; right:4px; bottom:3px; font-size:9px; padding:1px 4px; border-radius:3px; background:var(--dur-bg); color:var(--dur-text); }
+    .mp-meta { flex:1; min-width:0; }
+    .mp-title { color:var(--text); font-weight:600; font-size:12px; margin-bottom:5px; }
+    .mp-sub { color:var(--text2); font-size:11px; margin-bottom:7px; }
+    .mp-badge { display:inline-block; padding:2px 7px; border-radius:5px; background:var(--acc-dim); color:var(--acc); font-size:10px; font-weight:600; }
+    .mp-subcard { padding:11px; background:var(--surf2); border:1px solid var(--border2); border-radius:var(--r); }
+    .mp-subcard .h { color:var(--text); font-weight:600; font-size:11px; margin-bottom:6px; }
+    .mp-subcard .b { color:var(--muted); font-size:10px; }
+
+    /* ── Right: controls ────────────────────────────────────────────────────── */
+    #cv-controls { flex:0 0 320px; max-width:320px; display:flex; flex-direction:column; background:var(--c-bg); }
+    .cv-head { display:flex; align-items:center; padding:12px 14px; border-bottom:1px solid var(--c-border); }
+    .cv-head h1 { font-size:14px; font-weight:700; flex:1; }
+    #cv-close { width:28px; height:28px; border:none; background:transparent; color:var(--c-text2); font-size:20px; line-height:1; border-radius:6px; cursor:pointer; }
+    #cv-close:hover { background:var(--c-surf2); color:var(--c-text); }
+    .cv-body { flex:1 1 auto; overflow:auto; padding:14px; }
+    .cv-field { margin-bottom:14px; }
+    .cv-field label { display:block; font-size:11px; color:var(--c-text2); margin-bottom:5px; }
+    #cv-name { width:100%; padding:8px 10px; background:var(--c-surf2); border:1px solid var(--c-border); border-radius:7px; color:var(--c-text); font-size:13px; }
+    #cv-name:focus { outline:none; border-color:var(--c-acc); }
+    .cv-pick-row { display:flex; align-items:center; gap:10px; padding:7px 0; border-top:1px solid var(--c-border); }
+    .cv-pick-row .nm { flex:1; }
+    .cv-pick-row .nm b { display:block; font-size:12px; color:var(--c-text); }
+    .cv-pick-row .nm span { font-size:10px; color:var(--c-text2); }
+    input.cv-pick { width:42px; height:30px; padding:0; border:1px solid var(--c-border); border-radius:6px; background:var(--c-surf2); cursor:pointer; }
+    input.cv-pick::-webkit-color-swatch-wrapper { padding:2px; }
+    input.cv-pick::-webkit-color-swatch { border:none; border-radius:4px; }
+    .cv-foot { flex:0 0 auto; display:flex; gap:7px; padding:12px 14px; border-top:1px solid var(--c-border); background:var(--c-surf); }
+    .cv-btn { flex:1; padding:8px 0; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; border:1px solid var(--c-border); background:var(--c-surf2); color:var(--c-text); }
+    .cv-btn:hover { border-color:var(--c-acc); }
+    .cv-btn-primary { background:var(--c-acc); border-color:var(--c-acc); color:var(--c-acc-text); }
+    .cv-btn-danger { background:transparent; border-color:var(--c-danger); color:var(--c-danger); }
+
+    /* ── Modals + toast ─────────────────────────────────────────────────────── */
+    .cv-modal-back { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:50; }
+    .cv-modal { width:300px; max-width:90vw; background:var(--c-surf); border:1px solid var(--c-border); border-radius:12px; padding:18px; box-shadow:0 20px 60px rgba(0,0,0,.8); }
+    .cv-modal h3 { font-size:14px; margin-bottom:8px; }
+    .cv-modal p { font-size:12px; color:var(--c-text2); margin-bottom:16px; line-height:1.5; }
+    .cv-modal-actions { display:flex; gap:8px; }
+    #cv-toast {
+      position:fixed; bottom:18px; left:50%; transform:translateX(-50%) translateY(20px);
+      background:var(--c-surf2); border:1px solid var(--c-border); color:var(--c-text);
+      padding:9px 16px; border-radius:8px; font-size:12px; opacity:0; pointer-events:none;
+      transition:opacity .2s, transform .2s; z-index:60;
+    }
+    #cv-toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+    #cv-toast.ok  { border-color:#2e7d52; }
+    #cv-toast.err { border-color:var(--c-danger); }
+  </style>
+</head>
+<body id="creator-root">
+
+  <!-- ── Left: live preview ── -->
+  <div id="cv-preview-wrap">
+    <div class="cv-preview-bar">
+      <span class="cv-dot"></span>
+      <span class="lbl">Live preview —</span>
+      <span id="cv-preview-name">My Theme 1</span>
+    </div>
+    <div id="cv-preview">
+      <div class="mp-nav">
+        <span class="mp-logo">EGM</span>
+        <span class="sp"></span>
+        <span class="mp-pill">Themes</span>
+        <span class="mp-pill">Subscriptions</span>
+      </div>
+      <div class="mp-row">
+        <input class="mp-input" value="https://youtube.com/watch?v=…" readonly/>
+        <button class="mp-btn primary">Fetch</button>
+      </div>
+      <div class="mp-card">
+        <div class="mp-thumb"><span class="dur">10:24</span></div>
+        <div class="mp-meta">
+          <div class="mp-title">Sample video title</div>
+          <div class="mp-sub">Channel name · 1.2M views</div>
+          <span class="mp-badge">1080p</span>
+        </div>
+      </div>
+      <div class="mp-row">
+        <button class="mp-btn primary">Download</button>
+        <button class="mp-btn danger">Cancel</button>
+      </div>
+      <div class="mp-subcard">
+        <div class="h">Subscriptions</div>
+        <div class="b">12 channels · 3 new videos</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Right: controls ── -->
+  <div id="cv-controls">
+    <div class="cv-head">
+      <h1>Theme Creator</h1>
+      <button id="cv-close" title="Close" aria-label="Close">&times;</button>
+    </div>
+    <div class="cv-body">
+      <div class="cv-field">
+        <label for="cv-name">Theme name</label>
+        <input id="cv-name" type="text" maxlength="60" autocomplete="off" spellcheck="false"/>
+      </div>
+      <div class="cv-picks">
+        <div class="cv-pick-row"><div class="nm"><b>App background</b><span>The canvas</span></div><input class="cv-pick" type="color" data-var="--bg" aria-label="App background"/></div>
+        <div class="cv-pick-row"><div class="nm"><b>Surface</b><span>Cards, panels</span></div><input class="cv-pick" type="color" data-var="--surf" aria-label="Surface"/></div>
+        <div class="cv-pick-row"><div class="nm"><b>Surface 2</b><span>Slightly lighter surfaces</span></div><input class="cv-pick" type="color" data-var="--surf2" aria-label="Surface 2"/></div>
+        <div class="cv-pick-row"><div class="nm"><b>Accent</b><span>Buttons, highlights</span></div><input class="cv-pick" type="color" data-var="--acc" aria-label="Accent"/></div>
+        <div class="cv-pick-row"><div class="nm"><b>Text</b><span>Primary text</span></div><input class="cv-pick" type="color" data-var="--text" aria-label="Text"/></div>
+        <div class="cv-pick-row"><div class="nm"><b>Muted text</b><span>Secondary text</span></div><input class="cv-pick" type="color" data-var="--text2" aria-label="Muted text"/></div>
+        <div class="cv-pick-row"><div class="nm"><b>Border</b><span>Visible everywhere</span></div><input class="cv-pick" type="color" data-var="--border" aria-label="Border"/></div>
+        <div class="cv-pick-row"><div class="nm"><b>Danger</b><span>Cancel / delete actions</span></div><input class="cv-pick" type="color" data-var="--red" aria-label="Danger"/></div>
+      </div>
+    </div>
+    <div class="cv-foot">
+      <button class="cv-btn" id="cv-reset">Reset</button>
+      <button class="cv-btn" id="cv-random">Random</button>
+      <button class="cv-btn" id="cv-export">Export</button>
+      <button class="cv-btn cv-btn-primary" id="cv-save">Save to app</button>
+    </div>
+  </div>
+
+  <script>
+  {% raw %}
+  // ── API token interceptor — same as the other windows ──────────────────────
+  (function() {
+    const _t = '{% endraw %}{{ egm_token }}{% raw %}';
+    const _f = window.fetch;
+    window.fetch = function(url, opts) {
+      if (typeof url === 'string' && url.startsWith('/api/') && _t) {
+        opts = opts || {};
+        opts.headers = Object.assign({}, opts.headers || {}, { 'X-EGM-Token': _t });
+      }
+      return _f.call(this, url, opts);
+    };
+  })();
+  {% endraw %}{% include 'theme_validator.html' %}
+{% include 'theme_data.html' %}
+{% include 'js/_creator.html' %}
+  </script>
+</body>
+</html>
