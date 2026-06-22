@@ -319,7 +319,7 @@ def test_theme_counts_consistent():
 
 def test_theme_counts_linux_parity():
     """Linux templates must have identical theme counts to root templates."""
-    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html"]:
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html"]:
         root = read_source(f"templates/{fname}")
         linux = read_source(f"linux/templates/{fname}")
         assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
@@ -535,3 +535,68 @@ def test_patchnotes_current_version_has_enough_bullets():
             f"stop early. Keep all bullets in one contiguous block (no blank lines "
             f"between sections within a version entry)."
         )
+
+
+# ── Shared theme validator (theme_validator.html) ──────────────────────────────
+
+def test_theme_validator_covers_all_vars():
+    """THEME_VAR_TYPES (theme_validator.html) must name EXACTLY the same vars as
+    ALL_VARS (index_scripts.html). If they drift, a theme var would be silently
+    rejected (missing from the type map) or an un-typed var would slip through."""
+    validator = read_source("templates/theme_validator.html")
+    scripts   = read_source("templates/index_scripts.html")
+    m = re.search(r'const THEME_VAR_TYPES\s*=\s*\{(.*?)\};', validator, re.DOTALL)
+    assert m, "THEME_VAR_TYPES not found in theme_validator.html"
+    type_vars = set(re.findall(r"'(--[a-z0-9-]+)'\s*:", m.group(1)))
+    rv = re.search(r'const REQUIRED_VARS\s*=\s*\[(.*?)\];', scripts, re.DOTALL)
+    av = re.search(r'const ALL_VARS\s*=\s*\[\s*\.\.\.REQUIRED_VARS,(.*?)\];', scripts, re.DOTALL)
+    assert rv and av, "REQUIRED_VARS / ALL_VARS not found in index_scripts.html"
+    all_vars = (set(re.findall(r"'(--[a-z0-9-]+)'", rv.group(1)))
+                | set(re.findall(r"'(--[a-z0-9-]+)'", av.group(1))))
+    assert type_vars == all_vars, (
+        "theme_validator THEME_VAR_TYPES is out of sync with ALL_VARS:\n"
+        f"  only in validator: {sorted(type_vars - all_vars)}\n"
+        f"  only in ALL_VARS:  {sorted(all_vars - type_vars)}"
+    )
+
+
+def test_theme_validator_is_the_only_gate():
+    """The import path must use the shared validateThemeVar and not the old inline
+    _cssVarSafe (one gate for import + Theme Creator, no fork)."""
+    src = read_source("templates/index_scripts.html")
+    assert "{% include 'theme_validator.html' %}" in src, "partial not included in index_scripts.html"
+    assert "validateThemeVar(" in src, "import path not wired to validateThemeVar"
+    assert "_cssVarSafe" not in src, "stale _cssVarSafe still present — superseded by validateThemeVar"
+    val = read_source("templates/theme_validator.html")
+    for needle in ("function validateThemeVar", "url", "image-set", "expression", "-moz-binding"):
+        assert needle in val, f"theme_validator.html missing forbidden-pattern term: {needle!r}"
+
+
+def test_theme_validator_behaviour():
+    """Run the ACTUAL validator (theme_validator.html is pure JS) in node against
+    real values and attack vectors. Skips if node is unavailable; the structural
+    tests above always run."""
+    import shutil, subprocess
+    if not shutil.which("node"):
+        pytest.skip("node not available — structural validator tests still cover it")
+    js = read_source("templates/theme_validator.html")
+    harness = js + r"""
+    let fail = null;
+    const A = (n,v)=>{ if(!validateThemeVar(n,v)) fail = fail || ('REJECTED valid '+n+'='+JSON.stringify(v)); };
+    const R = (n,v)=>{ if( validateThemeVar(n,v)) fail = fail || ('ACCEPTED bad  '+n+'='+JSON.stringify(v)); };
+    // valid (must accept)
+    A('--bg','#010101'); A('--bg','#0a0'); A('--bg','#00004480');
+    A('--surf','rgba(0,0,0,.35)'); A('--acc','rgb(20, 200, 168)'); A('--text','transparent');
+    A('--shadow','0 4px 12px rgba(0,0,0,.2)'); A('--modal-shadow','0 20px 60px rgba(0,0,0,.14)');
+    A('--shadow','inset 0 1px 2px #000, 0 4px 8px rgba(0,0,0,.3)'); A('--modal-overlay','rgba(0,0,0,.5)');
+    // attacks (must reject)
+    R('--bg','#000}*{background:red}'); R('--bg','red"><img src=x onerror=alert(1)>');
+    R('--bg','url(https://evil.example/beacon)'); R('--thumb-bg','image-set("https://e/x")');
+    R('--bg','expression(alert(1))'); R('--bg','red;position:fixed'); R('--bg','ur\\6c(x)');
+    R('--evil','#ffffff'); R('--bg','linear-gradient(red,blue)'); R('--bg','a'.repeat(201));
+    R('--bg',''); R('--bg','#xyz'); R('--shadow','0 0 0 url(x)'); R('--shadow','0 0 0 #000}{');
+    if (fail) { console.error(fail); process.exit(1); }
+    console.log('OK');
+    """
+    r = subprocess.run(["node", "-e", harness], capture_output=True, text=True, timeout=20)
+    assert r.returncode == 0, f"validateThemeVar behaviour failed: {r.stderr.strip() or r.stdout.strip()}"
