@@ -257,11 +257,11 @@ def update_mac_package_json(v, dry_run):    # Mac package.json has TWO version f
     path = ROOT / "mac" / "electron" / "package.json"
 
     def mutate(d):
-        d["version"] = f"{v}.0"
+        d["version"] = v
         if "build" in d and isinstance(d["build"], dict):
-            d["build"]["buildVersion"] = f"{v}.0"
+            d["build"]["buildVersion"] = v
 
-    patch_json(path, f"mac/electron/package.json -> version + buildVersion {v}.0",
+    patch_json(path, f"mac/electron/package.json -> version + buildVersion {v}",
                mutate, dry_run)
 
 
