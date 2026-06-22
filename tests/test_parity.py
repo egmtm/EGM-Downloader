@@ -643,3 +643,33 @@ def test_creator_uses_shared_validator():
     mod = read_source("templates/js/_creator.html")
     assert "validateThemeVar" in mod, "_creator.html does not call validateThemeVar"
     assert "setProperty" in mod, "_creator.html does not apply via setProperty"
+
+
+def test_creator_core_vars_pickers_and_random_in_sync():
+    """The picker rows (theme_creator.html), CORE_KEYS, and the Random handler's
+    rebuilt `core` object must cover EXACTLY the same vars. Drift — e.g. adding a
+    picker but not extending Random — leaves the un-set swatches black and breaks
+    dirty tracking (the v1.2 Random regression). Locking all three equal catches it
+    statically, before a build."""
+    mod  = read_source("templates/js/_creator.html")
+    page = read_source("templates/theme_creator.html")
+
+    m = re.search(r"const CORE_KEYS\s*=\s*\[([^\]]+)\]", mod)
+    assert m, "CORE_KEYS not found in _creator.html"
+    core_keys = set(re.findall(r"'(--[a-z0-9-]+)'", m.group(1)))
+
+    pickers = set(re.findall(r'class="cv-pick"[^>]*data-var="(--[a-z0-9-]+)"', page))
+
+    rnd = re.search(r"\$\('cv-random'\)\.addEventListener.*?\bcore\s*=\s*\{([^}]*)\}", mod, re.DOTALL)
+    assert rnd, "Random handler's core object not found in _creator.html"
+    random_keys = set(re.findall(r"'(--[a-z0-9-]+)'\s*:", rnd.group(1)))
+
+    assert core_keys == pickers, (
+        "CORE_KEYS vs picker rows mismatch:\n"
+        f"  only in CORE_KEYS: {sorted(core_keys - pickers)}\n"
+        f"  only in pickers:   {sorted(pickers - core_keys)}")
+    assert core_keys == random_keys, (
+        "Random does not set every core var (v1.2 black-swatch regression):\n"
+        f"  missing from Random: {sorted(core_keys - random_keys)}\n"
+        f"  extra in Random:     {sorted(random_keys - core_keys)}")
+    assert len(core_keys) == 10, f"expected 10 core vars, got {len(core_keys)}: {sorted(core_keys)}"
