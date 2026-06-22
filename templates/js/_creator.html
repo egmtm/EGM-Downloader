@@ -115,7 +115,6 @@
   const api = window.electronAPI || null;
   const $ = id => document.getElementById(id);
 
-  const previewEl = $('cv-preview');
   const nameInput = $('cv-name');
   const pickers   = Array.from(document.querySelectorAll('.cv-pick'));
 
@@ -163,11 +162,7 @@
 
   // ── Live preview: rAF-coalesce picker drags to ≤1 IPC msg/frame ──────────────
   let pending = null, raf = 0;
-  function applyToPreview(vars) {
-    for (const [k, v] of Object.entries(vars)) if (validateThemeVar(k, v)) previewEl.style.setProperty(k, v);
-  }
   function pushPreview(vars) {
-    applyToPreview(vars);                       // own panel updates immediately
     pending = Object.assign(pending || {}, vars);
     if (raf) return;
     raf = requestAnimationFrame(() => {
@@ -175,14 +170,7 @@
       if (api && api.creatorPreview) api.creatorPreview(v);   // → main window
     });
   }
-  function updatePreviewName() {
-    const el = $('cv-preview-name');
-    if (el) el.textContent = nameInput.value.trim() || 'Untitled';
-  }
-
-  // Seed the panel with the starting palette (own panel only — don't touch main
-  // until the user actually edits something).
-  applyToPreview(deriveAll(core));
+  // No local preview panel — main window is the live preview.
   updatePreviewName();
 
   // ── Pickers ──────────────────────────────────────────────────────────────────
