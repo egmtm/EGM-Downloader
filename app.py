@@ -1964,6 +1964,9 @@ def themes_page(): return render_template("themes.html", egm_token=_API_TOKEN)
 @app.route("/subscriptions-page")
 def subscriptions_page(): return render_template("subscriptions.html", egm_token=_API_TOKEN)
 
+@app.route("/theme-creator-page")
+def theme_creator_page(): return render_template("theme_creator.html", egm_token=_API_TOKEN)
+
 # ── Subscriptions API ─────────────────────────────────────────────────────────
 
 @app.route("/api/subscriptions", methods=["GET"])
