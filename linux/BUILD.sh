@@ -216,6 +216,7 @@ echo ""
 # ── Push to GitHub ────────────────────────────────────────────────────────────
 echo "🚀 Pushing to GitHub..."
 cd "$REPO_ROOT"
+echo "$BUILD_NUM" > scripts/last-released-build.txt
 git add -A
 git commit -m "Linux v$VERSION Build $BUILD_NUM"
 git push origin main
