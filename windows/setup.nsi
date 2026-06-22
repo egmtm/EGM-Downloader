@@ -175,7 +175,20 @@ Cancel  →  Cancel installation" \
   File "${REPO_ROOT}/templates/themes.html"
   File "${REPO_ROOT}/templates/theme_styles.html"
   File "${REPO_ROOT}/templates/theme_data.html"
+  File "${REPO_ROOT}/templates/theme_validator.html"
+  File "${REPO_ROOT}/templates/theme_creator.html"
   File "${REPO_ROOT}/templates/subscriptions.html"
+
+  ; ── templates\js\ ──
+  SetOutPath "$INSTDIR\templates\js"
+  File "${REPO_ROOT}/templates/js/_core.html"
+  File "${REPO_ROOT}/templates/js/_settings.html"
+  File "${REPO_ROOT}/templates/js/_download.html"
+  File "${REPO_ROOT}/templates/js/_bulk.html"
+  File "${REPO_ROOT}/templates/js/_nav_history.html"
+  File "${REPO_ROOT}/templates/js/_theme.html"
+  File "${REPO_ROOT}/templates/js/_quality.html"
+  File "${REPO_ROOT}/templates/js/_creator.html"
 
   ; ── static\ ──
   SetOutPath "$INSTDIR\static"
