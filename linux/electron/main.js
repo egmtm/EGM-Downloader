@@ -553,7 +553,7 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
   if (creatorWindow && !creatorWindow.isDestroyed()) { creatorWindow.focus(); return; }
   const fromThemes = !!(opts && opts.fromThemes);
 
-  const W = 760;
+  const W = 360;
   const mb = (mainWindow && !mainWindow.isDestroyed())
     ? mainWindow.getBounds() : { x: 80, y: 80, width: 920, height: 780 };
   const disp = screen.getDisplayMatching(mb).workArea;
