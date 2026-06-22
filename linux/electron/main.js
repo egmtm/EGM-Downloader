@@ -539,6 +539,88 @@ ipcMain.handle('open-themes-window', async (event) => {
   themesWindow.on('closed', () => { themesWindow = null; });
 });
 
+// ── IPC: Theme Creator window (v1.2 CANVAS) ───────────────────────────────────
+// Standalone top-level window (NOT parent:) positioned right of main, clamped to
+// main's display — mirrors themesWindow/subsWindow. The dirty-state + close guard
+// mirror the subsWindow pattern (main owns the flag; the renderer shows the in-app
+// modal). Live preview fans a var map to the main window, re-validated there.
+let creatorWindow = null;
+let creatorDirty = false;
+let creatorForceClose = false;
+
+ipcMain.handle('open-theme-creator', async (event, opts) => {
+  if (!isTrustedSender(event)) return;
+  if (creatorWindow && !creatorWindow.isDestroyed()) { creatorWindow.focus(); return; }
+  const fromThemes = !!(opts && opts.fromThemes);
+
+  const W = 760;
+  const mb = (mainWindow && !mainWindow.isDestroyed())
+    ? mainWindow.getBounds() : { x: 80, y: 80, width: 920, height: 780 };
+  const disp = screen.getDisplayMatching(mb).workArea;
+  const height = Math.max(460, Math.min(mb.height, disp.height));
+  let x = mb.x + mb.width;
+  if (x + W > disp.x + disp.width) x = Math.max(disp.x, mb.x - W);   // no room right → open left
+  x = Math.max(disp.x, Math.min(x, disp.x + disp.width - W));
+  const y = Math.max(disp.y, Math.min(mb.y, disp.y + disp.height - height));
+
+  creatorWindow = new BrowserWindow({
+    x, y, width: W, height,
+    minWidth: 520, minHeight: 460,
+    title: 'Theme Creator — EGM Downloader',
+    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    autoHideMenuBar: true,
+  });
+  creatorWindow.loadURL(`${APP_URL}/theme-creator-page`);
+  hardenWindow(creatorWindow);
+  creatorDirty = false; creatorForceClose = false;
+
+  // Opened from Themes → close Themes AFTER Creator exists so focus lands right.
+  if (fromThemes && themesWindow && !themesWindow.isDestroyed()) {
+    themesWindow.close();
+    // Windows foreground-lock: closing the opener can swallow focus (the bug that
+    // bit the subs overlay). Same shipped nudge — Windows only, harmless elsewhere.
+    if (process.platform === 'win32') {
+      creatorWindow.setAlwaysOnTop(true);
+      creatorWindow.focus();
+      setTimeout(() => { if (creatorWindow && !creatorWindow.isDestroyed()) creatorWindow.setAlwaysOnTop(false); }, 80);
+    }
+  }
+
+  // Dirty close guard — same shape as subsWindow: clean → close; dirty → intercept
+  // and ask the renderer to show its in-app "Close without saving?" modal.
+  creatorWindow.on('close', (e) => {
+    if (creatorForceClose || !creatorDirty) return;
+    e.preventDefault();
+    if (!creatorWindow.isDestroyed()) creatorWindow.webContents.send('creator-request-close');
+  });
+  creatorWindow.on('closed', () => {
+    creatorWindow = null; creatorDirty = false; creatorForceClose = false;
+    // Wipe any lingering live-preview overrides on main (covers save, cancel, and
+    // crash paths alike) so it shows its real (or freshly-saved) theme.
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('creator-preview-reset');
+  });
+});
+
+// Renderer keeps main informed of unsaved edits (mirrors subs-active-downloads).
+ipcMain.on('creator-dirty', (event, dirty) => {
+  if (!isTrustedSender(event)) return;
+  creatorDirty = !!dirty;
+});
+
+// Confirmed "Close anyway" from the in-app modal → force the close through.
+ipcMain.handle('creator-confirm-close', (event) => {
+  if (!isTrustedSender(event)) return;
+  if (creatorWindow && !creatorWindow.isDestroyed()) { creatorForceClose = true; creatorWindow.close(); }
+});
+
+// Live preview — forward the renderer-validated var map to main, which re-validates
+// with validateThemeVar before applying via setProperty (CSSOM = breakout-immune).
+ipcMain.on('creator-preview', (event, vars) => {
+  if (!isTrustedSender(event) || !vars || typeof vars !== 'object') return;
+  if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('creator-preview', vars);
+});
+
 // -- IPC: open subscriptions window ----------------------------------------
 let subsWindow = null;
 let subsActiveDownloads = false;
