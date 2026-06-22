@@ -514,12 +514,12 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
   const disp = screen.getDisplayMatching(mb).workArea;
   // Save main bounds + shift main left to make room for Creator
   creatorSavedMainBounds = { ...mb };
+  const newMainX = Math.max(disp.x, mb.x - W);
   if (mainWindow && !mainWindow.isDestroyed()) {
-    const newMainX = Math.max(disp.x, mb.x - W);
     mainWindow.setBounds({ x: newMainX, y: mb.y, width: mb.width, height: mb.height });
   }
   const height = Math.max(460, Math.min(mb.height, disp.height));
-  let x = mb.x + mb.width;
+  let x = newMainX + mb.width;
   if (x + W > disp.x + disp.width) x = Math.max(disp.x, mb.x - W);   // no room right → open left
   x = Math.max(disp.x, Math.min(x, disp.x + disp.width - W));
   const y = Math.max(disp.y, Math.min(mb.y, disp.y + disp.height - height));
