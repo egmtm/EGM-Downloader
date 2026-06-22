@@ -1,0 +1,297 @@
+// ── Theme picker (inside Themes tab) ──────────────────────────────────────────
+(function() {
+  const THEMES = ['void','eclipse','ghost','frost','bone','haze','evergreen','purplehaze','meadow','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofsparta','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','aurora-deep','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','hanukkah','espresso','matcha','honey','merlot','saffron','goldenhour','overcast','northernlights','thunderstorm','sirocco','nebula','pulsar','solarflare','eventhorizon','andromeda','brutalist','artdeco','blueprint','marble','gothic','discofever','summeroflove','neonpunk','grunge','millenniumbug','drivein','woodstock','prohibition','spacerace','wallstreet','olympus','tartarus','elysium','valhalla','asgard','hades','avalon','aztecsun','anubis','dragoncourt','lunarnewyear','dayofthedead','eid','carnival','pride','nowruz','midautumn','kwanzaa','midsummer','oktoberfest','montmartre','niledusk','hangang','londonfog','carnivalcity','lagospulse','redplanet','icegiant','theringedone','io','europa','alien','lostintranslation','theshining','scream','pager','floppy','laserdisc','betamax','opera','punk','reggae','flamenco','collegedropout','lateregistration','graduation','eightoheights','darkfantasy','watchthethrone','yeezus','lifeofpablo','yealbum','bully','solitude','rage','bauhaus','pagoda','pantheon','mudejar','mosaic','burgerjoint','takoyaki','jerkshack','nightmarket','shawarma','blizzard','downpour','heatwave','fogbank','hurricane','codemaster','overseer','gittymaster','webwizard','artist','sansebastian','nochedesanjuan','lasparrandas','elyunque','laparguera','coqui','flamboyan','conejomalo','conejomalo2','conejomalo3','conejomalo4','conejomalo5','titotrinidad','parquedebombas','lacruceta','laguancha','lasletras','plazalasdelicias','sananton','oldsanjuan','laperla','islaculebra','elmorro','plena','vejigante','mofongo','windows95','windows98','windowsxp','windowsvista','windows7','windows11','macos9','macosxaqua','macosbigsur','macossequoia','ubuntu','archlinux','kalilinux','fedora','beos','amiga','dos','nextstep','os2warp','solaris','unix','bsd','shiva','kali','amaterasu','susanoo','quetzalcoatl','tezcatlipoca','perun','morrigan','osiris','ogun','boxing','basketball','soccer','baseball','mma','tennis','hockey','surfing','athletics','aew','twenties','forties','fifties','sixties','seventies','eighties','nineties','twothousands','tens','twentytwenties','doge','thisisfine','drake','trollface','nyancat','sixseven','newyork','mumbai','istanbul','mexicocity','saopaulo','shanghai','nairobi','moscow','buenosaires','athens','marrakech','kyoto','amsterdam','sydney','berlin','lisbon','tehran','singapore','kinshasa','toronto','pitch','blanc','obsidian','wraith','porcelain','paranoia','wanderlust','catharsis','hypnotic','masterchief','cloudstrife','mario','sonic','custom','ocean','peach','mint','lavender','sand','ember','midnight','forest','crimson','bologna','seoul','bangkok','miami','medellin','beirut','prague','hochiminhcity','sanjuan','ponce','neural','quantum','singularity','cybercore','dyson','terraform','biopunk','nanite','posthuman','mercury','venus','jupiter','uranus','earth','pluto','titan','darkmatter','magnetar','exoplanet','redcan','goldenarches','mermaid','bigblue','everythingstore','swoosh','bitten','littlebluebox','redbottom','goldenbow','threestripes','prancinghorse','purplecrown','brownparcel','pinkdonut','bluebird','silverwings','yellowshell','greenowl','redtarget','theoldlady','thetheatre','sansiro','thegarden','theo2','maracana','campnou','lascala','thecolosseum','wembley','darkworld','dungeoncrawl','makoreactor','bossfight','gameover','insertcoin','belmont','chapel','mushroomkingdom','greenhillzone',
+    'yellowfamily','quahog','mountaintown','hollow','beachcity','jumpcity','halloweentown','stopmotion','supersaiyan','oddcab'];
+
+  // ── Seasonal theme visibility ────────────────────────────────────────────────
+  (function() {
+    const now = new Date();
+    const y = now.getFullYear(), m = now.getMonth()+1, d = now.getDate();
+    const doy = (mm,dd) => mm*100+dd; // simple comparable
+    const cur = doy(m,d);
+    const inRange = (s,e) => {
+      // Handle year-wrap (e.g. Christmas Nov25–Jan24)
+      if (doy(s[0],s[1]) <= doy(e[0],e[1])) return cur >= doy(s[0],s[1]) && cur <= doy(e[0],e[1]);
+      return cur >= doy(s[0],s[1]) || cur <= doy(e[0],e[1]);
+    };
+    // Fixed windows
+    const windows = {
+      valentines:   [[1,15],[3,15]],
+      stpatricks:   [[2,15],[4,16]],
+      fourthofjuly: [[6,4],[8,3]],
+      halloween:    [[10,1],[11,30]],
+      thanksgiving: [[11,1],[12,25]],
+      christmas:    [[11,25],[1,24]],
+      newyear:      [[12,2],[1,31]],
+      lunarnewyear: [[1,15],[3,15]],
+      carnival:     [[1,15],[3,15]],
+      nowruz:       [[3,1],[4,20]],
+      pride:        [[6,1],[6,30]],
+      midsummer:    [[6,10],[7,10]],
+      dayofthedead: [[10,15],[11,15]],
+      midautumn:    [[8,25],[10,15]],
+      oktoberfest:  [[9,1],[10,20]],
+      kwanzaa:      [[12,20],[1,10]],
+    };
+    // Variable dates: Easter, Diwali, Hanukkah — ±30 days
+    const variableDates = {
+      easter:       {2025:[4,20],2026:[4,5],2027:[3,28],2028:[4,16],2029:[4,1],2030:[4,21]},
+      diwali:       {2025:[10,20],2026:[11,8],2027:[10,29],2028:[10,17],2029:[11,5],2030:[10,26]},
+      hanukkah:     {2025:[12,14],2026:[12,4],2027:[12,24],2028:[12,12],2029:[12,1],2030:[12,20]},
+      eid:          {2025:[3,30],2026:[3,20],2027:[3,9],2028:[2,27],2029:[2,15],2030:[2,4]},
+    };
+    const addDays = (mm,dd,days) => {
+      const dt = new Date(y,mm-1,dd+days);
+      return [dt.getMonth()+1, dt.getDate()];
+    };
+    Object.entries(variableDates).forEach(([key,dates]) => {
+      const base = dates[y] || dates[y-1];
+      if (!base) return;
+      windows[key] = [addDays(base[0],base[1],-30), addDays(base[0],base[1],30)];
+    });
+    // Show seasonal rows that are in-window
+    document.querySelectorAll('.theme-row[data-seasonal]').forEach(row => {
+      const key = row.dataset.theme;
+      const win = windows[key];
+      if (win && inRange(win[0], win[1])) row.style.display = '';
+    });
+  })();
+
+  // ── Theme data — swatches + labels + categories ─────────────────────────────
+  {% include 'theme_data.html' %}
+
+  // ── Recent themes (up to 9, persisted in localStorage) ──────────────────────
+  let recentThemes = [];
+  try { recentThemes = JSON.parse(localStorage.getItem('egm-recent-themes') || '[]'); } catch {}
+
+  function saveRecents(theme) {
+    recentThemes = [theme, ...recentThemes.filter(t => t !== theme)].slice(0, 9);
+    localStorage.setItem('egm-recent-themes', JSON.stringify(recentThemes));
+  }
+
+  // ── Render picker — current theme + up to 9 recents ─────────────────────────
+  function renderPicker(current) {
+    const list = document.getElementById('theme-list');
+    if (!list) return;
+    // current pinned first + recents, then pad from THEMES array to always reach 10
+    const base = [current, ...recentThemes.filter(t => t !== current)];
+    const padded = base.length >= 10 ? base.slice(0, 10)
+      : [...base, ...THEMES.filter(k => !base.includes(k) && k !== 'custom')].slice(0, 10);
+    const show = padded;
+    list.innerHTML = show.map(key => {
+      const d = THEME_DATA[key]; if (!d) return '';
+      const isSeasonal = d.cat === 'seasonal';
+      const label = isSeasonal ? `${d.label} <span style="font-size:.55rem;opacity:.5">✦</span>` : d.label;
+      return `<div class="theme-row${key === current ? ' active' : ''}" data-theme="${key}">
+        <div class="theme-swatches">
+          <div class="theme-sw" style="background:${d.bg}"></div>
+          <div class="theme-sw" style="background:${d.surf}"></div>
+          <div class="theme-sw" style="background:${d.acc}"></div>
+        </div>
+        <span class="theme-name">${label}</span>
+        <div class="theme-check${key === current ? ' checked' : ''}"></div>
+      </div>`;
+    }).join('');
+    // Re-attach click handlers
+    list.querySelectorAll('.theme-row').forEach(r => r.addEventListener('click', () => {
+      applyTheme(r.dataset.theme);
+      document.getElementById('hamburger-panel').classList.remove('open');
+      document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
+    }));
+  }
+
+  // Guard: when applying a theme received FROM another window, don't re-broadcast
+  // it (prevents an IPC ping-pong between windows).
+  let _applyingRemoteTheme = false;
+  function applyTheme(name) {
+    document.body.classList.remove(...THEMES);
+    if (name && name !== 'void') document.body.classList.add(name);
+    localStorage.setItem('egm-theme', name || 'void');
+    saveRecents(name || 'void');
+    renderPicker(name || 'void');
+    post('/api/settings/save', { theme: name || 'void' }).catch(() => {});
+    // Broadcast to all other open windows (History/Themes/Subscriptions) so they
+    // update live. main.js fans this out to every window except the sender.
+    if (!_applyingRemoteTheme && window.electronAPI && window.electronAPI.setTheme) {
+      window.electronAPI.setTheme(name || 'void');
+    }
+  }
+
+  const saved = localStorage.getItem('egm-theme') || 'void';
+  applyTheme(saved);
+
+  // Random theme on launch — async check, applies over saved theme if enabled
+  (async () => {
+    try {
+      const s = await fetch('/api/settings').then(r => r.json());
+      if (!s.random_theme_on_launch) return;
+      const favs = Array.isArray(s.favorite_themes) ? s.favorite_themes.filter(k => THEMES.includes(k)) : [];
+      const pool = (s.random_theme_scope === 'favorites' && favs.length > 0) ? favs : THEMES;
+      const pick = pool[Math.floor(Math.random() * pool.length)];
+      if (pick && pick !== saved) applyTheme(pick);
+    } catch {}
+  })();
+
+  // Listen for theme changes from themes window (via IPC)
+  if (window.electronAPI && window.electronAPI.onThemeChanged) {
+    window.electronAPI.onThemeChanged(theme => {
+      _applyingRemoteTheme = true;
+      try { applyTheme(theme); } finally { _applyingRemoteTheme = false; }
+    });
+  }
+
+  // Open themes window
+  window.openThemesWindow = function() {
+    if (window.electronAPI && window.electronAPI.openThemesWindow) {
+      window.electronAPI.openThemesWindow();
+    } else {
+      window.open('/themes-page', '_blank');
+    }
+    document.getElementById('hamburger-panel').classList.remove('open');
+    document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
+  };
+
+})(); // ── End theme picker IIFE ───────────────────────────────────────────────
+
+// ── Subscriptions button ─────────────────────────────────────────────────────
+document.getElementById('subs-btn').addEventListener('click', (e) => {
+  e.currentTarget.blur();
+  if (window.electronAPI && window.electronAPI.openSubscriptions) {
+    window.electronAPI.openSubscriptions();
+  } else {
+    window.open('/subscriptions-page', '_blank');
+  }
+});
+
+// ── Theme import / export ─────────────────────────────────────────────────────
+(function() {
+  const REQUIRED_VARS = ['--bg','--surf','--surf2','--surf3','--border','--border2',
+                         '--acc','--acc-h','--acc-dim','--text','--text2','--muted'];
+  const ALL_VARS      = [...REQUIRED_VARS,
+                         '--shadow','--thumb-bg','--log-bg','--log-text',
+                         '--modal-overlay','--modal-shadow',
+                         '--btn-primary-text','--btn-on-accent','--btn-red-border',
+                         '--audio-btn-color','--dur-bg','--dur-text'];
+
+  // Theme var values get injected into CSS (a <style> rule AND the preview swatches'
+  // style="" attributes), so an untrusted value must be neutralised first. Safe only
+  // if it has no context-breakout chars ({}<>;"'` — which escape the rule, the style
+  // attribute, or the tag) AND no fetching CSS functions (url()/image-set()/
+  // expression()/-moz-binding → silent network beacons when the var is used as a
+  // background). rgb()/rgba()/hsl()/gradients are untouched, so real colors still work.
+  // Theme value validation lives in the shared theme_validator.html partial
+  // (validateThemeVar) — the single gate for both import and the v1.2 Theme Creator.
+
+  // Restore custom theme from localStorage on load
+  const saved = localStorage.getItem('egm-custom-theme');
+  if (saved) {
+    try { _applyCustomTheme(JSON.parse(saved)); } catch {}
+  }
+
+  function _applyCustomTheme(theme) {
+    let el = document.getElementById('custom-theme-style');
+    if (!el) { el = document.createElement('style'); el.id = 'custom-theme-style'; document.head.appendChild(el); }
+    // Only inject name/value pairs that pass the shared per-type validator —
+    // rejects unknown vars, non-color/shadow values, breakout chars, and url()/
+    // image-set() network beacons.
+    const safePairs = Object.entries(theme.vars).filter(([k, v]) => validateThemeVar(k, v));
+    const vars = safePairs.map(([k,v]) => `${k}:${v}`).join(';');
+    el.textContent = `body.custom{${vars}}`;
+    // Update custom row swatches + name
+    const row = document.getElementById('custom-theme-row');
+    if (row) {
+      document.getElementById('csw1').style.background = theme.vars['--bg']   || '';
+      document.getElementById('csw2').style.background = theme.vars['--surf'] || '';
+      document.getElementById('csw3').style.background = theme.vars['--acc']  || '';
+      document.getElementById('custom-theme-name').textContent = theme.name || 'Custom';
+      row.style.display = '';
+    }
+  }
+
+  // Export — collect vars from getComputedStyle (reflects active theme)
+  document.getElementById('theme-export-btn').addEventListener('click', async () => {
+    const cs    = getComputedStyle(document.body);
+    const vars  = {};
+    ALL_VARS.forEach(v => { const val = cs.getPropertyValue(v).trim(); if (val) vars[v] = val; });
+    const activeTheme = localStorage.getItem('egm-theme') || 'void';
+    const themeName   = activeTheme.charAt(0).toUpperCase() + activeTheme.slice(1);
+    const payload     = JSON.stringify({ name: themeName, 'egm-theme': true, vars }, null, 2);
+    const filename    = `egm-theme-${activeTheme}.json`;
+    if (window.electronAPI?.saveFile) {
+      const r = await window.electronAPI.saveFile(filename, payload);
+      if (r.canceled) return;
+      if (r.ok) toast('Theme exported ✓', 'ok');
+      else toast('Export failed: ' + (r.error || 'unknown'), 'err');
+    } else {
+      await navigator.clipboard.writeText(payload);
+      toast('Theme copied to clipboard ✓', 'ok');
+    }
+  });
+
+  // Import — validate → preview → apply
+  document.getElementById('theme-import-btn').addEventListener('click', async () => {
+    try {
+      let text;
+      if (window.electronAPI?.openFile) {
+        const r = await window.electronAPI.openFile();
+        if (r.canceled) return;
+        if (r.error) { toast('Could not read file: ' + r.error, 'err'); return; }
+        text = r.content;
+      } else {
+        text = await navigator.clipboard.readText();
+      }
+
+      let theme;
+      try { theme = JSON.parse(text); } catch { toast('✗ Not a valid JSON file', 'err'); return; }
+
+      // Validate structure
+      if (!theme['egm-theme']) { toast('✗ Not a valid EGM theme file', 'err'); return; }
+      if (typeof theme.name !== 'string') { toast('✗ Theme is missing a name', 'err'); return; }
+      if (typeof theme.vars !== 'object' || Array.isArray(theme.vars)) { toast('✗ Theme has no vars block', 'err'); return; }
+
+      // Validate required vars
+      const missing = REQUIRED_VARS.filter(v => !theme.vars[v]);
+      if (missing.length) { toast(`✗ Missing required vars: ${missing.slice(0,3).join(', ')}${missing.length>3?' …':''}`, 'err'); return; }
+
+      // Show preview modal. F2: these are interpolated into style="" attributes, so a
+      // hostile value like '#000"><img onerror=…>' would inject HTML — validate first
+      // and fall back to a default when the value isn't a safe CSS token.
+      const bg  = validateThemeVar('--bg',   theme.vars['--bg'])   ? theme.vars['--bg']   : '#000';
+      const sf  = validateThemeVar('--surf', theme.vars['--surf']) ? theme.vars['--surf'] : '#111';
+      const ac  = validateThemeVar('--acc',  theme.vars['--acc'])  ? theme.vars['--acc']  : '#3b82f6';
+      const tx  = validateThemeVar('--text', theme.vars['--text']) ? theme.vars['--text'] : '#fff';
+      const nm  = esc(theme.name);
+
+      const backdrop = document.createElement('div');
+      backdrop.className = 'modal-backdrop';
+      backdrop.innerHTML = `
+        <div class="modal">
+          <h3>Import Theme</h3>
+          <p style="font-size:.82rem;color:var(--text2);margin-bottom:12px">Preview — <strong style="color:var(--text)">${nm}</strong></p>
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <div style="width:40px;height:40px;border-radius:6px;background:${bg};border:1px solid var(--border)"></div>
+            <div style="width:40px;height:40px;border-radius:6px;background:${sf};border:1px solid var(--border)"></div>
+            <div style="width:40px;height:40px;border-radius:6px;background:${ac};border:1px solid var(--border)"></div>
+            <div style="flex:1;border-radius:6px;background:${bg};border:1px solid var(--border);display:flex;align-items:center;padding:0 10px;font-size:.8rem;color:${tx}">EGM Downloader</div>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-ghost" id="theme-import-cancel">Cancel</button>
+            <button class="btn btn-primary" id="theme-import-confirm">Apply Theme</button>
+          </div>
+        </div>`;
+      document.body.appendChild(backdrop);
+
+      document.getElementById('theme-import-cancel').addEventListener('click', () => backdrop.remove());
+      document.getElementById('theme-import-confirm').addEventListener('click', () => {
+        backdrop.remove();
+        _applyCustomTheme(theme);
+        localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
+        applyTheme('custom');
+        toast(`Theme "${esc(theme.name)}" applied ✓`, 'ok');
+      });
+
+    } catch { toast('✗ Could not import theme', 'err'); }
+  });
+})();
+
+
