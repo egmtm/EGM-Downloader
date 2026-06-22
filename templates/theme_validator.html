@@ -1,0 +1,50 @@
+// ── Shared theme-variable validator ───────────────────────────────────────────
+// Single source of truth for every place a theme value enters CSS: the import
+// path (custom-theme <style> build + preview swatches) and the v1.2 Theme Creator
+// (live preview setProperty + save). Per-type allowlist — each var has an expected
+// type and the value must match that type's grammar; unknown var names are rejected
+// (no smuggling a var the UI doesn't preview); a universal reject blocks CSS
+// breakout chars and fetching functions (url()/image-set()/expression()) that would
+// otherwise enable injection or silent network beacons.
+//
+// KEEP THEME_VAR_TYPES's keys in sync with ALL_VARS in the theme import/export code
+// — tests/test_parity.py::test_theme_validator_covers_all_vars asserts equality.
+const _TV_COLOR = /^(#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})|rgba?\([0-9.,\s%/-]*\)|hsla?\([0-9.,\s%/deg-]*\)|transparent|currentColor)$/i;
+const _TV_LEN   = /^-?(\d+\.?\d*|\.\d+)(px|em|rem|%)?$/i;
+// Reject breakout chars ({}<>;"'`\) AND fetching CSS functions. Parens are allowed
+// (rgb()/hsl()/box-shadow need them); only the dangerous *named* functions are blocked.
+const _TV_FORBIDDEN = /url\s*\(|image-set\s*\(|image\s*\(|expression\s*\(|-moz-binding|[{}<>;"'`\\]/i;
+
+function _tvShadowOk(v) {
+  // box-shadow: comma-separated layers of [inset]? <length>{2,4} <color>?. Strip color
+  // functions first (they contain commas) so layers split on the real top-level commas.
+  const stripped = v.replace(/(rgba?|hsla?)\([^)]*\)/gi, 'C');
+  return stripped.split(',').every(layer => {
+    const toks = layer.trim().split(/\s+/).filter(Boolean);
+    return toks.length > 0 && toks.every(t =>
+      t === 'inset' || t === 'C' || _TV_LEN.test(t) ||
+      /^#([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(t) ||
+      /^(transparent|currentColor|[a-z]{3,20})$/i.test(t));
+  });
+}
+
+const THEME_VAR_TYPES = {
+  '--bg':'color', '--surf':'color', '--surf2':'color', '--surf3':'color',
+  '--border':'color', '--border2':'color', '--acc':'color', '--acc-h':'color', '--acc-dim':'color',
+  '--text':'color', '--text2':'color', '--muted':'color',
+  '--shadow':'shadow', '--thumb-bg':'color', '--log-bg':'color', '--log-text':'color',
+  '--modal-overlay':'color', '--modal-shadow':'shadow',
+  '--btn-primary-text':'color', '--btn-on-accent':'color', '--btn-red-border':'color',
+  '--audio-btn-color':'color', '--dur-bg':'color', '--dur-text':'color',
+};
+
+function validateThemeVar(name, value) {
+  if (typeof value !== 'string' || value.length === 0 || value.length > 200) return false;
+  if (_TV_FORBIDDEN.test(value)) return false;
+  const t = THEME_VAR_TYPES[name];
+  if (!t) return false;                       // unknown var → reject (allowlist)
+  const v = value.trim();
+  if (t === 'color')  return _TV_COLOR.test(v);
+  if (t === 'shadow') return _tvShadowOk(v);
+  return false;
+}
