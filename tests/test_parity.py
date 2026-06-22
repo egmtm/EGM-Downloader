@@ -237,14 +237,17 @@ def test_security_markers_in_all_main_js():
 
 
 def test_istrustedsender_count_locked():
-    """isTrustedSender must appear EXACTLY 47 times total across the 3 main.js
-    (windows 17, linux 15, mac 15). Every ipcMain handler must be gated by it;
+    """isTrustedSender must appear EXACTLY 59 times total across the 3 main.js
+    (windows 21, linux 19, mac 19). Every ipcMain handler must be gated by it;
     locking the count auto-catches an accidental handler addition that bypasses
     the gate — the same check done by hand every delta review. If you added a
     legitimate, gated ipcMain handler, bump EXPECTED_TOTAL after confirming the
     new handler calls isTrustedSender.
+
+    v1.2 CANVAS (Theme Creator) added 4 gated handlers per platform (+12):
+    open-theme-creator, creator-dirty, creator-confirm-close, creator-preview.
     """
-    EXPECTED_TOTAL = 47
+    EXPECTED_TOTAL = 59
     counts = {
         name: read_source(path).count("isTrustedSender")
         for name, path in (
@@ -319,7 +322,7 @@ def test_theme_counts_consistent():
 
 def test_theme_counts_linux_parity():
     """Linux templates must have identical theme counts to root templates."""
-    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html", "js/_creator.html"]:
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "theme_creator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html", "js/_creator.html"]:
         root = read_source(f"templates/{fname}")
         linux = read_source(f"linux/templates/{fname}")
         assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
@@ -600,3 +603,43 @@ def test_theme_validator_behaviour():
     """
     r = subprocess.run(["node", "-e", harness], capture_output=True, text=True, timeout=20)
     assert r.returncode == 0, f"validateThemeVar behaviour failed: {r.stderr.strip() or r.stdout.strip()}"
+
+
+# ── Theme Creator (v1.2 CANVAS) parity guards ─────────────────────────────────
+
+def test_theme_creator_route_on_all_platforms():
+    """The /theme-creator-page Flask route must exist on every platform app.py —
+    a missing mirror would 404 the Creator window on that OS."""
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        src = read_source(path)
+        assert "/theme-creator-page" in src, f"{name}/app.py missing /theme-creator-page route"
+        assert 'render_template("theme_creator.html"' in src, f"{name}/app.py route doesn't render theme_creator.html"
+
+
+def test_creator_ipc_surface_parity():
+    """Every Creator IPC channel must be present (and the gate count is locked by
+    test_istrustedsender_count_locked) on all 3 main.js, and exposed by all 3
+    preloads — so the feature can't land on one platform only."""
+    channels = ["open-theme-creator", "creator-dirty", "creator-confirm-close", "creator-preview"]
+    preload_methods = ["openThemeCreator", "creatorPreview", "creatorDirty",
+                       "creatorConfirmClose", "onCreatorPreview", "onCreatorPreviewReset",
+                       "onCreatorRequestClose"]
+    for plat in ("windows", "linux", "mac"):
+        mainjs = read_source(f"{plat}/electron/main.js")
+        for ch in channels:
+            assert f"'{ch}'" in mainjs, f"{plat}/main.js missing IPC handler for {ch!r}"
+        preload = read_source(f"{plat}/electron/preload.js")
+        for m in preload_methods:
+            assert m in preload, f"{plat}/electron/preload.js missing bridge method {m!r}"
+
+
+def test_creator_uses_shared_validator():
+    """The Creator page must reuse the single shared gate (theme_validator.html)
+    and the module must validate at the entry points — no forked allowlist."""
+    page = read_source("templates/theme_creator.html")
+    assert "{% include 'theme_validator.html' %}" in page, "Creator page doesn't include the shared validator"
+    assert "{% include 'js/_creator.html' %}" in page, "Creator page doesn't include the _creator module"
+    assert 'id="creator-root"' in page, "Creator page missing #creator-root role marker"
+    mod = read_source("templates/js/_creator.html")
+    assert "validateThemeVar" in mod, "_creator.html does not call validateThemeVar"
+    assert "setProperty" in mod, "_creator.html does not apply via setProperty"
