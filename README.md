@@ -294,7 +294,7 @@ Theme import security, import/export selector, keyboard shortcuts, animation the
 **v1.1.2 — YOURS TO KEEP:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.2)
 Kanye album themes, scrollbar theming, settings layout redesign, fetch all channels, checkbox persistence, modal focus lock, single-instance lock, Electron 42.4.1
 
-**v1.2 — CANVAS:**
+**v1.2 — CANVAS:** *(Shipping June 23, 2026)*
 - 🎨 Theme Creator — build your own theme with a live preview color picker, export as `.json`
 - 🔧 Fixes — Electron bumps and any bugs that surface post-v1.1
 
