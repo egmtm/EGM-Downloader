@@ -616,7 +616,16 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
       placeCreator();   // position before reveal (honored on macOS + cooperative WMs)
       cw.show();
     });
-    cw.once('show', () => { placeCreator(); setImmediate(placeCreator); });  // re-assert after map (Linux)
+    cw.once('show', () => {
+      placeCreator();
+      setImmediate(placeCreator);   // re-assert after map (X11 Linux WMs)
+      // macOS applies its default window placement on a LATER runloop turn after
+      // show, overriding the immediate setBounds — the maximized path escapes this
+      // only because the preceding unmaximize() flushes AppKit first. Re-assert on
+      // later turns so our explicit frame is the last word. Non-awaited timers run
+      // after the handler returns, so they can't interleave with the main resize.
+      if (process.platform === 'darwin') { setTimeout(placeCreator, 0); setTimeout(placeCreator, 60); }
+    });
   }
   creatorWindow.loadURL(`${APP_URL}/theme-creator-page`);
   hardenWindow(creatorWindow);
