@@ -304,6 +304,10 @@ async function createWindow() {
 
   // Save state on close
   mainWindow.on('close', () => {
+    if (creatorWindow && !creatorWindow.isDestroyed()) {
+      creatorForceClose = true;
+      creatorWindow.close();
+    }
     saveWindowState();
     app.isQuitting = true;
   });
