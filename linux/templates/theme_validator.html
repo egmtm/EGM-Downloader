@@ -48,3 +48,44 @@ function validateThemeVar(name, value) {
   if (t === 'shadow') return _tvShadowOk(v);
   return false;
 }
+
+// ── Saved themes (Imported library) — multi-theme storage, validated on load ──
+// localStorage 'egm-saved-themes' = array of {id, name, vars}. Every theme's vars are
+// re-gated through validateThemeVar on both write AND read, so nothing un-vetted is
+// ever injected into CSS. The legacy single 'egm-custom-theme' slot still works for
+// Import (backwards compat) and is the "currently active" custom pointer.
+function _egmCleanVars(vars) {
+  const out = {};
+  if (vars && typeof vars === 'object') {
+    for (const [k, v] of Object.entries(vars)) if (validateThemeVar(k, v)) out[k] = v;
+  }
+  return out;
+}
+function loadSavedThemes() {
+  let arr;
+  try { arr = JSON.parse(localStorage.getItem('egm-saved-themes') || '[]'); } catch { return []; }
+  if (!Array.isArray(arr)) return [];
+  return arr
+    .filter(t => t && typeof t.name === 'string' && t.vars && typeof t.vars === 'object')
+    .map(t => ({ id: String(t.id || ''), name: String(t.name).slice(0, 60), vars: _egmCleanVars(t.vars) }));
+}
+function saveSavedTheme(name, vars) {
+  const arr = loadSavedThemes();
+  const id  = 'st-' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  arr.push({ id, name: String(name).slice(0, 60), vars: _egmCleanVars(vars) });
+  localStorage.setItem('egm-saved-themes', JSON.stringify(arr));
+  return id;
+}
+function deleteSavedTheme(id) {
+  localStorage.setItem('egm-saved-themes', JSON.stringify(loadSavedThemes().filter(t => t.id !== id)));
+}
+// Idempotent: lift a legacy/Imported single custom theme into the library so it shows
+// in the Imported section (dedup by name; never adds an unnamed/empty one).
+function migrateLegacyCustom() {
+  try {
+    const c = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null');
+    if (!c || typeof c.name !== 'string' || !c.vars) return;
+    if (loadSavedThemes().some(t => t.name === c.name)) return;
+    saveSavedTheme(c.name, c.vars);
+  } catch {}
+}
