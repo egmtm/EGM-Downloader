@@ -514,40 +514,44 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
   const wasMaximized = !!(liveMain && mainWindow.isMaximized());
   const mb = liveMain ? mainWindow.getBounds() : { x: 80, y: 80, width: 920, height: 780 };
   const disp = screen.getDisplayMatching(mb).workArea;
-  // Remember how to put main back when the Creator closes: its NORMAL (un-maximized)
-  // rectangle, plus whether it was maximized so we re-maximize rather than just resize.
-  creatorSavedMainBounds  = liveMain ? { ...mainWindow.getNormalBounds() } : { ...mb };
-  creatorMainWasMaximized = wasMaximized;
+  // Wayland compositors own window placement — we cannot force position on native Wayland.
+  // Detect it and skip shift/tile; the live preview still works via IPC.
+  const isWayland = process.env.XDG_SESSION_TYPE === 'wayland';
 
   let x, y, height;
-  if (wasMaximized && liveMain) {
-    // Maximized → shifting can't make room (main already spans the display), so
-    // un-maximize and tile: main takes the work area minus the Creator column, the
-    // Creator fills that column. No overlap; main is re-maximized on close.
-    mainWindow.unmaximize();
-    mainWindow.setBounds({ x: disp.x, y: disp.y, width: Math.max(360, disp.width - W), height: disp.height });
-    x = disp.x + disp.width - W;
-    y = disp.y;
-    height = disp.height;
+  if (!isWayland) {
+    // Remember how to put main back when the Creator closes.
+    creatorSavedMainBounds  = liveMain ? { ...mainWindow.getNormalBounds() } : { ...mb };
+    creatorMainWasMaximized = wasMaximized;
+    if (wasMaximized && liveMain) {
+      mainWindow.unmaximize();
+      mainWindow.setBounds({ x: disp.x, y: disp.y, width: Math.max(360, disp.width - W), height: disp.height });
+      x = disp.x + disp.width - W;
+      y = disp.y;
+      height = disp.height;
+    } else {
+      const newMainX = Math.max(disp.x, mb.x - W);
+      if (liveMain) mainWindow.setBounds({ x: newMainX, y: mb.y, width: mb.width, height: mb.height });
+      height = Math.max(460, Math.min(mb.height, disp.height));
+      x = newMainX + mb.width;
+      if (x + W > disp.x + disp.width) x = Math.max(disp.x, mb.x - W);
+      x = Math.max(disp.x, Math.min(x, disp.x + disp.width - W));
+      y = Math.max(disp.y, Math.min(mb.y, disp.y + disp.height - height));
+    }
   } else {
-    // Windowed → shift main left by W and open the Creator flush to its right.
-    const newMainX = Math.max(disp.x, mb.x - W);
-    if (liveMain) mainWindow.setBounds({ x: newMainX, y: mb.y, width: mb.width, height: mb.height });
+    // Wayland: let compositor place the window; just set a sensible height.
     height = Math.max(460, Math.min(mb.height, disp.height));
-    x = newMainX + mb.width;
-    if (x + W > disp.x + disp.width) x = Math.max(disp.x, mb.x - W);   // no room right → open left
-    x = Math.max(disp.x, Math.min(x, disp.x + disp.width - W));
-    y = Math.max(disp.y, Math.min(mb.y, disp.y + disp.height - height));
   }
 
-  // Windows honors the constructor x/y. macOS and Linux WMs frequently ignore it
+  // Windows honors the constructor x/y. macOS and X11 Linux WMs frequently ignore it
   // (and an immediate setPosition) and center the window instead, so on those platforms
   // create it hidden, place it once it's realized, show it, then re-assert after it's
   // mapped — some Linux WMs only honor a move request at that point.
-  const deferPlacement = process.platform !== 'win32';
+  const deferPlacement = !isWayland && process.platform !== 'win32';
   creatorWindow = new BrowserWindow({
-    x, y, width: W, height,
-    show: !deferPlacement,
+    ...(isWayland ? {} : { x, y }),
+    width: W, height,
+    show: isWayland || !deferPlacement,
     minWidth: 340, minHeight: 460,
     title: 'Theme Creator — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
@@ -566,7 +570,16 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
       placeCreator();   // position before reveal (honored on macOS + cooperative WMs)
       cw.show();
     });
-    cw.once('show', () => { placeCreator(); setImmediate(placeCreator); });  // re-assert after map (Linux)
+    cw.once('show', () => {
+      placeCreator();
+      setImmediate(placeCreator);   // re-assert after map (X11 Linux WMs)
+      // macOS applies its default window placement on a LATER runloop turn after
+      // show, overriding the immediate setBounds — the maximized path escapes this
+      // only because the preceding unmaximize() flushes AppKit first. Re-assert on
+      // later turns so our explicit frame is the last word. Non-awaited timers run
+      // after the handler returns, so they can't interleave with the main resize.
+      if (process.platform === 'darwin') { setTimeout(placeCreator, 0); setTimeout(placeCreator, 60); }
+    });
   }
   creatorWindow.loadURL(`${APP_URL}/theme-creator-page`);
   hardenWindow(creatorWindow);
