@@ -707,6 +707,11 @@ def test_creator_window_placement_parity():
         assert "deferPlacement" in src, f"{plat}/main.js missing the deferPlacement gate"
         assert "show: isWayland || !deferPlacement" in src, f"{plat}/main.js Creator not Wayland-aware deferred-show wired"
         assert "XDG_SESSION_TYPE" in src, f"{plat}/main.js missing Wayland detection"
+        # Wayland detection must be ozone-backend-aware, not session-only: an explicit
+        # x11 ozone hint/switch re-enables positioning under XWayland (regression guard —
+        # the session-only check disabled placement even under XWayland).
+        assert "ELECTRON_OZONE_PLATFORM_HINT" in src and "ozone-platform" in src, \
+            f"{plat}/main.js Wayland gate not ozone-backend-aware"
         # macOS-only re-assert after show — overrides macOS's show-time placement.
         assert "process.platform === 'darwin'" in src and "setTimeout(placeCreator" in src, \
             f"{plat}/main.js missing the macOS post-show position re-assert"
