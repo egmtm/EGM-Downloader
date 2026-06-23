@@ -700,3 +700,15 @@ def test_saved_themes_multi_storage_wired():
     assert "{% include 'theme_validator.html' %}" in th, "themes.html doesn't include the shared validator"
     for needle in ("loadSavedThemes(", "applySavedTheme(", "deleteSavedTheme(", "data-saved=", "injectCustomCss"):
         assert needle in th, f"themes.html missing saved-theme wiring: {needle!r}"
+
+
+def test_recent_picker_shows_saved_custom_name():
+    """The main-UI recent-themes picker must show the ACTIVE custom theme's real name
+    (from egm-custom-theme, HTML-escaped) and its validated colors — not the generic
+    'Custom' placeholder. Guards the saved-theme naming fix in renderPicker."""
+    src = read_source("templates/js/_theme.html")
+    assert "function renderPicker" in src
+    assert "esc(c.name)" in src, "renderPicker doesn't show/escape the active custom theme's name"
+    assert "egm-custom-theme" in src, "renderPicker doesn't read the active custom theme slot"
+    assert "validateThemeVar('--bg', cv['--bg'])" in src or "pick('--bg'" in src, \
+        "renderPicker custom swatch colors not validated"
