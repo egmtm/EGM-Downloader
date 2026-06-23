@@ -371,6 +371,11 @@ async function createWindow() {
     if (!app.isQuitting) {
       e.preventDefault();
       saveWindowState(); // save immediately before hiding
+      // Close Creator window if open — it shouldn't outlive main
+      if (creatorWindow && !creatorWindow.isDestroyed()) {
+        creatorForceClose = true;
+        creatorWindow.close();
+      }
       mainWindow.hide();
     }
   });
