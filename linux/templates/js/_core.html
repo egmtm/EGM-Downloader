@@ -1,0 +1,266 @@
+// ── API token interceptor — adds X-EGM-Token to all /api/* requests ──────────
+// Token is generated per-session by Electron, passed to Flask via env var,
+// and injected here via Jinja. Prevents drive-by localhost requests.
+(function() {
+  const _t = '{{ egm_token }}';
+  if (!_t) return;  // dev mode — no token, no interception
+  const _f = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+      opts = opts || {};
+      opts.headers = opts.headers || {};
+      opts.headers['X-EGM-Token'] = _t;
+    }
+    return _f.call(this, url, opts);
+  };
+})();
+'use strict';
+
+{% include 'theme_validator.html' %}
+
+// ── State ─────────────────────────────────────────────────────────────────────
+let items       = [];
+let bulkStop    = false;
+let fetchAbort  = false;   // set to true to cancel an in-progress fetchAll
+const bulkCancelledJobs = new Set();   // job IDs cancelled via Cancel All
+let seq         = 0;
+let _modalOk    = null;
+let chosenPath  = null;    // Absolute path string (Electron only)
+
+// ── Timing constants ──────────────────────────────────────────────────────────
+const QUIT_DELAY_MS  = 1500;  // ms after last download before quitting
+const TOAST_DURATION = 4500;  // ms before toast auto-dismisses
+
+// ── Version comparison — semver-safe ─────────────────────────────────────────
+function compareVersions(current, latest) {
+  const c = current.replace(/^v/, '').split('.').map(Number);
+  const l = latest.replace(/^v/, '').split('.').map(Number);
+  for (let i = 0; i < 3; i++) {
+    if ((l[i] || 0) > (c[i] || 0)) return 1;   // latest is newer
+    if ((l[i] || 0) < (c[i] || 0)) return -1;  // current is newer (dev build)
+  }
+  return 0;
+}
+
+// ── Update modals ─────────────────────────────────────────────────────────────
+function _showUpdModal(html) {
+  const backdrop = document.createElement('div');
+  backdrop.className = 'upd-backdrop';
+  backdrop.innerHTML = html;
+  document.body.appendChild(backdrop);
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) backdrop.remove(); });
+  return backdrop;
+}
+
+function showUpToDateModal(isDev = false) {
+  toast(isDev ? '✓ You\'re ahead of the latest release' : '✓ EGM Downloader is up to date', 'ok');
+}
+
+function showUpdateErrorModal() {
+  toast('⚠ Could not reach update server', 'warn');
+}
+
+function showUpdateAvailableModal(d) {
+  // Build release notes rows safely — textContent assigned after creation
+  const backdrop = _showUpdModal(`
+    <div class="upd-modal">
+      <h3>🎉 Update Available!</h3>
+      <div class="upd-modal-body">
+        <div class="upd-ver-row"><span>Current</span><strong>${d.current_version}</strong></div>
+        <div class="upd-ver-row"><span>Latest</span><strong style="color:var(--acc)">v${d.latest_version}</strong></div>
+        <div id="_upd_notes_slot"></div>
+      </div>
+      <div class="upd-actions" id="_upd_btns_slot"></div>
+    </div>`);
+
+  // Release notes — textContent only, no innerHTML injection risk
+  if (d.notes && d.notes.trim()) {
+    const noteLines = d.notes.split('\n').map(l => l.trim()).filter(Boolean);
+    if (noteLines.length) {
+      const box = document.createElement('div');
+      box.className = 'upd-notes';
+      for (const line of noteLines) {
+        const row = document.createElement('div');
+        row.textContent = line;
+        box.appendChild(row);
+      }
+      backdrop.querySelector('#_upd_notes_slot').appendChild(box);
+    }
+  }
+
+  // Buttons
+  const btns = backdrop.querySelector('#_upd_btns_slot');
+
+  // "Update Now" — platform-aware
+  const _updPlat = window.electronAPI?.platform || 'web';
+  if (_updPlat === 'win' && d.zip_url) {
+    // Windows: silent download + launch installer
+    const btnUpdate = document.createElement('button');
+    btnUpdate.className = 'btn btn-primary';
+    btnUpdate.textContent = '⬇ Update Now';
+    btnUpdate.addEventListener('click', async () => {
+      btnUpdate.textContent = 'Downloading…';
+      btnUpdate.disabled = true;
+      try {
+        const dl = await fetch('/api/download-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
+        }).then(r => r.json());
+        if (dl.error) { toast(dl.error, 'err'); backdrop.remove(); return; }
+        toast('Launching installer…', 'ok');
+        backdrop.remove();
+        await new Promise(res => setTimeout(res, 800));
+        const launch = await window.electronAPI.launchInstaller(dl.installer_path);
+        if (launch.error) { toast('Could not launch installer: ' + launch.error, 'err'); return; }
+        setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
+      } catch {
+        toast('Update failed — try downloading manually', 'err');
+        backdrop.remove();
+      }
+    });
+    btns.appendChild(btnUpdate);
+  } else if (_updPlat === 'mac' || _updPlat === 'linux') {
+    // Mac/Linux: open download URL in browser — user installs manually
+    const btnDownload = document.createElement('button');
+    btnDownload.className = 'btn btn-primary';
+    btnDownload.textContent = '⬇ Download Update';
+    btnDownload.addEventListener('click', () => {
+      window.open(d.download_url || d.zip_url || 'https://egerena.com', '_blank');
+      backdrop.remove();
+    });
+    btns.appendChild(btnDownload);
+  }
+
+  // "Open Page" — always available
+  if (d.download) {
+    const btnPage = document.createElement('button');
+    btnPage.className = 'btn btn-ghost';
+    btnPage.textContent = '🌐 Open Page';
+    btnPage.addEventListener('click', () => { window.open(d.download, '_blank'); backdrop.remove(); });
+    btns.appendChild(btnPage);
+  }
+
+  // "Later" dismiss
+  const btnLater = document.createElement('button');
+  btnLater.className = 'btn btn-ghost';
+  btnLater.textContent = 'Later';
+  btnLater.addEventListener('click', () => backdrop.remove());
+  btns.insertBefore(btnLater, btns.firstChild);
+}
+
+// ── Check for Updates — called from footer only ──────────────────────────────
+async function checkForUpdates() {
+  const badge = document.getElementById('version-badge');
+  if (badge) badge.style.opacity = '0.6';
+  try {
+    const d = await fetch('/api/check-app-update').then(r => r.json());
+    if (d.error) { showUpdateErrorModal(); return; }
+
+    const cmp = compareVersions(d.current_version, d.latest_version);
+    if (cmp === 0) {
+      if (d.latest_build && d.current_build && d.latest_build > d.current_build) {
+        showUpdateAvailableModal(d);
+      } else {
+        showUpToDateModal();
+      }
+    } else if (cmp < 0) {
+      showUpToDateModal(true);
+    } else {
+      showUpdateAvailableModal(d);
+    }
+  } catch {
+    showUpdateErrorModal();
+  } finally {
+    const badge2 = document.getElementById('version-badge');
+    if (badge2) badge2.style.opacity = '';
+  }
+}
+
+// ── Toast with action button (used for auto-update notification) ──────────────
+function toastWithAction(msg, btnLabel, fn, ms = 8000) {
+  const c = document.getElementById('toasts');
+  const t = document.createElement('div');
+  t.className = 'toast ok';
+  t.style.cssText = 'display:flex;align-items:center;gap:10px;padding-right:8px';
+  const span = document.createElement('span');
+  span.textContent = msg;
+  const btn = document.createElement('button');
+  btn.textContent = btnLabel;
+  btn.style.cssText = 'flex-shrink:0;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);border-radius:4px;color:#fff;font-size:.75rem;padding:2px 10px;cursor:pointer';
+  btn.addEventListener('click', () => { t.remove(); fn(); });
+  t.appendChild(span);
+  t.appendChild(btn);
+  c.appendChild(t);
+  setTimeout(() => t.remove(), ms);
+}
+
+// ── Auto-check for updates on launch (silent — only acts if update found) ─────
+let _autoUpdateCheckRan = false;
+async function checkForUpdatesOnLaunch() {
+  if (_autoUpdateCheckRan) return;
+  _autoUpdateCheckRan = true;
+  try {
+    const d = await fetch('/api/check-app-update').then(r => r.json());
+    // Trust backend fully — it compares both version string AND build number
+    if (d.error || d.up_to_date) return;
+
+    // Update available — route by platform
+    const _plat = window.electronAPI?.platform || 'web';
+
+    if (_plat === 'win' && d.zip_url) {
+      // Windows: silent background download → restart toast
+      try {
+        const dl = await fetch('/api/download-update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
+        }).then(r => r.json());
+        if (dl.error) return; // silent fail
+        const installerPath = dl.installer_path;
+        toastWithAction(
+          `Update downloaded — restart to apply v${d.latest_version}`,
+          'Restart now',
+          async () => {
+            const launch = await window.electronAPI.launchInstaller(installerPath);
+            if (!launch.error) setTimeout(() => window.electronAPI.quit(), 800);
+          },
+          8000
+        );
+      } catch { /* silent */ }
+
+    } else if (_plat === 'mac') {
+      // Mac: open download page in browser, show toast — user installs manually
+      toastWithAction(
+        `v${d.latest_version} is available — download to update`,
+        'Download',
+        () => { window.open(d.download_url || 'https://egerena.com/mac', '_blank'); },
+        10000
+      );
+
+    } else if (_plat === 'linux') {
+      // Linux: same as Mac — open download page, no auto-install
+      toastWithAction(
+        `v${d.latest_version} is available — download to update`,
+        'Download',
+        () => { window.open(d.download_url || 'https://egerena.com/linux', '_blank'); },
+        10000
+      );
+
+    } else {
+      // Fallback / web: show update modal
+      showUpdateAvailableModal(d);
+    }
+  } catch { /* silent — network error on launch is expected */ }
+}
+
+// Update check fires from settings init (line ~2000) only when toggle is on.
+// No unconditional setTimeout — respects the user's check_updates_on_launch setting.
+
+
+document.getElementById('footer-update-btn').addEventListener('click', checkForUpdates);
+document.getElementById('footer-help-btn')?.addEventListener('click', () => {
+  document.getElementById('help-modal').style.display = 'flex';
+});
+
+

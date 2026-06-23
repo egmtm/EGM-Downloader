@@ -1,3 +1,14 @@
+v1.2 - (in progress)
+-----------------------------------------
+
+  FEATURES
+  • [ALL] Theme Creator — in-page docked panel with 10 color pickers; live preview; export as .json or save to app
+  • [ALL] Universal MP4 (H.264) — new video output option guaranteeing max compatibility playback
+  IMPROVEMENTS
+  • [ALL] Theme Creator panel widens window on open, restores on close — main UI never compresses
+  • [ALL] Theme import — Apply Theme button fixed (was silently broken across IIFE scopes)
+  • [ALL] Theme import validation — per-type CSS allowlist, stricter than previous guard
+  • [ALL] Random theme palette seeding — sample any of 420 built-in themes as a starting point
 v1.1.2 - YOURS TO KEEP (Build 132)
 -----------------------------------------
 

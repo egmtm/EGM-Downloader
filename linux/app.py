@@ -785,6 +785,56 @@ def _run_download_slot(job_id, *rest):
     finally:
         _download_sem.release()
 
+def _ensure_h264(job_id, path, job):
+    """Universal MP4 (Max compatibility): if the downloaded video is not already H.264,
+    transcode it to H.264 (High@4.0, yuv420p) + AAC with +faststart so it plays on any
+    device. Already-H.264 files are returned untouched (no re-encode, no quality loss).
+    Defensive — on any failure it returns the original file, so a download is never lost."""
+    path = str(path)
+    try:
+        ffprobe = FFMPEG_DIR / "ffprobe"
+        ffmpeg  = FFMPEG_DIR / "ffmpeg"
+        if not ffprobe.exists() or not ffmpeg.exists():
+            return path
+        r = _run(str(ffprobe), "-v", "error", "-select_streams", "v:0",
+                 "-show_entries", "stream=codec_name", "-of",
+                 "default=nw=1:nk=1", path, timeout=30)
+        vcodec = (r.stdout or "").strip().lower()
+        if not vcodec or vcodec in ("h264", "avc1", "avc"):
+            return path                                       # already H.264 — skip
+        job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
+        tmp = f"{path}.h264.mp4"
+        proc = _popen(str(ffmpeg), "-y", "-i", path,
+                      "-map", "0:v:0", "-map", "0:a:0?",
+                      "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                      "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.0",
+                      "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp,
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        job["proc"] = proc
+        with _active_procs_lock:
+            _active_procs[job_id] = proc
+        proc.wait()
+        job["proc"] = None
+        with _active_procs_lock:
+            _active_procs.pop(job_id, None)
+        if job.get("cancelled"):
+            try: os.remove(tmp)
+            except OSError: pass
+            return path
+        if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+            try:
+                os.remove(path); os.rename(tmp, path)
+            except OSError:
+                try: os.remove(tmp)
+                except OSError: pass
+            return path
+        try: os.remove(tmp)
+        except OSError: pass
+        job["warning"] = "Saved in the source codec - H.264 conversion was unavailable."
+        return path
+    except Exception:
+        return path
+
 def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
     job     = jobs.get(job_id)
     if not job:
@@ -846,8 +896,20 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # backoff (1s, 2s, 3s, 4s, 5s) survives ~90s throttle windows gracefully.
         args += ["--retries", "25", "--fragment-retries", "25",
                  "--socket-timeout", "30", "--retry-sleep", "linear=1::5"]
+        # Universal MP4 (Max compatibility): prefer an H.264 (avc1) video + AAC (m4a)
+        # audio stream so the common case needs no re-encode at all. Falls back to the
+        # best available; the post-download _ensure_h264 step transcodes only if the
+        # result still is not H.264 (e.g. an AV1-only source).
+        compat = (output_format == "mp4_h264")
         if format_id:
             args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"]
+        elif compat:
+            _h = f"[height<={video_height}]" if (video_height and video_height != 0) else ""
+            args += ["-f",
+                     f"bestvideo[vcodec^=avc1]{_h}+bestaudio[acodec^=mp4a]/"
+                     f"bestvideo[vcodec^=avc1]{_h}+bestaudio/"
+                     f"best[vcodec^=avc1]{_h}/"
+                     f"bestvideo{_h}+bestaudio/best{_h}/best"]
         elif video_height and video_height != 0:
             args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
         else:
@@ -985,6 +1047,11 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             if f != chosen:
                 try: os.remove(f)
                 except Exception: pass
+
+        # Universal MP4: ensure the final video stream is H.264 (transcode only if it is
+        # not — an already-H.264 file is left untouched). Defensive: never loses the file.
+        if format_choice != "audio" and output_format == "mp4_h264" and str(chosen).lower().endswith(".mp4"):
+            chosen = _ensure_h264(job_id, chosen, job)
 
         ext        = os.path.splitext(chosen)[1]
         title      = job.get("title", "").strip()
@@ -1741,6 +1808,7 @@ def themes_page(): return render_template("themes.html", egm_token=_API_TOKEN)
 
 @app.route("/subscriptions-page")
 def subscriptions_page(): return render_template("subscriptions.html", egm_token=_API_TOKEN)
+
 
 # ── Subscriptions API ─────────────────────────────────────────────────────────
 
