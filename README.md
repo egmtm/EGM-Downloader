@@ -294,10 +294,8 @@ Theme import security, import/export selector, keyboard shortcuts, animation the
 **v1.1.2 — YOURS TO KEEP:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.2)
 Kanye album themes, scrollbar theming, settings layout redesign, fetch all channels, checkbox persistence, modal focus lock, single-instance lock, Electron 42.4.1
 
-**v1.2 — CANVAS:**
-- 🎨 Theme Creator — build your own theme with a live preview color picker, export as `.json`
-- 🔧 Fixes — Electron bumps and any bugs that surface post-v1.1
-
+**v1.2 — CANVAS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.0)
+Theme Creator — build custom themes with live preview color pickers, export as .json; 49 automated tests, security score 9.5/10
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
 - 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
