@@ -81,14 +81,27 @@
       : [...base, ...THEMES.filter(k => !base.includes(k) && k !== 'custom')].slice(0, 10);
     const show = padded;
     list.innerHTML = show.map(key => {
-      const d = THEME_DATA[key]; if (!d) return '';
-      const isSeasonal = d.cat === 'seasonal';
-      const label = isSeasonal ? `${d.label} <span style="font-size:.55rem;opacity:.5">✦</span>` : d.label;
+      let label, bg, surf, acc;
+      if (key === 'custom') {
+        // The active custom theme is a saved/imported theme — show its real name and
+        // colors (validated + HTML-escaped), not the generic "Custom" placeholder.
+        let c = null;
+        try { c = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null'); } catch {}
+        const cv = (c && c.vars) || {};
+        const dd = THEME_DATA['custom'] || {};
+        const pick = (k, fb) => (validateThemeVar(k, cv[k]) ? cv[k] : fb);
+        label = (c && typeof c.name === 'string' && c.name.trim()) ? esc(c.name) : 'Custom';
+        bg = pick('--bg', dd.bg); surf = pick('--surf', dd.surf); acc = pick('--acc', dd.acc);
+      } else {
+        const d = THEME_DATA[key]; if (!d) return '';
+        label = d.cat === 'seasonal' ? `${d.label} <span style="font-size:.55rem;opacity:.5">✦</span>` : d.label;
+        bg = d.bg; surf = d.surf; acc = d.acc;
+      }
       return `<div class="theme-row${key === current ? ' active' : ''}" data-theme="${key}">
         <div class="theme-swatches">
-          <div class="theme-sw" style="background:${d.bg}"></div>
-          <div class="theme-sw" style="background:${d.surf}"></div>
-          <div class="theme-sw" style="background:${d.acc}"></div>
+          <div class="theme-sw" style="background:${bg}"></div>
+          <div class="theme-sw" style="background:${surf}"></div>
+          <div class="theme-sw" style="background:${acc}"></div>
         </div>
         <span class="theme-name">${label}</span>
         <div class="theme-check${key === current ? ' checked' : ''}"></div>
