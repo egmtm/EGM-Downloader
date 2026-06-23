@@ -49,13 +49,6 @@
       const chk = document.getElementById('quit-on-done-chk');
       if (chk) chk.checked = true;
     }
-    // Linux-only opt-in: precise window placement (X11). Hidden on other platforms.
-    if (window.electronAPI && window.electronAPI.platform === 'linux') {
-      const wrap = document.getElementById('x11-placement-wrap');
-      if (wrap) wrap.style.display = '';
-      const chk = document.getElementById('x11-placement-chk');
-      if (chk) chk.checked = (s.precise_window_placement === true);
-    }
     if (s.check_updates_on_launch) {
       const chk = document.getElementById('check-updates-on-launch-chk');
       if (chk) chk.checked = true;
@@ -140,16 +133,6 @@ document.getElementById('subtitles-chk').addEventListener('change', function() {
 document.getElementById('embed-metadata-chk').addEventListener('change', function() {
   post('/api/settings/save', { embed_metadata: this.checked });
 });
-// Linux-only: precise window placement (X11) — takes effect on next launch.
-(function() {
-  const chk = document.getElementById('x11-placement-chk');
-  if (!chk) return;
-  chk.addEventListener('change', function() {
-    post('/api/settings/save', { precise_window_placement: this.checked });
-    const note = document.getElementById('x11-restart-note');
-    if (note) note.style.display = '';
-  });
-})();
 document.getElementById('output-format-sel').addEventListener('change', function() {
   post('/api/settings/save', { output_format: this.value });
 });
