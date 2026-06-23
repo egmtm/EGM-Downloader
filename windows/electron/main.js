@@ -739,6 +739,29 @@ ipcMain.on('set-theme', (event, theme) => {
   }
 });
 
+// ── IPC: widen the main window while the in-page Theme Creator panel is open, so the
+// panel never compresses the main UI; restore the exact prior bounds on close. Window
+// *size* changes work on every platform incl. Wayland (only window *position* doesn't,
+// and we're not positioning anything — just widening a too-narrow window).
+let _creatorPanelPrevBounds = null;
+ipcMain.on('creator-panel', (event, open) => {
+  if (!isTrustedSender(event) || !mainWindow || mainWindow.isDestroyed()) return;
+  if (mainWindow.isMaximized() || mainWindow.isFullScreen()) return;   // centered content already has room
+  const b = mainWindow.getBounds();
+  const TARGET = 1160;                                                  // 760 content + 340 panel + padding
+  if (open) {
+    if (_creatorPanelPrevBounds || b.width >= TARGET) return;           // already widened / already wide enough
+    _creatorPanelPrevBounds = { ...b };
+    const disp = require('electron').screen.getDisplayMatching(b).workArea;
+    let x = b.x;
+    if (x + TARGET > disp.x + disp.width) x = Math.max(disp.x, disp.x + disp.width - TARGET);
+    mainWindow.setBounds({ x, y: b.y, width: TARGET, height: b.height });
+  } else if (_creatorPanelPrevBounds) {
+    mainWindow.setBounds(_creatorPanelPrevBounds);
+    _creatorPanelPrevBounds = null;
+  }
+});
+
 // ── IPC: forward URL from history window to main window's URL textarea ────────
 // History window is a separate BrowserWindow with no opener relationship,
 // so cross-window readd uses this IPC bridge.
