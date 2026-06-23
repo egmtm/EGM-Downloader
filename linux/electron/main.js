@@ -571,6 +571,7 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
     // un-maximize and tile: main takes the work area minus the Creator column, the
     // Creator fills that column. No overlap; main is re-maximized on close.
     mainWindow.unmaximize();
+    await new Promise(r => setTimeout(r, 80));  // Linux WMs process unmaximize async
     mainWindow.setBounds({ x: disp.x, y: disp.y, width: Math.max(360, disp.width - W), height: disp.height });
     x = disp.x + disp.width - W;
     y = disp.y;
@@ -593,8 +594,13 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
+    show: false,  // prevent WM centering — we show in ready-to-show after forcing position
   });
-  creatorWindow.setPosition(Math.round(x), Math.round(y));  // force position — mac/linux WM may ignore constructor x,y
+  creatorWindow.once('ready-to-show', () => {
+    if (!creatorWindow || creatorWindow.isDestroyed()) return;
+    creatorWindow.setPosition(Math.round(x), Math.round(y));
+    creatorWindow.show();
+  });
   creatorWindow.loadURL(`${APP_URL}/theme-creator-page`);
   hardenWindow(creatorWindow);
   creatorDirty = false; creatorForceClose = false;
