@@ -540,15 +540,34 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
     y = Math.max(disp.y, Math.min(mb.y, disp.y + disp.height - height));
   }
 
+  // Windows honors the constructor x/y. macOS and Linux WMs frequently ignore it
+  // (and an immediate setPosition) and center the window instead, so on those platforms
+  // create it hidden, place it once it's realized, show it, then re-assert after it's
+  // mapped — some Linux WMs only honor a move request at that point.
+  const deferPlacement = process.platform !== 'win32';
   creatorWindow = new BrowserWindow({
     x, y, width: W, height,
+    show: !deferPlacement,
     minWidth: 340, minHeight: 460,
     title: 'Theme Creator — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
-  creatorWindow.setPosition(Math.round(x), Math.round(y));  // force position — mac/linux WM may ignore constructor x,y
+  if (deferPlacement) {
+    // No await/timer here: the main-window resize above stays synchronous, and these
+    // run on window events after the handler returns, so window state can't be raced
+    // (that race is what crashed the earlier setTimeout attempt). Local ref + the
+    // isDestroyed guard keep it safe if the window closes before it paints.
+    const cw = creatorWindow;
+    const placeCreator = () => { if (cw && !cw.isDestroyed()) cw.setBounds({ x, y, width: W, height }); };
+    cw.once('ready-to-show', () => {
+      if (cw.isDestroyed()) return;
+      placeCreator();   // position before reveal (honored on macOS + cooperative WMs)
+      cw.show();
+    });
+    cw.once('show', () => { placeCreator(); setImmediate(placeCreator); });  // re-assert after map (Linux)
+  }
   creatorWindow.loadURL(`${APP_URL}/theme-creator-page`);
   hardenWindow(creatorWindow);
   creatorDirty = false; creatorForceClose = false;
