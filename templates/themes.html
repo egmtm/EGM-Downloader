@@ -159,7 +159,7 @@
 <div class="topbar">
   <span class="topbar-title">All Themes</span>
   <div style="-webkit-app-region:no-drag">
-    <button id="theme-create-btn" title="Opens alongside main UI" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rs);border:1px solid var(--acc);background:var(--acc-dim);color:var(--acc);font-size:.7rem;font-weight:600;cursor:pointer;height:28px">
+    <button id="theme-create-btn" title="Opens the Theme Creator panel in the main window" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rs);border:1px solid var(--acc);background:var(--acc-dim);color:var(--acc);font-size:.7rem;font-weight:600;cursor:pointer;height:28px">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Create
     </button>
   </div>
@@ -442,13 +442,12 @@ document.getElementById('search').addEventListener('input', e => {
   updateBreadcrumb();
 });
 
-// ── Open Theme Creator (from Themes → main closes this window once Creator opens) ─
+// ── Open Theme Creator — the Creator is now a docked panel in the MAIN window.
+// Signal main to open it via a shared-origin localStorage flag (storage events fire
+// across same-origin windows — no IPC), then close this Themes window. ─────────────
 document.getElementById('theme-create-btn').addEventListener('click', () => {
-  if (window.electronAPI && window.electronAPI.openThemeCreator) {
-    window.electronAPI.openThemeCreator({ fromThemes: true });
-  } else {
-    window.open('/theme-creator-page', '_blank');
-  }
+  try { localStorage.setItem('egm-open-creator', String(Date.now())); } catch {}
+  window.close();
 });
 
 // ── Breadcrumb ────────────────────────────────────────────────────────────
