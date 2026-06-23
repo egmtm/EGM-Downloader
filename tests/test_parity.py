@@ -680,3 +680,23 @@ def test_universal_mp4_h264_wired():
         assert "vcodec^=avc1" in src, f"{name}/app.py does not prefer H.264 (avc1) at selection"
         assert "def _ensure_h264" in src, f"{name}/app.py missing the conditional H.264 transcode"
         assert "libx264" in src, f"{name}/app.py transcode does not target libx264"
+
+
+def test_saved_themes_multi_storage_wired():
+    """Multi-theme 'Save to app' (Imported library): the shared validator partial
+    provides the gated storage helpers, the Creator saves into the library, and the
+    Themes window includes the validator and renders/applies/deletes Imported themes.
+    Every read is re-gated by validateThemeVar (no un-vetted vars reach CSS)."""
+    val = read_source("templates/theme_validator.html")
+    for fn in ("loadSavedThemes", "saveSavedTheme", "deleteSavedTheme", "migrateLegacyCustom"):
+        assert fn in val, f"theme_validator.html missing {fn}"
+    assert "egm-saved-themes" in val, "theme_validator.html missing the egm-saved-themes store"
+    assert "validateThemeVar" in val, "saved-theme load is not gated by validateThemeVar"
+
+    cre = read_source("templates/js/_creator.html")
+    assert "saveSavedTheme(" in cre, "_creator.html Save does not write to the saved-themes library"
+
+    th = read_source("templates/themes.html")
+    assert "{% include 'theme_validator.html' %}" in th, "themes.html doesn't include the shared validator"
+    for needle in ("loadSavedThemes(", "applySavedTheme(", "deleteSavedTheme(", "data-saved=", "injectCustomCss"):
+        assert needle in th, f"themes.html missing saved-theme wiring: {needle!r}"
