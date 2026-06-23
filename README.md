@@ -40,12 +40,13 @@
 ## ✨ Features
 
 - 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
-- 🎬 **Video & Audio Downloads** - MP4 or MKV video; MP3, M4A, OPUS, or FLAC audio
+- 🎬 **Video & Audio Downloads** - MP4, MKV, or MP4 H.264 (max compatibility) video; MP3, M4A, OPUS, or FLAC audio
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
 - 🎨 **420 Themes** - 398 permanent across 28 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 420, seasonal themes appear during their respective time of year.
+- 🎨 **Theme Creator** - Build your own theme with 10 live-preview color pickers, export as `.json`, save directly to your library, favorite alongside built-in themes
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
@@ -64,7 +65,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.1.2 — YOURS TO KEEP. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.2 — CANVAS. The UI is identical across Windows, macOS, and Linux.*
 
 <div align="center">
   <a href="screenshots/01-splash-screen.png">
@@ -153,14 +154,14 @@
 ### Windows
 **Latest:** v1.2.0 Build 133  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (442 KB · ~800 MB after install)  
-**SHA256:** `42756967c3800ad98778df6d3b9d5ada233a3d9d3a3524fcc8d4145a690f935c`  
+**SHA256:** `fecb650a22bf5bd53a9b30c0173f6d01f991b558f79eef0d5b3391149a3090cf`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.2.0 Build 133  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (435 KB · ~800 MB after first run)  
-**SHA256:** `1452d7b43fac6e90497665931aed882ba5fe36182b675463abc7f169b1df6474`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (454 KB · ~800 MB after first run)  
+**SHA256:** `b3e4b8e37f5ae975dca58a974f3eaf1555d98641c2af23e060222c5c5dab3b7f`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
@@ -168,14 +169,14 @@
 ### macOS
 **Latest:** v1.2.0 Build 133  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (125 MB · ~300 MB after install)  
-**SHA256:** `85f34cb8e8baba2046755331483258190446150b9c78112c156d5e2bde441109`  
+**SHA256:** `ac03f67fdaf22ddde5e3a87010887cd12548674a6ce922eddba5450cc38fcaa1`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.2.0 Build 133  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `aaf3a1e5c5007308567dd87e2e4f6c155157f9c735b657f1f5a1e1eafa49e4a9`  
+**SHA256:** `37d3ad497645f925fbe93961cf49cd7a8d143611625328445762b1c7b4c11209`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -294,8 +295,8 @@ Theme import security, import/export selector, keyboard shortcuts, animation the
 **v1.1.2 — YOURS TO KEEP:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.2)
 Kanye album themes, scrollbar theming, settings layout redesign, fetch all channels, checkbox persistence, modal focus lock, single-instance lock, Electron 42.4.1
 
-**v1.2 — CANVAS:** *(Shipping June 23, 2026)*
-- 🎨 Theme Creator — build custom themes with live preview color pickers, export as .json
+**v1.2 — CANVAS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.0)
+Theme Creator with live preview, save to library, favorites; Universal MP4 H.264; orphan window fix; security 9.5/10, 49 tests
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
@@ -400,10 +401,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version man
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 132 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 132 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 132 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 132 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 133 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 133 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 133 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 133 | EGMdL.zip | ❌ Manual |
 
 ### System Requirements
 
