@@ -704,4 +704,4 @@ def test_creator_window_placement_parity():
     for plat in ("windows", "linux", "mac"):
         src = read_source(f"{plat}/electron/main.js")
         assert "deferPlacement" in src, f"{plat}/main.js missing the deferPlacement gate"
-        assert "show: !deferPlacement" in src, f"{plat}/main.js Creator window not deferred-show wired"
+        assert ("show: !deferPlacement" in src or "show: isWayland || !deferPlacement" in src), f"{plat}/main.js Creator window not deferred-show wired"
