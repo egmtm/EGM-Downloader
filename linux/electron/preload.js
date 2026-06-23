@@ -27,26 +27,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   refocusWindow:       ()                 => ipcRenderer.send('refocus-window'),
   setTheme:          (theme)         => { if (isStr(theme) && THEME_RE.test(theme)) ipcRenderer.send('set-theme', theme); },
   sendUrlToMain:     (url)           => { if (isHttpUrl(url)) ipcRenderer.send('send-url-to-main', url); },
-  // ── Theme Creator (v1.2 CANVAS) ──
-  openThemeCreator:     (opts)       => ipcRenderer.invoke('open-theme-creator', opts || {}),
-  creatorPreview:       (vars)       => { if (vars && typeof vars === 'object') ipcRenderer.send('creator-preview', vars); },
-  creatorDirty:         (dirty)      => ipcRenderer.send('creator-dirty', !!dirty),
-  creatorConfirmClose:  ()           => ipcRenderer.invoke('creator-confirm-close'),
-  onCreatorPreview:     (cb)         => {
-    const handler = (e, vars) => cb(vars);
-    ipcRenderer.on('creator-preview', handler);
-    return () => ipcRenderer.removeListener('creator-preview', handler);
-  },
-  onCreatorPreviewReset: (cb)        => {
-    const handler = () => cb();
-    ipcRenderer.on('creator-preview-reset', handler);
-    return () => ipcRenderer.removeListener('creator-preview-reset', handler);
-  },
-  onCreatorRequestClose: (cb)        => {
-    const handler = () => cb();
-    ipcRenderer.on('creator-request-close', handler);
-    return () => ipcRenderer.removeListener('creator-request-close', handler);
-  },
   // Listener registrars return an unsubscribe fn so callers can avoid stacking
   // duplicate handlers across reloads. Existing callers that ignore it still work.
   onThemeChanged:    (cb)            => {
