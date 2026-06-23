@@ -59,6 +59,8 @@
 
   // ── Theme data — swatches + labels + categories ─────────────────────────────
   {% include 'theme_data.html' %}
+  // Expose for the in-page Theme Creator panel's Random (samples this palette set).
+  window.THEME_DATA = THEME_DATA;
 
   // ── Recent themes (up to 9, persisted in localStorage) ──────────────────────
   let recentThemes = [];
@@ -116,6 +118,9 @@
       window.electronAPI.setTheme(name || 'void');
     }
   }
+  // Expose so the in-page Theme Creator panel (and the import path) can apply a theme
+  // — applyTheme is defined in this IIFE's scope and is needed from the other IIFE.
+  window.applyTheme = applyTheme;
 
   const saved = localStorage.getItem('egm-theme') || 'void';
   applyTheme(saved);
@@ -221,6 +226,9 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
       row.style.display = '';
     }
   }
+  // Expose for the in-page Theme Creator panel's "Save to app" (this fn lives in this
+  // IIFE's scope; the panel writes the palette then calls this to inject + apply it).
+  window._egmApplyCustomTheme = _applyCustomTheme;
 
   // Export — collect vars from getComputedStyle (reflects active theme)
   document.getElementById('theme-export-btn').addEventListener('click', async () => {
@@ -300,7 +308,7 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
         backdrop.remove();
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
-        applyTheme('custom');
+        window.applyTheme('custom');
         toast(`Theme "${esc(theme.name)}" applied ✓`, 'ok');
       });
 
