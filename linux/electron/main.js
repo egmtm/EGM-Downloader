@@ -56,6 +56,18 @@ function loadSettings() {
   catch { return {}; }
 }
 
+// ── Opt-in: precise window placement (X11) ───────────────────────────────────
+// Native Wayland forbids a client from positioning its own windows, so secondary
+// windows (e.g. the Theme Creator) open compositor-centered. Forcing the X11/XWayland
+// ozone backend lets the app position them — at the cost of softer rendering on
+// fractional-scaling HiDPI, so it's strictly opt-in (default off). The hint must be
+// applied before the app is ready, hence the synchronous settings read here.
+try {
+  if (loadSettings().precise_window_placement === true) {
+    app.commandLine.appendSwitch('ozone-platform-hint', 'x11');
+  }
+} catch {}
+
 function atomicWriteJson(file, data) {
   const tmp = `${file}.tmp`;
   fs.mkdirSync(path.dirname(file), { recursive: true });
