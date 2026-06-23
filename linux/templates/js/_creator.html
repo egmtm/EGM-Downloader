@@ -1,0 +1,253 @@
+{# ── Theme Creator — in-page docked panel ───────────────────────────────────── #}
+{# Runs in the main window only. The Creator is a right-docked panel inside main; #}
+{# the main UI to its left IS the live preview (vars applied to document.body).   #}
+{# No separate window, no IPC, no OS positioning — identical on every platform.   #}
+{# Shared gate: validateThemeVar (theme_validator.html, in _core.html).           #}
+{# Theme apply uses window.applyTheme / window._egmApplyCustomTheme (from _theme). #}
+{# ─────────────────────────────────────────────────────────────────────────────── #}
+(function () {
+  'use strict';
+
+  // 10 user-facing core vars + their starting (void) defaults.
+  const CORE_KEYS     = ['--bg','--surf','--surf2','--surf3','--acc','--acc-h','--text','--text2','--border','--red'];
+  const CORE_DEFAULTS = { '--bg':'#0b1120','--surf':'#111c2e','--surf2':'#182338','--surf3':'#1f2f47',
+                          '--acc':'#3b82f6','--acc-h':'#60a5fa',
+                          '--text':'#e2e8f6','--text2':'#8faecf','--border':'#243454','--red':'#ef4444' };
+
+  // ── Color math (derive the remaining vars from the 10 core) ──────────────────
+  function hexToRgb(h) {
+    h = String(h).trim().replace('#','');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const n = parseInt(h, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function clampByte(n) { return Math.max(0, Math.min(255, Math.round(n))); }
+  function rgbToHex(rgb) { return '#' + rgb.map(c => clampByte(c).toString(16).padStart(2,'0')).join(''); }
+  function relLum(rgb) { return (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255; }
+  function mix(a, b, t) { const A = hexToRgb(a), B = hexToRgb(b); return rgbToHex([0,1,2].map(i => A[i] + (B[i] - A[i]) * t)); }
+  function toHex6(v) {
+    const m = String(v).trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (!m) return null;
+    let h = m[1];
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    return '#' + h.toLowerCase();
+  }
+
+  // Full 25-var theme map from the 10 core (core last so user picks win).
+  function deriveAll(core) {
+    const acc = core['--acc'];
+    const [ar, ag, ab] = hexToRgb(acc);
+    const onAcc = relLum(hexToRgb(acc)) > 0.6 ? '#000000' : '#ffffff';
+    return Object.assign({}, {
+      '--surf3':            mix(core['--surf2'], core['--text'], 0.06),
+      '--border2':          mix(core['--border'], core['--text'], 0.20),
+      '--acc-h':            mix(acc, '#ffffff', 0.18),
+      '--acc-dim':          `rgba(${ar},${ag},${ab},0.14)`,
+      '--muted':            mix(core['--text2'], core['--bg'], 0.35),
+      '--shadow':           '0 4px 32px rgba(0,0,0,0.6)',
+      '--thumb-bg':         mix(core['--bg'], '#000000', 0.25),
+      '--log-bg':           mix(core['--bg'], '#000000', 0.35),
+      '--log-text':         core['--text2'],
+      '--modal-overlay':    'rgba(0,0,0,0.75)',
+      '--modal-shadow':     '0 20px 60px rgba(0,0,0,0.8)',
+      '--btn-primary-text': onAcc,
+      '--btn-on-accent':    onAcc,
+      '--btn-red-border':   mix(core['--red'], '#000000', 0.55),
+      '--audio-btn-color':  acc,
+      '--dur-bg':           'rgba(0,0,0,0.85)',
+      '--dur-text':         core['--text'],
+    }, core);
+  }
+  function validPairs(map) {
+    const out = {};
+    for (const [k, v] of Object.entries(map)) if (validateThemeVar(k, v)) out[k] = v;
+    return out;
+  }
+
+  const $ = id => document.getElementById(id);
+  const root = $('creator-panel');
+  if (!root) return;                       // panel markup absent — nothing to wire
+  const nameInput = $('cvp-name');
+  let pickers = [];
+
+  let core      = Object.assign({}, CORE_DEFAULTS);
+  let baseline  = Object.assign({}, CORE_DEFAULTS);
+  let dirty     = false;
+  let initialName = 'My Theme 1';
+
+  // ── Live preview: vars go straight onto document.body (this IS the preview) ──
+  // The panel chrome uses fixed colors, so it stays readable while everything else
+  // recolors. Track keys so we can revert cleanly on close/cancel.
+  const previewed = new Set();
+  let pending = null, raf = 0;
+  function applyPreview(vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      if (validateThemeVar(k, v)) { document.body.style.setProperty(k, v); previewed.add(k); }
+    }
+  }
+  function pushPreview(vars) {
+    pending = Object.assign(pending || {}, vars);
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; const v = pending; pending = null; applyPreview(v); });
+  }
+  function revertPreview() { previewed.forEach(k => document.body.style.removeProperty(k)); previewed.clear(); }
+
+  function recomputeDirty() {
+    dirty = CORE_KEYS.some(k => core[k].toLowerCase() !== baseline[k].toLowerCase())
+            || nameInput.value.trim() !== initialName;
+  }
+  function autoName() {
+    let n = 1;
+    try {
+      const saved = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null');
+      const m = saved && typeof saved.name === 'string' && saved.name.match(/^My Theme (\d+)$/);
+      if (m) n = parseInt(m[1], 10) + 1;
+    } catch {}
+    return 'My Theme ' + n;
+  }
+  function syncPickers() { pickers.forEach(inp => { inp.value = core[inp.dataset.var]; }); }
+
+  // ── Open / close ──────────────────────────────────────────────────────────────
+  window.openThemeCreator = function () {
+    if (document.body.classList.contains('creator-panel-open')) return;   // already open
+    core = Object.assign({}, CORE_DEFAULTS);
+    baseline = Object.assign({}, CORE_DEFAULTS);
+    initialName = autoName();
+    nameInput.value = initialName;
+    syncPickers();
+    dirty = false;
+    revertPreview();
+    document.body.classList.add('creator-panel-open');
+    // Ask main to widen the window so the panel never compresses the main UI.
+    if (window.electronAPI && window.electronAPI.notifyCreatorPanel) window.electronAPI.notifyCreatorPanel(true);
+    const hp = $('hamburger-panel'); if (hp) hp.classList.remove('open');
+    document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
+  };
+  function closePanel() {
+    revertPreview();
+    document.body.classList.remove('creator-panel-open');
+    if (window.electronAPI && window.electronAPI.notifyCreatorPanel) window.electronAPI.notifyCreatorPanel(false);
+  }
+  function requestClose() { if (dirty) confirmClose(); else closePanel(); }
+
+  // ── In-page modal (reset confirm + unsaved-close confirm) ────────────────────
+  function esc2(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function showModal(opts) {
+    const back = document.createElement('div');
+    back.className = 'cvp-modal-back';
+    back.innerHTML =
+      '<div class="cvp-modal" role="dialog" aria-modal="true">' +
+        '<h3>' + esc2(opts.title) + '</h3><p>' + esc2(opts.body) + '</p>' +
+        '<div class="cvp-modal-actions">' +
+          '<button class="cvp-mbtn ghost" data-act="cancel">' + esc2(opts.cancel) + '</button>' +
+          '<button class="cvp-mbtn ' + (opts.danger ? 'danger' : 'ghost') + '" data-act="ok">' + esc2(opts.ok) + '</button>' +
+        '</div></div>';
+    document.body.appendChild(back);
+    back.addEventListener('click', e => {
+      const act = e.target && e.target.getAttribute && e.target.getAttribute('data-act');
+      if (!act) return;
+      back.remove();
+      if (act === 'ok' && opts.onOk) opts.onOk();
+    });
+  }
+  function confirmClose() {
+    showModal({ title: 'Close without saving?', body: "Your theme hasn't been saved or exported.",
+      cancel: 'Keep editing', ok: 'Close anyway', danger: true, onOk: closePanel });
+  }
+
+  // ── Random (sample THEME_DATA minus memes + custom) ──────────────────────────
+  const RANDOM_EXCLUDE = new Set(['memes', 'custom']);
+  function randomize() {
+    const data = window.THEME_DATA || {};
+    const pool = Object.values(data).filter(t => t && !RANDOM_EXCLUDE.has(t.cat));
+    if (!pool.length) return;
+    const seed = pool[Math.floor(Math.random() * pool.length)];
+    const bg   = toHex6(seed.bg)   || baseline['--bg'];
+    const surf = toHex6(seed.surf) || baseline['--surf'];
+    const acc  = toHex6(seed.acc)  || baseline['--acc'];
+    const text = relLum(hexToRgb(bg)) < 0.4 ? '#e8edf6' : '#14181f';
+    // Set EVERY core var (a partial core blanks the un-set pickers + breaks dirty).
+    core = {
+      '--bg': bg, '--surf': surf, '--surf2': mix(surf, '#ffffff', 0.06),
+      '--surf3': mix(surf, text, 0.10), '--acc': acc, '--acc-h': mix(acc, '#ffffff', 0.18),
+      '--text': text, '--text2': mix(text, surf, 0.45), '--border': mix(surf, text, 0.18),
+      '--red': '#ef4444',
+    };
+    syncPickers();
+    pushPreview(deriveAll(core));
+    recomputeDirty();
+  }
+
+  // ── Export / Save ─────────────────────────────────────────────────────────────
+  function slug(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'my-theme'; }
+  function buildTheme() {
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); toast('Name your theme first', 'err'); return null; }
+    return { name, 'egm-theme': true, vars: validPairs(deriveAll(core)) };
+  }
+  async function exportTheme() {
+    const theme = buildTheme();
+    if (!theme) return;
+    const payload = JSON.stringify(theme, null, 2);
+    if (window.electronAPI && window.electronAPI.saveFile) {
+      const r = await window.electronAPI.saveFile(slug(theme.name) + '.json', payload);
+      if (!r || r.canceled) return;
+      if (r.ok) toast('Theme exported ✓', 'ok');
+      else toast('Export failed: ' + ((r && r.error) || 'unknown'), 'err');
+    } else {
+      try { await navigator.clipboard.writeText(payload); toast('Theme copied to clipboard ✓', 'ok'); }
+      catch { toast('Export failed', 'err'); }
+    }
+  }
+  function saveTheme() {
+    const theme = buildTheme();
+    if (!theme) return;
+    try { localStorage.setItem('egm-custom-theme', JSON.stringify(theme)); }
+    catch { toast('Save failed', 'err'); return; }
+    revertPreview();                              // drop inline overrides so body.custom shows
+    if (window._egmApplyCustomTheme) window._egmApplyCustomTheme(theme);
+    if (window.applyTheme) window.applyTheme('custom');
+    dirty = false;
+    toast('Saved to app ✓', 'ok');
+  }
+
+  // ── Wire ──────────────────────────────────────────────────────────────────────
+  pickers = Array.from(root.querySelectorAll('.cvp-pick'));
+  pickers.forEach(inp => {
+    const k = inp.dataset.var;
+    inp.value = core[k];
+    const onInput = () => {
+      const v = toHex6(inp.value);
+      if (!v || !validateThemeVar(k, v)) return;
+      core[k] = v;
+      pushPreview(deriveAll(core));
+      recomputeDirty();
+    };
+    inp.addEventListener('input', onInput);
+    inp.addEventListener('change', onInput);
+  });
+  nameInput.addEventListener('input', recomputeDirty);
+  $('cvp-close').addEventListener('click', requestClose);
+  $('cvp-reset').addEventListener('click', () => showModal({
+    title: 'Reset theme?', body: 'All color changes will be lost. This cannot be undone.',
+    cancel: 'Cancel', ok: 'Reset', danger: true,
+    onOk: () => { core = Object.assign({}, baseline); syncPickers(); pushPreview(deriveAll(core)); recomputeDirty(); },
+  }));
+  $('cvp-random').addEventListener('click', randomize);
+  $('cvp-export').addEventListener('click', exportTheme);
+  $('cvp-save').addEventListener('click', saveTheme);
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && document.body.classList.contains('creator-panel-open')) { e.preventDefault(); requestClose(); }
+  });
+
+  // Entry point in the main UI (hamburger → Themes → "＋ Create theme").
+  const createBtn = $('theme-create-btn');
+  if (createBtn) createBtn.addEventListener('click', () => window.openThemeCreator());
+
+  // Bridge: the separate Themes window asks main to open the panel via a shared-origin
+  // localStorage flag (storage events fire across same-origin windows — no IPC needed).
+  window.addEventListener('storage', e => {
+    if (e.key === 'egm-open-creator' && e.newValue) window.openThemeCreator();
+  });
+})();

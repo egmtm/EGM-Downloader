@@ -1766,7 +1766,10 @@
 </div>
 
           </div><!-- end theme-list-static -->
-          <div style="display:flex;gap:4px;margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
+          <div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
+            <button id="theme-create-btn" style="width:100%;padding:6px 0;border-radius:5px;border:1px solid var(--acc);background:var(--acc-dim);cursor:pointer;font-size:10px;font-weight:600;color:var(--acc)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Create theme</button>
+          </div>
+          <div style="display:flex;gap:4px;margin-top:4px">
             <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg> Import</button>
             <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> Export</button>
           </div>
@@ -1939,6 +1942,7 @@
           <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
             <option value="mp4" selected>MP4</option>
             <option value="mkv">MKV</option>
+            <option value="mp4_h264">MP4 · H.264 (Max compatibility)</option>
           </select>
         </div>
       </div>
@@ -2182,6 +2186,38 @@
 </div>
 
 <button id="scroll-top" title="Back to top">↑</button>
+
+<!-- ── Theme Creator — docked panel (in-page; the main UI is the live preview) ── -->
+<aside id="creator-panel" aria-label="Theme Creator">
+  <div class="cvp-head">
+    <span class="cvp-dot"></span>
+    <h2>Theme Creator</h2>
+    <span class="cvp-live" title="The main window updates live as you pick">LIVE</span>
+    <button id="cvp-close" title="Close" aria-label="Close">&times;</button>
+  </div>
+  <div class="cvp-body">
+    <label class="cvp-flabel" for="cvp-name">Theme name</label>
+    <input id="cvp-name" type="text" maxlength="60" autocomplete="off" spellcheck="false"/>
+    <div class="cvp-picks">
+      <div class="cvp-row"><div class="cvp-lab"><b>App background</b><span>The canvas</span></div><input class="cvp-pick" type="color" data-var="--bg" aria-label="App background"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Surface</b><span>Cards, panels</span></div><input class="cvp-pick" type="color" data-var="--surf" aria-label="Surface"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Surface 2</b><span>Slightly lighter surfaces</span></div><input class="cvp-pick" type="color" data-var="--surf2" aria-label="Surface 2"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Deep surface</b><span>Dropdowns, inner panels</span></div><input class="cvp-pick" type="color" data-var="--surf3" aria-label="Deep surface"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Accent</b><span>Buttons, highlights</span></div><input class="cvp-pick" type="color" data-var="--acc" aria-label="Accent"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Accent hover</b><span>Button / link hover</span></div><input class="cvp-pick" type="color" data-var="--acc-h" aria-label="Accent hover"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Text</b><span>Primary text</span></div><input class="cvp-pick" type="color" data-var="--text" aria-label="Text"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Muted text</b><span>Secondary text</span></div><input class="cvp-pick" type="color" data-var="--text2" aria-label="Muted text"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Border</b><span>Visible everywhere</span></div><input class="cvp-pick" type="color" data-var="--border" aria-label="Border"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Danger</b><span>Cancel / delete actions</span></div><input class="cvp-pick" type="color" data-var="--red" aria-label="Danger"/></div>
+    </div>
+  </div>
+  <div class="cvp-foot">
+    <button class="cvp-btn" id="cvp-reset">Reset</button>
+    <button class="cvp-btn" id="cvp-random">Random</button>
+    <button class="cvp-btn" id="cvp-export">Export</button>
+    <button class="cvp-btn cvp-save" id="cvp-save">Save</button>
+  </div>
+</aside>
 
 <script>
 {% include 'index_scripts.html' %}</script>

@@ -1,0 +1,526 @@
+// ── Fetch ─────────────────────────────────────────────────────────────────────
+document.getElementById('fetch-btn').addEventListener('click', fetchAll);
+
+// Fetch info for a single non-playlist URL and render its card
+async function fetchSingle(url, ph) {
+  const info = await post('/api/info', { url });
+  if (fetchAbort) { ph.remove(); return; }
+  if (info.error) throw new Error(info.error);
+  renderCard(ph, addItem(url, info));
+  updateQueueArrows();
+}
+
+// Enqueue all playlist entries as stub cards, then fetch full info in parallel
+function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
+  for (const e of entries) {
+    if (fetchAbort) break;
+    const el    = makeCardEl();
+    document.getElementById('results').appendChild(el);
+    const pItem = addItem(e.url, {
+      title: e.title, thumbnail: e.thumbnail || '',
+      duration: e.duration, uploader: e.uploader || '',
+      formats: [], audio_formats: [],
+    });
+    renderCard(el, pItem);
+    pendingInfo.count++;
+    (async () => {
+      try {
+        const info2 = await post('/api/info', { url: pItem.url });
+        if (fetchAbort) {
+          el.remove();
+          items = items.filter(i => i !== pItem);
+        } else if (!info2.error) {
+          pItem.info = info2;
+          renderCard(el, pItem);
+        }
+      } catch {}
+      pendingInfo.count--;
+      if (fetchAbort && pendingInfo.count === 0) finishFetch();
+    })();
+  }
+}
+
+async function fetchAll() {
+  const raw  = document.getElementById('urls').value;
+  const urls = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
+  if (!urls.length) { toast('Paste at least one URL', 'err'); return; }
+  items = [];
+  fetchAbort = false;
+  document.getElementById('results').innerHTML = '';
+  setDlAllVisible(false);
+  document.getElementById('fetch-btn').disabled = true;
+  document.getElementById('cancel-fetch-btn').style.display = '';
+
+  document.getElementById('cancel-fetch-btn').onclick = () => {
+    fetchAbort = true;
+    document.getElementById('fetch-btn').disabled = false;
+    document.getElementById('cancel-fetch-btn').style.display = 'none';
+    if (items.length > 1) setDlAllVisible(true);
+    toast('Stopped — keeping ' + items.length + ' loaded video' + (items.length !== 1 ? 's' : ''));
+  };
+
+  // Use an object so fetchPlaylistEntries can mutate the counter by reference
+  const pendingInfo = { count: 0 };
+
+  function finishFetch() {
+    fetchAbort = false;
+    document.getElementById('fetch-btn').disabled = false;
+    document.getElementById('cancel-fetch-btn').style.display = 'none';
+    if (items.length > 1) setDlAllVisible(true);
+  }
+
+  for (const url of urls) {
+    if (fetchAbort) break;
+    const ph = makePh(url);
+    try {
+      const pl = await post('/api/playlist', { url });
+      if (fetchAbort) { ph.remove(); break; }
+      if (pl.error) throw new Error(pl.error);
+      if (pl.is_playlist && pl.entries?.length) {
+        ph.remove();
+        fetchPlaylistEntries(pl.entries, pendingInfo, finishFetch);
+      } else {
+        await fetchSingle(url, ph);
+      }
+    } catch (e) { renderErr(ph, url, e.message); }
+  }
+
+  // Finish immediately if not aborted, or if aborted with no pending info calls
+  if (!fetchAbort || pendingInfo.count === 0) finishFetch();
+}
+
+function addItem(url, info) {
+  const item = { id: seq++, url, info, jobId: null, status:'idle', selFmt:'video', selFmtId:'' };
+  items.push(item);
+  return item;
+}
+
+// ── Card rendering ─────────────────────────────────────────────────────────────
+function makePh(url) {
+  const el = makeCardEl();
+  el.innerHTML = `
+    <div class="thumb"><div class="noimg" style="display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 32 32" style="animation:spin-svg 1.4s linear infinite" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="60 88" style="animation:dash 1.4s ease-in-out infinite"/></svg></div></div>
+    <div class="vbody">
+      <!-- lint-allow-muted: loading-state -->
+      <div class="vtitle" style="color:var(--muted)">${esc(trunc(url,70))}</div>
+      <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> Fetching…</span></div>
+    </div>`;
+  document.getElementById('results').appendChild(el);
+  return el;
+}
+function makeCardEl() { const el=document.createElement('div'); el.className='vcard'; return el; }
+
+function updateQueueArrows() {
+  const results = document.getElementById('results');
+  if (!results) return;
+  // Use DOM order as source of truth — items[] may drift from DOM after swaps
+  const idleCards = [...results.querySelectorAll('.vcard')].filter(card => {
+    const id = card.querySelector('.qarrow')?.dataset.id;
+    if (!id) return false;
+    const item = items.find(i => String(i.id) === String(id));
+    return item && item.status === 'idle';
+  });
+  idleCards.forEach((card, pos) => {
+    const wrap = card.querySelector('[id^="qarrows"]');
+    if (!wrap) return;
+    const [up, down] = wrap.querySelectorAll('.qarrow');
+    if (up)   up.style.visibility   = pos === 0 ? 'hidden' : 'visible';
+    if (down) down.style.visibility = pos === idleCards.length - 1 ? 'hidden' : 'visible';
+  });
+}
+
+
+function renderErr(el, url, msg) {
+  el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
+    <div class="vbody"><div class="vtitle">${esc(trunc(url,70))}</div>
+    <div class="vmeta"><span class="badge b-error">Error: ${esc(msg)}</span></div></div>`;
+}
+
+function renderCard(el, item) {
+  const info = item.info, n = item.id;
+  const dur  = info.duration ? fmtDur(info.duration) : '';
+  // Add a "may be slower" tooltip on high-resolution options (≥1440p)
+  // since CDN throttling on high-res streams is common but legitimate.
+  const SLOW_HINT = '4K/8K downloads may be slower — source throttling on high-bitrate streams is normal.';
+  const _resSuffix = h => h >= 4320 ? ' - 8K' : h >= 2160 ? ' - 4K' : h >= 1440 ? ' - 2K' : '';
+  const vOpts = (info.formats||[]).map(f => {
+    const slow = (f.height || 0) >= 1440;
+    const titleAttr = slow ? ` title="${esc(SLOW_HINT)}"` : '';
+    const suffix = _resSuffix(f.height || 0);
+    return `<option value="${esc(f.id)}"${titleAttr}>${esc(f.label)}${suffix}</option>`;
+  }).join('');
+  const aOpts = (info.audio_formats||[]).map(f => `<option value="${esc(f.id)}">${esc(f.label)}</option>`).join('');
+  const hasQ  = (info.formats||[]).length > 0 || (info.audio_formats||[]).length > 0;
+
+  el.innerHTML = `
+    <button class="vcard-remove" title="Remove" data-id="${n}">✕</button>
+    <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
+      ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg">🎬</div>`}
+      ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
+    </div>
+    <div class="vbody">
+      <div class="vtitle" title="${esc(info.title)}">${esc(info.title||item.url)}</div>
+      <div class="vmeta">${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
+      <div class="qual-panel">
+        <div class="qual-group">
+          <span class="qual-label">Format</span>
+          <div class="pills">
+            <input type="radio" name="fmt${n}" id="fv${n}" value="video" checked>
+            <label for="fv${n}">🎬 Video</label>
+            <input type="radio" name="fmt${n}" id="fa${n}" value="audio">
+            <label for="fa${n}">🎵 Audio</label>
+          </div>
+        </div>
+        <div class="qual-group" id="vqg${n}" ${!hasQ?'style="display:none"':''}>
+          <span class="qual-label">Video quality</span>
+          <select class="qsel" id="vq${n}">
+            <option value="">Best available</option>${vOpts}
+          </select>
+        </div>
+        <div class="qual-group" id="aqg${n}" style="display:none">
+          <span class="qual-label">Audio quality</span>
+          <select class="qsel" id="aq${n}">
+            <option value="320" selected>MP3 320 kbps</option>
+            <option value="192">MP3 192 kbps</option>
+            <option value="128">MP3 128 kbps</option>
+            <option value="flac">FLAC (lossless)</option>
+            <option value="m4a_256">M4A 256 kbps</option>
+            <option value="opus_192">OPUS 192 kbps</option>
+            <option value="opus_128">OPUS 128 kbps</option>
+          </select>
+        </div>
+        ${!hasQ ? `<div class="qual-group" id="lqg${n}"><span class="qual-label">&nbsp;</span>
+          <span class="badge b-dl" style="font-size:.7rem"><span class="spinner"></span></span></div>` : ''}
+      </div>
+      <div class="vcontrols">
+        <div style="display:flex;gap:3px;flex-shrink:0" id="qarrows${n}">
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="Move up" style="padding:2px 6px;font-size:11px">↑</button>
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
+        </div>
+        <span class="badge b-wait" id="st${n}">Ready</span>
+        <button class="btn btn-primary btn-sm" id="dl${n}">⬇ Download</button>
+      </div>
+      <div class="prog" id="prog${n}" style="display:none"><div class="prog-inner indeterminate"></div></div>
+    </div>`;
+
+  // Remove button
+  el.querySelector('.vcard-remove').addEventListener('click', () => removeItem(item.id, el));
+
+  // Format toggle
+  el.querySelectorAll(`input[name="fmt${n}"]`).forEach(r => {
+    r.addEventListener('change', () => {
+      item.selFmt = r.value;
+      const isA = r.value === 'audio';
+      const vqg = document.getElementById(`vqg${n}`);
+      const aqg = document.getElementById(`aqg${n}`);
+      if (vqg) vqg.style.display = isA ? 'none' : '';
+      if (aqg) aqg.style.display = isA ? '' : 'none';
+      item.selFmtId = '';
+    });
+  });
+
+  const vq = document.getElementById(`vq${n}`);
+  if (vq) vq.addEventListener('change', () => { item.selFmtId = vq.value; });
+  const aq = document.getElementById(`aq${n}`);
+  if (aq) {
+    const savedAudioFmt = document.getElementById('default-audio-fmt-sel')?.value || '320';
+    aq.value = savedAudioFmt;
+    item.audioQual = savedAudioFmt;
+    aq.addEventListener('change', () => { item.audioQual = aq.value; });
+  }
+
+  document.getElementById(`dl${n}`).addEventListener('click', () => startDl(item, n));
+
+  // Queue reorder arrows — only shown on idle cards
+  el.querySelectorAll('.qarrow').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const dir = btn.dataset.dir;
+      const results = document.getElementById('results');
+      const cards = [...results.querySelectorAll('.vcard')];
+      const domIdx = cards.indexOf(el);
+      if (domIdx === -1) return;
+      const swapIdx = dir === 'up' ? domIdx - 1 : domIdx + 1;
+      if (swapIdx < 0 || swapIdx >= cards.length) return;
+      const other = cards[swapIdx];
+      if (!other) return;
+      // Find items by card position
+      const itemA = items[domIdx];
+      const itemB = items[swapIdx];
+      if (!itemA || !itemB || itemA.status !== 'idle' || itemB.status !== 'idle') return;
+      // Swap items array
+      [items[domIdx], items[swapIdx]] = [items[swapIdx], items[domIdx]];
+      // Swap DOM nodes. el and other are always ADJACENT cards, so a single
+      // insertBefore swaps them. The previous two-step dance captured
+      // el.nextSibling BEFORE mutating the DOM, so the second insertBefore used a
+      // stale reference — depending on the surrounding nodes it either no-op'd or
+      // un-did the first move, leaving the card unmoved (and the items array now
+      // out of sync with the DOM → the "wrong card moves" follow-on).
+      if (dir === 'up') {
+        results.insertBefore(el, other);    // el moves above other
+      } else {
+        results.insertBefore(other, el);    // other moves above el (el moves down)
+      }
+      updateQueueArrows();
+    });
+  });
+
+}
+
+function removeItem(id, el) {
+  items = items.filter(i => i.id !== id);
+  el.remove();
+  if (items.length <= 1) setDlAllVisible(false);
+}
+
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function safeName(s) { return s.replace(/[\/\\:\*\?"<>|]/g,'').trim().slice(0,120).trim() || 'download'; }
+
+function showModal(name, ext) {
+  return new Promise(resolve => {
+    _modalOk = resolve;
+    document.getElementById('modal-input').value = safeName(name);
+    document.getElementById('modal-ext').textContent = ext;
+    document.getElementById('name-modal').style.display = 'flex';
+    setTimeout(() => {
+      const inp = document.getElementById('modal-input');
+      inp.focus(); inp.select();
+      inp.onkeydown = e => { if (e.key==='Enter') confirmModal(); if (e.key==='Escape') closeModal(); };
+    }, 50);
+  });
+}
+function confirmModal() {
+  const name = safeName(document.getElementById('modal-input').value) || 'download';
+  closeModal(name);
+}
+function closeModal(result=null) {
+  document.getElementById('name-modal').style.display = 'none';
+  if (_modalOk) { _modalOk(result); _modalOk = null; }
+}
+
+// ── Download ──────────────────────────────────────────────────────────────────
+async function startDl(item, n) {
+  if (item.status === 'downloading') return;
+
+  // Block download if no folder selected
+  if (!chosenPath) {
+    toast('Please select a download folder first', 'err');
+    document.getElementById('browse-btn').focus();
+    const dH = document.getElementById('dir-hint');
+    if (dH) { dH.style.color = 'var(--red)'; dH.textContent = '⚠ Select a download folder before downloading.'; }
+    setTimeout(() => {
+      const dH2 = document.getElementById('dir-hint'); if (dH2) dH2.style.color = 'var(--yellow)';
+    }, 3000);
+    return;
+  }
+
+  // Lazy fetch for playlist stubs
+  if (!item.info.formats?.length && !item.info.audio_formats?.length) {
+    const stEl = document.getElementById(`st${n}`);
+    const dlBtn = document.getElementById(`dl${n}`);
+    setBadge(stEl, 'dl', 'Fetching quality…'); dlBtn.disabled = true;
+    try {
+      const i2 = await post('/api/info', { url: item.url });
+      if (i2.error) throw new Error(i2.error);
+      item.info = i2;
+      const card = dlBtn?.closest?.('.vcard');
+      if (card) renderCard(card, item);
+      updateQueueArrows();
+      return startDl(item, n);
+    } catch (e) {
+      setBadge(document.getElementById(`st${n}`), 'error', e.message);
+      document.getElementById(`dl${n}`).disabled = false;
+      return;
+    }
+  }
+
+  // Compute extension to display in name modal — reflects current selector state
+  // Audio: default audio format selector (mp3/m4a/opus/flac variants)
+  // Video: output_format selector (mp4/mkv) — backend's --remux-video enforces this
+  let ext = '.mp4';
+  if (item.selFmt === 'audio') {
+    const audioFmt = item.audioQual || document.getElementById('default-audio-fmt-sel')?.value || '320';
+    if (audioFmt === 'flac')              ext = '.flac';
+    else if (audioFmt.startsWith('m4a_'))  ext = '.m4a';
+    else if (audioFmt.startsWith('opus_')) ext = '.opus';
+    else                                    ext = '.mp3';
+  } else {
+    const vfmt = document.getElementById('output-format-sel')?.value || 'mp4';
+    ext = vfmt === 'mkv' ? '.mkv' : '.mp4';
+  }
+  const chosenName = await showModal(item.info.title || 'download', ext);
+  if (!chosenName) return;   // cancelled
+
+  const stEl   = document.getElementById(`st${n}`);
+  const dlBtn  = document.getElementById(`dl${n}`);
+  const progEl = document.getElementById(`prog${n}`);
+  const dir = chosenPath;
+
+  item.status = 'downloading';
+  setBadge(stEl, 'dl', 'Downloading…');
+  dlBtn.disabled = true;
+  dlBtn.style.display = 'none';
+  if (progEl) progEl.style.display = '';
+
+  // Add cancel button next to download button
+  let cancelBtn = document.getElementById(`cancel${n}`);
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.id = `cancel${n}`;
+    cancelBtn.className = 'btn btn-red btn-sm';
+    cancelBtn.textContent = '✕ Cancel';
+    dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
+  }
+  cancelBtn.style.display = '';
+  cancelBtn.onclick = () => cancelDownload(item, n);
+
+  try {
+    const res = await post('/api/download', {
+      url: item.url, format: item.selFmt,
+      format_id: item.selFmtId || null,
+      audio_codec: (() => {
+        // Look up the acodec of the selected video format so backend can decide copy vs encode
+        if (item.selFmt === 'audio') return null;
+        const fmts = item.info.formats || [];
+        const sel = fmts.find(f => f.id === item.selFmtId);
+        return sel ? (sel.acodec || '') : '';
+      })(),
+      concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
+      title: chosenName, download_dir: dir,
+      thumbnail: item.info?.thumbnail || '',
+      subtitles: !!document.getElementById('subtitles-chk')?.checked,
+      embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
+      output_format: document.getElementById('output-format-sel')?.value || 'mp4',
+    });
+    if (res.error) throw new Error(res.error);
+    item.jobId = res.job_id;
+    pollJob(item, stEl, dlBtn, progEl, cancelBtn);
+  } catch (e) {
+    item.status = 'error';
+    setBadge(stEl, 'error', e.message);
+    dlBtn.disabled = false; dlBtn.style.display = '';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+  }
+}
+
+async function cancelDownload(item, n) {
+  if (!item.jobId) return;
+  try {
+    await fetch(`/api/cancel/${item.jobId}`, { method:'POST' });
+  } catch {}
+  item.status = 'cancelled';
+  const stEl   = document.getElementById(`st${n}`);
+  const progEl = document.getElementById(`prog${n}`);
+  const dlBtn  = document.getElementById(`dl${n}`);
+  const cancelBtn = document.getElementById(`cancel${n}`);
+  setBadge(stEl, 'cancel', 'Cancelled');
+  if (progEl) progEl.style.display = 'none';
+  if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+  if (cancelBtn) cancelBtn.style.display = 'none';
+  toast('Download cancelled');
+}
+
+// ── Shared job status handler — used by both individual and bulk pollers ──────
+function applyJobProgress(d, stEl, progEl) {
+  if (d.status === 'converting') {
+    setBadge(stEl, 'dl', 'Converting…');
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.progress >= 100) {
+    // Download complete but backend hasn't emitted a conversion tag yet —
+    // show Converting… as a fallback so the UI doesn't appear frozen
+    setBadge(stEl, 'dl', 'Converting…');
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.progress > 0) {
+    const spd = d.speed ? ` · ${d.speed}` : '';
+    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
+  }
+}
+
+function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
+  // Helper to hide bulk buttons once nothing is actionable anymore
+  const recheckBulkVisibility = () => {
+    const anyPending = items.some(i =>
+      i.status === 'idle' || i.status === 'fetching' || i.status === 'downloading'
+    );
+    if (!anyPending && items.length > 1) setDlAllVisible(false);
+  };
+  if (d.status === 'done') {
+    item.status = 'done';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    if (d.warning) {
+      toast(d.warning, 'warn');
+    } else {
+      toast('Saved: ' + d.filename, 'ok');
+    }
+    // Auto-remove the card — history panel is canonical record, toast is feedback
+    const card = stEl ? stEl.closest('.vcard') : null;
+    if (card) {
+      card.style.transition = 'opacity .25s ease, transform .25s ease, margin .25s ease, max-height .3s ease, padding .25s ease';
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(8px)';
+      setTimeout(() => {
+        card.remove();
+        items = items.filter(i => i.id !== item.id);
+        if (items.length <= 1) setDlAllVisible(false);
+      }, 250);
+    } else {
+      items = items.filter(i => i.id !== item.id);
+    }
+    // Refresh mini history panel so new entry appears immediately
+    if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
+    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
+      const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
+      if (allFinished) setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
+    }
+    recheckBulkVisibility();
+    return true;
+  }
+  if (d.status === 'error') {
+    item.status = 'error';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    setBadge(stEl, 'error', d.error || 'Error');
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
+    recheckBulkVisibility();
+    return true;
+  }
+  if (d.status === 'cancelled') {
+    item.status = 'cancelled';
+    if (progEl) progEl.style.display = 'none';
+    if (cancelBtn) cancelBtn.style.display = 'none';
+    setBadge(stEl, 'cancel', 'Cancelled');
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+    recheckBulkVisibility();
+    return true;
+  }
+  return false;
+}
+
+function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
+  const iv = setInterval(async () => {
+    if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
+      clearInterval(iv);
+      bulkCancelledJobs.delete(item.jobId);
+      setBadge(stEl, 'cancel', 'Cancelled');
+      if (progEl) progEl.style.display = 'none';
+      if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+      if (cancelBtn) cancelBtn.style.display = 'none';
+      return;
+    }
+    try {
+      const d = await fetch(`/api/status/${item.jobId}`).then(r => r.json());
+      if (item.status === 'cancelled') return;
+      applyJobProgress(d, stEl, progEl);
+      if (applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn)) clearInterval(iv);
+    } catch {}
+  }, 1000);
+}
+
+

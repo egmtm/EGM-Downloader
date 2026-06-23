@@ -699,6 +699,11 @@
     }
     select.qsel:focus { border-color: var(--acc); }
     select.qsel option { background: var(--surf2); }
+    /* The video output select gains a long option ("MP4 · H.264 (Max compatibility)").
+       A <select> sizes to its widest option, which would overflow the narrow Format
+       column — so let THIS one shrink (min-width:0) and ellipsise the closed value.
+       The dropdown still lists the full label; the audio select is left untouched. */
+    select#output-format-sel { min-width: 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
 
     .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 
@@ -840,5 +845,55 @@
     }
     #scroll-top.visible { opacity: 1; pointer-events: auto; }
     #scroll-top:hover { background: var(--acc); border-color: var(--acc); color: var(--btn-primary-text); transform: translateY(-2px); }
+
+    /* ── Theme Creator — docked panel ──────────────────────────────────────────
+       The panel chrome uses FIXED neutral colors (not theme vars) so the controls
+       stay readable while the rest of the page live-previews the in-progress theme.
+       Opening it adds body.creator-panel-open, which reflows the centered content
+       left (extra right padding) so nothing is hidden behind the fixed panel. */
+    #creator-panel {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 340px; z-index: 950;
+      background: #0e1117; color: #e6ebf2; border-left: 1px solid #283142;
+      display: flex; flex-direction: column; font-size: 13px;
+      transform: translateX(100%); transition: transform .22s ease;
+      box-shadow: -10px 0 28px rgba(0,0,0,.4);
+    }
+    body.creator-panel-open #creator-panel { transform: translateX(0); }
+    body.creator-panel-open { padding-right: 356px; }
+    body.creator-panel-open #scroll-top, body.creator-panel-open #toasts { right: 362px; }
+    .cvp-head { display:flex; align-items:center; gap:8px; padding:12px 14px; border-bottom:1px solid #232c39; background:#131922; flex:none; }
+    .cvp-dot { width:8px; height:8px; border-radius:50%; background:#3b82f6; box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+    .cvp-head h2 { font-size:13px; font-weight:700; flex:1; margin:0; }
+    .cvp-live { font-size:9px; font-weight:700; color:#74e0a3; background:#13311f; border:1px solid #2e7d52; border-radius:10px; padding:1px 7px; letter-spacing:.5px; }
+    #cvp-close { width:26px; height:26px; border:none; background:transparent; color:#8290a0; font-size:18px; line-height:1; border-radius:6px; cursor:pointer; }
+    #cvp-close:hover { background:#1e2530; color:#e6ebf2; }
+    .cvp-body { flex:1; overflow:auto; padding:13px 14px; }
+    .cvp-flabel { display:block; font-size:10px; color:#8290a0; margin-bottom:5px; }
+    #cvp-name { width:100%; height:30px; background:#1b2330; border:1px solid #2a3340; border-radius:6px; color:#dfe6ef; font-size:13px; padding:0 10px; margin-bottom:13px; }
+    #cvp-name:focus { outline:none; border-color:#3b82f6; }
+    .cvp-row { display:flex; align-items:center; gap:9px; padding:6px 0; border-top:1px solid #1d2530; }
+    .cvp-lab { flex:1; }
+    .cvp-lab b { display:block; font-size:12px; color:#dbe3ec; font-weight:500; }
+    .cvp-lab span { font-size:10px; color:#7c8a9c; }
+    input.cvp-pick { width:40px; height:26px; padding:0; border:1px solid #2a3340; border-radius:5px; background:#1b2330; cursor:pointer; }
+    input.cvp-pick::-webkit-color-swatch-wrapper { padding:2px; }
+    input.cvp-pick::-webkit-color-swatch { border:none; border-radius:3px; }
+    .cvp-foot { flex:none; display:flex; gap:6px; padding:11px 14px; border-top:1px solid #232c39; background:#131922; }
+    .cvp-btn { flex:1; height:30px; border-radius:6px; font-size:11.5px; font-weight:600; cursor:pointer; background:#1b2330; border:1px solid #2a3340; color:#dbe3ec; }
+    .cvp-btn:hover { border-color:#3b82f6; }
+    .cvp-save { background:#3b82f6; border-color:#3b82f6; color:#fff; }
+    .cvp-modal-back { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:1000; }
+    .cvp-modal { width:300px; max-width:90vw; background:#171c24; border:1px solid #2a3340; border-radius:12px; padding:18px; color:#e6ebf2; box-shadow:0 20px 60px rgba(0,0,0,.8); }
+    .cvp-modal h3 { font-size:14px; margin-bottom:8px; }
+    .cvp-modal p { font-size:12px; color:#93a1b3; margin-bottom:16px; line-height:1.5; }
+    .cvp-modal-actions { display:flex; gap:8px; }
+    .cvp-mbtn { flex:1; height:32px; border-radius:7px; font-size:12px; font-weight:600; cursor:pointer; }
+    .cvp-mbtn.ghost { background:#1b2330; border:1px solid #2a3340; color:#dbe3ec; }
+    .cvp-mbtn.danger { background:transparent; border:1px solid #ef4444; color:#ef4444; }
+    @media (max-width: 760px) {
+      #creator-panel { width: 100%; }
+      body.creator-panel-open { padding-right: 16px; }
+      body.creator-panel-open #scroll-top, body.creator-panel-open #toasts { right: 22px; }
+    }
 
 
