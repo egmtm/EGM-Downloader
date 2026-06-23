@@ -693,3 +693,15 @@ def test_creator_window_restore_lifecycle():
         src = read_source(f"{plat}/electron/main.js")
         missing = [m for m in markers if m not in src]
         assert not missing, f"{plat}/main.js missing Creator restore-lifecycle markers: {missing}"
+
+
+def test_creator_window_placement_parity():
+    """Creator placement must be wired identically on all 3 platforms: deferred
+    create→place→show on macOS/Linux (their WMs ignore the constructor x/y and an
+    immediate setPosition, centering the window), immediate on Windows. Guards against
+    the per-platform drift that produced centered Creator windows on Linux/Mac and the
+    reverted setPosition hack."""
+    for plat in ("windows", "linux", "mac"):
+        src = read_source(f"{plat}/electron/main.js")
+        assert "deferPlacement" in src, f"{plat}/main.js missing the deferPlacement gate"
+        assert "show: !deferPlacement" in src, f"{plat}/main.js Creator window not deferred-show wired"
