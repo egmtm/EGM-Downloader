@@ -31,6 +31,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   refocusWindow:       ()                 => ipcRenderer.send('refocus-window'),
   setTheme:           (theme)          => { if (isStr(theme) && THEME_RE.test(theme)) ipcRenderer.send('set-theme', theme); },
   sendUrlToMain:      (url)            => { if (isHttpUrl(url)) ipcRenderer.send('send-url-to-main', url); },
+  // Tell main the in-page Theme Creator panel opened/closed (it widens the window
+  // so the panel never compresses the main UI, and restores it on close).
+  notifyCreatorPanel: (open)  => ipcRenderer.send('creator-panel', !!open),
   // Listener registrars return an unsubscribe fn so callers can clean up and avoid
   // stacking duplicate handlers across reloads/navigation. Existing callers that
   // ignore the return value keep working unchanged.
