@@ -715,3 +715,22 @@ def test_creator_window_placement_parity():
         # macOS-only re-assert after show — overrides macOS's show-time placement.
         assert "process.platform === 'darwin'" in src and "setTimeout(placeCreator" in src, \
             f"{plat}/main.js missing the macOS post-show position re-assert"
+
+
+def test_x11_placement_optin_wired():
+    """The Linux 'precise window placement (X11)' opt-in must be wired end-to-end:
+    every app.py accepts the key (ALLOWED parity), the Linux main.js applies the ozone
+    hint from it BEFORE app-ready, and the settings UI exposes + persists the toggle."""
+    # backend: key accepted on all 3 platforms (keeps ALLOWED identical)
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        assert "precise_window_placement" in read_source(path), \
+            f"{name}/app.py ALLOWED missing precise_window_placement"
+    # linux main.js: reads the setting and forces the X11 ozone backend
+    lx = read_source("linux/electron/main.js")
+    assert "precise_window_placement" in lx and "ozone-platform-hint" in lx, \
+        "linux/main.js does not apply the X11 placement opt-in"
+    # UI: the toggle exists and its change handler persists the setting
+    assert 'id="x11-placement-chk"' in read_source("templates/index.html"), \
+        "settings UI missing the X11 placement toggle"
+    assert "precise_window_placement" in read_index_scripts(), \
+        "settings JS does not save precise_window_placement"
