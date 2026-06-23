@@ -699,6 +699,11 @@
     }
     select.qsel:focus { border-color: var(--acc); }
     select.qsel option { background: var(--surf2); }
+    /* The video output select gains a long option ("MP4 · H.264 (Max compatibility)").
+       A <select> sizes to its widest option, which would overflow the narrow Format
+       column — so let THIS one shrink (min-width:0) and ellipsise the closed value.
+       The dropdown still lists the full label; the audio select is left untouched. */
+    select#output-format-sel { min-width: 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
 
     .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 
