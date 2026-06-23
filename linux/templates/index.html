@@ -1982,10 +1982,6 @@
           <input type="checkbox" class="sw" id="quit-on-done-chk">
           <span style="font-size:.76rem;color:var(--text2)" title="Automatically close the app when all downloads finish">Quit when done</span>
         </div>
-        <div class="sw-wrap" id="x11-placement-wrap" style="display:none">
-          <input type="checkbox" class="sw" id="x11-placement-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Open secondary windows (like the Theme Creator) in their intended position by forcing X11. May reduce sharpness on HiDPI / fractional-scaling displays. Requires restarting the app.">Precise window placement (X11)<span id="x11-restart-note" style="display:none;color:var(--yellow);margin-left:5px">· restart to apply</span></span>
-        </div>
       </div>
     </div>
 
@@ -2189,6 +2185,38 @@
 </div>
 
 <button id="scroll-top" title="Back to top">↑</button>
+
+<!-- ── Theme Creator — docked panel (in-page; the main UI is the live preview) ── -->
+<aside id="creator-panel" aria-label="Theme Creator">
+  <div class="cvp-head">
+    <span class="cvp-dot"></span>
+    <h2>Theme Creator</h2>
+    <span class="cvp-live" title="The main window updates live as you pick">LIVE</span>
+    <button id="cvp-close" title="Close" aria-label="Close">&times;</button>
+  </div>
+  <div class="cvp-body">
+    <label class="cvp-flabel" for="cvp-name">Theme name</label>
+    <input id="cvp-name" type="text" maxlength="60" autocomplete="off" spellcheck="false"/>
+    <div class="cvp-picks">
+      <div class="cvp-row"><div class="cvp-lab"><b>App background</b><span>The canvas</span></div><input class="cvp-pick" type="color" data-var="--bg" aria-label="App background"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Surface</b><span>Cards, panels</span></div><input class="cvp-pick" type="color" data-var="--surf" aria-label="Surface"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Surface 2</b><span>Slightly lighter surfaces</span></div><input class="cvp-pick" type="color" data-var="--surf2" aria-label="Surface 2"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Deep surface</b><span>Dropdowns, inner panels</span></div><input class="cvp-pick" type="color" data-var="--surf3" aria-label="Deep surface"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Accent</b><span>Buttons, highlights</span></div><input class="cvp-pick" type="color" data-var="--acc" aria-label="Accent"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Accent hover</b><span>Button / link hover</span></div><input class="cvp-pick" type="color" data-var="--acc-h" aria-label="Accent hover"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Text</b><span>Primary text</span></div><input class="cvp-pick" type="color" data-var="--text" aria-label="Text"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Muted text</b><span>Secondary text</span></div><input class="cvp-pick" type="color" data-var="--text2" aria-label="Muted text"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Border</b><span>Visible everywhere</span></div><input class="cvp-pick" type="color" data-var="--border" aria-label="Border"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b>Danger</b><span>Cancel / delete actions</span></div><input class="cvp-pick" type="color" data-var="--red" aria-label="Danger"/></div>
+    </div>
+  </div>
+  <div class="cvp-foot">
+    <button class="cvp-btn" id="cvp-reset">Reset</button>
+    <button class="cvp-btn" id="cvp-random">Random</button>
+    <button class="cvp-btn" id="cvp-export">Export</button>
+    <button class="cvp-btn cvp-save" id="cvp-save">Save</button>
+  </div>
+</aside>
 
 <script>
 {% include 'index_scripts.html' %}</script>
