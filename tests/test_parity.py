@@ -696,12 +696,17 @@ def test_creator_window_restore_lifecycle():
 
 
 def test_creator_window_placement_parity():
-    """Creator placement must be wired identically on all 3 platforms: deferred
-    create→place→show on macOS/Linux (their WMs ignore the constructor x/y and an
-    immediate setPosition, centering the window), immediate on Windows. Guards against
-    the per-platform drift that produced centered Creator windows on Linux/Mac and the
-    reverted setPosition hack."""
+    """Creator placement must be wired identically on all 3 platforms (one block,
+    branched at runtime): Wayland-aware degradation, deferred create→place→show on
+    macOS/X11-Linux (their WMs ignore the constructor x/y and an immediate setPosition,
+    centering the window), immediate on Windows, plus a macOS deferred re-assert (its
+    default placement overrides an immediate setBounds in the windowed case). Guards
+    against the per-platform drift that produced centered Creator windows."""
     for plat in ("windows", "linux", "mac"):
         src = read_source(f"{plat}/electron/main.js")
         assert "deferPlacement" in src, f"{plat}/main.js missing the deferPlacement gate"
-        assert ("show: !deferPlacement" in src or "show: isWayland || !deferPlacement" in src), f"{plat}/main.js Creator window not deferred-show wired"
+        assert "show: isWayland || !deferPlacement" in src, f"{plat}/main.js Creator not Wayland-aware deferred-show wired"
+        assert "XDG_SESSION_TYPE" in src, f"{plat}/main.js missing Wayland detection"
+        # macOS-only re-assert after show — overrides macOS's show-time placement.
+        assert "process.platform === 'darwin'" in src and "setTimeout(placeCreator" in src, \
+            f"{plat}/main.js missing the macOS post-show position re-assert"
