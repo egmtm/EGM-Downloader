@@ -296,6 +296,7 @@ Kanye album themes, scrollbar theming, settings layout redesign, fetch all chann
 
 **v1.2 — CANVAS:** *(Shipping June 23, 2026)*
 - 🎨 Theme Creator — build custom themes with live preview color pickers, export as .json
+
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
 - 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
