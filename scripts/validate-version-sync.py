@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-EGM Downloader — Version Sync Validator (ci-trigger)
+EGM Downloader — Version Sync Validator
 ========================================
 Validates that version.json is in sync with all platform files.
 
