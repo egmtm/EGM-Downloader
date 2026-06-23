@@ -176,7 +176,6 @@ Cancel  →  Cancel installation" \
   File "${REPO_ROOT}/templates/theme_styles.html"
   File "${REPO_ROOT}/templates/theme_data.html"
   File "${REPO_ROOT}/templates/theme_validator.html"
-  File "${REPO_ROOT}/templates/theme_creator.html"
   File "${REPO_ROOT}/templates/subscriptions.html"
 
   ; ── templates\js\ ──
