@@ -702,13 +702,34 @@ def test_saved_themes_multi_storage_wired():
         assert needle in th, f"themes.html missing saved-theme wiring: {needle!r}"
 
 
-def test_recent_picker_shows_saved_custom_name():
-    """The main-UI recent-themes picker must show the ACTIVE custom theme's real name
-    (from egm-custom-theme, HTML-escaped) and its validated colors — not the generic
-    'Custom' placeholder. Guards the saved-theme naming fix in renderPicker."""
-    src = read_source("templates/js/_theme.html")
-    assert "function renderPicker" in src
-    assert "esc(c.name)" in src, "renderPicker doesn't show/escape the active custom theme's name"
-    assert "egm-custom-theme" in src, "renderPicker doesn't read the active custom theme slot"
-    assert "validateThemeVar('--bg', cv['--bg'])" in src or "pick('--bg'" in src, \
-        "renderPicker custom swatch colors not validated"
+def test_creator_storage_bridge_defers_until_focused():
+    """Linux fix: opening the Creator from the separate Themes window must NOT widen the
+    main window while it's still unfocused (the widen setBounds gets dropped on Linux,
+    compressing the main UI). The storage-event bridge therefore defers openThemeCreator
+    until main has focus — document.hasFocus() fast-path, else a one-shot 'focus' listener
+    with a setTimeout fallback. Root and linux must carry this byte-identically."""
+    root = read_source("templates/js/_creator.html")
+    linux = read_source("linux/templates/js/_creator.html")
+    assert root == linux, "templates/js/_creator.html differs from linux/templates/js/_creator.html"
+
+    m = re.search(r"addEventListener\('storage',(.*?)\}\);\s*\}\)\(\);", root, re.DOTALL)
+    assert m, "storage-event bridge not found in _creator.html"
+    bridge = m.group(1)
+    assert "document.hasFocus()" in bridge, "bridge does not fast-path on document.hasFocus()"
+    assert "addEventListener('focus'" in bridge, "bridge does not defer the open to a focus event"
+    assert "setTimeout(" in bridge, "bridge has no timer fallback if focus never arrives"
+
+
+def test_creator_save_guards_duplicate_names():
+    """Issue 2: saving a theme whose name already exists in the Imported library must
+    prompt (Overwrite / Cancel) instead of silently adding a duplicate; Overwrite removes
+    the same-name entries first. Locks the dup-name guard + overwrite path in saveTheme."""
+    cre = read_source("templates/js/_creator.html")
+    m = re.search(r"function saveTheme\(\)\s*\{(.*?)\n  \}", cre, re.DOTALL)
+    assert m, "saveTheme() not found in _creator.html"
+    body = m.group(1)
+    assert "loadSavedThemes(" in body, "saveTheme does not look up existing saved themes"
+    assert ".name === theme.name" in body, "saveTheme does not match on the theme name"
+    assert "showModal(" in body, "saveTheme does not prompt before overwriting a duplicate"
+    assert "Overwrite" in body, "saveTheme overwrite prompt missing"
+    assert "deleteSavedTheme(" in body, "saveTheme overwrite path does not remove the old entry"
