@@ -4,6 +4,7 @@ v1.2 - (in progress)
   FEATURES
   • [ALL] Theme Creator — build custom themes with live preview; 10 color pickers; export as .json or save to app
   • [ALL] Theme Creator opens alongside main UI — main window shifts left to make room, restores on close
+  • [LINUX] Precise window placement (X11) — opt-in setting to open secondary windows flush beside main
   IMPROVEMENTS
   • [ALL] Theme import validation — per-type CSS allowlist, stricter than previous guard
   • [ALL] Random theme palette seeding — sample any of 420 built-in themes as a starting point
