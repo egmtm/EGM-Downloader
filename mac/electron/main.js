@@ -548,6 +548,7 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
+  creatorWindow.setPosition(Math.round(x), Math.round(y));  // force position — mac/linux WM may ignore constructor x,y
   creatorWindow.loadURL(`${APP_URL}/theme-creator-page`);
   hardenWindow(creatorWindow);
   creatorDirty = false; creatorForceClose = false;
