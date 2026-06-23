@@ -202,13 +202,17 @@
   function saveTheme() {
     const theme = buildTheme();
     if (!theme) return;
-    try { localStorage.setItem('egm-custom-theme', JSON.stringify(theme)); }
-    catch { toast('Save failed', 'err'); return; }
+    try {
+      // Add a NEW named entry to the Imported library (multi-theme storage) and make it
+      // the active custom theme so it applies immediately. Both writes re-validate vars.
+      if (typeof saveSavedTheme === 'function') saveSavedTheme(theme.name, theme.vars);
+      localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
+    } catch { toast('Save failed', 'err'); return; }
     revertPreview();                              // drop inline overrides so body.custom shows
     if (window._egmApplyCustomTheme) window._egmApplyCustomTheme(theme);
     if (window.applyTheme) window.applyTheme('custom');
     dirty = false;
-    toast('Saved to app ✓', 'ok');
+    toast('Saved "' + theme.name + '" ✓', 'ok');
   }
 
   // ── Wire ──────────────────────────────────────────────────────────────────────
