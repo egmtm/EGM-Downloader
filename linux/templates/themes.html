@@ -535,7 +535,9 @@ function render() {
   // Imported, never under Favorites). Vars are already validateThemeVar-gated on load.
   const saved = (activeCat === 'all' || activeCat === 'custom')
     ? loadSavedThemes().filter(t => !searchQ || t.name.toLowerCase().includes(searchQ))
-    : [];
+    : (activeCat === 'favorites'
+        ? loadSavedThemes().filter(t => favoriteThemes.has(t.id) && (!searchQ || t.name.toLowerCase().includes(searchQ)))
+        : []);
   const activeName = currentTheme === 'custom' ? _activeCustomName() : null;
 
   if (!entries.length && !saved.length) {
@@ -555,7 +557,10 @@ function render() {
         <div class="swatch" style="background:${esc(t.vars['--acc']  || '#3b82f6')}"></div>
       </div>
       <span class="card-name">${esc(t.name)}</span>
-      <span class="del-saved" data-del="${esc(t.id)}" title="Delete this saved theme" style="font-size:15px;line-height:1;cursor:pointer;margin-left:auto;color:var(--text2);opacity:.55">×</span>
+      <div class="saved-actions" style="display:flex;align-items:center;gap:8px;margin-left:auto">
+        <span class="fav-heart" data-fav="${esc(t.id)}" title="${favoriteThemes.has(t.id) ? 'Remove from favorites' : 'Add to favorites'}" style="font-size:14px;cursor:pointer;color:${favoriteThemes.has(t.id) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(t.id) ? '1' : '0.4'}">${favoriteThemes.has(t.id) ? '♥' : '♡'}</span>
+        <span class="del-saved" data-del="${esc(t.id)}" title="Delete this saved theme" style="font-size:15px;line-height:1;cursor:pointer;color:var(--text2);opacity:.55">×</span>
+      </div>
     </div>`).join('');
 
   grid.innerHTML = savedHtml + entries.map(([key, d]) => `
@@ -570,18 +575,27 @@ function render() {
     </div>
   `).join('');
 
-  // Saved (Imported) theme cards — apply on click, delete on the ×.
+  // Saved (Imported) theme cards — apply on click, heart to (un)favorite (same
+  // mechanism + storage as built-in themes), double-click to favorite, delete on the ×.
   grid.querySelectorAll('.theme-card[data-saved]').forEach(card => {
     card.addEventListener('click', (e) => {
-      if (e.target.closest('.del-saved')) return;
+      if (e.target.closest('.del-saved') || e.target.closest('.fav-heart')) return;
       const t = loadSavedThemes().find(x => x.id === card.dataset.saved);
       if (t) applySavedTheme(t.name, t.vars);
+    });
+    card.addEventListener('dblclick', (e) => {
+      if (e.target.closest('.del-saved') || e.target.closest('.fav-heart')) return;
+      toggleFavorite(card.dataset.saved);
     });
   });
   grid.querySelectorAll('.del-saved').forEach(del => {
     del.addEventListener('click', (e) => {
       e.stopPropagation();
-      deleteSavedTheme(del.dataset.del);
+      const id = del.dataset.del;
+      deleteSavedTheme(id);
+      // Drop any stale favorite pointing at the now-deleted theme so the Favorites
+      // count + section never reference a theme that no longer exists.
+      if (favoriteThemes.has(id)) { favoriteThemes.delete(id); saveFavorites(); buildSidebar(); }
       render();
     });
   });
