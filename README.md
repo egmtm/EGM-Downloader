@@ -151,14 +151,14 @@
 ## 📥 Download
 
 ### Windows
-**Latest:** v1.1.2 Build 132  
+**Latest:** v1.2.0 Build 133  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (442 KB · ~800 MB after install)  
 **SHA256:** `42756967c3800ad98778df6d3b9d5ada233a3d9d3a3524fcc8d4145a690f935c`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
-**Latest:** v1.1.2 Build 132  
+**Latest:** v1.2.0 Build 133  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (435 KB · ~800 MB after first run)  
 **SHA256:** `1452d7b43fac6e90497665931aed882ba5fe36182b675463abc7f169b1df6474`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
@@ -166,14 +166,14 @@
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
-**Latest:** v1.1.2 Build 132  
+**Latest:** v1.2.0 Build 133  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (125 MB · ~300 MB after install)  
 **SHA256:** `85f34cb8e8baba2046755331483258190446150b9c78112c156d5e2bde441109`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v1.1.2 Build 132  
+**Latest:** v1.2.0 Build 133  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
 **SHA256:** `aaf3a1e5c5007308567dd87e2e4f6c155157f9c735b657f1f5a1e1eafa49e4a9`  
 **Format:** AppImage (Universal)  
