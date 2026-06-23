@@ -1294,8 +1294,7 @@ def save_settings():
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
-               "favorite_themes", "random_theme_on_launch", "random_theme_scope",
-               "precise_window_placement"}
+               "favorite_themes", "random_theme_on_launch", "random_theme_scope"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1965,8 +1964,6 @@ def themes_page(): return render_template("themes.html", egm_token=_API_TOKEN)
 @app.route("/subscriptions-page")
 def subscriptions_page(): return render_template("subscriptions.html", egm_token=_API_TOKEN)
 
-@app.route("/theme-creator-page")
-def theme_creator_page(): return render_template("theme_creator.html", egm_token=_API_TOKEN)
 
 # ── Subscriptions API ─────────────────────────────────────────────────────────
 
