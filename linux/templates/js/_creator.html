@@ -1,22 +1,20 @@
-{# ── Theme Creator — v1.2 CANVAS ─────────────────────────────────────────── #}
-{# Standalone module for the Theme Creator window logic.                       #}
-{# Included by the index_scripts.html shell (main window) AND by the Creator   #}
-{# page (theme_creator.html). One module, two roles — branched on #creator-root:#}
-{#   • main window  → entry-point wiring + live-preview receiver (setProperty)  #}
-{#   • Creator page → pickers, derive, preview push, random, export, save, modals#}
-{# Security gate: validateThemeVar (theme_validator.html, in _core.html / the   #}
-{# Creator page include). Live preview uses the creator-preview IPC channel.    #}
-{# ─────────────────────────────────────────────────────────────────────────── #}
+{# ── Theme Creator — in-page docked panel ───────────────────────────────────── #}
+{# Runs in the main window only. The Creator is a right-docked panel inside main; #}
+{# the main UI to its left IS the live preview (vars applied to document.body).   #}
+{# No separate window, no IPC, no OS positioning — identical on every platform.   #}
+{# Shared gate: validateThemeVar (theme_validator.html, in _core.html).           #}
+{# Theme apply uses window.applyTheme / window._egmApplyCustomTheme (from _theme). #}
+{# ─────────────────────────────────────────────────────────────────────────────── #}
 (function () {
   'use strict';
 
-  // ── Shared: the 10 user-facing core vars and their starting (void) defaults ─
+  // 10 user-facing core vars + their starting (void) defaults.
   const CORE_KEYS     = ['--bg','--surf','--surf2','--surf3','--acc','--acc-h','--text','--text2','--border','--red'];
   const CORE_DEFAULTS = { '--bg':'#0b1120','--surf':'#111c2e','--surf2':'#182338','--surf3':'#1f2f47',
                           '--acc':'#3b82f6','--acc-h':'#60a5fa',
                           '--text':'#e2e8f6','--text2':'#8faecf','--border':'#243454','--red':'#ef4444' };
 
-  // ── Color math (hex → rgb, luminance, mix) for deriving the remaining vars ───
+  // ── Color math (derive the remaining vars from the 10 core) ──────────────────
   function hexToRgb(h) {
     h = String(h).trim().replace('#','');
     if (h.length === 3) h = h.split('').map(c => c + c).join('');
@@ -27,7 +25,6 @@
   function rgbToHex(rgb) { return '#' + rgb.map(c => clampByte(c).toString(16).padStart(2,'0')).join(''); }
   function relLum(rgb) { return (0.299 * rgb[0] + 0.587 * rgb[1] + 0.114 * rgb[2]) / 255; }
   function mix(a, b, t) { const A = hexToRgb(a), B = hexToRgb(b); return rgbToHex([0,1,2].map(i => A[i] + (B[i] - A[i]) * t)); }
-  // Coerce any value to a #rrggbb (what <input type="color"> needs); null if not a hex.
   function toHex6(v) {
     const m = String(v).trim().match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
     if (!m) return null;
@@ -36,13 +33,11 @@
     return '#' + h.toLowerCase();
   }
 
-  // Derive the full 25-var theme map from the 10 core colors. Every derived value
-  // is a plain hex / rgba color or a static box-shadow — all pass validateThemeVar.
+  // Full 25-var theme map from the 10 core (core last so user picks win).
   function deriveAll(core) {
     const acc = core['--acc'];
     const [ar, ag, ab] = hexToRgb(acc);
     const onAcc = relLum(hexToRgb(acc)) > 0.6 ? '#000000' : '#ffffff';
-    // core last so user's picks overwrite auto-derived values
     return Object.assign({}, {
       '--surf3':            mix(core['--surf2'], core['--text'], 0.06),
       '--border2':          mix(core['--border'], core['--text'], 0.20),
@@ -63,68 +58,44 @@
       '--dur-text':         core['--text'],
     }, core);
   }
-  // Only emit name/value pairs the shared validator accepts (defence in depth —
-  // the values are all derived/clamped, but the gate is the single source of truth).
   function validPairs(map) {
     const out = {};
     for (const [k, v] of Object.entries(map)) if (validateThemeVar(k, v)) out[k] = v;
     return out;
   }
 
-  const isCreatorWindow = !!document.getElementById('creator-root');
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // MAIN-WINDOW ROLE — entry point + live-preview receiver
-  // ════════════════════════════════════════════════════════════════════════════
-  if (!isCreatorWindow) {
-    window.openThemeCreator = function (opts) {
-      if (window.electronAPI && window.electronAPI.openThemeCreator) {
-        window.electronAPI.openThemeCreator(opts || {});
-      } else {
-        window.open('/theme-creator-page', '_blank');
-      }
-      const hp = document.getElementById('hamburger-panel');
-      if (hp) hp.classList.remove('open');
-      document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
-    };
-    const btn = document.getElementById('theme-create-btn');
-    if (btn) btn.addEventListener('click', () => window.openThemeCreator());
-
-    // Apply pushed in-progress colors to body.style. Inline body styles override
-    // any active body.<theme> class (which is where every theme sets its vars), so
-    // the preview reliably wins. Track keys to revert cleanly when Creator closes.
-    const previewed = new Set();
-    if (window.electronAPI && window.electronAPI.onCreatorPreview) {
-      window.electronAPI.onCreatorPreview(vars => {
-        if (!vars || typeof vars !== 'object') return;
-        for (const [k, v] of Object.entries(vars)) {
-          if (validateThemeVar(k, v)) { document.body.style.setProperty(k, v); previewed.add(k); }
-        }
-      });
-    }
-    if (window.electronAPI && window.electronAPI.onCreatorPreviewReset) {
-      window.electronAPI.onCreatorPreviewReset(() => {
-        previewed.forEach(k => document.body.style.removeProperty(k));
-        previewed.clear();
-      });
-    }
-    return;
-  }
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // CREATOR-WINDOW ROLE — full controls
-  // ════════════════════════════════════════════════════════════════════════════
-  const api = window.electronAPI || null;
   const $ = id => document.getElementById(id);
+  const root = $('creator-panel');
+  if (!root) return;                       // panel markup absent — nothing to wire
+  const nameInput = $('cvp-name');
+  let pickers = [];
 
-  const nameInput = $('cv-name');
-  const pickers   = Array.from(document.querySelectorAll('.cv-pick'));
+  let core      = Object.assign({}, CORE_DEFAULTS);
+  let baseline  = Object.assign({}, CORE_DEFAULTS);
+  let dirty     = false;
+  let initialName = 'My Theme 1';
 
-  let core       = Object.assign({}, CORE_DEFAULTS);
-  const baseline = Object.assign({}, CORE_DEFAULTS);
-  let dirty      = false;
+  // ── Live preview: vars go straight onto document.body (this IS the preview) ──
+  // The panel chrome uses fixed colors, so it stays readable while everything else
+  // recolors. Track keys so we can revert cleanly on close/cancel.
+  const previewed = new Set();
+  let pending = null, raf = 0;
+  function applyPreview(vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      if (validateThemeVar(k, v)) { document.body.style.setProperty(k, v); previewed.add(k); }
+    }
+  }
+  function pushPreview(vars) {
+    pending = Object.assign(pending || {}, vars);
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; const v = pending; pending = null; applyPreview(v); });
+  }
+  function revertPreview() { previewed.forEach(k => document.body.style.removeProperty(k)); previewed.clear(); }
 
-  // Auto name: "My Theme 1", incrementing past an existing "My Theme N" save.
+  function recomputeDirty() {
+    dirty = CORE_KEYS.some(k => core[k].toLowerCase() !== baseline[k].toLowerCase())
+            || nameInput.value.trim() !== initialName;
+  }
   function autoName() {
     let n = 1;
     try {
@@ -134,48 +105,108 @@
     } catch {}
     return 'My Theme ' + n;
   }
-  const initialName = autoName();
-  nameInput.value = initialName;
+  function syncPickers() { pickers.forEach(inp => { inp.value = core[inp.dataset.var]; }); }
 
-  // Minimal HTML escaper (Creator page has no _bulk esc()).
-  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  // ── Open / close ──────────────────────────────────────────────────────────────
+  window.openThemeCreator = function () {
+    if (document.body.classList.contains('creator-panel-open')) return;   // already open
+    core = Object.assign({}, CORE_DEFAULTS);
+    baseline = Object.assign({}, CORE_DEFAULTS);
+    initialName = autoName();
+    nameInput.value = initialName;
+    syncPickers();
+    dirty = false;
+    revertPreview();
+    document.body.classList.add('creator-panel-open');
+    const hp = $('hamburger-panel'); if (hp) hp.classList.remove('open');
+    document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
+  };
+  function closePanel() { revertPreview(); document.body.classList.remove('creator-panel-open'); }
+  function requestClose() { if (dirty) confirmClose(); else closePanel(); }
 
-  // ── Tiny toast (the Creator page doesn't load the main _bulk toast) ──────────
-  function cvToast(msg, type) {
-    let t = $('cv-toast');
-    if (!t) { t = document.createElement('div'); t.id = 'cv-toast'; document.body.appendChild(t); }
-    t.textContent = msg;
-    t.className = 'cv-toast' + (type ? ' ' + type : '') + ' show';
-    clearTimeout(cvToast._t);
-    cvToast._t = setTimeout(() => { t.className = 'cv-toast' + (type ? ' ' + type : ''); }, 2600);
-  }
-
-  // ── Dirty tracking (mirrors subs-active-downloads: main owns the close guard) ─
-  function setDirty(d) {
-    if (d === dirty) return;
-    dirty = d;
-    if (api && api.creatorDirty) api.creatorDirty(d);
-  }
-  function recomputeDirty() {
-    const changed = CORE_KEYS.some(k => core[k].toLowerCase() !== baseline[k].toLowerCase())
-                    || nameInput.value.trim() !== initialName;
-    setDirty(changed);
-  }
-
-  // ── Live preview: rAF-coalesce picker drags to ≤1 IPC msg/frame ──────────────
-  let pending = null, raf = 0;
-  function pushPreview(vars) {
-    pending = Object.assign(pending || {}, vars);
-    if (raf) return;
-    raf = requestAnimationFrame(() => {
-      raf = 0; const v = pending; pending = null;
-      if (api && api.creatorPreview) api.creatorPreview(v);   // → main window
+  // ── In-page modal (reset confirm + unsaved-close confirm) ────────────────────
+  function esc2(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+  function showModal(opts) {
+    const back = document.createElement('div');
+    back.className = 'cvp-modal-back';
+    back.innerHTML =
+      '<div class="cvp-modal" role="dialog" aria-modal="true">' +
+        '<h3>' + esc2(opts.title) + '</h3><p>' + esc2(opts.body) + '</p>' +
+        '<div class="cvp-modal-actions">' +
+          '<button class="cvp-mbtn ghost" data-act="cancel">' + esc2(opts.cancel) + '</button>' +
+          '<button class="cvp-mbtn ' + (opts.danger ? 'danger' : 'ghost') + '" data-act="ok">' + esc2(opts.ok) + '</button>' +
+        '</div></div>';
+    document.body.appendChild(back);
+    back.addEventListener('click', e => {
+      const act = e.target && e.target.getAttribute && e.target.getAttribute('data-act');
+      if (!act) return;
+      back.remove();
+      if (act === 'ok' && opts.onOk) opts.onOk();
     });
   }
-  // No local preview panel in the Creator window — the main window IS the live
-  // preview (vars are fanned to it over the creator-preview IPC channel).
+  function confirmClose() {
+    showModal({ title: 'Close without saving?', body: "Your theme hasn't been saved or exported.",
+      cancel: 'Keep editing', ok: 'Close anyway', danger: true, onOk: closePanel });
+  }
 
-  // ── Pickers ──────────────────────────────────────────────────────────────────
+  // ── Random (sample THEME_DATA minus memes + custom) ──────────────────────────
+  const RANDOM_EXCLUDE = new Set(['memes', 'custom']);
+  function randomize() {
+    const data = window.THEME_DATA || {};
+    const pool = Object.values(data).filter(t => t && !RANDOM_EXCLUDE.has(t.cat));
+    if (!pool.length) return;
+    const seed = pool[Math.floor(Math.random() * pool.length)];
+    const bg   = toHex6(seed.bg)   || baseline['--bg'];
+    const surf = toHex6(seed.surf) || baseline['--surf'];
+    const acc  = toHex6(seed.acc)  || baseline['--acc'];
+    const text = relLum(hexToRgb(bg)) < 0.4 ? '#e8edf6' : '#14181f';
+    // Set EVERY core var (a partial core blanks the un-set pickers + breaks dirty).
+    core = {
+      '--bg': bg, '--surf': surf, '--surf2': mix(surf, '#ffffff', 0.06),
+      '--surf3': mix(surf, text, 0.10), '--acc': acc, '--acc-h': mix(acc, '#ffffff', 0.18),
+      '--text': text, '--text2': mix(text, surf, 0.45), '--border': mix(surf, text, 0.18),
+      '--red': '#ef4444',
+    };
+    syncPickers();
+    pushPreview(deriveAll(core));
+    recomputeDirty();
+  }
+
+  // ── Export / Save ─────────────────────────────────────────────────────────────
+  function slug(name) { return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'my-theme'; }
+  function buildTheme() {
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); toast('Name your theme first', 'err'); return null; }
+    return { name, 'egm-theme': true, vars: validPairs(deriveAll(core)) };
+  }
+  async function exportTheme() {
+    const theme = buildTheme();
+    if (!theme) return;
+    const payload = JSON.stringify(theme, null, 2);
+    if (window.electronAPI && window.electronAPI.saveFile) {
+      const r = await window.electronAPI.saveFile(slug(theme.name) + '.json', payload);
+      if (!r || r.canceled) return;
+      if (r.ok) toast('Theme exported ✓', 'ok');
+      else toast('Export failed: ' + ((r && r.error) || 'unknown'), 'err');
+    } else {
+      try { await navigator.clipboard.writeText(payload); toast('Theme copied to clipboard ✓', 'ok'); }
+      catch { toast('Export failed', 'err'); }
+    }
+  }
+  function saveTheme() {
+    const theme = buildTheme();
+    if (!theme) return;
+    try { localStorage.setItem('egm-custom-theme', JSON.stringify(theme)); }
+    catch { toast('Save failed', 'err'); return; }
+    revertPreview();                              // drop inline overrides so body.custom shows
+    if (window._egmApplyCustomTheme) window._egmApplyCustomTheme(theme);
+    if (window.applyTheme) window.applyTheme('custom');
+    dirty = false;
+    toast('Saved to app ✓', 'ok');
+  }
+
+  // ── Wire ──────────────────────────────────────────────────────────────────────
+  pickers = Array.from(root.querySelectorAll('.cvp-pick'));
   pickers.forEach(inp => {
     const k = inp.dataset.var;
     inp.value = core[k];
@@ -189,130 +220,28 @@
     inp.addEventListener('input', onInput);
     inp.addEventListener('change', onInput);
   });
-  nameInput.addEventListener('input', () => { recomputeDirty(); });
+  nameInput.addEventListener('input', recomputeDirty);
+  $('cvp-close').addEventListener('click', requestClose);
+  $('cvp-reset').addEventListener('click', () => showModal({
+    title: 'Reset theme?', body: 'All color changes will be lost. This cannot be undone.',
+    cancel: 'Cancel', ok: 'Reset', danger: true,
+    onOk: () => { core = Object.assign({}, baseline); syncPickers(); pushPreview(deriveAll(core)); recomputeDirty(); },
+  }));
+  $('cvp-random').addEventListener('click', randomize);
+  $('cvp-export').addEventListener('click', exportTheme);
+  $('cvp-save').addEventListener('click', saveTheme);
 
-  function syncPickers() { pickers.forEach(inp => { inp.value = core[inp.dataset.var]; }); }
-
-  // ── Generic in-app modal (Reset confirm + unsaved-close confirm) ─────────────
-  function showModal(opts) {
-    const back = document.createElement('div');
-    back.className = 'cv-modal-back';
-    const okClass = opts.danger ? 'cv-btn cv-btn-danger' : 'cv-btn cv-btn-primary';
-    back.innerHTML =
-      '<div class="cv-modal" role="dialog" aria-modal="true">' +
-        '<h3>' + esc(opts.title) + '</h3>' +
-        '<p>' + esc(opts.body) + '</p>' +
-        '<div class="cv-modal-actions">' +
-          '<button class="cv-btn cv-btn-ghost" id="cv-modal-cancel">' + esc(opts.cancel) + '</button>' +
-          '<button class="' + okClass + '" id="cv-modal-ok">' + esc(opts.ok) + '</button>' +
-        '</div>' +
-      '</div>';
-    document.body.appendChild(back);
-    const close = () => back.remove();
-    back.querySelector('#cv-modal-cancel').addEventListener('click', () => { close(); if (opts.onCancel) opts.onCancel(); });
-    back.querySelector('#cv-modal-ok').addEventListener('click', () => { close(); if (opts.onOk) opts.onOk(); });
-    return close;
-  }
-
-  // ── Footer: Reset ─────────────────────────────────────────────────────────────
-  $('cv-reset').addEventListener('click', () => {
-    showModal({
-      title: 'Reset theme?',
-      body: 'All color changes will be lost. This cannot be undone.',
-      cancel: 'Cancel', ok: 'Reset', danger: true,
-      onOk: () => {
-        core = Object.assign({}, baseline);
-        syncPickers();
-        pushPreview(deriveAll(core));
-        recomputeDirty();
-      },
-    });
-  });
-
-  // ── Footer: Random (sample THEME_DATA minus memes + custom) ──────────────────
-  const RANDOM_EXCLUDE = new Set(['memes', 'custom']);
-  $('cv-random').addEventListener('click', () => {
-    const pool = Object.values(THEME_DATA).filter(t => t && !RANDOM_EXCLUDE.has(t.cat));
-    if (!pool.length) return;
-    const seed = pool[Math.floor(Math.random() * pool.length)];
-    const bg   = toHex6(seed.bg)   || baseline['--bg'];
-    const surf = toHex6(seed.surf) || baseline['--surf'];
-    const acc  = toHex6(seed.acc)  || baseline['--acc'];
-    const text = relLum(hexToRgb(bg)) < 0.4 ? '#e8edf6' : '#14181f';
-    // Build EVERY core var. A partial core leaves the un-set pickers (--surf3,
-    // --acc-h) showing #000000 and makes recomputeDirty deref undefined; derive the
-    // two non-seeded core vars with the same formulas deriveAll uses.
-    core = {
-      '--bg': bg, '--surf': surf, '--surf2': mix(surf, '#ffffff', 0.06),
-      '--surf3': mix(surf, text, 0.10), '--acc': acc, '--acc-h': mix(acc, '#ffffff', 0.18),
-      '--text': text, '--text2': mix(text, surf, 0.45), '--border': mix(surf, text, 0.18),
-      '--red': '#ef4444',
-    };
-    syncPickers();
-    pushPreview(deriveAll(core));
-    recomputeDirty();
-  });
-
-  // ── Footer: Export (.json compatible with the existing import system) ────────
-  function slug(name) {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'my-theme';
-  }
-  function buildTheme() {
-    const name = nameInput.value.trim();
-    if (!name) { nameInput.focus(); cvToast('Name your theme first', 'err'); return null; }
-    return { name, 'egm-theme': true, vars: validPairs(deriveAll(core)) };
-  }
-  $('cv-export').addEventListener('click', async () => {
-    const theme = buildTheme();
-    if (!theme) return;
-    const payload = JSON.stringify(theme, null, 2);
-    if (api && api.saveFile) {
-      const r = await api.saveFile(slug(theme.name) + '.json', payload);
-      if (!r || r.canceled) return;
-      if (r.ok) cvToast('Theme exported ✓', 'ok');
-      else cvToast('Export failed: ' + ((r && r.error) || 'unknown'), 'err');
-    } else {
-      try { await navigator.clipboard.writeText(payload); cvToast('Theme copied to clipboard ✓', 'ok'); }
-      catch { cvToast('Export failed', 'err'); }
-    }
-  });
-
-  // ── Footer: Save to app (persist as custom → lands in Imported) ──────────────
-  // Writes the shared-origin localStorage slot the import path already uses, then
-  // broadcasts 'custom' over the set-theme spine so the open main window re-reads
-  // and applies it live (see _theme.html onThemeChanged custom re-inject).
-  $('cv-save').addEventListener('click', () => {
-    const theme = buildTheme();
-    if (!theme) return;
-    try { localStorage.setItem('egm-custom-theme', JSON.stringify(theme)); }
-    catch { cvToast('Save failed', 'err'); return; }
-    if (api && api.setTheme) api.setTheme('custom');
-    setDirty(false);
-    cvToast('Saved to app ✓', 'ok');
-  });
-
-  // ── Close discipline: ×, ESC, OS close all route through the same guard ──────
-  function closeNow() {
-    if (api && api.creatorConfirmClose) api.creatorConfirmClose();
-    else window.close();
-  }
-  function confirmClose() {
-    showModal({
-      title: 'Close without saving?',
-      body: "Your theme hasn't been exported yet.",
-      cancel: 'Keep editing', ok: 'Close anyway', danger: true,
-      onOk: closeNow,
-    });
-  }
-  function requestClose() { if (dirty) confirmClose(); else closeNow(); }
-
-  $('cv-close').addEventListener('click', requestClose);
   document.addEventListener('keydown', e => {
-    if (e.key === 'Escape') { e.preventDefault(); requestClose(); }
+    if (e.key === 'Escape' && document.body.classList.contains('creator-panel-open')) { e.preventDefault(); requestClose(); }
   });
-  // OS window-close (main intercepts when dirty and asks us to show the modal).
-  if (api && api.onCreatorRequestClose) api.onCreatorRequestClose(confirmClose);
 
-  // Tell main our initial (clean) state.
-  if (api && api.creatorDirty) api.creatorDirty(false);
+  // Entry point in the main UI (hamburger → Themes → "＋ Create theme").
+  const createBtn = $('theme-create-btn');
+  if (createBtn) createBtn.addEventListener('click', () => window.openThemeCreator());
+
+  // Bridge: the separate Themes window asks main to open the panel via a shared-origin
+  // localStorage flag (storage events fire across same-origin windows — no IPC needed).
+  window.addEventListener('storage', e => {
+    if (e.key === 'egm-open-creator' && e.newValue) window.openThemeCreator();
+  });
 })();
