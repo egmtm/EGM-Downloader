@@ -237,17 +237,14 @@ def test_security_markers_in_all_main_js():
 
 
 def test_istrustedsender_count_locked():
-    """isTrustedSender must appear EXACTLY 59 times total across the 3 main.js
-    (windows 21, linux 19, mac 19). Every ipcMain handler must be gated by it;
+    """isTrustedSender must appear EXACTLY 47 times total across the 3 main.js
+    (windows 17, linux 15, mac 15). Every ipcMain handler must be gated by it;
     locking the count auto-catches an accidental handler addition that bypasses
     the gate — the same check done by hand every delta review. If you added a
     legitimate, gated ipcMain handler, bump EXPECTED_TOTAL after confirming the
     new handler calls isTrustedSender.
-
-    v1.2 CANVAS (Theme Creator) added 4 gated handlers per platform (+12):
-    open-theme-creator, creator-dirty, creator-confirm-close, creator-preview.
     """
-    EXPECTED_TOTAL = 59
+    EXPECTED_TOTAL = 47
     counts = {
         name: read_source(path).count("isTrustedSender")
         for name, path in (
@@ -322,7 +319,7 @@ def test_theme_counts_consistent():
 
 def test_theme_counts_linux_parity():
     """Linux templates must have identical theme counts to root templates."""
-    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "theme_creator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html", "js/_creator.html"]:
+    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html", "js/_creator.html"]:
         root = read_source(f"templates/{fname}")
         linux = read_source(f"linux/templates/{fname}")
         assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
@@ -605,62 +602,40 @@ def test_theme_validator_behaviour():
     assert r.returncode == 0, f"validateThemeVar behaviour failed: {r.stderr.strip() or r.stdout.strip()}"
 
 
-# ── Theme Creator (v1.2 CANVAS) parity guards ─────────────────────────────────
+# ── Theme Creator — in-page docked panel guards ───────────────────────────────
 
-def test_theme_creator_route_on_all_platforms():
-    """The /theme-creator-page Flask route must exist on every platform app.py —
-    a missing mirror would 404 the Creator window on that OS."""
-    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
-        src = read_source(path)
-        assert "/theme-creator-page" in src, f"{name}/app.py missing /theme-creator-page route"
-        assert 'render_template("theme_creator.html"' in src, f"{name}/app.py route doesn't render theme_creator.html"
-
-
-def test_creator_ipc_surface_parity():
-    """Every Creator IPC channel must be present (and the gate count is locked by
-    test_istrustedsender_count_locked) on all 3 main.js, and exposed by all 3
-    preloads — so the feature can't land on one platform only."""
-    channels = ["open-theme-creator", "creator-dirty", "creator-confirm-close", "creator-preview"]
-    preload_methods = ["openThemeCreator", "creatorPreview", "creatorDirty",
-                       "creatorConfirmClose", "onCreatorPreview", "onCreatorPreviewReset",
-                       "onCreatorRequestClose"]
-    for plat in ("windows", "linux", "mac"):
-        mainjs = read_source(f"{plat}/electron/main.js")
-        for ch in channels:
-            assert f"'{ch}'" in mainjs, f"{plat}/main.js missing IPC handler for {ch!r}"
-        preload = read_source(f"{plat}/electron/preload.js")
-        for m in preload_methods:
-            assert m in preload, f"{plat}/electron/preload.js missing bridge method {m!r}"
-
-
-def test_creator_uses_shared_validator():
-    """The Creator page must reuse the single shared gate (theme_validator.html)
-    and the module must validate at the entry points — no forked allowlist."""
-    page = read_source("templates/theme_creator.html")
-    assert "{% include 'theme_validator.html' %}" in page, "Creator page doesn't include the shared validator"
-    assert "{% include 'js/_creator.html' %}" in page, "Creator page doesn't include the _creator module"
-    assert 'id="creator-root"' in page, "Creator page missing #creator-root role marker"
+def test_creator_panel_present_and_uses_shared_validator():
+    """The Creator is an in-page docked panel in the main window (no separate window,
+    route, or IPC). Its markup must live in index.html; the module must validate every
+    value through the shared gate and apply via the CSSOM (setProperty); and the theme
+    apply hooks it needs must be exposed by _theme.html."""
+    idx = read_source("templates/index.html")
+    assert 'id="creator-panel"' in idx, "index.html missing the Creator docked panel"
+    assert 'id="theme-create-btn"' in idx, "index.html missing the '+ Create theme' entry button"
     mod = read_source("templates/js/_creator.html")
     assert "validateThemeVar" in mod, "_creator.html does not call validateThemeVar"
-    assert "setProperty" in mod, "_creator.html does not apply via setProperty"
+    assert "setProperty" in mod, "_creator.html does not apply via setProperty (CSSOM)"
+    assert "window.openThemeCreator" in mod, "_creator.html does not define openThemeCreator"
+    theme = read_source("templates/js/_theme.html")
+    assert "window.applyTheme" in theme and "window._egmApplyCustomTheme" in theme, \
+        "_theme.html must expose applyTheme + _egmApplyCustomTheme for the panel's Save"
 
 
 def test_creator_core_vars_pickers_and_random_in_sync():
-    """The picker rows (theme_creator.html), CORE_KEYS, and the Random handler's
-    rebuilt `core` object must cover EXACTLY the same vars. Drift — e.g. adding a
-    picker but not extending Random — leaves the un-set swatches black and breaks
-    dirty tracking (the v1.2 Random regression). Locking all three equal catches it
-    statically, before a build."""
-    mod  = read_source("templates/js/_creator.html")
-    page = read_source("templates/theme_creator.html")
+    """The picker rows (index.html .cvp-pick), CORE_KEYS, and the Random handler's
+    rebuilt `core` object must cover EXACTLY the same 10 vars. Drift — e.g. adding a
+    picker but not extending Random — leaves the un-set swatches black and breaks dirty
+    tracking (the Random regression). Locking all three equal catches it statically."""
+    mod = read_source("templates/js/_creator.html")
+    idx = read_source("templates/index.html")
 
     m = re.search(r"const CORE_KEYS\s*=\s*\[([^\]]+)\]", mod)
     assert m, "CORE_KEYS not found in _creator.html"
     core_keys = set(re.findall(r"'(--[a-z0-9-]+)'", m.group(1)))
 
-    pickers = set(re.findall(r'class="cv-pick"[^>]*data-var="(--[a-z0-9-]+)"', page))
+    pickers = set(re.findall(r'class="cvp-pick"[^>]*data-var="(--[a-z0-9-]+)"', idx))
 
-    rnd = re.search(r"\$\('cv-random'\)\.addEventListener.*?\bcore\s*=\s*\{([^}]*)\}", mod, re.DOTALL)
+    rnd = re.search(r"function randomize\(\).*?\bcore\s*=\s*\{([^}]*)\}", mod, re.DOTALL)
     assert rnd, "Random handler's core object not found in _creator.html"
     random_keys = set(re.findall(r"'(--[a-z0-9-]+)'\s*:", rnd.group(1)))
 
@@ -669,68 +644,7 @@ def test_creator_core_vars_pickers_and_random_in_sync():
         f"  only in CORE_KEYS: {sorted(core_keys - pickers)}\n"
         f"  only in pickers:   {sorted(pickers - core_keys)}")
     assert core_keys == random_keys, (
-        "Random does not set every core var (v1.2 black-swatch regression):\n"
+        "Random does not set every core var (black-swatch regression):\n"
         f"  missing from Random: {sorted(core_keys - random_keys)}\n"
         f"  extra in Random:     {sorted(random_keys - core_keys)}")
     assert len(core_keys) == 10, f"expected 10 core vars, got {len(core_keys)}: {sorted(core_keys)}"
-
-
-def test_creator_window_restore_lifecycle():
-    """Opening the Creator shifts/shrinks main to make room; closing it must put main
-    back — including the maximized case (un-maximize to tile → re-maximize on close)
-    and a renderer-crash path that would otherwise strand main resized. Static guard
-    that the lifecycle wiring is present and mirrored on all 3 platforms (the geometry
-    itself is exercised at runtime)."""
-    markers = [
-        "isMaximized()",            # capture maximized state at open
-        "getNormalBounds()",        # remember main's normal (restore) size
-        "creatorMainWasMaximized",  # carry the flag through to close
-        ".unmaximize()",            # make room when main was maximized
-        ".maximize()",              # re-maximize on close
-        "render-process-gone",      # renderer crash → forced close → restore runs
-    ]
-    for plat in ("windows", "linux", "mac"):
-        src = read_source(f"{plat}/electron/main.js")
-        missing = [m for m in markers if m not in src]
-        assert not missing, f"{plat}/main.js missing Creator restore-lifecycle markers: {missing}"
-
-
-def test_creator_window_placement_parity():
-    """Creator placement must be wired identically on all 3 platforms (one block,
-    branched at runtime): Wayland-aware degradation, deferred create→place→show on
-    macOS/X11-Linux (their WMs ignore the constructor x/y and an immediate setPosition,
-    centering the window), immediate on Windows, plus a macOS deferred re-assert (its
-    default placement overrides an immediate setBounds in the windowed case). Guards
-    against the per-platform drift that produced centered Creator windows."""
-    for plat in ("windows", "linux", "mac"):
-        src = read_source(f"{plat}/electron/main.js")
-        assert "deferPlacement" in src, f"{plat}/main.js missing the deferPlacement gate"
-        assert "show: isWayland || !deferPlacement" in src, f"{plat}/main.js Creator not Wayland-aware deferred-show wired"
-        assert "XDG_SESSION_TYPE" in src, f"{plat}/main.js missing Wayland detection"
-        # Wayland detection must be ozone-backend-aware, not session-only: an explicit
-        # x11 ozone hint/switch re-enables positioning under XWayland (regression guard —
-        # the session-only check disabled placement even under XWayland).
-        assert "ELECTRON_OZONE_PLATFORM_HINT" in src and "ozone-platform" in src, \
-            f"{plat}/main.js Wayland gate not ozone-backend-aware"
-        # macOS-only re-assert after show — overrides macOS's show-time placement.
-        assert "process.platform === 'darwin'" in src and "setTimeout(placeCreator" in src, \
-            f"{plat}/main.js missing the macOS post-show position re-assert"
-
-
-def test_x11_placement_optin_wired():
-    """The Linux 'precise window placement (X11)' opt-in must be wired end-to-end:
-    every app.py accepts the key (ALLOWED parity), the Linux main.js applies the ozone
-    hint from it BEFORE app-ready, and the settings UI exposes + persists the toggle."""
-    # backend: key accepted on all 3 platforms (keeps ALLOWED identical)
-    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
-        assert "precise_window_placement" in read_source(path), \
-            f"{name}/app.py ALLOWED missing precise_window_placement"
-    # linux main.js: reads the setting and forces the X11 ozone backend
-    lx = read_source("linux/electron/main.js")
-    assert "precise_window_placement" in lx and "ozone-platform-hint" in lx, \
-        "linux/main.js does not apply the X11 placement opt-in"
-    # UI: the toggle exists and its change handler persists the setting
-    assert 'id="x11-placement-chk"' in read_source("templates/index.html"), \
-        "settings UI missing the X11 placement toggle"
-    assert "precise_window_placement" in read_index_scripts(), \
-        "settings JS does not save precise_window_placement"
