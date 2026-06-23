@@ -199,9 +199,7 @@
       catch { toast('Export failed', 'err'); }
     }
   }
-  function saveTheme() {
-    const theme = buildTheme();
-    if (!theme) return;
+  function commitSave(theme) {
     try {
       // Add a NEW named entry to the Imported library (multi-theme storage) and make it
       // the active custom theme so it applies immediately. Both writes re-validate vars.
@@ -213,6 +211,32 @@
     if (window.applyTheme) window.applyTheme('custom');
     dirty = false;
     toast('Saved "' + theme.name + '" ✓', 'ok');
+  }
+  function saveTheme() {
+    const theme = buildTheme();
+    if (!theme) return;
+    // If a saved theme already uses this name, ask before adding a second one: Overwrite
+    // (replace the same-name entries) or Cancel (so the user can rename) — avoids silent
+    // duplicates while never destroying a differently-named theme.
+    let dupes = [];
+    if (typeof loadSavedThemes === 'function') {
+      try { dupes = loadSavedThemes().filter(t => t.name === theme.name); } catch {}
+    }
+    if (dupes.length) {
+      showModal({
+        title: 'Overwrite "' + theme.name + '"?',
+        body: 'A saved theme with this name already exists. Overwrite it, or cancel to rename.',
+        cancel: 'Cancel', ok: 'Overwrite', danger: true,
+        onOk: () => {
+          if (typeof deleteSavedTheme === 'function') {
+            try { dupes.forEach(t => deleteSavedTheme(t.id)); } catch {}
+          }
+          commitSave(theme);
+        },
+      });
+      return;
+    }
+    commitSave(theme);
   }
 
   // ── Wire ──────────────────────────────────────────────────────────────────────
@@ -251,7 +275,23 @@
 
   // Bridge: the separate Themes window asks main to open the panel via a shared-origin
   // localStorage flag (storage events fire across same-origin windows — no IPC needed).
+  // The Themes window closes itself as it sets the flag, so main is usually NOT focused
+  // yet when this fires. Opening synchronously then means notifyCreatorPanel(true)'s
+  // window-widen setBounds reaches the main process while main is still unfocused — on
+  // Linux that widen is unreliable/dropped, so the panel opens but the window never
+  // grows and the main UI gets compressed. Defer the open until main actually has focus
+  // (with a timer fallback) so the widen lands reliably; from the in-page button path
+  // main is already focused so it opens immediately.
   window.addEventListener('storage', e => {
-    if (e.key === 'egm-open-creator' && e.newValue) window.openThemeCreator();
+    if (e.key !== 'egm-open-creator' || !e.newValue) return;
+    if (document.hasFocus()) { window.openThemeCreator(); return; }
+    let done = false;
+    const run = () => {
+      if (done) return; done = true;
+      window.removeEventListener('focus', run);
+      window.openThemeCreator();
+    };
+    window.addEventListener('focus', run, { once: true });
+    setTimeout(run, 450);   // fallback if the focus event never arrives
   });
 })();
