@@ -237,14 +237,14 @@ def test_security_markers_in_all_main_js():
 
 
 def test_istrustedsender_count_locked():
-    """isTrustedSender must appear EXACTLY 47 times total across the 3 main.js
-    (windows 17, linux 15, mac 15). Every ipcMain handler must be gated by it;
+    """isTrustedSender must appear EXACTLY 50 times total across the 3 main.js
+    (windows 18, linux 16, mac 16). Every ipcMain handler must be gated by it;
     locking the count auto-catches an accidental handler addition that bypasses
     the gate — the same check done by hand every delta review. If you added a
     legitimate, gated ipcMain handler, bump EXPECTED_TOTAL after confirming the
     new handler calls isTrustedSender.
     """
-    EXPECTED_TOTAL = 47
+    EXPECTED_TOTAL = 50
     counts = {
         name: read_source(path).count("isTrustedSender")
         for name, path in (
@@ -648,3 +648,35 @@ def test_creator_core_vars_pickers_and_random_in_sync():
         f"  missing from Random: {sorted(core_keys - random_keys)}\n"
         f"  extra in Random:     {sorted(random_keys - core_keys)}")
     assert len(core_keys) == 10, f"expected 10 core vars, got {len(core_keys)}: {sorted(core_keys)}"
+
+
+def test_creator_panel_resize_wired_on_all_platforms():
+    """Opening the panel widens the main window (so it never compresses the main UI) via
+    the single gated 'creator-panel' handler — present on all 3 main.js, exposed by all 3
+    preloads, and called from the module on open/close. (Gating is locked by the
+    isTrustedSender count test.)"""
+    for plat in ("windows", "linux", "mac"):
+        assert "'creator-panel'" in read_source(f"{plat}/electron/main.js"), \
+            f"{plat}/main.js missing the creator-panel resize handler"
+        assert "notifyCreatorPanel" in read_source(f"{plat}/electron/preload.js"), \
+            f"{plat}/electron/preload.js missing notifyCreatorPanel"
+    mod = read_source("templates/js/_creator.html")
+    assert "notifyCreatorPanel(true)" in mod and "notifyCreatorPanel(false)" in mod, \
+        "_creator.html must notify main on panel open and close"
+
+
+# ── Universal MP4 (H.264 Max compatibility) parity guard ──────────────────────
+
+def test_universal_mp4_h264_wired():
+    """The 'Universal MP4' (Max compatibility) option must be wired identically on all
+    3 platforms: the UI offers it, and each app.py prefers an H.264/avc1 stream at
+    selection (lossless common case) and carries the conditional transcode fallback that
+    guarantees H.264 only when the source isn't already H.264."""
+    assert 'value="mp4_h264"' in read_source("templates/index.html"), \
+        "UI is missing the 'MP4 · H.264 (Max compatibility)' option"
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        src = read_source(path)
+        assert "mp4_h264" in src, f"{name}/app.py does not handle the mp4_h264 output format"
+        assert "vcodec^=avc1" in src, f"{name}/app.py does not prefer H.264 (avc1) at selection"
+        assert "def _ensure_h264" in src, f"{name}/app.py missing the conditional H.264 transcode"
+        assert "libx264" in src, f"{name}/app.py transcode does not target libx264"
