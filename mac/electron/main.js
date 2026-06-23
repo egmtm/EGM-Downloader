@@ -305,6 +305,9 @@ async function createWindow() {
   // Save state on close
   mainWindow.on('close', () => {
     saveWindowState();
+      // Close secondary windows — they shouldn't outlive main
+      if (themesWindow && !themesWindow.isDestroyed()) themesWindow.close();
+      if (historyWindow && !historyWindow.isDestroyed()) historyWindow.close();
     app.isQuitting = true;
   });
 
