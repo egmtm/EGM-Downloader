@@ -77,7 +77,18 @@ function saveSavedTheme(name, vars) {
   return id;
 }
 function deleteSavedTheme(id) {
-  localStorage.setItem('egm-saved-themes', JSON.stringify(loadSavedThemes().filter(t => t.id !== id)));
+  const before = loadSavedThemes();
+  const deleted = before.find(t => t.id === id);
+  const remaining = before.filter(t => t.id !== id);
+  localStorage.setItem('egm-saved-themes', JSON.stringify(remaining));
+  // Clear the legacy single-slot if it matches — prevents migrateLegacyCustom
+  // from re-adding the deleted theme on next Themes window open.
+  if (deleted) {
+    try {
+      const active = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null');
+      if (active && active.name === deleted.name) localStorage.removeItem('egm-custom-theme');
+    } catch {}
+  }
 }
 // Idempotent: lift a legacy/Imported single custom theme into the library so it shows
 // in the Imported section (dedup by name; never adds an unnamed/empty one).
