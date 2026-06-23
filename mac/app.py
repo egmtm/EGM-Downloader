@@ -1239,7 +1239,8 @@ def save_settings():
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
-               "favorite_themes", "random_theme_on_launch", "random_theme_scope"}
+               "favorite_themes", "random_theme_on_launch", "random_theme_scope",
+               "precise_window_placement"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
