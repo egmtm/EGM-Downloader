@@ -118,10 +118,16 @@
     dirty = false;
     revertPreview();
     document.body.classList.add('creator-panel-open');
+    // Ask main to widen the window so the panel never compresses the main UI.
+    if (window.electronAPI && window.electronAPI.notifyCreatorPanel) window.electronAPI.notifyCreatorPanel(true);
     const hp = $('hamburger-panel'); if (hp) hp.classList.remove('open');
     document.querySelectorAll('.nav-btn.active').forEach(b => b.classList.remove('active'));
   };
-  function closePanel() { revertPreview(); document.body.classList.remove('creator-panel-open'); }
+  function closePanel() {
+    revertPreview();
+    document.body.classList.remove('creator-panel-open');
+    if (window.electronAPI && window.electronAPI.notifyCreatorPanel) window.electronAPI.notifyCreatorPanel(false);
+  }
   function requestClose() { if (dirty) confirmClose(); else closePanel(); }
 
   // ── In-page modal (reset confirm + unsaved-close confirm) ────────────────────
