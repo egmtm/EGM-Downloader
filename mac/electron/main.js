@@ -304,10 +304,6 @@ async function createWindow() {
 
   // Save state on close
   mainWindow.on('close', () => {
-    if (creatorWindow && !creatorWindow.isDestroyed()) {
-      creatorForceClose = true;
-      creatorWindow.close();
-    }
     saveWindowState();
     app.isQuitting = true;
   });
@@ -518,9 +514,17 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
   const wasMaximized = !!(liveMain && mainWindow.isMaximized());
   const mb = liveMain ? mainWindow.getBounds() : { x: 80, y: 80, width: 920, height: 780 };
   const disp = screen.getDisplayMatching(mb).workArea;
-  // Wayland compositors own window placement — we cannot force position on native Wayland.
-  // Detect it and skip shift/tile; the live preview still works via IPC.
-  const isWayland = process.env.XDG_SESSION_TYPE === 'wayland';
+  // Native Wayland's compositor owns window placement — we can't force position there.
+  // But a Wayland *session* (XDG_SESSION_TYPE=wayland) still runs us under XWayland,
+  // where placement DOES work — so don't disable on session type alone (that is why an
+  // x11 flag appeared to have "no effect": this gate skipped placement before the flag
+  // could matter). An explicit x11 ozone hint/switch forces the X11 path and re-enables
+  // positioning: ELECTRON_OZONE_PLATFORM_HINT=x11 or --ozone-platform=x11.
+  const _ozone = ((process.env.ELECTRON_OZONE_PLATFORM_HINT || '') + ' ' +
+                  (app.commandLine.getSwitchValue('ozone-platform') || '')).toLowerCase();
+  const _forcedX11 = _ozone.includes('x11');
+  const isWayland = process.platform === 'linux' &&
+                    process.env.XDG_SESSION_TYPE === 'wayland' && !_forcedX11;
 
   let x, y, height;
   if (!isWayland) {
