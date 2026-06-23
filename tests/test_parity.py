@@ -733,3 +733,36 @@ def test_creator_save_guards_duplicate_names():
     assert "showModal(" in body, "saveTheme does not prompt before overwriting a duplicate"
     assert "Overwrite" in body, "saveTheme overwrite prompt missing"
     assert "deleteSavedTheme(" in body, "saveTheme overwrite path does not remove the old entry"
+
+
+def test_saved_themes_favoritable():
+    """Saved (Imported) themes are favoritable with the SAME mechanism as built-in
+    themes: a .fav-heart on each saved card keyed by the theme's id, toggled through the
+    shared favoriteThemes set / favorite_themes setting, and surfaced in the Favorites
+    section. Saved-theme ids are 'st-...' which match the backend favorite-key regex, so
+    no backend change is needed. Root and linux carry it byte-identically."""
+    root = read_source("templates/themes.html")
+    linux = read_source("linux/templates/themes.html")
+    assert root == linux, "templates/themes.html differs from linux/templates/themes.html"
+
+    # The saved-card markup carries a heart bound to the saved theme's id (same class /
+    # icon the built-in cards use).
+    saved_block = re.search(r"const savedHtml = saved\.map\(t => `(.*?)`\)\.join", root, re.DOTALL)
+    assert saved_block, "savedHtml block not found in themes.html"
+    sb = saved_block.group(1)
+    assert 'class="fav-heart"' in sb, "saved cards have no favorite heart"
+    assert 'data-fav="${esc(t.id)}"' in sb, "saved-card heart is not keyed by the theme id"
+    assert "favoriteThemes.has(t.id)" in sb, "saved-card heart does not reflect favorite state"
+
+    # Favorites view includes favorited saved themes alongside built-in favorites.
+    assert "activeCat === 'favorites'" in root and "favoriteThemes.has(t.id)" in root, \
+        "Favorites view does not include favorited saved themes"
+    # Deleting a saved theme cleans up a stale favorite (no orphan in the Favorites count).
+    assert "favoriteThemes.delete(id)" in root, \
+        "deleting a saved theme does not drop its favorite entry"
+
+    # Backend favorite-key sanitizer accepts the 'st-...' id grammar (lowercase/digits/-).
+    for app_file in PLATFORM_APP_FILES:
+        src = read_source(app_file)
+        assert r'fullmatch(r"[a-z0-9-]+"' in src, \
+            f"{app_file} favorite_themes sanitizer would reject saved-theme ids"
