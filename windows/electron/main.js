@@ -703,11 +703,12 @@ ipcMain.handle('open-theme-creator', async (event, opts) => {
     cw.once('show', () => {
       placeCreator();
       setImmediate(placeCreator);   // re-assert after map (X11 Linux WMs)
-      // macOS applies its default window placement on a LATER runloop turn after
-      // show, overriding the immediate setBounds — the maximized path escapes this
-      // only because the preceding unmaximize() flushes AppKit first. Re-assert on
-      // later turns so our explicit frame is the last word. Non-awaited timers run
-      // after the handler returns, so they can't interleave with the main resize.
+      // Deferred placement (setBounds in ready-to-show, BEFORE show) is what fixes the
+      // macOS windowed case — on-device diagnostic confirmed the frame is at target from
+      // the first 'show' and never drifts (AppKit does not re-place it). These extra
+      // re-asserts are a zero-cost safety net for macOS-version/display variance.
+      // Non-awaited timers: they run after the handler returns, so they can't interleave
+      // with the synchronous main-window resize.
       if (process.platform === 'darwin') { setTimeout(placeCreator, 0); setTimeout(placeCreator, 60); }
     });
   }
