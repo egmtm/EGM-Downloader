@@ -371,6 +371,9 @@ async function createWindow() {
     if (!app.isQuitting) {
       e.preventDefault();
       saveWindowState(); // save immediately before hiding
+      // Close secondary windows — they shouldn't outlive main
+      if (themesWindow && !themesWindow.isDestroyed()) themesWindow.close();
+      if (historyWindow && !historyWindow.isDestroyed()) historyWindow.close();
       mainWindow.hide();
     }
   });
