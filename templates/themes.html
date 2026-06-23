@@ -198,7 +198,8 @@
     return _f.call(this, url, opts);
   };
 })();
-{% endraw %}{% include 'theme_data.html' %}{% raw %}
+{% endraw %}{% include 'theme_data.html' %}
+{% include 'theme_validator.html' %}{% raw %}
 
 // Sidebar structure: ordered sections + categories per section
 const SECTIONS = [
@@ -307,11 +308,44 @@ function applyBodyTheme(name) {
   document.body.classList.remove(...ALL_THEME_KEYS);
   if (name && name !== 'void') document.body.classList.add(name);
 }
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+
+// Custom/saved themes carry raw vars; inject them (validated) as a body.custom rule so
+// THIS window reflects the applied theme — same gate as the main window.
+function injectCustomCss(vars) {
+  let el = document.getElementById('custom-theme-style');
+  if (!el) { el = document.createElement('style'); el.id = 'custom-theme-style'; document.head.appendChild(el); }
+  const pairs = Object.entries(vars || {}).filter(([k, v]) => validateThemeVar(k, v));
+  el.textContent = 'body.custom{' + pairs.map(([k, v]) => k + ':' + v).join(';') + '}';
+}
+function _activeCustomName() {
+  try { const c = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null'); return (c && c.name) || null; } catch { return null; }
+}
+// Apply a saved theme: write it to the active custom slot, inject, mark active, broadcast.
+function applySavedTheme(name, vars) {
+  try { localStorage.setItem('egm-custom-theme', JSON.stringify({ name: name, 'egm-theme': true, vars: vars })); } catch {}
+  injectCustomCss(vars);
+  currentTheme = 'custom';
+  localStorage.setItem('egm-theme', 'custom');
+  applyBodyTheme('custom');
+  if (window.electronAPI && window.electronAPI.setTheme) window.electronAPI.setTheme('custom');
+  render();
+}
+
+// Lift any legacy/Imported single custom theme into the library, then render the window.
+migrateLegacyCustom();
 applyBodyTheme(currentTheme);
+if (currentTheme === 'custom') {
+  try { const c = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null'); if (c && c.vars) injectCustomCss(c.vars); } catch {}
+}
 
 if (window.electronAPI && window.electronAPI.onThemeChanged) {
   window.electronAPI.onThemeChanged(theme => {
     currentTheme = theme;
+    if (theme === 'custom') {
+      try { const c = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null'); if (c && c.vars) injectCustomCss(c.vars); } catch {}
+    }
     applyBodyTheme(theme);
     render();
   });
@@ -319,7 +353,7 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
 
 // ── Counts per category (respects seasonal visibility) ────────────────────
 function countForCat(cat) {
-  if (cat === 'custom') return 0; // imported themes — none built-in
+  if (cat === 'custom') return loadSavedThemes().length; // Imported = saved themes
   return Object.entries(THEME_DATA).filter(([key, d]) => {
     if (d.cat !== cat) return false;
     if (cat === 'seasonal' && !SEASONAL_VISIBLE.has(key)) return false;
@@ -489,6 +523,7 @@ document.getElementById('bc-all').addEventListener('click', () => {
 function render() {
   const grid = document.getElementById('grid');
   const entries = Object.entries(THEME_DATA).filter(([key, d]) => {
+    if (key === 'custom') return false;  // legacy placeholder — real saved themes render below
     if (d.cat === 'seasonal' && !SEASONAL_VISIBLE.has(key)) return false;
     if (activeCat === 'favorites') return favoriteThemes.has(key);
     if (activeCat !== 'all' && d.cat !== activeCat) return false;
@@ -496,14 +531,34 @@ function render() {
     return true;
   }).sort((a, b) => a[1].label.localeCompare(b[1].label));
 
-  if (!entries.length) {
+  // Imported section: saved themes from the multi-theme library (shown under All +
+  // Imported, never under Favorites). Vars are already validateThemeVar-gated on load.
+  const saved = (activeCat === 'all' || activeCat === 'custom')
+    ? loadSavedThemes().filter(t => !searchQ || t.name.toLowerCase().includes(searchQ))
+    : [];
+  const activeName = currentTheme === 'custom' ? _activeCustomName() : null;
+
+  if (!entries.length && !saved.length) {
     grid.innerHTML = activeCat === 'favorites'
       ? '<div class="empty">No favorites yet — click the heart on any theme to add it.</div>'
-      : '<div class="empty">No themes match your search.</div>';
+      : (activeCat === 'custom'
+          ? '<div class="empty">No imported themes yet — create one in the Theme Creator, or import a .json.</div>'
+          : '<div class="empty">No themes match your search.</div>');
     return;
   }
 
-  grid.innerHTML = entries.map(([key, d]) => `
+  const savedHtml = saved.map(t => `
+    <div class="theme-card${activeName === t.name ? ' active' : ''}" data-saved="${esc(t.id)}">
+      <div class="swatches">
+        <div class="swatch" style="background:${esc(t.vars['--bg']   || '#000')}"></div>
+        <div class="swatch" style="background:${esc(t.vars['--surf'] || '#111')}"></div>
+        <div class="swatch" style="background:${esc(t.vars['--acc']  || '#3b82f6')}"></div>
+      </div>
+      <span class="card-name">${esc(t.name)}</span>
+      <span class="del-saved" data-del="${esc(t.id)}" title="Delete this saved theme" style="font-size:15px;line-height:1;cursor:pointer;margin-left:auto;color:var(--text2);opacity:.55">×</span>
+    </div>`).join('');
+
+  grid.innerHTML = savedHtml + entries.map(([key, d]) => `
     <div class="theme-card${key === currentTheme ? ' active' : ''}" data-theme="${key}">
       <div class="swatches">
         <div class="swatch" style="background:${d.bg}"></div>
@@ -515,7 +570,23 @@ function render() {
     </div>
   `).join('');
 
-  grid.querySelectorAll('.theme-card').forEach((card, i) => {
+  // Saved (Imported) theme cards — apply on click, delete on the ×.
+  grid.querySelectorAll('.theme-card[data-saved]').forEach(card => {
+    card.addEventListener('click', (e) => {
+      if (e.target.closest('.del-saved')) return;
+      const t = loadSavedThemes().find(x => x.id === card.dataset.saved);
+      if (t) applySavedTheme(t.name, t.vars);
+    });
+  });
+  grid.querySelectorAll('.del-saved').forEach(del => {
+    del.addEventListener('click', (e) => {
+      e.stopPropagation();
+      deleteSavedTheme(del.dataset.del);
+      render();
+    });
+  });
+
+  grid.querySelectorAll('.theme-card[data-theme]').forEach((card, i) => {
     card.addEventListener('click', (e) => {
       if (e.target.closest('.fav-heart')) return;
       focusedIdx = i;
@@ -537,7 +608,7 @@ function render() {
     });
   });
 
-  grid.querySelectorAll('.theme-card').forEach(card => {
+  grid.querySelectorAll('.theme-card[data-theme]').forEach(card => {
     card.addEventListener('dblclick', (e) => {
       if (e.target.closest('.fav-heart')) return;
       toggleFavorite(card.dataset.theme);
