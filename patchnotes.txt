@@ -1,4 +1,4 @@
-v1.2.1 - CANVAS RELOADED (Build 134)
+v1.2.1 - CANVAS RELOADED (Build 134) (6/24/2026)
 -----------------------------------------
 
   IMPROVEMENTS
@@ -6,7 +6,7 @@ v1.2.1 - CANVAS RELOADED (Build 134)
   • [ALL] Electron 42.4.1 → 42.5.0 — Wayland maximize fix, Windows edge cases, frameless window constraints
   • [ALL] Chromium and Node.js security backports included via Electron update
 
-v1.2.0 - CANVAS (Build 133)
+v1.2.0 - CANVAS (Build 133) (6/23/2026)
 -----------------------------------------
 
   FEATURES
@@ -20,6 +20,7 @@ v1.2.0 - CANVAS (Build 133)
   • [ALL] Themes and History windows now close when main window closes
   • [ALL] Theme import validation — per-type CSS allowlist, stricter than previous guard
   • [ALL] Random theme palette seeding — sample any of 420 built-in themes as a starting point
+
 v1.1.2 - YOURS TO KEEP (Build 132)
 -----------------------------------------
 
