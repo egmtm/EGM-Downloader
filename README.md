@@ -12,7 +12,7 @@
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <a href="https://github.com/egmtm/EGM-Downloader/discussions"><img src="https://img.shields.io/badge/github-discussions-181717?logo=github" alt="GitHub Discussions"/></a>
     <a href="https://x.com/EGMDownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-000000?logo=x&logoColor=white" alt="Follow on X"/></a>
-    <img src="https://img.shields.io/badge/Electron-42.4.1-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-42.5.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Big_Sur+-000000?logo=apple&logoColor=white" alt="macOS"/>
@@ -65,7 +65,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.2 — CANVAS. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.2.1 — CANVAS RELOADED. The UI is identical across Windows, macOS, and Linux.*
 
 <div align="center">
   <a href="screenshots/01-splash-screen.png">
@@ -154,14 +154,14 @@
 ### Windows
 **Latest:** v1.2.1 Build 134  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (442 KB · ~800 MB after install)  
-**SHA256:** `fecb650a22bf5bd53a9b30c0173f6d01f991b558f79eef0d5b3391149a3090cf`  
+**SHA256:** `3c4c6be99a0f28d2d46bd8b1593ee809dfbb2e05bec386d43ef11ff250fc4cac`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.2.1 Build 134  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (454 KB · ~800 MB after first run)  
-**SHA256:** `b3e4b8e37f5ae975dca58a974f3eaf1555d98641c2af23e060222c5c5dab3b7f`  
+**SHA256:** `380f399cb5b0174304fb78c89d90e44a58a8a1bf9f1d02c0fb05b40fa1a941dc`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
@@ -169,14 +169,14 @@
 ### macOS
 **Latest:** v1.2.1 Build 134  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (125 MB · ~300 MB after install)  
-**SHA256:** `ac03f67fdaf22ddde5e3a87010887cd12548674a6ce922eddba5450cc38fcaa1`  
+**SHA256:** `6bb9bbdb86796c3c49e484a4fb56747450b54e7692e7a085aa72f1a2e61a40e1`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.2.1 Build 134  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `37d3ad497645f925fbe93961cf49cd7a8d143611625328445762b1c7b4c11209`  
+**SHA256:** `69fabc5e73420dcf980234ce5df70005119b55e8b2f7a9520954bd7069f6f64d`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -298,6 +298,9 @@ Kanye album themes, scrollbar theming, settings layout redesign, fetch all chann
 **v1.2 — CANVAS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.0)
 Theme Creator with live preview, save to library, favorites; Universal MP4 H.264; orphan window fix; security 9.5/10, 49 tests
 
+**v1.2.1 — CANVAS RELOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.1)
+All of CANVAS + Electron 42.5.0 (Wayland maximize fix, Windows edge cases, Chromium/Node.js security backports)
+
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
 - 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
@@ -401,10 +404,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version man
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 133 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 133 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 133 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 133 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 134 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 134 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 134 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 134 | EGMdL.zip | ❌ Manual |
 
 ### System Requirements
 
