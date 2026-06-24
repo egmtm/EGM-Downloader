@@ -153,7 +153,7 @@
 
 ### Windows
 **Latest:** v1.2.1 Build 134  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (442 KB · ~800 MB after install)  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (466 KB · ~800 MB after install)  
 **SHA256:** `3c4c6be99a0f28d2d46bd8b1593ee809dfbb2e05bec386d43ef11ff250fc4cac`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
