@@ -1,3 +1,10 @@
+v1.2.1 - CANVAS RELOADED (Build 134)
+-----------------------------------------
+
+  IMPROVEMENTS
+  • [ALL] Includes everything in v1.2.0 CANVAS — Theme Creator, Universal MP4, saved themes
+  • [ALL] Electron 42.4.1 → 42.5.0 — Wayland maximize fix, Windows edge cases, frameless window constraints
+
 v1.2.0 - CANVAS (Build 133)
 -----------------------------------------
 
