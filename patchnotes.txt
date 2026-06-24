@@ -68,7 +68,7 @@ v1.1.1 - TRULY YOURS (Build 131) (6/20/2026)
   • [ALL] Subscriptions: per-video quality override — each video row has its own Quality selector; overrides the channel default for that download only; resets on channel format change
   • [ALL] Subscriptions: members-only video identification now works correctly — our code was always ready; requires yt-dlp Nightly (stable does not yet expose the availability flag)
 
-v1.1 - IGNITION
+v1.1 - IGNITION (6/15/2026)
 -----------------------------------------
 
   SUBSCRIPTIONS
