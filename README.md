@@ -79,72 +79,114 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-odd-cab-theme.png">
-        <img src="screenshots/02-main-ui-odd-cab-theme.png" width="340" alt="Main UI — Odd Cab Theme"/>
+      <a href="screenshots/02-main-ui-chosen-undead-theme.png">
+        <img src="screenshots/02-main-ui-chosen-undead-theme.png" width="340" alt="Main UI — Chosen Undead Theme"/>
       </a>
-      <br/><sub><b>Main UI — Odd Cab Theme</b></sub>
+      <br/><sub><b>Main UI — Chosen Undead Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/03-main-ui-condensed-bully-theme.png">
-        <img src="screenshots/03-main-ui-condensed-bully-theme.png" width="340" alt="Main UI Condensed — Bully Theme"/>
+      <a href="screenshots/03-main-ui-condensed-jerk-shack-theme.png">
+        <img src="screenshots/03-main-ui-condensed-jerk-shack-theme.png" width="340" alt="Main UI Condensed — Jerk Shack Theme"/>
       </a>
-      <br/><sub><b>Main UI Condensed — Bully Theme</b></sub>
+      <br/><sub><b>Main UI Condensed — Jerk Shack Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/04-plugin-update-complete-blizzard-theme.png">
-        <img src="screenshots/04-plugin-update-complete-blizzard-theme.png" width="340" alt="Plugin Update Complete — Blizzard Theme"/>
+      <a href="screenshots/04-help-modal-monsoon-theme.png">
+        <img src="screenshots/04-help-modal-monsoon-theme.png" width="340" alt="Help Modal — Monsoon Theme"/>
       </a>
-      <br/><sub><b>Plugin Update Complete — Blizzard Theme</b></sub>
+      <br/><sub><b>Help Modal — Monsoon Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/05-plugins-updates-dreamcast-theme.png">
-        <img src="screenshots/05-plugins-updates-dreamcast-theme.png" width="340" alt="Plugins Updates — Dreamcast Theme"/>
+      <a href="screenshots/05-advanced-panel-neural-theme.png">
+        <img src="screenshots/05-advanced-panel-neural-theme.png" width="340" alt="Advanced Panel — Neural Theme"/>
       </a>
-      <br/><sub><b>Plugins Updates — Dreamcast Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/06-import-settings-watch-the-throne-theme.png">
-        <img src="screenshots/06-import-settings-watch-the-throne-theme.png" width="340" alt="Import Settings — Watch the Throne Theme"/>
-      </a>
-      <br/><sub><b>Import Settings — Watch the Throne Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/07-fetch-all-subscriptions-codemaster-theme.png">
-        <img src="screenshots/07-fetch-all-subscriptions-codemaster-theme.png" width="340" alt="Fetch All Subscriptions — Codemaster Theme"/>
-      </a>
-      <br/><sub><b>Fetch All Subscriptions — Codemaster Theme</b></sub>
+      <br/><sub><b>Advanced Panel — Neural Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/08-subscriptions-collapsed-sidebar-pager-theme.png">
-        <img src="screenshots/08-subscriptions-collapsed-sidebar-pager-theme.png" width="340" alt="Subscriptions Collapsed — Pager Theme"/>
+      <a href="screenshots/06-advanced-plugins-update-mint-theme.png">
+        <img src="screenshots/06-advanced-plugins-update-mint-theme.png" width="340" alt="Plugins Update — Mint Theme"/>
       </a>
-      <br/><sub><b>Subscriptions Collapsed — Pager Theme</b></sub>
+      <br/><sub><b>Plugins Update — Mint Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/09-fetching-videos-mosaic-theme.png">
-        <img src="screenshots/09-fetching-videos-mosaic-theme.png" width="340" alt="Fetching Videos — Mosaic Theme"/>
+      <a href="screenshots/07-main-ui-history-san-sebastian-theme.png">
+        <img src="screenshots/07-main-ui-history-san-sebastian-theme.png" width="340" alt="Main UI + History — San Sebastián Theme"/>
       </a>
-      <br/><sub><b>Fetching Videos — Mosaic Theme</b></sub>
+      <br/><sub><b>Main UI + History — San Sebastián Theme 🇵🇷</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/10-download-history-expanded-macos-sequoia-theme.png">
-        <img src="screenshots/10-download-history-expanded-macos-sequoia-theme.png" width="340" alt="Download History — macOS Sequoia Theme"/>
+      <a href="screenshots/08-expanded-history-studio-midnight-theme.png">
+        <img src="screenshots/08-expanded-history-studio-midnight-theme.png" width="340" alt="Expanded History — Studio Midnight Theme"/>
       </a>
-      <br/><sub><b>Download History — macOS Sequoia Theme</b></sub>
+      <br/><sub><b>Expanded History — Studio Midnight Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/11-all-themes-prism-theme.png">
-        <img src="screenshots/11-all-themes-prism-theme.png" width="340" alt="All Themes — Prism Theme"/>
+      <a href="screenshots/09-themes-panel-the-old-lady-theme.png">
+        <img src="screenshots/09-themes-panel-the-old-lady-theme.png" width="340" alt="Themes Panel — The Old Lady Theme"/>
       </a>
-      <br/><sub><b>All Themes — Prism Theme</b></sub>
+      <br/><sub><b>Themes Panel — The Old Lady Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/10-theme-creator-windows-vista-theme.png">
+        <img src="screenshots/10-theme-creator-windows-vista-theme.png" width="340" alt="Theme Creator — Windows Vista Theme"/>
+      </a>
+      <br/><sub><b>Theme Creator — Windows Vista Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/11-theme-creator-custom-theme.png">
+        <img src="screenshots/11-theme-creator-custom-theme.png" width="340" alt="Theme Creator — Custom Theme"/>
+      </a>
+      <br/><sub><b>Theme Creator — Custom Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/12-all-themes-arch-linux-theme.png">
+        <img src="screenshots/12-all-themes-arch-linux-theme.png" width="340" alt="All Themes — Arch Linux Theme"/>
+      </a>
+      <br/><sub><b>All Themes — Arch Linux Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/13-subscriptions-dos-theme.png">
+        <img src="screenshots/13-subscriptions-dos-theme.png" width="340" alt="Subscriptions — DOS Theme"/>
+      </a>
+      <br/><sub><b>Subscriptions — DOS Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/14-subscriptions-fetching-event-horizon-theme.png">
+        <img src="screenshots/14-subscriptions-fetching-event-horizon-theme.png" width="340" alt="Subscriptions Fetching — Event Horizon Theme"/>
+      </a>
+      <br/><sub><b>Subscriptions Fetching — Event Horizon Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/15-subscriptions-collapsed-game-over-theme.png">
+        <img src="screenshots/15-subscriptions-collapsed-game-over-theme.png" width="340" alt="Subscriptions Collapsed — Game Over Theme"/>
+      </a>
+      <br/><sub><b>Subscriptions Collapsed — Game Over Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/16-export-settings-el-morro-theme.png">
+        <img src="screenshots/16-export-settings-el-morro-theme.png" width="340" alt="Export Settings — El Morro Theme"/>
+      </a>
+      <br/><sub><b>Export Settings — El Morro Theme 🇵🇷</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/17-fetching-videos-aew-theme.png">
+        <img src="screenshots/17-fetching-videos-aew-theme.png" width="340" alt="Fetching Videos — AEW Theme"/>
+      </a>
+      <br/><sub><b>Fetching Videos — AEW Theme</b></sub>
     </td>
   </tr>
 </table>
