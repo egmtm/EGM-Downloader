@@ -3,3 +3,5 @@ yt-dlp>=2024.1.1
 bgutil-ytdlp-pot-provider
 mutagen>=1.47.0
 cryptography>=42.0.0
+curl_cffi>=0.7.0
+
