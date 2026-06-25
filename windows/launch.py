@@ -173,7 +173,7 @@ def ensure_python_deps():
     # metadata/thumbnail embedding. The sentinel imports must include them so a
     # missing one triggers (re)install. (pyzipper was unused and is dropped.)
     try:
-        import flask, yt_dlp, cryptography, mutagen; return
+        import flask, yt_dlp, cryptography, mutagen, curl_cffi; return
     except ImportError: pass
     _gui_msg("Installing Python packages…")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
