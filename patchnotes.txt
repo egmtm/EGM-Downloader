@@ -4,6 +4,7 @@ v1.2.2 (Build 135) (6/25/2026)
   FIXES
   • [ALL] Kick VOD downloads — fixed 403 errors caused by missing curl_cffi TLS impersonation library; added to all platform dependency lists
   • [ALL] Site compatibility — curl_cffi enables yt-dlp browser TLS impersonation; improves reliability on sites that block standard HTTP clients
+  • [ALL] Clean installs — curl_cffi added to all platform requirements files; guaranteed present on fresh installs across Windows, Mac, and Linux
   • [WINDOWS] Portable edition — curl_cffi now correctly detected and installed on first launch or when absent from an existing install
 
 v1.2.1 - CANVAS RELOADED (Build 134) (6/24/2026)
