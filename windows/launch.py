@@ -346,12 +346,12 @@ def ensure_python_deps_embedded(py_exe):
     site_packages = PY_DIR / "Lib" / "site-packages"
     # Top-level package dirs pip drops in site-packages. NB import name, not pip name:
     # the "yt-dlp" distribution installs the "yt_dlp" package directory.
-    required = ("flask", "yt_dlp", "cryptography", "mutagen")
+    required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi")
     if site_packages.is_dir() and all((site_packages / pkg).is_dir() for pkg in required):
         return
     _gui_msg("Installing Python packages…")
     subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi"],
                    check=True, timeout=600, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
