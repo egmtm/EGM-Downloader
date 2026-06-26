@@ -1480,7 +1480,29 @@ def _get_latest_mutagen_version() -> str:
         return "unknown"
 
 
-def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
+OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets"]
+
+def _get_optlibs_versions() -> dict:
+    result = {}
+    for lib in OPTLIBS:
+        try:
+            result[lib] = importlib.metadata.version(lib)
+        except Exception:
+            result[lib] = "not installed"
+    return result
+
+def _get_latest_optlibs_versions() -> dict:
+    result = {}
+    for lib in OPTLIBS:
+        try:
+            with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
+                result[lib] = json.loads(r.read())["info"]["version"]
+        except Exception:
+            result[lib] = "unknown"
+    return result
+
+
+def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
@@ -1547,6 +1569,17 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"mutagen update failed: {err}")
+        if do_optlibs:
+            log("Updating optional libraries...")
+            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                     "curl-cffi", "brotli", "pycryptodomex", "websockets",
+                     "--break-system-packages", timeout=120)
+            if r.returncode == 0:
+                vers = _get_optlibs_versions()
+                log("optional libs -> " + ", ".join(f"{k} {v}" for k, v in vers.items()))
+            else:
+                err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+                log(f"optional libs update failed: {err}")
         log("All done.")
         update_status["done"] = True
     except Exception as e:
@@ -1560,16 +1593,24 @@ def check_updates():
     cf, lf  = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
     cm      = _get_mutagen_version()
     lm      = _get_latest_mutagen_version()
+    oc      = _get_optlibs_versions()
+    ol      = _get_latest_optlibs_versions()
     settings = _load_settings()
     ytdlp_ch  = settings.get("yt_dlp_channel", "stable")
     ffmpeg_ch = settings.get("ffmpeg_channel", "stable")
     ytdlp_ok   = cy != "unknown" and cy == ly
     mutagen_ok = cm != "not installed" and lm != "unknown" and cm == lm
+    optlibs_updates = sum(
+        1 for lib in oc
+        if oc[lib] != "not installed" and ol.get(lib, "unknown") != "unknown" and oc[lib] != ol[lib]
+    )
+    optlibs_ok = optlibs_updates == 0 and all(v != "not installed" for v in oc.values())
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
                     "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": lm, "up_to_date": mutagen_ok},
+        "optlibs": {"current": oc, "latest": ol, "updates_available": optlibs_updates, "up_to_date": optlibs_ok},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -1581,7 +1622,8 @@ def run_update():
     threading.Thread(target=_run_update,
                      args=(bool(data.get("ytdlp", True)),
                            bool(data.get("ffmpeg", False)),
-                           bool(data.get("mutagen", False))),
+                           bool(data.get("mutagen", False)),
+                           bool(data.get("optlibs", False))),
                      daemon=True).start()
     return jsonify({"started": True})
 
