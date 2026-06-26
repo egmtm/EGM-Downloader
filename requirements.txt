@@ -7,3 +7,4 @@ curl_cffi>=0.7.0
 brotli>=1.0.0
 pycryptodomex>=3.0.0
 websockets>=10.0
+certifi>=2024.0.0
