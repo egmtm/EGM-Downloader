@@ -473,6 +473,7 @@ EGM Downloader is powered by incredible open source projects:
 - **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** - Download engine (1000+ sites)
 - **[bgutil-ytdlp-pot-provider](https://github.com/Brainicism/bgutil-ytdlp-pot-provider)** - YouTube PO Token generation (proof-of-origin)
 - **[yt-dlp/ejs](https://github.com/yt-dlp/ejs)** - EJS remote components for YouTube signature solving
+- **[curl_cffi](https://github.com/lexiforest/curl_cffi)** - Browser TLS impersonation for yt-dlp — enables downloads from sites that fingerprint HTTP clients
 - **[Flask](https://flask.palletsprojects.com/)** - Web framework
 - **[Electron](https://www.electronjs.org/)** - Cross-platform desktop wrapper
 - **[FFmpeg](https://ffmpeg.org/)** - Video/audio processing

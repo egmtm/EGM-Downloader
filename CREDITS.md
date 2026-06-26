@@ -117,6 +117,17 @@ Deno provides the secure runtime environment needed for bgutil-ytdlp-pot-provide
 
 ---
 
+### curl_cffi
+**Browser TLS impersonation**
+
+- **License:** MIT
+- **Repository:** https://github.com/lexiforest/curl_cffi
+- **Purpose:** Enables yt-dlp to impersonate browser TLS fingerprints, allowing downloads from sites that block standard HTTP clients (including Kick VODs)
+
+**Thank you** to the lexiforest team for making this critical compatibility layer available.
+
+---
+
 ## 🎨 Build Tools & Infrastructure
 
 ### electron-builder
@@ -229,7 +240,7 @@ To everyone who contributes to open source software - from bug reports to docume
 EGM Downloader is released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, which is compatible with all the dependencies listed above.
 
 ### License Summary:
-- **MIT License:** Electron, Deno, bgutil-ytdlp-pot-provider, electron-builder, flake8, isort, ESLint, Node.js
+- **MIT License:** Electron, Deno, bgutil-ytdlp-pot-provider, yt-dlp/ejs, curl_cffi, electron-builder, flake8, ESLint, Node.js
 - **BSD-3-Clause:** Flask (Pallets)
 - **GPL-2.0:** mutagen
 - **Unlicense (Public Domain):** yt-dlp
