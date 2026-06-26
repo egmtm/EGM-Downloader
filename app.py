@@ -15,6 +15,7 @@ import urllib.parse
 import zipfile
 import hashlib
 import shutil
+import importlib.metadata
 from collections import deque
 from pathlib import Path
 from flask import Flask, request, jsonify, render_template, abort
@@ -1466,7 +1467,6 @@ update_status: dict = {}
 
 def _get_mutagen_version() -> str:
     try:
-        import importlib.metadata
         return importlib.metadata.version("mutagen")
     except Exception:
         return "not installed"
