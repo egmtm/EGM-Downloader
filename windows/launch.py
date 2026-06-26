@@ -344,10 +344,18 @@ def ensure_python_deps_embedded(py_exe):
     into the embedded interpreter exactly as before.)
     """
     site_packages = PY_DIR / "Lib" / "site-packages"
-    # Top-level package dirs pip drops in site-packages. NB import name, not pip name:
-    # the "yt-dlp" distribution installs the "yt_dlp" package directory.
+    # Top-level names pip drops in site-packages. NB import name, not pip name:
+    # the "yt-dlp" distribution installs the "yt_dlp" package directory. Most are
+    # package DIRS, but some ship as a single top-level MODULE file instead — e.g.
+    # "brotli" installs brotli.py (+ a _brotli extension), not a brotli/ dir — so a
+    # dir-only check would never pass for it and pip would re-run on every launch.
     required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi", "brotli", "Cryptodome", "websockets")
-    if site_packages.is_dir() and all((site_packages / pkg).is_dir() for pkg in required):
+    def _present(pkg):
+        return ((site_packages / pkg).is_dir()
+                or (site_packages / f"{pkg}.py").is_file()
+                or bool(list(site_packages.glob(f"{pkg}.*.pyd")))
+                or bool(list(site_packages.glob(f"{pkg}.*.so"))))
+    if site_packages.is_dir() and all(_present(pkg) for pkg in required):
         return
     _gui_msg("Installing Python packages…")
     subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
