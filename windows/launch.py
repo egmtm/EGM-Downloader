@@ -173,11 +173,11 @@ def ensure_python_deps():
     # metadata/thumbnail embedding. The sentinel imports must include them so a
     # missing one triggers (re)install. (pyzipper was unused and is dropped.)
     try:
-        import flask, yt_dlp, cryptography, mutagen, curl_cffi, brotli, Cryptodome, websockets; return
+        import flask, yt_dlp, cryptography, mutagen, curl_cffi, brotli, Cryptodome, websockets, certifi; return
     except ImportError: pass
     _gui_msg("Installing Python packages…")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets", "certifi"],
                    check=True, timeout=300, creationflags=NO_WIN)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
@@ -349,7 +349,7 @@ def ensure_python_deps_embedded(py_exe):
     # package DIRS, but some ship as a single top-level MODULE file instead — e.g.
     # "brotli" installs brotli.py (+ a _brotli extension), not a brotli/ dir — so a
     # dir-only check would never pass for it and pip would re-run on every launch.
-    required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi", "brotli", "Cryptodome", "websockets")
+    required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi", "brotli", "Cryptodome", "websockets", "certifi")
     def _present(pkg):
         return ((site_packages / pkg).is_dir()
                 or (site_packages / f"{pkg}.py").is_file()
@@ -359,7 +359,7 @@ def ensure_python_deps_embedded(py_exe):
         return
     _gui_msg("Installing Python packages…")
     subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets", "certifi"],
                    check=True, timeout=600, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────

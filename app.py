@@ -1480,7 +1480,7 @@ def _get_latest_mutagen_version() -> str:
         return "unknown"
 
 
-OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets"]
+OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
 
 def _get_optlibs_versions() -> dict:
     result = {}

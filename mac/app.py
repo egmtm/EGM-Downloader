@@ -1512,7 +1512,7 @@ def _run_update(do_ytdlp, do_ffmpeg):
     finally:
         update_status["running"] = False
 
-OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets"]
+OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
 
 def _get_optlibs_versions() -> dict:
     """Installed versions of the optional yt-dlp libraries. Informational-only on
