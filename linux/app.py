@@ -1445,6 +1445,23 @@ def _run_update(do_ytdlp, do_ffmpeg):
     finally:
         update_status["running"] = False
 
+OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets"]
+
+def _get_optlibs_versions() -> dict:
+    """Installed versions of the optional yt-dlp libraries. Informational-only on
+    this platform (bundled with the app; no in-app pip upgrade — same model as
+    mutagen), so check_updates returns current versions without a latest/up_to_date,
+    and the UI renders a neutral badge rather than an actionable toggle."""
+    import importlib.metadata
+    result = {}
+    for lib in OPTLIBS:
+        try:
+            result[lib] = importlib.metadata.version(lib)
+        except Exception:
+            result[lib] = "not installed"
+    return result
+
+
 @app.route("/api/check-updates")
 def check_updates():
     cy, ly = _get_ytdlp_version(), _get_latest_ytdlp_version()
@@ -1463,6 +1480,7 @@ def check_updates():
         "ffmpeg":  {"current": cf, "latest": lf,
                     "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
+        "optlibs": {"current": _get_optlibs_versions()},
     })
 
 @app.route("/api/run-update", methods=["POST"])

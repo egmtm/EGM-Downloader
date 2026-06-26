@@ -766,3 +766,49 @@ def test_saved_themes_favoritable():
         src = read_source(app_file)
         assert r'fullmatch(r"[a-z0-9-]+"' in src, \
             f"{app_file} favorite_themes sanitizer would reject saved-theme ids"
+
+
+def test_optlibs_update_panel_cross_platform():
+    """The 'Optional libraries' update-panel feature must be coherent on every platform.
+
+    Windows (root app.py) can upgrade them in-app, so it reports full
+    current/latest/updates_available. Linux + Mac bundle them with no in-app pip
+    upgrade (same model as mutagen), so their check_updates returns optlibs as
+    informational-only (current versions, no latest/up_to_date) — the UI then renders
+    a neutral badge instead of a dead/actionable toggle. The template that hosts the
+    optlibs card must also stay root<->linux byte-identical (Mac serves root templates).
+    """
+    # All three backends expose the optlibs list + version helper and an optlibs key.
+    for app_file in PLATFORM_APP_FILES:
+        src = read_source(app_file)
+        assert "OPTLIBS" in src and "_get_optlibs_versions" in src, \
+            f"{app_file} missing the optlibs helper"
+        assert '"optlibs"' in src, f"{app_file} check_updates does not return an optlibs key"
+
+    # Linux/Mac are informational-only: optlibs key carries current but no latest.
+    for app_file in ("linux/app.py", "mac/app.py"):
+        src = read_source(app_file)
+        assert '"optlibs": {"current": _get_optlibs_versions()}' in src, \
+            f"{app_file} optlibs is not the informational-only shape (current-only)"
+
+    # Root keeps the actionable shape (updates_available drives the toggle/badge).
+    root = read_source("app.py")
+    assert "updates_available" in root and "do_optlibs" in root, \
+        "root app.py lost the actionable optlibs upgrade path"
+
+    # The optlibs card lives in _settings.html, which must be mirrored to linux byte-identically.
+    assert read_source("templates/js/_settings.html") == read_source("linux/templates/js/_settings.html"), \
+        "templates/js/_settings.html differs from linux/templates/js/_settings.html"
+
+
+def test_portable_sentinel_tolerates_module_packages():
+    """The Windows portable embedded-Python sentinel checks site-packages on disk. Some
+    deps ship as a single top-level MODULE file (e.g. brotli -> brotli.py), not a
+    package directory, so a dir-only check would never pass and pip would re-run on
+    every launch (and fail an offline warm start). The check must also accept a
+    top-level .py / compiled-extension module."""
+    src = read_source("windows/launch.py")
+    assert "def _present(" in src, "embedded sentinel no longer has a module-tolerant _present() check"
+    assert '{pkg}.py' in src, "sentinel does not accept single-file .py modules (brotli regression)"
+    assert "all(_present(pkg) for pkg in required)" in src, \
+        "embedded sentinel is not using the module-tolerant _present() check"
