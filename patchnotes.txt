@@ -1,3 +1,12 @@
+v1.2.3 (Build 136) (6/25/2026)
+-----------------------------------------
+
+  IMPROVEMENTS
+  • [ALL] Optional libraries — bundled brotli, pycryptodomex, and websockets alongside curl_cffi across all platforms; expands yt-dlp site compatibility out of the box
+  • [ALL] Update panel — new Optional libraries card in Advanced → Plugins to check and update all four optional libraries without waiting for an app release
+  • [ALL] Site compatibility — curl_cffi, brotli, pycryptodomex, and websockets are now maintained and updatable independently; reduces exposure to site-specific breakage between releases
+  • [WINDOWS] Launcher updated — optional libraries now included in the installer and portable bootstrap; existing installs receive them automatically on next launch
+
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
 
