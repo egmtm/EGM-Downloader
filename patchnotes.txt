@@ -7,6 +7,10 @@ v1.2.3 (Build 136) (6/25/2026)
   • [ALL] Site compatibility — curl_cffi, brotli, pycryptodomex, and websockets are now maintained and updatable independently; reduces exposure to site-specific breakage between releases
   • [WINDOWS] Launcher updated — optional libraries now included in the installer and portable bootstrap; existing installs receive them automatically on next launch
 
+  FIXES
+  • [WINDOWS] Portable edition — fixed brotli sentinel check; brotli installs as a module file rather than a directory, causing pip to re-run on every portable launch; now detects both correctly
+  • [ALL] Optional libraries panel — Linux and Mac show an informational card with installed versions; update action is Windows-only, matching the existing mutagen model
+
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
 
