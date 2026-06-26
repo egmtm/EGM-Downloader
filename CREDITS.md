@@ -128,6 +128,18 @@ Deno provides the secure runtime environment needed for bgutil-ytdlp-pot-provide
 
 ---
 
+### Optional Python Libraries
+**Extended site compatibility and SSL reliability**
+
+The following standard Python packages are bundled with EGM Downloader to expand yt-dlp's site compatibility out of the box. All are MIT or permissive licensed and user-updatable via the Optional Libraries panel in Advanced → Plugins.
+
+- **[brotli](https://github.com/google/brotli)** (MIT) — Brotli decompression support for sites that serve compressed responses
+- **[pycryptodomex](https://github.com/Legrandin/pycryptodome)** (BSD-2-Clause/Public Domain) — Cryptographic primitives required by some streaming sites
+- **[websockets](https://github.com/python-websockets/websockets)** (BSD-3-Clause) — WebSocket support for live stream and chat extraction
+- **[certifi](https://github.com/certifi/python-certifi)** (MPL-2.0) — Up-to-date SSL root certificates for reliable HTTPS connections
+
+---
+
 ## 🎨 Build Tools & Infrastructure
 
 ### electron-builder
