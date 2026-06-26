@@ -4,3 +4,6 @@ bgutil-ytdlp-pot-provider
 mutagen>=1.47.0
 cryptography>=42.0.0
 curl_cffi>=0.7.0
+brotli>=1.0.0
+pycryptodomex>=3.0.0
+websockets>=10.0

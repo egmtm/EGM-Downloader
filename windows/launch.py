@@ -173,11 +173,11 @@ def ensure_python_deps():
     # metadata/thumbnail embedding. The sentinel imports must include them so a
     # missing one triggers (re)install. (pyzipper was unused and is dropped.)
     try:
-        import flask, yt_dlp, cryptography, mutagen, curl_cffi; return
+        import flask, yt_dlp, cryptography, mutagen, curl_cffi, brotli, Cryptodome, websockets; return
     except ImportError: pass
     _gui_msg("Installing Python packages…")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets"],
                    check=True, timeout=300, creationflags=NO_WIN)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
@@ -346,12 +346,12 @@ def ensure_python_deps_embedded(py_exe):
     site_packages = PY_DIR / "Lib" / "site-packages"
     # Top-level package dirs pip drops in site-packages. NB import name, not pip name:
     # the "yt-dlp" distribution installs the "yt_dlp" package directory.
-    required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi")
+    required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi", "brotli", "Cryptodome", "websockets")
     if site_packages.is_dir() and all((site_packages / pkg).is_dir() for pkg in required):
         return
     _gui_msg("Installing Python packages…")
     subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets"],
                    check=True, timeout=600, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────

@@ -181,6 +181,7 @@ function updatePluginsBadge(data) {
   if (data.ytdlp && data.ytdlp.up_to_date === false) count++;
   if (data.ffmpeg && data.ffmpeg.up_to_date === false) count++;
   if (data.mutagen && data.mutagen.up_to_date === false) count++;
+  if (data.optlibs && data.optlibs.updates_available > 0) count++;
   if (count > 0) {
     badge.textContent = count + ' update' + (count > 1 ? 's' : '');
     badge.className = 'adv-divider-badge upd';
@@ -493,7 +494,28 @@ function renderUpdGrid(data) {
       <span class="vbadge ${deInstalled?'vb-ok':'vb-upd'}">${deInstalled?'✓ Installed':'✗ Not installed'}</span>
     </div>`;
   grid.appendChild(deEl);
-}
+
+  // ── Optional libraries ────────────────────────────────────────────────────
+  const olD = data.optlibs || {};
+  const olUpd = olD.updates_available || 0;
+  const olBadge = olD.up_to_date === undefined
+    ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
+    : `<span class="vbadge ${olD.up_to_date?'vb-ok':'vb-upd'}">${olD.up_to_date?'✓ Up to date': olUpd + ' update' + (olUpd>1?'s':'') + ' available'}</span>`;
+  const olEl = document.createElement('div');
+  olEl.className = 'upd-item';
+  olEl.style.gridColumn = '1 / -1';
+  olEl.innerHTML = `
+    <div class="upd-row">
+      <span class="upd-name">📦 Optional libraries</span>
+      <label class="sw-wrap" style="margin:0">
+        <input type="checkbox" class="sw" id="sw-optlibs" ${olUpd>0?'checked':''}>
+      </label>
+    </div>
+    <div class="upd-row">
+      <span class="upd-ver" style="color:var(--text2);font-size:.68rem">curl-cffi · brotli · pycryptodomex · websockets</span>
+      ${olBadge}
+    </div>`;
+  grid.appendChild(olEl);
 
 
 // ── Install Updates button visibility — only when a toggle is ON ─────────────
@@ -501,8 +523,9 @@ function syncInstallBtn() {
   const ytOn = document.getElementById('sw-ytdlp')?.checked;
   const ffOn = document.getElementById('sw-ffmpeg')?.checked;
   const muOn = document.getElementById('sw-mutagen')?.checked;
+  const olOn = document.getElementById('sw-optlibs')?.checked;
   const btn  = document.getElementById('run-update-btn');
-  if (btn) btn.style.display = (ytOn || ffOn || muOn) ? '' : 'none';
+  if (btn) btn.style.display = (ytOn || ffOn || muOn || olOn) ? '' : 'none';
 }
 
 // Re-sync after renderUpdGrid populates the grid (delegate via grid container)
@@ -513,11 +536,12 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
   const doY = document.getElementById('sw-ytdlp')?.checked ?? true;
   const doF = document.getElementById('sw-ffmpeg')?.checked ?? false;
   const doM = document.getElementById('sw-mutagen')?.checked ?? false;
-  if (!doY && !doF && !doM) { toast('Select at least one item', 'err'); return; }
+  const doO = document.getElementById('sw-optlibs')?.checked ?? false;
+  if (!doY && !doF && !doM && !doO) { toast('Select at least one item', 'err'); return; }
   const log = document.getElementById('upd-log');
   log.textContent = ''; log.classList.add('show');
   document.getElementById('run-update-btn').disabled = true;
-  await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM });
+  await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM, optlibs: doO });
   log.textContent = 'Starting…\n';
   const iv = setInterval(async () => {
     const s = await fetch('/api/update-status').then(r => r.json());
