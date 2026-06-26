@@ -1519,6 +1519,7 @@ def installed_versions():
         "ffmpeg":  {"current": cf, "latest": None, "up_to_date": None},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
         "deno":    {"installed": deno_installed, "version": deno_version},
+        "optlibs": {"current": _get_optlibs_versions()},
     })
 
 @app.route("/api/cookies/status")
