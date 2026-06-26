@@ -346,6 +346,11 @@ All of CANVAS + Electron 42.5.0 (Wayland maximize fix, Windows edge cases, Chrom
 **v1.2.2 — SKELETON KEY:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.2)
 curl_cffi TLS impersonation — unlocks Kick VODs and sites that block standard HTTP clients; clean installs and portable covered
 
+**v1.2.3:** 🔨 In progress
+- 📦 Optional libraries bundled — brotli, pycryptodomex, websockets, certifi alongside curl_cffi; expands site compatibility and SSL reliability out of the box
+- ⚙️ Optional libraries panel — new card in Advanced → Plugins to check and update all five independently; installed versions shown immediately
+- 🪟 Windows portable — brotli sentinel fix; existing installs receive optional libraries automatically on next launch
+
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
 - 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
