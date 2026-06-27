@@ -155,7 +155,7 @@ function renderCard(el, item) {
   el.innerHTML = `
     <button class="vcard-remove" title="Remove" data-id="${n}">✕</button>
     <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
-      ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg">🎬</div>`}
+      ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`}
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
     </div>
     <div class="vbody">
