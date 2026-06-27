@@ -80,9 +80,14 @@
       </div>
       <!-- Themes tab -->
       <div class="hpanel-content" id="hpanel-themes" style="display:none">
-        <div style="padding:5px">
+        <div style="padding:6px 6px 0">
+          <button id="theme-create-btn" style="width:100%;padding:7px 0;border-radius:7px;border:1px solid var(--acc);background:var(--acc-dim);cursor:pointer;font-size:11px;font-weight:600;color:var(--acc);display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Create theme
+          </button>
+        </div>
+        <div class="theme-section-label">Recent</div>
+        <div style="padding:0 6px">
           <div class="theme-list" id="theme-list"><!-- populated by JS --></div>
-          <div onclick="openThemesWindow()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border-top:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--acc)">View all themes ›</div>
           <div style="display:none" id="theme-list-static">
             <div class="theme-row active" data-theme="void">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
@@ -1766,12 +1771,21 @@
 </div>
 
           </div><!-- end theme-list-static -->
-          <div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
-            <button id="theme-create-btn" style="width:100%;padding:6px 0;border-radius:5px;border:1px solid var(--acc);background:var(--acc-dim);cursor:pointer;font-size:10px;font-weight:600;color:var(--acc)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Create theme</button>
-          </div>
-          <div style="display:flex;gap:4px;margin-top:4px">
-            <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg> Import</button>
-            <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> Export</button>
+        </div>
+        <div style="border-top:0.5px solid var(--border);margin:6px 0 0;padding:5px 6px 7px;display:flex;flex-direction:column;gap:4px">
+          <button class="theme-btn-view-all" onclick="openThemesWindow()">
+            <span>View all themes</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </button>
+          <div style="display:flex;gap:4px">
+            <button id="theme-import-btn" class="theme-btn-io">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 9l5-5 5 5"/><path d="M12 4v12"/></svg>
+              Import
+            </button>
+            <button id="theme-export-btn" class="theme-btn-io">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg>
+              Export
+            </button>
           </div>
         </div>
       </div>
