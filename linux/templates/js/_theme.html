@@ -318,11 +318,51 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
         </div>`;
       document.body.appendChild(backdrop);
 
-      document.getElementById('theme-import-cancel').addEventListener('click', () => backdrop.remove());
-      document.getElementById('theme-import-confirm').addEventListener('click', () => {
+      const confirmBtn = document.getElementById('theme-import-confirm');
+      const cancelBtn  = document.getElementById('theme-import-cancel');
+
+      cancelBtn.addEventListener('click', () => backdrop.remove());
+
+      confirmBtn.addEventListener('click', function onConfirm() {
         const nameInput = document.getElementById('theme-import-name');
         const finalName = (nameInput?.value.trim()) || theme.name;
         theme.name = finalName;
+
+        // Check for duplicate name in saved/imported themes
+        const isDupe = typeof loadSavedThemes === 'function' &&
+          loadSavedThemes().some(t => t.name.toLowerCase() === finalName.toLowerCase());
+
+        if (isDupe) {
+          // Show warning and swap buttons — only warn once
+          confirmBtn.removeEventListener('click', onConfirm);
+          const warning = document.createElement('p');
+          warning.style.cssText = 'font-size:.75rem;color:var(--red);margin-bottom:10px';
+          warning.textContent = `A saved theme named "${finalName}" already exists. Rename it or apply anyway.`;
+          const actions = backdrop.querySelector('.modal-actions');
+          actions.parentNode.insertBefore(warning, actions);
+          confirmBtn.textContent = 'Apply anyway';
+          confirmBtn.addEventListener('click', () => {
+            backdrop.remove();
+            _applyCustomTheme(theme);
+            localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
+            window.applyTheme('custom');
+            toast(`Theme "${esc(finalName)}" applied ✓`, 'ok');
+          });
+          const renameBtn = document.createElement('button');
+          renameBtn.className = 'btn btn-ghost';
+          renameBtn.textContent = 'Rename';
+          renameBtn.addEventListener('click', () => {
+            warning.remove();
+            renameBtn.remove();
+            nameInput?.focus();
+            nameInput?.select();
+            confirmBtn.textContent = 'Apply Theme';
+            confirmBtn.addEventListener('click', onConfirm, { once: true });
+          });
+          actions.insertBefore(renameBtn, confirmBtn);
+          return;
+        }
+
         backdrop.remove();
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
