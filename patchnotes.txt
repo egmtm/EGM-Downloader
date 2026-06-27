@@ -14,6 +14,8 @@ v1.2.3 - FULLY LOADED (Build 136) (6/25/2026)
   • [WINDOWS] Portable edition — fixed brotli sentinel check; brotli installs as a module file rather than a directory, causing pip to re-run on every portable launch; now detects both correctly
   • [ALL] Optional libraries panel — Linux and Mac show an informational card with installed versions; update action is Windows-only, matching the existing mutagen model
   • [ALL] Optional libraries panel — installed versions now shown immediately on first panel expand, without requiring a manual check for updates
+  • [ALL] Universal MP4 default — Linux and Mac now correctly default to Universal MP4 on fresh installs; previously only applied on Windows
+  • [ALL] History panel — Show older button no longer accumulates in the footer on repeated panel refreshes; cleaned before each insert
 
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
