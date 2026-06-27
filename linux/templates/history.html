@@ -60,10 +60,11 @@
   .fmt-mp4,.fmt-webm{background:rgba(59,130,246,.1);color:#60a5fa;border-color:rgba(59,130,246,.3)}
   .fmt-flac,.fmt-wav{background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.3)}
   .fmt-other{background:rgba(255,255,255,.06);color:var(--text2);border-color:var(--border)}
-  .row-btns{display:flex;gap:3px;justify-content:flex-end}
-  .rb{font-size:9px;padding:2px 6px;border-radius:3px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2)}
+  .row-btns{display:flex;gap:3px;justify-content:flex-end;margin-left:auto;opacity:0;transition:opacity .1s}
+  .row:hover .row-btns{opacity:1}
+  .rb{width:24px;height:24px;padding:0;border-radius:5px;cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--text2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .rb:hover{color:var(--acc);border-color:var(--acc)}
-  .rb.red:hover{color:var(--red);border-color:rgba(239,68,68,.5)}
+  .rb.red:hover{color:var(--red);border-color:var(--red)}
   .rb.pin-rb{color:var(--border2)}
   .rb.pin-rb.pinned{color:var(--acc);border-color:var(--acc)}
   .row.row-pinned{background:rgba(45,212,191,.05);border-left:2px solid rgba(45,212,191,.3)}
@@ -286,15 +287,15 @@
         <div class="col hi">${fmtSize(item.size_bytes)}</div>
         <div class="col">${fmtDate(item.completed_at)}</div>
         <div class="row-btns">
-          <button class="rb pin-rb" title="Pin to top">☆</button>
-          <button class="rb" title="Re-add">↺</button>
-          <button class="rb" title="Open folder">🗁</button>
-          <button class="rb red" title="Remove">✕</button>
+          <button class="rb pin-rb" title="Pin to top"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          <button class="rb" title="Re-add"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
+          <button class="rb" title="Open folder"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/></svg></button>
+          <button class="rb red" title="Remove"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
         </div>`;
       const [btnPin, btnReadd, btnOpen, btnDel] = row.querySelectorAll('.rb');
       if (pinnedIds.has(String(item.id))) {
         row.classList.add('row-pinned');
-        btnPin.textContent = '★';
+        btnPin.querySelector('svg')?.setAttribute('fill', 'currentColor');
         btnPin.classList.add('pinned');
         btnPin.title = 'Unpin';
       }
