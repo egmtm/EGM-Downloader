@@ -300,15 +300,15 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
       const backdrop = document.createElement('div');
       backdrop.className = 'modal-backdrop';
       backdrop.innerHTML = `
-        <div class="modal">
+        <div class="modal" style="text-align:center;width:auto;min-width:220px;max-width:320px">
           <h3>Import Theme</h3>
           <p style="font-size:.82rem;color:var(--text2);margin-bottom:12px">Preview — <strong style="color:var(--text)">${nm}</strong></p>
-          <div style="display:flex;gap:8px;margin-bottom:16px">
+          <div style="display:flex;gap:8px;margin-bottom:16px;justify-content:center">
             <div style="width:40px;height:40px;border-radius:6px;background:${bg};border:1px solid var(--border)"></div>
             <div style="width:40px;height:40px;border-radius:6px;background:${sf};border:1px solid var(--border)"></div>
             <div style="width:40px;height:40px;border-radius:6px;background:${ac};border:1px solid var(--border)"></div>
           </div>
-          <div class="modal-actions">
+          <div class="modal-actions" style="justify-content:center">
             <button class="btn btn-ghost" id="theme-import-cancel">Cancel</button>
             <button class="btn btn-primary" id="theme-import-confirm">Apply Theme</button>
           </div>
