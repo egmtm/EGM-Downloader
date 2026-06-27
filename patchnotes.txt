@@ -24,8 +24,9 @@ v1.2.3 - FULLY LOADED (Build 136) (6/25/2026)
   • [ALL] Themes window — All count now includes imported themes and updates live; Imported count and delete handler corrected
   • [ALL] Import theme dialog — cleaned up; shows theme name and color preview; Cancel and Apply Theme
   • [ALL] JS syntax gate — new pytest guard checks every JS template module on both platforms; catches syntax errors that bypass all other tests
+  • [ALL] History panel — title, filename, and URL fields now escaped before rendering; prevents stored XSS from attacker-controlled download metadata
 
-  83 automated tests — all passing.
+  88 automated tests — all passing.
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
 
