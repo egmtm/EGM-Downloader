@@ -52,7 +52,11 @@ _TEMPLATE_DIRS = [
 ]
 
 # Pure-JS partials: the whole rendered file is JavaScript (checked as-is).
-_JS_PARTIALS = ["theme_validator.html", "theme_data.html"]
+# index_scripts.html is the assembly shell that concatenates all 8 js/_*.html modules
+# into one <script> at runtime. Checking modules in isolation can't catch a DUPLICATE
+# top-level const/let/class declared across two modules (each passes alone, the assembled
+# file is a SyntaxError) — so the assembled shell is checked as a unit too.
+_JS_PARTIALS = ["theme_validator.html", "theme_data.html", "index_scripts.html"]
 # Standalone windows: full HTML docs — extract their inline <script> before checking.
 _INLINE_SCRIPT_TEMPLATES = ["history.html", "themes.html", "subscriptions.html"]
 

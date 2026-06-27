@@ -882,3 +882,45 @@ def test_optional_libs_consistent_across_all_sites():
     required = {_norm_lib(x) for x in req.group(1).split(",") if x.strip()}
     assert not (import_names - required), \
         f"launch.py portable `required` tuple missing optional libs: {import_names - required}"
+
+
+def test_mp4_h264_is_the_default_everywhere():
+    """Universal MP4 (mp4_h264) must be the DEFAULT output on every platform AND in the UI.
+    test_universal_mp4_h264_wired only checks the option/codec/transcode EXIST; this locks
+    the DEFAULT VALUE. A regression flipping the default back to plain 'mp4' (or dropping the
+    `selected` attribute) silently changes every user's default output and would otherwise
+    ship green."""
+    idx = read_source("templates/index.html")
+    assert re.search(r'value="mp4_h264"[^>]*\bselected\b', idx), \
+        "index.html: the mp4_h264 option is not the `selected` default"
+    for f in PLATFORM_APP_FILES:
+        src = read_source(f)
+        assert 'output_format="mp4_h264"' in src, f"{f}: run_download signature default is not mp4_h264"
+        assert 'data.get("output_format", "mp4_h264")' in src, f"{f}: download-endpoint fallback is not mp4_h264"
+        assert 's.get("output_format", "mp4_h264")' in src, f"{f}: get_settings default is not mp4_h264"
+    for f in ("templates/js/_download.html", "templates/js/_bulk.html"):
+        assert "'mp4_h264'" in read_source(f), f"{f}: JS dispatcher default is not mp4_h264"
+
+
+def test_themes_all_count_includes_saved():
+    """The Themes window 'All' count must include imported/saved themes, not just built-ins
+    (the v1.2.3 fix). Locks countTotal() summing loadSavedThemes() so a regression dropping
+    it — silently reverting the feature — fails instead of shipping green."""
+    th = read_source("templates/themes.html")
+    m = re.search(r"function countTotal\(\)\s*\{(.*?)\n\}", th, re.DOTALL)
+    assert m, "countTotal() not found in themes.html"
+    assert "loadSavedThemes()" in m.group(1), \
+        "countTotal() no longer includes saved/imported themes (All count would exclude them)"
+
+
+def test_history_fields_escaped_against_xss():
+    """History title/filename/url are attacker-controllable — a download's title comes from
+    the source site, and /api/history/import accepts arbitrary entries — and they render into
+    innerHTML. They MUST be escaped (stored-XSS guard) on BOTH the main-UI panel and the
+    standalone window, root + linux."""
+    for f in ("templates/js/_nav_history.html", "linux/templates/js/_nav_history.html"):
+        assert "_hEsc(item.title" in read_source(f), f"{f}: history title is not escaped before innerHTML"
+    for f in ("templates/history.html", "linux/templates/history.html"):
+        src = read_source(f)
+        assert "escH(item.title" in src and "escH(item.url" in src, \
+            f"{f}: history title/url is not escaped before innerHTML"

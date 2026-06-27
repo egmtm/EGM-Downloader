@@ -206,6 +206,11 @@
     if (['flac','wav'].includes(fm))      return 'fmt-flac';
     return 'fmt-other';
   }
+  // Escape title/filename/url before innerHTML — these come from the source site
+  // (download title) or an imported history JSON, so they must render as text.
+  function escH(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
   function totalSize(items) {
     const t = items.reduce((s,i) => s + (i.size_bytes||0), 0);
     return t ? fmtSize(t) : '';
@@ -280,8 +285,8 @@
       row.innerHTML = `
         ${thumbHtml}
         <div style="min-width:0;overflow:hidden">
-          <div class="rt">${item.title || item.filename || '—'}</div>
-          <div class="rm">${item.url || ''}</div>
+          <div class="rt">${escH(item.title || item.filename || '—')}</div>
+          <div class="rm">${escH(item.url || '')}</div>
         </div>
         <div class="col"><span class="fmt ${fmtClass(item.format)}">${(item.format||'?').toUpperCase()}</span></div>
         <div class="col hi">${fmtSize(item.size_bytes)}</div>

@@ -104,6 +104,12 @@ function _fmtDate(iso) {
 function _fmtFmt(f) {
   return f ? f.toUpperCase() : '';
 }
+// Escape history fields before they go into innerHTML — title/filename/url are
+// attacker-controllable (a download's title comes from the source site, and
+// /api/history/import accepts arbitrary entries), so they must render as text.
+function _hEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
 
 function _thumbFallback(audio) {
   const icon = audio
@@ -124,7 +130,7 @@ function _buildEntry(item) {
   div.innerHTML = `
     ${thumbHtml}
     <div style="flex:1;min-width:0">
-      <p class="htitle">${item.title || item.filename || '—'}</p>
+      <p class="htitle">${_hEsc(item.title || item.filename || '—')}</p>
       <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
     </div>
     <div class="hbtns">
