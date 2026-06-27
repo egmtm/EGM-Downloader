@@ -328,12 +328,15 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
         const finalName = (nameInput?.value.trim()) || theme.name;
         theme.name = finalName;
 
-        // Check for duplicate name in saved themes library AND the current single-slot custom theme
-        // (egm-custom-theme only migrates to egm-saved-themes when the Themes window is opened).
-        // Robustness: a malformed/legacy library entry with a missing or non-string name must
-        // NOT throw — previously such an entry bubbled a TypeError out of .some() into a shared
-        // catch that set isDupe=false, silently disabling the WHOLE check (incl. the custom-slot
-        // branch). Each store is now guarded and checked independently.
+        // Check for duplicate name in saved themes library AND the current single-slot custom
+        // theme (egm-custom-theme only migrates to egm-saved-themes when the Themes window opens).
+        // RUNTIME ROOT CAUSE (instrumented): a malformed/legacy library entry with a missing or
+        // non-string `name`, or a corrupt non-array egm-saved-themes value, made
+        // `saved.some(t => t.name.toLowerCase())` throw a TypeError. Because both lookups shared
+        // ONE try/catch (`catch { isDupe = false }`), that throw discarded the WHOLE check —
+        // including the egm-custom-theme branch that holds the duplicate — so the theme applied
+        // with no warning. Fix: guard every entry (Array.isArray + typeof name === 'string') and
+        // check each store in its OWN try/catch so one bad value can never swallow the other.
         const lowerName = finalName.toLowerCase();
         let isDupe = false;
         try {
