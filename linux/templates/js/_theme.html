@@ -328,11 +328,18 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
         const finalName = (nameInput?.value.trim()) || theme.name;
         theme.name = finalName;
 
-        // Check for duplicate name in saved/imported themes
+        // Check for duplicate name in saved themes library AND the current single-slot custom theme
+        // (egm-custom-theme only migrates to egm-saved-themes when the Themes window is opened)
         let isDupe = false;
         try {
           const saved = JSON.parse(localStorage.getItem('egm-saved-themes') || '[]');
           isDupe = saved.some(t => t.name.toLowerCase() === finalName.toLowerCase());
+          if (!isDupe) {
+            const current = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null');
+            if (current && typeof current.name === 'string') {
+              isDupe = current.name.toLowerCase() === finalName.toLowerCase();
+            }
+          }
         } catch { isDupe = false; }
 
         if (isDupe) {
