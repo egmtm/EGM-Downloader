@@ -6,6 +6,9 @@ v1.2.3 - FULLY LOADED (Build 136) (6/25/2026)
   • [ALL] Update panel — new Optional libraries card in Advanced → Plugins to check and update all five optional libraries without waiting for an app release
   • [ALL] Site compatibility — curl_cffi, brotli, pycryptodomex, websockets, and certifi are now maintained and updatable independently; reduces exposure to site-specific breakage between releases
   • [WINDOWS] Launcher updated — optional libraries now included in the installer and portable bootstrap; existing installs receive them automatically on next launch
+  • [ALL] Universal MP4 is now the default output format — H.264 + AAC, plays on any device; already-H.264 files are remuxed without re-encoding
+  • [ALL] Themes panel — Create theme moved to top; recent themes list below; View all themes, Import, and Export redesigned as proper buttons in a cleaner footer
+  • [ALL] History panel — action buttons converted to SVG icons and hidden until hover; larger thumbnails (48×36); Open full history and total count in a cleaner header; Show older and Clear all in a unified footer
 
   FIXES
   • [WINDOWS] Portable edition — fixed brotli sentinel check; brotli installs as a module file rather than a directory, causing pip to re-run on every portable launch; now detects both correctly
