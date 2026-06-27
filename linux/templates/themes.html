@@ -361,10 +361,13 @@ function countForCat(cat) {
   }).length;
 }
 function countTotal() {
-  return Object.entries(THEME_DATA).filter(([key, d]) => {
+  const builtin = Object.entries(THEME_DATA).filter(([key, d]) => {
     if (d.cat === 'seasonal' && !SEASONAL_VISIBLE.has(key)) return false;
     return true;
   }).length;
+  // Include saved/imported (Imported library) themes so the "All" count reflects the
+  // full library, not just built-ins.
+  return builtin + loadSavedThemes().length;
 }
 
 // ── Collapsed-section state (persisted in localStorage) ───────────────────
@@ -502,7 +505,10 @@ function updateBreadcrumb() {
     bcCount.textContent = `${hits} result${hits !== 1 ? 's' : ''}`;
   } else {
     const label = CAT_LABELS[activeCat] || activeCat;
-    const count = Object.values(THEME_DATA).filter(d => d.cat === activeCat).length;
+    // Imported (custom) themes live in the saved-themes library, not THEME_DATA.
+    const count = activeCat === 'custom'
+      ? loadSavedThemes().length
+      : Object.values(THEME_DATA).filter(d => d.cat === activeCat).length;
     bcCur.textContent   = label;
     bcCount.textContent = `${count} theme${count !== 1 ? 's' : ''}`;
   }
@@ -595,7 +601,8 @@ function render() {
       deleteSavedTheme(id);
       // Drop any stale favorite pointing at the now-deleted theme so the Favorites
       // count + section never reference a theme that no longer exists.
-      if (favoriteThemes.has(id)) { favoriteThemes.delete(id); saveFavorites(); buildSidebar(); }
+      if (favoriteThemes.has(id)) { favoriteThemes.delete(id); saveFavorites(); }
+      buildSidebar();   // always refresh All + Imported counts after a removal
       render();
     });
   });
@@ -690,6 +697,17 @@ document.addEventListener('keydown', (e) => {
 loadFavorites().then(() => {
   buildSidebar();
   render();
+});
+
+// Live update: when a theme is added/removed from the saved library in ANOTHER window
+// (e.g. the Theme Creator's "Save to app" in the main window), the storage event fires
+// here — rebuild the sidebar (All + Imported counts) and grid so this window stays in sync.
+window.addEventListener('storage', e => {
+  // egm-saved-themes: Creator "Save to app" / deletes. egm-custom-theme: a fresh import
+  // (lands in the single slot first) — migrateLegacyCustom lifts it into the library.
+  if (e.key === 'egm-saved-themes' || e.key === 'egm-custom-theme') {
+    migrateLegacyCustom(); buildSidebar(); render();
+  }
 });
 {% endraw %}
 </script>
