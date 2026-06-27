@@ -322,69 +322,10 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
       const cancelBtn  = document.getElementById('theme-import-cancel');
 
       cancelBtn.addEventListener('click', () => backdrop.remove());
-
-      confirmBtn.addEventListener('click', function onConfirm() {
+      confirmBtn.addEventListener('click', () => {
         const nameInput = document.getElementById('theme-import-name');
         const finalName = (nameInput?.value.trim()) || theme.name;
         theme.name = finalName;
-
-        // Check for duplicate name in saved themes library AND the current single-slot custom
-        // theme (egm-custom-theme only migrates to egm-saved-themes when the Themes window opens).
-        // RUNTIME ROOT CAUSE (instrumented): a malformed/legacy library entry with a missing or
-        // non-string `name`, or a corrupt non-array egm-saved-themes value, made
-        // `saved.some(t => t.name.toLowerCase())` throw a TypeError. Because both lookups shared
-        // ONE try/catch (`catch { isDupe = false }`), that throw discarded the WHOLE check —
-        // including the egm-custom-theme branch that holds the duplicate — so the theme applied
-        // with no warning. Fix: guard every entry (Array.isArray + typeof name === 'string') and
-        // check each store in its OWN try/catch so one bad value can never swallow the other.
-        const lowerName = finalName.toLowerCase();
-        let isDupe = false;
-        try {
-          const saved = JSON.parse(localStorage.getItem('egm-saved-themes') || '[]');
-          if (Array.isArray(saved)) {
-            isDupe = saved.some(t => t && typeof t.name === 'string' && t.name.toLowerCase() === lowerName);
-          }
-        } catch {}
-        if (!isDupe) {
-          try {
-            const current = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null');
-            if (current && typeof current.name === 'string' && current.name.toLowerCase() === lowerName) {
-              isDupe = true;
-            }
-          } catch {}
-        }
-
-        if (isDupe) {
-          // Show warning and swap buttons — only warn once
-          confirmBtn.removeEventListener('click', onConfirm);
-          const warning = document.createElement('p');
-          warning.style.cssText = 'font-size:.75rem;color:var(--red);margin-bottom:10px';
-          warning.textContent = `A saved theme named "${finalName}" already exists. Rename it or apply anyway.`;
-          const actions = backdrop.querySelector('.modal-actions');
-          actions.parentNode.insertBefore(warning, actions);
-          confirmBtn.textContent = 'Apply anyway';
-          confirmBtn.addEventListener('click', () => {
-            backdrop.remove();
-            _applyCustomTheme(theme);
-            localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
-            window.applyTheme('custom');
-            toast(`Theme "${esc(finalName)}" applied ✓`, 'ok');
-          });
-          const renameBtn = document.createElement('button');
-          renameBtn.className = 'btn btn-ghost';
-          renameBtn.textContent = 'Rename';
-          renameBtn.addEventListener('click', () => {
-            warning.remove();
-            renameBtn.remove();
-            nameInput?.focus();
-            nameInput?.select();
-            confirmBtn.textContent = 'Apply Theme';
-            confirmBtn.addEventListener('click', onConfirm, { once: true });
-          });
-          actions.insertBefore(renameBtn, confirmBtn);
-          return;
-        }
-
         backdrop.remove();
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
