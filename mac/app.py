@@ -869,7 +869,7 @@ def _ensure_h264(job_id, path, job):
     except Exception:
         return path
 
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264"):
     job     = jobs.get(job_id)
     if not job:
         return  # Job was removed before worker started
@@ -1231,7 +1231,7 @@ def start_download():
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
-                           data.get("output_format", "mp4")),
+                           data.get("output_format", "mp4_h264")),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -1287,7 +1287,7 @@ def get_settings():
         # Without these, defaults always win regardless of what was saved.
         "subtitles":               s.get("subtitles", False),
         "embed_metadata":          s.get("embed_metadata", True),
-        "output_format":           s.get("output_format", "mp4"),
+        "output_format":           s.get("output_format", "mp4_h264"),
         "default_audio_format":    s.get("default_audio_format", "320"),
         "theme":                   s.get("theme", ""),
         "yt_dlp_channel":          s.get("yt_dlp_channel", "stable"),

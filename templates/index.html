@@ -1928,20 +1928,18 @@
     </div>
   </div>
   <div class="sec-body collapsed" id="settings-body">
-    <div style="display:flex;align-items:flex-end;gap:0">
-      <div style="flex:1.4;min-width:0">
+    <div class="set-grid">
+      <div class="set-box">
         <span class="opt-label">Download folder</span>
         <div class="path-row">
           <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
           <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
           <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> Open</button>
         </div>
-      </div>
-      <div style="width:1px;background:var(--border);align-self:stretch;margin:20px 14px 0;flex-shrink:0"></div>
-      <div style="flex:1;min-width:0">
+        <div class="set-divider"></div>
         <span class="opt-label">Format / Quality</span>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
+        <div class="set-format-row">
+          <span class="set-fmt-label">Audio</span>
           <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
             <option value="320">MP3 320 kbps</option>
             <option value="192">MP3 192 kbps</option>
@@ -1951,8 +1949,8 @@
             <option value="opus_192">OPUS 192 kbps</option>
             <option value="opus_128">OPUS 128 kbps</option>
           </select>
-          <div style="width:1px;height:28px;background:var(--border);flex-shrink:0"></div>
-          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Video</span>
+          <div class="set-vsep"></div>
+          <span class="set-fmt-label">Video</span>
           <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
             <option value="mp4">MP4</option>
             <option value="mkv">MKV</option>
@@ -1960,46 +1958,45 @@
           </select>
         </div>
       </div>
-    </div>
-
-    <div style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-top:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px">
+      <div class="set-box">
+        <div class="set-cookie-head">
           <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M8 13v.01"/><path d="M12 17v.01"/><path d="M12 12v.01"/><path d="M16 14v.01"/><path d="M11 8v.01"/><path d="M13.148 3.476l2.667 1.104a4 4 0 0 0 4.656 6.14l.053 .132a3 3 0 0 1 0 2.296q -.745 1.18 -1.024 1.852q -.283 .684 -.66 2.216a3 3 0 0 1 -1.624 1.623q -1.572 .394 -2.216 .661q -.712 .295 -1.852 1.024a3 3 0 0 1 -2.296 0q -1.203 -.754 -1.852 -1.024q -.707 -.292 -2.216 -.66a3 3 0 0 1 -1.623 -1.624q -.397 -1.577 -.661 -2.216q -.298 -.718 -1.024 -1.852a3 3 0 0 1 0 -2.296q .719 -1.116 1.024 -1.852q .257 -.62 .66 -2.216a3 3 0 0 1 1.624 -1.623q 1.547 -.384 2.216 -.661q .687 -.285 1.852 -1.024a3 3 0 0 1 2.296 0"/></svg> Site Cookies</span>
-          <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
-          <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+          <div class="set-cookie-links">
+            <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+            <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+          </div>
         </div>
-        <div style="display:flex;align-items:center;gap:7px">
+        <div class="set-divider"></div>
+        <div class="set-cookie-area">
           <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0">Cookies: not loaded</span>
-          <div id="ck-not-loaded" style="display:flex;align-items:center;flex-shrink:0">
+          <div id="ck-not-loaded" class="set-cookie-actions" style="display:flex">
             <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
           </div>
-          <div id="ck-loaded" style="display:none;align-items:center;gap:4px;flex-shrink:0">
+          <div id="ck-loaded" class="set-cookie-actions-loaded" style="display:none">
             <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Replace</button>
             <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Unload</button>
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Silently check for app and plugin updates when the app starts">Check updates on launch</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
-          <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="subtitles-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="quit-on-done-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Automatically close the app when all downloads finish">Quit when done</span>
-        </div>
+    </div>
+    <div class="set-toggles">
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
+      <span style="font-size:.76rem;color:var(--text2)" title="Silently check for app and plugin updates when the app starts">Check updates on launch</span>
+      </div>
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
+      <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
+      </div>
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="subtitles-chk">
+      <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
+      </div>
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="quit-on-done-chk">
+      <span style="font-size:.76rem;color:var(--text2)" title="Automatically close the app when all downloads finish">Quit when done</span>
       </div>
     </div>
-
   </div>
 
 </div>
