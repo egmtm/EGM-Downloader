@@ -30,6 +30,8 @@ v1.2.3 - FULLY LOADED (Build 136) (6/25/2026)
 
   FIXES (cont.)
   • [ALL] Import theme dialog — theme name from export now pre-filled and editable before applying; replaced hardcoded placeholder text
+  • [ALL] Import theme dialog — duplicate name warning now fires correctly; a malformed library entry was causing a silent TypeError that disabled the entire check
+  • [ALL] Themes window — All count now includes saved/imported themes and updates live when themes are added or removed; Imported count and delete handler also corrected
 
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
