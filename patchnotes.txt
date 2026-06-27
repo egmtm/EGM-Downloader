@@ -16,6 +16,13 @@ v1.2.3 - FULLY LOADED (Build 136) (6/25/2026)
   • [ALL] Optional libraries panel — installed versions now shown immediately on first panel expand, without requiring a manual check for updates
   • [ALL] Universal MP4 default — Linux and Mac now correctly default to Universal MP4 on fresh installs; previously only applied on Windows
   • [ALL] History panel — Show older button no longer accumulates in the footer on repeated panel refreshes; cleaned before each insert
+  • [ALL] Settings panel — redesigned as two side-by-side boxes (Download folder + Format/Quality on left; Site Cookies on right); cleaner layout with proper section labels and breathing room
+  • [ALL] Expanded history — action buttons now match the main UI panel: SVG icons, hidden until row hover, uniform sizing
+  • [ALL] Thumbnail fallbacks — emoji placeholders (🎬 ♫ ▶) replaced with inline SVG icons across all four templates
+  • [ALL] Format selector — MP4 · H.264 (Max compatibility) now appears first in the dropdown, matching its status as the default
+  • [ALL] Expanded history — horizontal scrollbar suppressed; no longer appears when resizing the window
+  • [ALL] URL card — inner content now pixel-aligned with the Settings boxes below; textarea left/right edges flush with Download folder and Site Cookies borders
+  • [ALL] JS syntax gate — new pytest guard runs node --check on every JS template module; catches syntax errors that pass all other tests (e.g. missing closing brace that caused full frontend init failure)
 
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
