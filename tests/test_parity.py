@@ -812,3 +812,73 @@ def test_portable_sentinel_tolerates_module_packages():
     assert '{pkg}.py' in src, "sentinel does not accept single-file .py modules (brotli regression)"
     assert "all(_present(pkg) for pkg in required)" in src, \
         "embedded sentinel is not using the module-tolerant _present() check"
+
+
+# Map from an OPTLIBS distribution name to the IMPORT name pip drops in site-packages
+# (and that the Windows sentinel imports). Most match after hyphen->underscore; the
+# pycryptodomex distribution is the known exception — it installs the `Cryptodome`
+# package. Extend this only when a new optional lib's import name differs from its
+# normalized dist name.
+_OPTLIB_IMPORT_NAME = {"pycryptodomex": "cryptodome"}
+
+
+def _norm_lib(name):
+    return name.strip().strip("\"'").replace("-", "_").lower()
+
+
+def _optlibs_list(src):
+    m = re.search(r"OPTLIBS\s*=\s*\[([^\]]*)\]", src)
+    assert m, "OPTLIBS list not found"
+    return [x.strip().strip("\"'") for x in m.group(1).split(",") if x.strip()]
+
+
+def test_optional_libs_consistent_across_all_sites():
+    """The optional yt-dlp libraries are declared in SIX places that must agree:
+    OPTLIBS in each of the 3 app.py, both requirements.txt, and the Windows launch.py
+    bootstrap (sentinel imports + both pip-install lists, installer & portable). Adding
+    a lib to one and forgetting another — exactly the certifi 6-site change — is the
+    drift this guards. Earlier tests checked the optlibs key was *present*; this checks
+    the lib SET is consistent everywhere. Names are normalized (hyphen/underscore/case),
+    and the dist->import map handles pycryptodomex -> Cryptodome."""
+    # 1. OPTLIBS byte-identical across all three app.py (the cross-platform guard).
+    lists = {f: _optlibs_list(read_source(f)) for f in PLATFORM_APP_FILES}
+    root_list = lists["app.py"]
+    for f, lst in lists.items():
+        assert lst == root_list, f"{f} OPTLIBS {lst} != root OPTLIBS {root_list}"
+    libs = {_norm_lib(x) for x in root_list}
+    assert libs, "OPTLIBS is empty"
+
+    # 2. Every optional lib is bundled in BOTH requirements.txt (root + linux).
+    for req in ("requirements.txt", "linux/requirements.txt"):
+        have = {
+            _norm_lib(re.split(r"[><=!~]", line)[0])
+            for line in read_source(req).splitlines()
+            if line.strip() and not line.strip().startswith("#")
+        }
+        missing = libs - have
+        assert not missing, f"{req} is missing optional libs (added to OPTLIBS but not bundled): {missing}"
+
+    # 3. Every optional lib is in BOTH windows/launch.py pip-install lists
+    #    (installer + portable embedded) — so every install path receives them.
+    launch = read_source("windows/launch.py")
+    pip_blocks = re.findall(r'"pip",\s*"install"(.*?)\]', launch, re.DOTALL)
+    assert len(pip_blocks) == 2, f"expected 2 pip-install lists in launch.py, found {len(pip_blocks)}"
+    for i, block in enumerate(pip_blocks):
+        toks = {_norm_lib(t) for t in re.findall(r'"([^"]+)"', block)}
+        missing = libs - toks
+        assert not missing, f"launch.py pip-install list #{i} missing optional libs: {missing}"
+
+    # 4. Every optional lib is in the sentinel import AND the portable `required` tuple
+    #    (by import name) — the sentinels are what trigger a (re)install when a lib is
+    #    absent; a lib missing here would never get installed/retrofitted.
+    import_names = {_OPTLIB_IMPORT_NAME.get(_norm_lib(x), _norm_lib(x)) for x in root_list}
+    imp = re.search(r"import flask,([^;]+);\s*return", launch)
+    assert imp, "installer sentinel import line not found in launch.py"
+    sentinel = {_norm_lib(x) for x in imp.group(1).split(",")}
+    assert not (import_names - sentinel), \
+        f"launch.py installer sentinel import missing optional libs: {import_names - sentinel}"
+    req = re.search(r"required\s*=\s*\(([^)]*)\)", launch)
+    assert req, "portable `required` tuple not found in launch.py"
+    required = {_norm_lib(x) for x in req.group(1).split(",") if x.strip()}
+    assert not (import_names - required), \
+        f"launch.py portable `required` tuple missing optional libs: {import_names - required}"
