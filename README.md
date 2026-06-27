@@ -349,6 +349,10 @@ curl_cffi TLS impersonation — unlocks Kick VODs and sites that block standard 
 **v1.2.3 — FULLY LOADED:** 🔨 In progress
 - 📦 Optional libraries bundled — brotli, pycryptodomex, websockets, certifi alongside curl_cffi; expands site compatibility and SSL reliability out of the box
 - ⚙️ Optional libraries panel — new card in Advanced → Plugins to check and update all five independently; installed versions shown immediately
+- 🎬 Universal MP4 now default — H.264 + AAC on all platforms; already-H.264 files remuxed without re-encoding
+- 🎨 Themes panel redesign — Create theme moved to top, recent themes list below, cleaner footer buttons
+- 📜 History panel redesign — SVG action icons with hover-reveal, larger thumbnails, cleaner header and footer
+- ⚙️ Settings panel redesign — Download folder + Format/Quality and Site Cookies in two side-by-side boxes
 - 🪟 Windows portable — brotli sentinel fix; existing installs receive optional libraries automatically on next launch
 
 **v1.3 — POLYGLOT:**
