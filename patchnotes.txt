@@ -26,6 +26,8 @@ v1.2.3 - FULLY LOADED (Build 136) (6/25/2026)
   • [ALL] Keyboard shortcut — Ctrl+K opens the Theme Creator from anywhere in the app; added to the help modal alongside existing shortcuts
   • [ALL] Settings panel — Download folder and Site Cookies boxes now on a 65/35 split for better content balance
 
+  🧪 83 automated tests — all passing.
+
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
 
