@@ -307,9 +307,7 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
             <div style="width:40px;height:40px;border-radius:6px;background:${bg};border:1px solid var(--border)"></div>
             <div style="width:40px;height:40px;border-radius:6px;background:${sf};border:1px solid var(--border)"></div>
             <div style="width:40px;height:40px;border-radius:6px;background:${ac};border:1px solid var(--border)"></div>
-            <input id="theme-import-name" type="text" value="${nm}" maxlength="48"
-              style="flex:1;border-radius:6px;background:${bg};border:1px solid var(--border);padding:0 10px;font-size:.8rem;color:${tx};font-family:inherit;outline:none"
-              placeholder="Theme name">
+            <div style="flex:1;border-radius:6px;background:${bg};border:1px solid var(--border);display:flex;align-items:center;padding:0 10px;font-size:.8rem;color:${tx};white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${nm}</div>
           </div>
           <div class="modal-actions">
             <button class="btn btn-ghost" id="theme-import-cancel">Cancel</button>
@@ -323,14 +321,11 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
 
       cancelBtn.addEventListener('click', () => backdrop.remove());
       confirmBtn.addEventListener('click', () => {
-        const nameInput = document.getElementById('theme-import-name');
-        const finalName = (nameInput?.value.trim()) || theme.name;
-        theme.name = finalName;
         backdrop.remove();
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
         window.applyTheme('custom');
-        toast(`Theme "${esc(finalName)}" applied ✓`, 'ok');
+        toast(`Theme "${esc(theme.name)}" applied ✓`, 'ok');
       });
 
     } catch { toast('✗ Could not import theme', 'err'); }
