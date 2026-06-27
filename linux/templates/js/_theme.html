@@ -329,8 +329,11 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
         theme.name = finalName;
 
         // Check for duplicate name in saved/imported themes
-        const isDupe = typeof loadSavedThemes === 'function' &&
-          loadSavedThemes().some(t => t.name.toLowerCase() === finalName.toLowerCase());
+        let isDupe = false;
+        try {
+          const saved = JSON.parse(localStorage.getItem('egm-saved-themes') || '[]');
+          isDupe = saved.some(t => t.name.toLowerCase() === finalName.toLowerCase());
+        } catch { isDupe = false; }
 
         if (isDupe) {
           // Show warning and swap buttons — only warn once
