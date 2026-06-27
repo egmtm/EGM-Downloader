@@ -28,6 +28,9 @@ v1.2.3 - FULLY LOADED (Build 136) (6/25/2026)
 
   83 automated tests — all passing.
 
+  FIXES (cont.)
+  • [ALL] Import theme dialog — theme name from export now pre-filled and editable before applying; replaced hardcoded placeholder text
+
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
 
