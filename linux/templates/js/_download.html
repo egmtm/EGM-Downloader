@@ -389,7 +389,7 @@ async function startDl(item, n) {
       thumbnail: item.info?.thumbnail || '',
       subtitles: !!document.getElementById('subtitles-chk')?.checked,
       embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
-      output_format: document.getElementById('output-format-sel')?.value || 'mp4',
+      output_format: document.getElementById('output-format-sel')?.value || 'mp4_h264',
     });
     if (res.error) throw new Error(res.error);
     item.jobId = res.job_id;
