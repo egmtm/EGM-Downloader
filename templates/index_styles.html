@@ -725,6 +725,19 @@
        column — so let THIS one shrink (min-width:0) and ellipsise the closed value.
        The dropdown still lists the full label; the audio select is left untouched. */
     select#output-format-sel { min-width: 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+    /* ── Settings panel redesign (layout only; IDs/behavior unchanged) ── */
+    .set-grid { display: grid; grid-template-columns: 3fr 2fr; gap: 8px; margin-top: 2px; }
+    .set-box { background: var(--surf2); border: 1px solid var(--border); border-radius: var(--rs); padding: 10px 12px; display: flex; flex-direction: column; min-width: 0; }
+    .set-divider { height: 1px; background: var(--border); margin: 10px 0; }
+    .set-format-row { display: flex; align-items: center; gap: 8px; }
+    .set-fmt-label { font-size: .72rem; font-weight: 500; color: var(--text2); white-space: nowrap; }
+    .set-vsep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+    .set-cookie-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .set-cookie-links { display: flex; gap: 5px; flex-wrap: wrap; }
+    .set-cookie-area { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .set-cookie-actions { align-items: center; }
+    .set-cookie-actions-loaded { width: 100%; justify-content: space-between; align-items: center; gap: 5px; }
+    .set-toggles { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
 
     .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 
