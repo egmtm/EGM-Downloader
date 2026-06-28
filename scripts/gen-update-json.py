@@ -126,7 +126,7 @@ def parse_history(platform, max_versions=5):
 
     platform_tag = platform.upper()       # WINDOWS, MAC, LINUX
     header_re = re.compile(
-        r'^v(\d+\.\d+(?:\.\d+)?)\s+-\s+Build\s+\d+\s+\(([^)]+)\)'
+        r'^v(\d+\.\d+(?:\.\d+)?)\s+-.+\(([^)]+)\)\s*$'
     )
     # Match one or more consecutive tags, then the note text
     bullet_re = re.compile(
