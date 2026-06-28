@@ -346,7 +346,7 @@ All of CANVAS + Electron 42.5.0 (Wayland maximize fix, Windows edge cases, Chrom
 **v1.2.2 — SKELETON KEY:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.2)
 curl_cffi TLS impersonation — unlocks Kick VODs and sites that block standard HTTP clients; clean installs and portable covered
 
-**v1.2.3 — FULLY LOADED:** 🔨 In progress
+**v1.2.3 — FULLY LOADED:** *(Shipping June 28, 2026)*
 - 📦 Optional libraries bundled — brotli, pycryptodomex, websockets, certifi alongside curl_cffi; expands site compatibility and SSL reliability out of the box
 - ⚙️ Optional libraries panel — new card in Advanced → Plugins to check and update all five independently; installed versions shown immediately on Mac and Linux too
 - 🎬 Universal MP4 now default — H.264 + AAC on all platforms; already-H.264 files remuxed without re-encoding
