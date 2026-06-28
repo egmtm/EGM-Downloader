@@ -26,6 +26,18 @@ jobs:
       - name: Lint CSS — --muted discipline
         run: bash scripts/lint-css-muted.sh
 
+      - name: Generate feeds for feed-guard test
+        run: |
+          # Generate all four platform feeds with a dummy checksum so
+          # test_generated_feeds_have_enough_bullets runs instead of skipping.
+          # The guard checks bullet count, tag stripping, and no foreign-platform
+          # leakage — not checksum values — so a placeholder is correct here.
+          DUMMY="0000000000000000000000000000000000000000000000000000000000000000"
+          python scripts/gen-update-json.py --platform windows          --checksum $DUMMY
+          python scripts/gen-update-json.py --platform windows-portable --checksum $DUMMY
+          python scripts/gen-update-json.py --platform mac              --checksum $DUMMY
+          python scripts/gen-update-json.py --platform linux            --checksum $DUMMY
+
       - name: Run tests
         run: |
           cd tests
