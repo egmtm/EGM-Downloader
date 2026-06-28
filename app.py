@@ -15,6 +15,7 @@ import urllib.parse
 import zipfile
 import hashlib
 import shutil
+import importlib.metadata
 from collections import deque
 from pathlib import Path
 from flask import Flask, request, jsonify, render_template, abort
@@ -301,8 +302,8 @@ def get_data_dir() -> Path:
     return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "1.2.2"
-APP_BUILD             = 135
+APP_VERSION           = "1.2.3"
+APP_BUILD             = 136
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
@@ -924,7 +925,7 @@ def _ensure_h264(job_id, path, job):
     except Exception:
         return path
 
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264"):
     job     = jobs.get(job_id)
     if not job:
         return  # Job was removed before worker started
@@ -1286,7 +1287,7 @@ def start_download():
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
-                           data.get("output_format", "mp4")),
+                           data.get("output_format", "mp4_h264")),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -1342,7 +1343,7 @@ def get_settings():
         # Without these, defaults always win regardless of what was saved.
         "subtitles":               s.get("subtitles", False),
         "embed_metadata":          s.get("embed_metadata", True),
-        "output_format":           s.get("output_format", "mp4"),
+        "output_format":           s.get("output_format", "mp4_h264"),
         "default_audio_format":    s.get("default_audio_format", "320"),
         "theme":                   s.get("theme", ""),
         "yt_dlp_channel":          s.get("yt_dlp_channel", "stable"),
@@ -1466,7 +1467,6 @@ update_status: dict = {}
 
 def _get_mutagen_version() -> str:
     try:
-        import importlib.metadata
         return importlib.metadata.version("mutagen")
     except Exception:
         return "not installed"
@@ -1480,7 +1480,29 @@ def _get_latest_mutagen_version() -> str:
         return "unknown"
 
 
-def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
+OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
+
+def _get_optlibs_versions() -> dict:
+    result = {}
+    for lib in OPTLIBS:
+        try:
+            result[lib] = importlib.metadata.version(lib)
+        except Exception:
+            result[lib] = "not installed"
+    return result
+
+def _get_latest_optlibs_versions() -> dict:
+    result = {}
+    for lib in OPTLIBS:
+        try:
+            with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
+                result[lib] = json.loads(r.read())["info"]["version"]
+        except Exception:
+            result[lib] = "unknown"
+    return result
+
+
+def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
@@ -1547,6 +1569,17 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"mutagen update failed: {err}")
+        if do_optlibs:
+            log("Updating optional libraries...")
+            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                     "curl-cffi", "brotli", "pycryptodomex", "websockets",
+                     "--break-system-packages", timeout=120)
+            if r.returncode == 0:
+                vers = _get_optlibs_versions()
+                log("optional libs -> " + ", ".join(f"{k} {v}" for k, v in vers.items()))
+            else:
+                err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+                log(f"optional libs update failed: {err}")
         log("All done.")
         update_status["done"] = True
     except Exception as e:
@@ -1560,16 +1593,24 @@ def check_updates():
     cf, lf  = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
     cm      = _get_mutagen_version()
     lm      = _get_latest_mutagen_version()
+    oc      = _get_optlibs_versions()
+    ol      = _get_latest_optlibs_versions()
     settings = _load_settings()
     ytdlp_ch  = settings.get("yt_dlp_channel", "stable")
     ffmpeg_ch = settings.get("ffmpeg_channel", "stable")
     ytdlp_ok   = cy != "unknown" and cy == ly
     mutagen_ok = cm != "not installed" and lm != "unknown" and cm == lm
+    optlibs_updates = sum(
+        1 for lib in oc
+        if oc[lib] != "not installed" and ol.get(lib, "unknown") != "unknown" and oc[lib] != ol[lib]
+    )
+    optlibs_ok = optlibs_updates == 0 and all(v != "not installed" for v in oc.values())
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
                     "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": lm, "up_to_date": mutagen_ok},
+        "optlibs": {"current": oc, "latest": ol, "updates_available": optlibs_updates, "up_to_date": optlibs_ok},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -1581,7 +1622,8 @@ def run_update():
     threading.Thread(target=_run_update,
                      args=(bool(data.get("ytdlp", True)),
                            bool(data.get("ffmpeg", False)),
-                           bool(data.get("mutagen", False))),
+                           bool(data.get("mutagen", False)),
+                           bool(data.get("optlibs", False))),
                      daemon=True).start()
     return jsonify({"started": True})
 
@@ -1745,6 +1787,7 @@ def installed_versions():
         "ffmpeg":  {"current": cf, "latest": None, "up_to_date": None},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
         "deno":    {"installed": deno_installed, "version": deno_version},
+        "optlibs": {"current": _get_optlibs_versions()},
     })
 
 

@@ -364,19 +364,19 @@
     @keyframes hpanel-fade { from { opacity: 0; } to { opacity: 1; } }
     .hpanel-open-full {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 7px 12px; background: var(--surf2); border-bottom: 1px solid var(--border);
-      cursor: pointer; border-top: 1px solid var(--border);
+      padding: 7px 8px; border-bottom: 0.5px solid var(--border);
     }
-    .hpanel-open-full:hover { background: var(--surf3); }
-    .hpanel-open-full span { font-size: 11px; color: var(--acc); }
-    .hpanel-open-full small { font-size: 11px; color: var(--text2); }
-    .hentry { display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: 6px; margin-bottom: 4px; }
+    .hpanel-open-full span { font-size: 12px; color: var(--acc); display:flex; align-items:center; gap:6px; font-weight:500; cursor:pointer; }
+    .hpanel-open-full span:hover { opacity:.8; }
+    .hpanel-open-full small { font-size: 12px; color: var(--text2); }
+    .hentry { display: flex; align-items: center; gap: 9px; padding: 6px 7px; border-radius: 7px; margin-bottom: 2px; }
     .hentry:hover { background: var(--surf2); }
-    .hthumb { width: 40px; height: 30px; border-radius: 3px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px; color: var(--text2); border: 0.5px solid var(--border); object-fit: cover; overflow: hidden; }
-    .htitle { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
-    .hmeta { font-size: 11px; color: var(--text2); margin: 0; }
-    .hbtns { display: flex; gap: 4px; flex-shrink: 0; margin-left: auto; }
-    .hbtn { font-size: 10px; padding: 2px 7px; border-radius: 3px; cursor: pointer; border: 0.5px solid var(--border); background: transparent; color: var(--text2); }
+    .hentry:hover .hbtns { opacity: 1; }
+    .hthumb { width: 48px; height: 36px; border-radius: 4px; background: var(--surf2); flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 13px; color: var(--text2); border: 0.5px solid var(--border); object-fit: cover; overflow: hidden; }
+    .htitle { font-size: 12px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0 0 2px; }
+    .hmeta { font-size: 10px; color: var(--text2); margin: 0; }
+    .hbtns { display: flex; gap: 3px; flex-shrink: 0; margin-left: auto; opacity: 0; transition: opacity .1s; }
+    .hbtn { width: 24px; height: 24px; border-radius: 5px; cursor: pointer; border: 0.5px solid var(--border2); background: transparent; color: var(--text2); display: flex; align-items: center; justify-content: center; }
     .hbtn:hover { color: var(--acc); border-color: var(--acc); }
     .hbtn.red:hover { color: var(--red); border-color: var(--red); }
     .hentry.pinned { background: rgba(45,212,191,.06); border: 0.5px solid rgba(45,212,191,.2); }
@@ -384,28 +384,49 @@
     .hbtn.pin-btn.pinned { color: var(--acc); border-color: var(--acc); }
 
     kbd { font-size:9px; color:var(--text2); background:var(--surf2); border:0.5px solid var(--border); border-radius:3px; padding:1px 5px; font-family:inherit; margin-left:2px; }
-    .hpill { display: flex; align-items: center; justify-content: center; gap: 5px; padding: 3px 7px; margin: 2px 0; background: rgba(255,255,255,.04); border: 0.5px dashed var(--border); border-radius: 4px; cursor: pointer; font-size: 9px; color: var(--text2); width: 100%; }
-    .hpill:hover { color: var(--acc); border-color: var(--acc); }
+    .hpill { display: flex; align-items: center; justify-content: center; gap: 4px; padding: 0; margin: 0; background: transparent; border: none; cursor: pointer; font-size: 10px; color: var(--text2); font-family: inherit; }
+    .hpill:hover { color: var(--text); }
+    .hfooter { display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; border-top: 0.5px solid var(--border); }
+    .hfooter-clear { font-size: 10px; padding: 3px 9px; border-radius: 5px; border: 0.5px solid rgba(239,68,68,.4); background: transparent; color: var(--red); cursor: pointer; font-family: inherit; }
+    .hfooter-clear:hover { background: rgba(239,68,68,.08); }
 
     /* ── Theme picker (inside Themes tab) ── */
     .theme-list { padding: 0; }
     .theme-row {
       display: flex; align-items: center; gap: 7px;
-      padding: 4px 7px; border-radius: 5px; cursor: pointer;
+      padding: 5px 7px; border-radius: 6px; cursor: pointer;
       margin-bottom: 2px; border: 0.5px solid transparent;
     }
     .theme-row:hover { background: var(--surf2); }
     .theme-row.active { background: var(--acc-dim); border-color: var(--acc); }
     .theme-swatches { display: flex; gap: 2px; flex-shrink: 0; }
-    .theme-sw { width: 9px; height: 9px; border-radius: 2px; border: 0.5px solid rgba(0,0,0,.15); }
-    .theme-name { font-size: 10px; font-weight: 500; color: var(--text); flex: 1; }
-    .theme-check { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0;
+    .theme-sw { width: 10px; height: 10px; border-radius: 3px; border: 0.5px solid rgba(0,0,0,.15); }
+    .theme-name { font-size: 11px; font-weight: 500; color: var(--text); flex: 1; }
+    .theme-check { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0;
                    display: flex; align-items: center; justify-content: center;
                    border: 0.5px solid var(--border2); }
     .theme-check.checked { background: var(--acc); border-color: var(--acc); }
     .theme-check.checked::after { content:''; display:block; width:4px; height:4px;
       border-right: 1.5px solid #fff; border-bottom: 1.5px solid #fff;
       transform: rotate(45deg) translate(-1px,-1px); }
+    .theme-section-label {
+      font-size: 9px; font-weight: 600; letter-spacing: .07em;
+      text-transform: uppercase; color: var(--text2); padding: 8px 8px 3px;
+    }
+    .theme-btn-view-all {
+      display: flex; align-items: center; justify-content: space-between;
+      width: 100%; padding: 6px 8px; border-radius: 6px;
+      border: 0.5px solid var(--border2); background: transparent;
+      color: var(--text2); font-size: 11px; cursor: pointer; font-family: inherit;
+    }
+    .theme-btn-view-all:hover { color: var(--text); border-color: var(--border3, var(--border2)); }
+    .theme-btn-io {
+      flex: 1; padding: 5px 0; border-radius: 6px;
+      border: 0.5px solid var(--border2); background: transparent;
+      color: var(--text2); font-size: 10px; cursor: pointer; font-family: inherit;
+      display: flex; align-items: center; justify-content: center; gap: 4px;
+    }
+    .theme-btn-io:hover { color: var(--text); }
 
     /* ── Advanced panel (hamburger tab) ── */
     .adv-row { display: flex; align-items: center; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); }
@@ -519,7 +540,7 @@
     .card {
       width: 100%; max-width: 760px;
       background: var(--surf); border: 1px solid var(--border);
-      border-radius: var(--r); padding: 18px 20px;
+      border-radius: var(--r); padding: 18px 14px;
       margin-bottom: 16px; box-shadow: var(--shadow);
     }
     .card.collapsed-card { padding: 8px 16px; margin-bottom: 8px; }
@@ -704,6 +725,18 @@
        column — so let THIS one shrink (min-width:0) and ellipsise the closed value.
        The dropdown still lists the full label; the audio select is left untouched. */
     select#output-format-sel { min-width: 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+    /* ── Settings panel redesign (layout only; IDs/behavior unchanged) ── */
+    .set-grid { display: grid; grid-template-columns: 13fr 7fr; gap: 8px; margin-top: 2px; }
+    .set-box { background: var(--surf2); border: 1px solid var(--border); border-radius: var(--rs); padding: 10px 12px; display: flex; flex-direction: column; min-width: 0; }
+    .set-divider { height: 1px; background: var(--border); margin: 10px 0; }
+    .set-format-row { display: flex; align-items: center; gap: 8px; }
+    .set-fmt-label { font-size: .72rem; font-weight: 500; color: var(--text2); white-space: nowrap; }
+    .set-vsep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
+    .set-cookie-links { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; width: 100%; }
+    .set-cookie-area { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .set-cookie-actions { align-items: center; }
+    .set-cookie-actions-loaded { width: 100%; justify-content: space-between; align-items: center; gap: 5px; }
+    .set-toggles { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px 0 10px; border-top: 1px solid var(--border); }
 
     .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 

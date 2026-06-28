@@ -1,3 +1,33 @@
+v1.2.3 - FULLY LOADED (Build 136) (6/28/2026)
+-----------------------------------------
+
+  IMPROVEMENTS
+  • [ALL] Optional libraries — brotli, pycryptodomex, websockets, and certifi bundled alongside curl_cffi across all platforms; improves yt-dlp site compatibility and SSL reliability out of the box
+  • [ALL] Optional libraries — new update card in Advanced → Plugins; check and update all five libraries independently without waiting for an app release
+  • [WINDOWS] Optional libraries — included in installer and portable bootstrap; existing installs receive them automatically on next launch
+  • [ALL] Universal MP4 — now the default output format across all platforms; H.264 + AAC, plays on any device; already-H.264 files are remuxed without re-encoding
+  • [ALL] Settings panel — redesigned into two side-by-side boxes: Download folder + Format/Quality on the left, Site Cookies on the right; cleaner layout with proper labels and breathing room
+  • [ALL] Themes panel — Create theme at the top; recent themes list below; View all themes, Import, and Export redesigned as proper footer buttons
+  • [ALL] History panel — action buttons now SVG icons, hidden until hover; thumbnails enlarged to 48×36; cleaner header with total count; unified footer with Show older and Clear all
+  • [ALL] Expanded history — action buttons match the main UI panel: SVG icons, hover-reveal, consistent sizing
+  • [ALL] Keyboard shortcut — Ctrl+K opens the Theme Creator from anywhere in the app; listed in the help modal
+
+  FIXES
+  • [WINDOWS] Portable edition — brotli sentinel corrected; brotli installs as a module file, not a directory; was triggering unnecessary pip reinstall on every portable launch
+  • [ALL] Universal MP4 — Linux and Mac now correctly default to Universal MP4 on fresh installs; was Windows-only previously
+  • [ALL] Optional libraries panel — Linux and Mac show installed versions informally; update action remains Windows-only, consistent with the mutagen model; versions load immediately on first panel expand without requiring a manual check
+  • [ALL] History panel — Show older pill no longer accumulates in the footer on repeated panel refreshes
+  • [ALL] Expanded history — horizontal scrollbar suppressed; no longer appears on window resize
+  • [ALL] Thumbnail fallbacks — emoji placeholders (🎬 ♫ ▶) replaced with inline SVG icons across all templates
+  • [ALL] Format selector — MP4 · H.264 (Max compatibility) now listed first, matching its default status
+  • [ALL] URL card — inner content pixel-aligned with the Settings boxes below; textarea edges now flush with Download folder and Site Cookies borders
+  • [ALL] Themes window — All count now includes imported themes and updates live; Imported count and delete handler corrected
+  • [ALL] Import theme dialog — cleaned up; shows theme name and color preview; Cancel and Apply Theme
+  • [ALL] JS syntax gate — new pytest guard checks every JS template module on both platforms; catches syntax errors that bypass all other tests
+  • [ALL] History panel — title, filename, and URL fields now escaped before rendering; prevents stored XSS from attacker-controlled download metadata
+
+  88 automated tests — all passing.
+
 v1.2.2 - SKELETON KEY (Build 135) (6/25/2026)
 -----------------------------------------
 

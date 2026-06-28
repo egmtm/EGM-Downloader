@@ -243,8 +243,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR = DATA_DIR / "ffmpeg_bin"
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "1.2.2"
-APP_BUILD             = 135
+APP_VERSION           = "1.2.3"
+APP_BUILD             = 136
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
@@ -869,7 +869,7 @@ def _ensure_h264(job_id, path, job):
     except Exception:
         return path
 
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4"):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264"):
     job     = jobs.get(job_id)
     if not job:
         return  # Job was removed before worker started
@@ -1231,7 +1231,7 @@ def start_download():
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
-                           data.get("output_format", "mp4")),
+                           data.get("output_format", "mp4_h264")),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -1287,7 +1287,7 @@ def get_settings():
         # Without these, defaults always win regardless of what was saved.
         "subtitles":               s.get("subtitles", False),
         "embed_metadata":          s.get("embed_metadata", True),
-        "output_format":           s.get("output_format", "mp4"),
+        "output_format":           s.get("output_format", "mp4_h264"),
         "default_audio_format":    s.get("default_audio_format", "320"),
         "theme":                   s.get("theme", ""),
         "yt_dlp_channel":          s.get("yt_dlp_channel", "stable"),
@@ -1512,6 +1512,23 @@ def _run_update(do_ytdlp, do_ffmpeg):
     finally:
         update_status["running"] = False
 
+OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
+
+def _get_optlibs_versions() -> dict:
+    """Installed versions of the optional yt-dlp libraries. Informational-only on
+    this platform (bundled with the app; no in-app pip upgrade — same model as
+    mutagen), so check_updates returns current versions without a latest/up_to_date,
+    and the UI renders a neutral badge rather than an actionable toggle."""
+    import importlib.metadata
+    result = {}
+    for lib in OPTLIBS:
+        try:
+            result[lib] = importlib.metadata.version(lib)
+        except Exception:
+            result[lib] = "not installed"
+    return result
+
+
 @app.route("/api/check-updates")
 def check_updates():
     cy, ly  = _get_ytdlp_version(), _get_latest_ytdlp_version()
@@ -1533,6 +1550,7 @@ def check_updates():
         "ffmpeg":  {"current": cf, "latest": lf,
                     "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
+        "optlibs": {"current": _get_optlibs_versions()},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -1717,6 +1735,7 @@ def installed_versions():
         "ffmpeg":  {"current": cf, "latest": None, "up_to_date": None},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
         "deno":    {"installed": deno_installed, "version": deno_version},
+        "optlibs": {"current": _get_optlibs_versions()},
     })
 
 

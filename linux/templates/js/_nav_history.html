@@ -104,6 +104,19 @@ function _fmtDate(iso) {
 function _fmtFmt(f) {
   return f ? f.toUpperCase() : '';
 }
+// Escape history fields before they go into innerHTML — title/filename/url are
+// attacker-controllable (a download's title comes from the source site, and
+// /api/history/import accepts arbitrary entries), so they must render as text.
+function _hEsc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function _thumbFallback(audio) {
+  const icon = audio
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>'
+    : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+  return '<div class="hthumb">' + icon + '</div>';
+}
 
 function _buildEntry(item) {
   const div = document.createElement('div');
@@ -112,19 +125,19 @@ function _buildEntry(item) {
   const pinned = _pinnedIds.has(String(item.id));
   if (pinned) div.classList.add('pinned');
   const thumbHtml = item.thumbnail
-    ? `<img class="hthumb" src="/api/thumbnail/${item.thumbnail}" alt="" onerror="this.outerHTML='<div class=\\'hthumb\\'>${isAudio ? '♫' : '▶'}</div>'">`
-    : `<div class="hthumb">${isAudio ? '♫' : '▶'}</div>`;
+    ? `<img class="hthumb" src="/api/thumbnail/${item.thumbnail}" alt="" onerror="this.outerHTML=_thumbFallback(${isAudio})">`
+    : _thumbFallback(isAudio);
   div.innerHTML = `
     ${thumbHtml}
     <div style="flex:1;min-width:0">
-      <p class="htitle">${item.title || item.filename || '—'}</p>
+      <p class="htitle">${_hEsc(item.title || item.filename || '—')}</p>
       <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
     </div>
     <div class="hbtns">
-      <button class="hbtn pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin' : 'Pin to top'}">${pinned ? '★' : '☆'}</button>
-      <button class="hbtn" title="Re-add URL">↺</button>
-      <button class="hbtn" title="Open folder">🗁</button>
-      <button class="hbtn red" title="Remove">✕</button>
+      <button class="hbtn pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin' : 'Pin to top'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="${pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+      <button class="hbtn" title="Re-add URL"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
+      <button class="hbtn" title="Open folder"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/></svg></button>
+      <button class="hbtn red" title="Remove"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
     </div>`;
   const [btnPin, btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
   btnPin.addEventListener('click', () => {
@@ -217,11 +230,17 @@ async function loadHistoryPanel(page = 1) {
       frag.appendChild(more);
     }
     if (d && page < d.pages) {
+      const footer = document.querySelector('.hfooter');
+      if (footer) footer.querySelectorAll('.hpill').forEach(p => p.remove());
       const btn = document.createElement('button');
       btn.className = 'hpill';
-      btn.textContent = `↓ Show older (${(d.pages - page) * HBATCH} more)`;
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg> Show older (${(d.pages - page) * HBATCH} more)`;
       btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, d.pages, body, btn));
-      frag.appendChild(btn);
+      if (footer) footer.insertBefore(btn, footer.firstChild);
+      else frag.appendChild(btn);
+    } else {
+      const footer = document.querySelector('.hfooter');
+      if (footer) footer.querySelectorAll('.hpill').forEach(p => p.remove());
     }
   }
 
@@ -240,7 +259,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   if (collapseCount > 0) {
     const pill = document.createElement('button');
     pill.className = 'hpill';
-    pill.innerHTML = `↑ Show newer <span style="background:var(--surf2);border-radius:6px;padding:0 4px;font-size:8px;border:0.5px solid var(--border)">${collapseCount}</span>`;
+    pill.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 15l-6-6-6 6"/></svg> Show newer <span style="background:var(--surf2);border-radius:6px;padding:0 4px;font-size:8px;border:0.5px solid var(--border)">${collapseCount}</span>`;
     // On click: restore original page
     pill.addEventListener('click', () => loadHistoryPanel(_historyPage));
     [...pills].forEach(el => el.remove());
@@ -256,7 +275,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   if (page < totalPages) {
     const btn = document.createElement('button');
     btn.className = 'hpill';
-    btn.textContent = `↓ Show older (${(totalPages - page) * HBATCH} more)`;
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg> Show older (${(totalPages - page) * HBATCH} more)`;
     btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, totalPages, parentBody, btn));
     parentBody.appendChild(btn);
   } else {

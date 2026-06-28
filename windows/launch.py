@@ -173,11 +173,11 @@ def ensure_python_deps():
     # metadata/thumbnail embedding. The sentinel imports must include them so a
     # missing one triggers (re)install. (pyzipper was unused and is dropped.)
     try:
-        import flask, yt_dlp, cryptography, mutagen, curl_cffi; return
+        import flask, yt_dlp, cryptography, mutagen, curl_cffi, brotli, Cryptodome, websockets, certifi; return
     except ImportError: pass
     _gui_msg("Installing Python packages…")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets", "certifi"],
                    check=True, timeout=300, creationflags=NO_WIN)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
@@ -344,14 +344,22 @@ def ensure_python_deps_embedded(py_exe):
     into the embedded interpreter exactly as before.)
     """
     site_packages = PY_DIR / "Lib" / "site-packages"
-    # Top-level package dirs pip drops in site-packages. NB import name, not pip name:
-    # the "yt-dlp" distribution installs the "yt_dlp" package directory.
-    required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi")
-    if site_packages.is_dir() and all((site_packages / pkg).is_dir() for pkg in required):
+    # Top-level names pip drops in site-packages. NB import name, not pip name:
+    # the "yt-dlp" distribution installs the "yt_dlp" package directory. Most are
+    # package DIRS, but some ship as a single top-level MODULE file instead — e.g.
+    # "brotli" installs brotli.py (+ a _brotli extension), not a brotli/ dir — so a
+    # dir-only check would never pass for it and pip would re-run on every launch.
+    required = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi", "brotli", "Cryptodome", "websockets", "certifi")
+    def _present(pkg):
+        return ((site_packages / pkg).is_dir()
+                or (site_packages / f"{pkg}.py").is_file()
+                or bool(list(site_packages.glob(f"{pkg}.*.pyd")))
+                or bool(list(site_packages.glob(f"{pkg}.*.so"))))
+    if site_packages.is_dir() and all(_present(pkg) for pkg in required):
         return
     _gui_msg("Installing Python packages…")
     subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets", "certifi"],
                    check=True, timeout=600, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────

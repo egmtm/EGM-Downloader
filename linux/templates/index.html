@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v1.2.2</title>
+  <title>EGM Downloader v1.2.3</title>
   <style>
 {% include 'index_styles.html' %}  </style>
 </head>
@@ -70,19 +70,24 @@
           <span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M12 6h-6a2 2 0 0 0 -2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-6"/><path d="M11 13l9 -9"/><path d="M15 4h5v5"/></svg> Open full history</span>
           <small id="history-total-info">0 downloads</small>
         </div>
-        <div id="history-panel-body" style="padding:5px">
+        <div id="history-panel-body" style="padding:5px 6px">
           <div id="history-empty" style="padding:12px 8px;font-size:10px;color:var(--text2);text-align:center">No downloads yet</div>
         </div>
-        <div style="display:flex;justify-content:space-between;align-items:center;padding:4px 7px;border-top:1px solid var(--border)">
-          <span id="history-panel-count" style="font-size:8px;color:var(--text2)">0 total</span>
-          <button id="history-clear-btn" style="font-size:8px;padding:1px 7px;border:0.5px solid rgba(239,68,68,.4);border-radius:3px;background:transparent;color:var(--red);cursor:pointer">Clear All</button>
+        <div class="hfooter">
+          <span id="history-panel-count" style="display:none"></span>
+          <button id="history-clear-btn" class="hfooter-clear">Clear all</button>
         </div>
       </div>
       <!-- Themes tab -->
       <div class="hpanel-content" id="hpanel-themes" style="display:none">
-        <div style="padding:5px">
+        <div style="padding:6px 6px 0">
+          <button id="theme-create-btn" style="width:100%;padding:7px 0;border-radius:7px;border:1px solid var(--acc);background:var(--acc-dim);cursor:pointer;font-size:11px;font-weight:600;color:var(--acc);display:flex;align-items:center;justify-content:center;gap:5px;font-family:inherit">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Create theme
+          </button>
+        </div>
+        <div class="theme-section-label">Recent</div>
+        <div style="padding:0 6px">
           <div class="theme-list" id="theme-list"><!-- populated by JS --></div>
-          <div onclick="openThemesWindow()" style="display:flex;align-items:center;justify-content:center;gap:5px;padding:7px 8px;border-top:1px solid var(--border);cursor:pointer;font-size:10px;color:var(--acc)">View all themes ›</div>
           <div style="display:none" id="theme-list-static">
             <div class="theme-row active" data-theme="void">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0b1120"></div><div class="theme-sw" style="background:#111c2e"></div><div class="theme-sw" style="background:#3b82f6"></div></div>
@@ -1766,12 +1771,21 @@
 </div>
 
           </div><!-- end theme-list-static -->
-          <div style="margin-top:5px;padding-top:5px;border-top:1px solid var(--border)">
-            <button id="theme-create-btn" style="width:100%;padding:6px 0;border-radius:5px;border:1px solid var(--acc);background:var(--acc-dim);cursor:pointer;font-size:10px;font-weight:600;color:var(--acc)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 5v14"/><path d="M5 12h14"/></svg> Create theme</button>
-          </div>
-          <div style="display:flex;gap:4px;margin-top:4px">
-            <button id="theme-import-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg> Import</button>
-            <button id="theme-export-btn" style="flex:1;padding:4px 0;border-radius:5px;border:1px solid var(--border2);background:transparent;cursor:pointer;font-size:9px;color:var(--text2)"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> Export</button>
+        </div>
+        <div style="border-top:0.5px solid var(--border);margin:6px 0 0;padding:5px 6px 7px;display:flex;flex-direction:column;gap:4px">
+          <button class="theme-btn-view-all" onclick="openThemesWindow()">
+            <span>View all themes</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+          </button>
+          <div style="display:flex;gap:4px">
+            <button id="theme-import-btn" class="theme-btn-io">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 9l5-5 5 5"/><path d="M12 4v12"/></svg>
+              Import
+            </button>
+            <button id="theme-export-btn" class="theme-btn-io">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg>
+              Export
+            </button>
           </div>
         </div>
       </div>
@@ -1819,7 +1833,7 @@
               <button class="adv-toggle-btn" id="plugins-toggle" onclick="togglePluginsPanel()">▶ Show</button>
             </div>
           </div>
-          <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, and Deno updates">
+          <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, Deno, and optional library updates">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg></span><span class="adv-btn-label">Check for updates</span>
           </button>
           <div class="plugins-collapsible collapsed" id="plugins-body">
@@ -1914,20 +1928,18 @@
     </div>
   </div>
   <div class="sec-body collapsed" id="settings-body">
-    <div style="display:flex;align-items:flex-end;gap:0">
-      <div style="flex:1.4;min-width:0">
+    <div class="set-grid">
+      <div class="set-box">
         <span class="opt-label">Download folder</span>
         <div class="path-row">
           <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
           <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
           <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> Open</button>
         </div>
-      </div>
-      <div style="width:1px;background:var(--border);align-self:stretch;margin:20px 14px 0;flex-shrink:0"></div>
-      <div style="flex:1;min-width:0">
+        <div class="set-divider"></div>
         <span class="opt-label">Format / Quality</span>
-        <div style="display:flex;align-items:center;gap:8px">
-          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Audio</span>
+        <div class="set-format-row">
+          <span class="set-fmt-label">Audio</span>
           <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
             <option value="320">MP3 320 kbps</option>
             <option value="192">MP3 192 kbps</option>
@@ -1937,55 +1949,52 @@
             <option value="opus_192">OPUS 192 kbps</option>
             <option value="opus_128">OPUS 128 kbps</option>
           </select>
-          <div style="width:1px;height:28px;background:var(--border);flex-shrink:0"></div>
-          <span style="font-size:.72rem;font-weight:500;color:var(--text2);white-space:nowrap">Video</span>
+          <div class="set-vsep"></div>
+          <span class="set-fmt-label">Video</span>
           <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
-            <option value="mp4" selected>MP4</option>
+            <option value="mp4_h264" selected>MP4 · H.264 (Max compatibility)</option>
+            <option value="mp4">MP4</option>
             <option value="mkv">MKV</option>
-            <option value="mp4_h264">MP4 · H.264 (Max compatibility)</option>
           </select>
         </div>
       </div>
-    </div>
-
-    <div style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 10px;margin-top:10px">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);margin-bottom:8px">
-        <div style="display:flex;align-items:center;gap:8px">
-          <span class="sec-title" title="For age-restricted or login-required content" style="flex-shrink:0"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M8 13v.01"/><path d="M12 17v.01"/><path d="M12 12v.01"/><path d="M16 14v.01"/><path d="M11 8v.01"/><path d="M13.148 3.476l2.667 1.104a4 4 0 0 0 4.656 6.14l.053 .132a3 3 0 0 1 0 2.296q -.745 1.18 -1.024 1.852q -.283 .684 -.66 2.216a3 3 0 0 1 -1.624 1.623q -1.572 .394 -2.216 .661q -.712 .295 -1.852 1.024a3 3 0 0 1 -2.296 0q -1.203 -.754 -1.852 -1.024q -.707 -.292 -2.216 -.66a3 3 0 0 1 -1.623 -1.624q -.397 -1.577 -.661 -2.216q -.298 -.718 -1.024 -1.852a3 3 0 0 1 0 -2.296q .719 -1.116 1.024 -1.852q .257 -.62 .66 -2.216a3 3 0 0 1 1.624 -1.623q 1.547 -.384 2.216 -.661q .687 -.285 1.852 -1.024a3 3 0 0 1 2.296 0"/></svg> Site Cookies</span>
-          <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
-          <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
-        </div>
-        <div style="display:flex;align-items:center;gap:7px">
+      <div class="set-box">
+        <span class="opt-label">Site Cookies</span>
+        <div class="set-cookie-links">
+            <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+            <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+          </div>
+        <div class="set-divider"></div>
+        <div class="set-cookie-area">
           <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0">Cookies: not loaded</span>
-          <div id="ck-not-loaded" style="display:flex;align-items:center;flex-shrink:0">
+          <div id="ck-not-loaded" class="set-cookie-actions" style="display:flex">
             <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
           </div>
-          <div id="ck-loaded" style="display:none;align-items:center;gap:4px;flex-shrink:0">
+          <div id="ck-loaded" class="set-cookie-actions-loaded" style="display:none">
             <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Replace</button>
             <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Unload</button>
           </div>
         </div>
       </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Silently check for app and plugin updates when the app starts">Check updates on launch</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
-          <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="subtitles-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
-        </div>
-        <div class="sw-wrap">
-          <input type="checkbox" class="sw" id="quit-on-done-chk">
-          <span style="font-size:.76rem;color:var(--text2)" title="Automatically close the app when all downloads finish">Quit when done</span>
-        </div>
+    </div>
+    <div class="set-toggles">
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
+      <span style="font-size:.76rem;color:var(--text2)" title="Silently check for app and plugin updates when the app starts">Check updates on launch</span>
+      </div>
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
+      <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
+      </div>
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="subtitles-chk">
+      <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
+      </div>
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="quit-on-done-chk">
+      <span style="font-size:.76rem;color:var(--text2)" title="Automatically close the app when all downloads finish">Quit when done</span>
       </div>
     </div>
-
   </div>
 
 </div>
@@ -2005,7 +2014,7 @@
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
     <a href="https://x.com/EGMDownloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">@EGMDownloader</a>
-    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.2.2</span>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.2.3</span>
     <button id="footer-help-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Help</button>
   </div>
   <div style="margin-top:7px;text-align:center">
@@ -2129,6 +2138,7 @@
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Clear input</td><td style="text-align:right;white-space:nowrap"><kbd>Esc</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">History</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>H</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Themes</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>T</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Theme Creator</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>K</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Advanced</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>,</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Subscriptions</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>S</kbd></td></tr>
         </table>
@@ -2158,7 +2168,7 @@
 <!-- What's New modal -->
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3>🎉 What's New in <span id="whats-new-version">v1.2.2</span></h3>
+    <h3>🎉 What's New in <span id="whats-new-version">v1.2.3</span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <!-- lint-allow-muted: loading-state -->
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
