@@ -65,7 +65,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.2.1 — CANVAS RELOADED. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *These screenshots are representations of v1.2.3 — FULLY LOADED, releasing June 28, 2026. The UI is identical across Windows, macOS, and Linux.*
 
 <div align="center">
   <a href="screenshots/01-splash-screen.png">
@@ -79,117 +79,96 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-chosen-undead-theme.png">
-        <img src="screenshots/02-main-ui-chosen-undead-theme.png" width="340" alt="Main UI — Chosen Undead Theme"/>
+      <a href="screenshots/02-main-ui-yeezus-theme.png">
+        <img src="screenshots/02-main-ui-yeezus-theme.png" width="340" alt="Main UI — Yeezus Theme"/>
       </a>
-      <br/><sub><b>Main UI — Chosen Undead Theme</b></sub>
+      <br/><sub><b>Main UI — Yeezus Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/03-main-ui-condensed-jerk-shack-theme.png">
-        <img src="screenshots/03-main-ui-condensed-jerk-shack-theme.png" width="340" alt="Main UI Condensed — Jerk Shack Theme"/>
+      <a href="screenshots/03-advanced-optional-libs-insert-coin-theme.png">
+        <img src="screenshots/03-advanced-optional-libs-insert-coin-theme.png" width="340" alt="Optional Libraries Panel — Insert Coin Theme"/>
       </a>
-      <br/><sub><b>Main UI Condensed — Jerk Shack Theme</b></sub>
+      <br/><sub><b>Optional Libraries Panel — Insert Coin Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/04-help-modal-monsoon-theme.png">
-        <img src="screenshots/04-help-modal-monsoon-theme.png" width="340" alt="Help Modal — Monsoon Theme"/>
+      <a href="screenshots/04-history-redesigned-odd-cab-theme.png">
+        <img src="screenshots/04-history-redesigned-odd-cab-theme.png" width="340" alt="History Redesigned — Odd Cab Theme"/>
       </a>
-      <br/><sub><b>Help Modal — Monsoon Theme</b></sub>
+      <br/><sub><b>History Redesigned — Odd Cab Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/05-advanced-panel-neural-theme.png">
-        <img src="screenshots/05-advanced-panel-neural-theme.png" width="340" alt="Advanced Panel — Neural Theme"/>
+      <a href="screenshots/05-expanded-history-tokyo-neon-theme.png">
+        <img src="screenshots/05-expanded-history-tokyo-neon-theme.png" width="340" alt="Expanded History — Tokyo Neon Theme"/>
       </a>
-      <br/><sub><b>Advanced Panel — Neural Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/06-advanced-plugins-update-mint-theme.png">
-        <img src="screenshots/06-advanced-plugins-update-mint-theme.png" width="340" alt="Plugins Update — Mint Theme"/>
-      </a>
-      <br/><sub><b>Plugins Update — Mint Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/07-main-ui-history-san-sebastian-theme.png">
-        <img src="screenshots/07-main-ui-history-san-sebastian-theme.png" width="340" alt="Main UI + History — San Sebastián Theme"/>
-      </a>
-      <br/><sub><b>Main UI + History — San Sebastián Theme 🇵🇷</b></sub>
+      <br/><sub><b>Expanded History — Tokyo Neon Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/08-expanded-history-studio-midnight-theme.png">
-        <img src="screenshots/08-expanded-history-studio-midnight-theme.png" width="340" alt="Expanded History — Studio Midnight Theme"/>
+      <a href="screenshots/06-themes-panel-redesigned-valhalla-theme.png">
+        <img src="screenshots/06-themes-panel-redesigned-valhalla-theme.png" width="340" alt="Themes Panel Redesigned — Valhalla Theme"/>
       </a>
-      <br/><sub><b>Expanded History — Studio Midnight Theme</b></sub>
+      <br/><sub><b>Themes Panel Redesigned — Valhalla Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/09-themes-panel-the-old-lady-theme.png">
-        <img src="screenshots/09-themes-panel-the-old-lady-theme.png" width="340" alt="Themes Panel — The Old Lady Theme"/>
+      <a href="screenshots/07-help-modal-ctrl-k-jump-city-theme.png">
+        <img src="screenshots/07-help-modal-ctrl-k-jump-city-theme.png" width="340" alt="Help Modal — Ctrl+K — Jump City Theme"/>
       </a>
-      <br/><sub><b>Themes Panel — The Old Lady Theme</b></sub>
+      <br/><sub><b>Help Modal — Ctrl+K — Jump City Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/10-theme-creator-windows-vista-theme.png">
-        <img src="screenshots/10-theme-creator-windows-vista-theme.png" width="340" alt="Theme Creator — Windows Vista Theme"/>
+      <a href="screenshots/08-theme-creator-prism-theme.png">
+        <img src="screenshots/08-theme-creator-prism-theme.png" width="340" alt="Theme Creator — Prism Theme"/>
       </a>
-      <br/><sub><b>Theme Creator — Windows Vista Theme</b></sub>
+      <br/><sub><b>Theme Creator — Prism Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/11-theme-creator-custom-theme.png">
-        <img src="screenshots/11-theme-creator-custom-theme.png" width="340" alt="Theme Creator — Custom Theme"/>
+      <a href="screenshots/09-theme-creator-custom-weird-theme.png">
+        <img src="screenshots/09-theme-creator-custom-weird-theme.png" width="340" alt="Theme Creator — Custom Theme"/>
       </a>
       <br/><sub><b>Theme Creator — Custom Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/12-all-themes-arch-linux-theme.png">
-        <img src="screenshots/12-all-themes-arch-linux-theme.png" width="340" alt="All Themes — Arch Linux Theme"/>
+      <a href="screenshots/10-subscriptions-infrared-theme.png">
+        <img src="screenshots/10-subscriptions-infrared-theme.png" width="340" alt="Subscriptions — Infrared Theme"/>
       </a>
-      <br/><sub><b>All Themes — Arch Linux Theme</b></sub>
+      <br/><sub><b>Subscriptions — Infrared Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/13-subscriptions-dos-theme.png">
-        <img src="screenshots/13-subscriptions-dos-theme.png" width="340" alt="Subscriptions — DOS Theme"/>
+      <a href="screenshots/11-subscriptions-fetching-corrupted-theme.png">
+        <img src="screenshots/11-subscriptions-fetching-corrupted-theme.png" width="340" alt="Subscriptions Fetching — Corrupted Theme"/>
       </a>
-      <br/><sub><b>Subscriptions — DOS Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/14-subscriptions-fetching-event-horizon-theme.png">
-        <img src="screenshots/14-subscriptions-fetching-event-horizon-theme.png" width="340" alt="Subscriptions Fetching — Event Horizon Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions Fetching — Event Horizon Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/15-subscriptions-collapsed-game-over-theme.png">
-        <img src="screenshots/15-subscriptions-collapsed-game-over-theme.png" width="340" alt="Subscriptions Collapsed — Game Over Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions Collapsed — Game Over Theme</b></sub>
+      <br/><sub><b>Subscriptions Fetching — Corrupted Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/16-export-settings-el-morro-theme.png">
-        <img src="screenshots/16-export-settings-el-morro-theme.png" width="340" alt="Export Settings — El Morro Theme"/>
+      <a href="screenshots/12-subscriptions-collapsed-beos-theme.png">
+        <img src="screenshots/12-subscriptions-collapsed-beos-theme.png" width="340" alt="Subscriptions Collapsed — BeOS Theme"/>
       </a>
-      <br/><sub><b>Export Settings — El Morro Theme 🇵🇷</b></sub>
+      <br/><sub><b>Subscriptions Collapsed — BeOS Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/17-fetching-videos-aew-theme.png">
-        <img src="screenshots/17-fetching-videos-aew-theme.png" width="340" alt="Fetching Videos — AEW Theme"/>
+      <a href="screenshots/13-fetching-playlists-new-york-theme.png">
+        <img src="screenshots/13-fetching-playlists-new-york-theme.png" width="340" alt="Fetching Playlists — New York Theme"/>
       </a>
-      <br/><sub><b>Fetching Videos — AEW Theme</b></sub>
+      <br/><sub><b>Fetching Playlists — New York Theme</b></sub>
     </td>
   </tr>
 </table>
+
+<div align="center">
+  <a href="screenshots/14-all-themes-n64-theme.png">
+    <img src="screenshots/14-all-themes-n64-theme.png" width="520" alt="All Themes — N64 Theme"/>
+  </a>
+  <br/><sub><b>All Themes — N64 Theme</b></sub>
+</div>
 
 ## 📥 Download
 
