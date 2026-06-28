@@ -924,3 +924,39 @@ def test_history_fields_escaped_against_xss():
         src = read_source(f)
         assert "escH(item.title" in src and "escH(item.url" in src, \
             f"{f}: history title/url is not escaped before innerHTML"
+
+
+# ── Feed bullet guard (catches generation-layer drops) ─────────────────────────
+
+def test_generated_feeds_have_enough_bullets():
+    """_version_notes in every generated feed must carry >= 3 bullets.
+
+    Regression guard for the v1.2.3 generation bug: patchnotes.txt had 21
+    well-tagged bullets but the feed emitted only 1, because the shell command
+    used single-pipe separators ('|') while gen-update-json.py splits on triple-
+    pipe ('|||'). The existing patchnotes guard checked the source file and passed
+    (21 bullets) while the artifact was broken. This guard checks the artifact.
+
+    Run after feeds are generated (dist/*.json must exist).
+    """
+    import json as _json
+    from pathlib import Path
+    feeds = [
+        "dist/egm-version.json",
+        "dist/egm-portable-version.json",
+        "dist/egmac-update.json",
+        "dist/egmlinux-update.json",
+    ]
+    ROOT = Path(__file__).parent.parent
+    missing = [f for f in feeds if not (ROOT / f).exists()]
+    if missing:
+        import pytest
+        pytest.skip(f"Feed(s) not yet generated: {missing}")
+    for feed_path in feeds:
+        d = _json.loads((ROOT / feed_path).read_text(encoding="utf-8"))
+        notes = d.get("_version_notes", [])
+        assert len(notes) >= 3, (
+            f"{feed_path}: _version_notes has only {len(notes)} bullet(s) (need >= 3). "
+            f"Root cause: notes joined with wrong separator before passing to "
+            f"gen-update-json.py (must use '|||' not '|'). Regenerate the feeds."
+        )
