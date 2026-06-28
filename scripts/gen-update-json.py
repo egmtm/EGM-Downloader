@@ -163,6 +163,47 @@ def parse_history(platform, max_versions=5):
     return blocks[:max_versions]
 
 
+_BULLET = re.compile(r'^\s*•\s*\[(ALL|WINDOWS|MAC|LINUX)\]\s*(.+?)\s*$')
+_HEADER = re.compile(r'^v\d+\.\d+(?:\.\d+)?\s+-.+\([^)]+\)\s*$')
+_PLATFORM_TAGS = {
+    "win":   {"ALL", "WINDOWS"},
+    "mac":   {"ALL", "MAC"},
+    "linux": {"ALL", "LINUX"},
+}
+
+
+def gen_notes(platform):
+    """Extract _version_notes for the current version from patchnotes.txt.
+
+    Reads the first (newest) version block, collects every bullet tagged
+    [ALL] or the matching platform tag, and returns the text with all [TAG]
+    prefixes stripped. Subheaders (IMPROVEMENTS / FIXES) and blank lines are
+    ignored — every bullet in the block is collected regardless of structure.
+
+    platform must be one of 'win', 'mac', 'linux'.
+    """
+    allow = _PLATFORM_TAGS[platform]
+    try:
+        text = PATCHNOTES.read_text(encoding="utf-8")
+    except Exception:
+        return []
+
+    in_block = False
+    notes = []
+    for line in text.splitlines():
+        if _HEADER.match(line.strip()):
+            if in_block:
+                break           # hit the next version header — stop
+            in_block = True
+            continue
+        if not in_block:
+            continue
+        m = _BULLET.match(line)
+        if m and m.group(1) in allow:
+            notes.append(m.group(2))    # tag stripped — text only
+    return notes
+
+
 def write_json(filename, payload, dry_run, label):
     content = json.dumps(payload, indent=2) + "\n"
     out = DIST / filename
@@ -177,6 +218,8 @@ def write_json(filename, payload, dry_run, label):
 
 def gen_windows_portable(data, notes, dry_run, checksum="", size_bytes=0):
     """Generate update JSON for the Windows portable variant."""
+    if not notes:
+        notes = gen_notes("win")
     return write_json("egm-portable-version.json", {
         "_comment":       "EGM Downloader Windows Portable update feed. Upload to egerena.com/apps/egm-portable-version.json",
         "_version_notes": notes,
@@ -193,6 +236,8 @@ def gen_windows_portable(data, notes, dry_run, checksum="", size_bytes=0):
 
 
 def gen_windows(data, notes, dry_run, checksum="", size_bytes=0):
+    if not notes:
+        notes = gen_notes("win")
     p = data["platforms"]["windows"]
     payload = {
         "_comment":       "EGM Downloader Windows update feed. Upload to egerena.com/apps/egm-version.json",
@@ -214,6 +259,8 @@ def gen_windows(data, notes, dry_run, checksum="", size_bytes=0):
 
 
 def gen_mac(data, notes, dry_run, checksum="", size_bytes=0):
+    if not notes:
+        notes = gen_notes("mac")
     p = data["platforms"]["mac"]
     payload = {
         "_comment":       "EGM Downloader Mac update feed. Upload to egerena.com/apps/egmac-update.json",
@@ -234,6 +281,8 @@ def gen_mac(data, notes, dry_run, checksum="", size_bytes=0):
 
 
 def gen_linux(data, notes, dry_run, checksum="", size_bytes=0):
+    if not notes:
+        notes = gen_notes("linux")
     p = data["platforms"]["linux"]
     payload = {
         "_comment":       "EGM Downloader Linux — informational, no auto-update. Upload to egerena.com/apps/egmlinux-update.json",

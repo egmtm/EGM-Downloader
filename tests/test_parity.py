@@ -929,34 +929,57 @@ def test_history_fields_escaped_against_xss():
 # ── Feed bullet guard (catches generation-layer drops) ─────────────────────────
 
 def test_generated_feeds_have_enough_bullets():
-    """_version_notes in every generated feed must carry >= 3 bullets.
+    """_version_notes in every generated feed must:
+      - carry >= 3 bullets (not truncated)
+      - have all [TAG] prefixes stripped (user-facing text only)
+      - contain no foreign-platform bullets (no [WINDOWS] text in Mac/Linux feeds)
 
-    Regression guard for the v1.2.3 generation bug: patchnotes.txt had 21
-    well-tagged bullets but the feed emitted only 1, because the shell command
-    used single-pipe separators ('|') while gen-update-json.py splits on triple-
-    pipe ('|||'). The existing patchnotes guard checked the source file and passed
-    (21 bullets) while the artifact was broken. This guard checks the artifact.
+    Regression guard for two v1.2.3 generation bugs:
+      1. Single-pipe separator collapsed 21 bullets into 1 string.
+      2. Manual note prep emitted all 21 bullets with [TAG] prefixes intact
+         and no per-platform filtering — Mac/Linux feeds carried [WINDOWS] bullets.
+    The patchnotes.txt source guard passed green both times because it checks
+    the source, not the artifact. This guard checks the artifact.
 
     Run after feeds are generated (dist/*.json must exist).
     """
     import json as _json
-    from pathlib import Path
-    feeds = [
-        "dist/egm-version.json",
-        "dist/egm-portable-version.json",
-        "dist/egmac-update.json",
-        "dist/egmlinux-update.json",
-    ]
-    ROOT = Path(__file__).parent.parent
+    from pathlib import Path as _Path
+
+    ROOT = _Path(__file__).parent.parent
+    feeds = {
+        "dist/egm-version.json":          "win",
+        "dist/egm-portable-version.json": "win",
+        "dist/egmac-update.json":         "mac",
+        "dist/egmlinux-update.json":      "linux",
+    }
+    foreign_tags = {
+        "win":   ["[MAC]", "[LINUX]"],
+        "mac":   ["[WINDOWS]", "[LINUX]"],
+        "linux": ["[WINDOWS]", "[MAC]"],
+    }
+
     missing = [f for f in feeds if not (ROOT / f).exists()]
     if missing:
         import pytest
         pytest.skip(f"Feed(s) not yet generated: {missing}")
-    for feed_path in feeds:
+
+    for feed_path, plat in feeds.items():
         d = _json.loads((ROOT / feed_path).read_text(encoding="utf-8"))
         notes = d.get("_version_notes", [])
+
         assert len(notes) >= 3, (
             f"{feed_path}: _version_notes has only {len(notes)} bullet(s) (need >= 3). "
-            f"Root cause: notes joined with wrong separator before passing to "
-            f"gen-update-json.py (must use '|||' not '|'). Regenerate the feeds."
+            f"Feed generation truncated the notes. Regenerate."
         )
+        tag_prefixed = [n for n in notes if n.lstrip().startswith("[")]
+        assert not tag_prefixed, (
+            f"{feed_path}: {len(tag_prefixed)} bullet(s) still carry [TAG] prefix — "
+            f"gen_notes() must strip tags before storing. Example: {tag_prefixed[0]!r}"
+        )
+        for bad_tag in foreign_tags[plat]:
+            leaks = [n for n in notes if bad_tag in n]
+            assert not leaks, (
+                f"{feed_path} ({plat}): {len(leaks)} bullet(s) contain foreign tag "
+                f"{bad_tag!r} — per-platform filtering is broken. Example: {leaks[0]!r}"
+            )
