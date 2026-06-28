@@ -65,7 +65,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *These screenshots are representations of v1.2.3 — FULLY LOADED, releasing June 28, 2026. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.2.3 — FULLY LOADED. The UI is identical across Windows, macOS, and Linux.*
 
 <div align="center">
   <a href="screenshots/01-splash-screen.png">
@@ -173,31 +173,31 @@
 ## 📥 Download
 
 ### Windows
-**Latest:** v1.2.2 Build 135  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (466 KB · ~800 MB after install)  
-**SHA256:** `9a103060cd29273625cc6f779f3446a3bcff3023094b64aa7d8d341e698fd0e9`  
+**Latest:** v1.2.3 Build 136  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (469 KB · ~800 MB after install)  
+**SHA256:** `ad290ad19e824bc078df89aabd0edbacff21be54609f02b1fcb17eafd366b600`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
-**Latest:** v1.2.2 Build 135  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (454 KB · ~800 MB after first run)  
-**SHA256:** `d7a3144b5f2c269a5bf5d14cc1ff0c20fd49e91255ef44950101a46f853b5f43`  
+**Latest:** v1.2.3 Build 136  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (457 KB · ~800 MB after first run)  
+**SHA256:** `04983a103cd9683311106965997387a1991befbdb735bec7c55cbc3097bcc7e6`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### macOS
-**Latest:** v1.2.2 Build 135  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (129 MB · ~300 MB after install)  
-**SHA256:** `38dd97d5006160e5c6ebf41c652e1b74ba57cbdd687c77ee6000608fdb9c7fd6`  
+**Latest:** v1.2.3 Build 136  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (132 MB · ~300 MB after install)  
+**SHA256:** `f8e0e202d246f4eaa34ae8cd74bc25b0b17a7418f12a9e6fbdfe043615d2e1cc`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
-**Latest:** v1.2.2 Build 135  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (156 MB · ~300 MB after install)  
-**SHA256:** `705bb7baacf5ccfbaeddac4071b9b8797468e49af849add36f0d28659deee16d`  
+**Latest:** v1.2.3 Build 136  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (160 MB · ~300 MB after install)  
+**SHA256:** `37446d961f53fc82abe901a6a2324b5887b0e0b1c947f2ae72557e346f024f9c`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -325,17 +325,8 @@ All of CANVAS + Electron 42.5.0 (Wayland maximize fix, Windows edge cases, Chrom
 **v1.2.2 — SKELETON KEY:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.2)
 curl_cffi TLS impersonation — unlocks Kick VODs and sites that block standard HTTP clients; clean installs and portable covered
 
-**v1.2.3 — FULLY LOADED:** *(Shipping June 28, 2026)*
-- 📦 Optional libraries bundled — brotli, pycryptodomex, websockets, certifi alongside curl_cffi; expands site compatibility and SSL reliability out of the box
-- ⚙️ Optional libraries panel — new card in Advanced → Plugins to check and update all five independently; installed versions shown immediately on Mac and Linux too
-- 🎬 Universal MP4 now default — H.264 + AAC on all platforms; already-H.264 files remuxed without re-encoding
-- 🎨 Themes panel redesign — Create theme at top, recent themes list below, cleaner footer buttons; All count includes imported themes and updates live
-- 📜 History panel redesign — SVG action icons with hover-reveal, larger thumbnails, total count in header, unified footer
-- ⚙️ Settings panel redesign — Download folder + Format/Quality and Site Cookies in two side-by-side boxes
-- ⌨️ Ctrl+K opens Theme Creator from anywhere; listed in the help modal
-- 🔒 History XSS fix — title, filename, and URL fields escaped before rendering
-- 🪟 Windows portable — brotli sentinel fix; existing installs receive optional libraries automatically on next launch
-- 🧪 88 automated tests — all passing
+**v1.2.3 — FULLY LOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.3)
+Optional libraries bundled (brotli/pycryptodomex/websockets/certifi), Universal MP4 default, panel redesigns (Themes/History/Settings), Ctrl+K, History XSS fix, 88 tests, 9.5/10
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
@@ -440,10 +431,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version man
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 135 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 135 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 135 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 135 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 136 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 136 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 136 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 136 | EGMdL.zip | ❌ Manual |
 
 ### System Requirements
 
