@@ -12,7 +12,7 @@
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <a href="https://github.com/egmtm/EGM-Downloader/discussions"><img src="https://img.shields.io/badge/github-discussions-181717?logo=github" alt="GitHub Discussions"/></a>
     <a href="https://x.com/EGMDownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-000000?logo=x&logoColor=white" alt="Follow on X"/></a>
-    <img src="https://img.shields.io/badge/Electron-42.5.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-42.5.1-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Big_Sur+-000000?logo=apple&logoColor=white" alt="macOS"/>
@@ -175,14 +175,14 @@
 ### Windows
 **Latest:** v1.2.4 Build 137  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (469 KB · ~800 MB after install)  
-**SHA256:** `ad290ad19e824bc078df89aabd0edbacff21be54609f02b1fcb17eafd366b600`  
+**SHA256:** `961d94115ae3ff2de05f8079db0ddab0b965a81670ad00ec78c506a895bdfb64`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
 
 ### Windows Portable
 **Latest:** v1.2.4 Build 137  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (457 KB · ~800 MB after first run)  
-**SHA256:** `04983a103cd9683311106965997387a1991befbdb735bec7c55cbc3097bcc7e6`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (458 KB · ~800 MB after first run)  
+**SHA256:** `381808a272d2d66b8143091d681ee5fec6e0ffa8524dbdcf40ed691022dd0120`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
@@ -190,14 +190,14 @@
 ### macOS
 **Latest:** v1.2.4 Build 137  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (132 MB · ~300 MB after install)  
-**SHA256:** `f8e0e202d246f4eaa34ae8cd74bc25b0b17a7418f12a9e6fbdfe043615d2e1cc`  
+**SHA256:** `9da16e1b9387b2c7dac7b9b97c5926d3f5ff206074f4a4ffa1a30a6baa78ec8b`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 
 ### Linux
 **Latest:** v1.2.4 Build 137  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (160 MB · ~300 MB after install)  
-**SHA256:** `37446d961f53fc82abe901a6a2324b5887b0e0b1c947f2ae72557e346f024f9c`  
+**SHA256:** `59f041f6fdef77fe6bfbdaa1e7e58cc784c89c432b52a8b5b9acba15faa9bc29`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 
@@ -328,6 +328,9 @@ curl_cffi TLS impersonation — unlocks Kick VODs and sites that block standard 
 **v1.2.3 — FULLY LOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.3)
 Optional libraries bundled (brotli/pycryptodomex/websockets/certifi), Universal MP4 default, panel redesigns (Themes/History/Settings), Ctrl+K, History XSS fix, 88 tests, 9.5/10
 
+**v1.2.4 — FULLY RELOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.4)
+Electron 42.5.1, platform-filtered update feed, CI feed validation
+
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
 - 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
@@ -431,10 +434,10 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version man
 
 | Platform | Status | Build | Distribution | Auto-Update |
 |----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 136 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 136 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 136 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 136 | EGMdL.zip | ❌ Manual |
+| Windows (Installer) | ✅ Live | Build 137 | EGMd.zip | ✅ Yes |
+| Windows (Portable)  | ✅ Live | Build 137 | EGMd-portable.zip | ❌ Manual |
+| macOS    | ✅ Live | Build 137 | EGMdM.zip | ✅ Yes |
+| Linux    | ✅ Live | Build 137 | EGMdL.zip | ❌ Manual |
 
 ### System Requirements
 
