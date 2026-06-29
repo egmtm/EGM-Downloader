@@ -1,4 +1,4 @@
-v1.2.4 - MAINTENANCE PATCH (Build 137) (TBD)
+v1.2.4 - FULLY RELOADED (Build 137) (6/29/2026)
 -----------------------------------------
 
   • [ALL] Electron runtime updated to v42.5.1 — includes upstream Chromium stability improvements backported from the latest Chromium releases
