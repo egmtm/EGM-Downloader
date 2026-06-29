@@ -1,3 +1,10 @@
+v1.2.4 - MAINTENANCE PATCH (Build 137) (TBD)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v42.5.1 — includes upstream Chromium stability improvements backported from the latest Chromium releases
+  • [ALL] Update feed — What's New now shows only the relevant bullets for each platform, with internal tags stripped; previously all platforms could receive bullets intended for a different OS
+  • [ALL] Automated test coverage extended — update feed content is now validated on every CI run; catches feed generation issues before release rather than during signing
+
 v1.2.3 - FULLY LOADED (Build 136) (6/28/2026)
 -----------------------------------------
 
