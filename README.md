@@ -236,9 +236,9 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 > Settings and data stay in the same folder — take it anywhere.
 
 ### macOS
-1. Download `EGMdM.zip` and extract it
-2. In Terminal, run `bash mac/BUILD.sh` from the extracted folder
-3. The script builds and opens the `.dmg` — drag "EGM Downloader" to Applications
+1. Extract `EGMdM.zip`
+2. Open the `.dmg` file
+3. Drag "EGM Downloader" to Applications
 4. Launch from Applications folder
 
 ### Linux
