@@ -1,4 +1,4 @@
-v1.2.5 - Build TBD (TBD)
+v1.2.5 - MODERN (Build 138) (6/30/2026)
 -----------------------------------------
 
   • [LINUX] Frameless windows now have rounded corners by default, matching the existing look on Windows and macOS
