@@ -12,7 +12,7 @@
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <a href="https://github.com/egmtm/EGM-Downloader/discussions"><img src="https://img.shields.io/badge/github-discussions-181717?logo=github" alt="GitHub Discussions"/></a>
     <a href="https://x.com/EGMDownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-000000?logo=x&logoColor=white" alt="Follow on X"/></a>
-    <img src="https://img.shields.io/badge/Electron-42.5.1-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-43.0.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Big_Sur+-000000?logo=apple&logoColor=white" alt="macOS"/>
@@ -45,7 +45,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
-- 🎨 **420 Themes** - 398 permanent across 28 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 420, seasonal themes appear during their respective time of year.
+- 🎨 **440 Themes** - 418 permanent across 29 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 440, seasonal themes appear during their respective time of year.
 - 🎨 **Theme Creator** - Build your own theme with 10 live-preview color pickers, export as `.json`, save directly to your library, favorite alongside built-in themes
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
@@ -174,16 +174,16 @@
 
 ### Windows
 **Latest:** v1.2.5 Build 138  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (469 KB · ~800 MB after install)  
-**SHA256:** `961d94115ae3ff2de05f8079db0ddab0b965a81670ad00ec78c506a895bdfb64`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (473 KB · ~800 MB after install)  
+**SHA256:** `ee7e137f2dfe5e7b894cb274af13875f7aaeff3c9e3bd05f53c15dd839d6bc87`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.2.5 Build 138  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (458 KB · ~800 MB after first run)  
-**SHA256:** `381808a272d2d66b8143091d681ee5fec6e0ffa8524dbdcf40ed691022dd0120`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (463 KB · ~800 MB after first run)  
+**SHA256:** `539367dfc5d191a0f5d40d89f975ffce8556e19eeb6908463cdad0091569b7ae`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -191,16 +191,16 @@
 
 ### macOS
 **Latest:** v1.2.5 Build 138  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (132 MB · ~300 MB after install)  
-**SHA256:** `9da16e1b9387b2c7dac7b9b97c5926d3f5ff206074f4a4ffa1a30a6baa78ec8b`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (134 MB · ~300 MB after install)  
+**SHA256:** `7b1311dc67ec3cae0f1140e6980668ec01826dc4e681bb6d981799474bdf0e28`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Linux
 **Latest:** v1.2.5 Build 138  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (160 MB · ~300 MB after install)  
-**SHA256:** `59f041f6fdef77fe6bfbdaa1e7e58cc784c89c432b52a8b5b9acba15faa9bc29`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (162 MB · ~300 MB after install)  
+**SHA256:** `17a462f0713e8e4c5e0d49bcf0a8edce318ade9f47be4de304444d956771f53c`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
@@ -312,6 +312,9 @@ Optional libraries bundled (brotli/pycryptodomex/websockets/certifi), Universal 
 
 **v1.2.4 — FULLY RELOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.4)
 Electron 42.5.1, platform-filtered update feed, CI feed validation
+
+**v1.2.5 — MODERN:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.5)
+Electron 43.0.0, new Modern theme category (20 themes, 440 total), Linux frameless rounded corners, Linux system audio manager name fix
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
