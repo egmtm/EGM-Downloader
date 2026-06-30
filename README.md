@@ -178,6 +178,7 @@
 **SHA256:** `961d94115ae3ff2de05f8079db0ddab0b965a81670ad00ec78c506a895bdfb64`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+**Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.2.4 Build 137  
@@ -186,6 +187,7 @@
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+**Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 ### macOS
 **Latest:** v1.2.4 Build 137  
@@ -193,6 +195,7 @@
 **SHA256:** `9da16e1b9387b2c7dac7b9b97c5926d3f5ff206074f4a4ffa1a30a6baa78ec8b`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
+**Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Linux
 **Latest:** v1.2.4 Build 137  
@@ -200,8 +203,19 @@
 **SHA256:** `59f041f6fdef77fe6bfbdaa1e7e58cc784c89c432b52a8b5b9acba15faa9bc29`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
+**Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
-> **Note:** Distributions available on [apps.egerena.com](https://apps.egerena.com)
+---
+
+### ⚙️ System Requirements
+
+**Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
+
+**macOS:** macOS 11.0+ · Apple Silicon (M1–M5) · ~300 MB disk space
+
+**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support
+Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
+> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
 
 ---
 
@@ -222,9 +236,9 @@
 > Settings and data stay in the same folder — take it anywhere.
 
 ### macOS
-1. Extract `EGMdM.zip`
-2. Open the `.dmg` file
-3. Drag "EGM Downloader" to Applications
+1. Download `EGMdM.zip` and extract it
+2. In Terminal, run `bash mac/BUILD.sh` from the extracted folder
+3. The script builds and opens the `.dmg` — drag "EGM Downloader" to Applications
 4. Launch from Applications folder
 
 ### Linux
@@ -239,7 +253,7 @@
 ## 💡 Usage
 
 1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
-2. **Select Format** - Choose video (MP4 or MKV) or audio (MP3, M4A, OPUS, or FLAC)
+2. **Select Format** - Choose video (MP4, MP4 H.264, or MKV) or audio (MP3, M4A, OPUS, or FLAC). MP4 H.264 is the default — maximum compatibility everywhere.
 3. **Select Quality** - Choose resolution (up to 8K) or audio bitrate
 4. **Edit Filename** (Optional) - Click the filename to customize it
 5. **Download** - Click the download button and wait for completion
@@ -267,6 +281,16 @@
 - Some sites require browser cookies for premium or age-restricted content
 - Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
 - Cookies are stored locally on your machine and are never transmitted
+
+**Subscriptions:**
+- Subscribe to YouTube channels and playlists — fetch new videos automatically
+- Per-channel settings: custom download folder, format, and quality
+- Download queue shows all active downloads across all channels
+
+**Theme Creator:**
+- Open with Ctrl+K from anywhere in the app
+- 10 live-preview color pickers — the UI recolors in real time
+- Export as .json or save directly to your library
 
 ---
 
@@ -368,12 +392,13 @@ EGM-Downloader/
 ├── app.py                          ← Flask backend         [shared — all platforms]
 ├── templates/                      ← UI templates          [shared — Windows + Mac]
 │   ├── index.html                  ← Main UI shell
-│   ├── index_scripts.html          ← JS extracted
-│   ├── index_styles.html           ← CSS extracted
-│   ├── theme_data.html             ← THEME_DATA + THEMES array
+│   ├── subscriptions.html          ← Subscriptions window
 │   ├── history.html                ← Download history
 │   ├── themes.html                 ← Theme picker
-│   └── theme_styles.html           ← Theme CSS definitions
+│   ├── theme_data.html             ← THEME_DATA + THEMES array
+│   ├── theme_validator.html        ← Shared CSS variable validation gate
+│   ├── theme_styles.html           ← Theme CSS definitions
+│   └── js/                         ← Extracted JS partials
 ├── static/                         ← App icons             [shared — all platforms]
 ├── languages/                      ← i18n language files   [shared — all platforms]
 │
@@ -385,27 +410,6 @@ EGM-Downloader/
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version management workflow, and CI details.
-
----
-
-## 📦 Platforms
-
-| Platform | Status | Build | Distribution | Auto-Update |
-|----------|--------|-------|--------------|-------------|
-| Windows (Installer) | ✅ Live | Build 137 | EGMd.zip | ✅ Yes |
-| Windows (Portable)  | ✅ Live | Build 137 | EGMd-portable.zip | ❌ Manual |
-| macOS    | ✅ Live | Build 137 | EGMdM.zip | ✅ Yes |
-| Linux    | ✅ Live | Build 137 | EGMdL.zip | ❌ Manual |
-
-### System Requirements
-
-**Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
-
-**macOS:** macOS 11.0+ · Apple Silicon (M1–M5) · ~300 MB disk space
-
-**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support
-Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
-> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
 
 ---
 
