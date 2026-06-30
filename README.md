@@ -274,48 +274,6 @@
 
 ## 🗺️ Roadmap
 
-**v0.99.9 — COMMAND CENTER:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.9)
-Advanced panel in hamburger, splash polish, +20 themes
-
-**v0.99.10 — DIRECTOR'S CUT:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.10)
-Video thumbnails in history, expanded audio quality, +20 themes
-
-**v0.99.11 — FOUNDER'S EDITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.11)
-Puerto Rico Collection (22 themes), 67 new themes total, HTTPS-only thumbnail fetching
-
-**v0.99.12 — VAULT:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.12)
-Signed update manifests, security event logging, unit test suite (13 tests), contrast fixes
-
-**v0.99.13 — SOLID:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v0.99.13)
-Atomic file writes, strict image magic byte validation, Content-Type enforcement on thumbnails
-
-**v1.0 — CORNERSTONE:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.0)
-400 themes, YouTube fix, Theme Favorites, keyboard navigation, IPC hardening, 32 tests, source split, Electron 42.3.2
-
-**v1.0.1:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.1)
-Plugins panel moved to Advanced tab, collapsible grid, scroll-safe modal
-
-**v1.0.2:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.2)
-Direct-access nav buttons, enlarged logo, history panel fix
-
-**v1.0.3 — Locksmith:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.3)
-Concurrency backstop, path traversal fix, TOCTOU locks, Electron 42.4.0 + CVE-2026-9115/9116
-
-**v1.0.4 — Sharp:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.4)
-Full SVG icon upgrade, 2-column nav layout, card toggle contrast fix
-
-**v1.0.5:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.0.5)
-Hot patch — npm resolution fix for system-wide Node.js (credit: @Floffye, Issue #4)
-
-**v1.1 — IGNITION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.0)
-Subscriptions with per-channel settings, download queue, sub-app mode, SVG wordmark, live theme propagation, embedded Python (Windows Portable), Electron 42.4.1, security score 9.3/10
-
-**v1.1.1 — TRULY YOURS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.1)
-Theme import security, import/export selector, keyboard shortcuts, animation themes, pin to top, drag reorder, per-video quality override, Windows installer running-app detection
-
-**v1.1.2 — YOURS TO KEEP:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.1.2)
-Kanye album themes, scrollbar theming, settings layout redesign, fetch all channels, checkbox persistence, modal focus lock, single-instance lock, Electron 42.4.1
-
 **v1.2 — CANVAS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.0)
 Theme Creator with live preview, save to library, favorites; Universal MP4 H.264; orphan window fix; security 9.5/10, 49 tests
 
