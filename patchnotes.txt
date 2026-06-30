@@ -1,3 +1,10 @@
+v1.2.5 - Build TBD (TBD)
+-----------------------------------------
+
+  • [LINUX] Frameless windows now have rounded corners by default, matching the existing look on Windows and macOS
+  • [LINUX] App now shows its correct name and icon in the system volume/audio manager instead of generic "Chromium"
+  • [ALL] Electron runtime updated to v43.0.0 — includes Chromium and Node.js stability and security updates
+
 v1.2.4 - FULLY RELOADED (Build 137) (6/29/2026)
 -----------------------------------------
 
