@@ -177,7 +177,7 @@
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (469 KB · ~800 MB after install)  
 **SHA256:** `961d94115ae3ff2de05f8079db0ddab0b965a81670ad00ec78c506a895bdfb64`  
 **Requirements:** Windows 10/11 (64-bit)  
-**Code Signed:** Installer is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+**Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
@@ -186,7 +186,7 @@
 **SHA256:** `381808a272d2d66b8143091d681ee5fec6e0ffa8524dbdcf40ed691022dd0120`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
-**Code Signed:** Portable is signed with an IV certificate (SSL.com) — SmartScreen warnings may still appear until the certificate builds reputation. EV certificate planned for broader recognition.
+**Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 ### macOS
