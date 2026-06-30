@@ -204,7 +204,7 @@
 // Sidebar structure: ordered sections + categories per section
 const SECTIONS = [
   { label: 'Style',         cats: ['dark', 'futuristic', 'light', 'retro', 'space'] },
-  { label: 'Vibe',          cats: ['cities', 'food', 'moods', 'music', 'nature', 'sports', 'weather'] },
+  { label: 'Vibe',          cats: ['cities', 'food', 'modern', 'moods', 'music', 'nature', 'sports', 'weather'] },
   { label: 'Pop Culture',   cats: ['eightbit', 'animation', 'brands', 'characters', 'consoles', 'memes', 'movies'] },
   { label: 'Heritage',      cats: ['architecture', 'decades', 'eras', 'mythology', 'puerto_rico', 'venues'] },
   { label: 'Other',         cats: ['experimental', 'os', 'custom'] },
@@ -224,6 +224,7 @@ const CAT_LABELS = {
   futuristic:'Futuristic', brands:'Brands', venues:'Venues',
   eightbit:'8-Bit Era',
   animation:'Animation',
+  modern:'Modern',
 };
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';
