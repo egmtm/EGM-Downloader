@@ -864,18 +864,23 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             bitrate = audio_quality.split("_", 1)[1]
             if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
                 raise ValueError(f"invalid bitrate reached run_download: {audio_quality!r}")
-            args += ["-x", "--audio-format", "m4a",
-                     "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
+            # Pass the target bitrate AS --audio-quality (a plain number > 10, no "k").
+            # yt-dlp's FFmpegExtractAudio then emits `-b:a {bitrate}k` and NO `-q:a`,
+            # yielding true CBR at the selected bitrate. (Passing `--audio-quality 0`
+            # instead emits `-q:a 0`, which keeps libmp3lame/aac in VBR mode and makes
+            # the encoder IGNORE -b:a — the selected bitrate was silently not honored
+            # and every choice collapsed to ~VBR q0. Verified with real ffmpeg. Issue #11.)
+            # NB: must be the bare number ("192"), not "192k" — yt-dlp's float_or_none("192k")
+            # is None, which would emit no bitrate at all. FLAC is lossless (handled above).
+            args += ["-x", "--audio-format", "m4a", "--audio-quality", bitrate]
         elif audio_quality.startswith("opus_"):
             bitrate = audio_quality.split("_", 1)[1]
             if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
                 raise ValueError(f"invalid bitrate reached run_download: {audio_quality!r}")
-            args += ["-x", "--audio-format", "opus",
-                     "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
+            args += ["-x", "--audio-format", "opus", "--audio-quality", bitrate]
         else:
             q = audio_quality if audio_quality in ("128", "192", "320") else "320"
-            args += ["-x", "--audio-format", "mp3",
-                     "--postprocessor-args", f"ffmpeg:-b:a {q}k"]
+            args += ["-x", "--audio-format", "mp3", "--audio-quality", q]
         if format_id: args += ["-f", format_id]
         # Audio thumbnail embedding via mutagen (handles MP3/M4A/OPUS)
         if embed_metadata:
