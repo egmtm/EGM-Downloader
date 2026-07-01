@@ -1,7 +1,7 @@
-v1.2.6 - RIGHT ON KEY (Build TBD) (TBD)
+v1.2.6 - RIGHT ON KEY (Build 139) (7/1/2026)
 -----------------------------------------
 
-  • [ALL] Fixed MP3/M4A/Opus downloads sometimes saving as VBR (variable bitrate) instead of the selected CBR bitrate — audio tools like MediaInfo, AIMP, and foobar2000 now correctly report the chosen bitrate
+  • [ALL] Fixed MP3/M4A/Opus downloads sometimes saving as VBR (variable bitrate) instead of the selected CBR bitrate — audio tools like MediaInfo, AIMP, and foobar2000 now correctly report the chosen bitrate (reported by @Krezzin, thank you!)
   • [ALL] Rebalanced the Audio/Video format dropdowns in Settings so longer video format names display in full instead of getting cut off
   • [ALL] Settings and Advanced panels now use a simple arrow instead of "Show"/"Hide" text to indicate expand/collapse state
   • [ALL] New Sneakers theme category — 10 themes including Bred, Royal, Panda, and Grinch, plus a tribute pair honoring the shoe this project is named after: Brick by Brick and Brick After Brick
