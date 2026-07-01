@@ -22,14 +22,14 @@
     if (s.settings_open === true) {
       settingsOpen = true;
       document.getElementById('settings-body').classList.remove('collapsed');
-      document.getElementById('settings-toggle').textContent = '▼ Hide';
+      document.getElementById('settings-toggle').textContent = '▼';
       document.getElementById('settings-sec-hdr').classList.add('open');
     }
     if (s.upd_open === true) {
       updOpen = true;
       updLoaded = true;
       document.getElementById('plugins-body').classList.remove('collapsed');
-      document.getElementById('plugins-toggle').textContent = '▼ Hide';
+      document.getElementById('plugins-toggle').textContent = '▼';
       // Panel already open — load installed versions immediately
       (async () => {
         try {
@@ -155,7 +155,7 @@ let updLoaded = false;  // track if installed versions have been fetched yet
 function togglePluginsPanel() {
   updOpen = !updOpen;
   document.getElementById('plugins-body').classList.toggle('collapsed', !updOpen);
-  document.getElementById('plugins-toggle').textContent = updOpen ? '▼ Hide' : '▶ Show';
+  document.getElementById('plugins-toggle').textContent = updOpen ? '▼' : '▶';
   post('/api/settings/save', { upd_open: updOpen });
   // On first expand, immediately show installed versions
   if (updOpen && !updLoaded) {
@@ -196,7 +196,7 @@ let settingsOpen = false;  // starts collapsed
 function toggleSettingsPanel() {
   settingsOpen = !settingsOpen;
   document.getElementById('settings-body').classList.toggle('collapsed', !settingsOpen);
-  document.getElementById('settings-toggle').textContent = settingsOpen ? '▼ Hide' : '▶ Show';
+  document.getElementById('settings-toggle').textContent = settingsOpen ? '▼' : '▶';
   document.getElementById('settings-sec-hdr').classList.toggle('open', settingsOpen);
   post('/api/settings/save', { settings_open: settingsOpen });
 }
