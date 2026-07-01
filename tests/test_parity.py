@@ -983,3 +983,45 @@ def test_generated_feeds_have_enough_bullets():
                 f"{feed_path} ({plat}): {len(leaks)} bullet(s) contain foreign tag "
                 f"{bad_tag!r} — per-platform filtering is broken. Example: {leaks[0]!r}"
             )
+
+
+def test_audio_bitrate_is_cbr_not_vbr_qa():
+    """Audio bitrate selection must produce true CBR at the chosen bitrate, applied
+    identically on all 3 platforms.
+
+    The bitrate is passed AS ``--audio-quality`` (a bare number > 10) so yt-dlp's
+    FFmpegExtractAudio emits ``-b:a {n}k`` with NO ``-q:a`` -> true CBR. The earlier
+    ``--audio-quality 0`` approach emitted ``-q:a 0``, which kept libmp3lame/aac in VBR
+    mode and made the encoder IGNORE ``-b:a`` — every bitrate collapsed to ~VBR q0
+    (issue #11, confirmed with real ffmpeg). This locks the corrected mechanism and
+    guards against a regression back to ``--audio-quality 0`` or a ``-b:a`` postprocessor
+    arg in the audio-extraction branch.
+    """
+    blocks = {}
+    for f in PLATFORM_APP_FILES:
+        src = read_source(f)
+        m = re.search(r'if audio_quality == "flac":(.*?)\n        if format_id: args', src, re.DOTALL)
+        assert m, f"{f}: audio-format branch not found"
+        blk = m.group(0)
+        blocks[f] = blk
+
+        # Corrected mechanism: bitrate passed AS --audio-quality (yt-dlp -> -b:a, no -q:a).
+        assert '"--audio-format", "mp3", "--audio-quality", q]' in blk, \
+            f"{f}: MP3 does not pass the bitrate as --audio-quality (CBR path)"
+        assert '"--audio-format", "m4a", "--audio-quality", bitrate]' in blk, \
+            f"{f}: M4A does not pass the bitrate as --audio-quality (CBR path)"
+        assert '"--audio-format", "opus", "--audio-quality", bitrate]' in blk, \
+            f"{f}: OPUS does not pass the bitrate as --audio-quality (CBR path)"
+
+        # Regressions that reintroduce the -q:a-in-VBR bug must NOT reappear.
+        assert '"--audio-quality", "0"' not in blk, \
+            f"{f}: `--audio-quality 0` regressed — emits -q:a 0, forcing VBR and ignoring the bitrate"
+        assert 'ffmpeg:-b:a {' not in blk, \
+            f"{f}: audio branch reintroduced a `-b:a` postprocessor-arg (only meaningful without -q:a)"
+
+        # FLAC is lossless — untouched, no bitrate/quality flags.
+        assert 'args += ["-x", "--audio-format", "flac"]' in blk, f"{f}: FLAC branch changed"
+
+    # The whole audio-format branch must be byte-identical across all 3 platforms.
+    vals = list(blocks.values())
+    assert vals[0] == vals[1] == vals[2], "audio-format branch differs across platform app.py files"

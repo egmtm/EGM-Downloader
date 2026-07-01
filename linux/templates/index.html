@@ -1844,6 +1844,46 @@
   <div class="theme-swatches"><div class="theme-sw" style="background:#06060a"></div><div class="theme-sw" style="background:#0e0e14"></div><div class="theme-sw" style="background:#ff60d0"></div></div>
   <span class="theme-name">Y2K Revival</span><div class="theme-check"></div>
 </div>
+<div class="theme-row" data-theme="bred">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#060202"></div><div class="theme-sw" style="background:#0e0606"></div><div class="theme-sw" style="background:#cc0010"></div></div>
+  <span class="theme-name">Bred</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="royal">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#020408"></div><div class="theme-sw" style="background:#060810"></div><div class="theme-sw" style="background:#2040cc"></div></div>
+  <span class="theme-name">Royal</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="airmaxinfrared">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#0c0c10"></div><div class="theme-sw" style="background:#181820"></div><div class="theme-sw" style="background:#ff3820"></div></div>
+  <span class="theme-name">Air Max Infrared</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="seafoam">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#061210"></div><div class="theme-sw" style="background:#0c1e1c"></div><div class="theme-sw" style="background:#58d0c0"></div></div>
+  <span class="theme-name">Seafoam</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="turtledove">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#0e0c0a"></div><div class="theme-sw" style="background:#1a1816"></div><div class="theme-sw" style="background:#c8c0b0"></div></div>
+  <span class="theme-name">Turtle Dove</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="panda">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#040404"></div><div class="theme-sw" style="background:#0c0c0c"></div><div class="theme-sw" style="background:#f0f0f0"></div></div>
+  <span class="theme-name">Panda</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="syracuse">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#0e0600"></div><div class="theme-sw" style="background:#1c1000"></div><div class="theme-sw" style="background:#e86820"></div></div>
+  <span class="theme-name">Syracuse</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="grinch">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#040e00"></div><div class="theme-sw" style="background:#081c00"></div><div class="theme-sw" style="background:#78e800"></div></div>
+  <span class="theme-name">Grinch</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="brickbybrick">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#0e0600"></div><div class="theme-sw" style="background:#1c0e00"></div><div class="theme-sw" style="background:#e86820"></div></div>
+  <span class="theme-name">Brick by Brick</span><div class="theme-check"></div>
+</div>
+<div class="theme-row" data-theme="brickafterbrick">
+  <div class="theme-swatches"><div class="theme-sw" style="background:#0e0c08"></div><div class="theme-sw" style="background:#1c1a14"></div><div class="theme-sw" style="background:#cc2010"></div></div>
+  <span class="theme-name">Brick After Brick</span><div class="theme-check"></div>
+</div>
 </div>
 </div>
 </div>
@@ -1910,7 +1950,7 @@
             <span class="adv-divider-label">Plugins</span>
             <div style="display:flex;align-items:center;gap:6px">
               <span class="adv-divider-badge" id="plugins-status-badge"></span>
-              <button class="adv-toggle-btn" id="plugins-toggle" onclick="togglePluginsPanel()">▶ Show</button>
+              <button class="adv-toggle-btn" id="plugins-toggle" aria-label="Toggle plugins panel" onclick="togglePluginsPanel()">▶</button>
             </div>
           </div>
           <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, Deno, and optional library updates">
@@ -2004,7 +2044,7 @@
   <div class="sec-hdr" id="settings-sec-hdr" onclick="toggleSettingsPanel()">
     <span class="sec-title" title="Download folder, quality, format, and output preferences"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg> Settings</span>
     <div style="display:flex;align-items:center;gap:8px">
-      <button class="card-toggle" id="settings-toggle" onclick="event.stopPropagation();toggleSettingsPanel()">▶ Show</button>
+      <button class="card-toggle" id="settings-toggle" aria-label="Toggle settings" onclick="event.stopPropagation();toggleSettingsPanel()">▶</button>
     </div>
   </div>
   <div class="sec-body collapsed" id="settings-body">
@@ -2020,7 +2060,7 @@
         <span class="opt-label">Format / Quality</span>
         <div class="set-format-row">
           <span class="set-fmt-label">Audio</span>
-          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:0.75">
             <option value="320">MP3 320 kbps</option>
             <option value="192">MP3 192 kbps</option>
             <option value="128">MP3 128 kbps</option>
@@ -2031,7 +2071,7 @@
           </select>
           <div class="set-vsep"></div>
           <span class="set-fmt-label">Video</span>
-          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
+          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1.25">
             <option value="mp4_h264" selected>MP4 · H.264 (Max compatibility)</option>
             <option value="mp4">MP4</option>
             <option value="mkv">MKV</option>
