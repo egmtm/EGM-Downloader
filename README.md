@@ -45,7 +45,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
-- 🎨 **440 Themes** - 418 permanent across 29 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 440, seasonal themes appear during their respective time of year.
+- 🎨 **450 Themes** - 428 permanent across 30 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 450, seasonal themes appear during their respective time of year.
 - 🎨 **Theme Creator** - Build your own theme with 10 live-preview color pickers, export as `.json`, save directly to your library, favorite alongside built-in themes
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
@@ -174,16 +174,16 @@
 
 ### Windows
 **Latest:** v1.2.6 Build 139  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (473 KB · ~800 MB after install)  
-**SHA256:** `ee7e137f2dfe5e7b894cb274af13875f7aaeff3c9e3bd05f53c15dd839d6bc87`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (475 KB · ~800 MB after install)  
+**SHA256:** `5bd6367532ceb175fb7b5829d0728849bced3748fcf98997cec7dafb21853d78`  
 **Requirements:** Windows 10/11 (64-bit)  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.2.6 Build 139  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (463 KB · ~800 MB after first run)  
-**SHA256:** `539367dfc5d191a0f5d40d89f975ffce8556e19eeb6908463cdad0091569b7ae`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (467 KB · ~800 MB after first run)  
+**SHA256:** `52764a036934f12c471b1f05c4b650520e1919e5a6fe191810309c3a56865281`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (uses your system Python; Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -192,7 +192,7 @@
 ### macOS
 **Latest:** v1.2.6 Build 139  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (134 MB · ~300 MB after install)  
-**SHA256:** `7b1311dc67ec3cae0f1140e6980668ec01826dc4e681bb6d981799474bdf0e28`  
+**SHA256:** `8f61a5a3708816545601ecd08e66b6078363f7080f8f7a0a215b5708dd711b5c`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -200,7 +200,7 @@
 ### Linux
 **Latest:** v1.2.6 Build 139  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (162 MB · ~300 MB after install)  
-**SHA256:** `17a462f0713e8e4c5e0d49bcf0a8edce318ade9f47be4de304444d956771f53c`  
+**SHA256:** `0e5e18dcf29db8ae9235c4855147150f2b28b48ce130d833402d476ecc9dfe5d`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
@@ -316,12 +316,8 @@ Electron 42.5.1, platform-filtered update feed, CI feed validation
 **v1.2.5 — MODERN:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.5)
 Electron 43.0.0, new Modern theme category (20 themes, 440 total), Linux frameless rounded corners, Linux system audio manager name fix
 
-**v1.2.6 — RIGHT ON KEY:** 🔨 In progress
-- 🔊 Fixed audio bitrate — MP3/M4A/Opus downloads now correctly save at the selected CBR bitrate instead of sometimes defaulting to VBR
-- ⚙️ Rebalanced Settings dropdowns — longer video format names no longer get cut off
-- ⚙️ Simple arrow replaces "Show"/"Hide" text on Settings and Advanced panel toggles
-- 🎨 New Sneakers theme category — 10 themes including Bred, Royal, Panda, Grinch, and a tribute pair honoring the project's namesake shoe
-- 🎨 450 themes total
+**v1.2.6 — RIGHT ON KEY:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.6)
+Fixed audio CBR bitrate bug, rebalanced Settings dropdowns, arrow toggles, 10 new Sneakers themes, 450 total
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
