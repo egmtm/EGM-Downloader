@@ -1,3 +1,10 @@
+v1.2.6 - Build TBD (TBD)
+-----------------------------------------
+
+  • [ALL] Fixed MP3/M4A/Opus downloads sometimes saving as VBR (variable bitrate) instead of the selected CBR bitrate — audio tools like MediaInfo, AIMP, and foobar2000 now correctly report the chosen bitrate
+  • [ALL] Rebalanced the Audio/Video format dropdowns in Settings so longer video format names display in full instead of getting cut off
+  • [ALL] Settings and Advanced panels now use a simple arrow instead of "Show"/"Hide" text to indicate expand/collapse state
+
 v1.2.5 - MODERN (Build 138) (6/30/2026)
 -----------------------------------------
 
