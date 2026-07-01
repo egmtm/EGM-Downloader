@@ -955,17 +955,21 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             bitrate = audio_quality.split("_", 1)[1]
             if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
                 raise ValueError(f"invalid bitrate reached run_download: {audio_quality!r}")
-            args += ["-x", "--audio-format", "m4a",
+            # --audio-quality 0 suppresses yt-dlp's own default -q:a (VBR scale)
+            # injection into the ffmpeg command — without it, yt-dlp adds -q:a
+            # alongside our -b:a and the encoder silently produces VBR output
+            # despite the CBR bitrate flag being present. See issue #11.
+            args += ["-x", "--audio-format", "m4a", "--audio-quality", "0",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         elif audio_quality.startswith("opus_"):
             bitrate = audio_quality.split("_", 1)[1]
             if not (bitrate.isdigit() and 32 <= int(bitrate) <= 320):
                 raise ValueError(f"invalid bitrate reached run_download: {audio_quality!r}")
-            args += ["-x", "--audio-format", "opus",
+            args += ["-x", "--audio-format", "opus", "--audio-quality", "0",
                      "--postprocessor-args", f"ffmpeg:-b:a {bitrate}k"]
         else:
             q = audio_quality if audio_quality in ("128", "192", "320") else "320"
-            args += ["-x", "--audio-format", "mp3",
+            args += ["-x", "--audio-format", "mp3", "--audio-quality", "0",
                      "--postprocessor-args", f"ffmpeg:-b:a {q}k"]
         if format_id: args += ["-f", format_id]
         # Audio thumbnail embedding via mutagen (handles MP3/M4A/OPUS)
