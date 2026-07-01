@@ -1,4 +1,4 @@
-v1.2.6 - Build TBD (TBD)
+v1.2.6 - RIGHT ON KEY (Build TBD) (TBD)
 -----------------------------------------
 
   • [ALL] Fixed MP3/M4A/Opus downloads sometimes saving as VBR (variable bitrate) instead of the selected CBR bitrate — audio tools like MediaInfo, AIMP, and foobar2000 now correctly report the chosen bitrate
