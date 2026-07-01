@@ -316,6 +316,13 @@ Electron 42.5.1, platform-filtered update feed, CI feed validation
 **v1.2.5 — MODERN:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.5)
 Electron 43.0.0, new Modern theme category (20 themes, 440 total), Linux frameless rounded corners, Linux system audio manager name fix
 
+**v1.2.6 — RIGHT ON KEY:** 🔨 In progress
+- 🔊 Fixed audio bitrate — MP3/M4A/Opus downloads now correctly save at the selected CBR bitrate instead of sometimes defaulting to VBR
+- ⚙️ Rebalanced Settings dropdowns — longer video format names no longer get cut off
+- ⚙️ Simple arrow replaces "Show"/"Hide" text on Settings and Advanced panel toggles
+- 🎨 New Sneakers theme category — 10 themes including Bred, Royal, Panda, Grinch, and a tribute pair honoring the project's namesake shoe
+- 🎨 450 themes total
+
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
 - 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
