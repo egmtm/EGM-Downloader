@@ -162,11 +162,6 @@ def update_root_index_html(v, b, date, time_str, dry_run):
           rf'\g<1>v{v}\g<2>', dry_run)
 
 
-    # version-badge visible text
-    patch(path, "templates/index.html -> version-badge text",
-          r'(id="version-badge"[^>]*>)v[\d.]+(<)',
-          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
-
     # footer-version-pill text
     patch(path, "templates/index.html -> footer-version-pill text",
           r'(id="footer-version-pill"[^>]*>)v[\d.]+(</span>)',
@@ -206,11 +201,6 @@ def update_linux_index_html(v, b, date, time_str, dry_run):
           r'(<title>EGM Downloader )v[\d.]+(</title>)',
           rf'\g<1>v{v}\g<2>', dry_run)
 
-
-    # version-badge visible text
-    patch(path, "linux/templates/index.html -> version-badge text",
-          r'(id="version-badge"[^>]*>)v[\d.]+(<)',
-          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
     # footer-version-pill text
     patch(path, "linux/templates/index.html -> footer-version-pill text",
@@ -344,6 +334,8 @@ def main():
     data["build"]   = new_build
     data["date"]    = date
     data["time"]    = time_str
+    if "buildDate" in data:
+        data["buildDate"] = f"{date} {time_str}"
     save_version(data, args.dry_run)
 
     print("\n-- Shared / Windows (root) -------------------------------")
