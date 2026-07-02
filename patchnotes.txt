@@ -1,3 +1,15 @@
+v1.2.7 - Build TBD (TBD)
+-----------------------------------------
+
+  • [MAC] Fixed ffmpeg process not closing properly when cancelling a download or quitting the app
+  • [ALL] Fixed the "What's New" update modal never appearing after an update
+  • [ALL] Fixed "Download All" getting stuck if a queued item was removed mid-run
+  • [ALL] Fixed queue reorder arrows sometimes moving the wrong item
+  • [ALL] Fixed a crash when switching a subscription's format after setting a per-video quality override
+  • [ALL] Fixed audio and video quality selections interfering with each other in some cases
+  • [ALL] Fixed the History window sometimes keeping the wrong theme colors after switching themes
+  • [ALL] Fixed a rare issue where importing a history backup could affect files outside the app's folder
+
 v1.2.6 - RIGHT ON KEY (Build 139) (7/1/2026)
 -----------------------------------------
 
