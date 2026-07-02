@@ -212,8 +212,8 @@ The Linux build ships as an AppImage. AppImage cannot set SUID on the `chrome-sa
 - Checksum verification on all downloaded binaries
 
 We're tracking this gap. Two paths forward:
-- Ship `.deb` / Flatpak alongside AppImage (sandbox works in both) — v1.0+ packaging decision
-- Continue documenting honestly until usage volume justifies the packaging work
+- Ship `.deb` / Flatpak alongside AppImage (sandbox works in both) — not yet scheduled; revisit when Linux usage volume justifies the added packaging and maintenance work
+- Continue documenting honestly until then
 
 ---
 
