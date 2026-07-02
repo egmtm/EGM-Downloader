@@ -69,6 +69,10 @@ def test_routes_identical_across_platforms():
     """
     sources = {name: read_source(f) for name, f in zip(PLATFORM_NAMES, PLATFORM_APP_FILES)}
     routes  = {name: extract_routes(src) for name, src in sources.items()}
+    # Non-empty guard: if the @app.route regex ever breaks, every set is empty
+    # and the equality assertions below pass vacuously. Fail loudly instead.
+    for _name, _r in routes.items():
+        assert _r, f"{_name}: extract_routes returned no routes — the @app.route regex likely broke"
 
     # Windows vs Mac: remove Windows-only routes
     win_vs_mac = routes["windows"] - WIN_ONLY_ROUTES
@@ -109,6 +113,10 @@ def test_frontend_settings_keys_accepted_by_backend():
     for block in save_blocks:
         saved_keys.update(re.findall(r'["\']?([a-z_]+)["\']?\s*:', block))
 
+    # Non-empty guard: if either regex breaks, `unhandled` is empty and this
+    # passes vacuously. Confirm we actually parsed keys from both sides first.
+    assert allowed_keys, "extract_allowed_keys parsed no keys — regex likely broke"
+    assert saved_keys, "no settings/save keys parsed from the frontend — regex likely broke"
     unhandled = saved_keys - allowed_keys - {""}
     assert not unhandled, (
         f"Frontend sends keys not in backend ALLOWED (would be silently dropped): {unhandled}"
