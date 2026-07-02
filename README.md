@@ -174,16 +174,16 @@
 
 ### Windows
 **Latest:** v1.2.7 Build 140  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (475 KB · ~800 MB after install)  
-**SHA256:** `5bd6367532ceb175fb7b5829d0728849bced3748fcf98997cec7dafb21853d78`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (477 KB · ~800 MB after install)  
+**SHA256:** `80ba204b9eaf339b7036caef752efc7d34f4e8e5163344bc7d06d1d35194a074`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.2.7 Build 140  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (467 KB · ~800 MB after first run)  
-**SHA256:** `52764a036934f12c471b1f05c4b650520e1919e5a6fe191810309c3a56865281`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (468 KB · ~800 MB after first run)  
+**SHA256:** `998f309758ca199e7f09ba5340edb68ddd19914052d6301d18c0f68f12205619`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -192,7 +192,7 @@
 ### macOS
 **Latest:** v1.2.7 Build 140  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (134 MB · ~300 MB after install)  
-**SHA256:** `8f61a5a3708816545601ecd08e66b6078363f7080f8f7a0a215b5708dd711b5c`  
+**SHA256:** `329282aa587617d63d02d429a874719a0f14af19ff1c69c184637c6746985ee8`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -200,7 +200,7 @@
 ### Linux
 **Latest:** v1.2.7 Build 140  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (162 MB · ~300 MB after install)  
-**SHA256:** `0e5e18dcf29db8ae9235c4855147150f2b28b48ce130d833402d476ecc9dfe5d`  
+**SHA256:** `6c8a3fd09f6e14ce6a7916aee1f872dd02bb173f1c1ce3e3c2fe59194afb0cd7`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
@@ -320,6 +320,9 @@ Electron 43.0.0, new Modern theme category (20 themes, 440 total), Linux framele
 
 **v1.2.6 — RIGHT ON KEY:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.6)
 Fixed audio CBR bitrate bug, rebalanced Settings dropdowns, arrow toggles, 10 new Sneakers themes, 450 total
+
+**v1.2.7 — BATTLE TESTED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.7)
+13 stability fixes from independent review — queue reliability, download recovery, theme persistence, Mac ffmpeg cleanup
 
 **v1.3 — POLYGLOT:**
 - 🌍 In-app language picker — multi-language support, clean and unhurried
