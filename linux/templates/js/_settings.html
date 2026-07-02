@@ -581,13 +581,12 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
 // ── Deno installer ───────────────────────────────────────────────────────────
 async function installDeno() {
   const btn = document.getElementById('install-deno-btn');
-  const log = document.getElementById('deno-log');
-  if (!btn || !log) return;
+  const log = document.getElementById('deno-log');   // optional — the log panel was removed from the UI
+  if (!btn) return;
 
   btn.disabled = true;
   btn.textContent = '⏳ Installing...';
-  log.textContent = '';
-  log.classList.add('show');
+  if (log) { log.textContent = ''; log.classList.add('show'); }
 
   try {
     const r = await post('/api/deno/install', {});
@@ -598,8 +597,7 @@ async function installDeno() {
   const iv = setInterval(async () => {
     try {
       const s = await fetch('/api/deno/install-status').then(r => r.json());
-      log.textContent = (s.log || []).join('\n');
-      log.scrollTop = log.scrollHeight;
+      if (log) { log.textContent = (s.log || []).join('\n'); log.scrollTop = log.scrollHeight; }
 
       if (!s.running) {
         clearInterval(iv);

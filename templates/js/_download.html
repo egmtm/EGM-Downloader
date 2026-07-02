@@ -231,34 +231,34 @@ function renderCard(el, item) {
 
   document.getElementById(`dl${n}`).addEventListener('click', () => startDl(item, n));
 
-  // Queue reorder arrows — only shown on idle cards
+  // Queue reorder arrows — only shown on idle cards.
+  // Resolve everything through the items[] array by item id, NOT DOM position:
+  // fetch-error placeholder cards are .vcard nodes with no items[] entry, so a
+  // DOM index does not line up with an items[] index. Swapping by DOM index
+  // therefore reordered the wrong entries whenever an error card was present.
   el.querySelectorAll('.qarrow').forEach(btn => {
     btn.addEventListener('click', () => {
       const dir = btn.dataset.dir;
-      const results = document.getElementById('results');
-      const cards = [...results.querySelectorAll('.vcard')];
-      const domIdx = cards.indexOf(el);
-      if (domIdx === -1) return;
-      const swapIdx = dir === 'up' ? domIdx - 1 : domIdx + 1;
-      if (swapIdx < 0 || swapIdx >= cards.length) return;
-      const other = cards[swapIdx];
-      if (!other) return;
-      // Find items by card position
-      const itemA = items[domIdx];
-      const itemB = items[swapIdx];
+      const id  = +btn.dataset.id;
+      const idxA = items.findIndex(i => i.id === id);
+      if (idxA === -1) return;
+      const idxB = dir === 'up' ? idxA - 1 : idxA + 1;
+      if (idxB < 0 || idxB >= items.length) return;
+      const itemA = items[idxA];
+      const itemB = items[idxB];
       if (!itemA || !itemB || itemA.status !== 'idle' || itemB.status !== 'idle') return;
-      // Swap items array
-      [items[domIdx], items[swapIdx]] = [items[swapIdx], items[domIdx]];
-      // Swap DOM nodes. el and other are always ADJACENT cards, so a single
-      // insertBefore swaps them. The previous two-step dance captured
-      // el.nextSibling BEFORE mutating the DOM, so the second insertBefore used a
-      // stale reference — depending on the surrounding nodes it either no-op'd or
-      // un-did the first move, leaving the card unmoved (and the items array now
-      // out of sync with the DOM → the "wrong card moves" follow-on).
-      if (dir === 'up') {
-        results.insertBefore(el, other);    // el moves above other
-      } else {
-        results.insertBefore(other, el);    // other moves above el (el moves down)
+      // Swap in the items array
+      [items[idxA], items[idxB]] = [items[idxB], items[idxA]];
+      // Move el relative to the OTHER item's card (located by id, not DOM
+      // adjacency — an error card may sit between the two queue cards).
+      const results = document.getElementById('results');
+      const otherCard = document.getElementById('st' + itemB.id)?.closest('.vcard');
+      if (otherCard) {
+        if (dir === 'up') {
+          results.insertBefore(el, otherCard);    // el moves above other
+        } else {
+          results.insertBefore(otherCard, el);    // other moves above el (el moves down)
+        }
       }
       updateQueueArrows();
     });
@@ -517,6 +517,18 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
     try {
       const d = await fetch(`/api/status/${item.jobId}`).then(r => r.json());
       if (item.status === 'cancelled') return;
+      // Backend evicted the job (cleanup worker / app restart) — stop polling so
+      // the card doesn't hang on "Downloading…" forever (the subscriptions poller
+      // already handles this case).
+      if (d && d.error === 'Job not found') {
+        clearInterval(iv);
+        setBadge(stEl, 'error', 'Download interrupted');
+        if (progEl) progEl.style.display = 'none';
+        if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        item.status = 'error';
+        return;
+      }
       applyJobProgress(d, stEl, progEl);
       if (applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn)) clearInterval(iv);
     } catch {}

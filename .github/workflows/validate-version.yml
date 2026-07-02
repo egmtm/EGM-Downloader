@@ -13,9 +13,12 @@ on:
       - '**/package.json'
       - '**/app.py'
       - '**/templates/**'
+      - 'requirements.txt'
       - 'linux/INSTRUCTIONS.txt'
       - 'linux/requirements.txt'
       - 'mac/BUILD.sh'
+      - 'windows/BUILD.sh'
+      - 'windows/setup.nsi'
       - 'scripts/validate-version-sync.py'
   pull_request:
     branches: [ main, "testing/**", "themes/**" ]
@@ -24,9 +27,12 @@ on:
       - '**/package.json'
       - '**/app.py'
       - '**/templates/**'
+      - 'requirements.txt'
       - 'linux/INSTRUCTIONS.txt'
       - 'linux/requirements.txt'
       - 'mac/BUILD.sh'
+      - 'windows/BUILD.sh'
+      - 'windows/setup.nsi'
       - 'scripts/validate-version-sync.py'
 
 jobs:

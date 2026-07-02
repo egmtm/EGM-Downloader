@@ -146,10 +146,11 @@ echo ""
 # ── Notarization + Stapling ───────────────────────────────────────────────────
 if codesign --verify --deep --strict "$APP_PATH" 2>/dev/null; then
     echo "📤 Submitting DMG for Apple notarization (this takes 2-5 min)..."
-    xcrun notarytool submit "$DMG" \
+    # Use `if <cmd>` so a transient notarization failure does not trip `set -e`
+    # and abort the build — a signed-but-not-notarized DMG is still shippable.
+    if xcrun notarytool submit "$DMG" \
         --keychain-profile "EGM-Notarize" \
-        --wait
-    if [ $? -eq 0 ]; then
+        --wait; then
         echo "   ✓ Notarization accepted"
         echo "📌 Stapling notarization ticket to DMG..."
         xcrun stapler staple "$DMG"

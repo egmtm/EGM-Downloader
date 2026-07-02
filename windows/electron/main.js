@@ -419,8 +419,21 @@ ipcMain.handle('launch-installer', async (event, installerPath) => {
 });
 
 // ── IPC: quit app ─────────────────────────────────────────────────────────────
-ipcMain.handle('quit-app', (event) => {
+ipcMain.handle('quit-app', (event, opts) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
+  // opts.relaunch: reopen the app after it exits (Advanced -> Reinstall Electron
+  // -> "Restart now"). Relaunch the TOP-LEVEL launcher (which runs launch.py and
+  // processes the .electron-update marker), NOT Electron directly — a plain
+  // relaunch would bypass launch.py and skip the reinstall. Falls back to a plain
+  // relaunch if the launcher isn't found: the app still reopens and the marker
+  // persists, so the reinstall applies on the next manual launch.
+  if (opts && opts.relaunch) {
+    try {
+      const launcher = path.join(__dirname, '..', 'EGM Downloader.exe');
+      if (fs.existsSync(launcher)) app.relaunch({ execPath: launcher });
+      else app.relaunch();
+    } catch { try { app.relaunch(); } catch {} }
+  }
   app.isQuitting = true;
   app.quit();
   return { success: true };

@@ -744,12 +744,15 @@ app.on('before-quit', () => {
     req.end();
   } catch {}
 
-  // Kill the process group after a grace period (takes out yt-dlp + ffmpeg too)
+  // Kill Flask forcefully after a grace period if it's still up. Flask is
+  // spawned with detached:false, so it has no separate process group to
+  // target with -pid — that attempt always threw ESRCH and silently fell
+  // through to this same single-PID kill. The child tree (yt-dlp/ffmpeg) is
+  // cleaned up by the backend's own killpg via the /api/shutdown request above,
+  // not by this handler.
   setTimeout(() => {
     if (pid) {
-      try { process.kill(-pid, 'SIGTERM'); } catch {
-        try { process.kill(pid, 'SIGTERM'); } catch {}
-      }
+      try { process.kill(pid, 'SIGTERM'); } catch {}
     }
   }, 400);
 });

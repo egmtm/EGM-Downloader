@@ -69,6 +69,10 @@ def test_routes_identical_across_platforms():
     """
     sources = {name: read_source(f) for name, f in zip(PLATFORM_NAMES, PLATFORM_APP_FILES)}
     routes  = {name: extract_routes(src) for name, src in sources.items()}
+    # Non-empty guard: if the @app.route regex ever breaks, every set is empty
+    # and the equality assertions below pass vacuously. Fail loudly instead.
+    for _name, _r in routes.items():
+        assert _r, f"{_name}: extract_routes returned no routes — the @app.route regex likely broke"
 
     # Windows vs Mac: remove Windows-only routes
     win_vs_mac = routes["windows"] - WIN_ONLY_ROUTES
@@ -109,6 +113,10 @@ def test_frontend_settings_keys_accepted_by_backend():
     for block in save_blocks:
         saved_keys.update(re.findall(r'["\']?([a-z_]+)["\']?\s*:', block))
 
+    # Non-empty guard: if either regex breaks, `unhandled` is empty and this
+    # passes vacuously. Confirm we actually parsed keys from both sides first.
+    assert allowed_keys, "extract_allowed_keys parsed no keys — regex likely broke"
+    assert saved_keys, "no settings/save keys parsed from the frontend — regex likely broke"
     unhandled = saved_keys - allowed_keys - {""}
     assert not unhandled, (
         f"Frontend sends keys not in backend ALLOWED (would be silently dropped): {unhandled}"
@@ -261,6 +269,36 @@ def test_istrustedsender_count_locked():
     )
 
 
+def test_every_ipc_handler_is_gated():
+    """Structural gate — the one a magic total can't enforce.
+
+    A magic total (test above) does NOT catch adding an *ungated* ipcMain
+    handler: an ungated handler adds zero `isTrustedSender` occurrences, so the
+    total is unchanged and the total-lock passes. This asserts the invariant the
+    total only stands in for: in every main.js the number of `isTrustedSender`
+    occurrences equals the number of ipcMain handler registrations PLUS ONE (the
+    single `function isTrustedSender` definition) — i.e. every handler calls the
+    gate exactly once. Adding a handler without the check breaks the equality.
+    """
+    handler_re = re.compile(r'ipcMain\.(?:handle|on)\b')
+    defn_re    = re.compile(r'function\s+isTrustedSender\b')
+    for name, path in (
+        ("windows", "windows/electron/main.js"),
+        ("linux",   "linux/electron/main.js"),
+        ("mac",     "mac/electron/main.js"),
+    ):
+        src = read_source(path)
+        handlers = len(handler_re.findall(src))
+        checks   = src.count("isTrustedSender")
+        defs     = len(defn_re.findall(src))
+        assert defs == 1, f"{name}/main.js: expected exactly one isTrustedSender definition, found {defs}"
+        assert checks == handlers + defs, (
+            f"{name}/main.js: {handlers} ipcMain handlers but {checks - defs} "
+            f"isTrustedSender call sites — every handler must call the gate "
+            f"exactly once. An ungated handler is a security bypass."
+        )
+
+
 def test_security_markers_in_all_preload_js():
     """Every platform preload.js must contain the same bridge-layer validation."""
     REQUIRED = [
@@ -319,7 +357,7 @@ def test_theme_counts_consistent():
 
 def test_theme_counts_linux_parity():
     """Linux templates must have identical theme counts to root templates."""
-    for fname in ["index.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html", "js/_creator.html"]:
+    for fname in ["index.html", "index_styles.html", "index_scripts.html", "themes.html", "theme_styles.html", "theme_data.html", "subscriptions.html", "history.html", "theme_validator.html", "js/_core.html", "js/_settings.html", "js/_download.html", "js/_bulk.html", "js/_nav_history.html", "js/_theme.html", "js/_quality.html", "js/_creator.html"]:
         root = read_source(f"templates/{fname}")
         linux = read_source(f"linux/templates/{fname}")
         assert root == linux, f"templates/{fname} differs from linux/templates/{fname}"
