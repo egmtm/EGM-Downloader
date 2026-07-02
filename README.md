@@ -176,7 +176,7 @@
 **Latest:** v1.2.6 Build 139  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (475 KB · ~800 MB after install)  
 **SHA256:** `5bd6367532ceb175fb7b5829d0728849bced3748fcf98997cec7dafb21853d78`  
-**Requirements:** Windows 10/11 (64-bit)  
+**Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
@@ -206,6 +206,8 @@
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 ---
+
+<a id="system-requirements"></a>
 
 ### ⚙️ System Requirements
 
