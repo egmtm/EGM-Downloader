@@ -695,9 +695,16 @@ def _signal_running_instance():
         return False
 
 if __name__ == "__main__":
+    # If we are relaunching to reinstall Electron (Advanced -> Reinstall Electron
+    # -> "Restart now"), the outgoing instance may still be shutting down. Skip the
+    # already-running early-exit in that case, so a transient signal to the dying
+    # instance can't abort the reinstall — the marker is processed below.
+    _electron_marker = Path(__file__).parent / ".electron-update"
+    _reinstalling_electron = _electron_marker.exists()
+
     # Check if the app is already running — if so, signal it to show and exit.
     # Must happen before _gui_init() so no Tkinter window ever flashes.
-    if _signal_running_instance():
+    if not _reinstalling_electron and _signal_running_instance():
         sys.exit(0)
 
     # No _gui_init() here — the progress window is created lazily by _gui_msg()
@@ -714,9 +721,8 @@ if __name__ == "__main__":
         ensure_python_deps()
     node_exe = ensure_node()
 
-    # Check for Electron reinstall marker (set by Advanced → Reinstall Electron)
-    _electron_marker = Path(__file__).parent / ".electron-update"
-    if _electron_marker.exists():
+    # Process the Electron reinstall marker (set by Advanced → Reinstall Electron)
+    if _reinstalling_electron:
         _gui_msg("Reinstalling Electron…")
         try: shutil.rmtree(ELECTRON_DIR / "node_modules", ignore_errors=True)
         except Exception: pass

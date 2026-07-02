@@ -15,7 +15,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openFolder:        (folderPath)  => isStr(folderPath)
                                         ? ipcRenderer.invoke('open-folder', folderPath)
                                         : Promise.resolve({ error: 'Invalid path' }),
-  quit:              ()            => ipcRenderer.invoke('quit-app'),
+  quit:              (opts)         => ipcRenderer.invoke('quit-app', opts),
   saveFile:          (name, content) => ipcRenderer.invoke('save-file', name, content),
   openFile:          (options)       => ipcRenderer.invoke('open-file', options),
   openCookiesFile:   ()              => ipcRenderer.invoke('open-cookies-file'),
