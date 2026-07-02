@@ -261,8 +261,8 @@ def _load_history() -> list:
 def _save_history(items: list):
     try:
         _atomic_write_text(HISTORY_FILE, json.dumps(items, indent=2), owner_only=True)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[EGM] history save failed: {e}")
 
 def _is_internal_host(host: str) -> bool:
     """Return True if host resolves to a loopback/private/link-local/reserved
@@ -394,8 +394,10 @@ def _save_settings(data: dict):
         try:
             _settings_cache.update(data)
             _atomic_write_text(SETTINGS_FILE, json.dumps(_settings_cache, indent=2), owner_only=True)
-        except Exception:
-            pass
+        except Exception as e:
+            # Don't crash the request, but make a failed persist diagnosable —
+            # previously swallowed silently, so a lost-settings report had no trail.
+            print(f"[EGM] settings save failed: {e}")
 
 def _get_last_folder() -> str:
     return _load_settings().get("last_folder", "")

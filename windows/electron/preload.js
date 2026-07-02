@@ -16,7 +16,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
                                          ? ipcRenderer.invoke('open-folder', folderPath)
                                          : Promise.resolve({ error: 'Invalid path' }),
   createShortcut:  ()               => ipcRenderer.invoke('create-shortcut'),
-  quit:            ()               => ipcRenderer.invoke('quit-app'),
+  quit:            (opts)           => ipcRenderer.invoke('quit-app', opts),
   launchInstaller: (installerPath)  => isStr(installerPath)
                                          ? ipcRenderer.invoke('launch-installer', installerPath)
                                          : Promise.resolve({ error: 'Invalid installer path' }),

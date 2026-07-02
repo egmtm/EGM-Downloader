@@ -198,10 +198,17 @@ function videoQualityBgClick(e) {
 
   // Reinstall Electron (Windows only — shown via platform check below)
   document.getElementById('adv-electron-btn').addEventListener('click', async () => {
-    if (!confirm('Reinstall Electron on next restart?\n\nThe app will close. On next launch, Electron will be re-downloaded. Make sure you have an internet connection.')) return;
+    if (!confirm('Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
     const r = await post('/api/electron/reinstall', {});
-    if (r.ok) toast('Electron will reinstall on next restart — please close and reopen the app', 'ok');
-    else toast('Failed: ' + (r.error || 'unknown'), 'err');
+    if (!r.ok) { toast('Failed: ' + (r.error || 'unknown'), 'err'); return; }
+    // The reinstall only applies on a fresh launch — offer to restart now.
+    if (window.electronAPI && window.electronAPI.quit &&
+        confirm('Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
+      toast('Restarting to reinstall Electron…', 'ok');
+      setTimeout(() => window.electronAPI.quit({ relaunch: true }), 600);
+    } else {
+      toast('Electron will reinstall the next time you open the app', 'ok');
+    }
   });
   // Show Electron reinstall button only on Windows (Mac/Linux bundle Electron at build time)
   if (navigator.platform.startsWith('Win')) {
