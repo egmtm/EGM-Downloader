@@ -27,7 +27,7 @@ Then try launching again.
 
 COMPATIBLE DISTRIBUTIONS
 ────────────────────────────────────────
-Ubuntu 20.04, 22.04, 24.04
+Ubuntu 20.04, 22.04, 24.04, 26.04
 Linux Mint 20, 21, 22
 Pop!_OS 22.04
 Zorin OS 16, 17

@@ -98,11 +98,11 @@ Deno provides the secure runtime environment needed for bgutil-ytdlp-pot-provide
 ### bgutil-ytdlp-pot-provider
 **YouTube proof-of-origin token provider**
 
-- **License:** MIT
-- **Repository:** https://github.com/coletdjnz/bgutil-ytdlp-pot-provider
+- **License:** GPL-3.0
+- **Repository:** https://github.com/Brainicism/bgutil-ytdlp-pot-provider
 - **Purpose:** Enables downloads of age-restricted YouTube content
 
-**Thank you** to coletdjnz for solving the YouTube age-restriction challenge.
+**Thank you** to Brainicism for solving the YouTube age-restriction challenge.
 
 ---
 
@@ -252,8 +252,9 @@ To everyone who contributes to open source software - from bug reports to docume
 EGM Downloader is released under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, which is compatible with all the dependencies listed above.
 
 ### License Summary:
-- **MIT License:** Electron, Deno, bgutil-ytdlp-pot-provider, yt-dlp/ejs, curl_cffi, electron-builder, flake8, ESLint, Node.js
+- **MIT License:** Electron, Deno, yt-dlp/ejs, curl_cffi, electron-builder, flake8, ESLint, Node.js
 - **BSD-3-Clause:** Flask (Pallets)
+- **GPL-3.0:** bgutil-ytdlp-pot-provider
 - **GPL-2.0:** mutagen
 - **Unlicense (Public Domain):** yt-dlp
 - **LGPL/GPL:** FFmpeg (dynamically linked, separate binary)
