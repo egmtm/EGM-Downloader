@@ -1,6 +1,6 @@
 {
   "name": "egm-downloader",
-  "version": "1.2.6",
+  "version": "1.2.7",
   "description": "EGM Downloader \u2014 download videos from 1000+ sites",
   "main": "main.js",
   "author": "www.egerena.com",
@@ -104,6 +104,6 @@
       "en"
     ],
     "generateUpdatesFilesForAllChannels": false,
-    "buildVersion": "1.2.6"
+    "buildVersion": "1.2.7"
   }
 }

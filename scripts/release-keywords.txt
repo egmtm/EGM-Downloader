@@ -6,5 +6,5 @@
 # headline term(s). For a pure maintenance release with no headline feature, leave
 # this file empty (only comments) — the headline check then skips, but the
 # ">= 3 bullets" requirement still applies.
-bitrate
-cbr
+fixed
+stuck
