@@ -1097,7 +1097,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
             # Clean temp/intermediate files; look for a usable main file
             _all = glob.glob(str(out_dir / f"{job_id}.*"))
-            _temp_exts = {".vt", ".webp", ".json", ".ytdl", ".part"}
+            _temp_exts = {".vtt", ".webp", ".json", ".ytdl", ".part"}
             _main_file = None
             for _f in _all:
                 _p = Path(_f)
@@ -1139,7 +1139,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
         files = glob.glob(str(out_dir / f"{job_id}.*"))
         if not files:
-            job["status"] = "error"; job["error"] = "No output file found."; return
+            job["status"] = "error"; job["error"] = "No output file found."; job["_finished_at"] = time.time(); return
 
         if format_choice == "audio":
             if audio_quality == "flac":        want = ".flac"
@@ -1577,7 +1577,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
         if do_optlibs:
             log("Updating optional libraries...")
             r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
-                     "curl-cffi", "brotli", "pycryptodomex", "websockets",
+                     "curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--break-system-packages", timeout=120)
             if r.returncode == 0:
                 vers = _get_optlibs_versions()
@@ -2022,7 +2022,13 @@ def delete_history_entry(entry_id):
         items = _load_history()
         # Find and delete associated thumbnail
         for i in items:
-            if i.get("id") == entry_id and i.get("thumbnail"):
+            # Validate the stored name with the SAME allowlist the serve side
+            # uses: an imported history file can set `thumbnail` to a traversal
+            # ("../cookies.txt") or an absolute path, and pathlib's / with an
+            # absolute RHS escapes THUMBNAILS_DIR entirely — unlinking an
+            # arbitrary user-writable file.
+            if i.get("id") == entry_id and i.get("thumbnail") \
+                    and _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', i["thumbnail"]):
                 try: (THUMBNAILS_DIR / i["thumbnail"]).unlink(missing_ok=True)
                 except Exception: pass
         items = [i for i in items if i.get("id") != entry_id]

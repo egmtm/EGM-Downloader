@@ -995,7 +995,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
             # Clean temp/intermediate files; look for a usable main file
             _all = glob.glob(str(out_dir / f"{job_id}.*"))
-            _temp_exts = {".vt", ".webp", ".json", ".ytdl", ".part"}
+            _temp_exts = {".vtt", ".webp", ".json", ".ytdl", ".part"}
             _main_file = None
             for _f in _all:
                 _p = Path(_f)
@@ -1037,7 +1037,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
         files = glob.glob(str(out_dir / f"{job_id}.*"))
         if not files:
-            job["status"] = "error"; job["error"] = "No output file found."; return
+            job["status"] = "error"; job["error"] = "No output file found."; job["_finished_at"] = time.time(); return
 
         if format_choice == "audio":
             if audio_quality == "flac":        want = ".flac"
@@ -1214,18 +1214,19 @@ def cancel_download(job_id):
 
 @app.route("/api/status/<job_id>")
 def check_status(job_id):
-    job = jobs.get(job_id)
-    if not job: return jsonify({"error": "Job not found"}), 404
-    status = job["status"]
-    resp = {"status": status, "error": job.get("error"),
-            "filename": job.get("filename"), "progress": job.get("progress", 0),
-            "speed": job.get("speed", ""), "eta": job.get("eta", ""),
-            "filesize": job.get("filesize", "")}
-    if status in ("done", "error", "cancelled") and job.get("_ack"):
-        with _jobs_lock:
+    with _jobs_lock:
+        job = jobs.get(job_id)
+        if not job: return jsonify({"error": "Job not found"}), 404
+        status = job["status"]
+        resp = {"status": status, "error": job.get("error"),
+                "filename": job.get("filename"), "progress": job.get("progress", 0),
+                "speed": job.get("speed", ""), "eta": job.get("eta", ""),
+                "filesize": job.get("filesize", "")}
+        # Remove completed jobs from memory once the UI has consumed the result.
+        if status in ("done", "error", "cancelled") and job.get("_ack"):
             jobs.pop(job_id, None)
-    elif status in ("done", "error", "cancelled"):
-        job["_ack"] = True
+        elif status in ("done", "error", "cancelled"):
+            job["_ack"] = True   # mark — will be removed on next poll
     return jsonify(resp)
 
 @app.route("/api/settings")
@@ -1779,7 +1780,13 @@ def delete_history_entry(entry_id):
     with _history_lock:
         items = _load_history()
         for i in items:
-            if i.get("id") == entry_id and i.get("thumbnail"):
+            # Validate the stored name with the SAME allowlist the serve side
+            # uses: an imported history file can set `thumbnail` to a traversal
+            # ("../cookies.txt") or an absolute path, and pathlib's / with an
+            # absolute RHS escapes THUMBNAILS_DIR entirely — unlinking an
+            # arbitrary user-writable file.
+            if i.get("id") == entry_id and i.get("thumbnail") \
+                    and _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', i["thumbnail"]):
                 try: (THUMBNAILS_DIR / i["thumbnail"]).unlink(missing_ok=True)
                 except Exception: pass
         items = [i for i in items if i.get("id") != entry_id]

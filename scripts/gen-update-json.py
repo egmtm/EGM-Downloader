@@ -163,7 +163,14 @@ def parse_history(platform, max_versions=5):
     return blocks[:max_versions]
 
 
-_BULLET = re.compile(r'^\s*•\s*\[(ALL|WINDOWS|MAC|LINUX)\]\s*(.+?)\s*$')
+# A bullet may carry MORE THAN ONE leading tag, e.g. "• [WINDOWS] [MAC] Foo".
+# Capture the whole run of leading [TAG] prefixes (group 1) and the text after
+# them (group 2), then strip ALL tags — the old single-tag pattern left the
+# second tag embedded in the note text (and, for a feed whose platform matched
+# only the second tag, dropped the bullet entirely).
+_BULLET = re.compile(r'^\s*•\s*((?:\[[A-Z]+\]\s*)+)(.+?)\s*$')
+_TAG    = re.compile(r'\[([A-Z]+)\]')
+_KNOWN_TAGS = {"ALL", "WINDOWS", "MAC", "LINUX"}
 _HEADER = re.compile(r'^v\d+\.\d+(?:\.\d+)?\s+-.+\([^)]+\)\s*$')
 _PLATFORM_TAGS = {
     "win":   {"ALL", "WINDOWS"},
@@ -199,8 +206,13 @@ def gen_notes(platform):
         if not in_block:
             continue
         m = _BULLET.match(line)
-        if m and m.group(1) in allow:
-            notes.append(m.group(2))    # tag stripped — text only
+        if not m:
+            continue
+        tags = set(_TAG.findall(m.group(1))) & _KNOWN_TAGS
+        # Include the bullet if ANY of its known tags matches this platform's
+        # allowlist; emit the text with EVERY leading tag stripped.
+        if tags & allow:
+            notes.append(m.group(2))
     return notes
 
 

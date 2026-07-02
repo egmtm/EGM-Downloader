@@ -4,3 +4,31 @@ updates:
     directory: /
     schedule:
       interval: weekly
+
+  # Electron runtime — one entry per platform build dir. The value is the
+  # NOTIFICATION: a new Electron/electron-builder release is exactly the signal
+  # the major-vs-point-bump review discipline depends on. Kept low so these
+  # never pile up — a major Electron jump earns a full security-default review.
+  - package-ecosystem: npm
+    directory: /windows/electron
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+  - package-ecosystem: npm
+    directory: /mac/electron
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+  - package-ecosystem: npm
+    directory: /linux/electron
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2
+
+  # Python deps (yt-dlp lives outside pip, but flask/mutagen/cryptography and the
+  # optional libs are pinned here).
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2

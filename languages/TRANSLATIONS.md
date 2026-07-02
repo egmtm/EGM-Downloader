@@ -59,6 +59,19 @@ values pending translation.
 `audio.option.m4a_256/opus_128/opus_192.desc`, `subscriptions.*` (12 keys),
 `filename.modal.*` (3 keys), `plugins.portable.note`, `tooltip.*` (12 new tooltips)
 
+
+### 2026-06-24 — v1.2 CANVAS string pass (268 → 316 keys)
+
+Added 48 keys for the Theme Creator (docked panel) and Universal MP4 output.
+All 10 locale files updated to maintain key parity (structurally verified: zero
+missing / extra / empty / placeholder drift).
+
+**New keys (48):** `creator.*` (39 keys — panel title, live badge, name field,
+Close/Reset/Random/Export/Save buttons, 12 color-picker labels + descriptions,
+and the close/reset/overwrite confirm modals), plus `themes.btn.create`(+tooltip),
+`themes.saved.empty`, `themes.saved.delete.tooltip`, `themes.saved.fav.add/remove.tooltip`,
+`themes.filter.favorites_only`, `panel.themes.create`, and `card.format.video.h264`.
+
 ### 2026-06-11 — Fetch term correction in Spanish and Portuguese
 
 - `url.btn.fetch` and `url.btn.paste_fetch`: replaced "Buscar" (search) with "Obtener" (ES) and "Obter" (PT) — more precise distinction between fetch (retrieve metadata) and download (save file)

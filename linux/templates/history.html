@@ -152,12 +152,16 @@
   };
 })();
 (function() {
-  // Apply saved theme
-  // Apply saved theme and listen for changes
-  const ALL_HIST_THEMES = ['eclipse','ghost','frost','bone','haze','kush','purplehaze','sativa','ogcream','abyssal','wildfire','permafrost','canopy','magma','monsoon','famicom','gbc','dreamcast','blastprocessing','ps1gray','woodgrain','spartan','hylian','varia','cobaltrush','ghostofspartа','whitewolf','zion','twentyfortynine','thegrid','furyroad','thedon','hal','vhs','crt','cassette','arcade','polaroid','dialup','glitch','vaporwave','acid','tiedye','infrared','antimatter','snes','n64','gamecube','virtualboy','saturn','neogeo','chosenundead','vaultdweller','n7','dragonborn','bigboss','laracroft','holographic','y2k','liminal','signal','corrupted','neonnoir','valentines','stpatricks','easter','fourthofjuly','halloween','thanksgiving','christmas','newyear','diwali','vinyl','lofi','jazzclub','studiomidnight','rave','acoustic','bioluminescent','aurora','desertdusk','volcanic','tokyoneon','havana','dubaimidnight','favelasunset','melancholy','euphoria','tension','serenity','nostalgia','focus','cayde','zavala','savathun','thewitness','hyrule','velvetrose','nocturnix','hanami','sugarriot','sundrop','dreamdust','firstlight','neonkiss','prism','hanukkah','pitch','blanc','custom'];
+  // Apply saved theme and listen for changes.
+  // Track the single currently-applied theme class instead of maintaining a
+  // hardcoded list of every theme name — the old list drifted behind the 450-
+  // theme catalog (so switching away from a newer theme left a stale body
+  // class) and contained a Cyrillic-homoglyph key that never matched. Removing
+  // exactly what we last added needs no catalog knowledge and cannot drift.
+  let _histThemeClass = '';
   function applyHistTheme(name) {
-    document.body.classList.remove(...ALL_HIST_THEMES);
-    if (name && name !== 'void') document.body.classList.add(name);
+    if (_histThemeClass) { document.body.classList.remove(_histThemeClass); _histThemeClass = ''; }
+    if (name && name !== 'void') { document.body.classList.add(name); _histThemeClass = name; }
   }
   const theme = localStorage.getItem('egm-theme') || 'void';
   applyHistTheme(theme);

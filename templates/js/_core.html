@@ -151,7 +151,7 @@ function showUpdateAvailableModal(d) {
 
 // ── Check for Updates — called from footer only ──────────────────────────────
 async function checkForUpdates() {
-  const badge = document.getElementById('version-badge');
+  const badge = document.getElementById('footer-version-pill');
   if (badge) badge.style.opacity = '0.6';
   try {
     const d = await fetch('/api/check-app-update').then(r => r.json());
@@ -172,7 +172,7 @@ async function checkForUpdates() {
   } catch {
     showUpdateErrorModal();
   } finally {
-    const badge2 = document.getElementById('version-badge');
+    const badge2 = document.getElementById('footer-version-pill');
     if (badge2) badge2.style.opacity = '';
   }
 }
