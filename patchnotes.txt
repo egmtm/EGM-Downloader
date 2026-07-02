@@ -1,4 +1,4 @@
-v1.2.7 - Build TBD (TBD)
+v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
 
   • [MAC] Fixed ffmpeg process not closing properly when cancelling a download or quitting the app
