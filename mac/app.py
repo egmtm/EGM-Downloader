@@ -879,7 +879,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     if not job:
         return  # Job was removed before worker started
     out_dir = Path(download_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        # An unwritable or removed download dir (e.g. an unplugged USB drive or a
+        # deleted saved folder) must fail the job, not leave it stuck "queued".
+        job["status"] = "error"; job["error"] = _friendly_error(str(e)); job["_finished_at"] = time.time()
+        return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
 
     args = ["--no-playlist", "--no-check-formats", "--ignore-no-formats-error",
@@ -1816,7 +1822,13 @@ def check_app_update():
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
     """Download EGMdM.zip, verify SHA256 checksum, extract the DMG, mount it, and open a Finder
-    window so the user can drag EGM Downloader to Applications in one step."""
+    window so the user can drag EGM Downloader to Applications in one step.
+
+    Currently only invoked from Windows — both call sites in _core.html gate on
+    platform === 'win'. Kept for cross-platform route parity (locked by
+    test_routes_identical_across_platforms) and as a ready trigger for a future
+    Mac auto-update UI; the implementation itself is complete and hardened
+    (SSRF guard, fail-closed checksum verify, zip-slip guard)."""
     data    = request.get_json(silent=True) or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     expected_checksum = data.get("expected_checksum", "").strip().lower()

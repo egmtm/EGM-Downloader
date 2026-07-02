@@ -840,7 +840,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     if not job:
         return  # Job was removed before worker started
     out_dir = Path(download_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        # An unwritable or removed download dir (e.g. an unplugged USB drive or a
+        # deleted saved folder) must fail the job, not leave it stuck "queued".
+        job["status"] = "error"; job["error"] = _friendly_error(str(e)); job["_finished_at"] = time.time()
+        return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
 
     args = ["--no-playlist", "--no-check-formats", "--ignore-no-formats-error",

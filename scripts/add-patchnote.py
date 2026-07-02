@@ -49,12 +49,25 @@ Note:
 """
 
 import json
+import re
 import sys
 import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent
 PATCHNOTES = ROOT / "patchnotes.txt"
+
+
+_TAG_RE = re.compile(r'^\[(ALL|WINDOWS|MAC|LINUX)\]')
+
+
+def _tag_bullet(x):
+    """Feed parsers require a leading [TAG]; default to [ALL] if the author did
+    not specify one, so bullets added here are never silently dropped."""
+    x = x.strip()
+    if not _TAG_RE.match(x):
+        x = f"[ALL] {x}"
+    return f"  • {x}"
 
 
 def main():
@@ -73,7 +86,7 @@ def main():
 
     header    = f"v{v} - Build {b} ({d} {t})"
     separator = "-" * len(header)
-    bullets   = "\n".join(f"  • {x}" for x in args.bullets)
+    bullets   = "\n".join(_tag_bullet(x) for x in args.bullets)
     section   = f"{header}\n{separator}\n{bullets}\n"
 
     existing = PATCHNOTES.read_text(encoding="utf-8") if PATCHNOTES.exists() else ""

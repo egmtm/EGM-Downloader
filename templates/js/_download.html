@@ -517,6 +517,18 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
     try {
       const d = await fetch(`/api/status/${item.jobId}`).then(r => r.json());
       if (item.status === 'cancelled') return;
+      // Backend evicted the job (cleanup worker / app restart) — stop polling so
+      // the card doesn't hang on "Downloading…" forever (the subscriptions poller
+      // already handles this case).
+      if (d && d.error === 'Job not found') {
+        clearInterval(iv);
+        setBadge(stEl, 'error', 'Download interrupted');
+        if (progEl) progEl.style.display = 'none';
+        if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
+        if (cancelBtn) cancelBtn.style.display = 'none';
+        item.status = 'error';
+        return;
+      }
       applyJobProgress(d, stEl, progEl);
       if (applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn)) clearInterval(iv);
     } catch {}
