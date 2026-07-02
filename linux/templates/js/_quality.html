@@ -3,7 +3,10 @@ let _selectedAudioQuality = '320';
 
 (function() {
   const modal   = document.getElementById('audio-quality-modal');
-  const options = document.querySelectorAll('.quality-option');
+  // Scope to THIS modal — a bare '.quality-option' also matches the video
+  // quality modal's options, so clicking a video option would otherwise clear
+  // the audio selection and set _selectedAudioQuality to undefined.
+  const options = modal.querySelectorAll('.quality-option');
   const confirm = document.getElementById('audio-quality-confirm-btn');
 
   options.forEach(opt => {
@@ -87,7 +90,7 @@ function videoQualityBgClick(e) {
 (async function() {
   try {
     const s = await fetch('/api/settings').then(r => r.json());
-    const currentVersion = document.getElementById('version-badge')?.textContent?.trim() || '';
+    const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
     if (currentVersion && s.last_seen_version !== currentVersion) {
       // Show What's New modal immediately with loading state
       document.getElementById('whats-new-version').textContent = currentVersion;
@@ -171,20 +174,41 @@ function videoQualityBgClick(e) {
     }
   });
 
-  // Reinstall Deno
+  // Reinstall Deno — live, no restart. Kicks off the background installer and
+  // polls /api/deno/install-status, exactly like the first-time install path.
   document.getElementById('adv-deno-btn').addEventListener('click', async () => {
-    if (!confirm('Remove the current Deno installation?\n\nDeno will reinstall on next launch. Make sure you have an internet connection.')) return;
+    if (!confirm('Reinstall Deno now?\n\nThe current Deno runtime is replaced with a fresh download — no restart needed. Make sure you have an internet connection.')) return;
+    const btn = document.getElementById('adv-deno-btn');
+    if (btn) btn.disabled = true;
     const r = await post('/api/deno/reinstall', {});
-    if (r.ok) toast('Deno removed — will reinstall on next launch', 'ok');
-    else toast('Failed: ' + (r.error || 'unknown'), 'err');
+    if (!r.started) { toast(r.error || 'Reinstall failed', 'err'); if (btn) btn.disabled = false; return; }
+    toast('Reinstalling Deno…', 'ok');
+    const iv = setInterval(async () => {
+      try {
+        const s = await fetch('/api/deno/install-status').then(r => r.json());
+        if (s.running) return;
+        clearInterval(iv);
+        if (btn) btn.disabled = false;
+        if (s.error) toast('Deno reinstall failed: ' + s.error, 'err');
+        else toast('Deno reinstalled — YouTube signature solving active', 'ok');
+        if (typeof refreshUpdGrid === 'function') refreshUpdGrid();
+      } catch {}
+    }, 800);
   });
 
   // Reinstall Electron (Windows only — shown via platform check below)
   document.getElementById('adv-electron-btn').addEventListener('click', async () => {
-    if (!confirm('Reinstall Electron on next restart?\n\nThe app will close. On next launch, Electron will be re-downloaded. Make sure you have an internet connection.')) return;
+    if (!confirm('Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
     const r = await post('/api/electron/reinstall', {});
-    if (r.ok) toast('Electron will reinstall on next restart — please close and reopen the app', 'ok');
-    else toast('Failed: ' + (r.error || 'unknown'), 'err');
+    if (!r.ok) { toast('Failed: ' + (r.error || 'unknown'), 'err'); return; }
+    // The reinstall only applies on a fresh launch — offer to restart now.
+    if (window.electronAPI && window.electronAPI.quit &&
+        confirm('Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
+      toast('Restarting to reinstall Electron…', 'ok');
+      setTimeout(() => window.electronAPI.quit({ relaunch: true }), 600);
+    } else {
+      toast('Electron will reinstall the next time you open the app', 'ok');
+    }
   });
   // Show Electron reinstall button only on Windows (Mac/Linux bundle Electron at build time)
   if (navigator.platform.startsWith('Win')) {

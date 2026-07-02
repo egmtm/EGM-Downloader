@@ -82,7 +82,7 @@ let _historyTotal = 0;
 let _historyBatches = [];     // [{page, items}] — already loaded pages
 let _pinnedIds = new Set();
 try { _pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') || '[]') || []).map(String)); } catch {}
-const HBATCH = 10;
+const HBATCH = 5;   // fetch == shown; fetching 10 while showing 5 skipped entries 6–10
 
 function _fmtSize(b) {
   if (!b) return '';

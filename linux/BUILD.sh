@@ -216,10 +216,18 @@ echo ""
 # ── Push to GitHub ────────────────────────────────────────────────────────────
 echo "🚀 Pushing to GitHub..."
 cd "$REPO_ROOT"
-echo "$BUILD_NUM" > scripts/last-released-build.txt
-git add -A
-git commit -m "Linux v$VERSION Build $BUILD_NUM"
-git push origin main
+# Guard the commit: under `set -e`, an unconditional `git commit` on a clean
+# tree (e.g. a rebuild with no source changes) exits non-zero and aborts the
+# whole build. Mirror the Windows guard — only commit when something changed.
+if git status --porcelain | grep -q .; then
+    echo "$BUILD_NUM" > scripts/last-released-build.txt
+    git add -A
+    git commit -m "Linux v$VERSION Build $BUILD_NUM"
+    git push origin main
+    echo "   ✓ Pushed"
+else
+    echo "   ✓ No source changes to commit (binaries are gitignored)"
+fi
 
 echo ""
 echo "╔════════════════════════════════════════╗"

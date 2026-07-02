@@ -280,8 +280,8 @@ def _load_history() -> list:
 def _save_history(items: list):
     try:
         _atomic_write_text(HISTORY_FILE, json.dumps(items, indent=2), owner_only=True)
-    except Exception:
-        pass
+    except Exception as e:
+        print(f"[EGM] history save failed: {e}")
 
 def _is_internal_host(host: str) -> bool:
     """Return True if host resolves to a loopback/private/link-local/reserved
@@ -413,8 +413,10 @@ def _save_settings(data: dict):
         try:
             _settings_cache.update(data)
             _atomic_write_text(SETTINGS_FILE, json.dumps(_settings_cache, indent=2), owner_only=True)
-        except Exception:
-            pass
+        except Exception as e:
+            # Don't crash the request, but make a failed persist diagnosable —
+            # previously swallowed silently, so a lost-settings report had no trail.
+            print(f"[EGM] settings save failed: {e}")
 
 def _get_last_folder() -> str:
     return _load_settings().get("last_folder", "")
@@ -526,8 +528,9 @@ def _friendly_error(raw: str) -> str:
 def _kill_proc(proc: subprocess.Popen) -> None:
     """Kill a yt-dlp process and its entire child tree (including ffmpeg).
     On Windows uses taskkill /F /T which traverses the process tree.
-    On other platforms falls back to proc.kill() (Unix signals propagate via
-    process groups when yt-dlp is not detached, which is our case)."""
+    On macOS the download proc is spawned with start_new_session=True, so
+    os.killpg on its process group reaches the yt-dlp *and* ffmpeg children;
+    proc.kill() (single PID) is only a fallback."""
     if proc is None:
         return
     try:
@@ -537,7 +540,11 @@ def _kill_proc(proc: subprocess.Popen) -> None:
                 capture_output=True, creationflags=_NO_WINDOW
             )
         else:
-            proc.kill()
+            import signal
+            try:
+                os.killpg(os.getpgid(proc.pid), signal.SIGTERM)
+            except Exception:
+                proc.kill()
     except Exception:
         pass
 
@@ -874,7 +881,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     if not job:
         return  # Job was removed before worker started
     out_dir = Path(download_dir)
-    out_dir.mkdir(parents=True, exist_ok=True)
+    try:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    except Exception as e:
+        # An unwritable or removed download dir (e.g. an unplugged USB drive or a
+        # deleted saved folder) must fail the job, not leave it stuck "queued".
+        job["status"] = "error"; job["error"] = _friendly_error(str(e)); job["_finished_at"] = time.time()
+        return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
 
     args = ["--no-playlist", "--no-check-formats", "--ignore-no-formats-error",
@@ -969,7 +982,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
     try:
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-                         text=True, encoding="utf-8", errors="replace")
+                         text=True, encoding="utf-8", errors="replace",
+                         start_new_session=True)
         job["proc"]    = proc
         job["status"]  = "downloading"
         job["speed"]   = ""
@@ -1041,7 +1055,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
             # Clean temp/intermediate files; look for a usable main file
             _all = glob.glob(str(out_dir / f"{job_id}.*"))
-            _temp_exts = {".vt", ".webp", ".json", ".ytdl", ".part"}
+            _temp_exts = {".vtt", ".webp", ".json", ".ytdl", ".part"}
             _main_file = None
             for _f in _all:
                 _p = Path(_f)
@@ -1083,7 +1097,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
         files = glob.glob(str(out_dir / f"{job_id}.*"))
         if not files:
-            job["status"] = "error"; job["error"] = "No output file found."; return
+            job["status"] = "error"; job["error"] = "No output file found."; job["_finished_at"] = time.time(); return
 
         if format_choice == "audio":
             if audio_quality == "flac":        want = ".flac"
@@ -1810,7 +1824,13 @@ def check_app_update():
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
     """Download EGMdM.zip, verify SHA256 checksum, extract the DMG, mount it, and open a Finder
-    window so the user can drag EGM Downloader to Applications in one step."""
+    window so the user can drag EGM Downloader to Applications in one step.
+
+    Currently only invoked from Windows — both call sites in _core.html gate on
+    platform === 'win'. Kept for cross-platform route parity (locked by
+    test_routes_identical_across_platforms) and as a ready trigger for a future
+    Mac auto-update UI; the implementation itself is complete and hardened
+    (SSRF guard, fail-closed checksum verify, zip-slip guard)."""
     data    = request.get_json(silent=True) or {}
     zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
     expected_checksum = data.get("expected_checksum", "").strip().lower()
@@ -1922,12 +1942,25 @@ def settings_reset():
 
 @app.route("/api/deno/reinstall", methods=["POST"])
 def deno_reinstall():
-    """Delete Deno binary so it is reinstalled on next launch."""
-    try:
-        if DENO_EXE.exists(): DENO_EXE.unlink()
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    """Reinstall Deno live — remove the current binary and re-download it in the
+    background, no app restart. The frontend polls /api/deno/install-status for
+    progress (the same worker as first-time install). Refused while a download is
+    active: a running Deno process can't be replaced (Windows file lock) and
+    swapping it mid-run would break an in-flight bgutil token fetch."""
+    with _active_procs_lock:
+        busy = bool(_active_procs)
+    if busy:
+        return jsonify({"error": "A download is in progress — please wait for it to finish, then reinstall Deno."}), 409
+    with _deno_install_lock:
+        if deno_install_status.get("running"):
+            return jsonify({"error": "Deno install already running"}), 409
+        try:
+            if DENO_EXE.exists(): DENO_EXE.unlink()
+        except Exception as e:
+            return jsonify({"error": f"Could not remove the current Deno binary: {e}"}), 500
+        deno_install_status["running"] = True
+    threading.Thread(target=_run_deno_install, daemon=True).start()
+    return jsonify({"started": True})
 
 # ── History routes ────────────────────────────────────────────────────────────
 @app.route("/api/history")
@@ -1949,7 +1982,13 @@ def delete_history_entry(entry_id):
     with _history_lock:
         items = _load_history()
         for i in items:
-            if i.get("id") == entry_id and i.get("thumbnail"):
+            # Validate the stored name with the SAME allowlist the serve side
+            # uses: an imported history file can set `thumbnail` to a traversal
+            # ("../cookies.txt") or an absolute path, and pathlib's / with an
+            # absolute RHS escapes THUMBNAILS_DIR entirely — unlinking an
+            # arbitrary user-writable file.
+            if i.get("id") == entry_id and i.get("thumbnail") \
+                    and _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', i["thumbnail"]):
                 try: (THUMBNAILS_DIR / i["thumbnail"]).unlink(missing_ok=True)
                 except Exception: pass
         items = [i for i in items if i.get("id") != entry_id]

@@ -1116,8 +1116,9 @@ function renderDetail() {
     });
   }
 
-  // Per-row quality override map (one-time, cleared on format change)
-  const videoQualityOverride = {};
+  // Per-row quality override map (cleared on format change via updateQualityOptions,
+  // which reassigns this binding — so it must be `let`, not `const`).
+  let videoQualityOverride = {};
   document.querySelectorAll('.vq-sel').forEach(sel => {
     sel.addEventListener('change', () => {
       videoQualityOverride[sel.dataset.videoId] = sel.value;
