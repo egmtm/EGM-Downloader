@@ -1940,12 +1940,25 @@ def settings_reset():
 
 @app.route("/api/deno/reinstall", methods=["POST"])
 def deno_reinstall():
-    """Delete Deno binary so it is reinstalled on next launch."""
-    try:
-        if DENO_EXE.exists(): DENO_EXE.unlink()
-        return jsonify({"ok": True})
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    """Reinstall Deno live — remove the current binary and re-download it in the
+    background, no app restart. The frontend polls /api/deno/install-status for
+    progress (the same worker as first-time install). Refused while a download is
+    active: a running Deno process can't be replaced (Windows file lock) and
+    swapping it mid-run would break an in-flight bgutil token fetch."""
+    with _active_procs_lock:
+        busy = bool(_active_procs)
+    if busy:
+        return jsonify({"error": "A download is in progress — please wait for it to finish, then reinstall Deno."}), 409
+    with _deno_install_lock:
+        if deno_install_status.get("running"):
+            return jsonify({"error": "Deno install already running"}), 409
+        try:
+            if DENO_EXE.exists(): DENO_EXE.unlink()
+        except Exception as e:
+            return jsonify({"error": f"Could not remove the current Deno binary: {e}"}), 500
+        deno_install_status["running"] = True
+    threading.Thread(target=_run_deno_install, daemon=True).start()
+    return jsonify({"started": True})
 
 # ── History routes ────────────────────────────────────────────────────────────
 @app.route("/api/history")

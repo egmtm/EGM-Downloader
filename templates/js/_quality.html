@@ -174,12 +174,26 @@ function videoQualityBgClick(e) {
     }
   });
 
-  // Reinstall Deno
+  // Reinstall Deno — live, no restart. Kicks off the background installer and
+  // polls /api/deno/install-status, exactly like the first-time install path.
   document.getElementById('adv-deno-btn').addEventListener('click', async () => {
-    if (!confirm('Remove the current Deno installation?\n\nDeno will reinstall on next launch. Make sure you have an internet connection.')) return;
+    if (!confirm('Reinstall Deno now?\n\nThe current Deno runtime is replaced with a fresh download — no restart needed. Make sure you have an internet connection.')) return;
+    const btn = document.getElementById('adv-deno-btn');
+    if (btn) btn.disabled = true;
     const r = await post('/api/deno/reinstall', {});
-    if (r.ok) toast('Deno removed — will reinstall on next launch', 'ok');
-    else toast('Failed: ' + (r.error || 'unknown'), 'err');
+    if (!r.started) { toast(r.error || 'Reinstall failed', 'err'); if (btn) btn.disabled = false; return; }
+    toast('Reinstalling Deno…', 'ok');
+    const iv = setInterval(async () => {
+      try {
+        const s = await fetch('/api/deno/install-status').then(r => r.json());
+        if (s.running) return;
+        clearInterval(iv);
+        if (btn) btn.disabled = false;
+        if (s.error) toast('Deno reinstall failed: ' + s.error, 'err');
+        else toast('Deno reinstalled — YouTube signature solving active', 'ok');
+        if (typeof refreshUpdGrid === 'function') refreshUpdGrid();
+      } catch {}
+    }, 800);
   });
 
   // Reinstall Electron (Windows only — shown via platform check below)
