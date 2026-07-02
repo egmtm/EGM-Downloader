@@ -3,7 +3,10 @@ let _selectedAudioQuality = '320';
 
 (function() {
   const modal   = document.getElementById('audio-quality-modal');
-  const options = document.querySelectorAll('.quality-option');
+  // Scope to THIS modal — a bare '.quality-option' also matches the video
+  // quality modal's options, so clicking a video option would otherwise clear
+  // the audio selection and set _selectedAudioQuality to undefined.
+  const options = modal.querySelectorAll('.quality-option');
   const confirm = document.getElementById('audio-quality-confirm-btn');
 
   options.forEach(opt => {
@@ -87,7 +90,7 @@ function videoQualityBgClick(e) {
 (async function() {
   try {
     const s = await fetch('/api/settings').then(r => r.json());
-    const currentVersion = document.getElementById('version-badge')?.textContent?.trim() || '';
+    const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
     if (currentVersion && s.last_seen_version !== currentVersion) {
       // Show What's New modal immediately with loading state
       document.getElementById('whats-new-version').textContent = currentVersion;

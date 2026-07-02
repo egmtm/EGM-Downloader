@@ -605,7 +605,7 @@ def _app_version_tuple():
     for cand in (ROOT / "app.py", ROOT.parent / "app.py"):
         try:
             txt = cand.read_text(encoding="utf-8", errors="replace")
-            ver = re.search(r'APP_VERSION\s*=\s*["\']([\\d.]+)["\']', txt)
+            ver = re.search(r'APP_VERSION\s*=\s*["\']([\d.]+)["\']', txt)
             bld = re.search(r'APP_BUILD\s*=\s*(\d+)', txt)
             if ver:
                 return ver.group(1), (bld.group(1) if bld else "0")

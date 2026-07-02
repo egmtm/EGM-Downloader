@@ -44,7 +44,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     const stEl    = document.getElementById('st'     + n);
     const dlBtn   = document.getElementById('dl'     + n);
     const progEl  = document.getElementById('prog'   + n);
-    if (!stEl || !dlBtn) { done++; updateBulkTxt(); return; }
+    if (!stEl || !dlBtn) { done++; active--; updateBulkTxt(); return; }
 
     // Lazy-fetch info if needed
     if (!item.info.formats?.length && !item.info.audio_formats?.length) {
