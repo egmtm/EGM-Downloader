@@ -17,6 +17,7 @@
 
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
+!include "nsDialogs.nsh"
 
 ; ── Required defines (sanity check) ──────────────────────────
 !ifndef VERSION
@@ -49,10 +50,27 @@ Unicode          true
 ; ── Variables ────────────────────────────────────────────────
 Var PreviousVersion
 Var PreviousInstDir
+Var LangCombo        ; combobox on the welcome page
+Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; ── MUI Settings ─────────────────────────────────────────────
 !define MUI_ICON   "${REPO_ROOT}/static/icon.ico"
 !define MUI_UNICON "${REPO_ROOT}/static/icon.ico"
+
+; ── Dark skin — colors mirror the app's CSS tokens (see templates) ───────────
+; bg #0b1120, surf #111c2e, border #243454, acc #3b82f6, text #e2e8f6
+!define MUI_BGCOLOR   "0b1120"
+!define MUI_TEXTCOLOR "e2e8f6"
+!define MUI_HEADERIMAGE
+!define MUI_HEADERIMAGE_BITMAP   "${REPO_ROOT}/windows/assets/installer-header.bmp"
+!define MUI_HEADERIMAGE_UNBITMAP "${REPO_ROOT}/windows/assets/installer-header.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP   "${REPO_ROOT}/windows/assets/installer-sidebar.bmp"
+!define MUI_UNWELCOMEFINISHPAGE_BITMAP "${REPO_ROOT}/windows/assets/installer-sidebar.bmp"
+
+; Language dropdown lives ON the welcome page (screen 1); choosing there
+; retranslates every later page — their strings resolve at page-show.
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW  WelcomePage_Show
+!define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomePage_Leave
 
 !define MUI_WELCOMEPAGE_TITLE   "Welcome to EGM Downloader v${VERSION}"
 !define MUI_WELCOMEPAGE_TEXT    "This will install EGM Downloader v${VERSION} (Build ${BUILD}) on your computer.$\r$\n$\r$\nPython 3.10 or newer is required. On first launch, ~250 MB of additional components will be downloaded automatically.$\r$\n$\r$\nClick Next to continue."
@@ -78,7 +96,100 @@ Var PreviousInstDir
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
 
+;  Order matters: the first declared language is the fallback when the OS
+;  locale matches none of these ("en" — same default as _detect_os_language).
+;  "PortugueseBR": languages/pt.json uses Brazilian conventions ("Salvo",
+;  "Configurações"), so the BR variant is the matching NSIS identifier.
 !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "Arabic"
+!insertmacro MUI_LANGUAGE "German"
+!insertmacro MUI_LANGUAGE "Spanish"
+!insertmacro MUI_LANGUAGE "French"
+!insertmacro MUI_LANGUAGE "Italian"
+!insertmacro MUI_LANGUAGE "Japanese"
+!insertmacro MUI_LANGUAGE "Dutch"
+!insertmacro MUI_LANGUAGE "PortugueseBR"
+!insertmacro MUI_LANGUAGE "Russian"
+
+; ── Welcome-page language selector ────────────────────────────────────────────
+; Rows map 1:1, index-aligned, to the codes in LangCodeFromIndex below.
+Function WelcomePage_Show
+  ; Dark title/body text on the welcome page (MUI_BGCOLOR sets the canvas)
+  SetCtlColors $mui.WelcomePage.Title "e2e8f6" "0b1120"
+  SetCtlColors $mui.WelcomePage.Text  "8faecf" "0b1120"
+
+  ${NSD_CreateComboBox} 120u 130u 100u 12u ""
+  Pop $LangCombo
+  SetCtlColors $LangCombo "e2e8f6" "182338"
+  ${NSD_CB_AddString} $LangCombo "English"
+  ${NSD_CB_AddString} $LangCombo "العربية"
+  ${NSD_CB_AddString} $LangCombo "Deutsch"
+  ${NSD_CB_AddString} $LangCombo "Español"
+  ${NSD_CB_AddString} $LangCombo "Français"
+  ${NSD_CB_AddString} $LangCombo "Italiano"
+  ${NSD_CB_AddString} $LangCombo "日本語"
+  ${NSD_CB_AddString} $LangCombo "Nederlands"
+  ${NSD_CB_AddString} $LangCombo "Português"
+  ${NSD_CB_AddString} $LangCombo "Русский"
+
+  ; Preselect the row matching $LANGUAGE (NSIS set it from the OS locale)
+  StrCpy $0 0
+  ${If} $LANGUAGE == ${LANG_ARABIC}
+    StrCpy $0 1
+  ${ElseIf} $LANGUAGE == ${LANG_GERMAN}
+    StrCpy $0 2
+  ${ElseIf} $LANGUAGE == ${LANG_SPANISH}
+    StrCpy $0 3
+  ${ElseIf} $LANGUAGE == ${LANG_FRENCH}
+    StrCpy $0 4
+  ${ElseIf} $LANGUAGE == ${LANG_ITALIAN}
+    StrCpy $0 5
+  ${ElseIf} $LANGUAGE == ${LANG_JAPANESE}
+    StrCpy $0 6
+  ${ElseIf} $LANGUAGE == ${LANG_DUTCH}
+    StrCpy $0 7
+  ${ElseIf} $LANGUAGE == ${LANG_PORTUGUESEBR}
+    StrCpy $0 8
+  ${ElseIf} $LANGUAGE == ${LANG_RUSSIAN}
+    StrCpy $0 9
+  ${EndIf}
+  SendMessage $LangCombo ${CB_SETCURSEL} $0 0
+FunctionEnd
+
+Function WelcomePage_Leave
+  SendMessage $LangCombo ${CB_GETCURSEL} 0 0 $0
+  ; index → NSIS language + 2-letter code for the app hand-off
+  StrCpy $SelectedLangCode "en"
+  StrCpy $LANGUAGE ${LANG_ENGLISH}
+  ${If} $0 == 1
+    StrCpy $SelectedLangCode "ar"
+    StrCpy $LANGUAGE ${LANG_ARABIC}
+  ${ElseIf} $0 == 2
+    StrCpy $SelectedLangCode "de"
+    StrCpy $LANGUAGE ${LANG_GERMAN}
+  ${ElseIf} $0 == 3
+    StrCpy $SelectedLangCode "es"
+    StrCpy $LANGUAGE ${LANG_SPANISH}
+  ${ElseIf} $0 == 4
+    StrCpy $SelectedLangCode "fr"
+    StrCpy $LANGUAGE ${LANG_FRENCH}
+  ${ElseIf} $0 == 5
+    StrCpy $SelectedLangCode "it"
+    StrCpy $LANGUAGE ${LANG_ITALIAN}
+  ${ElseIf} $0 == 6
+    StrCpy $SelectedLangCode "ja"
+    StrCpy $LANGUAGE ${LANG_JAPANESE}
+  ${ElseIf} $0 == 7
+    StrCpy $SelectedLangCode "nl"
+    StrCpy $LANGUAGE ${LANG_DUTCH}
+  ${ElseIf} $0 == 8
+    StrCpy $SelectedLangCode "pt"
+    StrCpy $LANGUAGE ${LANG_PORTUGUESEBR}
+  ${ElseIf} $0 == 9
+    StrCpy $SelectedLangCode "ru"
+    StrCpy $LANGUAGE ${LANG_RUSSIAN}
+  ${EndIf}
+FunctionEnd
 
 ; ── Desktop shortcut — created only if user checks the box on finish page ────
 Function FinishPage_CreateDesktopShortcut
@@ -224,7 +335,16 @@ Cancel  →  Cancel installation" \
   SetOutPath "$INSTDIR"
 
   ; ── Registry: app info ──
+  ; One-time language hand-off: the app reads, validates against its own
+  ; allowlist, persists to egm_settings.json, and deletes this file.
+  ${If} $SelectedLangCode != ""
+    FileOpen $0 "$INSTDIR\first-run-language.txt" w
+    FileWrite $0 "$SelectedLangCode"
+    FileClose $0
+  ${EndIf}
+
   WriteRegStr HKCU "${REGKEY}" "Version"     "${VERSION}"
+  WriteRegStr HKCU "${REGKEY}" "Language"    "$LANGUAGE"
   WriteRegStr HKCU "${REGKEY}" "Build"       "${BUILD}"
   WriteRegStr HKCU "${REGKEY}" "InstallPath" "$INSTDIR"
 
@@ -251,6 +371,14 @@ Cancel  →  Cancel installation" \
 SectionEnd
 
 ; ── Uninstall Section ────────────────────────────────────────
+Function un.onInit
+  ; Come up in the language chosen at install time (falls back to OS locale)
+  ReadRegStr $0 HKCU "${REGKEY}" "Language"
+  ${If} $0 != ""
+    StrCpy $LANGUAGE $0
+  ${EndIf}
+FunctionEnd
+
 Section "Uninstall"
   ; ── Close the app if it's still running, so files aren't locked ──
   ; Both the launcher and the renamed Electron runtime use this image name.
@@ -264,6 +392,7 @@ Section "Uninstall"
   Delete "$INSTDIR\app.py"
   Delete "$INSTDIR\rcedit-x64.exe"
   Delete "$INSTDIR\patchnotes.txt"
+  Delete "$INSTDIR\first-run-language.txt"
 
   RMDir /r "$INSTDIR\templates"
   RMDir /r "$INSTDIR\static"
