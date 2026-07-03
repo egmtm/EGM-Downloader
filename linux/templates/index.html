@@ -2085,15 +2085,19 @@
           </select>
         </div>
       </div>
-      <div class="set-box">
+      <div class="set-box" style="align-items:center">
         <span class="opt-label" data-i18n="cookies.title">Site Cookies</span>
-        <div class="set-cookie-links">
+        <div style="display:flex;justify-content:center;width:100%;margin-bottom:5px">
             <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+        </div>
+        <div style="display:flex;justify-content:center;width:100%">
             <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
-          </div>
-        <div class="set-divider"></div>
-        <div class="set-cookie-area">
+        </div>
+        <div class="set-divider" style="width:60%"></div>
+        <div style="display:flex;justify-content:center;width:100%;margin-bottom:6px">
           <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0" data-i18n="cookies.status.not_loaded">Cookies: not loaded</span>
+        </div>
+        <div style="display:flex;justify-content:center;width:100%">
           <div id="ck-not-loaded" class="set-cookie-actions" style="display:flex">
             <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> <span data-i18n="cookies.btn.browse">Browse</span></button>
           </div>
