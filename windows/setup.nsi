@@ -189,6 +189,19 @@ Cancel  →  Cancel installation" \
   File "${REPO_ROOT}/templates/js/_quality.html"
   File "${REPO_ROOT}/templates/js/_creator.html"
 
+  ; ── languages\ ──
+  SetOutPath "$INSTDIR\languages"
+  File "${REPO_ROOT}/languages/ar.json"
+  File "${REPO_ROOT}/languages/de.json"
+  File "${REPO_ROOT}/languages/en.json"
+  File "${REPO_ROOT}/languages/es.json"
+  File "${REPO_ROOT}/languages/fr.json"
+  File "${REPO_ROOT}/languages/it.json"
+  File "${REPO_ROOT}/languages/ja.json"
+  File "${REPO_ROOT}/languages/nl.json"
+  File "${REPO_ROOT}/languages/pt.json"
+  File "${REPO_ROOT}/languages/ru.json"
+
   ; ── static\ ──
   SetOutPath "$INSTDIR\static"
   File "${REPO_ROOT}/static/icon.ico"
@@ -254,6 +267,7 @@ Section "Uninstall"
 
   RMDir /r "$INSTDIR\templates"
   RMDir /r "$INSTDIR\static"
+  RMDir /r "$INSTDIR\languages"
 
   ; Electron app files (but preserve node_modules unless user opts in below)
   Delete "$INSTDIR\electron\main.js"

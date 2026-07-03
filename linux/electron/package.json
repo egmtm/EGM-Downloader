@@ -44,6 +44,13 @@
         ]
       },
       {
+        "from": "../../languages",
+        "to": "app/languages",
+        "filter": [
+          "*.json"
+        ]
+      },
+      {
         "from": "../../static",
         "to": "app/static",
         "filter": [
