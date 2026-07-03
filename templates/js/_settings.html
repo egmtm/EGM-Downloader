@@ -759,3 +759,56 @@ refreshCookieCard();
 })();
 
 
+// ── Language selector (footer) + Advanced hide-toggle ─────────────────────────
+// Selector options are built from the I18N allowlist only (i18n.html partial);
+// names via textContent. Active language always listed first.
+function buildLangSelector(active) {
+  const sel = document.getElementById('lang-select');
+  if (!sel) return;
+  sel.textContent = '';
+  [active, ...I18N_SUPPORTED.filter(c => c !== active)].forEach(c => {
+    const o = document.createElement('option');
+    o.value = c;
+    o.textContent = I18N_NAMES[c] || c;
+    sel.appendChild(o);
+  });
+  sel.value = active;
+}
+
+document.addEventListener('i18n:ready', e => {
+  const s = e.detail || {};
+  buildLangSelector(I18N.code);
+  const row = document.getElementById('lang-row');
+  if (row && s.show_language_selector !== false) row.style.display = '';
+  const chk = document.getElementById('show-lang-selector-chk');
+  if (chk) chk.checked = s.show_language_selector !== false;
+});
+
+document.getElementById('lang-select').addEventListener('change', async function() {
+  const code = this.value;
+  if (!I18N_SUPPORTED.includes(code)) return;
+  await i18nLoad(code);          // live swap — no restart
+  buildLangSelector(code);       // keep active language first
+  post('/api/settings/save', { language: code });
+});
+
+// Advanced toggle: turning OFF asks for confirmation (inline modal, locked spec);
+// turning ON applies immediately.
+document.getElementById('show-lang-selector-chk').addEventListener('change', function() {
+  if (this.checked) {
+    document.getElementById('lang-row').style.display = '';
+    post('/api/settings/save', { show_language_selector: true });
+  } else {
+    this.checked = true;  // revert until confirmed
+    document.getElementById('hide-lang-modal').style.display = 'flex';
+  }
+});
+document.getElementById('hide-lang-cancel-btn').addEventListener('click', () => {
+  document.getElementById('hide-lang-modal').style.display = 'none';
+});
+document.getElementById('hide-lang-confirm-btn').addEventListener('click', () => {
+  document.getElementById('hide-lang-modal').style.display = 'none';
+  document.getElementById('show-lang-selector-chk').checked = false;
+  document.getElementById('lang-row').style.display = 'none';
+  post('/api/settings/save', { show_language_selector: false });
+});
