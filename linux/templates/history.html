@@ -101,17 +101,17 @@
     <span class="total-badge" id="total-badge">0</span>
   </h1>
   <div class="tb-actions">
-    <button class="tb-btn danger" id="clear-all-btn">Clear All</button>
+    <button class="tb-btn danger" id="clear-all-btn" data-i18n="history.btn.clear_all">Clear All</button>
   </div>
 </div>
 
 <div class="toolbar">
   <input class="search" id="search-input" placeholder="Search title, URL, format…">
-  <button class="filter-btn active" data-filter="all">All</button>
-  <button class="filter-btn" data-filter="video">Video</button>
-  <button class="filter-btn" data-filter="audio">Audio</button>
-  <button class="filter-btn" data-filter="flac">FLAC</button>
-  <button class="sort-btn" id="sort-btn">↓ Newest</button>
+  <button class="filter-btn active" data-filter="all" data-i18n="history.filter.all">All</button>
+  <button class="filter-btn" data-filter="video" data-i18n="history.filter.video">Video</button>
+  <button class="filter-btn" data-filter="audio" data-i18n="history.filter.audio">Audio</button>
+  <button class="filter-btn" data-filter="flac" data-i18n="history.filter.flac">FLAC</button>
+  <button class="sort-btn" id="sort-btn" data-i18n="history.sort.newest">↓ Newest</button>
 </div>
 
 <div class="table-header">
@@ -124,7 +124,7 @@
 </div>
 
 <div class="table-wrap" id="table-wrap">
-  <div class="empty-state" id="empty-state" style="display:none">No downloads yet</div>
+  <div class="empty-state" id="empty-state" style="display:none" data-i18n="history.empty">No downloads yet</div>
 </div>
 
 <div class="pagination" id="pagination">
