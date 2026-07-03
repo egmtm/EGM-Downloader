@@ -1063,3 +1063,43 @@ def test_audio_bitrate_is_cbr_not_vbr_qa():
     # The whole audio-format branch must be byte-identical across all 3 platforms.
     vals = list(blocks.values())
     assert vals[0] == vals[1] == vals[2], "audio-format branch differs across platform app.py files"
+
+def test_i18n_markers_in_all_app_py():
+    """v1.3 POLYGLOT: the locale-code allowlist and its consumers must exist
+    identically on all three platforms."""
+    REQUIRED = [
+        "SUPPORTED_LANGUAGES",        # single allowlist for every locale-code entry point
+        '/api/language/<code>',       # allowlist-gated locale file route
+        "_detect_os_language",        # OS-locale first-run detection
+        "_get_language_setting",      # persisted-language resolution
+        '"show_language_selector"',   # footer-selector visibility setting
+    ]
+    for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        source = read_source(path)
+        missing = [m for m in REQUIRED if m not in source]
+        assert not missing, f"{name}/app.py missing i18n markers: {missing}"
+
+
+def test_i18n_supported_languages_consistent():
+    """The backend allowlist, the frontend allowlist (templates/i18n.html), and
+    the locale files on disk must agree on exactly the same 10 codes."""
+    import ast, json, os, re
+    root = os.path.dirname(os.path.dirname(__file__))
+
+    src = read_source("app.py")
+    m = re.search(r"SUPPORTED_LANGUAGES = (\([^)]*\))", src)
+    assert m, "SUPPORTED_LANGUAGES tuple not found in app.py"
+    backend = set(ast.literal_eval(m.group(1)))
+
+    js = read_source("templates/i18n.html")
+    m = re.search(r"I18N_SUPPORTED = \[([^\]]*)\]", js)
+    assert m, "I18N_SUPPORTED not found in templates/i18n.html"
+    frontend = set(re.findall(r"'([a-z]{2})'", m.group(1)))
+
+    on_disk = {f[:-5] for f in os.listdir(os.path.join(root, "languages"))
+               if f.endswith(".json")}
+
+    assert backend == frontend == on_disk, (
+        f"locale-code drift: backend={sorted(backend)} "
+        f"frontend={sorted(frontend)} disk={sorted(on_disk)}")
+    assert len(backend) == 10
