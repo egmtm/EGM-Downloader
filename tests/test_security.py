@@ -300,3 +300,37 @@ def test_download_dir_accepts_valid_writable(app_mod):
         ok, resolved, err = app_mod._validate_download_dir(td)
         assert ok, f"Should accept valid writable dir '{td}' (got: {err})"
         assert resolved, "Resolved path should be non-empty"
+
+# ── /api/language — locale-code allowlist gate (v1.3 POLYGLOT) ─────────────────
+
+def test_language_route_allowlist(app_mod):
+    """The locale code must be validated against SUPPORTED_LANGUAGES before any
+    file path is built. Unknown or traversal-shaped codes must never return 200."""
+    with app_mod.app.test_client() as client:
+        headers = {"X-EGM-Token": app_mod._API_TOKEN}
+        for code in app_mod.SUPPORTED_LANGUAGES:
+            resp = client.get(f"/api/language/{code}", headers=headers)
+            assert resp.status_code == 200, f"supported code {code!r} should load"
+            assert isinstance(resp.get_json().get("strings"), dict)
+        for bad in ("xx", "EN", "en.json", "..", "..%2F..%2Fetc%2Fpasswd",
+                    "en/../../egm_settings", "e" * 300):
+            resp = client.get(f"/api/language/{bad}", headers=headers)
+            assert resp.status_code != 200, f"unknown code {bad!r} must be rejected"
+
+
+def test_language_setting_allowlist(app_mod, tmp_path):
+    """/api/settings/save must reject language codes outside SUPPORTED_LANGUAGES
+    and coerce show_language_selector to a bool."""
+    app_mod.SETTINGS_FILE = tmp_path / "egm_settings.json"
+    app_mod._settings_cache.clear()
+    with app_mod.app.test_client() as client:
+        headers = {"Content-Type": "application/json",
+                   "X-EGM-Token": app_mod._API_TOKEN}
+        client.post("/api/settings/save", json={"language": "ja"}, headers=headers)
+        assert client.get("/api/settings", headers=headers).get_json()["language"] == "ja"
+        for bad in ("zz", "../en", "en.json", 42, None):
+            client.post("/api/settings/save", json={"language": bad}, headers=headers)
+            data = client.get("/api/settings", headers=headers).get_json()
+            assert data["language"] == "ja", f"invalid language {bad!r} must not persist"
+        client.post("/api/settings/save", json={"show_language_selector": 0}, headers=headers)
+        assert client.get("/api/settings", headers=headers).get_json()["show_language_selector"] is False
