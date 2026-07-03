@@ -1924,6 +1924,13 @@
           <button class="adv-btn-full" id="adv-import-btn" title="Import settings from a file to restore your preferences">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg></span>Import settings
           </button>
+          <div class="adv-port-wrap" style="height:auto;padding:6px 10px">
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span class="adv-port-label">Show language selector</span>
+              <span style="font-size:.62rem;color:var(--text2);opacity:.65">Hides the selector from the footer — can be re-enabled here</span>
+            </div>
+            <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-left:auto" checked>
+          </div>
           <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls the Deno runtime in the background — no restart needed">
             <span class="adv-btn-icon green"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></span>Reinstall Deno
           </button>
@@ -2130,6 +2137,9 @@
 <div id="results"></div>
 
 <footer>
+  <div id="lang-row" style="text-align:center;margin-bottom:7px;display:none">
+    <select id="lang-select" title="Language" style="font-size:.68rem;color:var(--text);border:1px solid var(--acc-dim);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;outline:none;font-family:inherit;text-align:center"></select>
+  </div>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
@@ -2286,6 +2296,17 @@
 </div>
 
 <!-- What's New modal -->
+<div class="modal-backdrop" id="hide-lang-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:360px;width:90%">
+    <h3 style="margin-top:0">Hide language selector?</h3>
+    <p style="font-size:.8rem;color:var(--text2)">The selector will no longer appear in the footer.<br>You can always re-enable it here in Advanced.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="hide-lang-cancel-btn">Cancel</button>
+      <button class="btn btn-primary" id="hide-lang-confirm-btn">Hide it</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
     <h3>🎉 What's New in <span id="whats-new-version">v1.2.7</span></h3>
