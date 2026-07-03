@@ -256,15 +256,15 @@
   <div class="sidebar" id="sidebar">
     <div class="sidebar-resize" id="sidebar-resize"></div>
     <div class="sidebar-header">
-      <span class="sidebar-title">Subscriptions</span>
-      <button class="collapse-btn" id="collapse-btn" title="Toggle sidebar">☰</button>
+      <span class="sidebar-title" data-i18n="subscriptions.title">Subscriptions</span>
+      <button class="collapse-btn" id="collapse-btn" data-i18n-attr="title:tooltip.subscriptions_sidebar" title="Toggle sidebar">☰</button>
     </div>
 
     <div class="add-bar">
-      <input type="text" id="add-url" placeholder="Paste URL here..." />
+      <input type="text" id="add-url" data-i18n-attr="placeholder:subscriptions.url.placeholder" placeholder="Paste URL here..." />
       <div style="display:flex;gap:4px;margin-top:4px">
-        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Paste from clipboard">📋 Paste</button>
-        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Add subscription">+ Add</button>
+        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_paste" title="Paste from clipboard">📋 Paste</button>
+        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_add" title="Add subscription">+ Add</button>
       </div>
     </div>
 
@@ -274,7 +274,7 @@
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
           Fetch All
         </button>
-        <button id="fetch-all-cancel-btn" onclick="cancelFetchAll()" style="display:none;background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:.68rem;cursor:pointer">Cancel</button>
+        <button id="fetch-all-cancel-btn" onclick="cancelFetchAll()" style="display:none;background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:.68rem;cursor:pointer" data-i18n="quality.btn.cancel">Cancel</button>
       </div>
       <div id="fetch-all-progress" style="display:none;font-size:.6rem;color:var(--text2);text-align:center;padding:1px 0"></div>
     </div>
@@ -284,8 +284,8 @@
     <div class="sidebar-footer">
       <button id="history-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
-        Download History
-      </button>
+        <span data-i18n="history.window.title">Download History</span>
+      
       <button id="back-btn">← Back to app</button>
     </div>
   </div>
@@ -294,7 +294,7 @@
     <div class="detail-empty" id="empty-state">
       <div>
         <div style="font-size:2rem;margin-bottom:8px">📡</div>
-        <div>Add a channel or playlist URL to get started</div>
+        <div data-i18n="subscriptions.empty">Add a channel or playlist URL to get started</div>
       </div>
     </div>
   </div>
@@ -306,8 +306,8 @@
       <div class="egm-modal-msg" id="egm-confirm-msg"></div>
       <input type="text" class="egm-modal-input" id="egm-confirm-input" style="display:none;width:100%;padding:6px 8px;margin-bottom:12px;border-radius:5px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:.78rem;box-sizing:border-box">
       <div class="egm-modal-actions">
-        <button class="egm-modal-btn" id="egm-confirm-cancel">Cancel</button>
-        <button class="egm-modal-btn danger" id="egm-confirm-ok">Delete</button>
+        <button class="egm-modal-btn" id="egm-confirm-cancel" data-i18n="quality.btn.cancel">Cancel</button>
+        <button class="egm-modal-btn danger" id="egm-confirm-ok" data-i18n="subscriptions.btn.delete">Delete</button>
       </div>
     </div>
   </div>

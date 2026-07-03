@@ -30,7 +30,7 @@
     </svg>
   </div>
   <div class="header-text">
-    <svg viewBox="0 0 320 30" xmlns="http://www.w3.org/2000/svg" style="width:320px;max-width:100%;height:auto" role="img" aria-label="EGM Downloader">
+    <svg viewBox="0 0 320 30" xmlns="http://www.w3.org/2000/svg" style="width:320px;max-width:100%;height:auto" role="img" data-i18n-attr="aria-label:app.title" aria-label="EGM Downloader">
       <text x="0" y="18" fill="var(--acc)" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="600" letter-spacing="8">EGM</text>
       <text x="105" y="18" fill="var(--text)" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="200" letter-spacing="3">DOWNLOADER</text>
       <line x1="0" y1="26" x2="320" y2="26" stroke="var(--text2)" stroke-width=".5" stroke-opacity=".4"/>
@@ -40,29 +40,29 @@
   <!-- Navigation grid — 2×2 direct access -->
   <div style="flex-shrink:0;position:relative">
     <div id="nav-buttons" style="display:grid;grid-template-columns:auto auto;gap:3px">
-      <button class="nav-btn" id="subs-btn" title="Subscriptions">
+      <button class="nav-btn" id="subs-btn" data-i18n-attr="title:subscriptions.title" title="Subscriptions">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Subs
       </button>
       <button class="nav-btn" data-nav="themes" title="Browse and switch themes">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"/><path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
-        Themes
-      </button>
+        <span data-i18n="panel.tab.themes">Themes</span>
+      
       <button class="nav-btn" data-nav="history" title="View download history">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
-        History
-      </button>
+        <span data-i18n="panel.tab.history">History</span>
+      
       <button class="nav-btn" data-nav="advanced" title="Channels, plugins, and settings">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/><path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 18l11 0"/><path d="M19 18l1 0"/></svg>
-        Advanced
-      </button>
+        <span data-i18n="advanced.title">Advanced</span>
+      
     </div>
     <div id="hamburger-panel">
       <!-- Tabs -->
       <div class="hpanel-tabs">
         <button class="hpanel-tab active" data-tab="history">History <span id="history-tab-count" style="background:rgba(255,255,255,.2);border-radius:8px;padding:0 5px;font-size:8px"></span></button>
-        <button class="hpanel-tab" data-tab="themes">Themes</button>
-        <button class="hpanel-tab" data-tab="advanced">Advanced</button>
+        <button class="hpanel-tab" data-tab="themes" data-i18n="panel.tab.themes">Themes</button>
+        <button class="hpanel-tab" data-tab="advanced" data-i18n="advanced.title">Advanced</button>
       </div>
       <!-- History tab -->
       <div class="hpanel-content" id="hpanel-history">
@@ -71,7 +71,7 @@
           <small id="history-total-info">0 downloads</small>
         </div>
         <div id="history-panel-body" style="padding:5px 6px">
-          <div id="history-empty" style="padding:12px 8px;font-size:10px;color:var(--text2);text-align:center">No downloads yet</div>
+          <div id="history-empty" style="padding:12px 8px;font-size:10px;color:var(--text2);text-align:center" data-i18n="history.empty">No downloads yet</div>
         </div>
         <div class="hfooter">
           <span id="history-panel-count" style="display:none"></span>
@@ -1904,8 +1904,8 @@
             </button>
             <button id="theme-export-btn" class="theme-btn-io">
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg>
-              Export
-            </button>
+              <span data-i18n="creator.btn.export">Export</span>
+            
           </div>
         </div>
       </div>
@@ -1931,30 +1931,30 @@
             </div>
             <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-left:auto" checked>
           </div>
-          <button class="adv-btn-full" id="adv-deno-btn" title="Reinstalls the Deno runtime in the background — no restart needed">
+          <button class="adv-btn-full" id="adv-deno-btn" data-i18n-attr="title:tooltip.reinstall_deno" title="Reinstalls the Deno runtime in the background — no restart needed">
             <span class="adv-btn-icon green"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></span>Reinstall Deno
           </button>
           <!-- Channels -->
-          <div class="adv-divider"><span class="adv-divider-label">Channels</span></div>
-          <div class="adv-port-wrap" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
+          <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.channels">Channels</span></div>
+          <div class="adv-port-wrap" data-i18n-attr="title:tooltip.ytdlp_channel" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
-            <span class="adv-port-label">yt-dlp channel</span>
+            <span class="adv-port-label" data-i18n="advanced.label.ytdlp_channel">yt-dlp channel</span>
             <select id="adv-ytdlp-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-left:auto;outline:none;cursor:pointer">
-              <option value="stable">Stable</option>
-              <option value="nightly">Nightly</option>
+              <option value="stable" data-i18n="advanced.channel.stable">Stable</option>
+              <option value="nightly" data-i18n="advanced.channel.nightly">Nightly</option>
             </select>
           </div>
-          <div class="adv-port-wrap" id="adv-ffmpeg-channel-wrap" title="ffmpeg update channel — Nightly uses git master, Stable uses the latest release branch">
+          <div class="adv-port-wrap" id="adv-ffmpeg-channel-wrap" data-i18n-attr="title:tooltip.ffmpeg_channel" title="ffmpeg update channel — Nightly uses git master, Stable uses the latest release branch">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
-            <span class="adv-port-label">ffmpeg channel</span>
+            <span class="adv-port-label" data-i18n="advanced.label.ffmpeg_channel">ffmpeg channel</span>
             <select id="adv-ffmpeg-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-left:auto;outline:none;cursor:pointer">
-              <option value="stable">Stable</option>
-              <option value="nightly">Nightly</option>
+              <option value="stable" data-i18n="advanced.channel.stable">Stable</option>
+              <option value="nightly" data-i18n="advanced.channel.nightly">Nightly</option>
             </select>
           </div>
           <!-- Plugins -->
           <div class="adv-divider">
-            <span class="adv-divider-label">Plugins</span>
+            <span class="adv-divider-label" data-i18n="advanced.section.plugins">Plugins</span>
             <div style="display:flex;align-items:center;gap:6px">
               <span class="adv-divider-badge" id="plugins-status-badge"></span>
               <button class="adv-toggle-btn" id="plugins-toggle" aria-label="Toggle plugins panel" onclick="togglePluginsPanel()">▶</button>
@@ -1966,17 +1966,17 @@
           <div class="plugins-collapsible collapsed" id="plugins-body">
             <div class="update-grid" id="update-grid"></div>
             <div style="margin-top:4px">
-              <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> Install Updates</button>
+              <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> <span data-i18n="plugins.btn.install_updates">Install Updates</span>
             </div>
             <div class="upd-log" id="upd-log"></div>
-            <p class="portable-plugins-note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
+            <p class="portable-plugins-note" data-i18n="plugins.portable.note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
           </div>
           <!-- Maintenance -->
           <div class="adv-divider"></div>
           <button class="adv-btn-full" id="adv-clear-cache-btn" title="Clears temporary files and cached data to free up space">
             <span class="adv-btn-icon amber"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></svg></span>Clear cache
           </button>
-          <button class="adv-btn-full" id="adv-electron-btn" title="Reinstalls Electron on next restart — updates to latest compatible version" style="display:none">
+          <button class="adv-btn-full" id="adv-electron-btn" data-i18n-attr="title:tooltip.reinstall_electron" title="Reinstalls Electron on next restart — updates to latest compatible version" style="display:none">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></span>Reinstall Electron
           </button>
           <button class="adv-btn-full" id="adv-reset-btn" title="Resets the application to its default settings">
@@ -1991,9 +1991,9 @@
 <!-- URL Input -->
 <div class="card">
   <div class="card-header">
-    <span class="card-title">Video / Playlist URLs</span>
+    <span class="card-title" data-i18n="url.section_title">Video / Playlist URLs</span>
     <div style="display:flex;gap:6px">
-      <button class="paste-btn" id="paste-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/></svg> Paste</button>
+      <button class="paste-btn" id="paste-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/></svg> <span data-i18n="url.btn.paste">Paste</span>
       <button class="paste-fetch-btn" id="paste-fetch-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/><path d="M9 14l2 2l4 -4"/></svg> Paste &amp; Fetch</button>
     </div>
   </div>
@@ -2004,12 +2004,12 @@
     <div class="row" style="flex-wrap:nowrap">
       <button class="paste-fetch-btn" id="fetch-btn" style="display:inline-flex;align-items:center;gap:5px;height:28px">
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        Fetch Info
-      </button>
-      <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg> Stop Fetching</button>
-      <button class="paste-btn" id="clear-btn" style="height:28px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M10 10l4 4m0 -4l-4 4"/></svg> Clear</button>
+        <span data-i18n="url.btn.fetch">Fetch Info</span>
+      
+      <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg> <span data-i18n="url.btn.stop_fetch">Stop Fetching</span>
+      <button class="paste-btn" id="clear-btn" style="height:28px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M10 10l4 4m0 -4l-4 4"/></svg> <span data-i18n="url.btn.clear">Clear</span>
       <div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
-        <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" title="Max simultaneous video downloads">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" data-i18n-attr="title:tooltip.videos_selector" title="Max simultaneous video downloads">
           Max videos
           <select id="concurrency-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
             <option value="2">2</option>
@@ -2024,7 +2024,7 @@
             <option value="20">20</option>
           </select>
         </label>
-        <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" title="Parallel connections per video — higher = faster on fast connections">
+        <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" data-i18n-attr="title:tooltip.fragments_selector" title="Parallel connections per video — higher = faster on fast connections">
           Fragments
           <select id="fragments-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
             <option value="1">1</option>
@@ -2049,7 +2049,7 @@
 
   <!-- Settings section — collapsed by default -->
   <div class="sec-hdr" id="settings-sec-hdr" onclick="toggleSettingsPanel()">
-    <span class="sec-title" title="Download folder, quality, format, and output preferences"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg> Settings</span>
+    <span class="sec-title" data-i18n-attr="title:tooltip.settings_section" title="Download folder, quality, format, and output preferences"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg> <span data-i18n="settings.title">Settings</span></span>
     <div style="display:flex;align-items:center;gap:8px">
       <button class="card-toggle" id="settings-toggle" aria-label="Toggle settings" onclick="event.stopPropagation();toggleSettingsPanel()">▶</button>
     </div>
@@ -2059,14 +2059,14 @@
       <div class="set-box">
         <span class="opt-label">Download folder</span>
         <div class="path-row">
-          <input type="text" id="dl-dir" placeholder="Click Browse to select a folder…" readonly/>
-          <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
-          <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> Open</button>
+          <input type="text" id="dl-dir" data-i18n-attr="placeholder:settings.folder.placeholder" placeholder="Click Browse to select a folder…" readonly/>
+          <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> <span data-i18n="settings.folder.btn.browse">Browse</span></button>
+          <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> <span data-i18n="settings.folder.btn.open">Open</span>
         </div>
         <div class="set-divider"></div>
         <span class="opt-label">Format / Quality</span>
         <div class="set-format-row">
-          <span class="set-fmt-label">Audio</span>
+          <span class="set-fmt-label" data-i18n="card.format.audio">Audio</span>
           <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:0.7">
             <option value="320">MP3 320 kbps</option>
             <option value="192">MP3 192 kbps</option>
@@ -2077,29 +2077,29 @@
             <option value="opus_128">OPUS 128 kbps</option>
           </select>
           <div class="set-vsep"></div>
-          <span class="set-fmt-label">Video</span>
+          <span class="set-fmt-label" data-i18n="card.format.video">Video</span>
           <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1.3">
-            <option value="mp4_h264" selected>MP4 · H.264 (Max compatibility)</option>
+            <option value="mp4_h264" selected data-i18n="card.format.video.h264">MP4 · H.264 (Max compatibility)</option>
             <option value="mp4">MP4</option>
             <option value="mkv">MKV</option>
           </select>
         </div>
       </div>
       <div class="set-box">
-        <span class="opt-label">Site Cookies</span>
+        <span class="opt-label" data-i18n="cookies.title">Site Cookies</span>
         <div class="set-cookie-links">
             <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
             <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
           </div>
         <div class="set-divider"></div>
         <div class="set-cookie-area">
-          <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0">Cookies: not loaded</span>
+          <span id="ck-badge" class="vbadge vb-upd" style="font-size:.72rem;padding:2px 8px;flex-shrink:0" data-i18n="cookies.status.not_loaded">Cookies: not loaded</span>
           <div id="ck-not-loaded" class="set-cookie-actions" style="display:flex">
-            <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Browse</button>
+            <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> <span data-i18n="cookies.btn.browse">Browse</span></button>
           </div>
           <div id="ck-loaded" class="set-cookie-actions-loaded" style="display:none">
-            <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> Replace</button>
-            <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Unload</button>
+            <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> <span data-i18n="cookies.btn.replace">Replace</span>
+            <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> <span data-i18n="cookies.btn.unload">Unload</span>
           </div>
         </div>
       </div>
@@ -2107,19 +2107,19 @@
     <div class="set-toggles">
       <div class="sw-wrap">
       <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
-      <span style="font-size:.76rem;color:var(--text2)" title="Silently check for app and plugin updates when the app starts">Check updates on launch</span>
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.check_updates_launch" title="Silently check for app and plugin updates when the app starts" data-i18n="advanced.toggle.check_updates_launch">Check updates on launch</span>
       </div>
       <div class="sw-wrap">
       <input type="checkbox" class="sw" id="embed-metadata-chk" checked>
-      <span style="font-size:.76rem;color:var(--text2)" title="Embed thumbnail, chapter markers and metadata into downloaded videos">Embed metadata</span>
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.embed_metadata" title="Embed thumbnail, chapter markers and metadata into downloaded videos" data-i18n="settings.toggle.embed_metadata">Embed metadata</span>
       </div>
       <div class="sw-wrap">
       <input type="checkbox" class="sw" id="subtitles-chk">
-      <span style="font-size:.76rem;color:var(--text2)" title="Download English subtitles (manual or auto-generated) and embed them into the video">Download subtitles</span>
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.download_subtitles" title="Download English subtitles (manual or auto-generated) and embed them into the video" data-i18n="settings.toggle.download_subtitles">Download subtitles</span>
       </div>
       <div class="sw-wrap">
       <input type="checkbox" class="sw" id="quit-on-done-chk">
-      <span style="font-size:.76rem;color:var(--text2)" title="Automatically close the app when all downloads finish">Quit when done</span>
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.quit_when_done" title="Automatically close the app when all downloads finish" data-i18n="advanced.toggle.quit_when_done">Quit when done</span>
       </div>
     </div>
   </div>
@@ -2128,7 +2128,7 @@
 
 <!-- Bulk bar -->
 <div id="bulk-bar">
-  <span id="bulk-txt">Downloading…</span>
+  <span id="bulk-txt" data-i18n="bulk.status.downloading">Downloading…</span>
 
   <button class="btn btn-red btn-sm" onclick="cancelBulk()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Cancel All</button>
 </div>
@@ -2141,14 +2141,14 @@
     <select id="lang-select" title="Language" style="font-size:.68rem;color:var(--text);border:1px solid var(--acc-dim);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;outline:none;font-family:inherit;text-align:center"></select>
   </div>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
-    <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">egerena.com</a>
-    <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">GitHub</a>
+    <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.website">egerena.com</a>
+    <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.github">GitHub</a>
     <a href="https://x.com/EGMDownloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">@EGMDownloader</a>
     <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.2.7</span>
     <button id="footer-help-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Help</button>
   </div>
   <div style="margin-top:7px;text-align:center">
-    <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
+    <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" data-i18n-attr="title:tooltip.support" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
   </div>
 </footer>
 <div id="toasts"></div>
@@ -2156,12 +2156,12 @@
 <!-- Audio quality modal — shown before bulk audio download -->
 <div class="modal-backdrop" id="audio-quality-modal" style="display:none" onclick="audioQualityBgClick(event)">
   <div class="modal">
-    <h3>♫ Audio Quality</h3>
-    <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all audio downloads.</p>
+    <h3 data-i18n="audio.modal.title">♫ Audio Quality</h3>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px" data-i18n="audio.modal.subtitle">Select quality for all audio downloads.</p>
     <div class="quality-options">
       <div style="display:flex;align-items:center;gap:8px;margin:2px 0 6px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
-        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">Audio</span>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase" data-i18n="card.format.audio">Audio</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-quality="128">
@@ -2174,7 +2174,7 @@
         <div><div class="quality-label">320 kbps MP3</div><div class="quality-desc">CD quality · recommended</div></div>
       </div>
       <div class="quality-option" data-quality="flac">
-        <div><div class="quality-label">FLAC</div><div class="quality-desc">Lossless · largest files</div></div>
+        <div><div class="quality-label">FLAC</div><div class="quality-desc" data-i18n="audio.option.flac.desc">Lossless · largest files</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin:8px 0 6px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -2182,7 +2182,7 @@
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-quality="m4a_256">
-        <div><div class="quality-label">256 kbps M4A</div><div class="quality-desc">Apple-friendly · efficient AAC</div></div>
+        <div><div class="quality-label">256 kbps M4A</div><div class="quality-desc" data-i18n="audio.option.m4a_256.desc">Apple-friendly · efficient AAC</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin:8px 0 6px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
@@ -2190,15 +2190,15 @@
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-quality="opus_128">
-        <div><div class="quality-label">128 kbps OPUS</div><div class="quality-desc">Best size/quality ratio</div></div>
+        <div><div class="quality-label">128 kbps OPUS</div><div class="quality-desc" data-i18n="audio.option.opus_128.desc">Best size/quality ratio</div></div>
       </div>
       <div class="quality-option" data-quality="opus_192">
-        <div><div class="quality-label">192 kbps OPUS</div><div class="quality-desc">Audiophile tier · high efficiency</div></div>
+        <div><div class="quality-label">192 kbps OPUS</div><div class="quality-desc" data-i18n="audio.option.opus_192.desc">Audiophile tier · high efficiency</div></div>
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="document.getElementById('audio-quality-modal').style.display='none'">Cancel</button>
-      <button class="btn btn-primary" id="audio-quality-confirm-btn">Download</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('audio-quality-modal').style.display='none'" data-i18n="audio.btn.cancel">Cancel</button>
+      <button class="btn btn-primary" id="audio-quality-confirm-btn" data-i18n="audio.btn.download">Download</button>
     </div>
   </div>
 </div>
@@ -2206,47 +2206,47 @@
 <!-- Video Quality modal — shown before Download All Videos -->
 <div class="modal-backdrop" id="video-quality-modal" style="display:none" onclick="videoQualityBgClick(event)">
   <div class="modal" id="video-quality-modal-inner">
-    <h3>🎬 Video Quality</h3>
-    <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px">Select quality for all video downloads.</p>
+    <h3 data-i18n="quality.modal.title">🎬 Video Quality</h3>
+    <p style="color:var(--text2);font-size:.85rem;margin-bottom:4px" data-i18n="quality.modal.subtitle">Select quality for all video downloads.</p>
     <div class="quality-options">
       <div class="quality-option selected" data-vquality="best">
-        <div><div class="quality-label">Best available</div><div class="quality-desc">Highest quality per video</div></div>
+        <div><div class="quality-label" data-i18n="quality.option.best">Best available</div><div class="quality-desc" data-i18n="quality.option.best.desc">Highest quality per video</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin:6px 0 4px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
-        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">High resolution</span>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase" data-i18n="quality.section.high_resolution">High resolution</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-vquality="4320">
-        <div><div class="quality-label">4320p - 8K</div><div class="quality-desc">Maximum resolution · very large files</div></div>
+        <div><div class="quality-label">4320p - 8K</div><div class="quality-desc" data-i18n="quality.option.8k.desc">Maximum resolution · very large files</div></div>
       </div>
       <div class="quality-option" data-vquality="2160">
-        <div><div class="quality-label">2160p - 4K</div><div class="quality-desc">Ultra HD · large files</div></div>
+        <div><div class="quality-label">2160p - 4K</div><div class="quality-desc" data-i18n="quality.option.4k.desc">Ultra HD · large files</div></div>
       </div>
       <div class="quality-option" data-vquality="1440">
-        <div><div class="quality-label">1440p - 2K</div><div class="quality-desc">Quad HD · sharp detail</div></div>
+        <div><div class="quality-label">1440p - 2K</div><div class="quality-desc" data-i18n="quality.option.2k.desc">Quad HD · sharp detail</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:8px;margin:6px 0 4px">
         <div style="flex:1;height:1px;background:var(--border)"></div>
-        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase">Standard</span>
+        <span style="font-size:.6rem;color:var(--text2);letter-spacing:.06em;text-transform:uppercase" data-i18n="quality.section.standard">Standard</span>
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-vquality="1080">
-        <div><div class="quality-label">1080p</div><div class="quality-desc">Full HD · recommended</div></div>
+        <div><div class="quality-label">1080p</div><div class="quality-desc" data-i18n="quality.option.1080.desc">Full HD · recommended</div></div>
       </div>
       <div class="quality-option" data-vquality="720">
-        <div><div class="quality-label">720p</div><div class="quality-desc">HD · smaller files</div></div>
+        <div><div class="quality-label">720p</div><div class="quality-desc" data-i18n="quality.option.720.desc">HD · smaller files</div></div>
       </div>
       <div class="quality-option" data-vquality="480">
-        <div><div class="quality-label">480p</div><div class="quality-desc">SD · fast downloads</div></div>
+        <div><div class="quality-label">480p</div><div class="quality-desc" data-i18n="quality.option.480.desc">SD · fast downloads</div></div>
       </div>
       <div class="quality-option" data-vquality="360">
-        <div><div class="quality-label">360p</div><div class="quality-desc">Low quality · smallest files</div></div>
+        <div><div class="quality-label">360p</div><div class="quality-desc" data-i18n="quality.option.360.desc">Low quality · smallest files</div></div>
       </div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="document.getElementById('video-quality-modal').style.display='none'">Cancel</button>
-      <button class="btn btn-primary" id="video-quality-confirm-btn">Download</button>
+      <button class="btn btn-ghost" onclick="document.getElementById('video-quality-modal').style.display='none'" data-i18n="quality.btn.cancel">Cancel</button>
+      <button class="btn btn-primary" id="video-quality-confirm-btn" data-i18n="quality.btn.download">Download</button>
     </div>
   </div>
 </div>
@@ -2263,14 +2263,14 @@
       <div style="flex:1">
         <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Keyboard shortcuts</p>
         <table style="width:100%;border-collapse:collapse">
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Fetch Info</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>↵</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="url.btn.fetch">Fetch Info</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>↵</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Paste &amp; Fetch</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>V</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Clear input</td><td style="text-align:right;white-space:nowrap"><kbd>Esc</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">History</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>H</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Themes</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>T</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Theme Creator</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>K</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Advanced</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>,</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Subscriptions</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>S</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.history">History</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>H</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.themes">Themes</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>T</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="creator.title">Theme Creator</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>K</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="advanced.title">Advanced</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>,</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="subscriptions.title">Subscriptions</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>S</kbd></td></tr>
         </table>
       </div>
       <div style="width:0.5px;background:var(--border);flex-shrink:0"></div>
@@ -2315,7 +2315,7 @@
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
     </ul>
     <div class="modal-actions">
-      <button class="btn btn-primary" id="whats-new-dismiss-btn">Got it</button>
+      <button class="btn btn-primary" id="whats-new-dismiss-btn" data-i18n="whatsnew.btn.got_it">Got it</button>
     </div>
   </div>
 </div>
@@ -2323,50 +2323,50 @@
 <!-- Filename modal -->
 <div class="modal-backdrop" id="name-modal" style="display:none">
   <div class="modal">
-    <h3>✏️ Name your file</h3>
-    <p>Edit the filename before downloading. The extension is added automatically.</p>
+    <h3 data-i18n="filename.modal.title">✏️ Name your file</h3>
+    <p data-i18n="filename.modal.desc">Edit the filename before downloading. The extension is added automatically.</p>
     <div class="modal-input-row">
       <input type="text" id="modal-input" autocomplete="off" spellcheck="false"/>
       <span class="modal-ext" id="modal-ext">.mp4</span>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmModal()">⬇ Download</button>
+      <button class="btn btn-ghost" onclick="closeModal()" data-i18n="quality.btn.cancel">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmModal()" data-i18n="filename.modal.btn.download">⬇ Download</button>
     </div>
   </div>
 </div>
 
-<button id="scroll-top" title="Back to top">↑</button>
+<button id="scroll-top" data-i18n-attr="title:tooltip.back_to_top" title="Back to top">↑</button>
 
 <!-- ── Theme Creator — docked panel (in-page; the main UI is the live preview) ── -->
-<aside id="creator-panel" aria-label="Theme Creator">
+<aside id="creator-panel" data-i18n-attr="aria-label:creator.title" aria-label="Theme Creator">
   <div class="cvp-head">
     <span class="cvp-dot"></span>
-    <h2>Theme Creator</h2>
-    <span class="cvp-live" title="The main window updates live as you pick">LIVE</span>
-    <button id="cvp-close" title="Close" aria-label="Close">&times;</button>
+    <h2 data-i18n="creator.title">Theme Creator</h2>
+    <span class="cvp-live" data-i18n-attr="title:creator.live_badge.tooltip" title="The main window updates live as you pick" data-i18n="creator.live_badge">LIVE</span>
+    <button id="cvp-close" data-i18n-attr="title:creator.btn.close,aria-label:creator.btn.close" title="Close" aria-label="Close">&times;</button>
   </div>
   <div class="cvp-body">
-    <label class="cvp-flabel" for="cvp-name">Theme name</label>
+    <label class="cvp-flabel" for="cvp-name" data-i18n="creator.label.theme_name">Theme name</label>
     <input id="cvp-name" type="text" maxlength="60" autocomplete="off" spellcheck="false"/>
     <div class="cvp-picks">
-      <div class="cvp-row"><div class="cvp-lab"><b>App background</b><span>The canvas</span></div><input class="cvp-pick" type="color" data-var="--bg" aria-label="App background"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Surface</b><span>Cards, panels</span></div><input class="cvp-pick" type="color" data-var="--surf" aria-label="Surface"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Surface 2</b><span>Slightly lighter surfaces</span></div><input class="cvp-pick" type="color" data-var="--surf2" aria-label="Surface 2"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Deep surface</b><span>Dropdowns, inner panels</span></div><input class="cvp-pick" type="color" data-var="--surf3" aria-label="Deep surface"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Accent</b><span>Buttons, highlights</span></div><input class="cvp-pick" type="color" data-var="--acc" aria-label="Accent"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Accent hover</b><span>Button / link hover</span></div><input class="cvp-pick" type="color" data-var="--acc-h" aria-label="Accent hover"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Text</b><span>Primary text</span></div><input class="cvp-pick" type="color" data-var="--text" aria-label="Text"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Muted text</b><span>Secondary text</span></div><input class="cvp-pick" type="color" data-var="--text2" aria-label="Muted text"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Border</b><span>Visible everywhere</span></div><input class="cvp-pick" type="color" data-var="--border" aria-label="Border"/></div>
-      <div class="cvp-row"><div class="cvp-lab"><b>Danger</b><span>Cancel / delete actions</span></div><input class="cvp-pick" type="color" data-var="--red" aria-label="Danger"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.bg">App background</b><span data-i18n="creator.picker.bg.desc">The canvas</span></div><input class="cvp-pick" type="color" data-var="--bg" data-i18n-attr="aria-label:creator.picker.bg" aria-label="App background"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.surf">Surface</b><span data-i18n="creator.picker.surf.desc">Cards, panels</span></div><input class="cvp-pick" type="color" data-var="--surf" data-i18n-attr="aria-label:creator.picker.surf" aria-label="Surface"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.surf2">Surface 2</b><span data-i18n="creator.picker.surf2.desc">Slightly lighter surfaces</span></div><input class="cvp-pick" type="color" data-var="--surf2" data-i18n-attr="aria-label:creator.picker.surf2" aria-label="Surface 2"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.surf3">Deep surface</b><span data-i18n="creator.picker.surf3.desc">Dropdowns, inner panels</span></div><input class="cvp-pick" type="color" data-var="--surf3" data-i18n-attr="aria-label:creator.picker.surf3" aria-label="Deep surface"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.acc">Accent</b><span data-i18n="creator.picker.acc.desc">Buttons, highlights</span></div><input class="cvp-pick" type="color" data-var="--acc" data-i18n-attr="aria-label:creator.picker.acc" aria-label="Accent"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.acc_h">Accent hover</b><span data-i18n="creator.picker.acc_h.desc">Button / link hover</span></div><input class="cvp-pick" type="color" data-var="--acc-h" data-i18n-attr="aria-label:creator.picker.acc_h" aria-label="Accent hover"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.text">Text</b><span data-i18n="creator.picker.text.desc">Primary text</span></div><input class="cvp-pick" type="color" data-var="--text" data-i18n-attr="aria-label:creator.picker.text" aria-label="Text"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.text2">Muted text</b><span data-i18n="creator.picker.text2.desc">Secondary text</span></div><input class="cvp-pick" type="color" data-var="--text2" data-i18n-attr="aria-label:creator.picker.text2" aria-label="Muted text"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.border">Border</b><span data-i18n="creator.picker.border.desc">Visible everywhere</span></div><input class="cvp-pick" type="color" data-var="--border" data-i18n-attr="aria-label:creator.picker.border" aria-label="Border"/></div>
+      <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.red">Danger</b><span data-i18n="creator.picker.red.desc">Cancel / delete actions</span></div><input class="cvp-pick" type="color" data-var="--red" data-i18n-attr="aria-label:creator.picker.red" aria-label="Danger"/></div>
     </div>
   </div>
   <div class="cvp-foot">
-    <button class="cvp-btn" id="cvp-reset">Reset</button>
-    <button class="cvp-btn" id="cvp-random">Random</button>
-    <button class="cvp-btn" id="cvp-export">Export</button>
-    <button class="cvp-btn cvp-save" id="cvp-save">Save</button>
+    <button class="cvp-btn" id="cvp-reset" data-i18n="creator.btn.reset">Reset</button>
+    <button class="cvp-btn" id="cvp-random" data-i18n="creator.btn.random">Random</button>
+    <button class="cvp-btn" id="cvp-export" data-i18n="creator.btn.export">Export</button>
+    <button class="cvp-btn cvp-save" id="cvp-save" data-i18n="creator.btn.save">Save</button>
   </div>
 </aside>
 
