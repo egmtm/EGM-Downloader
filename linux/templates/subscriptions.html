@@ -847,8 +847,8 @@ function renderQueue() {
     const speed = job.data?.speed || '';
     const statusLabel = job.status === 'queued' ? (i18nGet('card.status.queued') || 'Queued')
       : job.status === 'downloading' ? `${pct}%`
-      : job.status === 'converting' ? 'Converting…'
-      : 'Processing…';
+      : job.status === 'converting' ? (i18nGet('card.status.converting') || 'Converting…')
+      : (i18nGet('card.status.processing') || 'Processing…');
 
     html += `<div class="video-card" style="display:flex;gap:12px;padding:10px 12px;margin:4px 0;border-radius:6px;align-items:center">
       <div class="video-thumb" style="width:120px;height:68px">

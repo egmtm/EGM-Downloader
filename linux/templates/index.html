@@ -1926,8 +1926,8 @@
           </button>
           <div class="adv-port-wrap" style="height:auto;padding:6px 10px">
             <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
-              <span class="adv-port-label">Show language selector</span>
-              <span style="font-size:.62rem;color:var(--text2);opacity:.65">Hides the selector from the footer — can be re-enabled here</span>
+              <span class="adv-port-label" data-i18n="lang.toggle.label">Show language selector</span>
+              <span style="font-size:.62rem;color:var(--text2);opacity:.65" data-i18n="lang.toggle.subtitle">Hides the selector from the footer — can be re-enabled here</span>
             </div>
             <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-left:auto" checked>
           </div>
@@ -2138,7 +2138,7 @@
 
 <footer>
   <div id="lang-row" style="text-align:center;margin-bottom:7px;display:none">
-    <select id="lang-select" title="Language" style="font-size:.68rem;color:var(--text);border:1px solid var(--acc-dim);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;outline:none;font-family:inherit;text-align:center"></select>
+    <select id="lang-select" data-i18n-attr="title:lang.selector.tooltip" title="Language" style="font-size:.68rem;color:var(--text);border:1px solid var(--acc-dim);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;outline:none;font-family:inherit;text-align:center"></select>
   </div>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.website">egerena.com</a>
@@ -2298,11 +2298,11 @@
 <!-- What's New modal -->
 <div class="modal-backdrop" id="hide-lang-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal" onclick="event.stopPropagation()" style="max-width:360px;width:90%">
-    <h3 style="margin-top:0">Hide language selector?</h3>
-    <p style="font-size:.8rem;color:var(--text2)">The selector will no longer appear in the footer.<br>You can always re-enable it here in Advanced.</p>
+    <h3 style="margin-top:0" data-i18n="lang.modal.hide.title">Hide language selector?</h3>
+    <p style="font-size:.8rem;color:var(--text2)" data-i18n="lang.modal.hide.body">The selector will no longer appear in the footer. You can always re-enable it here in Advanced.</p>
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="hide-lang-cancel-btn">Cancel</button>
-      <button class="btn btn-primary" id="hide-lang-confirm-btn">Hide it</button>
+      <button class="btn btn-ghost" id="hide-lang-cancel-btn" data-i18n="quality.btn.cancel">Cancel</button>
+      <button class="btn btn-primary" id="hide-lang-confirm-btn" data-i18n="lang.modal.hide.confirm">Hide it</button>
     </div>
   </div>
 </div>

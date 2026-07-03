@@ -157,7 +157,7 @@
 <body>
 
 <div class="topbar">
-  <span class="topbar-title">All Themes</span>
+  <span class="topbar-title" data-i18n="themes.topbar.all">All Themes</span>
   <div style="-webkit-app-region:no-drag">
     <button id="theme-create-btn" data-i18n-attr="title:themes.btn.create.tooltip" title="Opens the Theme Creator panel in the main window" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rs);border:1px solid var(--acc);background:var(--acc-dim);color:var(--acc);font-size:.7rem;font-weight:600;cursor:pointer;height:28px">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span data-i18n="themes.btn.create">Create</span>
@@ -551,7 +551,7 @@ function render() {
 
   if (!entries.length && !saved.length) {
     grid.innerHTML = activeCat === 'favorites'
-      ? '<div class="empty">No favorites yet — click the heart on any theme to add it.</div>'
+      ? `<div class="empty">${i18nAttr('themes.favorites.empty', 'No favorites yet — click the heart on any theme to add it.')}</div>`
       : (activeCat === 'custom'
           ? `<div class="empty">${i18nAttr('themes.saved.empty', 'No imported themes yet — create one in the Theme Creator, or import a .json.')}</div>`
           : `<div class="empty">${i18nAttr('themes.no_results', 'No themes match your search')}</div>`);

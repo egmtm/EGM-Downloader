@@ -299,8 +299,8 @@
         <div class="col hi">${fmtSize(item.size_bytes)}</div>
         <div class="col">${fmtDate(item.completed_at)}</div>
         <div class="row-btns">
-          <button class="rb pin-rb" title="Pin to top"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-          <button class="rb" title="Re-add"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
+          <button class="rb pin-rb" title="${i18nAttr('tooltip.card.pin','Pin to top')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+          <button class="rb" title="${i18nAttr('tooltip.card.readd_short','Re-add')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
           <button class="rb" title="${i18nAttr('tooltip.card.open_folder', 'Open folder')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/></svg></button>
           <button class="rb red" title="${i18nAttr('tooltip.card.remove', 'Remove')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
         </div>`;
@@ -309,7 +309,7 @@
         row.classList.add('row-pinned');
         btnPin.querySelector('svg')?.setAttribute('fill', 'currentColor');
         btnPin.classList.add('pinned');
-        btnPin.title = 'Unpin';
+        btnPin.title = i18nGet('tooltip.card.unpin') || 'Unpin';
       }
       btnPin.addEventListener('click', () => {
         const id = String(item.id);
@@ -375,7 +375,7 @@
   }
 
   function updatePagination(from, to, total) {
-    document.getElementById('pg-info').textContent = total > 0 ? (i18nFmt('history.showing', from, to, total) || `Showing ${from}–${to} of ${total}`) : 'No results';
+    document.getElementById('pg-info').textContent = total > 0 ? (i18nFmt('history.showing', from, to, total) || `Showing ${from}–${to} of ${total}`) : (i18nGet('history.no_results') || 'No results');
     const pages = Math.max(1, Math.ceil(total / PER_PAGE));
     const btns = document.getElementById('pg-btns');
     btns.innerHTML = '';

@@ -251,18 +251,18 @@ function videoQualityBgClick(e) {
   // ── Export/Import selector modal ─────────────────────────────────────────────
   function _showExportSelector(counts, onConfirm) {
     const items = [
-      { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences' },
-      { key:'history',       icon:'🕓', label:'History',             sub:`${counts.history} download records` },
-      { key:'themes',        icon:'🎨', label:'Themes & preferences', sub:'Active theme, custom themes, UI preferences' },
-      { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub:`${counts.subscriptions} channels` },
+      { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences') },
+      { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:`${counts.history} download records` },
+      { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') },
+      { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:`${counts.subscriptions} channels` },
     ];
     const state = { settings:true, history:true, themes:true, subscriptions:true };
     egmAlert('', '', {
       _custom: true,
-      title: '↑ Export settings',
-      hint: 'Choose what to include in your export file.',
+      title: (i18nGet('settings.export.title') || '↑ Export settings'),
+      hint: (i18nGet('settings.export.hint') || 'Choose what to include in your export file.'),
       items, state,
-      confirmLabel: '↑ Export',
+      confirmLabel: (i18nGet('panel.themes.btn.export') || '↑ Export'),
       confirmClass: 'btn-export',
       onConfirm,
     });
@@ -274,18 +274,18 @@ function videoQualityBgClick(e) {
     const subCount  = isEnvelope && Array.isArray(data.subscriptions) ? data.subscriptions.length : 0;
     const hasLs     = isEnvelope && data.localStorage && typeof data.localStorage === 'object';
     const items = [
-      { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available: true },
-      { key:'history',       icon:'🕓', label:'History',             sub: histCount > 0 ? `${histCount} records in file` : 'Not found in this file', available: histCount > 0 },
-      { key:'themes',        icon:'🎨', label:'Themes & preferences', sub: hasLs ? 'Active theme, custom themes, UI preferences' : 'Not found in this file', available: hasLs },
-      { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub: subCount > 0 ? `${subCount} channels in file` : 'Not found in this file', available: subCount > 0 },
+      { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available: true },
+      { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub: histCount > 0 ? (i18nFmt('settings.io.item.history.count', histCount) || `${histCount} records in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available: histCount > 0 },
+      { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub: hasLs ? (i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available: hasLs },
+      { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub: subCount > 0 ? (i18nFmt('settings.io.item.subscriptions.count', subCount) || `${subCount} channels in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available: subCount > 0 },
     ];
     const state = { settings:true, history:histCount>0, themes:!!hasLs, subscriptions:subCount>0 };
     egmAlert('', '', {
       _custom: true,
-      title: '↓ Import settings',
-      hint: 'Choose what to restore. Existing data will be merged or replaced.',
+      title: (i18nGet('settings.import.title') || '↓ Import settings'),
+      hint: (i18nGet('settings.import.hint') || 'Choose what to restore. Existing data will be merged or replaced.'),
       items, state,
-      confirmLabel: '↓ Import',
+      confirmLabel: (i18nGet('panel.themes.btn.import') || '↓ Import'),
       confirmClass: 'btn-import',
       onConfirm,
     });
@@ -380,16 +380,16 @@ function videoQualityBgClick(e) {
 
       // Show selector
       const sel = await window._egmSelectorModal({
-        title: '↑ Export settings',
-        hint: 'Choose what to include in your export file.',
+        title: (i18nGet('settings.export.title') || '↑ Export settings'),
+        hint: (i18nGet('settings.export.hint') || 'Choose what to include in your export file.'),
         items: [
-          { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available:true },
-          { key:'history',       icon:'🕓', label:'History',             sub:`${histItems.length} download records`, available:true },
-          { key:'themes',        icon:'🎨', label:'Themes & preferences', sub:'Active theme, custom themes, UI preferences', available:true },
-          { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub:`${subUrls.length} channels`, available:true },
+          { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
+          { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:`${histItems.length} download records`, available:true },
+          { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences'), available:true },
+          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:`${subUrls.length} channels`, available:true },
         ],
         state: { settings:true, history:true, themes:true, subscriptions:true },
-        confirmLabel: '↑ Export',
+        confirmLabel: (i18nGet('panel.themes.btn.export') || '↑ Export'),
       });
       if (!sel) return;
 
@@ -443,16 +443,16 @@ function videoQualityBgClick(e) {
 
       // Show selector — only enable rows that exist in the file
       const sel = await window._egmSelectorModal({
-        title: '↓ Import settings',
-        hint: 'Choose what to restore. Existing data will be merged or replaced.',
+        title: (i18nGet('settings.import.title') || '↓ Import settings'),
+        hint: (i18nGet('settings.import.hint') || 'Choose what to restore. Existing data will be merged or replaced.'),
         items: [
-          { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available:true },
-          { key:'history',       icon:'🕓', label:'History',             sub: histItems.length > 0 ? `${histItems.length} records in file` : 'Not found in this file', available:histItems.length>0 },
-          { key:'themes',        icon:'🎨', label:'Themes & preferences', sub: lsData ? 'Active theme, custom themes, UI preferences' : 'Not found in this file', available:!!lsData },
-          { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub: subUrls.length > 0 ? `${subUrls.length} channels in file` : 'Not found in this file', available:subUrls.length>0 },
+          { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
+          { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub: histItems.length > 0 ? (i18nFmt('settings.io.item.history.count', histItems.length) || `${histItems.length} records in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:histItems.length>0 },
+          { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub: lsData ? (i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:!!lsData },
+          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub: subUrls.length > 0 ? (i18nFmt('settings.io.item.subscriptions.count', subUrls.length) || `${subUrls.length} channels in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:subUrls.length>0 },
         ],
         state: { settings:true, history:histItems.length>0, themes:!!lsData, subscriptions:subUrls.length>0 },
-        confirmLabel: '↓ Import',
+        confirmLabel: (i18nGet('panel.themes.btn.import') || '↓ Import'),
       });
       if (!sel) return;
 

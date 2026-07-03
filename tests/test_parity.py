@@ -1120,6 +1120,8 @@ def test_i18n_keys_exist_in_en_locale():
             src = open(p, encoding="utf-8").read()
             for k in re.findall(r'data-i18n="([^"]+)"', src):
                 if k not in keys: bad.append((os.path.relpath(p, root), k))
+            for k in re.findall(r"i18n(?:Get|Fmt|Attr)\('([^']+)'", src):
+                if k not in keys: bad.append((os.path.relpath(p, root), k))
             for pair in re.findall(r'data-i18n-attr="([^"]+)"', src):
                 for item in pair.split(","):
                     k = item.split(":", 1)[1].strip()
