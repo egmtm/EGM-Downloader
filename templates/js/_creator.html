@@ -155,7 +155,7 @@
   }
   function confirmClose() {
     showModal({ title: (i18nGet('creator.modal.close.title') || 'Close without saving?'),
-      body: "Your theme hasn't been saved or exported.",
+      body: (i18nGet('creator.modal.close.body2') || "Your theme hasn't been saved or exported."),
       cancel: (i18nGet('creator.modal.close.keep') || 'Keep editing'),
       ok: (i18nGet('creator.modal.close.confirm') || 'Close anyway'), danger: true, onOk: closePanel });
   }
@@ -229,7 +229,7 @@
     }
     if (dupes.length) {
       showModal({
-        title: 'Overwrite "' + theme.name + '"?',
+        title: (i18nFmt('creator.modal.overwrite.title_named', theme.name) || ('Overwrite "' + theme.name + '"?')),
         body: (i18nGet('creator.modal.overwrite.body') || 'A saved theme with this name already exists. Overwrite it, or cancel to rename.'),
         cancel: (i18nGet('creator.modal.overwrite.cancel') || 'Cancel'),
         ok: (i18nGet('creator.modal.overwrite.confirm') || 'Overwrite'), danger: true,
@@ -264,7 +264,7 @@
   $('cvp-close').addEventListener('click', requestClose);
   $('cvp-reset').addEventListener('click', () => showModal({
     title: (i18nGet('creator.modal.reset.title') || 'Reset theme?'),
-    body: (i18nGet('creator.modal.close.body') || 'All color changes will be lost. This cannot be undone.'),
+    body: (i18nGet('creator.modal.reset.body') || 'All color changes will be lost. This cannot be undone.'),
     cancel: (i18nGet('creator.modal.overwrite.cancel') || 'Cancel'),
     ok: (i18nGet('creator.btn.reset') || 'Reset'), danger: true,
     onOk: () => { core = Object.assign({}, baseline); syncPickers(); pushPreview(deriveAll(core)); recomputeDirty(); },

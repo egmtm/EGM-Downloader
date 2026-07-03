@@ -72,18 +72,18 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW  WelcomePage_Show
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomePage_Leave
 
-!define MUI_WELCOMEPAGE_TITLE   "Welcome to EGM Downloader v${VERSION}"
-!define MUI_WELCOMEPAGE_TEXT    "This will install EGM Downloader v${VERSION} (Build ${BUILD}) on your computer.$\r$\n$\r$\nPython 3.10 or newer is required. On first launch, ~250 MB of additional components will be downloaded automatically.$\r$\n$\r$\nClick Next to continue."
+!define MUI_WELCOMEPAGE_TITLE   "$(EGM_WELCOME_TITLE)"
+!define MUI_WELCOMEPAGE_TEXT    "$(EGM_WELCOME_TEXT)"
 
-!define MUI_DIRECTORYPAGE_TEXT_TOP "Choose the folder where EGM Downloader will be installed."
+!define MUI_DIRECTORYPAGE_TEXT_TOP "$(EGM_DIRECTORY_TEXT)"
 
 !define MUI_FINISHPAGE_RUN      "$INSTDIR\EGM Downloader.exe"
-!define MUI_FINISHPAGE_RUN_TEXT "Launch ${APPNAME}"
+!define MUI_FINISHPAGE_RUN_TEXT "$(EGM_FINISH_RUN)"
 !define MUI_FINISHPAGE_RUN_FUNCTION FinishPage_LaunchApp
-!define MUI_FINISHPAGE_TITLE    "Installation Complete"
-!define MUI_FINISHPAGE_TEXT     "EGM Downloader v${VERSION} (Build ${BUILD}) has been installed.$\r$\n$\r$\nOn first launch, required components will be downloaded in the background. This is a one-time process."
+!define MUI_FINISHPAGE_TITLE    "$(EGM_FINISH_TITLE)"
+!define MUI_FINISHPAGE_TEXT     "$(EGM_FINISH_TEXT)"
 !define MUI_FINISHPAGE_SHOWREADME        ""
-!define MUI_FINISHPAGE_SHOWREADME_TEXT   "Add shortcut to desktop"
+!define MUI_FINISHPAGE_SHOWREADME_TEXT   "$(EGM_FINISH_SHORTCUT)"
 !define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
 !define MUI_FINISHPAGE_SHOWREADME_FUNCTION FinishPage_CreateDesktopShortcut
 
@@ -110,6 +110,106 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 !insertmacro MUI_LANGUAGE "Dutch"
 !insertmacro MUI_LANGUAGE "PortugueseBR"
 !insertmacro MUI_LANGUAGE "Russian"
+
+; ── Installer strings — 10 languages (source: Linguist v1.3 table) ───────────
+LangString EGM_WELCOME_TITLE ${LANG_ENGLISH} "Welcome to EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_ARABIC} "مرحباً بك في EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_GERMAN} "Willkommen bei EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_SPANISH} "Bienvenido a EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_FRENCH} "Bienvenue dans EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_ITALIAN} "Benvenuto in EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_JAPANESE} "EGM Downloader v${VERSION} へようこそ"
+LangString EGM_WELCOME_TITLE ${LANG_DUTCH} "Welkom bij EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_PORTUGUESEBR} "Bem-vindo ao EGM Downloader v${VERSION}"
+LangString EGM_WELCOME_TITLE ${LANG_RUSSIAN} "Добро пожаловать в EGM Downloader v${VERSION}"
+
+LangString EGM_WELCOME_TEXT ${LANG_ENGLISH} "This will install EGM Downloader v${VERSION} (Build ${BUILD}) on your computer.$\r$\nPython 3.10 or newer is required. On first launch, ~250 MB of additional components will be downloaded automatically.$\r$\nClick Next to continue."
+LangString EGM_WELCOME_TEXT ${LANG_ARABIC} "سيؤدي هذا إلى تثبيت EGM Downloader v${VERSION} (الإصدار ${BUILD}) على جهازك.$\r$\nيتطلب الأمر Python 3.10 أو أحدث. عند التشغيل الأول، سيتم تنزيل حوالي 250 ميجابايت من المكونات الإضافية تلقائياً.$\r$\nانقر على $\"التالي$\" للمتابعة."
+LangString EGM_WELCOME_TEXT ${LANG_GERMAN} "Hiermit wird EGM Downloader v${VERSION} (Build ${BUILD}) auf deinem Computer installiert.$\r$\nPython 3.10 oder neuer ist erforderlich. Beim ersten Start werden automatisch ca. 250 MB zusätzliche Komponenten heruntergeladen.$\r$\nKlicke auf Weiter, um fortzufahren."
+LangString EGM_WELCOME_TEXT ${LANG_SPANISH} "Esto instalará EGM Downloader v${VERSION} (Build ${BUILD}) en tu equipo.$\r$\nSe requiere Python 3.10 o superior. En el primer inicio, se descargarán automáticamente ~250 MB de componentes adicionales.$\r$\nHaz clic en Siguiente para continuar."
+LangString EGM_WELCOME_TEXT ${LANG_FRENCH} "Ceci va installer EGM Downloader v${VERSION} (Build ${BUILD}) sur votre ordinateur.$\r$\nPython 3.10 ou plus récent est requis. Au premier lancement, environ 250 Mo de composants supplémentaires seront téléchargés automatiquement.$\r$\nCliquez sur Suivant pour continuer."
+LangString EGM_WELCOME_TEXT ${LANG_ITALIAN} "Questo installerà EGM Downloader v${VERSION} (Build ${BUILD}) sul tuo computer.$\r$\nÈ richiesto Python 3.10 o versione successiva. Al primo avvio, verranno scaricati automaticamente circa 250 MB di componenti aggiuntivi.$\r$\nFai clic su Avanti per continuare."
+LangString EGM_WELCOME_TEXT ${LANG_JAPANESE} "これにより、EGM Downloader v${VERSION}（ビルド ${BUILD}）がこのコンピューターにインストールされます。$\r$\nPython 3.10 以降が必要です。初回起動時に、追加コンポーネント（約250MB）が自動的にダウンロードされます。$\r$\n「次へ」をクリックして続行してください。"
+LangString EGM_WELCOME_TEXT ${LANG_DUTCH} "Hiermee wordt EGM Downloader v${VERSION} (Build ${BUILD}) op je computer geïnstalleerd.$\r$\nPython 3.10 of nieuwer is vereist. Bij de eerste start wordt automatisch ongeveer 250 MB aan extra onderdelen gedownload.$\r$\nKlik op Volgende om door te gaan."
+LangString EGM_WELCOME_TEXT ${LANG_PORTUGUESEBR} "Isso instalará o EGM Downloader v${VERSION} (Build ${BUILD}) no seu computador.$\r$\nÉ necessário Python 3.10 ou mais recente. Na primeira execução, cerca de 250 MB de componentes adicionais serão baixados automaticamente.$\r$\nClique em Avançar para continuar."
+LangString EGM_WELCOME_TEXT ${LANG_RUSSIAN} "Будет выполнена установка EGM Downloader v${VERSION} (сборка ${BUILD}) на ваш компьютер.$\r$\nТребуется Python 3.10 или новее. При первом запуске автоматически будет загружено около 250 МБ дополнительных компонентов.$\r$\nНажмите «Далее», чтобы продолжить."
+
+LangString EGM_DIRECTORY_TEXT ${LANG_ENGLISH} "Choose the folder where EGM Downloader will be installed."
+LangString EGM_DIRECTORY_TEXT ${LANG_ARABIC} "اختر المجلد الذي سيتم تثبيت EGM Downloader فيه."
+LangString EGM_DIRECTORY_TEXT ${LANG_GERMAN} "Wähle den Ordner, in dem EGM Downloader installiert werden soll."
+LangString EGM_DIRECTORY_TEXT ${LANG_SPANISH} "Elige la carpeta donde se instalará EGM Downloader."
+LangString EGM_DIRECTORY_TEXT ${LANG_FRENCH} "Choisissez le dossier où EGM Downloader sera installé."
+LangString EGM_DIRECTORY_TEXT ${LANG_ITALIAN} "Scegli la cartella in cui verrà installato EGM Downloader."
+LangString EGM_DIRECTORY_TEXT ${LANG_JAPANESE} "EGM Downloader をインストールするフォルダを選択してください。"
+LangString EGM_DIRECTORY_TEXT ${LANG_DUTCH} "Kies de map waarin EGM Downloader wordt geïnstalleerd."
+LangString EGM_DIRECTORY_TEXT ${LANG_PORTUGUESEBR} "Escolha a pasta onde o EGM Downloader será instalado."
+LangString EGM_DIRECTORY_TEXT ${LANG_RUSSIAN} "Выберите папку, в которую будет установлен EGM Downloader."
+
+LangString EGM_FINISH_TITLE ${LANG_ENGLISH} "Installation Complete"
+LangString EGM_FINISH_TITLE ${LANG_ARABIC} "اكتمل التثبيت"
+LangString EGM_FINISH_TITLE ${LANG_GERMAN} "Installation abgeschlossen"
+LangString EGM_FINISH_TITLE ${LANG_SPANISH} "Instalación completa"
+LangString EGM_FINISH_TITLE ${LANG_FRENCH} "Installation terminée"
+LangString EGM_FINISH_TITLE ${LANG_ITALIAN} "Installazione completata"
+LangString EGM_FINISH_TITLE ${LANG_JAPANESE} "インストール完了"
+LangString EGM_FINISH_TITLE ${LANG_DUTCH} "Installatie voltooid"
+LangString EGM_FINISH_TITLE ${LANG_PORTUGUESEBR} "Instalação concluída"
+LangString EGM_FINISH_TITLE ${LANG_RUSSIAN} "Установка завершена"
+
+LangString EGM_FINISH_TEXT ${LANG_ENGLISH} "EGM Downloader v${VERSION} (Build ${BUILD}) has been installed.$\r$\nOn first launch, required components will be downloaded in the background. This is a one-time process."
+LangString EGM_FINISH_TEXT ${LANG_ARABIC} "تم تثبيت EGM Downloader v${VERSION} (الإصدار ${BUILD}).$\r$\nعند التشغيل الأول، سيتم تنزيل المكونات المطلوبة في الخلفية. هذه عملية تتم مرة واحدة فقط."
+LangString EGM_FINISH_TEXT ${LANG_GERMAN} "EGM Downloader v${VERSION} (Build ${BUILD}) wurde installiert.$\r$\nBeim ersten Start werden erforderliche Komponenten im Hintergrund heruntergeladen. Dies ist ein einmaliger Vorgang."
+LangString EGM_FINISH_TEXT ${LANG_SPANISH} "EGM Downloader v${VERSION} (Build ${BUILD}) se ha instalado.$\r$\nEn el primer inicio, los componentes necesarios se descargarán en segundo plano. Este es un proceso único."
+LangString EGM_FINISH_TEXT ${LANG_FRENCH} "EGM Downloader v${VERSION} (Build ${BUILD}) a été installé.$\r$\nAu premier lancement, les composants requis seront téléchargés en arrière-plan. Ceci est un processus unique."
+LangString EGM_FINISH_TEXT ${LANG_ITALIAN} "EGM Downloader v${VERSION} (Build ${BUILD}) è stato installato.$\r$\nAl primo avvio, i componenti necessari verranno scaricati in background. Questo è un processo unico."
+LangString EGM_FINISH_TEXT ${LANG_JAPANESE} "EGM Downloader v${VERSION}（ビルド ${BUILD}）がインストールされました。$\r$\n初回起動時に、必要なコンポーネントがバックグラウンドでダウンロードされます。これは一度だけの処理です。"
+LangString EGM_FINISH_TEXT ${LANG_DUTCH} "EGM Downloader v${VERSION} (Build ${BUILD}) is geïnstalleerd.$\r$\nBij de eerste start worden de vereiste onderdelen op de achtergrond gedownload. Dit gebeurt eenmalig."
+LangString EGM_FINISH_TEXT ${LANG_PORTUGUESEBR} "O EGM Downloader v${VERSION} (Build ${BUILD}) foi instalado.$\r$\nNa primeira execução, os componentes necessários serão baixados em segundo plano. Este é um processo único."
+LangString EGM_FINISH_TEXT ${LANG_RUSSIAN} "EGM Downloader v${VERSION} (сборка ${BUILD}) установлен.$\r$\nПри первом запуске необходимые компоненты будут загружены в фоновом режиме. Это одноразовый процесс."
+
+LangString EGM_FINISH_RUN ${LANG_ENGLISH} "Launch EGM Downloader"
+LangString EGM_FINISH_RUN ${LANG_ARABIC} "تشغيل EGM Downloader"
+LangString EGM_FINISH_RUN ${LANG_GERMAN} "EGM Downloader starten"
+LangString EGM_FINISH_RUN ${LANG_SPANISH} "Iniciar EGM Downloader"
+LangString EGM_FINISH_RUN ${LANG_FRENCH} "Lancer EGM Downloader"
+LangString EGM_FINISH_RUN ${LANG_ITALIAN} "Avvia EGM Downloader"
+LangString EGM_FINISH_RUN ${LANG_JAPANESE} "EGM Downloader を起動"
+LangString EGM_FINISH_RUN ${LANG_DUTCH} "EGM Downloader starten"
+LangString EGM_FINISH_RUN ${LANG_PORTUGUESEBR} "Iniciar EGM Downloader"
+LangString EGM_FINISH_RUN ${LANG_RUSSIAN} "Запустить EGM Downloader"
+
+LangString EGM_FINISH_SHORTCUT ${LANG_ENGLISH} "Add shortcut to desktop"
+LangString EGM_FINISH_SHORTCUT ${LANG_ARABIC} "إضافة اختصار إلى سطح المكتب"
+LangString EGM_FINISH_SHORTCUT ${LANG_GERMAN} "Verknüpfung auf dem Desktop hinzufügen"
+LangString EGM_FINISH_SHORTCUT ${LANG_SPANISH} "Agregar acceso directo al escritorio"
+LangString EGM_FINISH_SHORTCUT ${LANG_FRENCH} "Ajouter un raccourci sur le bureau"
+LangString EGM_FINISH_SHORTCUT ${LANG_ITALIAN} "Aggiungi collegamento al desktop"
+LangString EGM_FINISH_SHORTCUT ${LANG_JAPANESE} "デスクトップにショートカットを追加"
+LangString EGM_FINISH_SHORTCUT ${LANG_DUTCH} "Snelkoppeling toevoegen aan bureaublad"
+LangString EGM_FINISH_SHORTCUT ${LANG_PORTUGUESEBR} "Adicionar atalho à área de trabalho"
+LangString EGM_FINISH_SHORTCUT ${LANG_RUSSIAN} "Добавить ярлык на рабочий стол"
+
+LangString EGM_ALREADY_INSTALLED ${LANG_ENGLISH} "EGM Downloader v${VERSION} is already installed.$\r$\nYes → Repair (reinstall files, keep settings)$\r$\nNo → Uninstall$\r$\nCancel → Exit"
+LangString EGM_ALREADY_INSTALLED ${LANG_ARABIC} "EGM Downloader v${VERSION} مثبت بالفعل.$\r$\nنعم ← إصلاح (إعادة تثبيت الملفات مع الإبقاء على الإعدادات)$\r$\nلا ← إلغاء التثبيت$\r$\nإلغاء ← خروج"
+LangString EGM_ALREADY_INSTALLED ${LANG_GERMAN} "EGM Downloader v${VERSION} ist bereits installiert.$\r$\nJa → Reparieren (Dateien neu installieren, Einstellungen behalten)$\r$\nNein → Deinstallieren$\r$\nAbbrechen → Beenden"
+LangString EGM_ALREADY_INSTALLED ${LANG_SPANISH} "EGM Downloader v${VERSION} ya está instalado.$\r$\nSí → Reparar (reinstalar archivos, conservar configuración)$\r$\nNo → Desinstalar$\r$\nCancelar → Salir"
+LangString EGM_ALREADY_INSTALLED ${LANG_FRENCH} "EGM Downloader v${VERSION} est déjà installé.$\r$\nOui → Réparer (réinstaller les fichiers, conserver les paramètres)$\r$\nNon → Désinstaller$\r$\nAnnuler → Quitter"
+LangString EGM_ALREADY_INSTALLED ${LANG_ITALIAN} "EGM Downloader v${VERSION} è già installato.$\r$\nSì → Ripara (reinstalla i file, mantieni le impostazioni)$\r$\nNo → Disinstalla$\r$\nAnnulla → Esci"
+LangString EGM_ALREADY_INSTALLED ${LANG_JAPANESE} "EGM Downloader v${VERSION} は既にインストールされています。$\r$\nはい → 修復（ファイルを再インストールし、設定は保持）$\r$\nいいえ → アンインストール$\r$\nキャンセル → 終了"
+LangString EGM_ALREADY_INSTALLED ${LANG_DUTCH} "EGM Downloader v${VERSION} is al geïnstalleerd.$\r$\nJa → Herstellen (bestanden opnieuw installeren, instellingen behouden)$\r$\nNee → Verwijderen$\r$\nAnnuleren → Afsluiten"
+LangString EGM_ALREADY_INSTALLED ${LANG_PORTUGUESEBR} "O EGM Downloader v${VERSION} já está instalado.$\r$\nSim → Reparar (reinstalar arquivos, manter configurações)$\r$\nNão → Desinstalar$\r$\nCancelar → Sair"
+LangString EGM_ALREADY_INSTALLED ${LANG_RUSSIAN} "EGM Downloader v${VERSION} уже установлен.$\r$\nДа → Восстановить (переустановить файлы, сохранить настройки)$\r$\nНет → Удалить$\r$\nОтмена → Выход"
+
+LangString EGM_APP_RUNNING ${LANG_ENGLISH} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the installer close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING ${LANG_ARABIC} "EGM Downloader قيد التشغيل حالياً.$\r$\nأغلقه قبل المتابعة، أو دع المثبت يغلقه نيابة عنك.$\r$\nموافق ← إغلاقه نيابة عني$\r$\nإلغاء ← إلغاء التثبيت"
+LangString EGM_APP_RUNNING ${LANG_GERMAN} "EGM Downloader wird gerade ausgeführt.$\r$\nSchließe es, bevor du fortfährst, oder lasse es vom Installationsprogramm für dich schließen.$\r$\nOK → Für mich schließen$\r$\nAbbrechen → Installation abbrechen"
+LangString EGM_APP_RUNNING ${LANG_SPANISH} "EGM Downloader se está ejecutando actualmente.$\r$\nCiérralo antes de continuar, o deja que el instalador lo cierre por ti.$\r$\nAceptar → Cerrarlo por mí$\r$\nCancelar → Cancelar instalación"
+LangString EGM_APP_RUNNING ${LANG_FRENCH} "EGM Downloader est actuellement en cours d'exécution.$\r$\nFermez-le avant de continuer, ou laissez l'installateur le fermer pour vous.$\r$\nOK → Le fermer pour moi$\r$\nAnnuler → Annuler l'installation"
+LangString EGM_APP_RUNNING ${LANG_ITALIAN} "EGM Downloader è attualmente in esecuzione.$\r$\nChiudilo prima di continuare, oppure lascia che il programma di installazione lo chiuda per te.$\r$\nOK → Chiudilo per me$\r$\nAnnulla → Annulla installazione"
+LangString EGM_APP_RUNNING ${LANG_JAPANESE} "EGM Downloader は現在実行中です。$\r$\n続行する前に終了するか、インストーラーに終了させてください。$\r$\nOK → 代わりに終了する$\r$\nキャンセル → インストールを中止"
+LangString EGM_APP_RUNNING ${LANG_DUTCH} "EGM Downloader wordt momenteel uitgevoerd.$\r$\nSluit het voordat je doorgaat, of laat het installatieprogramma het voor je sluiten.$\r$\nOK → Sluit het voor mij$\r$\nAnnuleren → Installatie annuleren"
+LangString EGM_APP_RUNNING ${LANG_PORTUGUESEBR} "O EGM Downloader está em execução no momento.$\r$\nFeche-o antes de continuar, ou deixe o instalador fechá-lo para você.$\r$\nOK → Fechar para mim$\r$\nCancelar → Cancelar instalação"
+LangString EGM_APP_RUNNING ${LANG_RUSSIAN} "EGM Downloader сейчас запущен.$\r$\nЗакройте его перед продолжением или позвольте установщику закрыть его за вас.$\r$\nОК → Закрыть за меня$\r$\nОтмена → Отменить установку"
 
 ; ── Welcome-page language selector ────────────────────────────────────────────
 ; Rows map 1:1, index-aligned, to the codes in LangCodeFromIndex below.
@@ -219,10 +319,7 @@ Function .onInit
       StrCpy $INSTDIR $PreviousInstDir
     ${EndIf}
     MessageBox MB_YESNOCANCEL|MB_ICONQUESTION \
-      "EGM Downloader v${VERSION} is already installed.$\r$\n$\r$\n\
-Yes  →  Repair (reinstall files, keep settings)$\r$\n\
-No   →  Uninstall$\r$\n\
-Cancel  →  Exit" \
+      "$(EGM_ALREADY_INSTALLED)" \
       /SD IDCANCEL IDYES repair IDNO do_uninstall
     Abort
     repair:
@@ -255,10 +352,7 @@ Section "Install"
     Pop $1   ; captured stdout (unused)
     ${If} $0 == 0
       MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-        "${APPNAME} is currently running.$\r$\n$\r$\n\
-Close it before continuing, or let the installer close it for you.$\r$\n$\r$\n\
-OK      →  Close it for me$\r$\n\
-Cancel  →  Cancel installation" \
+        "$(EGM_APP_RUNNING)" \
         /SD IDOK IDOK kill_running
       Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
       kill_running:
