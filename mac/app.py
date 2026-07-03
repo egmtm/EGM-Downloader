@@ -305,8 +305,8 @@ def _read_installer_language():
     """One-time hand-off from the installer: first-run-language.txt beside
     app.py. Contents are validated against SUPPORTED_LANGUAGES before being
     trusted; the file is deleted after any read attempt (valid or not)."""
-    p = Path(__file__).parent / "first-run-language.txt"
     try:
+        p = Path(__file__).parent / "first-run-language.txt"
         if not p.is_file():
             return None
         code = p.read_text(encoding="utf-8").strip().lower()
