@@ -1071,6 +1071,7 @@ def test_i18n_markers_in_all_app_py():
         "SUPPORTED_LANGUAGES",        # single allowlist for every locale-code entry point
         '/api/language/<code>',       # allowlist-gated locale file route
         "_detect_os_language",        # OS-locale first-run detection
+        "_read_installer_language",   # NSIS hand-off file, allowlist-validated
         "_get_language_setting",      # persisted-language resolution
         '"show_language_selector"',   # footer-selector visibility setting
     ]
