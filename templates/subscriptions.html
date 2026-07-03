@@ -286,7 +286,7 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
         <span data-i18n="history.window.title">Download History</span>
       
-      <button id="back-btn">← Back to app</button>
+      </button><button id="back-btn">← Back to app</button>
     </div>
   </div>
 
@@ -530,7 +530,7 @@ async function cancelFetchAll() {
 function renderSidebar() {
   const list = document.getElementById('sub-list');
   if (!subs.length) {
-    list.innerHTML = '<div class="empty-state">No subscriptions yet</div>';
+    list.innerHTML = `<div class="empty-state">${i18nAttr('subscriptions.empty.no_subs', 'No subscriptions yet')}</div>`;
     return;
   }
   const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
@@ -558,7 +558,7 @@ function renderSidebar() {
         _fetchAllJobs[s.id].status==='done'     ? 'background:rgba(34,197,94,.12);color:var(--green)' :
                                                    'background:rgba(239,68,68,.12);color:var(--red)'
       }">${
-        _fetchAllJobs[s.id].status==='pending' ? 'Queued' :
+        _fetchAllJobs[s.id].status==='pending' ? (i18nGet('card.status.queued') || 'Queued') :
         _fetchAllJobs[s.id].status==='running' ? 'Fetching' :
         _fetchAllJobs[s.id].status==='done'    ? (_fetchAllJobs[s.id].newCount > 0 ? `+${_fetchAllJobs[s.id].newCount}` : '✓') :
                                                   'Error'
@@ -845,7 +845,7 @@ function renderQueue() {
   for (const [videoId, job] of activeJobs) {
     const pct = Math.round(job.data?.progress || 0);
     const speed = job.data?.speed || '';
-    const statusLabel = job.status === 'queued' ? 'Queued'
+    const statusLabel = job.status === 'queued' ? (i18nGet('card.status.queued') || 'Queued')
       : job.status === 'downloading' ? `${pct}%`
       : job.status === 'converting' ? 'Converting…'
       : 'Processing…';
@@ -886,7 +886,7 @@ function renderDetail() {
   if (!activeSub) {
     detail.innerHTML = `<div class="detail-empty"><div>
       <div style="font-size:2rem;margin-bottom:8px">📡</div>
-      <div>Select a subscription to view details</div>
+      <div>${i18nAttr('subscriptions.detail.empty', 'Select a subscription to view details')}</div>
     </div></div>`;
     return;
   }
@@ -921,7 +921,7 @@ function renderDetail() {
                 <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
                 <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
               </select>
-              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
               <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
             </div>
             ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">Mark all seen</button>' : ''}
@@ -955,7 +955,7 @@ function renderDetail() {
     </div>
     <div class="video-list" id="video-list">
       ${videos.length === 0 ? `
-        <div class="empty-state">Click "Fetch" to load videos from this channel</div>
+        <div class="empty-state">${i18nAttr('subscriptions.detail.hint', 'Click \\"Fetch\\" to load videos from this channel')}</div>
       ` : (() => {
         const visible = sortedVideos.slice(0, visibleCount);
         const hasMore = sortedVideos.length > visibleCount;
@@ -965,7 +965,7 @@ function renderDetail() {
           </label>
           <span id="dl-count" style="font-size:.6rem;color:var(--text2)"></span>
           <div style="flex:1"></div>
-          <button class="dl-bar-btn" id="dl-selected-btn" disabled>Download selected</button>
+          <button class="dl-bar-btn" id="dl-selected-btn" disabled>${i18nAttr('subscriptions.btn.download_selected', 'Download selected')}</button>
         </div>`;
         return dlBar + visible.map(v => `
           <div class="video-card" data-video-id="${attrEsc(v.video_id || '')}">
@@ -1232,7 +1232,7 @@ function renderDetail() {
       }
 
       updateSelectionCount();
-      dlBtn.textContent = 'Download selected';
+      dlBtn.textContent = i18nGet('subscriptions.btn.download_selected') || 'Download selected';
 
       // Start polling and run an immediate check
       startPolling();
@@ -1396,7 +1396,7 @@ async function fetchVideos(id, force) {
       renderSidebar();
       renderDetail();
     } else {
-      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || 'Fetch failed')}</div>`;
+      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`;
     }
   } catch {
     if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';

@@ -181,7 +181,7 @@ function videoQualityBgClick(e) {
     const btn = document.getElementById('adv-deno-btn');
     if (btn) btn.disabled = true;
     const r = await post('/api/deno/reinstall', {});
-    if (!r.started) { toast(r.error || 'Reinstall failed', 'err'); if (btn) btn.disabled = false; return; }
+    if (!r.started) { toast(r.error || i18nGet('plugins.reinstall.error') || 'Reinstall failed', 'err'); if (btn) btn.disabled = false; return; }
     toast('Reinstalling Deno…', 'ok');
     const iv = setInterval(async () => {
       try {
@@ -190,7 +190,7 @@ function videoQualityBgClick(e) {
         clearInterval(iv);
         if (btn) btn.disabled = false;
         if (s.error) toast('Deno reinstall failed: ' + s.error, 'err');
-        else toast('Deno reinstalled — YouTube signature solving active', 'ok');
+        else toast(i18nGet('toast.deno.reinstalled') || 'Deno reinstalled — YouTube signature solving active', 'ok');
         if (typeof refreshUpdGrid === 'function') refreshUpdGrid();
       } catch {}
     }, 800);
@@ -204,10 +204,10 @@ function videoQualityBgClick(e) {
     // The reinstall only applies on a fresh launch — offer to restart now.
     if (window.electronAPI && window.electronAPI.quit &&
         confirm('Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
-      toast('Restarting to reinstall Electron…', 'ok');
+      toast(i18nGet('toast.electron.restarting') || 'Restarting to reinstall Electron…', 'ok');
       setTimeout(() => window.electronAPI.quit({ relaunch: true }), 600);
     } else {
-      toast('Electron will reinstall the next time you open the app', 'ok');
+      toast(i18nGet('toast.electron.will_reinstall_next_launch') || 'Electron will reinstall the next time you open the app', 'ok');
     }
   });
   // Show Electron reinstall button only on Windows (Mac/Linux bundle Electron at build time)
@@ -461,7 +461,7 @@ function videoQualityBgClick(e) {
 
       if (sel.settings) {
         await post('/api/settings/save', settingsToImport);
-        msg = 'Settings imported';
+        msg = i18nGet('settings.import.success') || 'Settings imported';
       }
       if (sel.history && histItems.length > 0) {
         const r = await post('/api/history/import', { items: histItems });

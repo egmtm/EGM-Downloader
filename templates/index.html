@@ -48,15 +48,15 @@
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"/><path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
         <span data-i18n="panel.tab.themes">Themes</span>
       
-      <button class="nav-btn" data-nav="history" title="View download history">
+      </button><button class="nav-btn" data-nav="history" title="View download history">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
         <span data-i18n="panel.tab.history">History</span>
       
-      <button class="nav-btn" data-nav="advanced" title="Channels, plugins, and settings">
+      </button><button class="nav-btn" data-nav="advanced" title="Channels, plugins, and settings">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/><path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 18l11 0"/><path d="M19 18l1 0"/></svg>
         <span data-i18n="advanced.title">Advanced</span>
       
-    </div>
+    </button></div>
     <div id="hamburger-panel">
       <!-- Tabs -->
       <div class="hpanel-tabs">
@@ -1906,7 +1906,7 @@
               <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5 5-5"/><path d="M12 4v12"/></svg>
               <span data-i18n="creator.btn.export">Export</span>
             
-          </div>
+          </button></div>
         </div>
       </div>
       <!-- Advanced tab -->
@@ -1967,7 +1967,7 @@
             <div class="update-grid" id="update-grid"></div>
             <div style="margin-top:4px">
               <button class="btn btn-green btn-sm" id="run-update-btn" style="display:none;width:100%"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg> <span data-i18n="plugins.btn.install_updates">Install Updates</span>
-            </div>
+            </button></div>
             <div class="upd-log" id="upd-log"></div>
             <p class="portable-plugins-note" data-i18n="plugins.portable.note">⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.</p>
           </div>
@@ -1994,7 +1994,7 @@
     <span class="card-title" data-i18n="url.section_title">Video / Playlist URLs</span>
     <div style="display:flex;gap:6px">
       <button class="paste-btn" id="paste-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/></svg> <span data-i18n="url.btn.paste">Paste</span>
-      <button class="paste-fetch-btn" id="paste-fetch-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/><path d="M9 14l2 2l4 -4"/></svg> Paste &amp; Fetch</button>
+      </button><button class="paste-fetch-btn" id="paste-fetch-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><path d="M9 5a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2"/><path d="M9 14l2 2l4 -4"/></svg> Paste &amp; Fetch</button>
     </div>
   </div>
   <div class="card-body">
@@ -2006,9 +2006,9 @@
         <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
         <span data-i18n="url.btn.fetch">Fetch Info</span>
       
-      <button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg> <span data-i18n="url.btn.stop_fetch">Stop Fetching</span>
-      <button class="paste-btn" id="clear-btn" style="height:28px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M10 10l4 4m0 -4l-4 4"/></svg> <span data-i18n="url.btn.clear">Clear</span>
-      <div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
+      </button><button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg> <span data-i18n="url.btn.stop_fetch">Stop Fetching</span>
+      </button><button class="paste-btn" id="clear-btn" style="height:28px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M10 10l4 4m0 -4l-4 4"/></svg> <span data-i18n="url.btn.clear">Clear</span>
+      </button><div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
         <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" data-i18n-attr="title:tooltip.videos_selector" title="Max simultaneous video downloads">
           Max videos
           <select id="concurrency-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
@@ -2062,7 +2062,7 @@
           <input type="text" id="dl-dir" data-i18n-attr="placeholder:settings.folder.placeholder" placeholder="Click Browse to select a folder…" readonly/>
           <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> <span data-i18n="settings.folder.btn.browse">Browse</span></button>
           <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> <span data-i18n="settings.folder.btn.open">Open</span>
-        </div>
+        </button></div>
         <div class="set-divider"></div>
         <span class="opt-label">Format / Quality</span>
         <div class="set-format-row">
@@ -2099,8 +2099,8 @@
           </div>
           <div id="ck-loaded" class="set-cookie-actions-loaded" style="display:none">
             <button class="btn btn-ghost btn-sm" onclick="browseCookiesIPC()"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> <span data-i18n="cookies.btn.replace">Replace</span>
-            <button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> <span data-i18n="cookies.btn.unload">Unload</span>
-          </div>
+            </button><button class="btn btn-red btn-sm" id="ck-clear-btn"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> <span data-i18n="cookies.btn.unload">Unload</span>
+          </button></div>
         </div>
       </div>
     </div>

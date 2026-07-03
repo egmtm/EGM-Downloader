@@ -70,7 +70,7 @@
     else window.open('/history-page', '_blank');
   });
   document.getElementById('history-clear-btn').addEventListener('click', async () => {
-    if (!confirm('Clear all download history? This cannot be undone.')) return;
+    if (!confirm(i18nGet('history.confirm.clear') || 'Clear all download history? This cannot be undone.')) return;
     await fetch('/api/history/clear', { method: 'POST' });
     loadHistoryPanel();
   });
@@ -96,8 +96,8 @@ function _fmtDate(iso) {
     const d = new Date(iso);
     const now = new Date();
     const diff = (now - d) / 1000;
-    if (diff < 86400) return 'Today';
-    if (diff < 172800) return 'Yesterday';
+    if (diff < 86400) return i18nGet('history.date.today') || 'Today';
+    if (diff < 172800) return i18nGet('history.date.yesterday') || 'Yesterday';
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   } catch { return ''; }
 }
@@ -135,9 +135,9 @@ function _buildEntry(item) {
     </div>
     <div class="hbtns">
       <button class="hbtn pin-btn${pinned ? ' pinned' : ''}" title="${pinned ? 'Unpin' : 'Pin to top'}"><svg width="11" height="11" viewBox="0 0 24 24" fill="${pinned ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
-      <button class="hbtn" title="Re-add URL"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
-      <button class="hbtn" title="Open folder"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/></svg></button>
-      <button class="hbtn red" title="Remove"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
+      <button class="hbtn" title="${i18nAttr('tooltip.card.readd', 'Re-add URL')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></button>
+      <button class="hbtn" title="${i18nAttr('tooltip.card.open_folder', 'Open folder')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2"/></svg></button>
+      <button class="hbtn red" title="${i18nAttr('tooltip.card.remove', 'Remove')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg></button>
     </div>`;
   const [btnPin, btnReadd, btnOpen, btnDel] = div.querySelectorAll('.hbtn');
   btnPin.addEventListener('click', () => {
@@ -198,7 +198,7 @@ async function loadHistoryPanel(page = 1) {
   const countEl = document.getElementById('history-panel-count');
   const infoEl  = document.getElementById('history-total-info');
   if (countEl) countEl.textContent = total + ' total';
-  if (infoEl)  infoEl.textContent  = total + ' downloads';
+  if (infoEl)  infoEl.textContent  = i18nFmt('panel.history.downloads', total) || (total + ' downloads');
 
   const tabCount = document.getElementById('history-tab-count');
   if (tabCount) tabCount.textContent = total || '';

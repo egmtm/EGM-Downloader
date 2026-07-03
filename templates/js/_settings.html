@@ -8,7 +8,7 @@
       const fh = document.getElementById('settings-folder-hint'); if (fh) fh.textContent = s.last_folder.split(/[\\/]/).pop() || s.last_folder;
       document.getElementById('open-folder-btn').disabled = false;
       const dirHint = document.getElementById('dir-hint');
-      if (dirHint) { dirHint.textContent = 'Files saved to: ' + s.last_folder; dirHint.style.color = ''; }
+      if (dirHint) { dirHint.textContent = i18nFmt('settings.folder.saved_to', s.last_folder) || ('Files saved to: ' + s.last_folder); dirHint.style.color = ''; }
     }
     if (s.concurrency) {
       const sel = document.getElementById('concurrency-sel');
@@ -352,7 +352,7 @@ document.getElementById('adv-shortcut-btn')?.addEventListener('click', async () 
       btn.disabled = false;
       btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
     } else if (r.success) {
-      toast('Desktop shortcut created ✓', 'ok');
+      toast((i18nGet('shortcut.created') || 'Desktop shortcut created') + ' ✓', 'ok');
       btn.textContent = '✓ Done';
     } else {
       toast('Shortcut error: ' + r.error, 'err');
@@ -492,7 +492,7 @@ function renderUpdGrid(data) {
     </div>
     <div class="upd-row">
       <span class="upd-ver">${deInstalled ? deVer : 'required for YouTube'}</span>
-      <span class="vbadge ${deInstalled?'vb-ok':'vb-upd'}">${deInstalled?'✓ Installed':'✗ Not installed'}</span>
+      <span class="vbadge ${deInstalled?'vb-ok':'vb-upd'}">${deInstalled?(i18nGet('plugins.deno.status.installed')||'✓ Installed'):'✗ Not installed'}</span>
     </div>`;
   grid.appendChild(deEl);
 

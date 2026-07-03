@@ -162,7 +162,7 @@
     <button id="theme-create-btn" data-i18n-attr="title:themes.btn.create.tooltip" title="Opens the Theme Creator panel in the main window" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rs);border:1px solid var(--acc);background:var(--acc-dim);color:var(--acc);font-size:.7rem;font-weight:600;cursor:pointer;height:28px">
       <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span data-i18n="themes.btn.create">Create</span>
     
-  </div>
+  </button></div>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
     <input type="search" id="search" data-i18n-attr="placeholder:themes.search.placeholder" placeholder="Search themes...">
@@ -426,7 +426,7 @@ function buildSidebar() {
         Random on launch
       </label>
       <select id="random-scope" style="width:100%;margin-top:6px;font-size:.68rem;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:4px;padding:2px 4px;outline:none;cursor:pointer${randomOnLaunch ? '' : ';opacity:0.4;pointer-events:none'}">
-        <option value="favorites" ${randomScope === 'favorites' ? 'selected' : ''}>Favorites only</option>
+        <option value="favorites" ${randomScope === 'favorites' ? 'selected' : ''}>${i18nAttr('themes.filter.favorites_only', 'Favorites only')}</option>
         <option value="all" ${randomScope === 'all' ? 'selected' : ''}>All themes</option>
       </select>
     </div>`;
@@ -553,8 +553,8 @@ function render() {
     grid.innerHTML = activeCat === 'favorites'
       ? '<div class="empty">No favorites yet — click the heart on any theme to add it.</div>'
       : (activeCat === 'custom'
-          ? '<div class="empty">No imported themes yet — create one in the Theme Creator, or import a .json.</div>'
-          : '<div class="empty">No themes match your search.</div>');
+          ? `<div class="empty">${i18nAttr('themes.saved.empty', 'No imported themes yet — create one in the Theme Creator, or import a .json.')}</div>`
+          : `<div class="empty">${i18nAttr('themes.no_results', 'No themes match your search')}</div>`);
     return;
   }
 
@@ -567,8 +567,8 @@ function render() {
       </div>
       <span class="card-name">${esc(t.name)}</span>
       <div class="saved-actions" style="display:flex;align-items:center;gap:8px;margin-left:auto">
-        <span class="fav-heart" data-fav="${esc(t.id)}" title="${favoriteThemes.has(t.id) ? 'Remove from favorites' : 'Add to favorites'}" style="font-size:14px;cursor:pointer;color:${favoriteThemes.has(t.id) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(t.id) ? '1' : '0.4'}">${favoriteThemes.has(t.id) ? '♥' : '♡'}</span>
-        <span class="del-saved" data-del="${esc(t.id)}" title="Delete this saved theme" style="font-size:15px;line-height:1;cursor:pointer;color:var(--text2);opacity:.55">×</span>
+        <span class="fav-heart" data-fav="${esc(t.id)}" title="${favoriteThemes.has(t.id) ? i18nAttr('themes.saved.fav.remove.tooltip', 'Remove from favorites') : i18nAttr('themes.saved.fav.add.tooltip', 'Add to favorites')}" style="font-size:14px;cursor:pointer;color:${favoriteThemes.has(t.id) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(t.id) ? '1' : '0.4'}">${favoriteThemes.has(t.id) ? '♥' : '♡'}</span>
+        <span class="del-saved" data-del="${esc(t.id)}" title="${i18nAttr('themes.saved.delete.tooltip', 'Delete this saved theme')}" style="font-size:15px;line-height:1;cursor:pointer;color:var(--text2);opacity:.55">×</span>
       </div>
     </div>`).join('');
 
@@ -580,7 +580,7 @@ function render() {
         <div class="swatch" style="background:${d.acc}"></div>
       </div>
       <span class="card-name">${d.label}${d.cat === 'seasonal' ? '<span class="seasonal-badge">✦</span>' : ''}</span>
-      <span class="fav-heart" data-fav="${key}" title="${favoriteThemes.has(key) ? 'Remove from favorites' : 'Add to favorites'}" style="font-size:14px;cursor:pointer;margin-left:auto;color:${favoriteThemes.has(key) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(key) ? '1' : '0.4'}">${favoriteThemes.has(key) ? '♥' : '♡'}</span>
+      <span class="fav-heart" data-fav="${key}" title="${favoriteThemes.has(key) ? i18nAttr('themes.saved.fav.remove.tooltip', 'Remove from favorites') : i18nAttr('themes.saved.fav.add.tooltip', 'Add to favorites')}" style="font-size:14px;cursor:pointer;margin-left:auto;color:${favoriteThemes.has(key) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(key) ? '1' : '0.4'}">${favoriteThemes.has(key) ? '♥' : '♡'}</span>
     </div>
   `).join('');
 

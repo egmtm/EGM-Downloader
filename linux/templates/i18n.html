@@ -33,6 +33,22 @@ function i18nGet(key) {
 // keeps translated content out of event handlers, URLs and style attributes.
 const I18N_SAFE_ATTRS = ['title', 'placeholder', 'aria-label', 'alt'];
 
+// {0}/{1}… placeholder formatting for dynamic strings, on the same escape
+// discipline: callers place the result via textContent, never innerHTML.
+function i18nFmt(key, ...args) {
+  const v = i18nGet(key);
+  if (v === null) return null;
+  return v.replace(/\{(\d+)\}/g, (_, i) => (args[i] !== undefined ? String(args[i]) : ''));
+}
+
+// For translated values interpolated into HTML-attribute positions of
+// template literals (tooltips on rebuilt cards): escape for attribute context.
+function i18nAttr(key, fallback) {
+  const v = i18nGet(key);
+  return String(v === null ? fallback : v)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
 function i18nApply(root) {
   const scope = root || document;
   scope.querySelectorAll('[data-i18n]').forEach(el => {
