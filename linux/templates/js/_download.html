@@ -413,7 +413,7 @@ async function cancelDownload(item, n) {
   const progEl = document.getElementById(`prog${n}`);
   const dlBtn  = document.getElementById(`dl${n}`);
   const cancelBtn = document.getElementById(`cancel${n}`);
-  setBadge(stEl, 'cancel', 'Cancelled');
+  setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
   if (progEl) progEl.style.display = 'none';
   if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
@@ -457,7 +457,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (d.warning) {
       toast(d.warning, 'warn');
     } else {
-      toast('Saved: ' + d.filename, 'ok');
+      toast(i18nFmt('download.saved', d.filename) || ('Saved: ' + d.filename), 'ok');
     }
     // Auto-remove the card — history panel is canonical record, toast is feedback
     const card = stEl ? stEl.closest('.vcard') : null;
@@ -495,7 +495,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     item.status = 'cancelled';
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
-    setBadge(stEl, 'cancel', 'Cancelled');
+    setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
     recheckBulkVisibility();
     return true;
@@ -508,7 +508,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
     if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
       clearInterval(iv);
       bulkCancelledJobs.delete(item.jobId);
-      setBadge(stEl, 'cancel', 'Cancelled');
+      setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
       if (progEl) progEl.style.display = 'none';
       if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';

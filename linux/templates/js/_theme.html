@@ -258,7 +258,7 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
     if (window.electronAPI?.saveFile) {
       const r = await window.electronAPI.saveFile(filename, payload);
       if (r.canceled) return;
-      if (r.ok) toast('Theme exported ✓', 'ok');
+      if (r.ok) toast((i18nGet('theme.export.success') || 'Theme exported') + ' ✓', 'ok');
       else toast('Export failed: ' + (r.error || 'unknown'), 'err');
     } else {
       await navigator.clipboard.writeText(payload);
@@ -304,16 +304,16 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
       backdrop.className = 'modal-backdrop';
       backdrop.innerHTML = `
         <div class="modal" style="text-align:center;width:auto;min-width:220px;max-width:320px">
-          <h3>Import Theme</h3>
-          <p style="font-size:.82rem;color:var(--text2);margin-bottom:12px">Preview — <strong style="color:var(--text)">${nm}</strong></p>
+          <h3>${i18nAttr('theme.import.title', 'Import Theme')}</h3>
+          <p style="font-size:.82rem;color:var(--text2);margin-bottom:12px">${i18nAttr('theme.import.preview', 'Preview')} — <strong style="color:var(--text)">${nm}</strong></p>
           <div style="display:flex;gap:8px;margin-bottom:16px;justify-content:center">
             <div style="width:40px;height:40px;border-radius:6px;background:${bg};border:1px solid var(--border)"></div>
             <div style="width:40px;height:40px;border-radius:6px;background:${sf};border:1px solid var(--border)"></div>
             <div style="width:40px;height:40px;border-radius:6px;background:${ac};border:1px solid var(--border)"></div>
           </div>
           <div class="modal-actions" style="justify-content:center">
-            <button class="btn btn-ghost" id="theme-import-cancel">Cancel</button>
-            <button class="btn btn-primary" id="theme-import-confirm">Apply Theme</button>
+            <button class="btn btn-ghost" id="theme-import-cancel">${i18nAttr('theme.import.btn.cancel', 'Cancel')}</button>
+            <button class="btn btn-primary" id="theme-import-confirm">${i18nAttr('theme.import.btn.apply', 'Apply Theme')}</button>
           </div>
         </div>`;
       document.body.appendChild(backdrop);
