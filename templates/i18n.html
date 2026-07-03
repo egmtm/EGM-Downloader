@@ -43,6 +43,10 @@ function i18nFmt(key, ...args) {
 
 // For translated values interpolated into HTML-attribute positions of
 // template literals (tooltips on rebuilt cards): escape for attribute context.
+// Escapes &, ", < — sufficient ONLY for double-quoted attributes (every call
+// site in this codebase uses title="${i18nAttr(...)}"). Does not escape ' —
+// if a future call site ever uses a single-quoted attribute, add that escape
+// or this function stops being safe there.
 function i18nAttr(key, fallback) {
   const v = i18nGet(key);
   return String(v === null ? fallback : v)
