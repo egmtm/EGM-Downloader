@@ -51,6 +51,9 @@ Unicode          true
 Var PreviousVersion
 Var PreviousInstDir
 Var LangCombo        ; combobox on the welcome page
+Var LangComboEdit    ; combobox's child edit control (ctl ID 1001, undocumented) —
+                      ; the actual text-display surface; SetCtlColors on the combobox
+                      ; HWND itself doesn't reliably reach it (documented NSIS/Win32 quirk)
 Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; ── MUI Settings ─────────────────────────────────────────────
@@ -76,6 +79,13 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 !define MUI_WELCOMEPAGE_TEXT    "$(EGM_WELCOME_TEXT)"
 
 !define MUI_DIRECTORYPAGE_TEXT_TOP "$(EGM_DIRECTORY_TEXT)"
+; Directory path box + InstFiles progress/details log — the two remaining
+; controls MUI_BGCOLOR/MUI_TEXTCOLOR don't reach (those only cover the
+; header, Welcome, and Finish pages; confirmed via NSIS's own Directory.nsh
+; and InstallFiles.nsh, not assumed).
+!define MUI_DIRECTORYPAGE_BGCOLOR   "182338"
+!define MUI_DIRECTORYPAGE_TEXTCOLOR "e2e8f6"
+!define MUI_INSTFILESPAGE_COLORS    "e2e8f6 0b1120"
 
 !define MUI_FINISHPAGE_RUN      "$INSTDIR\EGM Downloader.exe"
 !define MUI_FINISHPAGE_RUN_TEXT "$(EGM_FINISH_RUN)"
@@ -218,9 +228,11 @@ Function WelcomePage_Show
   SetCtlColors $mui.WelcomePage.Title "e2e8f6" "0b1120"
   SetCtlColors $mui.WelcomePage.Text  "8faecf" "0b1120"
 
-  ${NSD_CreateComboBox} 120u 130u 100u 12u ""
+  ${NSD_CreateComboBox} 120u 130u 140u 14u ""
   Pop $LangCombo
   SetCtlColors $LangCombo "e2e8f6" "182338"
+  GetDlgItem $LangComboEdit $LangCombo 1001
+  SetCtlColors $LangComboEdit "e2e8f6" "182338"
   ${NSD_CB_AddString} $LangCombo "English"
   ${NSD_CB_AddString} $LangCombo "العربية"
   ${NSD_CB_AddString} $LangCombo "Deutsch"
