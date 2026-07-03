@@ -634,7 +634,7 @@ async function refreshCookieCard() {
 
     if (s.active) {
       const ageStr = s.age_days != null ? ` · ${s.age_days}d old` : '';
-      badge.textContent = `Cookies: active${ageStr}`;
+      badge.textContent = i18nFmt('status.cookies_active', ageStr) || `Cookies: active${ageStr}`;
       badge.className   = (s.age_days >= 10 ? 'vbadge vb-upd' : 'vbadge vb-ok');
       badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
       if (statusText) statusText.textContent = (s.path ? s.path.split(/[\\/]/).pop() : 'cookies.txt') + ageStr;
@@ -782,6 +782,9 @@ document.addEventListener('i18n:ready', e => {
   if (row && s.show_language_selector !== false) row.style.display = '';
   const chk = document.getElementById('show-lang-selector-chk');
   if (chk) chk.checked = s.show_language_selector !== false;
+  // The settings-init IIFE may have set this hint before the locale loaded.
+  const dirHint = document.getElementById('dir-hint');
+  if (dirHint && chosenPath) dirHint.textContent = i18nFmt('settings.folder.saved_to', chosenPath) || ('Files saved to: ' + chosenPath);
 });
 
 document.getElementById('lang-select').addEventListener('change', async function() {
