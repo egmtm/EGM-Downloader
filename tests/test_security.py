@@ -334,3 +334,50 @@ def test_language_setting_allowlist(app_mod, tmp_path):
             assert data["language"] == "ja", f"invalid language {bad!r} must not persist"
         client.post("/api/settings/save", json={"show_language_selector": 0}, headers=headers)
         assert client.get("/api/settings", headers=headers).get_json()["show_language_selector"] is False
+
+
+def test_installer_language_handoff(app_mod, tmp_path, monkeypatch):
+    """first-run-language.txt (written by the NSIS installer) must be
+    allowlist-validated, win over OS detect, and be deleted after one read —
+    valid or not. Malformed content falls through to normal detection."""
+    import pathlib
+    app_mod.SETTINGS_FILE = tmp_path / "egm_settings.json"
+
+    handoff = pathlib.Path(app_mod.__file__ if hasattr(app_mod, "__file__") else ".").parent
+    handoff = pathlib.Path(app_mod.LANGUAGES_DIR).parent / "first-run-language.txt"
+
+    def fresh():
+        app_mod._settings_cache.clear()
+        if app_mod.SETTINGS_FILE.exists():
+            app_mod.SETTINGS_FILE.unlink()
+
+    try:
+        # valid code: wins, persists, file deleted
+        fresh(); handoff.write_text("ja", encoding="utf-8")
+        assert app_mod._get_language_setting({}) == "ja"
+        assert not handoff.exists(), "hand-off file must be deleted after read"
+        assert __import__("json").loads(app_mod.SETTINGS_FILE.read_text())["language"] == "ja"
+
+        # whitespace/case tolerated
+        fresh(); handoff.write_text("  ES\n", encoding="utf-8")
+        assert app_mod._get_language_setting({}) == "es"
+        assert not handoff.exists()
+
+        # invalid / traversal-shaped / oversized content: rejected, deleted, falls through
+        for bad in ("zz", "../en", "en.json", "e" * 5000, ""):
+            fresh(); handoff.write_text(bad, encoding="utf-8")
+            got = app_mod._get_language_setting({})
+            assert got in app_mod.SUPPORTED_LANGUAGES
+            assert got == app_mod._detect_os_language(), f"bad content {bad!r} must fall through to OS detect"
+            assert not handoff.exists(), f"hand-off file must be deleted even for bad content {bad!r}"
+
+        # missing file: normal detection path
+        fresh()
+        assert app_mod._get_language_setting({}) == app_mod._detect_os_language()
+
+        # persisted setting wins over a present hand-off file (file untouched)
+        fresh(); handoff.write_text("ja", encoding="utf-8")
+        assert app_mod._get_language_setting({"language": "fr"}) == "fr"
+        assert handoff.exists(), "persisted setting short-circuits before the hand-off check"
+    finally:
+        if handoff.exists(): handoff.unlink()

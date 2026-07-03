@@ -272,14 +272,32 @@ def _detect_os_language() -> str:
     return code if code in SUPPORTED_LANGUAGES else "en"
 
 def _get_language_setting(s: dict) -> str:
-    """Return the persisted language; on first run, detect from the OS once
-    and persist it — after that, the saved setting always wins."""
+    """Return the persisted language. Resolution order: persisted setting >
+    installer hand-off file (one-time, Windows NSIS writes it) > OS detect.
+    The winning value is persisted; after that the saved setting always wins."""
     lang = s.get("language")
     if lang in SUPPORTED_LANGUAGES:
         return lang
-    lang = _detect_os_language()
+    lang = _read_installer_language() or _detect_os_language()
     _save_settings({"language": lang})
     return lang
+
+def _read_installer_language():
+    """One-time hand-off from the installer: first-run-language.txt beside
+    app.py. Contents are validated against SUPPORTED_LANGUAGES before being
+    trusted; the file is deleted after any read attempt (valid or not)."""
+    p = Path(__file__).parent / "first-run-language.txt"
+    try:
+        if not p.is_file():
+            return None
+        code = p.read_text(encoding="utf-8").strip().lower()
+    except Exception:
+        return None
+    try:
+        p.unlink()
+    except Exception:
+        pass
+    return code if code in SUPPORTED_LANGUAGES else None
 
 # ── History ────────────────────────────────────────────────────────────────────
 _history_lock = threading.Lock()
