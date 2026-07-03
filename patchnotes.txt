@@ -5,6 +5,7 @@ v1.3 - Build TBD (TBD)
   • [ALL] Language auto-detects from your system on first launch, and can be changed anytime from the footer — no restart needed
   • [ALL] Language selector can be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
   • [ALL] Minor spacing polish — collapsed Subscriptions sidebar thumbnails, and the Update/What's New modals no longer crowd their scrollbar against the text
+  • [ALL] Site Cookies panel in Settings redesigned into a more compact, centered layout
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
