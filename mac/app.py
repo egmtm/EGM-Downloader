@@ -263,6 +263,43 @@ COOKIES_FILE = DATA_DIR / "cookies.txt"
 _settings_cache: dict = {}
 _settings_lock  = threading.Lock()
 
+# ── i18n: supported locales ───────────────────────────────────────────────────────────────
+# Single allowlist for every path a locale code can enter: OS auto-detect,
+# /api/language/<code> file lookup, and /api/settings/save persistence.
+# A code is validated against this tuple BEFORE it ever builds a file path.
+SUPPORTED_LANGUAGES = ("en", "ar", "de", "es", "fr", "it", "ja", "nl", "pt", "ru")
+LANGUAGES_DIR = Path(__file__).parent / "languages"
+
+def _detect_os_language() -> str:
+    """Map the OS locale to a supported language code; default to English."""
+    code = ""
+    try:
+        if sys.platform == "win32":
+            import ctypes
+            import locale as _locale
+            lcid = ctypes.windll.kernel32.GetUserDefaultUILanguage()
+            code = _locale.windows_locale.get(lcid, "")
+        else:
+            import locale as _locale
+            code = _locale.getlocale()[0] or ""
+            # "C"/"POSIX" means no locale configured — fall back to the env vars.
+            if code.lower() in ("", "c", "posix"):
+                code = os.environ.get("LC_ALL") or os.environ.get("LANG") or ""
+    except Exception:
+        code = ""
+    code = code.replace("-", "_").split("_")[0].lower()
+    return code if code in SUPPORTED_LANGUAGES else "en"
+
+def _get_language_setting(s: dict) -> str:
+    """Return the persisted language; on first run, detect from the OS once
+    and persist it — after that, the saved setting always wins."""
+    lang = s.get("language")
+    if lang in SUPPORTED_LANGUAGES:
+        return lang
+    lang = _detect_os_language()
+    _save_settings({"language": lang})
+    return lang
+
 # ── History ────────────────────────────────────────────────────────────────────
 _history_lock = threading.Lock()
 _HISTORY_MAX  = 500
@@ -1314,7 +1351,19 @@ def get_settings():
         "favorite_themes":         s.get("favorite_themes", []),
         "random_theme_on_launch":  s.get("random_theme_on_launch", False),
         "random_theme_scope":      s.get("random_theme_scope", "favorites"),
+        "language":                _get_language_setting(s),
+        "show_language_selector":  s.get("show_language_selector", True),
     })
+
+@app.route("/api/language/<code>")
+def get_language(code):
+    # Allowlist gate BEFORE any path is built — never interpolate a raw code.
+    if code not in SUPPORTED_LANGUAGES:
+        return jsonify({"error": "unsupported language"}), 400
+    try:
+        return jsonify(json.loads((LANGUAGES_DIR / (code + ".json")).read_text(encoding="utf-8")))
+    except Exception:
+        return jsonify({"error": "language file unavailable"}), 404
 
 @app.route("/api/settings/save", methods=["POST"])
 def save_settings():
@@ -1325,7 +1374,8 @@ def save_settings():
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
-               "favorite_themes", "random_theme_on_launch", "random_theme_scope"}
+               "favorite_themes", "random_theme_on_launch", "random_theme_scope",
+               "language", "show_language_selector"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1348,6 +1398,11 @@ def save_settings():
         data.pop("random_theme_scope", None)
     if "random_theme_on_launch" in data:
         data["random_theme_on_launch"] = bool(data["random_theme_on_launch"])
+    # i18n — same allowlist as detection and /api/language: reject unknown codes.
+    if "language" in data and data.get("language") not in SUPPORTED_LANGUAGES:
+        data.pop("language", None)
+    if "show_language_selector" in data:
+        data["show_language_selector"] = bool(data["show_language_selector"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
