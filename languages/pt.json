@@ -347,7 +347,7 @@
     "tooltip.card.open_folder": "Abrir pasta",
     "tooltip.settings_section": "Pasta de download, qualidade, formato e preferências de saída",
     "tooltip.embed_metadata": "Incorpora miniatura, marcadores de capítulo e metadados nos vídeos baixados",
-    "tooltip.download_subtitles": "Baixa legendas em inglês (manuais ou geradas automaticamente) e as incorpora no vídeo",
+    "tooltip.download_subtitles": "Baixa legendas no idioma do aplicativo e em inglês (manuais ou geradas automaticamente) e as incorpora no vídeo",
     "tooltip.check_updates_launch": "Verifica silenciosamente atualizações do aplicativo e plugins ao iniciar",
     "tooltip.quit_when_done": "Fecha o aplicativo automaticamente quando todos os downloads terminam",
     "tooltip.reinstall_deno": "Reinstala o runtime do Deno em segundo plano — sem necessidade de reiniciar",
