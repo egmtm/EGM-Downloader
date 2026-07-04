@@ -55,6 +55,23 @@
       </svg>
     </div>
     <div class="spinner"></div>
-    <div class="status">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+    <div class="status" id="status-text">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+    <script>
+      // Standalone splash window — loads before Flask starts, so the app's
+      // normal i18n system (which depends on Flask serving pages) isn't
+      // available here. main.js reads the persisted language setting
+      // directly (no Flask needed) and passes it via ?lang= query param.
+      // These 9 translations are not Linguist-reviewed — just the common,
+      // low-ambiguity word "Loading" as used in most localized software.
+      var LOADING_WORD = {
+        en: 'Loading', ar: 'جارٍ التحميل', de: 'Wird geladen', es: 'Cargando',
+        fr: 'Chargement', it: 'Caricamento', ja: '読み込み中', nl: 'Laden',
+        pt: 'Carregando', ru: 'Загрузка'
+      };
+      var _lang = new URLSearchParams(location.search).get('lang') || 'en';
+      var _word = LOADING_WORD[_lang] || LOADING_WORD.en;
+      var _el = document.getElementById('status-text');
+      _el.innerHTML = _word + '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+    </script>
 </body>
 </html>
