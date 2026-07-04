@@ -372,7 +372,7 @@
     "history.sort.newest_short": "↓ Новые",
     "history.sort.oldest_short": "↑ Старые",
     "creator.title": "Создатель тем",
-    "creator.live_badge": "LIVE",
+    "creator.live_badge": "ПРЯМОЙ ЭФИР",
     "creator.live_badge.tooltip": "Главное окно обновляется в реальном времени по мере выбора",
     "creator.label.theme_name": "Название темы",
     "creator.placeholder.theme_name": "Моя тема 1",
