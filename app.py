@@ -1082,7 +1082,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--embed-metadata", "--embed-chapters"]
         # Subtitles — embed English subs into the video (only meaningful for video downloads)
         if subtitles:
-            args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
+            # Subtitle language follows the app language, English as fallback.
+            # yt-dlp downloads every matching track: non-English users get their
+            # language (any regional variant) plus English when both exist, and
+            # English alone when theirs is missing.
+            _lang = _load_settings().get("language", "en")
+            _sub_langs = "en" if _lang not in SUPPORTED_LANGUAGES or _lang == "en" else f"{_lang}.*,en"
+            args += ["--write-subs", "--write-auto-subs", "--sub-langs", _sub_langs, "--embed-subs"]
     args.append(url)
 
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args

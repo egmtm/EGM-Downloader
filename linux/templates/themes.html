@@ -531,9 +531,10 @@ document.getElementById('bc-all').addEventListener('click', () => {
 // ── Render grid ───────────────────────────────────────────────────────────
 document.addEventListener('i18n:ready', () => {
   document.title = (i18nGet('themes.topbar.all') || 'All Themes') + ' — EGM Downloader';
+  buildSidebar();
   render();
 });
-document.addEventListener('i18n:changed', () => { render(); });
+document.addEventListener('i18n:changed', () => { buildSidebar(); render(); });
 
 function render() {
   const grid = document.getElementById('grid');
