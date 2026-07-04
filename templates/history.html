@@ -111,7 +111,7 @@
   <button class="filter-btn" data-filter="video" data-i18n="history.filter.video">Video</button>
   <button class="filter-btn" data-filter="audio" data-i18n="history.filter.audio">Audio</button>
   <button class="filter-btn" data-filter="flac" data-i18n="history.filter.flac">FLAC</button>
-  <button class="sort-btn" id="sort-btn" data-i18n="history.sort.newest">↓ Newest</button>
+  <button class="sort-btn" id="sort-btn">↓ Newest</button>
 </div>
 
 <div class="table-header">
@@ -262,11 +262,15 @@
   let pinnedIds = new Set();
   try { pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') || '[]') || []).map(String)); } catch {}
 
+  function localizeSortBtn() {
+    document.getElementById('sort-btn').textContent = sortAsc ? (i18nGet('history.sort.oldest') || '↑ Oldest') : (i18nGet('history.sort.newest') || '↓ Newest');
+  }
   document.addEventListener('i18n:ready', () => {
     document.title = (i18nGet('history.window.title') || 'Download History') + ' — EGM Downloader';
+    localizeSortBtn();
     render();
   });
-  document.addEventListener('i18n:changed', () => { render(); });
+  document.addEventListener('i18n:changed', () => { localizeSortBtn(); render(); });
 
   function render() {
     const wrap = document.getElementById('table-wrap');
