@@ -50,9 +50,7 @@ Unicode          true
 ; ── Variables ────────────────────────────────────────────────
 Var PreviousVersion
 Var PreviousInstDir
-Var LangCombo        ; language drop-list on the welcome page    ; combobox's child edit control (ctl ID 1001, undocumented) —
-                      ; the actual text-display surface; SetCtlColors on the combobox
-                      ; HWND itself doesn't reliably reach it (documented NSIS/Win32 quirk)
+Var LangCombo        ; language drop-list on the welcome page
 Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; ── MUI Settings ─────────────────────────────────────────────
