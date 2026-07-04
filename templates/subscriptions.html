@@ -264,7 +264,7 @@
       <input type="text" id="add-url" data-i18n-attr="placeholder:subscriptions.url.placeholder" placeholder="Paste URL here..." />
       <div style="display:flex;gap:4px;margin-top:4px">
         <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_paste" title="Paste from clipboard">📋 <span data-i18n="url.btn.paste">Paste</span></button>
-        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_add" title="Add subscription">+ Add</button>
+        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_add" title="Add subscription"><span data-i18n="subscriptions.btn.add">+ Add</span></button>
       </div>
     </div>
 
@@ -272,7 +272,7 @@
       <div style="display:flex;gap:4px">
         <button id="fetch-all-btn" onclick="fetchAllChannels()" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:5px 8px;border-radius:5px;font-size:.68rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
-          Fetch All
+          <span data-i18n="subscriptions.btn.fetch_all">Fetch All</span>
         </button>
         <button id="fetch-all-cancel-btn" onclick="cancelFetchAll()" style="display:none;background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:.68rem;cursor:pointer" data-i18n="quality.btn.cancel">Cancel</button>
       </div>
@@ -286,7 +286,7 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
         <span data-i18n="history.window.title">Download History</span>
       
-      </button><button id="back-btn">← Back to app</button>
+      </button><button id="back-btn" data-i18n="subscriptions.btn.back">← Back to app</button>
     </div>
   </div>
 
@@ -843,8 +843,8 @@ function renderQueue() {
 
   let html = `<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
-    <span style="font-weight:600;font-size:.85rem">Download queue</span>
-    <span style="font-size:.65rem;color:var(--text2)">${activeJobs.length} active</span>
+    <span style="font-weight:600;font-size:.85rem">${i18nAttr('subscriptions.queue.title', 'Download queue')}</span>
+    <span style="font-size:.65rem;color:var(--text2)">${(i18nFmt('subscriptions.queue.active', activeJobs.length) || `${activeJobs.length} active`)}</span>
   </div>`;
 
   html += '<div style="flex:1;overflow-y:auto;padding:0 18px 8px">';
@@ -914,45 +914,45 @@ function renderDetail() {
             <h2 style="font-size:1.05rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
             <p style="font-size:.72rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
             <p style="font-size:.68rem;color:var(--text2)">
-              ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
+              ${(i18nFmt('subscriptions.detail.videos_count', videos.length) || `${videos.length} videos`)}${activeSub.last_fetched ? (i18nFmt('subscriptions.detail.last_fetched', new Date(activeSub.last_fetched).toLocaleDateString()) || ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString()) : ''}
             </p>
             <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:5px;cursor:pointer">
               <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
-              Auto-fetch on open
+              ${i18nAttr('subscriptions.detail.autofetch', 'Auto-fetch on open')}
             </label>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;margin-left:16px">
             <div style="display:flex;gap:8px;align-items:center">
               <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.7rem;border-radius:5px;padding:5px 10px;cursor:pointer;height:28px">
-                <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
-                <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
+                <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.latest', 'Latest')}</option>
+                <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.oldest', 'Oldest')}</option>
               </select>
               <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
               <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">${i18nAttr('subscriptions.btn.delete', 'Delete')}</button>
             </div>
-            ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">Mark all seen</button>' : ''}
+            ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">' + i18nAttr('subscriptions.btn.mark_seen', 'Mark all seen') + '</button>' : ''}
           </div>
         </div>
         <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
           <div style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
-            <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : 'Default')}</span>
+            <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : (i18nGet('subscriptions.label.folder_default') || 'Default'))}</span>
             <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Browse</button>
             ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Open</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">Reset</button>' : ''}
           </div>
           <span style="color:var(--border)">|</span>
           <div style="display:flex;align-items:center;gap:5px">
-            <span style="font-size:.65rem;color:var(--text2)">Format</span>
+            <span style="font-size:.65rem;color:var(--text2)">${i18nAttr('subscriptions.label.format', 'Format')}</span>
             <select id="format-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
-              <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>Video</option>
-              <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
+              <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>${i18nAttr('card.format.video', 'Video')}</option>
+              <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>${i18nAttr('card.format.audio', 'Audio')}</option>
             </select>
           </div>
           <div style="display:flex;align-items:center;gap:5px">
-            <span style="font-size:.65rem;color:var(--text2)">Quality</span>
+            <span style="font-size:.65rem;color:var(--text2)">${i18nAttr('subscriptions.label.quality', 'Quality')}</span>
             <select id="quality-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
               ${(activeSub.format || 'video') === 'video' ?
-                '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
+                '<option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
               : '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'}
             </select>
           </div>
@@ -967,7 +967,7 @@ function renderDetail() {
         const hasMore = sortedVideos.length > visibleCount;
         const dlBar = `<div class="dl-bar">
           <label style="display:flex;align-items:center;gap:4px;font-size:.62rem;color:var(--text2);cursor:pointer">
-            <input type="checkbox" id="select-all-check" style="accent-color:var(--acc);cursor:pointer"> Select all
+            <input type="checkbox" id="select-all-check" style="accent-color:var(--acc);cursor:pointer"> ${i18nAttr('subscriptions.detail.select_all', 'Select all')}
           </label>
           <span id="dl-count" style="font-size:.6rem;color:var(--text2)"></span>
           <div style="flex:1"></div>
@@ -982,15 +982,15 @@ function renderDetail() {
             </div>
             <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">New</span>' : ''}${v.downloaded ? ` <span class="video-status done">Downloaded</span> <button class="video-action-btn" onclick="clearDownloaded('${attrEsc(v.video_id || '')}')">Clear</button>` : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
+              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">' + i18nAttr('subscriptions.badge.new', 'New') + '</span>' : ''}${v.downloaded ? ` <span class="video-status done">${i18nAttr('subscriptions.status.downloaded', 'Downloaded')}</span> <button class="video-action-btn" onclick="clearDownloaded('${attrEsc(v.video_id || '')}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>` : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">' + i18nAttr('subscriptions.badge.members', 'Members') + '</span>' : ''}</div>
             </div>
             <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-              <span style="font-size:.65rem;color:var(--text2)">Quality</span>
+              <span style="font-size:.65rem;color:var(--text2)">${i18nAttr('subscriptions.label.quality', 'Quality')}</span>
               <select class="vq-sel" data-video-id="${attrEsc(v.video_id || '')}" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
-                <option value="">Channel default</option>
+                <option value="">${i18nAttr('subscriptions.quality.channel_default', 'Channel default')}</option>
                 ${(activeSub.format || 'video') === 'audio'
                   ? '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
-                  : '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'}
+                  : '<option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'}
               </select>
             </div>
           </div>
@@ -1030,14 +1030,14 @@ function renderDetail() {
     if (format === 'audio') {
       qualitySelect.innerHTML = '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>';
     } else {
-      qualitySelect.innerHTML = '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
+      qualitySelect.innerHTML = '<option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
     }
     const opt = qualitySelect.querySelector(`option[value="${savedQuality}"]`);
     if (opt) opt.selected = true;
     // Sync per-row selects to new format options; clear any stored overrides
     const rowOpts = format === 'audio'
-      ? '<option value="">Channel default</option><option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
-      : '<option value="">Channel default</option><option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
+      ? '<option value="">' + i18nAttr('subscriptions.quality.channel_default', 'Channel default') + '</option><option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
+      : '<option value="">' + i18nAttr('subscriptions.quality.channel_default', 'Channel default') + '</option><option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
     document.querySelectorAll('.vq-sel').forEach(s => { s.innerHTML = rowOpts; });
     videoQualityOverride = {};
   }

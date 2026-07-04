@@ -203,7 +203,7 @@ function videoQualityBgClick(e) {
     if (!r.ok) { toast('Failed: ' + (r.error || 'unknown'), 'err'); return; }
     // The reinstall only applies on a fresh launch — offer to restart now.
     if (window.electronAPI && window.electronAPI.quit &&
-        confirm('Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
+        confirm(i18nGet('confirm.electron_restart_now') || 'Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
       toast(i18nGet('toast.electron.restarting') || 'Restarting to reinstall Electron…', 'ok');
       setTimeout(() => window.electronAPI.quit({ relaunch: true }), 600);
     } else {
@@ -252,7 +252,7 @@ function videoQualityBgClick(e) {
   function _showExportSelector(counts, onConfirm) {
     const items = [
       { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences') },
-      { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:`${counts.history} download records` },
+      { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:(i18nFmt('settings.io.item.history.count_export', counts.history) || `${counts.history} download records`) },
       { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') },
       { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:`${counts.subscriptions} channels` },
     ];
@@ -384,7 +384,7 @@ function videoQualityBgClick(e) {
         hint: (i18nGet('settings.export.hint') || 'Choose what to include in your export file.'),
         items: [
           { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
-          { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:`${histItems.length} download records`, available:true },
+          { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:(i18nFmt('settings.io.item.history.count_export', histItems.length) || `${histItems.length} download records`), available:true },
           { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences'), available:true },
           { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:`${subUrls.length} channels`, available:true },
         ],
