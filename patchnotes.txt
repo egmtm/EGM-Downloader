@@ -6,6 +6,8 @@ v1.3 - Build TBD (TBD)
   • [ALL] Language selector can be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
   • [ALL] Minor spacing polish — collapsed Subscriptions sidebar thumbnails, and the Update/What's New modals no longer crowd their scrollbar against the text
   • [ALL] Site Cookies panel in Settings redesigned into a more compact, centered layout
+  • [ALL] Downloaded subtitles now follow your selected app language automatically (falls back to English if unavailable)
+  • [WINDOWS] Installer redesigned to match the app's dark theme, with language selection at setup — available in all 10 supported languages
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
