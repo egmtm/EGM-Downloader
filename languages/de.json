@@ -347,7 +347,7 @@
     "tooltip.card.open_folder": "Ordner öffnen",
     "tooltip.settings_section": "Download-Ordner, Qualität, Format und Ausgabeeinstellungen",
     "tooltip.embed_metadata": "Bettet Vorschaubild, Kapitelmarker und Metadaten in heruntergeladene Videos ein",
-    "tooltip.download_subtitles": "Lädt englische Untertitel herunter (manuell oder automatisch generiert) und bettet sie in das Video ein",
+    "tooltip.download_subtitles": "Lädt Untertitel in deiner App-Sprache und auf Englisch herunter (manuell oder automatisch generiert) und bettet sie in das Video ein",
     "tooltip.check_updates_launch": "Sucht beim Start lautlos nach App- und Plugin-Updates",
     "tooltip.quit_when_done": "Schließt die App automatisch, wenn alle Downloads abgeschlossen sind",
     "tooltip.reinstall_deno": "Installiert die Deno-Laufzeitumgebung im Hintergrund neu — kein Neustart nötig",
