@@ -49,7 +49,7 @@
 
     .sub-list { flex:1;overflow-y:auto;padding:4px 0; }
     .sidebar.collapsed .sub-list { display:none; }
-    .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 0;overflow-y:auto; }
+    .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 7px;overflow-y:auto; }
     .sidebar.collapsed .mini-list { display:flex; }
     .mini-thumb {
       width:45px;height:45px;border-radius:50%;background:var(--surf2);
@@ -867,7 +867,7 @@ function renderQueue() {
           <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
           <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? 100 : pct}%"></div></div>
           ${speed ? `<span style="font-size:.55rem;color:var(--text2)">${speed}</span>` : ''}
-          <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">Cancel</button>
+          <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
         </div>
       </div>
     </div>`;
@@ -937,8 +937,8 @@ function renderDetail() {
           <div style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
             <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : (i18nGet('subscriptions.label.folder_default') || 'Default'))}</span>
-            <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Browse</button>
-            ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Open</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">Reset</button>' : ''}
+            <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">${i18nAttr('settings.folder.btn.browse', 'Browse')}</button>
+            ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">' + i18nAttr('settings.folder.btn.open', 'Open') + '</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">' + i18nAttr('creator.btn.reset', 'Reset') + '</button>' : ''}
           </div>
           <span style="color:var(--border)">|</span>
           <div style="display:flex;align-items:center;gap:5px">
