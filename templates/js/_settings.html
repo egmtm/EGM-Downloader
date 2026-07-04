@@ -641,7 +641,7 @@ async function refreshCookieCard() {
     if (!badge) return;
 
     if (s.active) {
-      const ageStr = s.age_days != null ? ` · ${s.age_days}d old` : '';
+      const ageStr = s.age_days != null ? (i18nFmt('status.cookies_age_suffix', s.age_days) || ` · ${s.age_days}d old`) : '';
       badge.textContent = i18nFmt('status.cookies_active', ageStr) || `Cookies: active${ageStr}`;
       badge.className   = (s.age_days >= 10 ? 'vbadge vb-upd' : 'vbadge vb-ok');
       badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
