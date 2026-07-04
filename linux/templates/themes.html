@@ -427,7 +427,7 @@ function buildSidebar() {
       </label>
       <select id="random-scope" style="width:100%;margin-top:6px;font-size:.68rem;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:4px;padding:2px 4px;outline:none;cursor:pointer${randomOnLaunch ? '' : ';opacity:0.4;pointer-events:none'}">
         <option value="favorites" ${randomScope === 'favorites' ? 'selected' : ''}>${i18nAttr('themes.filter.favorites_only', 'Favorites only')}</option>
-        <option value="all" ${randomScope === 'all' ? 'selected' : ''}>All themes</option>
+        <option value="all" ${randomScope === 'all' ? 'selected' : ''}>${i18nAttr('themes.topbar.all', 'All Themes')}</option>
       </select>
     </div>`;
   sb.insertAdjacentHTML('beforeend', randomHtml);
