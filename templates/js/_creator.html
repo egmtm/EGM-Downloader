@@ -197,7 +197,7 @@
     if (window.electronAPI && window.electronAPI.saveFile) {
       const r = await window.electronAPI.saveFile(slug(theme.name) + '.json', payload);
       if (!r || r.canceled) return;
-      if (r.ok) toast('Theme exported ✓', 'ok');
+      if (r.ok) toast((i18nGet('theme.export.success') || 'Theme exported') + ' ✓', 'ok');
       else toast('Export failed: ' + ((r && r.error) || 'unknown'), 'err');
     } else {
       try { await navigator.clipboard.writeText(payload); toast('Theme copied to clipboard ✓', 'ok'); }
