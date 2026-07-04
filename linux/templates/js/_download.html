@@ -103,7 +103,7 @@ function makePh(url) {
     <div class="vbody">
       <!-- lint-allow-muted: loading-state -->
       <div class="vtitle" style="color:var(--muted)">${esc(trunc(url,70))}</div>
-      <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> Fetching…</span></div>
+      <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> ${i18nAttr('card.status.fetching', 'Fetching…')}</span></div>
     </div>`;
   document.getElementById('results').appendChild(el);
   return el;
@@ -163,18 +163,18 @@ function renderCard(el, item) {
       <div class="vmeta">${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
       <div class="qual-panel">
         <div class="qual-group">
-          <span class="qual-label">Format</span>
+          <span class="qual-label">${i18nAttr('card.label.format', 'Format')}</span>
           <div class="pills">
             <input type="radio" name="fmt${n}" id="fv${n}" value="video" checked>
-            <label for="fv${n}">🎬 Video</label>
+            <label for="fv${n}">🎬 ${i18nAttr('card.format.video', 'Video')}</label>
             <input type="radio" name="fmt${n}" id="fa${n}" value="audio">
-            <label for="fa${n}">🎵 Audio</label>
+            <label for="fa${n}">🎵 ${i18nAttr('card.format.audio', 'Audio')}</label>
           </div>
         </div>
         <div class="qual-group" id="vqg${n}" ${!hasQ?'style="display:none"':''}>
-          <span class="qual-label">Video quality</span>
+          <span class="qual-label">${i18nAttr('card.label.video_quality', 'Video quality')}</span>
           <select class="qsel" id="vq${n}">
-            <option value="">Best available</option>${vOpts}
+            <option value="">${i18nAttr('card.quality.best', 'Best available')}</option>${vOpts}
           </select>
         </div>
         <div class="qual-group" id="aqg${n}" style="display:none">
@@ -198,7 +198,7 @@ function renderCard(el, item) {
           <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
         </div>
         <span class="badge b-wait" id="st${n}">Ready</span>
-        <button class="btn btn-primary btn-sm" id="dl${n}">⬇ Download</button>
+        <button class="btn btn-primary btn-sm" id="dl${n}">⬇ ${i18nAttr('card.btn.download', 'Download')}</button>
       </div>
       <div class="prog" id="prog${n}" style="display:none"><div class="prog-inner indeterminate"></div></div>
     </div>`;
@@ -367,7 +367,7 @@ async function startDl(item, n) {
     cancelBtn = document.createElement('button');
     cancelBtn.id = `cancel${n}`;
     cancelBtn.className = 'btn btn-red btn-sm';
-    cancelBtn.textContent = '✕ Cancel';
+    cancelBtn.textContent = '✕ ' + (i18nGet('card.btn.cancel') || 'Cancel');
     dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
   }
   cancelBtn.style.display = '';
