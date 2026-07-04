@@ -347,7 +347,7 @@
     "tooltip.card.open_folder": "Ouvrir le dossier",
     "tooltip.settings_section": "Dossier de téléchargement, qualité, format et préférences de sortie",
     "tooltip.embed_metadata": "Intègre la miniature, les marqueurs de chapitres et les métadonnées dans les vidéos téléchargées",
-    "tooltip.download_subtitles": "Télécharge les sous-titres en anglais (manuels ou générés automatiquement) et les intègre dans la vidéo",
+    "tooltip.download_subtitles": "Télécharge les sous-titres dans la langue de l'application et en anglais (manuels ou générés automatiquement) et les intègre dans la vidéo",
     "tooltip.check_updates_launch": "Vérifie silencieusement les mises à jour de l'application et des plugins au démarrage",
     "tooltip.quit_when_done": "Ferme automatiquement l'application quand tous les téléchargements sont terminés",
     "tooltip.reinstall_deno": "Réinstalle le runtime Deno en arrière-plan — aucun redémarrage nécessaire",
