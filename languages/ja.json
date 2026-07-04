@@ -347,7 +347,7 @@
     "tooltip.card.open_folder": "フォルダを開く",
     "tooltip.settings_section": "ダウンロードフォルダ、品質、フォーマット、出力設定",
     "tooltip.embed_metadata": "サムネイル、チャプターマーカー、メタデータをダウンロード動画に埋め込む",
-    "tooltip.download_subtitles": "英語字幕（手動または自動生成）をダウンロードして動画に埋め込む",
+    "tooltip.download_subtitles": "アプリの言語と英語の字幕（手動または自動生成）をダウンロードして動画に埋め込む",
     "tooltip.check_updates_launch": "起動時にアプリとプラグインのアップデートをバックグラウンドで確認する",
     "tooltip.quit_when_done": "すべてのダウンロードが完了したら自動的にアプリを閉じる",
     "tooltip.reinstall_deno": "Deno ランタイムをバックグラウンドで再インストール — 再起動不要",
