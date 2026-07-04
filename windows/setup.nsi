@@ -388,6 +388,11 @@ Section "Install"
   SetOutPath "$INSTDIR"
 
   ; ── Root files ──
+  ; Pre-v0.99.11 installs launched via launch.vbs/launch.bat — the compiled
+  ; EXE replaced them (Build 119) but upgrades never cleaned them up.
+  Delete "$INSTDIR\launch.vbs"
+  Delete "$INSTDIR\launch.bat"
+
   File "${REPO_ROOT}/windows/EGM Downloader.exe"
   File "${REPO_ROOT}/windows/launch.py"
   File "${REPO_ROOT}/windows/instructions.txt"
@@ -506,6 +511,8 @@ Section "Uninstall"
   ; ── Remove app files ──
   Delete "$INSTDIR\EGM Downloader.exe"
   Delete "$INSTDIR\launch.py"
+  Delete "$INSTDIR\launch.vbs"
+  Delete "$INSTDIR\launch.bat"
   Delete "$INSTDIR\instructions.txt"
   Delete "$INSTDIR\app.py"
   Delete "$INSTDIR\rcedit-x64.exe"
