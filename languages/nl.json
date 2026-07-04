@@ -347,7 +347,7 @@
     "tooltip.card.open_folder": "Map openen",
     "tooltip.settings_section": "Downloadmap, kwaliteit, formaat en uitvoerinstellingen",
     "tooltip.embed_metadata": "Miniatuur, hoofdstukmarkeringen en metadata insluiten in gedownloade video's",
-    "tooltip.download_subtitles": "Downloadt Engelse ondertitels (handmatig of automatisch gegenereerd) en sluit ze in de video in",
+    "tooltip.download_subtitles": "Downloadt ondertitels in je app-taal en in het Engels (handmatig of automatisch gegenereerd) en sluit ze in de video in",
     "tooltip.check_updates_launch": "Controleert stil op app- en plugin-updates bij het starten",
     "tooltip.quit_when_done": "Sluit de app automatisch als alle downloads zijn voltooid",
     "tooltip.reinstall_deno": "Herinstalleert de Deno runtime op de achtergrond — geen herstart nodig",
