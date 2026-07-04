@@ -97,7 +97,7 @@
 <div class="titlebar">
   <h1>
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15 15"/></svg>
-    Download History
+    <span data-i18n="history.window.title">Download History</span>
     <span class="total-badge" id="total-badge">0</span>
   </h1>
   <div class="tb-actions">
@@ -106,7 +106,7 @@
 </div>
 
 <div class="toolbar">
-  <input class="search" id="search-input" placeholder="Search title, URL, format…">
+  <input class="search" id="search-input" data-i18n-attr="placeholder:history.search.placeholder" placeholder="Search title, URL, format…">
   <button class="filter-btn active" data-filter="all" data-i18n="history.filter.all">All</button>
   <button class="filter-btn" data-filter="video" data-i18n="history.filter.video">Video</button>
   <button class="filter-btn" data-filter="audio" data-i18n="history.filter.audio">Audio</button>
@@ -116,11 +116,11 @@
 
 <div class="table-header">
   <div class="th"></div>
-  <div class="th">Title</div>
-  <div class="th">Format</div>
-  <div class="th">Size</div>
-  <div class="th">Date</div>
-  <div class="th" style="text-align:right">Actions</div>
+  <div class="th" data-i18n="history.col.title">Title</div>
+  <div class="th" data-i18n="history.col.format">Format</div>
+  <div class="th" data-i18n="history.col.size">Size</div>
+  <div class="th" data-i18n="history.col.date">Date</div>
+  <div class="th" style="text-align:right" data-i18n="history.col.actions">Actions</div>
 </div>
 
 <div class="table-wrap" id="table-wrap">
@@ -261,6 +261,12 @@
 
   let pinnedIds = new Set();
   try { pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') || '[]') || []).map(String)); } catch {}
+
+  document.addEventListener('i18n:ready', () => {
+    document.title = (i18nGet('history.window.title') || 'Download History') + ' — EGM Downloader';
+    render();
+  });
+  document.addEventListener('i18n:changed', () => { render(); });
 
   function render() {
     const wrap = document.getElementById('table-wrap');

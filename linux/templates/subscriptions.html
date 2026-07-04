@@ -263,7 +263,7 @@
     <div class="add-bar">
       <input type="text" id="add-url" data-i18n-attr="placeholder:subscriptions.url.placeholder" placeholder="Paste URL here..." />
       <div style="display:flex;gap:4px;margin-top:4px">
-        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_paste" title="Paste from clipboard">📋 Paste</button>
+        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_paste" title="Paste from clipboard">📋 <span data-i18n="url.btn.paste">Paste</span></button>
         <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_add" title="Add subscription">+ Add</button>
       </div>
     </div>
@@ -526,6 +526,12 @@ async function cancelFetchAll() {
   if (progress) progress.style.display = 'none';
   renderSidebar();
 }
+
+document.addEventListener('i18n:ready', () => {
+  document.title = (i18nGet('subscriptions.title') || 'Subscriptions') + ' — EGM Downloader';
+  renderSidebar(); renderDetail(); if (typeof renderQueue === 'function' && window.showQueue) renderQueue();
+});
+document.addEventListener('i18n:changed', () => { renderSidebar(); renderDetail(); });
 
 function renderSidebar() {
   const list = document.getElementById('sub-list');
@@ -922,7 +928,7 @@ function renderDetail() {
                 <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
               </select>
               <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
-              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">${i18nAttr('subscriptions.btn.delete', 'Delete')}</button>
             </div>
             ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">Mark all seen</button>' : ''}
           </div>
@@ -989,7 +995,7 @@ function renderDetail() {
             </div>
           </div>
         `).join('') + (hasMore ? `
-          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const vl=document.getElementById('video-list'),st=vl?vl.scrollTop:0;visibleCount+=20;renderDetail();const nv=document.getElementById('video-list');if(nv){nv.scrollTop=st;requestAnimationFrame(()=>{nv.scrollTop=st})}">Load more (${visible.length} of ${sortedVideos.length})</button>
+          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const vl=document.getElementById('video-list'),st=vl?vl.scrollTop:0;visibleCount+=20;renderDetail();const nv=document.getElementById('video-list');if(nv){nv.scrollTop=st;requestAnimationFrame(()=>{nv.scrollTop=st})}">${(i18nFmt('subscriptions.btn.load_more', visible.length, sortedVideos.length) || `Load more (${visible.length} of ${sortedVideos.length})`)}</button>
         ` : `<div style="text-align:center;padding:10px;font-size:.6rem;color:var(--text2);opacity:0.5">${sortedVideos.length} videos total</div>`);
       })()}
     </div>

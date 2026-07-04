@@ -338,7 +338,7 @@ function videoQualityBgClick(e) {
       const ftr = document.createElement('div');
       ftr.style.cssText = 'padding:12px 16px;border-top:0.5px solid var(--border);display:flex;gap:8px';
       const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = 'Cancel';
+      cancelBtn.textContent = i18nGet('quality.btn.cancel') || 'Cancel';
       cancelBtn.style.cssText = 'flex:1;padding:7px 0;font-size:12px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit';
       cancelBtn.onclick = () => { overlay.remove(); resolve(null); };
       const confirmBtn = document.createElement('button');
