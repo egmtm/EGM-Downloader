@@ -372,7 +372,7 @@
     "history.sort.newest_short": "↓ 新しい順",
     "history.sort.oldest_short": "↑ 古い順",
     "creator.title": "テーマクリエイター",
-    "creator.live_badge": "LIVE",
+    "creator.live_badge": "ライブ",
     "creator.live_badge.tooltip": "色を選ぶとメインウィンドウがリアルタイムで更新されます",
     "creator.label.theme_name": "テーマ名",
     "creator.placeholder.theme_name": "マイテーマ 1",
