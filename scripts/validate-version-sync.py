@@ -345,6 +345,15 @@ def check_portable_file_list():
     if extra_in_portable:
         errors.append(f"Portable build includes files not in NSIS installer: {sorted(extra_in_portable)}")
 
+    # Completeness: every template that exists in the repo must be shipped by
+    # the installer. Sync alone can't catch a file missing from BOTH lists
+    # (that exact gap shipped TemplateNotFound: i18n.html in a v1.3 test build).
+    repo_templates = {f.name for f in (ROOT / 'templates').glob('*.html')}
+    repo_templates |= {f.name for f in (ROOT / 'templates' / 'js').glob('*.html')}
+    unshipped = repo_templates - nsi_files
+    if unshipped:
+        errors.append(f"Templates in repo but missing from NSIS installer: {sorted(unshipped)}")
+
     return errors
 
 

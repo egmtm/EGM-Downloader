@@ -226,11 +226,21 @@ LangString EGM_APP_RUNNING ${LANG_RUSSIAN} "EGM Downloader сейчас запу
 Function WelcomePage_Show
   ; Dark title/body text on the welcome page (MUI_BGCOLOR sets the canvas)
   SetCtlColors $mui.WelcomePage.Title "e2e8f6" "0b1120"
-  SetCtlColors $mui.WelcomePage.Text  "8faecf" "0b1120"
+
+  ; MUI creates its welcome-text label 120u,45u sized 195u x 130u — that rect
+  ; reaches y=175u and overlaps the drop-list at y=130u. Win32 siblings do not
+  ; clip each other, so on real Windows the opaque label repaints over the
+  ; drop-list (the "no selector" hardware symptom; wine happened to clip).
+  ; Replace it with an identical label that ends above the drop-list.
+  System::Call 'user32::DestroyWindow(p$mui.WelcomePage.Text)'
+  ${NSD_CreateLabel} 120u 45u 195u 78u "$(EGM_WELCOME_TEXT)"
+  Pop $mui.WelcomePage.Text
+  SetCtlColors $mui.WelcomePage.Text "8faecf" "0b1120"
 
   ; DropList, not ComboBox: a combo's CreateWindow height must include the
   ; drop-down list (the closed part auto-sizes) — 14u left the list ~0px tall,
   ; which is exactly the "plain box, nothing opens" hardware symptom.
+  ; Created last, so it sits above every sibling in z-order.
   ${NSD_CreateDropList} 120u 130u 140u 120u ""
   Pop $LangCombo
   SetCtlColors $LangCombo "e2e8f6" "182338"
@@ -394,6 +404,7 @@ Section "Install"
   File "${REPO_ROOT}/templates/theme_styles.html"
   File "${REPO_ROOT}/templates/theme_data.html"
   File "${REPO_ROOT}/templates/theme_validator.html"
+  File "${REPO_ROOT}/templates/i18n.html"
   File "${REPO_ROOT}/templates/subscriptions.html"
 
   ; ── templates\js\ ──
