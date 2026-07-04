@@ -71,6 +71,7 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; Language dropdown lives ON the welcome page (screen 1); choosing there
 ; retranslates every later page — their strings resolve at page-show.
+!define MUI_PAGE_CUSTOMFUNCTION_PRE   WelcomePage_Pre
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW  WelcomePage_Show
 !define MUI_PAGE_CUSTOMFUNCTION_LEAVE WelcomePage_Leave
 
@@ -283,32 +284,28 @@ Function .onInit
   ReadRegStr $PreviousVersion HKCU "${REGKEY}" "Version"
   ReadRegStr $PreviousInstDir HKCU "${REGKEY}" "InstallPath"
 
-  ; No previous install — fresh install
-  ${If} $PreviousVersion == ""
-    Return
+  ; Reuse the previous install dir (upgrade & maintenance).
+  ${If} $PreviousInstDir != ""
+    StrCpy $INSTDIR $PreviousInstDir
   ${EndIf}
+FunctionEnd
 
-  ; Same version installed — Maintenance mode
+; Maintenance-mode prompt lives HERE, not in .onInit: LangStrings are not
+; available in .onInit (language finalizes when it returns), so the prompt
+; there always rendered in English regardless of the dialog pick.
+Function WelcomePage_Pre
   ${If} $PreviousVersion == "${VERSION}"
-    ${If} $PreviousInstDir != ""
-      StrCpy $INSTDIR $PreviousInstDir
-    ${EndIf}
     MessageBox MB_YESNOCANCEL|MB_ICONQUESTION \
       "$(EGM_ALREADY_INSTALLED)" \
       /SD IDCANCEL IDYES repair IDNO do_uninstall
-    Abort
+    Quit
     repair:
       Return
     do_uninstall:
       ${If} $PreviousInstDir != ""
         ExecWait '"$PreviousInstDir\uninstall.exe" /S'
       ${EndIf}
-      Abort
-  ${EndIf}
-
-  ; Different version — Upgrade. Reuse previous install dir.
-  ${If} $PreviousInstDir != ""
-    StrCpy $INSTDIR $PreviousInstDir
+      Quit
   ${EndIf}
 FunctionEnd
 
