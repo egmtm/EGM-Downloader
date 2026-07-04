@@ -347,7 +347,7 @@
     "tooltip.card.open_folder": "Open folder",
     "tooltip.settings_section": "Download folder, quality, format, and output preferences",
     "tooltip.embed_metadata": "Embed thumbnail, chapter markers and metadata into downloaded videos",
-    "tooltip.download_subtitles": "Download English subtitles (manual or auto-generated) and embed them into the video",
+    "tooltip.download_subtitles": "Download subtitles in your app language and English (manual or auto-generated) and embed them into the video",
     "tooltip.check_updates_launch": "Silently check for app and plugin updates when the app starts",
     "tooltip.quit_when_done": "Automatically close the app when all downloads finish",
     "tooltip.reinstall_deno": "Reinstalls the Deno runtime in the background — no restart needed",

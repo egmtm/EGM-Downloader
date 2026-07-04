@@ -234,7 +234,7 @@ async function loadHistoryPanel(page = 1) {
       if (footer) footer.querySelectorAll('.hpill').forEach(p => p.remove());
       const btn = document.createElement('button');
       btn.className = 'hpill';
-      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg> ${(i18nFmt('status.show_older', (d.pages - page) * HBATCH) || `Show older (${(d.pages - page) * HBATCH} more)`)}`;
+      btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg> ${esc(i18nFmt('status.show_older', (d.pages - page) * HBATCH) || `Show older (${(d.pages - page) * HBATCH} more)`)}`;
       btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, d.pages, body, btn));
       if (footer) footer.insertBefore(btn, footer.firstChild);
       else frag.appendChild(btn);
@@ -275,7 +275,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   if (page < totalPages) {
     const btn = document.createElement('button');
     btn.className = 'hpill';
-    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg> ${(i18nFmt('status.show_older', (totalPages - page) * HBATCH) || `Show older (${(totalPages - page) * HBATCH} more)`)}`;
+    btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg> ${esc(i18nFmt('status.show_older', (totalPages - page) * HBATCH) || `Show older (${(totalPages - page) * HBATCH} more)`)}`;
     btn.addEventListener('click', () => loadNewerOlderBatch(page + 1, totalPages, parentBody, btn));
     parentBody.appendChild(btn);
   } else {
