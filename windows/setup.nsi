@@ -120,6 +120,14 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 !insertmacro MUI_LANGUAGE "PortugueseBR"
 !insertmacro MUI_LANGUAGE "Russian"
 
+; SetCompressor is /SOLID lzma (see top of file) — under solid compression,
+; files must be reserved to be accessible before the rest of the data block
+; is decompressed. Without this, MUI_LANGDLL_DISPLAY (called from .onInit,
+; necessarily before most of the installer's data is needed) can fail to
+; show or behave unpredictably. Documented NSIS requirement, not optional
+; under solid compression.
+!insertmacro MUI_RESERVEFILE_LANGDLL
+
 ; ── Installer strings — 10 languages (source: Linguist v1.3 table) ───────────
 LangString EGM_WELCOME_TITLE ${LANG_ENGLISH} "Welcome to EGM Downloader v${VERSION}"
 LangString EGM_WELCOME_TITLE ${LANG_ARABIC} "مرحباً بك في EGM Downloader v${VERSION}"
