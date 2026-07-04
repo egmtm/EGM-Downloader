@@ -197,7 +197,7 @@ function renderCard(el, item) {
           <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="Move up" style="padding:2px 6px;font-size:11px">↑</button>
           <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
         </div>
-        <span class="badge b-wait" id="st${n}">Ready</span>
+        <span class="badge b-wait" id="st${n}">${i18nAttr('status.ready', 'Ready')}</span>
         <button class="btn btn-primary btn-sm" id="dl${n}">⬇ ${i18nAttr('card.btn.download', 'Download')}</button>
       </div>
       <div class="prog" id="prog${n}" style="display:none"><div class="prog-inner indeterminate"></div></div>
