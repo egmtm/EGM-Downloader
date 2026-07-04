@@ -1155,6 +1155,21 @@ def _cleanup(job_id, out_dir):
         except Exception: pass
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
+
+@app.errorhandler(500)
+def _internal_error(e):
+    """Unhandled exceptions land here. Electron spawns Flask with stdio ignored,
+    so without this the traceback is lost — append it to egm_error.log so field
+    failures are diagnosable (this is how first-launch 500s get captured)."""
+    try:
+        import traceback
+        with open(get_data_dir() / "egm_error.log", "a", encoding="utf-8") as f:
+            f.write("\n[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] 500 on " + request.path + "\n")
+            f.write(traceback.format_exc())
+    except Exception:
+        pass
+    return jsonify({"error": "internal server error"}), 500
+
 @app.route("/")
 def index(): return render_template("index.html", egm_token=_API_TOKEN, platform_url="https://egerena.com/apps/egml.html")
 

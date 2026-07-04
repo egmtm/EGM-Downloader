@@ -50,8 +50,7 @@ Unicode          true
 ; ── Variables ────────────────────────────────────────────────
 Var PreviousVersion
 Var PreviousInstDir
-Var LangCombo        ; combobox on the welcome page
-Var LangComboEdit    ; combobox's child edit control (ctl ID 1001, undocumented) —
+Var LangCombo        ; language drop-list on the welcome page    ; combobox's child edit control (ctl ID 1001, undocumented) —
                       ; the actual text-display surface; SetCtlColors on the combobox
                       ; HWND itself doesn't reliably reach it (documented NSIS/Win32 quirk)
 Var SelectedLangCode ; 2-letter code handed off to the app
@@ -62,6 +61,9 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; ── Dark skin — colors mirror the app's CSS tokens (see templates) ───────────
 ; bg #0b1120, surf #111c2e, border #243454, acc #3b82f6, text #e2e8f6
+; Checkbox/radio text ignores SetCtlColors while UXTHEME draws it (NSIS bug
+; #443); MUI2 only strips theming in high-contrast mode UNLESS this is defined.
+!define MUI_FORCECLASSICCONTROLS
 !define MUI_BGCOLOR   "0b1120"
 !define MUI_TEXTCOLOR "e2e8f6"
 !define MUI_HEADERIMAGE
@@ -228,11 +230,12 @@ Function WelcomePage_Show
   SetCtlColors $mui.WelcomePage.Title "e2e8f6" "0b1120"
   SetCtlColors $mui.WelcomePage.Text  "8faecf" "0b1120"
 
-  ${NSD_CreateComboBox} 120u 130u 140u 14u ""
+  ; DropList, not ComboBox: a combo's CreateWindow height must include the
+  ; drop-down list (the closed part auto-sizes) — 14u left the list ~0px tall,
+  ; which is exactly the "plain box, nothing opens" hardware symptom.
+  ${NSD_CreateDropList} 120u 130u 140u 120u ""
   Pop $LangCombo
   SetCtlColors $LangCombo "e2e8f6" "182338"
-  GetDlgItem $LangComboEdit $LangCombo 1001
-  SetCtlColors $LangComboEdit "e2e8f6" "182338"
   ${NSD_CB_AddString} $LangCombo "English"
   ${NSD_CB_AddString} $LangCombo "العربية"
   ${NSD_CB_AddString} $LangCombo "Deutsch"
