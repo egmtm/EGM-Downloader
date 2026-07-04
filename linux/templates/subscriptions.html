@@ -715,9 +715,9 @@ function updateVideoState(videoId, status, data) {
 
   if (status === 'queued') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status queued">Queued</span>
+      <span class="video-status queued">${i18nAttr('card.status.queued', 'Queued')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   } else if (status === 'downloading') {
     const pct = Math.round(data.progress || 0);
@@ -726,31 +726,31 @@ function updateVideoState(videoId, status, data) {
       <span class="video-status downloading">${pct}%</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
       <span>${speed}</span>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   } else if (status === 'converting') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status downloading">Converting…</span>
+      <span class="video-status downloading">${i18nAttr('card.status.converting', 'Converting…')}</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   } else if (status === 'done') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status done">Downloaded</span>
+      <span class="video-status done">${i18nAttr('subscriptions.status.downloaded', 'Downloaded')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>
     </div>`;
   } else if (status === 'error') {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status error">${esc(data.error || 'Error')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>
     </div>`;
   } else if (status === 'cancelled') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status error">Cancelled</span>
+      <span class="video-status error">${i18nAttr('card.status.cancelled', 'Cancelled')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>
     </div>`;
   } else {
     // Unknown, non-terminal status from the backend (forward-compat). Render a
@@ -759,7 +759,7 @@ function updateVideoState(videoId, status, data) {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status downloading">Processing…</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   }
 }
