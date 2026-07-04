@@ -50,7 +50,6 @@ Unicode          true
 ; ── Variables ────────────────────────────────────────────────
 Var PreviousVersion
 Var PreviousInstDir
-Var LangCombo        ; language drop-list on the welcome page
 Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; ── MUI Settings ─────────────────────────────────────────────
@@ -226,91 +225,30 @@ LangString EGM_APP_RUNNING ${LANG_RUSSIAN} "EGM Downloader сейчас запу
 Function WelcomePage_Show
   ; Dark title/body text on the welcome page (MUI_BGCOLOR sets the canvas)
   SetCtlColors $mui.WelcomePage.Title "e2e8f6" "0b1120"
-
-  ; MUI creates its welcome-text label 120u,45u sized 195u x 130u — that rect
-  ; reaches y=175u and overlaps the drop-list at y=130u. Win32 siblings do not
-  ; clip each other, so on real Windows the opaque label repaints over the
-  ; drop-list (the "no selector" hardware symptom; wine happened to clip).
-  ; Replace it with an identical label that ends above the drop-list.
-  System::Call 'user32::DestroyWindow(p$mui.WelcomePage.Text)'
-  ${NSD_CreateLabel} 120u 45u 195u 78u "$(EGM_WELCOME_TEXT)"
-  Pop $mui.WelcomePage.Text
-  SetCtlColors $mui.WelcomePage.Text "8faecf" "0b1120"
-
-  ; DropList, not ComboBox: a combo's CreateWindow height must include the
-  ; drop-down list (the closed part auto-sizes) — 14u left the list ~0px tall,
-  ; which is exactly the "plain box, nothing opens" hardware symptom.
-  ; Created last, so it sits above every sibling in z-order.
-  ${NSD_CreateDropList} 120u 130u 140u 120u ""
-  Pop $LangCombo
-  SetCtlColors $LangCombo "e2e8f6" "182338"
-  ${NSD_CB_AddString} $LangCombo "English"
-  ${NSD_CB_AddString} $LangCombo "العربية"
-  ${NSD_CB_AddString} $LangCombo "Deutsch"
-  ${NSD_CB_AddString} $LangCombo "Español"
-  ${NSD_CB_AddString} $LangCombo "Français"
-  ${NSD_CB_AddString} $LangCombo "Italiano"
-  ${NSD_CB_AddString} $LangCombo "日本語"
-  ${NSD_CB_AddString} $LangCombo "Nederlands"
-  ${NSD_CB_AddString} $LangCombo "Português"
-  ${NSD_CB_AddString} $LangCombo "Русский"
-
-  ; Preselect the row matching $LANGUAGE (NSIS set it from the OS locale)
-  StrCpy $0 0
-  ${If} $LANGUAGE == ${LANG_ARABIC}
-    StrCpy $0 1
-  ${ElseIf} $LANGUAGE == ${LANG_GERMAN}
-    StrCpy $0 2
-  ${ElseIf} $LANGUAGE == ${LANG_SPANISH}
-    StrCpy $0 3
-  ${ElseIf} $LANGUAGE == ${LANG_FRENCH}
-    StrCpy $0 4
-  ${ElseIf} $LANGUAGE == ${LANG_ITALIAN}
-    StrCpy $0 5
-  ${ElseIf} $LANGUAGE == ${LANG_JAPANESE}
-    StrCpy $0 6
-  ${ElseIf} $LANGUAGE == ${LANG_DUTCH}
-    StrCpy $0 7
-  ${ElseIf} $LANGUAGE == ${LANG_PORTUGUESEBR}
-    StrCpy $0 8
-  ${ElseIf} $LANGUAGE == ${LANG_RUSSIAN}
-    StrCpy $0 9
-  ${EndIf}
-  SendMessage $LangCombo ${CB_SETCURSEL} $0 0
+  SetCtlColors $mui.WelcomePage.Text  "8faecf" "0b1120"
 FunctionEnd
 
 Function WelcomePage_Leave
-  SendMessage $LangCombo ${CB_GETCURSEL} 0 0 $0
-  ; index → NSIS language + 2-letter code for the app hand-off
+  ; Map the startup language choice to the app hand-off code
   StrCpy $SelectedLangCode "en"
-  StrCpy $LANGUAGE ${LANG_ENGLISH}
-  ${If} $0 == 1
+  ${If} $LANGUAGE == ${LANG_ARABIC}
     StrCpy $SelectedLangCode "ar"
-    StrCpy $LANGUAGE ${LANG_ARABIC}
-  ${ElseIf} $0 == 2
+  ${ElseIf} $LANGUAGE == ${LANG_GERMAN}
     StrCpy $SelectedLangCode "de"
-    StrCpy $LANGUAGE ${LANG_GERMAN}
-  ${ElseIf} $0 == 3
+  ${ElseIf} $LANGUAGE == ${LANG_SPANISH}
     StrCpy $SelectedLangCode "es"
-    StrCpy $LANGUAGE ${LANG_SPANISH}
-  ${ElseIf} $0 == 4
+  ${ElseIf} $LANGUAGE == ${LANG_FRENCH}
     StrCpy $SelectedLangCode "fr"
-    StrCpy $LANGUAGE ${LANG_FRENCH}
-  ${ElseIf} $0 == 5
+  ${ElseIf} $LANGUAGE == ${LANG_ITALIAN}
     StrCpy $SelectedLangCode "it"
-    StrCpy $LANGUAGE ${LANG_ITALIAN}
-  ${ElseIf} $0 == 6
+  ${ElseIf} $LANGUAGE == ${LANG_JAPANESE}
     StrCpy $SelectedLangCode "ja"
-    StrCpy $LANGUAGE ${LANG_JAPANESE}
-  ${ElseIf} $0 == 7
+  ${ElseIf} $LANGUAGE == ${LANG_DUTCH}
     StrCpy $SelectedLangCode "nl"
-    StrCpy $LANGUAGE ${LANG_DUTCH}
-  ${ElseIf} $0 == 8
+  ${ElseIf} $LANGUAGE == ${LANG_PORTUGUESEBR}
     StrCpy $SelectedLangCode "pt"
-    StrCpy $LANGUAGE ${LANG_PORTUGUESEBR}
-  ${ElseIf} $0 == 9
+  ${ElseIf} $LANGUAGE == ${LANG_RUSSIAN}
     StrCpy $SelectedLangCode "ru"
-    StrCpy $LANGUAGE ${LANG_RUSSIAN}
   ${EndIf}
 FunctionEnd
 
@@ -328,6 +266,12 @@ FunctionEnd
 
 ; ── Startup: detect existing install ─────────────────────────
 Function .onInit
+  ; Language must be chosen HERE: NSIS binds the UI language once at startup;
+  ; $LANGUAGE changes after GUI init have no effect (empirically verified —
+  ; the welcome-page dropdown approach could never work). This dialog lists
+  ; the 10 declared languages by native name and preselects the OS match.
+  !insertmacro MUI_LANGDLL_DISPLAY
+
   ReadRegStr $PreviousVersion HKCU "${REGKEY}" "Version"
   ReadRegStr $PreviousInstDir HKCU "${REGKEY}" "InstallPath"
 
