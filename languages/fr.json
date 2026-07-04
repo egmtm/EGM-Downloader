@@ -372,7 +372,7 @@
     "history.sort.newest_short": "↓ Plus récent",
     "history.sort.oldest_short": "↑ Plus ancien",
     "creator.title": "Créateur de Thèmes",
-    "creator.live_badge": "LIVE",
+    "creator.live_badge": "DIRECT",
     "creator.live_badge.tooltip": "La fenêtre principale se met à jour en direct pendant que vous choisissez",
     "creator.label.theme_name": "Nom du thème",
     "creator.placeholder.theme_name": "Mon Thème 1",
