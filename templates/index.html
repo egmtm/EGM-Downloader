@@ -35,7 +35,7 @@
       <text x="105" y="18" fill="var(--text)" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="200" letter-spacing="3">DOWNLOADER</text>
       <line x1="0" y1="26" x2="320" y2="26" stroke="var(--text2)" stroke-width=".5" stroke-opacity=".4"/>
     </svg>
-    <p style="font-size:.65rem;font-weight:400;letter-spacing:2.5px;color:var(--text2);margin-top:4px;text-transform:uppercase">Your personal media downloader for <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none">1000+ sites</a></p>
+    <p style="font-size:.65rem;font-weight:400;letter-spacing:2.5px;color:var(--text2);margin-top:4px;text-transform:uppercase"><span data-i18n="app.tagline">Your personal media downloader for</span> <a href="https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md" target="_blank" rel="noopener" style="color:var(--acc);text-decoration:none" data-i18n="app.tagline.sites">1000+ sites</a></p>
   </div>
   <!-- Navigation grid — 2×2 direct access -->
   <div style="flex-shrink:0;position:relative">
@@ -2064,7 +2064,7 @@
           <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> <span data-i18n="settings.folder.btn.open">Open</span>
         </button></div>
         <div class="set-divider"></div>
-        <span class="opt-label">Format / Quality</span>
+        <span class="opt-label" data-i18n="settings.format_quality.label">Format / Quality</span>
         <div class="set-format-row">
           <span class="set-fmt-label" data-i18n="card.format.audio">Audio</span>
           <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:0.7">
@@ -2149,7 +2149,7 @@
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.github">GitHub</a>
     <a href="https://x.com/EGMDownloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">@EGMDownloader</a>
     <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.2.7</span>
-    <button id="footer-help-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">Help</button>
+    <button id="footer-help-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit" data-i18n="footer.btn.help">Help</button>
   </div>
   <div style="margin-top:7px;text-align:center">
     <a href="https://www.paypal.me/egerenacom" target="_blank" rel="noopener" data-i18n-attr="title:tooltip.support" title="Donations are not needed, but appreciated 😇" style="font-size:.68rem;color:var(--yellow);text-decoration:none;border:1px solid rgba(200,148,10,.35);border-radius:20px;padding:1px 9px;background:rgba(200,148,10,.08)">&#9829; Support EGM</a>
@@ -2260,16 +2260,16 @@
 <div class="modal-backdrop" id="help-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
   <div class="modal" onclick="event.stopPropagation()" style="max-width:420px;width:90%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
-      <h3 style="margin:0">Help</h3>
+      <h3 style="margin:0" data-i18n="help.title">Help</h3>
       <button class="btn btn-ghost" onclick="document.getElementById('help-modal').style.display='none'" style="padding:2px 8px;font-size:14px;line-height:1">✕</button>
     </div>
     <div style="display:flex;gap:18px">
       <div style="flex:1">
-        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Keyboard shortcuts</p>
+        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px" data-i18n="help.section.shortcuts">Keyboard shortcuts</p>
         <table style="width:100%;border-collapse:collapse">
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="url.btn.fetch">Fetch Info</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>↵</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Paste &amp; Fetch</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>V</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Clear input</td><td style="text-align:right;white-space:nowrap"><kbd>Esc</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="help.shortcut.clear">Clear input</td><td style="text-align:right;white-space:nowrap"><kbd>Esc</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.history">History</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>H</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.themes">Themes</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>T</kbd></td></tr>
           <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="creator.title">Theme Creator</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>K</kbd></td></tr>
@@ -2279,19 +2279,19 @@
       </div>
       <div style="width:0.5px;background:var(--border);flex-shrink:0"></div>
       <div style="flex:1">
-        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px">Tips</p>
+        <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px" data-i18n="help.section.tips">Tips</p>
         <div style="display:flex;flex-direction:column;gap:8px">
           <div style="display:flex;gap:8px;align-items:flex-start">
             <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">⤵</span>
-            <div><p style="font-size:.78rem;color:var(--text)">Drag &amp; drop URLs</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Drop URLs directly into the input</p></div>
+            <div><p style="font-size:.78rem;color:var(--text)" data-i18n="help.tip.drop.title">Drag &amp; drop URLs</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px" data-i18n="help.tip.drop.body">Drop URLs directly into the input</p></div>
           </div>
           <div style="display:flex;gap:8px;align-items:flex-start">
             <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">★</span>
-            <div><p style="font-size:.78rem;color:var(--text)">Pin history items</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Star a download to keep it at the top</p></div>
+            <div><p style="font-size:.78rem;color:var(--text)" data-i18n="help.tip.pin.title">Pin history items</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px" data-i18n="help.tip.pin.body">Star a download to keep it at the top</p></div>
           </div>
           <div style="display:flex;gap:8px;align-items:flex-start">
             <span style="font-size:12px;color:var(--text2);flex-shrink:0;margin-top:1px">⠿</span>
-            <div><p style="font-size:.78rem;color:var(--text)">Reorder subscriptions</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px">Drag the handle to rearrange channels</p></div>
+            <div><p style="font-size:.78rem;color:var(--text)" data-i18n="help.tip.reorder.title">Reorder subscriptions</p><p style="font-size:.68rem;color:var(--text2);margin-top:1px" data-i18n="help.tip.reorder.body">Drag the handle to rearrange channels</p></div>
           </div>
         </div>
       </div>

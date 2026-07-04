@@ -254,7 +254,7 @@ function videoQualityBgClick(e) {
       { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences') },
       { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:(i18nFmt('settings.io.item.history.count_export', counts.history) || `${counts.history} download records`) },
       { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') },
-      { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:`${counts.subscriptions} channels` },
+      { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:(i18nFmt('settings.io.item.subscriptions.count_export', counts.subscriptions) || `${counts.subscriptions} channels`) },
     ];
     const state = { settings:true, history:true, themes:true, subscriptions:true };
     egmAlert('', '', {
@@ -386,7 +386,7 @@ function videoQualityBgClick(e) {
           { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
           { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:(i18nFmt('settings.io.item.history.count_export', histItems.length) || `${histItems.length} download records`), available:true },
           { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences'), available:true },
-          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:`${subUrls.length} channels`, available:true },
+          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:(i18nFmt('settings.io.item.subscriptions.count_export', subUrls.length) || `${subUrls.length} channels`), available:true },
         ],
         state: { settings:true, history:true, themes:true, subscriptions:true },
         confirmLabel: (i18nGet('panel.themes.btn.export') || '↑ Export'),
@@ -403,17 +403,17 @@ function videoQualityBgClick(e) {
       };
       const content = JSON.stringify(envelope, null, 2);
       const parts = [
-        sel.settings      ? 'settings'                           : null,
-        sel.history       ? `${histItems.length} history`        : null,
-        sel.subscriptions ? `${subUrls.length} subscriptions`    : null,
-        sel.themes        ? `${Object.keys(lsKeys).length} preferences` : null,
+        sel.settings      ? (i18nGet('settings.export.part.settings') || 'settings') : null,
+        sel.history       ? (i18nFmt('settings.export.part.history', histItems.length) || `${histItems.length} history`) : null,
+        sel.subscriptions ? (i18nFmt('settings.export.part.subscriptions', subUrls.length) || `${subUrls.length} subscriptions`) : null,
+        sel.themes        ? (i18nFmt('settings.export.part.themes', Object.keys(lsKeys).length) || `${Object.keys(lsKeys).length} preferences`) : null,
       ].filter(Boolean).join(', ');
 
       if (window.electronAPI?.saveFile) {
         const r = await window.electronAPI.saveFile('egm-settings.json', content);
         if (r.canceled) return;
-        if (r.ok) toast(`Exported ✓  (${parts})`, 'ok');
-        else toast('Export failed: ' + (r.error || 'unknown'), 'err');
+        if (r.ok) toast(i18nFmt('settings.export.toast', parts) || `Exported ✓  (${parts})`, 'ok');
+        else toast(i18nFmt('settings.export.error', r.error || 'unknown') || ('Export failed: ' + (r.error || 'unknown')), 'err');
       } else {
         await navigator.clipboard.writeText(content);
         toast('Settings copied to clipboard ✓', 'ok');
