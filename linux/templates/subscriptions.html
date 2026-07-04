@@ -486,7 +486,7 @@ async function pollFetchAll() {
   const total = Object.keys(_fetchAllJobs).length;
   const done = total - pending.length;
   const progress = document.getElementById('fetch-all-progress');
-  if (progress) { progress.style.display = 'block'; progress.textContent = `Fetching ${done}/${total} channels…`; }
+  if (progress) { progress.style.display = 'block'; progress.textContent = i18nFmt('subscriptions.fetch_all.progress', done, total) || `Fetching ${done}/${total} channels…`; }
 
   for (const [sub_id, job] of pending) {
     try {
@@ -542,7 +542,7 @@ function renderSidebar() {
   const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
   const queueHtml = activeCount > 0 ? `<div class="queue-item" id="queue-sidebar-item" onclick="showQueue=true;activeSub=null;renderSidebar();renderQueue();">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
-    Queue
+    ${i18nAttr('subscriptions.queue.short', 'Queue')}
     <span class="queue-badge">${activeCount}</span>
   </div>` : '';
 
@@ -565,7 +565,7 @@ function renderSidebar() {
                                                    'background:rgba(239,68,68,.12);color:var(--red)'
       }">${
         _fetchAllJobs[s.id].status==='pending' ? (i18nGet('card.status.queued') || 'Queued') :
-        _fetchAllJobs[s.id].status==='running' ? 'Fetching' :
+        _fetchAllJobs[s.id].status==='running' ? (i18nGet('subscriptions.sidebar.fetching') || 'Fetching') :
         _fetchAllJobs[s.id].status==='done'    ? (_fetchAllJobs[s.id].newCount > 0 ? `+${_fetchAllJobs[s.id].newCount}` : '✓') :
                                                   'Error'
       }</span>` : ''}
