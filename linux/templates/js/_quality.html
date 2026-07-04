@@ -140,7 +140,7 @@ function videoQualityBgClick(e) {
   // Clear cache
   document.getElementById('adv-clear-cache-btn').addEventListener('click', async () => {
     const r = await post('/api/cache/clear', {});
-    if (r.ok) toast('Cache cleared ✓', 'ok');
+    if (r.ok) toast((i18nGet('cache.cleared') || 'Cache cleared') + ' ✓', 'ok');
     else toast('Clear failed: ' + (r.error || 'unknown'), 'err');
   });
 
@@ -177,7 +177,7 @@ function videoQualityBgClick(e) {
   // Reinstall Deno — live, no restart. Kicks off the background installer and
   // polls /api/deno/install-status, exactly like the first-time install path.
   document.getElementById('adv-deno-btn').addEventListener('click', async () => {
-    if (!confirm('Reinstall Deno now?\n\nThe current Deno runtime is replaced with a fresh download — no restart needed. Make sure you have an internet connection.')) return;
+    if (!confirm(i18nGet('confirm.reinstall_deno') || 'Reinstall Deno now?\n\nThe current Deno runtime is replaced with a fresh download — no restart needed. Make sure you have an internet connection.')) return;
     const btn = document.getElementById('adv-deno-btn');
     if (btn) btn.disabled = true;
     const r = await post('/api/deno/reinstall', {});
@@ -198,7 +198,7 @@ function videoQualityBgClick(e) {
 
   // Reinstall Electron (Windows only — shown via platform check below)
   document.getElementById('adv-electron-btn').addEventListener('click', async () => {
-    if (!confirm('Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
+    if (!confirm(i18nGet('confirm.reinstall_electron') || 'Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
     const r = await post('/api/electron/reinstall', {});
     if (!r.ok) { toast('Failed: ' + (r.error || 'unknown'), 'err'); return; }
     // The reinstall only applies on a fresh launch — offer to restart now.
@@ -498,7 +498,7 @@ function videoQualityBgClick(e) {
       const parts = [msg, subCount>0?`${subCount} subscriptions (re-fetch to load videos)`:null].filter(Boolean).join(' + ');
       toast(`${parts || 'Nothing selected'} — reloading…`, parts ? 'ok' : 'err');
       if (parts) setTimeout(() => location.reload(), 800);
-    } catch { toast('Could not import settings — file may not be valid settings JSON', 'err'); }
+    } catch { toast(i18nGet('settings.import.error') || 'Could not import settings — file may not be valid settings JSON', 'err'); }
   });
 })();
 

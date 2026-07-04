@@ -79,6 +79,9 @@ async function i18nLoad(code) {
   I18N.code = code;
   document.documentElement.setAttribute('lang', code);
   i18nApply(document);
+  // State-owned text (cookie badge, live statuses) re-renders on this signal —
+  // those elements must NOT carry data-i18n or i18nApply stomps their state.
+  document.dispatchEvent(new CustomEvent('i18n:changed', { detail: { code } }));
 }
 
 // Boot: read persisted language (first run: backend detects from OS locale and

@@ -53,11 +53,11 @@ function _showUpdModal(html) {
 }
 
 function showUpToDateModal(isDev = false) {
-  toast(isDev ? '✓ You\'re ahead of the latest release' : '✓ EGM Downloader is up to date', 'ok');
+  toast(isDev ? '✓ You\'re ahead of the latest release' : (i18nGet('toast.update.uptodate') || '✓ EGM Downloader is up to date'), 'ok');
 }
 
 function showUpdateErrorModal() {
-  toast('⚠ Could not reach update server', 'warn');
+  toast(i18nGet('toast.update.unreachable') || '⚠ Could not reach update server', 'warn');
 }
 
 function showUpdateAvailableModal(d) {
