@@ -171,7 +171,7 @@
 
 <!-- Breadcrumb bar — visible when a category is selected -->
 <div id="breadcrumb-bar" style="display:none;padding:5px 14px;border-bottom:1px solid var(--border);background:var(--surf);font-size:.72rem;color:var(--text2);display:flex;align-items:center;gap:6px">
-  <span id="bc-all" style="color:var(--text2);cursor:pointer;opacity:.7">All Themes</span>
+  <span id="bc-all" style="color:var(--text2);cursor:pointer;opacity:.7" data-i18n="themes.topbar.all">All Themes</span>
   <span style="color:var(--border2);font-size:.65rem">›</span>
   <span id="bc-current" style="color:var(--acc);font-weight:500"></span>
   <span id="bc-count" style="font-size:.65rem;color:var(--text2);opacity:.6;margin-left:2px"></span>
@@ -529,6 +529,12 @@ document.getElementById('bc-all').addEventListener('click', () => {
 });
 
 // ── Render grid ───────────────────────────────────────────────────────────
+document.addEventListener('i18n:ready', () => {
+  document.title = (i18nGet('themes.topbar.all') || 'All Themes') + ' — EGM Downloader';
+  render();
+});
+document.addEventListener('i18n:changed', () => { render(); });
+
 function render() {
   const grid = document.getElementById('grid');
   const entries = Object.entries(THEME_DATA).filter(([key, d]) => {
