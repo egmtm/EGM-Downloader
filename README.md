@@ -300,33 +300,13 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 ## 🗺️ Roadmap
 
-**v1.2 — CANVAS:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.0)
-Theme Creator with live preview, save to library, favorites; Universal MP4 H.264; orphan window fix; security 9.5/10, 49 tests
-
-**v1.2.1 — CANVAS RELOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.1)
-All of CANVAS + Electron 42.5.0 (Wayland maximize fix, Windows edge cases, Chromium/Node.js security backports)
-
-**v1.2.2 — SKELETON KEY:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.2)
-curl_cffi TLS impersonation — unlocks Kick VODs and sites that block standard HTTP clients; clean installs and portable covered
-
-**v1.2.3 — FULLY LOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.3)
-Optional libraries bundled (brotli/pycryptodomex/websockets/certifi), Universal MP4 default, panel redesigns (Themes/History/Settings), Ctrl+K, History XSS fix, 88 tests, 9.5/10
-
-**v1.2.4 — FULLY RELOADED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.4)
-Electron 42.5.1, platform-filtered update feed, CI feed validation
-
-**v1.2.5 — MODERN:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.5)
-Electron 43.0.0, new Modern theme category (20 themes, 440 total), Linux frameless rounded corners, Linux system audio manager name fix
-
-**v1.2.6 — RIGHT ON KEY:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.6)
-Fixed audio CBR bitrate bug, rebalanced Settings dropdowns, arrow toggles, 10 new Sneakers themes, 450 total
-
-**v1.2.7 — BATTLE TESTED:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.2.7)
-13 stability fixes from independent review — queue reliability, download recovery, theme persistence, Mac ffmpeg cleanup
-
-**v1.3 — POLYGLOT:**
-- 🌍 In-app language picker — multi-language support, clean and unhurried
-- 10 languages at launch: Arabic, German, English, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian (AR · DE · EN · ES · FR · IT · JA · NL · PT · RU)
+**v1.3 — POLYGLOT:** *(Targeting mid-July 2026)*
+- 🌍 In-app language picker — 10 languages: English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian
+- Auto-detects your system language on first launch; change anytime from the footer, no restart needed
+- Language selector can be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
+- Downloaded subtitles now include your selected app language alongside English (when available)
+- Windows installer redesigned to match the app's dark theme, with language selection at setup
+- Minor polish — Subscriptions sidebar thumbnail spacing, Update/What's New modal scrollbar spacing, more compact Site Cookies panel
 
 **v1.4 and beyond:**
 - 🧩 *Browser extension — send URLs straight to EGM Downloader without leaving your browser. Revisiting when the userbase is stronger.*
