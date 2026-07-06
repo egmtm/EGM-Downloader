@@ -1468,7 +1468,7 @@ def _get_latest_ytdlp_version(channel=None):
 
 update_status: dict = {}
 
-def _run_update(do_ytdlp, do_ffmpeg):
+def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
@@ -1546,6 +1546,27 @@ def _run_update(do_ytdlp, do_ffmpeg):
             try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
+        if do_optlibs:
+            log("Updating optional libraries...")
+            PACKAGES_DIR.mkdir(parents=True, exist_ok=True)
+            # --force-reinstall: with --target, pip judges "already satisfied"
+            # against the running env, not the target dir (same reason the
+            # yt-dlp path above uses it) — without it the overlay never updates.
+            r = _run(sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall",
+                     "curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi",
+                     "--target", str(PACKAGES_DIR), timeout=300)
+            if r.returncode == 0:
+                vers = _get_optlibs_versions()
+                # prune superseded dist-infos (pip --target cannot uninstall)
+                for lib, cur in vers.items():
+                    norm = lib.replace("-", "_")
+                    for di in PACKAGES_DIR.glob(f"{norm}-*.dist-info"):
+                        if di.name != f"{norm}-{cur}.dist-info":
+                            shutil.rmtree(di, ignore_errors=True)
+                log("optional libs -> " + ", ".join(f"{k} {v}" for k, v in vers.items()))
+            else:
+                err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+                log(f"optional libs update failed: {err}")
         log("All done.")
         update_status["done"] = True
     except Exception as e:
@@ -1556,17 +1577,45 @@ def _run_update(do_ytdlp, do_ffmpeg):
 OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
 
 def _get_optlibs_versions() -> dict:
-    """Installed versions of the optional yt-dlp libraries. Informational-only on
-    this platform (bundled with the app; no in-app pip upgrade — same model as
-    mutagen), so check_updates returns current versions without a latest/up_to_date,
-    and the UI renders a neutral badge rather than an actionable toggle."""
+    """Installed versions of the optional yt-dlp libraries. In-app updates land
+    in PACKAGES_DIR (the writable overlay the spawned yt-dlp reads first via
+    PYTHONPATH), so version lookups check the overlay before the bundle."""
     import importlib.metadata
+    importlib.invalidate_caches()  # see dists installed while the app is running
+    result = {}
+    for lib in OPTLIBS:
+        ver = None
+        try:
+            if PACKAGES_DIR.exists():
+                found = [d.version for d in importlib.metadata.distributions(
+                    name=lib, path=[str(PACKAGES_DIR)])]
+                if found:
+                    # pip --target cannot uninstall: older dist-infos linger next
+                    # to the overwritten code dir, so the highest version is the
+                    # one actually on disk
+                    def _vkey(v):
+                        try: return tuple(int(x) for x in v.split("."))
+                        except Exception: return (0,)
+                    ver = max(found, key=_vkey)
+        except Exception:
+            ver = None
+        if ver is None:
+            try:
+                ver = importlib.metadata.version(lib)
+            except Exception:
+                ver = "not installed"
+        result[lib] = ver
+    return result
+
+
+def _get_latest_optlibs_versions() -> dict:
     result = {}
     for lib in OPTLIBS:
         try:
-            result[lib] = importlib.metadata.version(lib)
+            with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
+                result[lib] = json.loads(r.read())["info"]["version"]
         except Exception:
-            result[lib] = "not installed"
+            result[lib] = "unknown"
     return result
 
 
@@ -1583,6 +1632,13 @@ def check_updates():
     ytdlp_ch  = _load_settings().get("yt_dlp_channel", "stable")
     ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
+    oc = _get_optlibs_versions()
+    ol = _get_latest_optlibs_versions()
+    optlibs_updates = sum(
+        1 for lib in oc
+        if oc[lib] != "not installed" and ol.get(lib, "unknown") != "unknown" and oc[lib] != ol[lib]
+    )
+    optlibs_ok = optlibs_updates == 0 and all(v != "not installed" for v in oc.values())
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
@@ -1598,7 +1654,7 @@ def check_updates():
                                   and (" · " not in cf or cf.split(" · ")[1] == ffmpeg_ch),
                     "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
-        "optlibs": {"current": _get_optlibs_versions()},
+        "optlibs": {"current": oc, "latest": ol, "updates_available": optlibs_updates, "up_to_date": optlibs_ok},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -1608,7 +1664,8 @@ def run_update():
         update_status["running"] = True
     data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
-                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False))),
+                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False)),
+                           bool(data.get("optlibs", False))),
                      daemon=True).start()
     return jsonify({"started": True})
 
