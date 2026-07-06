@@ -432,7 +432,7 @@ function renderUpdGrid(data) {
   const ytD = data.ytdlp;
   const ytBadge = ytD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+    : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
   const ytEl = document.createElement('div');
   ytEl.className = 'upd-item';
   ytEl.innerHTML = `
@@ -452,7 +452,7 @@ function renderUpdGrid(data) {
   const muD = data.mutagen || {};
   const muBadge = muD.up_to_date === null || muD.up_to_date === undefined
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
   const muEl = document.createElement('div');
   muEl.className = 'upd-item';
   muEl.innerHTML = `
@@ -463,14 +463,14 @@ function renderUpdGrid(data) {
       </label>
     </div>
     <div class="upd-row">
-      <span class="upd-ver">${esc(muD.current || 'checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
+      <span class="upd-ver">${esc(muD.current || (i18nGet('plugins.version.checking')||'checking…'))}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
       ${muBadge}
     </div>`;
   grid.appendChild(muEl);
   const ffD = data.ffmpeg;
   const ffBadge = ffD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+    : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
   const ffEl = document.createElement('div');
   ffEl.className = 'upd-item';
   ffEl.innerHTML = `
@@ -489,12 +489,12 @@ function renderUpdGrid(data) {
   // ── Deno ──────────────────────────────────────────────────────────────────
   const deD = data.deno;
   const deInstalled = deD && deD.installed;
-  const deVer = (deD && deD.version) ? esc(deD.version) : 'not installed';
+  const deVer = (deD && deD.version) ? esc(deD.version) : (i18nGet('plugins.version.not_installed')||'not installed');
   const deBadge = !deInstalled
-    ? `<span class="vbadge vb-upd">✗ Not installed</span>`
+    ? `<span class="vbadge vb-upd">${i18nGet('plugins.deno.status.not_installed')||'✗ Not installed'}</span>`
     : (deD.up_to_date === null || deD.up_to_date === undefined)
       ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-      : `<span class="vbadge ${deD.up_to_date?'vb-ok':'vb-upd'}">${deD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+      : `<span class="vbadge ${deD.up_to_date?'vb-ok':'vb-upd'}">${deD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
   const deEl = document.createElement('div');
   deEl.className = 'upd-item';
   deEl.innerHTML = `
@@ -502,10 +502,10 @@ function renderUpdGrid(data) {
       <span class="upd-name">🦕 Deno</span>
       ${deInstalled
         ? `<label class="sw-wrap" style="margin:0"><input type="checkbox" class="sw" id="sw-deno" ${deD.up_to_date===false?'checked':''}></label>`
-        : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">⬇ Install</button>`}
+        : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">${i18nGet('plugins.btn.install')||'⬇ Install'}</button>`}
     </div>
     <div class="upd-row">
-      <span class="upd-ver">${deInstalled ? `${deVer}${deD.latest && deD.up_to_date===false ? ` → ${esc(deD.latest)}` : ''}` : 'required for YouTube'}</span>
+      <span class="upd-ver">${deInstalled ? `${deVer}${deD.latest && deD.up_to_date===false ? ` → ${esc(deD.latest)}` : ''}` : (i18nGet('plugins.deno.required_note')||'required for YouTube')}</span>
       ${deBadge}
     </div>`;
   grid.appendChild(deEl);
@@ -515,7 +515,7 @@ function renderUpdGrid(data) {
   const olUpd = olD.updates_available || 0;
   const olBadge = olD.up_to_date === undefined
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${olD.up_to_date?'vb-ok':'vb-upd'}">${olD.up_to_date?'✓ Up to date': olUpd + ' update' + (olUpd>1?'s':'') + ' available'}</span>`;
+    : `<span class="vbadge ${olD.up_to_date?'vb-ok':'vb-upd'}">${olD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nFmt('plugins.badge.n_updates', olUpd)||(olUpd + ' update' + (olUpd>1?'s':'') + ' available'))}</span>`;
   const olEl = document.createElement('div');
   olEl.className = 'upd-item';
   olEl.style.gridColumn = '1 / -1';
@@ -562,7 +562,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
   const doM = document.getElementById('sw-mutagen')?.checked ?? false;
   const doO = document.getElementById('sw-optlibs')?.checked ?? false;
   const doD = document.getElementById('sw-deno')?.checked ?? false;
-  if (!doY && !doF && !doM && !doO && !doD) { toast('Select at least one item', 'err'); return; }
+  if (!doY && !doF && !doM && !doO && !doD) { toast(i18nGet('toast.plugins.select_one')||'Select at least one item', 'err'); return; }
   const log = document.getElementById('upd-log');
   const btn = document.getElementById('run-update-btn');
   log.textContent = ''; log.classList.add('show');
@@ -597,7 +597,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
       // Deno-only run — finish here, refresh the grid state
       btn.disabled = false;
       if (denoFailMsg) toast(denoFailMsg, 'err');
-      else toast('Update complete ✓', 'ok');
+      else toast(i18nGet('toast.plugins.update_complete')||'Update complete ✓', 'ok');
       try {
         const [fresh, freshDeno] = await Promise.all([
           fetch('/api/check-updates').then(r => r.json()),
@@ -614,7 +614,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
     }
   }
   await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM, optlibs: doO });
-  log.textContent = denoLog.concat(['Starting…']).join('\n');
+  log.textContent = denoLog.concat([i18nGet('plugins.log.starting')||'Starting…']).join('\n');
   let pollFails = 0;
   const iv = setInterval(async () => {
     let s;
@@ -637,7 +637,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
       clearInterval(iv);
       document.getElementById('run-update-btn').disabled = false;
       if (s.done) {
-        toast('Update complete ✓', 'ok');
+        toast(i18nGet('toast.plugins.update_complete')||'Update complete ✓', 'ok');
         // Re-check versions so "Installed" reflects the new version immediately
         try {
           const [fresh, freshDeno] = await Promise.all([
@@ -658,7 +658,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
             log.textContent = '';
           }, 1500);
         } catch {}
-      } else if (s.error) toast('Error: ' + s.error, 'err');
+      } else if (s.error) toast((i18nFmt('toast.plugins.error_prefix', s.error))||('Error: ' + s.error), 'err');
     }
   }, 800);
   } catch (e) {
@@ -788,7 +788,7 @@ async function clearCookies() {
     if (r.error) { toast('Failed to remove cookies: ' + r.error, 'err'); return; }
     toast('Cookies removed', 'ok');
     await refreshCookieCard();
-  } catch (e) { toast('Error: ' + e.message, 'err'); }
+  } catch (e) { toast((i18nFmt('toast.plugins.error_prefix', e.message))||('Error: ' + e.message), 'err'); }
 }
 
 async function refreshUpdGrid() {
