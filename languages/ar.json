@@ -279,6 +279,18 @@
     "toast.update.unreachable": "⚠ تعذر الوصول إلى خادم التحديث",
     "toast.update.uptodate": "✓ EGM Downloader محدث",
     "plugins.deno.status.not_installed": "✗ غير مثبت",
+    "plugins.badge.up_to_date": "✓ محدّث",
+    "plugins.badge.update_available": "↑ يتوفر تحديث",
+    "plugins.version.checking": "جارٍ التحقق…",
+    "plugins.deno.required_note": "مطلوب لـ YouTube",
+    "plugins.version.not_installed": "غير مثبت",
+    "plugins.badge.n_updates": "{0} تحديث متاح",
+    "plugins.log.starting": "جارٍ البدء…",
+    "plugins.btn.install": "⬇ تثبيت",
+    "toast.deno.update_start_failed": "تعذّر بدء تحديث Deno: {0}",
+    "toast.plugins.select_one": "حدد عنصراً واحداً على الأقل",
+    "toast.plugins.update_complete": "اكتمل التحديث ✓",
+    "toast.plugins.error_prefix": "خطأ: {0}",
     "plugins.reinstall.success": "تم إعادة تثبيت {0} بنجاح",
     "plugins.check_updates.checking": "جاري التحقق...",
     "plugins.up_to_date": "كل الإضافات محدثة",
@@ -417,7 +429,6 @@
     "themes.favorites.empty": "لا توجد مفضلات بعد — انقر على القلب في أي ثيم لإضافته.",
     "themes.random_on_launch": "ثيم عشوائي عند التشغيل",
     "panel.themes.create": "＋ إنشاء ثيم",
-    "card.format.video.h264": "MP4 · H.264 (أقصى توافق)",
-    "toast.deno.update_start_failed": "تعذّر بدء تحديث Deno: {0}"
+    "card.format.video.h264": "MP4 · H.264 (أقصى توافق)"
   }
 }
