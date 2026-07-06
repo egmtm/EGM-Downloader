@@ -1716,7 +1716,17 @@ def check_updates():
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf.split(" ")[0] == lf, "channel": ffmpeg_ch},
+                    # Tag AND channel must both match: the two BtbN channels can
+                    # share a version tag, so a tag-only compare right after a
+                    # channel switch would claim "up to date" while the installed
+                    # build is still from the other channel (and the switch toast
+                    # says "Update via Plugins to apply"). Legacy tag files with
+                    # no " · channel" suffix skip the channel check (pre-suffix
+                    # installs keep the old behavior until their next update).
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown"
+                                  and cf.split(" ")[0] == lf
+                                  and (" · " not in cf or cf.split(" · ")[1] == ffmpeg_ch),
+                    "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": lm, "up_to_date": mutagen_ok},
         "optlibs": {"current": oc, "latest": ol, "updates_available": optlibs_updates, "up_to_date": optlibs_ok},
     })
