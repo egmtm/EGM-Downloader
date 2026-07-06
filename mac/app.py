@@ -1716,12 +1716,25 @@ def cookies_clear():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+def _get_latest_deno_version() -> str:
+    try:
+        req = urllib.request.Request("https://api.github.com/repos/denoland/deno/releases/latest",
+                                     headers={"User-Agent": "EGM-Downloader"})
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
+            return json.loads(r.read()).get("tag_name", "unknown").lstrip("v")
+    except Exception:
+        return "unknown"
+
 @app.route("/api/deno/status")
 def deno_status():
-    """Return installed Deno version and whether the exe exists."""
+    """Return installed/latest Deno versions so the plugins grid can offer updates."""
     installed = DENO_EXE.exists()
     version   = _get_deno_version() if installed else "not installed"
-    return jsonify({"installed": installed, "version": version})
+    latest    = _get_latest_deno_version()
+    up_to_date = installed and version not in ("unknown", "not installed") and latest != "unknown" and version == latest
+    return jsonify({"installed": installed, "version": version, "latest": latest,
+                    "up_to_date": (up_to_date if latest != "unknown" else None)})
 
 deno_install_status: dict = {}
 

@@ -182,6 +182,7 @@ function updatePluginsBadge(data) {
   if (data.ffmpeg && data.ffmpeg.up_to_date === false) count++;
   if (data.mutagen && data.mutagen.up_to_date === false) count++;
   if (data.optlibs && data.optlibs.updates_available > 0) count++;
+  if (data.deno && data.deno.up_to_date === false) count++;
   if (count > 0) {
     badge.textContent = count + ' update' + (count > 1 ? 's' : '');
     badge.className = 'adv-divider-badge upd';
@@ -489,18 +490,23 @@ function renderUpdGrid(data) {
   const deD = data.deno;
   const deInstalled = deD && deD.installed;
   const deVer = (deD && deD.version) ? esc(deD.version) : 'not installed';
+  const deBadge = !deInstalled
+    ? `<span class="vbadge vb-upd">✗ Not installed</span>`
+    : (deD.up_to_date === null || deD.up_to_date === undefined)
+      ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
+      : `<span class="vbadge ${deD.up_to_date?'vb-ok':'vb-upd'}">${deD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
   const deEl = document.createElement('div');
   deEl.className = 'upd-item';
   deEl.innerHTML = `
     <div class="upd-row">
-      <span class="upd-name" title="To update Deno, go to Advanced → Reinstall Deno">🦕 Deno</span>
+      <span class="upd-name">🦕 Deno</span>
       ${deInstalled
-        ? `<span style="font-size:.68rem;color:var(--text2)">bundled</span>`
+        ? `<label class="sw-wrap" style="margin:0"><input type="checkbox" class="sw" id="sw-deno" ${deD.up_to_date===false?'checked':''}></label>`
         : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">⬇ Install</button>`}
     </div>
     <div class="upd-row">
-      <span class="upd-ver">${deInstalled ? deVer : 'required for YouTube'}</span>
-      <span class="vbadge ${deInstalled?'vb-ok':'vb-upd'}">${deInstalled?(i18nGet('plugins.deno.status.installed')||'✓ Installed'):'✗ Not installed'}</span>
+      <span class="upd-ver">${deInstalled ? `${deVer}${deD.latest && deD.up_to_date===false ? ` → ${esc(deD.latest)}` : ''}` : 'required for YouTube'}</span>
+      ${deBadge}
     </div>`;
   grid.appendChild(deEl);
 
@@ -541,8 +547,9 @@ function syncInstallBtn() {
   const ffOn = document.getElementById('sw-ffmpeg')?.checked;
   const muOn = document.getElementById('sw-mutagen')?.checked;
   const olOn = document.getElementById('sw-optlibs')?.checked;
+  const deOn = document.getElementById('sw-deno')?.checked;
   const btn  = document.getElementById('run-update-btn');
-  if (btn) btn.style.display = (ytOn || ffOn || muOn || olOn) ? '' : 'none';
+  if (btn) btn.style.display = (ytOn || ffOn || muOn || olOn || deOn) ? '' : 'none';
 }
 
 // Re-sync after renderUpdGrid populates the grid (delegate via grid container)
@@ -554,15 +561,53 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
   const doF = document.getElementById('sw-ffmpeg')?.checked ?? false;
   const doM = document.getElementById('sw-mutagen')?.checked ?? false;
   const doO = document.getElementById('sw-optlibs')?.checked ?? false;
-  if (!doY && !doF && !doM && !doO) { toast('Select at least one item', 'err'); return; }
+  const doD = document.getElementById('sw-deno')?.checked ?? false;
+  if (!doY && !doF && !doM && !doO && !doD) { toast('Select at least one item', 'err'); return; }
   const log = document.getElementById('upd-log');
   log.textContent = ''; log.classList.add('show');
   document.getElementById('run-update-btn').disabled = true;
+  let denoLog = [];
+  if (doD) {
+    // Deno updates through its existing reinstall pipeline; stream its log here.
+    const r = await post('/api/deno/reinstall', {});
+    if (r.started) {
+      await new Promise(res => {
+        const dv = setInterval(async () => {
+          try {
+            const ds = await fetch('/api/deno/install-status').then(x => x.json());
+            denoLog = ds.log || [];
+            log.textContent = denoLog.join('\n');
+            log.scrollTop = log.scrollHeight;
+            if (!ds.running) { clearInterval(dv); res(); }
+          } catch { clearInterval(dv); res(); }
+        }, 800);
+      });
+    } else {
+      denoLog = ['Deno update could not start: ' + (r.error || 'unknown')];
+    }
+    if (!doY && !doF && !doM && !doO) {
+      // Deno-only run — finish here, refresh the grid state
+      document.getElementById('run-update-btn').disabled = false;
+      toast('Update complete ✓', 'ok');
+      try {
+        const [fresh, freshDeno] = await Promise.all([
+          fetch('/api/check-updates').then(r => r.json()),
+          fetch('/api/deno/status').then(r => r.json()),
+        ]);
+        fresh.deno = freshDeno;
+        renderUpdGrid(fresh);
+        updatePluginsBadge(fresh);
+        syncInstallBtn();
+        setTimeout(() => { log.classList.remove('show'); log.textContent = ''; }, 1500);
+      } catch {}
+      return;
+    }
+  }
   await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM, optlibs: doO });
-  log.textContent = 'Starting…\n';
+  log.textContent = denoLog.concat(['Starting…']).join('\n');
   const iv = setInterval(async () => {
     const s = await fetch('/api/update-status').then(r => r.json());
-    log.textContent = (s.log||[]).join('\n');
+    log.textContent = denoLog.concat(s.log||[]).join('\n');
     log.scrollTop = log.scrollHeight;
     if (!s.running) {
       clearInterval(iv);
@@ -579,7 +624,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
           renderUpdGrid(fresh);
           updatePluginsBadge(fresh);
           // Reset toggles and hide Install button — job done
-          ['sw-ytdlp','sw-ffmpeg','sw-mutagen'].forEach(id => {
+          ['sw-ytdlp','sw-ffmpeg','sw-mutagen','sw-deno'].forEach(id => {
             const el = document.getElementById(id); if (el) el.checked = false;
           });
           syncInstallBtn();
