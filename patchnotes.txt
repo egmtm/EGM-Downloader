@@ -10,6 +10,7 @@ v1.3 - Build TBD (TBD)
   • [ALL] Site Cookies panel in Settings redesigned into a more compact, centered layout
   • [ALL] Deno now updates alongside yt-dlp, ffmpeg, and other plugins in Advanced settings, instead of its own separate button
   • [ALL] Advanced panel now shows current → latest version for optional libraries and ffmpeg when an update is available, and correctly detects updates after switching ffmpeg channels
+  • [MAC] [LINUX] Optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) can now be updated in-app from Advanced settings — previously view-only on these platforms
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
