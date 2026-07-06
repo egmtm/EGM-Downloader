@@ -521,7 +521,15 @@ function renderUpdGrid(data) {
       </label>
     </div>
     <div class="upd-row">
-      <span class="upd-ver" style="color:var(--text2);font-size:.68rem">curl-cffi · brotli · pycryptodomex · websockets · certifi</span>
+      <span class="upd-ver" style="color:var(--text2);font-size:.68rem">${
+        olUpd > 0 && olD.current && olD.latest
+          ? Object.keys(olD.current).map(lib =>
+              olD.current[lib] !== 'not installed' && olD.latest[lib] !== 'unknown' && olD.current[lib] !== olD.latest[lib]
+                ? `${esc(lib)} ${esc(olD.current[lib])} → ${esc(olD.latest[lib])}`
+                : esc(lib)
+            ).join(' · ')
+          : 'curl-cffi · brotli · pycryptodomex · websockets · certifi'
+      }</span>
       ${olBadge}
     </div>`;
   grid.appendChild(olEl);

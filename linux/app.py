@@ -663,7 +663,7 @@ def ensure_ffmpeg():
         os.chmod(ffmpeg_bin,  0o755)
         os.chmod(ffprobe_bin, 0o755)
         try:
-            FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
+            FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception:
             pass
         print("[EGM] ffmpeg ready.")
@@ -1543,7 +1543,7 @@ def _run_update(do_ytdlp, do_ffmpeg):
             ffprobe_bin = FFMPEG_DIR / "ffprobe"
             if ffmpeg_bin.exists():  os.chmod(ffmpeg_bin,  0o755)
             if ffprobe_bin.exists(): os.chmod(ffprobe_bin, 0o755)
-            try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
+            try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
         log("All done.")
@@ -1586,7 +1586,7 @@ def check_updates():
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf.split(" ")[0] == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
         "optlibs": {"current": _get_optlibs_versions()},
     })
