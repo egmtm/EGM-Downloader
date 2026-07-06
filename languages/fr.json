@@ -279,6 +279,18 @@
     "toast.update.unreachable": "⚠ Impossible de joindre le serveur de mise à jour",
     "toast.update.uptodate": "✓ EGM Downloader est à jour",
     "plugins.deno.status.not_installed": "✗ Non installé",
+    "plugins.badge.up_to_date": "✓ À jour",
+    "plugins.badge.update_available": "↑ Mise à jour disponible",
+    "plugins.version.checking": "vérification…",
+    "plugins.deno.required_note": "requis pour YouTube",
+    "plugins.version.not_installed": "non installé",
+    "plugins.badge.n_updates": "{0} mises à jour disponibles",
+    "plugins.log.starting": "Démarrage…",
+    "plugins.btn.install": "⬇ Installer",
+    "toast.deno.update_start_failed": "La mise à jour de Deno n'a pas pu démarrer : {0}",
+    "toast.plugins.select_one": "Sélectionnez au moins un élément",
+    "toast.plugins.update_complete": "Mise à jour terminée ✓",
+    "toast.plugins.error_prefix": "Erreur : {0}",
     "plugins.reinstall.success": "{0} réinstallé avec succès",
     "plugins.check_updates.checking": "Vérification...",
     "plugins.up_to_date": "Tous les plugins sont à jour",
@@ -417,7 +429,6 @@
     "themes.favorites.empty": "Aucun favori pour l'instant — cliquez sur le cœur d'un thème pour l'ajouter.",
     "themes.random_on_launch": "Aléatoire au démarrage",
     "panel.themes.create": "＋ Créer un thème",
-    "card.format.video.h264": "MP4 · H.264 (Compatibilité maximale)",
-    "toast.deno.update_start_failed": "La mise à jour de Deno n'a pas pu démarrer : {0}"
+    "card.format.video.h264": "MP4 · H.264 (Compatibilité maximale)"
   }
 }
