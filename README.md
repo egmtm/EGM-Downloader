@@ -307,6 +307,8 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 - Downloaded subtitles now include your selected app language alongside English (when available)
 - Windows installer redesigned to match the app's dark theme, with language selection at setup
 - Minor polish — Subscriptions sidebar thumbnail spacing, Update/What's New modal scrollbar spacing, more compact Site Cookies panel
+- Deno now updates alongside yt-dlp, ffmpeg, and other plugins instead of its own separate button
+- Advanced panel shows current → latest version for optional libraries and ffmpeg when an update is available
 
 **v1.4 and beyond:**
 - 🧩 *Browser extension — send URLs straight to EGM Downloader without leaving your browser. Revisiting when the userbase is stronger.*
