@@ -417,6 +417,7 @@
     "themes.favorites.empty": "Ainda sem favoritos — clique no coração de qualquer tema para adicioná-lo.",
     "themes.random_on_launch": "Aleatório ao iniciar",
     "panel.themes.create": "＋ Criar tema",
-    "card.format.video.h264": "MP4 · H.264 (Compatibilidade máxima)"
+    "card.format.video.h264": "MP4 · H.264 (Compatibilidade máxima)",
+    "toast.deno.update_start_failed": "Não foi possível iniciar a atualização do Deno: {0}"
   }
 }
