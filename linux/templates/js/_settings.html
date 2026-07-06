@@ -406,7 +406,7 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
   try {
     const [data, deno] = await Promise.all([
       fetch('/api/check-updates').then(r => r.json()),
-      fetch('/api/deno/status').then(r => r.json()),
+      fetch('/api/deno/status?latest=1').then(r => r.json()),
     ]);
     data.deno = deno;
     renderUpdGrid(data);
@@ -491,7 +491,9 @@ function renderUpdGrid(data) {
   const deInstalled = deD && deD.installed;
   const deVer = (deD && deD.version) ? esc(deD.version) : (i18nGet('plugins.version.not_installed')||'not installed');
   const deBadge = !deInstalled
-    ? `<span class="vbadge vb-upd">${i18nGet('plugins.deno.status.not_installed')||'✗ Not installed'}</span>`
+    ? (deD && deD.latest
+        ? `<span class="vbadge vb-upd">${i18nGet('plugins.deno.status.not_installed')||'✗ Not installed'}</span>`
+        : `<span class="vbadge vb-upd" style="opacity:.5">—</span>`)
     : (deD.up_to_date === null || deD.up_to_date === undefined)
       ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
       : `<span class="vbadge ${deD.up_to_date?'vb-ok':'vb-upd'}">${deD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
@@ -601,7 +603,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
       try {
         const [fresh, freshDeno] = await Promise.all([
           fetch('/api/check-updates').then(r => r.json()),
-          fetch('/api/deno/status').then(r => r.json()),
+          fetch('/api/deno/status?latest=1').then(r => r.json()),
         ]);
         fresh.deno = freshDeno;
         renderUpdGrid(fresh);
@@ -642,7 +644,7 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
         try {
           const [fresh, freshDeno] = await Promise.all([
             fetch('/api/check-updates').then(r => r.json()),
-            fetch('/api/deno/status').then(r => r.json()),
+            fetch('/api/deno/status?latest=1').then(r => r.json()),
           ]);
           fresh.deno = freshDeno;
           renderUpdGrid(fresh);
@@ -698,7 +700,7 @@ async function installDeno() {
           try {
             const [data, deno] = await Promise.all([
               fetch('/api/check-updates').then(r => r.json()),
-              fetch('/api/deno/status').then(r => r.json()),
+              fetch('/api/deno/status?latest=1').then(r => r.json()),
             ]);
             data.deno = deno;
             renderUpdGrid(data);
@@ -795,7 +797,7 @@ async function refreshUpdGrid() {
   try {
     const [data, deno] = await Promise.all([
       fetch('/api/check-updates').then(r => r.json()),
-      fetch('/api/deno/status').then(r => r.json()),
+      fetch('/api/deno/status?latest=1').then(r => r.json()),
     ]);
     data.deno = deno;
     renderUpdGrid(data);
@@ -836,7 +838,7 @@ refreshCookieCard();
             try {
               const [data, deno] = await Promise.all([
                 fetch('/api/check-updates').then(r => r.json()),
-                fetch('/api/deno/status').then(r => r.json()),
+                fetch('/api/deno/status?latest=1').then(r => r.json()),
               ]);
               data.deno = deno;
               renderUpdGrid(data);

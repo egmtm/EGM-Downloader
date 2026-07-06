@@ -1690,13 +1690,17 @@ def _get_latest_deno_version() -> str:
 
 @app.route("/api/deno/status")
 def deno_status():
-    """Return installed/latest Deno versions so the plugins grid can offer updates."""
+    """Installed Deno version; latest/up_to_date only when explicitly requested
+    (?latest=1, i.e. Check for Updates) — passive grid loads show the same
+    "—" placeholder as the other plugins and skip the GitHub API call."""
     installed = DENO_EXE.exists()
     version   = _get_deno_version() if installed else "not installed"
-    latest    = _get_latest_deno_version()
-    up_to_date = installed and version not in ("unknown", "not installed") and latest != "unknown" and version == latest
+    latest    = _get_latest_deno_version() if request.args.get("latest") == "1" else None
+    up_to_date = None
+    if latest and latest != "unknown" and installed and version not in ("unknown", "not installed"):
+        up_to_date = version == latest
     return jsonify({"installed": installed, "version": version, "latest": latest,
-                    "up_to_date": (up_to_date if latest != "unknown" else None)})
+                    "up_to_date": up_to_date})
 
 deno_install_status: dict = {}
 
