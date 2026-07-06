@@ -417,6 +417,7 @@
     "themes.favorites.empty": "لا توجد مفضلات بعد — انقر على القلب في أي ثيم لإضافته.",
     "themes.random_on_launch": "ثيم عشوائي عند التشغيل",
     "panel.themes.create": "＋ إنشاء ثيم",
-    "card.format.video.h264": "MP4 · H.264 (أقصى توافق)"
+    "card.format.video.h264": "MP4 · H.264 (أقصى توافق)",
+    "toast.deno.update_start_failed": "تعذّر بدء تحديث Deno: {0}"
   }
 }
