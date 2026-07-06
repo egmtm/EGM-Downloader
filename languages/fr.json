@@ -417,6 +417,7 @@
     "themes.favorites.empty": "Aucun favori pour l'instant — cliquez sur le cœur d'un thème pour l'ajouter.",
     "themes.random_on_launch": "Aléatoire au démarrage",
     "panel.themes.create": "＋ Créer un thème",
-    "card.format.video.h264": "MP4 · H.264 (Compatibilité maximale)"
+    "card.format.video.h264": "MP4 · H.264 (Compatibilité maximale)",
+    "toast.deno.update_start_failed": "La mise à jour de Deno n'a pas pu démarrer : {0}"
   }
 }
