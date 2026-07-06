@@ -279,6 +279,18 @@
     "toast.update.unreachable": "⚠ Не удалось подключиться к серверу обновлений",
     "toast.update.uptodate": "✓ EGM Downloader обновлён",
     "plugins.deno.status.not_installed": "✗ Не установлено",
+    "plugins.badge.up_to_date": "✓ Актуально",
+    "plugins.badge.update_available": "↑ Доступно обновление",
+    "plugins.version.checking": "проверка…",
+    "plugins.deno.required_note": "требуется для YouTube",
+    "plugins.version.not_installed": "не установлено",
+    "plugins.badge.n_updates": "Доступно обновлений: {0}",
+    "plugins.log.starting": "Запуск…",
+    "plugins.btn.install": "⬇ Установить",
+    "toast.deno.update_start_failed": "Не удалось запустить обновление Deno: {0}",
+    "toast.plugins.select_one": "Выберите хотя бы один элемент",
+    "toast.plugins.update_complete": "Обновление завершено ✓",
+    "toast.plugins.error_prefix": "Ошибка: {0}",
     "plugins.reinstall.success": "{0} успешно переустановлен",
     "plugins.check_updates.checking": "Проверка...",
     "plugins.up_to_date": "Все плагины актуальны",
@@ -417,7 +429,6 @@
     "themes.favorites.empty": "Избранного пока нет — нажмите на сердечко у любой темы, чтобы добавить.",
     "themes.random_on_launch": "Случайная при запуске",
     "panel.themes.create": "＋ Создать тему",
-    "card.format.video.h264": "MP4 · H.264 (Максимальная совместимость)",
-    "toast.deno.update_start_failed": "Не удалось запустить обновление Deno: {0}"
+    "card.format.video.h264": "MP4 · H.264 (Максимальная совместимость)"
   }
 }
