@@ -279,6 +279,7 @@
     "toast.update.unreachable": "⚠ Could not reach update server",
     "toast.update.uptodate": "✓ EGM Downloader is up to date",
     "plugins.deno.status.not_installed": "✗ Not installed",
+    "toast.deno.update_start_failed": "Deno update could not start: {0}",
     "plugins.reinstall.success": "{0} reinstalled successfully",
     "plugins.check_updates.checking": "Checking...",
     "plugins.up_to_date": "All plugins up to date",
