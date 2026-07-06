@@ -432,7 +432,7 @@ function renderUpdGrid(data) {
   const ytD = data.ytdlp;
   const ytBadge = ytD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
+    : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const ytEl = document.createElement('div');
   ytEl.className = 'upd-item';
   ytEl.innerHTML = `
@@ -452,7 +452,7 @@ function renderUpdGrid(data) {
   const muD = data.mutagen || {};
   const muBadge = muD.up_to_date === null || muD.up_to_date === undefined
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
+    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const muEl = document.createElement('div');
   muEl.className = 'upd-item';
   muEl.innerHTML = `
@@ -463,14 +463,14 @@ function renderUpdGrid(data) {
       </label>
     </div>
     <div class="upd-row">
-      <span class="upd-ver">${esc(muD.current || (i18nGet('plugins.version.checking')||'checking…'))}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
+      <span class="upd-ver">${esc(muD.current || '') || i18nAttr('plugins.version.checking','checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
       ${muBadge}
     </div>`;
   grid.appendChild(muEl);
   const ffD = data.ffmpeg;
   const ffBadge = ffD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
+    : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const ffEl = document.createElement('div');
   ffEl.className = 'upd-item';
   ffEl.innerHTML = `
@@ -489,14 +489,14 @@ function renderUpdGrid(data) {
   // ── Deno ──────────────────────────────────────────────────────────────────
   const deD = data.deno;
   const deInstalled = deD && deD.installed;
-  const deVer = (deD && deD.version) ? esc(deD.version) : (i18nGet('plugins.version.not_installed')||'not installed');
+  const deVer = (deD && deD.version) ? esc(deD.version) : i18nAttr('plugins.version.not_installed','not installed');
   const deBadge = !deInstalled
     ? (deD && deD.latest
-        ? `<span class="vbadge vb-upd">${i18nGet('plugins.deno.status.not_installed')||'✗ Not installed'}</span>`
+        ? `<span class="vbadge vb-upd">${i18nAttr('plugins.deno.status.not_installed','✗ Not installed')}</span>`
         : `<span class="vbadge vb-upd" style="opacity:.5">—</span>`)
     : (deD.up_to_date === null || deD.up_to_date === undefined)
       ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-      : `<span class="vbadge ${deD.up_to_date?'vb-ok':'vb-upd'}">${deD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nGet('plugins.badge.update_available')||'↑ Update available')}</span>`;
+      : `<span class="vbadge ${deD.up_to_date?'vb-ok':'vb-upd'}">${deD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const deEl = document.createElement('div');
   deEl.className = 'upd-item';
   deEl.innerHTML = `
@@ -504,10 +504,10 @@ function renderUpdGrid(data) {
       <span class="upd-name">🦕 Deno</span>
       ${deInstalled
         ? `<label class="sw-wrap" style="margin:0"><input type="checkbox" class="sw" id="sw-deno" ${deD.up_to_date===false?'checked':''}></label>`
-        : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">${i18nGet('plugins.btn.install')||'⬇ Install'}</button>`}
+        : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">${i18nAttr('plugins.btn.install','⬇ Install')}</button>`}
     </div>
     <div class="upd-row">
-      <span class="upd-ver">${deInstalled ? `${deVer}${deD.latest && deD.up_to_date===false ? ` → ${esc(deD.latest)}` : ''}` : (i18nGet('plugins.deno.required_note')||'required for YouTube')}</span>
+      <span class="upd-ver">${deInstalled ? `${deVer}${deD.latest && deD.up_to_date===false ? ` → ${esc(deD.latest)}` : ''}` : i18nAttr('plugins.deno.required_note','required for YouTube')}</span>
       ${deBadge}
     </div>`;
   grid.appendChild(deEl);
@@ -517,7 +517,7 @@ function renderUpdGrid(data) {
   const olUpd = olD.updates_available || 0;
   const olBadge = olD.up_to_date === undefined
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${olD.up_to_date?'vb-ok':'vb-upd'}">${olD.up_to_date?(i18nGet('plugins.badge.up_to_date')||'✓ Up to date'):(i18nFmt('plugins.badge.n_updates', olUpd)||(olUpd + ' update' + (olUpd>1?'s':'') + ' available'))}</span>`;
+    : `<span class="vbadge ${olD.up_to_date?'vb-ok':'vb-upd'}">${olD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):esc(i18nFmt('plugins.badge.n_updates', olUpd)||(olUpd + ' update' + (olUpd>1?'s':'') + ' available'))}</span>`;
   const olEl = document.createElement('div');
   olEl.className = 'upd-item';
   olEl.style.gridColumn = '1 / -1';
