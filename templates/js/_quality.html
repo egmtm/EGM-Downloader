@@ -176,26 +176,6 @@ function videoQualityBgClick(e) {
 
   // Reinstall Deno — live, no restart. Kicks off the background installer and
   // polls /api/deno/install-status, exactly like the first-time install path.
-  document.getElementById('adv-deno-btn').addEventListener('click', async () => {
-    if (!confirm(i18nGet('confirm.reinstall_deno') || 'Reinstall Deno now?\n\nThe current Deno runtime is replaced with a fresh download — no restart needed. Make sure you have an internet connection.')) return;
-    const btn = document.getElementById('adv-deno-btn');
-    if (btn) btn.disabled = true;
-    const r = await post('/api/deno/reinstall', {});
-    if (!r.started) { toast(r.error || i18nGet('plugins.reinstall.error') || 'Reinstall failed', 'err'); if (btn) btn.disabled = false; return; }
-    toast('Reinstalling Deno…', 'ok');
-    const iv = setInterval(async () => {
-      try {
-        const s = await fetch('/api/deno/install-status').then(r => r.json());
-        if (s.running) return;
-        clearInterval(iv);
-        if (btn) btn.disabled = false;
-        if (s.error) toast('Deno reinstall failed: ' + s.error, 'err');
-        else toast(i18nGet('toast.deno.reinstalled') || 'Deno reinstalled — YouTube signature solving active', 'ok');
-        if (typeof refreshUpdGrid === 'function') refreshUpdGrid();
-      } catch {}
-    }, 800);
-  });
-
   // Reinstall Electron (Windows only — shown via platform check below)
   document.getElementById('adv-electron-btn').addEventListener('click', async () => {
     if (!confirm(i18nGet('confirm.reinstall_electron') || 'Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
