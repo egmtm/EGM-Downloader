@@ -279,6 +279,18 @@
     "toast.update.unreachable": "⚠ 更新サーバーに接続できませんでした",
     "toast.update.uptodate": "✓ EGM Downloader は最新です",
     "plugins.deno.status.not_installed": "✗ 未インストール",
+    "plugins.badge.up_to_date": "✓ 最新",
+    "plugins.badge.update_available": "↑ アップデートあり",
+    "plugins.version.checking": "確認中…",
+    "plugins.deno.required_note": "YouTube に必要",
+    "plugins.version.not_installed": "未インストール",
+    "plugins.badge.n_updates": "{0} 件のアップデートあり",
+    "plugins.log.starting": "開始中…",
+    "plugins.btn.install": "⬇ インストール",
+    "toast.deno.update_start_failed": "Deno の更新を開始できませんでした: {0}",
+    "toast.plugins.select_one": "少なくとも1つ選択してください",
+    "toast.plugins.update_complete": "アップデート完了 ✓",
+    "toast.plugins.error_prefix": "エラー: {0}",
     "plugins.reinstall.success": "{0}を正常に再インストールしました",
     "plugins.check_updates.checking": "確認中...",
     "plugins.up_to_date": "すべてのプラグインは最新です",
@@ -417,7 +429,6 @@
     "themes.favorites.empty": "まだお気に入りはありません — テーマのハートをクリックして追加してください。",
     "themes.random_on_launch": "起動時にランダム",
     "panel.themes.create": "＋ テーマを作成",
-    "card.format.video.h264": "MP4 · H.264 (最大互換性)",
-    "toast.deno.update_start_failed": "Deno の更新を開始できませんでした: {0}"
+    "card.format.video.h264": "MP4 · H.264 (最大互換性)"
   }
 }
