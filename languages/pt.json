@@ -279,6 +279,18 @@
     "toast.update.unreachable": "⚠ Não foi possível acessar o servidor de atualização",
     "toast.update.uptodate": "✓ EGM Downloader está atualizado",
     "plugins.deno.status.not_installed": "✗ Não instalado",
+    "plugins.badge.up_to_date": "✓ Atualizado",
+    "plugins.badge.update_available": "↑ Atualização disponível",
+    "plugins.version.checking": "verificando…",
+    "plugins.deno.required_note": "necessário para o YouTube",
+    "plugins.version.not_installed": "não instalado",
+    "plugins.badge.n_updates": "{0} atualizações disponíveis",
+    "plugins.log.starting": "Iniciando…",
+    "plugins.btn.install": "⬇ Instalar",
+    "toast.deno.update_start_failed": "Não foi possível iniciar a atualização do Deno: {0}",
+    "toast.plugins.select_one": "Selecione pelo menos um item",
+    "toast.plugins.update_complete": "Atualização concluída ✓",
+    "toast.plugins.error_prefix": "Erro: {0}",
     "plugins.reinstall.success": "{0} reinstalado com sucesso",
     "plugins.check_updates.checking": "Verificando...",
     "plugins.up_to_date": "Todos os plugins estão atualizados",
@@ -417,7 +429,6 @@
     "themes.favorites.empty": "Ainda sem favoritos — clique no coração de qualquer tema para adicioná-lo.",
     "themes.random_on_launch": "Aleatório ao iniciar",
     "panel.themes.create": "＋ Criar tema",
-    "card.format.video.h264": "MP4 · H.264 (Compatibilidade máxima)",
-    "toast.deno.update_start_failed": "Não foi possível iniciar a atualização do Deno: {0}"
+    "card.format.video.h264": "MP4 · H.264 (Compatibilidade máxima)"
   }
 }
