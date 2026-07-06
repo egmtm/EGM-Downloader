@@ -744,7 +744,7 @@ def ensure_ffmpeg():
                     with z.open(m) as src, open(FFMPEG_DIR / fn, "wb") as dst:
                         shutil.copyfileobj(src, dst)
         tmp.unlink(missing_ok=True)
-        try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
+        try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception: pass
         print("[EGM] ffmpeg ready.")
         return True
@@ -1590,6 +1590,7 @@ def _get_latest_mutagen_version() -> str:
 OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
 
 def _get_optlibs_versions() -> dict:
+    importlib.invalidate_caches()  # see dists installed while the app is running
     result = {}
     for lib in OPTLIBS:
         try:
@@ -1664,7 +1665,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
                         with z.open(m) as src, open(FFMPEG_DIR/fn,"wb") as dst:
                             shutil.copyfileobj(src, dst)
             tmp.unlink(missing_ok=True)
-            try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
+            try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
         if do_mutagen:
@@ -1715,7 +1716,7 @@ def check_updates():
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf.split(" ")[0] == lf, "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": lm, "up_to_date": mutagen_ok},
         "optlibs": {"current": oc, "latest": ol, "updates_available": optlibs_updates, "up_to_date": optlibs_ok},
     })
