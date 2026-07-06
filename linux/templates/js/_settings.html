@@ -564,9 +564,12 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
   const doD = document.getElementById('sw-deno')?.checked ?? false;
   if (!doY && !doF && !doM && !doO && !doD) { toast('Select at least one item', 'err'); return; }
   const log = document.getElementById('upd-log');
+  const btn = document.getElementById('run-update-btn');
   log.textContent = ''; log.classList.add('show');
-  document.getElementById('run-update-btn').disabled = true;
+  btn.disabled = true;
   let denoLog = [];
+  try {
+  let denoFailMsg = '';
   if (doD) {
     // Deno updates through its existing reinstall pipeline; stream its log here.
     const r = await post('/api/deno/reinstall', {});
@@ -583,12 +586,18 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
         }, 800);
       });
     } else {
-      denoLog = ['Deno update could not start: ' + (r.error || 'unknown')];
+      // Failure to START (e.g. a download is in progress) — record it so the
+      // completion path below reports an error, not success.
+      denoFailMsg = i18nFmt('toast.deno.update_start_failed', r.error || 'unknown')
+                    || ('Deno update could not start: ' + (r.error || 'unknown'));
+      denoLog = [denoFailMsg];
+      log.textContent = denoFailMsg;
     }
     if (!doY && !doF && !doM && !doO) {
       // Deno-only run — finish here, refresh the grid state
-      document.getElementById('run-update-btn').disabled = false;
-      toast('Update complete ✓', 'ok');
+      btn.disabled = false;
+      if (denoFailMsg) toast(denoFailMsg, 'err');
+      else toast('Update complete ✓', 'ok');
       try {
         const [fresh, freshDeno] = await Promise.all([
           fetch('/api/check-updates').then(r => r.json()),
@@ -598,15 +607,30 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
         renderUpdGrid(fresh);
         updatePluginsBadge(fresh);
         syncInstallBtn();
-        setTimeout(() => { log.classList.remove('show'); log.textContent = ''; }, 1500);
+        // Auto-clear only on success — a failure message must stay readable.
+        if (!denoFailMsg) setTimeout(() => { log.classList.remove('show'); log.textContent = ''; }, 1500);
       } catch {}
       return;
     }
   }
   await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM, optlibs: doO });
   log.textContent = denoLog.concat(['Starting…']).join('\n');
+  let pollFails = 0;
   const iv = setInterval(async () => {
-    const s = await fetch('/api/update-status').then(r => r.json());
+    let s;
+    try {
+      s = await fetch('/api/update-status').then(r => r.json());
+      pollFails = 0;
+    } catch {
+      // Tolerate transient poll errors; if the backend is really gone, stop
+      // polling and unlock the button instead of spinning disabled forever.
+      if (++pollFails >= 4) {
+        clearInterval(iv);
+        btn.disabled = false;
+        toast((i18nGet('plugins.install.error') || 'Plugin update failed'), 'err');
+      }
+      return;
+    }
     log.textContent = denoLog.concat(s.log||[]).join('\n');
     log.scrollTop = log.scrollHeight;
     if (!s.running) {
@@ -637,6 +661,12 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
       } else if (s.error) toast('Error: ' + s.error, 'err');
     }
   }, 800);
+  } catch (e) {
+    // Network-level failure before the update even started (post() throws on
+    // fetch errors) — without this the button stayed disabled until reload.
+    btn.disabled = false;
+    toast((i18nGet('plugins.install.error') || 'Plugin update failed') + ': ' + ((e && e.message) || e), 'err');
+  }
 });
 
 // ── Deno installer ───────────────────────────────────────────────────────────
