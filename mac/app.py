@@ -1527,7 +1527,7 @@ def _get_latest_ytdlp_version(channel=None):
 
 update_status: dict = {}
 
-def _run_update(do_ytdlp, do_ffmpeg):
+def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
@@ -1618,6 +1618,17 @@ def _run_update(do_ytdlp, do_ffmpeg):
             try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
+        if do_optlibs:
+            log("Updating optional libraries...")
+            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                     "curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi",
+                     timeout=180)
+            if r.returncode == 0:
+                vers = _get_optlibs_versions()
+                log("optional libs -> " + ", ".join(f"{k} {v}" for k, v in vers.items()))
+            else:
+                err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+                log(f"optional libs update failed: {err}")
         log("All done.")
         update_status["done"] = True
     except Exception as e:
@@ -1628,17 +1639,27 @@ def _run_update(do_ytdlp, do_ffmpeg):
 OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
 
 def _get_optlibs_versions() -> dict:
-    """Installed versions of the optional yt-dlp libraries. Informational-only on
-    this platform (bundled with the app; no in-app pip upgrade — same model as
-    mutagen), so check_updates returns current versions without a latest/up_to_date,
-    and the UI renders a neutral badge rather than an actionable toggle."""
+    """Installed versions of the optional yt-dlp libraries (same Python env
+    pip installs into — mirrors the yt-dlp update path on this platform)."""
     import importlib.metadata
+    importlib.invalidate_caches()  # see dists installed while the app is running
     result = {}
     for lib in OPTLIBS:
         try:
             result[lib] = importlib.metadata.version(lib)
         except Exception:
             result[lib] = "not installed"
+    return result
+
+
+def _get_latest_optlibs_versions() -> dict:
+    result = {}
+    for lib in OPTLIBS:
+        try:
+            with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
+                result[lib] = json.loads(r.read())["info"]["version"]
+        except Exception:
+            result[lib] = "unknown"
     return result
 
 
@@ -1658,6 +1679,13 @@ def check_updates():
     ytdlp_ch  = _load_settings().get("yt_dlp_channel", "stable")
     ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
+    oc = _get_optlibs_versions()
+    ol = _get_latest_optlibs_versions()
+    optlibs_updates = sum(
+        1 for lib in oc
+        if oc[lib] != "not installed" and ol.get(lib, "unknown") != "unknown" and oc[lib] != ol[lib]
+    )
+    optlibs_ok = optlibs_updates == 0 and all(v != "not installed" for v in oc.values())
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
@@ -1673,7 +1701,7 @@ def check_updates():
                                   and (" · " not in cf or cf.split(" · ")[1] == ffmpeg_ch),
                     "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
-        "optlibs": {"current": _get_optlibs_versions()},
+        "optlibs": {"current": oc, "latest": ol, "updates_available": optlibs_updates, "up_to_date": optlibs_ok},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -1683,7 +1711,8 @@ def run_update():
         update_status["running"] = True
     data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
-                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False))),
+                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False)),
+                           bool(data.get("optlibs", False))),
                      daemon=True).start()
     return jsonify({"started": True})
 
