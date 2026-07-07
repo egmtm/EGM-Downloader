@@ -982,6 +982,55 @@ def _ensure_h264(job_id, path, job):
     except Exception:
         return path
 
+
+def _upscale_to_preset(job_id, path, job, target):
+    """Opt-in "Upscale to selected quality": if the finished video's SHORT side is
+    below the selected preset, scale it up proportionally (short side == preset)
+    and encode H.264 High + AAC, +faststart. At/above target -> untouched.
+    Defensive like _ensure_h264 — any failure returns the original file."""
+    path = str(path)
+    try:
+        ffprobe = FFMPEG_DIR / "ffprobe.exe"
+        ffmpeg  = FFMPEG_DIR / "ffmpeg.exe"
+        if not ffprobe.exists() or not ffmpeg.exists():
+            return path
+        r = _run(str(ffprobe), "-v", "error", "-select_streams", "v:0",
+                 "-show_entries", "stream=width,height", "-of", "csv=p=0", path, timeout=30)
+        parts = (r.stdout or "").strip().split(",")
+        if len(parts) != 2:
+            return path
+        w, h = int(parts[0]), int(parts[1])
+        if min(w, h) >= int(target):
+            return path                                       # already at/above preset
+        job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
+        n = int(target)
+        # short side -> N, long side proportional (even): portrait vs landscape aware
+        vf = "scale='if(gt(iw,ih),-2,%d)':'if(gt(iw,ih),%d,-2)'" % (n, n)
+        tmp = path + ".up.mp4"
+        proc = _popen(str(ffmpeg), "-y", "-i", path,
+                      "-map", "0:v:0", "-map", "0:a:0?",
+                      "-vf", vf,
+                      "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+                      "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.2",
+                      "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp,
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        job["proc"] = proc
+        with _active_procs_lock:
+            _active_procs[job_id] = proc
+        proc.wait()
+        job["proc"] = None
+        with _active_procs_lock:
+            _active_procs.pop(job_id, None)
+        if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+            os.replace(tmp, path)
+        else:
+            try: os.remove(tmp)
+            except Exception: pass
+        return path
+    except Exception:
+        return path
+
+
 def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264"):
     job     = jobs.get(job_id)
     if not job:
@@ -1234,6 +1283,14 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if format_choice != "audio" and output_format == "mp4_h264" and str(chosen).lower().endswith(".mp4"):
             chosen = _ensure_h264(job_id, chosen, job)
 
+        # Opt-in upscale to the selected preset (fixed presets only — "Best
+        # available" has no target). Runs after the H.264 pass; adds at most one
+        # extra encode, and only when the user opted in and the source is small.
+        if (format_choice != "audio" and video_height and int(video_height or 0) != 0
+                and _load_settings().get("upscale_to_quality", False)
+                and str(chosen).lower().endswith(".mp4")):
+            chosen = _upscale_to_preset(job_id, chosen, job, video_height)
+
         ext        = os.path.splitext(chosen)[1]
         title      = job.get("title", "").strip()
         final_name = _safe_filename(title, ext) if title else os.path.basename(chosen)
@@ -1448,6 +1505,7 @@ def get_settings():
         "language":                _get_language_setting(s),
         "show_language_selector":  s.get("show_language_selector", True),
         "show_settings_panel":     s.get("show_settings_panel", True),
+        "upscale_to_quality":      s.get("upscale_to_quality", False),
     })
 
 @app.route("/api/language/<code>")
@@ -1470,7 +1528,7 @@ def save_settings():
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
                "favorite_themes", "random_theme_on_launch", "random_theme_scope",
-               "language", "show_language_selector", "show_settings_panel"}
+               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1500,6 +1558,8 @@ def save_settings():
         data["show_language_selector"] = bool(data["show_language_selector"])
     if "show_settings_panel" in data:
         data["show_settings_panel"] = bool(data["show_settings_panel"])
+    if "upscale_to_quality" in data:
+        data["upscale_to_quality"] = bool(data["upscale_to_quality"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 

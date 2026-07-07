@@ -434,6 +434,8 @@
     "settings.toggle.label": "Afficher le panneau des paramètres",
     "settings.toggle.subtitle": "Masque tout le panneau des paramètres, y compris les cookies du site — peut être réactivé ici",
     "settings.modal.hide.title": "Masquer le panneau des paramètres ?",
-    "settings.modal.hide.body": "Le panneau des paramètres — y compris les cookies du site — n'apparaîtra plus. Vous pouvez toujours le réactiver ici dans Avancé."
+    "settings.modal.hide.body": "Le panneau des paramètres — y compris les cookies du site — n'apparaîtra plus. Vous pouvez toujours le réactiver ici dans Avancé.",
+    "settings.toggle.upscale_to_quality": "Upscale to selected quality",
+    "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)"
   }
 }

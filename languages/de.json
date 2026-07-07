@@ -434,6 +434,8 @@
     "settings.toggle.label": "Einstellungsleiste anzeigen",
     "settings.toggle.subtitle": "Blendet die gesamte Einstellungsleiste aus, einschließlich Website-Cookies — kann hier wieder aktiviert werden",
     "settings.modal.hide.title": "Einstellungsleiste ausblenden?",
-    "settings.modal.hide.body": "Die Einstellungsleiste — einschließlich Website-Cookies — wird nicht mehr angezeigt. Du kannst sie hier in den erweiterten Einstellungen jederzeit wieder aktivieren."
+    "settings.modal.hide.body": "Die Einstellungsleiste — einschließlich Website-Cookies — wird nicht mehr angezeigt. Du kannst sie hier in den erweiterten Einstellungen jederzeit wieder aktivieren.",
+    "settings.toggle.upscale_to_quality": "Upscale to selected quality",
+    "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)"
   }
 }

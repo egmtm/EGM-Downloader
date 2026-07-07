@@ -434,6 +434,8 @@
     "settings.toggle.label": "Mostra pannello impostazioni",
     "settings.toggle.subtitle": "Nasconde l'intero pannello delle impostazioni, inclusi i cookie del sito — può essere riattivato qui",
     "settings.modal.hide.title": "Nascondere il pannello delle impostazioni?",
-    "settings.modal.hide.body": "Il pannello delle impostazioni — inclusi i cookie del sito — non apparirà più. Puoi sempre riattivarlo qui in Avanzate."
+    "settings.modal.hide.body": "Il pannello delle impostazioni — inclusi i cookie del sito — non apparirà più. Puoi sempre riattivarlo qui in Avanzate.",
+    "settings.toggle.upscale_to_quality": "Upscale to selected quality",
+    "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)"
   }
 }

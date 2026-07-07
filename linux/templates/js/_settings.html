@@ -59,6 +59,10 @@
       const chk = document.getElementById('subtitles-chk');
       if (chk) chk.checked = true;
     }
+    {
+      const up = document.getElementById('upscale-chk');
+      if (up) up.checked = s.upscale_to_quality === true;
+    }
     if (s.embed_metadata === false) {
       const chk = document.getElementById('embed-metadata-chk');
       if (chk) chk.checked = false;
@@ -129,6 +133,9 @@ document.getElementById('check-updates-on-launch-chk').addEventListener('change'
 });
 document.getElementById('subtitles-chk').addEventListener('change', function() {
   post('/api/settings/save', { subtitles: this.checked });
+});
+document.getElementById('upscale-chk').addEventListener('change', function() {
+  post('/api/settings/save', { upscale_to_quality: this.checked });
 });
 document.getElementById('embed-metadata-chk').addEventListener('change', function() {
   post('/api/settings/save', { embed_metadata: this.checked });

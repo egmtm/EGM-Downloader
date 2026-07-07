@@ -434,6 +434,8 @@
     "settings.toggle.label": "Показать панель настроек",
     "settings.toggle.subtitle": "Скрывает всю панель настроек, включая файлы cookie сайта — можно снова включить здесь",
     "settings.modal.hide.title": "Скрыть панель настроек?",
-    "settings.modal.hide.body": "Панель настроек — включая файлы cookie сайта — больше не будет отображаться. Вы всегда можете снова включить её здесь, в разделе «Дополнительно»."
+    "settings.modal.hide.body": "Панель настроек — включая файлы cookie сайта — больше не будет отображаться. Вы всегда можете снова включить её здесь, в разделе «Дополнительно».",
+    "settings.toggle.upscale_to_quality": "Upscale to selected quality",
+    "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)"
   }
 }

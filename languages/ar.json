@@ -434,6 +434,8 @@
     "settings.toggle.label": "إظهار لوحة الإعدادات",
     "settings.toggle.subtitle": "يخفي لوحة الإعدادات بالكامل، بما فيها ملفات تعريف الارتباط للموقع — يمكن إعادة تفعيلها هنا",
     "settings.modal.hide.title": "إخفاء لوحة الإعدادات؟",
-    "settings.modal.hide.body": "لن تظهر لوحة الإعدادات بعد الآن — بما فيها ملفات تعريف الارتباط للموقع. يمكنك دائماً إعادة تفعيلها هنا في الإعدادات المتقدمة."
+    "settings.modal.hide.body": "لن تظهر لوحة الإعدادات بعد الآن — بما فيها ملفات تعريف الارتباط للموقع. يمكنك دائماً إعادة تفعيلها هنا في الإعدادات المتقدمة.",
+    "settings.toggle.upscale_to_quality": "Upscale to selected quality",
+    "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)"
   }
 }

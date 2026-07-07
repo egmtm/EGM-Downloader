@@ -334,6 +334,8 @@ def test_language_setting_allowlist(app_mod, tmp_path):
             assert data["language"] == "ja", f"invalid language {bad!r} must not persist"
         client.post("/api/settings/save", json={"show_language_selector": 0}, headers=headers)
         assert client.get("/api/settings", headers=headers).get_json()["show_language_selector"] is False
+        client.post("/api/settings/save", json={"upscale_to_quality": 1}, headers=headers)
+        assert client.get("/api/settings", headers=headers).get_json()["upscale_to_quality"] is True
 
 
 def test_installer_language_handoff(app_mod, tmp_path, monkeypatch):
