@@ -430,10 +430,10 @@
     "themes.random_on_launch": "Случайная при запуске",
     "panel.themes.create": "＋ Создать тему",
     "card.format.video.h264": "MP4 · H.264 (Максимальная совместимость)",
-    "advanced.section.interface": "Interface",
-    "settings.toggle.label": "Show settings panel",
-    "settings.toggle.subtitle": "Hides the whole settings panel, including Site Cookies — can be re-enabled here",
-    "settings.modal.hide.title": "Hide settings panel?",
-    "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced."
+    "advanced.section.interface": "Интерфейс",
+    "settings.toggle.label": "Показать панель настроек",
+    "settings.toggle.subtitle": "Скрывает всю панель настроек, включая файлы cookie сайта — можно снова включить здесь",
+    "settings.modal.hide.title": "Скрыть панель настроек?",
+    "settings.modal.hide.body": "Панель настроек — включая файлы cookie сайта — больше не будет отображаться. Вы всегда можете снова включить её здесь, в разделе «Дополнительно»."
   }
 }
