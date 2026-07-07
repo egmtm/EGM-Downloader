@@ -1924,12 +1924,20 @@
           <button class="adv-btn-full" id="adv-import-btn" title="Import settings from a file to restore your preferences">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg></span><span data-i18n="advanced.btn.import_settings">Import settings</span>
           </button></div>
+          <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.interface">Interface</span></div>
           <div class="adv-port-wrap" style="height:auto;padding:6px 10px">
             <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
               <span class="adv-port-label" data-i18n="lang.toggle.label">Show language selector</span>
               <span style="font-size:.62rem;color:var(--text2);opacity:.65" data-i18n="lang.toggle.subtitle">Hides the selector from the footer — can be re-enabled here</span>
             </div>
             <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-left:auto" checked>
+          </div>
+          <div class="adv-port-wrap" style="height:auto;padding:6px 10px">
+            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
+              <span class="adv-port-label" data-i18n="settings.toggle.label">Show settings panel</span>
+              <span style="font-size:.62rem;color:var(--text2);opacity:.65" data-i18n="settings.toggle.subtitle">Hides the whole settings panel, including Site Cookies — can be re-enabled here</span>
+            </div>
+            <input type="checkbox" class="sw" id="show-settings-panel-chk" style="margin-left:auto" checked>
           </div>
           <!-- Channels -->
           <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.channels">Channels</span></div>
@@ -2042,7 +2050,7 @@
 </div>
 
 <!-- Unified settings panel -->
-<div class="unified-panel">
+<div class="unified-panel" id="settings-panel-wrap">
 
   <!-- Settings section — collapsed by default -->
   <div class="sec-hdr" id="settings-sec-hdr" onclick="toggleSettingsPanel()">
@@ -2304,6 +2312,17 @@
     <div class="modal-actions">
       <button class="btn btn-ghost" id="hide-lang-cancel-btn" data-i18n="quality.btn.cancel">Cancel</button>
       <button class="btn btn-primary" id="hide-lang-confirm-btn" data-i18n="lang.modal.hide.confirm">Hide it</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-backdrop" id="hide-settings-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:360px;width:90%">
+    <h3 style="margin-top:0" data-i18n="settings.modal.hide.title">Hide settings panel?</h3>
+    <p style="font-size:.8rem;color:var(--text2)" data-i18n="settings.modal.hide.body">The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="hide-settings-cancel-btn" data-i18n="quality.btn.cancel">Cancel</button>
+      <button class="btn btn-primary" id="hide-settings-confirm-btn" data-i18n="lang.modal.hide.confirm">Hide it</button>
     </div>
   </div>
 </div>
