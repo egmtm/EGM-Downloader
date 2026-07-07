@@ -430,10 +430,10 @@
     "themes.random_on_launch": "起動時にランダム",
     "panel.themes.create": "＋ テーマを作成",
     "card.format.video.h264": "MP4 · H.264 (最大互換性)",
-    "advanced.section.interface": "Interface",
-    "settings.toggle.label": "Show settings panel",
-    "settings.toggle.subtitle": "Hides the whole settings panel, including Site Cookies — can be re-enabled here",
-    "settings.modal.hide.title": "Hide settings panel?",
-    "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced."
+    "advanced.section.interface": "インターフェース",
+    "settings.toggle.label": "設定パネルを表示",
+    "settings.toggle.subtitle": "サイトクッキーを含む設定パネル全体を非表示にします — ここで再度有効にできます",
+    "settings.modal.hide.title": "設定パネルを非表示にしますか？",
+    "settings.modal.hide.body": "サイトクッキーを含む設定パネルは表示されなくなります。詳細設定でいつでも再度有効にできます。"
   }
 }
