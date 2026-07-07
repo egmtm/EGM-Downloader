@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "Ocultar painel de configurações?",
     "settings.modal.hide.body": "O painel de configurações — incluindo cookies do site — não aparecerá mais. Você sempre pode reativá-lo aqui em Avançado.",
     "tooltip.upscale_to_quality": "Quando uma qualidade fixa é selecionada, vídeos menores que essa predefinição são ampliados proporcionalmente até ela (recodifica; adiciona pixels, não detalhes)",
-    "settings.toggle.upscale": "Upscale"
+    "settings.toggle.upscale": "Upscale video"
   }
 }

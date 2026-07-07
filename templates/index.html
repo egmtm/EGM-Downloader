@@ -2066,7 +2066,7 @@
         <span class="opt-label" data-i18n="settings.format_quality.label">Format / Quality</span>
         <div class="set-format-row">
           <span class="set-fmt-label" data-i18n="card.format.audio">Audio</span>
-          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:0.7">
+          <select id="default-audio-fmt-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
             <option value="320">MP3 320 kbps</option>
             <option value="192">MP3 192 kbps</option>
             <option value="128">MP3 128 kbps</option>
@@ -2077,14 +2077,14 @@
           </select>
           <div class="set-vsep"></div>
           <span class="set-fmt-label" data-i18n="card.format.video">Video</span>
-          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1.3">
+          <select id="output-format-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500;flex:1">
             <option value="mp4_h264" selected data-i18n="card.format.video.h264">MP4 · H.264</option>
             <option value="mp4">MP4</option>
             <option value="mkv">MKV</option>
           </select>
           <label class="sw-wrap" style="margin:0;flex:0 0 auto" data-i18n-attr="title:tooltip.upscale_to_quality" title="When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)">
             <input type="checkbox" class="sw" id="upscale-chk">
-            <span style="font-size:.7rem;color:var(--text2);white-space:nowrap" data-i18n="settings.toggle.upscale">Upscale</span>
+            <span style="font-size:.7rem;color:var(--text2);white-space:nowrap" data-i18n="settings.toggle.upscale">Upscale video</span>
           </label>
         </div>
       </div>

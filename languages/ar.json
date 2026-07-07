@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "إخفاء لوحة الإعدادات؟",
     "settings.modal.hide.body": "لن تظهر لوحة الإعدادات بعد الآن — بما فيها ملفات تعريف الارتباط للموقع. يمكنك دائماً إعادة تفعيلها هنا في الإعدادات المتقدمة.",
     "tooltip.upscale_to_quality": "عند تحديد جودة ثابتة، تُرفع دقة مقاطع الفيديو الأصغر من الإعداد المحدد بشكل متناسب لتطابقه (يُعاد الترميز؛ يُضيف بكسلات لا تفاصيل)",
-    "settings.toggle.upscale": "Upscale"
+    "settings.toggle.upscale": "Upscale video"
   }
 }
