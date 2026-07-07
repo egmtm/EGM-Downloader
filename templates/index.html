@@ -1925,20 +1925,14 @@
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg></span><span data-i18n="advanced.btn.import_settings">Import settings</span>
           </button></div>
           <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.interface">Interface</span></div>
-          <div class="adv-port-wrap" style="height:auto;padding:6px 10px">
-            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
-              <span class="adv-port-label" data-i18n="lang.toggle.label">Show language selector</span>
-              <span style="font-size:.62rem;color:var(--text2);opacity:.65" data-i18n="lang.toggle.subtitle">Hides the selector from the footer — can be re-enabled here</span>
-            </div>
+          <div class="adv-chan-grid"><div class="adv-port-wrap" data-i18n-attr="title:lang.toggle.subtitle" title="Hides the selector from the footer — can be re-enabled here">
+            <span class="adv-port-label" data-i18n="lang.toggle.label">Show language selector</span>
             <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-left:auto" checked>
           </div>
-          <div class="adv-port-wrap" style="height:auto;padding:6px 10px">
-            <div style="display:flex;flex-direction:column;gap:1px;min-width:0">
-              <span class="adv-port-label" data-i18n="settings.toggle.label">Show settings panel</span>
-              <span style="font-size:.62rem;color:var(--text2);opacity:.65" data-i18n="settings.toggle.subtitle">Hides the whole settings panel, including Site Cookies — can be re-enabled here</span>
-            </div>
+          <div class="adv-port-wrap" data-i18n-attr="title:settings.toggle.subtitle" title="Hides the whole settings panel, including Site Cookies — can be re-enabled here">
+            <span class="adv-port-label" data-i18n="settings.toggle.label">Show settings panel</span>
             <input type="checkbox" class="sw" id="show-settings-panel-chk" style="margin-left:auto" checked>
-          </div>
+          </div></div>
           <!-- Channels -->
           <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.channels">Channels</span></div>
           <div class="adv-chan-grid"><div class="adv-port-wrap" data-i18n-attr="title:tooltip.ytdlp_channel" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
