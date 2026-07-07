@@ -429,7 +429,7 @@
     "themes.favorites.empty": "Избранного пока нет — нажмите на сердечко у любой темы, чтобы добавить.",
     "themes.random_on_launch": "Случайная при запуске",
     "panel.themes.create": "＋ Создать тему",
-    "card.format.video.h264": "MP4 · H.264 (Максимальная совместимость)",
+    "card.format.video.h264": "MP4 · H.264",
     "advanced.section.interface": "Интерфейс",
     "settings.toggle.label": "Показать панель настроек",
     "settings.toggle.subtitle": "Скрывает всю панель настроек, включая файлы cookie сайта — можно снова включить здесь",
