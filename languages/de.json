@@ -430,10 +430,10 @@
     "themes.random_on_launch": "Zufällig bei Start",
     "panel.themes.create": "＋ Theme erstellen",
     "card.format.video.h264": "MP4 · H.264 (Maximale Kompatibilität)",
-    "advanced.section.interface": "Interface",
-    "settings.toggle.label": "Show settings panel",
-    "settings.toggle.subtitle": "Hides the whole settings panel, including Site Cookies — can be re-enabled here",
-    "settings.modal.hide.title": "Hide settings panel?",
-    "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced."
+    "advanced.section.interface": "Oberfläche",
+    "settings.toggle.label": "Einstellungsleiste anzeigen",
+    "settings.toggle.subtitle": "Blendet die gesamte Einstellungsleiste aus, einschließlich Website-Cookies — kann hier wieder aktiviert werden",
+    "settings.modal.hide.title": "Einstellungsleiste ausblenden?",
+    "settings.modal.hide.body": "Die Einstellungsleiste — einschließlich Website-Cookies — wird nicht mehr angezeigt. Du kannst sie hier in den erweiterten Einstellungen jederzeit wieder aktivieren."
   }
 }
