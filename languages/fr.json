@@ -429,6 +429,11 @@
     "themes.favorites.empty": "Aucun favori pour l'instant — cliquez sur le cœur d'un thème pour l'ajouter.",
     "themes.random_on_launch": "Aléatoire au démarrage",
     "panel.themes.create": "＋ Créer un thème",
-    "card.format.video.h264": "MP4 · H.264 (Compatibilité maximale)"
+    "card.format.video.h264": "MP4 · H.264 (Compatibilité maximale)",
+    "advanced.section.interface": "Interface",
+    "settings.toggle.label": "Show settings panel",
+    "settings.toggle.subtitle": "Hides the whole settings panel, including Site Cookies — can be re-enabled here",
+    "settings.modal.hide.title": "Hide settings panel?",
+    "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced."
   }
 }

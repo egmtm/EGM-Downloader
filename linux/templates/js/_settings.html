@@ -875,6 +875,10 @@ document.addEventListener('i18n:ready', e => {
   if (row && s.show_language_selector !== false) row.style.display = '';
   const chk = document.getElementById('show-lang-selector-chk');
   if (chk) chk.checked = s.show_language_selector !== false;
+  const spWrap = document.getElementById('settings-panel-wrap');
+  if (spWrap && s.show_settings_panel === false) spWrap.style.display = 'none';
+  const spChk = document.getElementById('show-settings-panel-chk');
+  if (spChk) spChk.checked = s.show_settings_panel !== false;
   // The settings-init IIFE may have set this hint before the locale loaded.
   const dirHint = document.getElementById('dir-hint');
   if (dirHint && chosenPath) dirHint.textContent = i18nFmt('settings.folder.saved_to', chosenPath) || ('Files saved to: ' + chosenPath);
@@ -909,4 +913,23 @@ document.getElementById('hide-lang-confirm-btn').addEventListener('click', () =>
   document.getElementById('show-lang-selector-chk').checked = false;
   document.getElementById('lang-row').style.display = 'none';
   post('/api/settings/save', { show_language_selector: false });
+});
+
+document.getElementById('show-settings-panel-chk').addEventListener('change', function() {
+  if (this.checked) {
+    document.getElementById('settings-panel-wrap').style.display = '';
+    post('/api/settings/save', { show_settings_panel: true });
+  } else {
+    this.checked = true;  // revert until confirmed
+    document.getElementById('hide-settings-modal').style.display = 'flex';
+  }
+});
+document.getElementById('hide-settings-cancel-btn').addEventListener('click', () => {
+  document.getElementById('hide-settings-modal').style.display = 'none';
+});
+document.getElementById('hide-settings-confirm-btn').addEventListener('click', () => {
+  document.getElementById('hide-settings-modal').style.display = 'none';
+  document.getElementById('show-settings-panel-chk').checked = false;
+  document.getElementById('settings-panel-wrap').style.display = 'none';
+  post('/api/settings/save', { show_settings_panel: false });
 });

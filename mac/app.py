@@ -1392,6 +1392,7 @@ def get_settings():
         "random_theme_scope":      s.get("random_theme_scope", "favorites"),
         "language":                _get_language_setting(s),
         "show_language_selector":  s.get("show_language_selector", True),
+        "show_settings_panel":     s.get("show_settings_panel", True),
     })
 
 @app.route("/api/language/<code>")
@@ -1414,7 +1415,7 @@ def save_settings():
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
                "favorite_themes", "random_theme_on_launch", "random_theme_scope",
-               "language", "show_language_selector"}
+               "language", "show_language_selector", "show_settings_panel"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1442,6 +1443,8 @@ def save_settings():
         data.pop("language", None)
     if "show_language_selector" in data:
         data["show_language_selector"] = bool(data["show_language_selector"])
+    if "show_settings_panel" in data:
+        data["show_settings_panel"] = bool(data["show_settings_panel"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
