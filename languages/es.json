@@ -435,7 +435,7 @@
     "settings.toggle.subtitle": "Oculta todo el panel de configuración, incluidas las cookies del sitio — se puede reactivar aquí",
     "settings.modal.hide.title": "¿Ocultar panel de configuración?",
     "settings.modal.hide.body": "El panel de configuración — incluidas las cookies del sitio — ya no aparecerá. Siempre puedes reactivarlo aquí en Avanzado.",
-    "settings.toggle.upscale_to_quality": "Upscale to selected quality",
-    "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)"
+    "settings.toggle.upscale_to_quality": "Escalar a la calidad seleccionada",
+    "tooltip.upscale_to_quality": "Cuando se selecciona una calidad fija, los vídeos más pequeños que ese ajuste se escalan proporcionalmente hasta alcanzarlo (se recodifican; añade píxeles, no detalle)"
   }
 }
