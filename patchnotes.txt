@@ -13,7 +13,6 @@ v1.3 - Build TBD (TBD)
   • [ALL] Site Cookies panel in Settings redesigned into a more compact, centered layout
   • [ALL] Settings panel (including Site Cookies) can now be hidden from Advanced settings for a cleaner look, same as the language selector
   • [ALL] New opt-in "Upscale to selected quality" — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail)
-  • [ALL] Quality presets now cap by the video's short side, so vertical videos (TikTok, Shorts) get the correct resolution instead of a smaller stream — thanks to the GitHub user report
   • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
