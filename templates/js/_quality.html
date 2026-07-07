@@ -146,7 +146,7 @@ function videoQualityBgClick(e) {
 
   // Reset settings
   document.getElementById('adv-reset-btn').addEventListener('click', async () => {
-    if (!confirm('Reset everything to defaults?\n\nThis clears all settings, themes, and download history.\nThe downloaded files themselves are NOT deleted.')) return;
+    if (!confirm(i18nGet('confirm.reset_settings') || 'Reset everything to defaults?\n\nThis clears all settings, themes, and download history.\nThe downloaded files themselves are NOT deleted.')) return;
     const r = await post('/api/settings/reset', {});
     if (r.ok) {
       // Also clear download history (EGM design: reset means reset)
