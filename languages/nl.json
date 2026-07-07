@@ -431,9 +431,9 @@
     "panel.themes.create": "＋ Thema aanmaken",
     "card.format.video.h264": "MP4 · H.264 (Maximale compatibiliteit)",
     "advanced.section.interface": "Interface",
-    "settings.toggle.label": "Show settings panel",
-    "settings.toggle.subtitle": "Hides the whole settings panel, including Site Cookies — can be re-enabled here",
-    "settings.modal.hide.title": "Hide settings panel?",
-    "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced."
+    "settings.toggle.label": "Instellingenpaneel tonen",
+    "settings.toggle.subtitle": "Verbergt het volledige instellingenpaneel, inclusief sitecookies — kan hier weer worden ingeschakeld",
+    "settings.modal.hide.title": "Instellingenpaneel verbergen?",
+    "settings.modal.hide.body": "Het instellingenpaneel — inclusief sitecookies — verschijnt niet meer. Je kunt het hier altijd weer inschakelen bij Geavanceerd."
   }
 }
