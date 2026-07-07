@@ -435,7 +435,7 @@
     "settings.toggle.subtitle": "Masque tout le panneau des paramètres, y compris les cookies du site — peut être réactivé ici",
     "settings.modal.hide.title": "Masquer le panneau des paramètres ?",
     "settings.modal.hide.body": "Le panneau des paramètres — y compris les cookies du site — n'apparaîtra plus. Vous pouvez toujours le réactiver ici dans Avancé.",
-    "settings.toggle.upscale_to_quality": "Suréchantillonner à la qualité choisie",
-    "tooltip.upscale_to_quality": "Lorsqu'une qualité fixe est sélectionnée, les vidéos plus petites que ce réglage sont suréchantillonnées proportionnellement pour l'atteindre (réencodage ; ajoute des pixels, pas de détail)"
+    "tooltip.upscale_to_quality": "Lorsqu'une qualité fixe est sélectionnée, les vidéos plus petites que ce réglage sont suréchantillonnées proportionnellement pour l'atteindre (réencodage ; ajoute des pixels, pas de détail)",
+    "settings.toggle.upscale": "Upscale"
   }
 }

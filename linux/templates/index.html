@@ -2082,6 +2082,10 @@
             <option value="mp4">MP4</option>
             <option value="mkv">MKV</option>
           </select>
+          <label class="sw-wrap" style="margin:0;flex:0 0 auto" data-i18n-attr="title:tooltip.upscale_to_quality" title="When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)">
+            <input type="checkbox" class="sw" id="upscale-chk">
+            <span style="font-size:.7rem;color:var(--text2);white-space:nowrap" data-i18n="settings.toggle.upscale">Upscale</span>
+          </label>
         </div>
       </div>
       <div class="set-box" style="align-items:center">
@@ -2119,10 +2123,6 @@
       <div class="sw-wrap">
       <input type="checkbox" class="sw" id="subtitles-chk">
       <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.download_subtitles" title="Download subtitles in your app language and English (manual or auto-generated) and embed them into the video" data-i18n="settings.toggle.download_subtitles">Download subtitles</span>
-      </div>
-      <div class="sw-wrap" data-i18n-attr="title:tooltip.upscale_to_quality" title="When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)">
-      <input type="checkbox" class="sw" id="upscale-chk">
-      <span style="font-size:.76rem;color:var(--text2)" data-i18n="settings.toggle.upscale_to_quality">Upscale to selected quality</span>
       </div>
       <div class="sw-wrap">
       <input type="checkbox" class="sw" id="quit-on-done-chk">
