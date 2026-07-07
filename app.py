@@ -1021,6 +1021,10 @@ def _upscale_to_preset(job_id, path, job, target):
         job["proc"] = None
         with _active_procs_lock:
             _active_procs.pop(job_id, None)
+        if job.get("cancelled"):
+            try: os.remove(tmp)
+            except OSError: pass
+            return path
         if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
             os.replace(tmp, path)
         else:

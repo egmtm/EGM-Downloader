@@ -866,7 +866,11 @@ def _ensure_h264(job_id, path, job):
                       "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                       "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.0",
                       "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp,
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                      # Own process group: cancel goes through _kill_proc -> os.killpg;
+                      # without a new session this ffmpeg shares the app's own group and
+                      # killpg would SIGTERM Flask (and Electron) along with it.
+                      start_new_session=True)
         job["proc"] = proc
         with _active_procs_lock:
             _active_procs[job_id] = proc
@@ -923,7 +927,11 @@ def _upscale_to_preset(job_id, path, job, target):
                       "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
                       "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.2",
                       "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp,
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                      # Own process group: cancel goes through _kill_proc -> os.killpg;
+                      # without a new session this ffmpeg shares the app's own group and
+                      # killpg would SIGTERM Flask (and Electron) along with it.
+                      start_new_session=True)
         job["proc"] = proc
         with _active_procs_lock:
             _active_procs[job_id] = proc
@@ -931,6 +939,10 @@ def _upscale_to_preset(job_id, path, job, target):
         job["proc"] = None
         with _active_procs_lock:
             _active_procs.pop(job_id, None)
+        if job.get("cancelled"):
+            try: os.remove(tmp)
+            except OSError: pass
+            return path
         if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
             os.replace(tmp, path)
         else:
