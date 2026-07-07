@@ -1661,13 +1661,19 @@ def _get_optlibs_versions() -> dict:
 
 
 def _get_latest_optlibs_versions() -> dict:
-    result = {}
-    for lib in OPTLIBS:
+    def _one(lib):
         try:
             with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
-                result[lib] = json.loads(r.read())["info"]["version"]
+                return lib, json.loads(r.read())["info"]["version"]
         except Exception:
-            result[lib] = "unknown"
+            return lib, "unknown"
+    result = {}
+    # 5 independent PyPI calls -- sequential was up to 5x HTTP_TIMEOUT_SHORT (75s)
+    # worst case, blocking /api/check-updates the whole time. Parallelized so the
+    # bound is one slow call, not the sum of all five.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(OPTLIBS)) as ex:
+        for lib, version in ex.map(_one, OPTLIBS):
+            result[lib] = version
     return result
 
 
