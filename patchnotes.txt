@@ -11,6 +11,8 @@ v1.3 - Build TBD (TBD)
   • [MAC] [LINUX] Optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) can now be updated in-app from Advanced settings — previously view-only on these platforms
   • [ALL] Minor spacing polish — collapsed Subscriptions sidebar thumbnails, and the Update/What's New modals no longer crowd their scrollbar against the text
   • [ALL] Site Cookies panel in Settings redesigned into a more compact, centered layout
+  • [ALL] Settings panel (including Site Cookies) can now be hidden from Advanced settings for a cleaner look, same as the language selector
+  • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
