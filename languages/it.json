@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "Nascondere il pannello delle impostazioni?",
     "settings.modal.hide.body": "Il pannello delle impostazioni — inclusi i cookie del sito — non apparirà più. Puoi sempre riattivarlo qui in Avanzate.",
     "tooltip.upscale_to_quality": "Quando è selezionata una qualità fissa, i video più piccoli di quel preset vengono ridimensionati proporzionalmente per raggiungerlo (viene rieseguita la codifica; aggiunge pixel, non dettaglio)",
-    "settings.toggle.upscale": "Upscale"
+    "settings.toggle.upscale": "Upscale video"
   }
 }

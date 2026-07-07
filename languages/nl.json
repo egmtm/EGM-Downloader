@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "Instellingenpaneel verbergen?",
     "settings.modal.hide.body": "Het instellingenpaneel — inclusief sitecookies — verschijnt niet meer. Je kunt het hier altijd weer inschakelen bij Geavanceerd.",
     "tooltip.upscale_to_quality": "Wanneer een vaste kwaliteit is geselecteerd, worden video's die kleiner zijn dan die instelling proportioneel opgeschaald (opnieuw gecodeerd; voegt pixels toe, geen detail)",
-    "settings.toggle.upscale": "Upscale"
+    "settings.toggle.upscale": "Upscale video"
   }
 }

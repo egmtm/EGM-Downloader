@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "設定パネルを非表示にしますか？",
     "settings.modal.hide.body": "サイトクッキーを含む設定パネルは表示されなくなります。詳細設定でいつでも再度有効にできます。",
     "tooltip.upscale_to_quality": "固定画質が選択されている場合、その設定より小さい動画は比例的にアップスケールされます（再エンコードされ、ピクセルは増えますが詳細は増えません）",
-    "settings.toggle.upscale": "Upscale"
+    "settings.toggle.upscale": "Upscale video"
   }
 }
