@@ -1015,14 +1015,19 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if format_id:
             args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"]
         elif compat:
-            _h = f"[height<={video_height}]" if (video_height and video_height != 0) else ""
+            # Resolution cap via format sorting (-S res:N = min(width,height) <= N),
+            # not [height<=N] filters: height is the LONG side on portrait video,
+            # so a height filter excludes e.g. 720x1280 from a 1080p preset and
+            # silently downloads a smaller stream (issue #17).
+            if video_height and video_height != 0:
+                args += ["-S", f"res:{video_height}"]
             args += ["-f",
-                     f"bestvideo[vcodec^=avc1]{_h}+bestaudio[acodec^=mp4a]/"
-                     f"bestvideo[vcodec^=avc1]{_h}+bestaudio/"
-                     f"best[vcodec^=avc1]{_h}/"
-                     f"bestvideo{_h}+bestaudio/best{_h}/best"]
+                     "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
+                     "bestvideo[vcodec^=avc1]+bestaudio/"
+                     "best[vcodec^=avc1]/"
+                     "bestvideo+bestaudio/best"]
         elif video_height and video_height != 0:
-            args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
+            args += ["-S", f"res:{video_height}", "-f", "bestvideo+bestaudio/best"]
         else:
             args += ["-f", "bestvideo+bestaudio/best"]
         # 4a: Metadata embedding — chapters + metadata into video
