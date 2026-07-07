@@ -434,6 +434,8 @@
     "settings.toggle.label": "設定パネルを表示",
     "settings.toggle.subtitle": "サイトクッキーを含む設定パネル全体を非表示にします — ここで再度有効にできます",
     "settings.modal.hide.title": "設定パネルを非表示にしますか？",
-    "settings.modal.hide.body": "サイトクッキーを含む設定パネルは表示されなくなります。詳細設定でいつでも再度有効にできます。"
+    "settings.modal.hide.body": "サイトクッキーを含む設定パネルは表示されなくなります。詳細設定でいつでも再度有効にできます。",
+    "settings.toggle.upscale_to_quality": "Upscale to selected quality",
+    "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)"
   }
 }
