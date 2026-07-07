@@ -431,9 +431,9 @@
     "panel.themes.create": "＋ Criar tema",
     "card.format.video.h264": "MP4 · H.264 (Compatibilidade máxima)",
     "advanced.section.interface": "Interface",
-    "settings.toggle.label": "Show settings panel",
-    "settings.toggle.subtitle": "Hides the whole settings panel, including Site Cookies — can be re-enabled here",
-    "settings.modal.hide.title": "Hide settings panel?",
-    "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced."
+    "settings.toggle.label": "Mostrar painel de configurações",
+    "settings.toggle.subtitle": "Oculta todo o painel de configurações, incluindo cookies do site — pode ser reativado aqui",
+    "settings.modal.hide.title": "Ocultar painel de configurações?",
+    "settings.modal.hide.body": "O painel de configurações — incluindo cookies do site — não aparecerá mais. Você sempre pode reativá-lo aqui em Avançado."
   }
 }
