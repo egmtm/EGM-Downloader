@@ -430,10 +430,10 @@
     "themes.random_on_launch": "ثيم عشوائي عند التشغيل",
     "panel.themes.create": "＋ إنشاء ثيم",
     "card.format.video.h264": "MP4 · H.264 (أقصى توافق)",
-    "advanced.section.interface": "Interface",
-    "settings.toggle.label": "Show settings panel",
-    "settings.toggle.subtitle": "Hides the whole settings panel, including Site Cookies — can be re-enabled here",
-    "settings.modal.hide.title": "Hide settings panel?",
-    "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced."
+    "advanced.section.interface": "الواجهة",
+    "settings.toggle.label": "إظهار لوحة الإعدادات",
+    "settings.toggle.subtitle": "يخفي لوحة الإعدادات بالكامل، بما فيها ملفات تعريف الارتباط للموقع — يمكن إعادة تفعيلها هنا",
+    "settings.modal.hide.title": "إخفاء لوحة الإعدادات؟",
+    "settings.modal.hide.body": "لن تظهر لوحة الإعدادات بعد الآن — بما فيها ملفات تعريف الارتباط للموقع. يمكنك دائماً إعادة تفعيلها هنا في الإعدادات المتقدمة."
   }
 }
