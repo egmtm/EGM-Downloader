@@ -429,7 +429,7 @@
     "themes.favorites.empty": "Aucun favori pour l'instant — cliquez sur le cœur d'un thème pour l'ajouter.",
     "themes.random_on_launch": "Aléatoire au démarrage",
     "panel.themes.create": "＋ Créer un thème",
-    "card.format.video.h264": "MP4 · H.264 (Compatibilité maximale)",
+    "card.format.video.h264": "MP4 · H.264",
     "advanced.section.interface": "Interface",
     "settings.toggle.label": "Afficher le panneau des paramètres",
     "settings.toggle.subtitle": "Masque tout le panneau des paramètres, y compris les cookies du site — peut être réactivé ici",
