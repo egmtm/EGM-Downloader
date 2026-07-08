@@ -181,9 +181,14 @@ function videoQualityBgClick(e) {
       toast(i18nGet('toast.electron.will_reinstall_next_launch') || 'Electron will reinstall the next time you open the app', 'ok');
     }
   });
-  // Show Electron reinstall button only on Windows (Mac/Linux bundle Electron at build time)
+  // Show Electron reinstall button only on Windows (Mac/Linux bundle Electron at build time).
+  // Collapse the shared row to a single column on non-Windows, so Reset settings
+  // doesn't sit stranded in half the row with empty space beside it.
   if (navigator.platform.startsWith('Win')) {
     document.getElementById('adv-electron-btn').style.display = '';
+  } else {
+    const row = document.getElementById('adv-electron-reset-row');
+    if (row) row.style.gridTemplateColumns = '1fr';
   }
 
   // ── Channel toggles (yt-dlp + ffmpeg) ──────────────────────────────────────
