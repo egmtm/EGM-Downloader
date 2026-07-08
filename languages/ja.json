@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-04",
+  "_last_updated": "2026-07-05",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & 他{0}サイト",
@@ -436,6 +436,8 @@
     "settings.modal.hide.title": "設定パネルを非表示にしますか？",
     "settings.modal.hide.body": "サイトクッキーを含む設定パネルは表示されなくなります。詳細設定でいつでも再度有効にできます。",
     "tooltip.upscale_to_quality": "固定画質が選択されている場合、その設定より小さい動画は比例的にアップスケールされます（再エンコードされ、ピクセルは増えますが詳細は増えません）",
-    "settings.toggle.upscale": "アップスケール"
+    "settings.toggle.upscale": "アップスケール",
+    "themes.confirm.delete_title": "このテーマを削除しますか？",
+    "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。"
   }
 }
