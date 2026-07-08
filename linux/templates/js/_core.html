@@ -263,4 +263,33 @@ document.getElementById('footer-help-btn')?.addEventListener('click', () => {
   document.getElementById('help-modal').style.display = 'flex';
 });
 
-
+// ── Easter egg: Konami code fake-crash (↑↑↓↓←→←→BA) ─────────────────────────
+// Pure gag, pure frontend: the "crash" is an overlay; nothing actually stops.
+(function() {
+  const SEQ = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','KeyB','KeyA'];
+  let pos = 0, fired = false;
+  window.addEventListener('keydown', (e) => {
+    pos = (e.code === SEQ[pos]) ? pos + 1 : (e.code === SEQ[0] ? 1 : 0);
+    if (pos < SEQ.length || fired) return;
+    pos = 0; fired = true;
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;color:#9aa4b0;' +
+      'font-family:Consolas,Menlo,monospace;font-size:13px;padding:48px;cursor:default;user-select:none';
+    ov.innerHTML =
+      '<div style="color:#e05555;font-size:15px;margin-bottom:14px">EGM Downloader has stopped responding</div>' +
+      '<div>backend: exit code -11 (SIGSEGV)</div>' +
+      '<div>at yt_dlp.core.extract (frame 0x7f3a19c4)</div>' +
+      '<div>at egm.download_worker (job_id: KONAMI-1986)</div>' +
+      '<div style="margin-top:14px;opacity:.6">collecting crash report…</div>';
+    document.body.appendChild(ov);
+    setTimeout(() => {
+      ov.style.cssText += ';display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--bg, #0a0e14);cursor:pointer';
+      ov.innerHTML =
+        '<div style="font-size:52px;margin-bottom:14px">😜</div>' +
+        '<div style="color:var(--text, #e8eef6);font-size:20px;font-weight:700;margin-bottom:8px">Gotcha!</div>' +
+        '<div style="color:var(--text2, #9aa4b0);font-size:13px">You found the Konami code — nothing crashed, everything is fine.</div>' +
+        '<div style="color:var(--text2, #9aa4b0);font-size:12px;margin-top:16px;opacity:.7">↑ ↑ ↓ ↓ ← → ← → B A&nbsp;&nbsp;·&nbsp;&nbsp;click anywhere to close</div>';
+      ov.addEventListener('click', () => { ov.remove(); fired = false; });
+    }, 2500);
+  });
+})();
