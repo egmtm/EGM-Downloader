@@ -365,7 +365,7 @@
     "tooltip.subscriptions_paste": "Coller depuis le presse-papier",
     "tooltip.subscriptions_add": "Ajouter un abonnement",
     "confirm.port_change": "Changer le port en {0} ?",
-    "confirm.reset_settings": "Réinitialiser tout aux valeurs par défaut ? Cela effacera tous les paramètres, thèmes et l'historique des téléchargements. Les fichiers téléchargés eux-mêmes ne seront PAS supprimés.",
+    "confirm.reset_settings": "Réinitialiser tout aux valeurs par défaut ?\n\nCela effacera tous les paramètres, thèmes et l'historique des téléchargements.\nLes fichiers téléchargés eux-mêmes ne seront PAS supprimés.",
     "confirm.reinstall_ffmpeg": "Supprimer l'installation actuelle de ffmpeg ?\n\nUne nouvelle copie sera téléchargée au prochain démarrage. Assurez-vous d'avoir une connexion internet.",
     "confirm.reinstall_electron": "Réinstaller Electron ?\n\nElectron sera retéléchargé. Cela prendra effet au redémarrage de l'application. Assurez-vous d'avoir une connexion internet.",
     "confirm.electron_restart_now": "Electron va être réinstallé.\n\nRedémarrer l'application maintenant pour appliquer ce changement ? (Choisissez Annuler pour l'appliquer la prochaine fois que vous ouvrirez l'application.)",
@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "Masquer le panneau des paramètres ?",
     "settings.modal.hide.body": "Le panneau des paramètres — y compris les cookies du site — n'apparaîtra plus. Vous pouvez toujours le réactiver ici dans Avancé.",
     "tooltip.upscale_to_quality": "Lorsqu'une qualité fixe est sélectionnée, les vidéos plus petites que ce réglage sont suréchantillonnées proportionnellement pour l'atteindre (réencodage ; ajoute des pixels, pas de détail)",
-    "settings.toggle.upscale": "Upscale video"
+    "settings.toggle.upscale": "Suréchantillonner"
   }
 }
