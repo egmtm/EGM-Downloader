@@ -15,6 +15,9 @@ v1.3 - Build TBD (TBD)
   • [ALL] New opt-in "Upscale to selected quality" — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail)
   • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
   • [ALL] Subscriptions now detects and labels members-only videos (requires the latest yt-dlp stable or nightly — this didn't work on older stable releases)
+  • [MAC] [LINUX] Fixed cancelling a video conversion (H.264 fix-up or Upscale) sometimes closing the whole app instead of just that download
+  • [MAC] DMG install window refreshed with a custom background matching the app's theme
+  • [ALL] Deleting a custom theme now asks for confirmation first — previously deleted instantly with no way to undo
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
