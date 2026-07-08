@@ -135,15 +135,6 @@ function videoQualityBgClick(e) {
 
 // ── Advanced settings panel ───────────────────────────────────────────────────
 (function() {
-  // Toggle open/close
-  // Advanced panel toggle — used by sec-hdr onclick and button
-  // Clear cache
-  document.getElementById('adv-clear-cache-btn').addEventListener('click', async () => {
-    const r = await post('/api/cache/clear', {});
-    if (r.ok) toast((i18nGet('cache.cleared') || 'Cache cleared') + ' ✓', 'ok');
-    else toast('Clear failed: ' + (r.error || 'unknown'), 'err');
-  });
-
   // Reset settings
   document.getElementById('adv-reset-btn').addEventListener('click', async () => {
     if (!confirm(i18nGet('confirm.reset_settings') || 'Reset everything to defaults?\n\nThis clears all settings, themes, and download history.\nThe downloaded files themselves are NOT deleted.')) return;
