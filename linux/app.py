@@ -1940,22 +1940,6 @@ def install_deno():
 def deno_install_progress():
     return jsonify(deno_install_status or {"running": False, "done": False, "log": []})
 
-@app.route("/api/cache/clear", methods=["POST"])
-def cache_clear():
-    """Clear orphaned partial download files."""
-    cleared = []
-    try:
-        last_folder = _load_settings().get("last_folder", "")
-        if last_folder:
-            dl_path = Path(last_folder)
-            if dl_path.is_dir():
-                for pattern in ("*.part", "*.ytdl"):  # *.f*.mp4 and *.f*.webm removed — too broad for user download folder
-                    for f in dl_path.glob(pattern):
-                        try: f.unlink(); cleared.append(f.name)
-                        except Exception: pass
-    except Exception: pass
-    return jsonify({"ok": True, "cleared": cleared})
-
 @app.route("/api/settings/reset", methods=["POST"])
 def settings_reset():
     """Reset all settings to defaults — keeps downloads and history."""

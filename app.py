@@ -2137,27 +2137,6 @@ def download_update():
         except Exception: pass
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/cache/clear", methods=["POST"])
-def cache_clear():
-    """Clear temp update files and orphaned partial download files."""
-    cleared = []
-    try:
-        if UPDATE_TMP_DIR.exists():
-            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
-            cleared.append("update cache")
-    except Exception: pass
-    try:
-        last_folder = _load_settings().get("last_folder", "")
-        if last_folder:
-            dl_path = Path(last_folder)
-            if dl_path.is_dir():
-                for pattern in ("*.part", "*.ytdl"):  # *.f*.mp4 and *.f*.webm removed — too broad for user download folder
-                    for f in dl_path.glob(pattern):
-                        try: f.unlink(); cleared.append(f.name)
-                        except Exception: pass
-    except Exception: pass
-    return jsonify({"ok": True, "cleared": cleared})
-
 @app.route("/api/settings/reset", methods=["POST"])
 def settings_reset():
     """Reset all settings to defaults — keeps downloads and history."""
