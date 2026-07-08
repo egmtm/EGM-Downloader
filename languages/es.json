@@ -365,7 +365,7 @@
     "tooltip.subscriptions_paste": "Pegar desde el portapapeles",
     "tooltip.subscriptions_add": "Agregar suscripción",
     "confirm.port_change": "¿Cambiar el puerto a {0}?",
-    "confirm.reset_settings": "¿Restablecer todo a los valores predeterminados? Esto borrará todas las configuraciones, temas e historial de descargas. Los archivos descargados NO se eliminarán.",
+    "confirm.reset_settings": "¿Restablecer todo a los valores predeterminados?\n\nEsto borrará todas las configuraciones, temas e historial de descargas.\nLos archivos descargados NO se eliminarán.",
     "confirm.reinstall_ffmpeg": "¿Eliminar la instalación actual de ffmpeg?\n\nSe descargará una copia nueva al próximo inicio. Asegúrate de tener conexión a internet.",
     "confirm.reinstall_electron": "¿Reinstalar Electron?\n\nElectron se volverá a descargar. Esto se aplicará al reiniciar la aplicación. Asegúrate de tener conexión a internet.",
     "confirm.electron_restart_now": "Electron se reinstalará.\n\n¿Reiniciar la aplicación ahora para aplicarlo? (Elige Cancelar para aplicarlo la próxima vez que abras la aplicación.)",
@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "¿Ocultar panel de configuración?",
     "settings.modal.hide.body": "El panel de configuración — incluidas las cookies del sitio — ya no aparecerá. Siempre puedes reactivarlo aquí en Avanzado.",
     "tooltip.upscale_to_quality": "Cuando se selecciona una calidad fija, los vídeos más pequeños que ese ajuste se escalan proporcionalmente hasta alcanzarlo (se recodifican; añade píxeles, no detalle)",
-    "settings.toggle.upscale": "Upscale video"
+    "settings.toggle.upscale": "Escalar vídeo"
   }
 }
