@@ -436,6 +436,8 @@
     "settings.modal.hide.title": "Hide settings panel?",
     "settings.modal.hide.body": "The settings panel — including Site Cookies — will no longer appear. You can always re-enable it here in Advanced.",
     "tooltip.upscale_to_quality": "When a fixed quality is selected, videos smaller than the preset are proportionally upscaled to it (re-encodes; adds pixels, not detail)",
-    "settings.toggle.upscale": "Upscale video"
+    "settings.toggle.upscale": "Upscale video",
+    "themes.confirm.delete_title": "Delete this theme?",
+    "themes.confirm.delete_body": "\"{0}\" will be permanently deleted. This cannot be undone."
   }
 }
