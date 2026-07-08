@@ -19,6 +19,7 @@ v1.3 - Build TBD (TBD)
   • [MAC] DMG install window refreshed with a custom background matching the app's theme
   • [ALL] Deleting a custom theme now asks for confirmation first — previously deleted instantly with no way to undo
   • [ALL] Removed the "Clear cache" button from Advanced settings — it served no real purpose, since temp/partial files are already cleaned up automatically after every download and on every app launch
+  • [WINDOWS] Advanced panel tidied up — Check for app update/Desktop shortcut and Reinstall Electron/Reset settings now sit two-to-a-row instead of stacked
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
