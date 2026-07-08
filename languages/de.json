@@ -365,7 +365,7 @@
     "tooltip.subscriptions_paste": "Aus Zwischenablage einfügen",
     "tooltip.subscriptions_add": "Abonnement hinzufügen",
     "confirm.port_change": "Port auf {0} ändern?",
-    "confirm.reset_settings": "Alles auf die Standardeinstellungen zurücksetzen? Dies löscht alle Einstellungen, Themes und den Download-Verlauf. Die heruntergeladenen Dateien selbst werden NICHT gelöscht.",
+    "confirm.reset_settings": "Alles auf die Standardeinstellungen zurücksetzen?\n\nDies löscht alle Einstellungen, Themes und den Download-Verlauf.\nDie heruntergeladenen Dateien selbst werden NICHT gelöscht.",
     "confirm.reinstall_ffmpeg": "Aktuelle ffmpeg-Installation entfernen?\n\nEine neue Kopie wird beim nächsten Start heruntergeladen. Stelle sicher, dass du eine Internetverbindung hast.",
     "confirm.reinstall_electron": "Electron neu installieren?\n\nElectron wird erneut heruntergeladen. Dies wird bei einem App-Neustart wirksam. Stelle sicher, dass eine Internetverbindung besteht.",
     "confirm.electron_restart_now": "Electron wird neu installiert.\n\nApp jetzt neu starten, um dies anzuwenden? (Wähle Abbrechen, um es beim nächsten Öffnen der App anzuwenden.)",
@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "Einstellungsleiste ausblenden?",
     "settings.modal.hide.body": "Die Einstellungsleiste — einschließlich Website-Cookies — wird nicht mehr angezeigt. Du kannst sie hier in den erweiterten Einstellungen jederzeit wieder aktivieren.",
     "tooltip.upscale_to_quality": "Wenn eine feste Qualität ausgewählt ist, werden kleinere Videos proportional auf diese hochskaliert (Neukodierung; fügt Pixel hinzu, keine Details)",
-    "settings.toggle.upscale": "Upscale video"
+    "settings.toggle.upscale": "Hochskalieren"
   }
 }
