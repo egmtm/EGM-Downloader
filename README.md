@@ -301,14 +301,18 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 ## 🗺️ Roadmap
 
 **v1.3 — POLYGLOT:** *(Targeting mid-July 2026)*
+- ✨ New opt-in **Upscale to selected quality** — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail)
 - 🌍 In-app language picker — 10 languages: English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian
 - Auto-detects your system language on first launch; change anytime from the footer, no restart needed
-- Language selector can be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
+- Language selector and Settings panel (incl. Site Cookies) can each be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
 - Downloaded subtitles now include your selected app language alongside English (when available)
 - Windows installer redesigned to match the app's dark theme, with language selection at setup
-- Minor polish — Subscriptions sidebar thumbnail spacing, Update/What's New modal scrollbar spacing, more compact Site Cookies panel
+- Fixed Full HD/4K downloads sometimes grabbing a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
+- Subscriptions now detects and labels members-only videos (latest yt-dlp stable/nightly required)
+- Mac and Linux can now update optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) in-app — previously view-only
 - Deno now updates alongside yt-dlp, ffmpeg, and other plugins instead of its own separate button
 - Advanced panel shows current → latest version for optional libraries and ffmpeg when an update is available
+- Minor polish — Subscriptions sidebar thumbnail spacing, Update/What's New modal scrollbar spacing, more compact Site Cookies panel
 
 **v1.4 and beyond:**
 - 🧩 *Browser extension — send URLs straight to EGM Downloader without leaving your browser. Revisiting when the userbase is stronger.*
