@@ -365,7 +365,7 @@
     "tooltip.subscriptions_paste": "Paste from clipboard",
     "tooltip.subscriptions_add": "Add subscription",
     "confirm.port_change": "Change port to {0}?",
-    "confirm.reset_settings": "Reset everything to defaults? This clears all settings, themes, and download history. The downloaded files themselves are NOT deleted.",
+    "confirm.reset_settings": "Reset everything to defaults?\n\nThis clears all settings, themes, and download history.\nThe downloaded files themselves are NOT deleted.",
     "confirm.reinstall_ffmpeg": "Remove the current ffmpeg installation?\n\nA fresh copy will be downloaded on next launch. Make sure you have an internet connection.",
     "confirm.reinstall_electron": "Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.",
     "confirm.electron_restart_now": "Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)",
