@@ -365,7 +365,7 @@
     "tooltip.subscriptions_paste": "クリップボードから貼り付け",
     "tooltip.subscriptions_add": "購読を追加",
     "confirm.port_change": "ポートを{0}に変更しますか?",
-    "confirm.reset_settings": "すべてを初期設定にリセットしますか？ すべての設定、テーマ、ダウンロード履歴が消去されます。ダウンロード済みのファイル自体は削除されません。",
+    "confirm.reset_settings": "すべてを初期設定にリセットしますか？\n\nすべての設定、テーマ、ダウンロード履歴が消去されます。\nダウンロード済みのファイル自体は削除されません。",
     "confirm.reinstall_ffmpeg": "現在のffmpegインストールを削除しますか?\n\n次回起動時に新しいコピーがダウンロードされます。インターネット接続が必要です。",
     "confirm.reinstall_electron": "Electron を再インストールしますか？\n\nElectron が再ダウンロードされます。これはアプリの再起動時に適用されます。インターネット接続を確認してください。",
     "confirm.electron_restart_now": "Electron が再インストールされます。\n\n今すぐアプリを再起動して適用しますか？（次回アプリを開いたときに適用する場合は「キャンセル」を選択してください。）",
@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "設定パネルを非表示にしますか？",
     "settings.modal.hide.body": "サイトクッキーを含む設定パネルは表示されなくなります。詳細設定でいつでも再度有効にできます。",
     "tooltip.upscale_to_quality": "固定画質が選択されている場合、その設定より小さい動画は比例的にアップスケールされます（再エンコードされ、ピクセルは増えますが詳細は増えません）",
-    "settings.toggle.upscale": "Upscale video"
+    "settings.toggle.upscale": "アップスケール"
   }
 }
