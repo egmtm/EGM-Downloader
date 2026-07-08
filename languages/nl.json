@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-04",
+  "_last_updated": "2026-07-05",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} meer sites",
@@ -436,6 +436,8 @@
     "settings.modal.hide.title": "Instellingenpaneel verbergen?",
     "settings.modal.hide.body": "Het instellingenpaneel — inclusief sitecookies — verschijnt niet meer. Je kunt het hier altijd weer inschakelen bij Geavanceerd.",
     "tooltip.upscale_to_quality": "Wanneer een vaste kwaliteit is geselecteerd, worden video's die kleiner zijn dan die instelling proportioneel opgeschaald (opnieuw gecodeerd; voegt pixels toe, geen detail)",
-    "settings.toggle.upscale": "Video opschalen"
+    "settings.toggle.upscale": "Video opschalen",
+    "themes.confirm.delete_title": "Dit thema verwijderen?",
+    "themes.confirm.delete_body": "\"{0}\" wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt."
   }
 }
