@@ -295,8 +295,6 @@
     "plugins.up_to_date": "Tous les plugins sont à jour",
     "plugins.check_updates.done": "Vérifier les Mises à Jour",
     "plugins.portable.note": "⚠️ Mode portable : si les plugins se comportent mal après une mise à jour, réextrayez une nouvelle copie portable pour restaurer les paramètres par défaut.",
-    "cache.clearing": "Vidage du cache...",
-    "cache.error": "Impossible de vider le cache",
     "shortcut.created": "Raccourci créé sur le bureau",
     "shortcut.error": "Impossible de créer le raccourci",
     "port.applied": "Port mis à jour — redémarrage requis",

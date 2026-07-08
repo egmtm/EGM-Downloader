@@ -295,8 +295,6 @@
     "plugins.up_to_date": "Todos os plugins estão atualizados",
     "plugins.check_updates.done": "Verificar Atualizações",
     "plugins.portable.note": "⚠️ Modo portátil: se os plugins apresentarem problemas após a atualização, extraia novamente uma cópia portátil para restaurar os padrões.",
-    "cache.clearing": "Limpando cache...",
-    "cache.error": "Não foi possível limpar o cache",
     "shortcut.created": "Atalho criado na área de trabalho",
     "shortcut.error": "Não foi possível criar o atalho",
     "port.applied": "Porta atualizada — reinicialização necessária",

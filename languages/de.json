@@ -295,8 +295,6 @@
     "plugins.up_to_date": "Alle Plugins sind aktuell",
     "plugins.check_updates.done": "Nach Updates suchen",
     "plugins.portable.note": "⚠️ Portabler Modus: Falls Plugins nach einem Update nicht korrekt funktionieren, entpacke eine neue portable Kopie, um die Standardeinstellungen wiederherzustellen.",
-    "cache.clearing": "Cache wird geleert...",
-    "cache.error": "Cache konnte nicht geleert werden",
     "shortcut.created": "Desktop-Verknüpfung erstellt",
     "shortcut.error": "Verknüpfung konnte nicht erstellt werden",
     "port.applied": "Port aktualisiert — Neustart erforderlich",

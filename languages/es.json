@@ -295,8 +295,6 @@
     "plugins.up_to_date": "Todos los plugins están al día",
     "plugins.check_updates.done": "Buscar Actualizaciones",
     "plugins.portable.note": "⚠️ Modo portátil: si los complementos fallan después de actualizar, vuelve a extraer una copia portable nueva para restaurar los valores predeterminados.",
-    "cache.clearing": "Limpiando caché...",
-    "cache.error": "No se pudo limpiar el caché",
     "shortcut.created": "Acceso directo creado en el escritorio",
     "shortcut.error": "No se pudo crear el acceso directo",
     "port.applied": "Puerto actualizado — reinicio requerido",

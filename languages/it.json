@@ -295,8 +295,6 @@
     "plugins.up_to_date": "Tutti i plugin sono aggiornati",
     "plugins.check_updates.done": "Controlla Aggiornamenti",
     "plugins.portable.note": "⚠️ Modalità portatile: se i plugin si comportano in modo anomalo dopo l'aggiornamento, riestrarre una copia portatile aggiornata per ripristinare le impostazioni predefinite.",
-    "cache.clearing": "Pulizia cache...",
-    "cache.error": "Impossibile svuotare la cache",
     "shortcut.created": "Collegamento creato sul desktop",
     "shortcut.error": "Impossibile creare il collegamento",
     "port.applied": "Porta aggiornata — riavvio richiesto",

@@ -295,8 +295,6 @@
     "plugins.up_to_date": "すべてのプラグインは最新です",
     "plugins.check_updates.done": "更新を確認",
     "plugins.portable.note": "⚠️ ポータブルモード: アップデート後にプラグインの動作に問題が生じた場合は、ポータブルコピーを再展開してデフォルト設定に戻してください。",
-    "cache.clearing": "キャッシュをクリア中...",
-    "cache.error": "キャッシュをクリアできませんでした",
     "shortcut.created": "デスクトップショートカットを作成しました",
     "shortcut.error": "ショートカットを作成できませんでした",
     "port.applied": "ポートを更新しました — 再起動が必要",

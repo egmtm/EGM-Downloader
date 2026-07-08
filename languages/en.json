@@ -295,8 +295,6 @@
     "plugins.up_to_date": "All plugins up to date",
     "plugins.check_updates.done": "Check for Updates",
     "plugins.portable.note": "⚠️ Portable mode: if plugins misbehave after updating, re-extract a fresh portable copy to restore defaults.",
-    "cache.clearing": "Clearing cache...",
-    "cache.error": "Could not clear cache",
     "shortcut.created": "Desktop shortcut created",
     "shortcut.error": "Could not create shortcut",
     "port.applied": "Port updated — restart required",
