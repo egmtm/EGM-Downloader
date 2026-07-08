@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-04",
+  "_last_updated": "2026-07-05",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -436,6 +436,8 @@
     "settings.modal.hide.title": "Скрыть панель настроек?",
     "settings.modal.hide.body": "Панель настроек — включая файлы cookie сайта — больше не будет отображаться. Вы всегда можете снова включить её здесь, в разделе «Дополнительно».",
     "tooltip.upscale_to_quality": "Если выбрано фиксированное качество, видео меньшего разрешения пропорционально масштабируются до него (перекодирование; добавляет пиксели, а не детализацию)",
-    "settings.toggle.upscale": "Апскейл видео"
+    "settings.toggle.upscale": "Апскейл видео",
+    "themes.confirm.delete_title": "Удалить эту тему?",
+    "themes.confirm.delete_body": "Тема «{0}» будет удалена без возможности восстановления. Это действие нельзя отменить."
   }
 }
