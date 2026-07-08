@@ -365,7 +365,7 @@
     "tooltip.subscriptions_paste": "Plakken vanuit klembord",
     "tooltip.subscriptions_add": "Abonnement toevoegen",
     "confirm.port_change": "Poort wijzigen naar {0}?",
-    "confirm.reset_settings": "Alles terugzetten naar standaardinstellingen? Dit wist alle instellingen, thema's en downloadgeschiedenis. De gedownloade bestanden zelf worden NIET verwijderd.",
+    "confirm.reset_settings": "Alles terugzetten naar standaardinstellingen?\n\nDit wist alle instellingen, thema's en downloadgeschiedenis.\nDe gedownloade bestanden zelf worden NIET verwijderd.",
     "confirm.reinstall_ffmpeg": "Huidige ffmpeg-installatie verwijderen?\n\nEen nieuwe kopie wordt gedownload bij de volgende start. Zorg dat je een internetverbinding hebt.",
     "confirm.reinstall_electron": "Electron opnieuw installeren?\n\nElectron wordt opnieuw gedownload. Dit wordt van kracht bij een herstart van de app. Zorg dat je een internetverbinding hebt.",
     "confirm.electron_restart_now": "Electron wordt opnieuw geïnstalleerd.\n\nApp nu herstarten om dit toe te passen? (Kies Annuleren om het toe te passen de volgende keer dat je de app opent.)",
@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "Instellingenpaneel verbergen?",
     "settings.modal.hide.body": "Het instellingenpaneel — inclusief sitecookies — verschijnt niet meer. Je kunt het hier altijd weer inschakelen bij Geavanceerd.",
     "tooltip.upscale_to_quality": "Wanneer een vaste kwaliteit is geselecteerd, worden video's die kleiner zijn dan die instelling proportioneel opgeschaald (opnieuw gecodeerd; voegt pixels toe, geen detail)",
-    "settings.toggle.upscale": "Upscale video"
+    "settings.toggle.upscale": "Video opschalen"
   }
 }
