@@ -21,6 +21,7 @@ v1.3 - Build TBD (TBD)
   • [ALL] Removed the "Clear cache" button from Advanced settings — it served no real purpose, since temp/partial files are already cleaned up automatically after every download and on every app launch
   • [WINDOWS] Advanced panel tidied up — Check for app update/Desktop shortcut and Reinstall Electron/Reset settings now sit two-to-a-row instead of stacked
   • [ALL] Fixed an issue where users were attempting to enter the Konami code.
+  • [ALL] 12 new themes added — 8 international holidays (Three Kings Day, Vesak, Songkran, Juneteenth, Bastille Day, Vaisakhi, Obon, Qingming) and 4 memes (Distracted Boyfriend, Stonks, Gigachad, Hide the Pain). More on the way.
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
