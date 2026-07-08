@@ -91,6 +91,12 @@
     const p = await fetch('/api/portable-status').then(r => r.json());
     if (p.portable) {
       document.body.classList.add('portable-mode');
+      // Portable CSS hides #footer-update-btn (body.portable-mode #footer-update-btn
+      // { display:none !important }) while Desktop shortcut stays visible (we only
+      // reach this branch when createShortcut exists) -- collapse the shared row to
+      // one column so the shortcut button doesn't sit stranded beside empty space.
+      const row = document.getElementById('adv-update-shortcut-row');
+      if (row) row.style.gridTemplateColumns = '1fr';
     }
   } catch {}
 })();
