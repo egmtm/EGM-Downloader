@@ -305,11 +305,6 @@ async function startDl(item, n) {
   if (!chosenPath) {
     toast('Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
-    const dH = document.getElementById('dir-hint');
-    if (dH) { dH.style.color = 'var(--red)'; dH.textContent = '⚠ Select a download folder before downloading.'; }
-    setTimeout(() => {
-      const dH2 = document.getElementById('dir-hint'); if (dH2) dH2.style.color = 'var(--yellow)';
-    }, 3000);
     return;
   }
 
