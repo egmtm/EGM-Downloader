@@ -365,7 +365,7 @@
     "tooltip.subscriptions_paste": "Colar da área de transferência",
     "tooltip.subscriptions_add": "Adicionar inscrição",
     "confirm.port_change": "Alterar porta para {0}?",
-    "confirm.reset_settings": "Redefinir tudo para os padrões? Isso apagará todas as configurações, temas e histórico de downloads. Os arquivos baixados em si NÃO serão excluídos.",
+    "confirm.reset_settings": "Redefinir tudo para os padrões?\n\nIsso apagará todas as configurações, temas e histórico de downloads.\nOs arquivos baixados em si NÃO serão excluídos.",
     "confirm.reinstall_ffmpeg": "Remover a instalação atual do ffmpeg?\n\nUma cópia nova será baixada no próximo início. Certifique-se de ter conexão com a internet.",
     "confirm.reinstall_electron": "Reinstalar o Electron?\n\nO Electron será baixado novamente. Isso terá efeito ao reiniciar o aplicativo. Certifique-se de ter conexão com a internet.",
     "confirm.electron_restart_now": "O Electron será reinstalado.\n\nReiniciar o aplicativo agora para aplicar isso? (Escolha Cancelar para aplicar na próxima vez que abrir o aplicativo.)",
@@ -436,6 +436,6 @@
     "settings.modal.hide.title": "Ocultar painel de configurações?",
     "settings.modal.hide.body": "O painel de configurações — incluindo cookies do site — não aparecerá mais. Você sempre pode reativá-lo aqui em Avançado.",
     "tooltip.upscale_to_quality": "Quando uma qualidade fixa é selecionada, vídeos menores que essa predefinição são ampliados proporcionalmente até ela (recodifica; adiciona pixels, não detalhes)",
-    "settings.toggle.upscale": "Upscale video"
+    "settings.toggle.upscale": "Aumentar escala"
   }
 }
