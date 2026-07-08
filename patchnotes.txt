@@ -14,6 +14,7 @@ v1.3 - Build TBD (TBD)
   • [ALL] Settings panel (including Site Cookies) can now be hidden from Advanced settings for a cleaner look, same as the language selector
   • [ALL] New opt-in "Upscale to selected quality" — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail)
   • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
+  • [ALL] Subscriptions now detects and labels members-only videos (requires the latest yt-dlp stable or nightly — this didn't work on older stable releases)
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
