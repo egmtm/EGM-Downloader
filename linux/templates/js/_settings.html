@@ -73,13 +73,14 @@
       if (sel) sel.value = s.default_audio_format;
     }
   } catch {}
-  // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows)
+  // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows).
+  // Collapse the shared row to a single column too, so Check for app update
+  // doesn't sit stranded in half the row with empty space beside it.
   const sb = document.getElementById('adv-shortcut-btn');
   if (sb && typeof window.electronAPI?.createShortcut !== 'function') {
     sb.style.display = 'none';
-    // (A vestigial "center the Flask port row" span used to live here — it
-    // targeted the first .adv-port-wrap, which no longer relates to any port
-    // row and was spanning the Interface language toggle full-width.)
+    const row = document.getElementById('adv-update-shortcut-row');
+    if (row) row.style.gridTemplateColumns = '1fr';
   }
 
 // ── Portable mode detection — runs immediately, hides update UI if portable ───
