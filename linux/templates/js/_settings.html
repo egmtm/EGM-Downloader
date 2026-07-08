@@ -5,10 +5,7 @@
     if (s.last_folder) {
       chosenPath = s.last_folder;
       document.getElementById('dl-dir').value = s.last_folder;
-      const fh = document.getElementById('settings-folder-hint'); if (fh) fh.textContent = s.last_folder.split(/[\\/]/).pop() || s.last_folder;
       document.getElementById('open-folder-btn').disabled = false;
-      const dirHint = document.getElementById('dir-hint');
-      if (dirHint) { dirHint.textContent = i18nFmt('settings.folder.saved_to', s.last_folder) || ('Files saved to: ' + s.last_folder); dirHint.style.color = ''; }
     }
     if (s.concurrency) {
       const sel = document.getElementById('concurrency-sel');
@@ -228,18 +225,6 @@ function toggleCookiePanel() {
   // No-op: cookies section is always visible (single-row layout since v0.98.7)
 }
 
-// Clicking anywhere on the cookies sub-row label also toggles it
-(function() {
-  const ckRow = document.getElementById('ck-toggle')?.closest('div');
-  if (ckRow) {
-    ckRow.style.cursor = 'pointer';
-    ckRow.addEventListener('click', e => {
-      if (e.target.closest('button')) return;
-      toggleCookiePanel();
-    });
-  }
-})();
-
 // ── Paste ─────────────────────────────────────────────────────────────────────
 async function doPaste() {
   try {
@@ -387,10 +372,7 @@ document.getElementById('browse-btn').addEventListener('click', async () => {
   if (!picked) return;
   chosenPath = picked;
   document.getElementById('dl-dir').value = picked;
-  const fh2 = document.getElementById('settings-folder-hint'); if (fh2) fh2.textContent = picked.split(/[\\/]/).pop() || picked;
   document.getElementById('open-folder-btn').disabled = false;
-  const dirH = document.getElementById('dir-hint');
-  if (dirH) { dirH.textContent = 'Files will be saved to: ' + picked; dirH.style.color = ''; }
   await post('/api/settings/save', { last_folder: picked });
   toast('Folder selected', 'ok');
 });
@@ -729,7 +711,6 @@ async function refreshCookieCard() {
     const badge      = document.getElementById('ck-badge');
     const notLoaded  = document.getElementById('ck-not-loaded');
     const loaded     = document.getElementById('ck-loaded');
-    const statusText = document.getElementById('ck-status-text');
     if (!badge) return;
 
     if (s.active) {
@@ -737,7 +718,6 @@ async function refreshCookieCard() {
       badge.textContent = i18nFmt('status.cookies_active', ageStr) || `Cookies: active${ageStr}`;
       badge.className   = (s.age_days >= 10 ? 'vbadge vb-upd' : 'vbadge vb-ok');
       badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
-      if (statusText) statusText.textContent = (s.path ? s.path.split(/[\\/]/).pop() : 'cookies.txt') + ageStr;
       if (notLoaded) notLoaded.style.display = 'none';
       if (loaded)    loaded.style.display = 'flex';
     } else {
@@ -828,17 +808,12 @@ refreshCookieCard();
     const r = await post('/api/deno/install', {});
     if (r.error) return;  // already running or other issue — ignore
 
-    // Show subtle badge in Update Plugins header
-    const badge = document.getElementById('deno-status-badge');
-    if (badge) { badge.textContent = '🦕 Installing Deno…'; badge.style.display = ''; }
-
     // Poll silently until done
     const iv = setInterval(async () => {
       try {
         const s = await fetch('/api/deno/install-status').then(r => r.json());
         if (!s.running) {
           clearInterval(iv);
-          if (badge) badge.style.display = 'none';
           if (s.done) {
             toast('🦕 Deno installed — YouTube quality improved', 'ok');
             // Refresh update grid if panel is open
@@ -886,9 +861,6 @@ document.addEventListener('i18n:ready', e => {
   if (spWrap && s.show_settings_panel === false) spWrap.style.display = 'none';
   const spChk = document.getElementById('show-settings-panel-chk');
   if (spChk) spChk.checked = s.show_settings_panel !== false;
-  // The settings-init IIFE may have set this hint before the locale loaded.
-  const dirHint = document.getElementById('dir-hint');
-  if (dirHint && chosenPath) dirHint.textContent = i18nFmt('settings.folder.saved_to', chosenPath) || ('Files saved to: ' + chosenPath);
 });
 
 document.getElementById('lang-select').addEventListener('change', async function() {
