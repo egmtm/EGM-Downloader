@@ -20,7 +20,7 @@ v1.3 - Build TBD (TBD)
   • [ALL] Deleting a custom theme now asks for confirmation first — previously deleted instantly with no way to undo
   • [ALL] Removed the "Clear cache" button from Advanced settings — it served no real purpose, since temp/partial files are already cleaned up automatically after every download and on every app launch
   • [WINDOWS] Advanced panel tidied up — Check for app update/Desktop shortcut and Reinstall Electron/Reset settings now sit two-to-a-row instead of stacked
-  • [ALL] ⚠ Do not attempt to perform the Konami code. The app may become unstable.
+  • [ALL] Fixed an issue where users were attempting to enter the Konami code.
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
 -----------------------------------------
