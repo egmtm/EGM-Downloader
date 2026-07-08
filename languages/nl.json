@@ -295,8 +295,6 @@
     "plugins.up_to_date": "Alle plugins zijn up-to-date",
     "plugins.check_updates.done": "Controleren op updates",
     "plugins.portable.note": "⚠️ Draagbare modus: als plugins na een update niet goed werken, pak dan een verse draagbare kopie uit om de standaardinstellingen te herstellen.",
-    "cache.clearing": "Cache wissen...",
-    "cache.error": "Kan cache niet wissen",
     "shortcut.created": "Bureaubladsnelkoppeling gemaakt",
     "shortcut.error": "Kan snelkoppeling niet maken",
     "port.applied": "Poort bijgewerkt — herstart vereist",
