@@ -184,6 +184,17 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="delete-theme-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:var(--surf);border:1px solid var(--border);border-radius:var(--r,8px);padding:20px;max-width:340px;width:90%;box-shadow:var(--modal-shadow, 0 8px 32px rgba(0,0,0,.5))" onclick="event.stopPropagation()">
+    <h3 style="margin:0 0 8px;font-size:.95rem;color:var(--text)" id="delete-theme-modal-title" data-i18n="themes.confirm.delete_title">Delete this theme?</h3>
+    <p style="font-size:.8rem;color:var(--text2);margin:0 0 16px" id="delete-theme-modal-body"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="delete-theme-cancel-btn" data-i18n="quality.btn.cancel" style="padding:6px 14px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surf2);color:var(--text2);font-size:.75rem;cursor:pointer">Cancel</button>
+      <button id="delete-theme-confirm-btn" data-i18n="subscriptions.btn.delete" style="padding:6px 14px;border-radius:var(--rs);border:1px solid var(--red);background:transparent;color:var(--red);font-size:.75rem;font-weight:600;cursor:pointer">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
 {% include 'i18n.html' %}
 {% raw %}
@@ -608,14 +619,25 @@ function render() {
     del.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = del.dataset.del;
-      deleteSavedTheme(id);
-      // Drop any stale favorite pointing at the now-deleted theme so the Favorites
-      // count + section never reference a theme that no longer exists.
-      if (favoriteThemes.has(id)) { favoriteThemes.delete(id); saveFavorites(); }
-      buildSidebar();   // always refresh All + Imported counts after a removal
-      render();
+      const theme = loadSavedThemes().find(t => t.id === id);
+      const name = theme ? theme.name : '';
+      document.getElementById('delete-theme-modal-body').textContent =
+        i18nFmt('themes.confirm.delete_body', name) || `"${name}" will be permanently deleted. This cannot be undone.`;
+      document.getElementById('delete-theme-modal').style.display = 'flex';
+      document.getElementById('delete-theme-confirm-btn').onclick = () => {
+        document.getElementById('delete-theme-modal').style.display = 'none';
+        deleteSavedTheme(id);
+        // Drop any stale favorite pointing at the now-deleted theme so the Favorites
+        // count + section never reference a theme that no longer exists.
+        if (favoriteThemes.has(id)) { favoriteThemes.delete(id); saveFavorites(); }
+        buildSidebar();   // always refresh All + Imported counts after a removal
+        render();
+      };
     });
   });
+  document.getElementById('delete-theme-cancel-btn').onclick = () => {
+    document.getElementById('delete-theme-modal').style.display = 'none';
+  };
 
   grid.querySelectorAll('.theme-card[data-theme]').forEach((card, i) => {
     card.addEventListener('click', (e) => {
