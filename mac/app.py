@@ -881,6 +881,77 @@ def _run_download_slot(job_id, *rest):
     finally:
         _download_sem.release()
 
+
+# ── Hardware-accelerated H.264 encode (auto-detect, safe fallback) ───────────
+_HW_ENCODER_CACHE = None
+
+def _detect_hw_encoder():
+    """Probe hardware H.264 encoders with a tiny test encode and cache the winner.
+    Presence in `ffmpeg -encoders` is NOT enough — the probe proves the GPU and
+    driver actually work. Anything failing the probe falls back to libx264."""
+    global _HW_ENCODER_CACHE
+    if _HW_ENCODER_CACHE is not None:
+        return _HW_ENCODER_CACHE
+    ffmpeg = FFMPEG_DIR / "ffmpeg"
+    candidates = [
+        ("h264_videotoolbox", ["-c:v", "h264_videotoolbox", "-q:v", "60"]),
+    ]
+    for name, args in candidates:
+        try:
+            r = _run(str(ffmpeg), "-v", "error",
+                     "-f", "lavfi", "-i", "color=black:size=256x256:duration=0.2:rate=10",
+                     *args, "-frames:v", "3", "-f", "null", "-", timeout=20)
+            if r.returncode == 0:
+                print(f"[EGM] hardware encoder available: {name}")
+                _HW_ENCODER_CACHE = (name, list(args))
+                return _HW_ENCODER_CACHE
+        except Exception:
+            pass
+    _HW_ENCODER_CACHE = (None, None)
+    return _HW_ENCODER_CACHE
+
+
+def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
+    """Shared encode step for the H.264/upscale passes: hardware encoder when one
+    probes healthy, automatic libx264 retry (and cache demotion) if it fails."""
+    global _HW_ENCODER_CACHE
+    sw = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+          "-profile:v", "high", "-level", level]
+    hw_name, hw_args = _detect_hw_encoder()
+    for attempt, codec_args in ([(hw_name, hw_args)] if hw_name else []) + [("libx264", sw)]:
+        cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
+        if vf:
+            cmd += ["-vf", vf]
+        cmd += codec_args + ["-pix_fmt", "yuv420p",
+                             "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp]
+        proc = _popen(*cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                      # Own process group: cancel goes through _kill_proc -> os.killpg;
+                      # without a new session this ffmpeg shares the app's own group and
+                      # killpg would SIGTERM Flask (and Electron) along with it.
+                      start_new_session=True)
+        job["proc"] = proc
+        with _active_procs_lock:
+            _active_procs[job_id] = proc
+        proc.wait()
+        job["proc"] = None
+        with _active_procs_lock:
+            _active_procs.pop(job_id, None)
+        if job.get("cancelled"):
+            try: os.remove(tmp)
+            except OSError: pass
+            return False
+        if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+            return True
+        try: os.remove(tmp)
+        except Exception: pass
+        if attempt != "libx264":
+            print(f"[EGM] {attempt} encode failed — retrying with libx264")
+            _HW_ENCODER_CACHE = (None, None)   # stop offering a broken encoder
+        else:
+            return False
+    return False
+
+
 def _ensure_h264(job_id, path, job):
     """Universal MP4 (Max compatibility): if the downloaded video is not already H.264,
     transcode it to H.264 (High@4.0, yuv420p) + AAC with +faststart so it plays on any
@@ -900,28 +971,7 @@ def _ensure_h264(job_id, path, job):
             return path                                       # already H.264 — skip
         job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
         tmp = f"{path}.h264.mp4"
-        proc = _popen(str(ffmpeg), "-y", "-i", path,
-                      "-map", "0:v:0", "-map", "0:a:0?",
-                      "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-                      "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.0",
-                      "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp,
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                      # Own process group: cancel goes through _kill_proc -> os.killpg;
-                      # without a new session this ffmpeg shares the app's own group and
-                      # killpg would SIGTERM Flask (and Electron) along with it.
-                      start_new_session=True)
-        job["proc"] = proc
-        with _active_procs_lock:
-            _active_procs[job_id] = proc
-        proc.wait()
-        job["proc"] = None
-        with _active_procs_lock:
-            _active_procs.pop(job_id, None)
-        if job.get("cancelled"):
-            try: os.remove(tmp)
-            except OSError: pass
-            return path
-        if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0"):
             try:
                 os.remove(path); os.rename(tmp, path)
             except OSError:
@@ -960,33 +1010,8 @@ def _upscale_to_preset(job_id, path, job, target):
         # short side -> N, long side proportional (even): portrait vs landscape aware
         vf = "scale='if(gt(iw,ih),-2,%d)':'if(gt(iw,ih),%d,-2)'" % (n, n)
         tmp = path + ".up.mp4"
-        proc = _popen(str(ffmpeg), "-y", "-i", path,
-                      "-map", "0:v:0", "-map", "0:a:0?",
-                      "-vf", vf,
-                      "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-                      "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.2",
-                      "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp,
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                      # Own process group: cancel goes through _kill_proc -> os.killpg;
-                      # without a new session this ffmpeg shares the app's own group and
-                      # killpg would SIGTERM Flask (and Electron) along with it.
-                      start_new_session=True)
-        job["proc"] = proc
-        with _active_procs_lock:
-            _active_procs[job_id] = proc
-        proc.wait()
-        job["proc"] = None
-        with _active_procs_lock:
-            _active_procs.pop(job_id, None)
-        if job.get("cancelled"):
-            try: os.remove(tmp)
-            except OSError: pass
-            return path
-        if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.2", vf=vf):
             os.replace(tmp, path)
-        else:
-            try: os.remove(tmp)
-            except Exception: pass
         return path
     except Exception:
         return path

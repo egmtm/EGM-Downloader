@@ -31,7 +31,7 @@ from conftest import read_source
 # Functions whose tracked subprocess must be session-isolated on Mac/Linux.
 # Add here (and audit start_new_session at every _popen call inside it)
 # whenever a new function's proc gets assigned into _active_procs.
-GUARDED_FUNCTIONS = ("_ensure_h264", "_upscale_to_preset")
+GUARDED_FUNCTIONS = ("_run_h264_encode",)
 
 
 def _function_body(source: str, func_name: str) -> str:
