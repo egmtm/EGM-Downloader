@@ -1000,8 +1000,13 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
             with _active_procs_lock:
                 _active_procs.pop(job_id, None)
             if job.get("cancelled"):
-                try: os.remove(tmp)
-                except OSError: pass
+                for _ in range(6):   # killed ffmpeg may hold the handle briefly
+                    try:
+                        os.remove(tmp); break
+                    except FileNotFoundError:
+                        break
+                    except OSError:
+                        time.sleep(0.5)
                 return False
             if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
                 return True
@@ -1343,6 +1348,14 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 and str(chosen).lower().endswith(".mp4")):
             chosen = _upscale_to_preset(job_id, chosen, job, video_height)
 
+        if job.get("cancelled"):
+            # Cancelled during a conversion pass — remove the job's files
+            # (still job_id-prefixed; the title rename hasn't happened yet).
+            _cleanup(job_id, out_dir)
+            job["status"] = "cancelled"
+            job["_finished_at"] = time.time()
+            return
+
         ext        = os.path.splitext(chosen)[1]
         title      = job.get("title", "").strip()
         final_name = _safe_filename(title, ext) if title else os.path.basename(chosen)
@@ -1499,7 +1512,7 @@ def cancel_download(job_id):
     with _jobs_lock:
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
-        if job.get("status") not in ("downloading", "queued"):
+        if job.get("status") not in ("downloading", "queued", "converting"):
             return jsonify({"error": "Not downloading"}), 400
         job["cancelled"] = True
         proc = job.get("proc")
