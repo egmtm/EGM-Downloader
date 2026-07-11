@@ -16,6 +16,7 @@ v1.3 - Build TBD (TBD)
   • [ALL] Advanced panel now shows current → latest version for optional libraries and ffmpeg when an update is available, and correctly detects updates after switching ffmpeg channels
   • [MAC] [LINUX] Optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) can now be updated in-app from Advanced settings — previously view-only on these platforms
   • [ALL] Minor spacing polish — collapsed Subscriptions sidebar thumbnails, and the Update/What's New modals no longer crowd their scrollbar against the text
+  • [ALL] The download queue in Subscriptions now stays pinned at the top of the sidebar — with a long channel list, it used to scroll out of view
   • [ALL] Site Cookies panel in Settings redesigned into a more compact, centered layout
   • [ALL] Settings panel (including Site Cookies) can now be hidden from Advanced settings for a cleaner look, same as the language selector
   • [ALL] Subscriptions now detects and labels members-only videos (requires the latest yt-dlp stable or nightly — this didn't work on older stable releases)
