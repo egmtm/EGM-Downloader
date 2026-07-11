@@ -836,6 +836,13 @@ ipcMain.handle('create-shortcut', async (event) => {
     fs.writeFileSync(tmpVbs, vbs, 'utf8');
     execFileSync('wscript.exe', ['/nologo', tmpVbs], { windowsHide: true, timeout: 15000 });
     try { fs.unlinkSync(tmpVbs); } catch {}
+    // WScript cannot set AppUserModelID — stamp it so the taskbar names us correctly
+    try {
+      shell.writeShortcutLink(lnkPath, 'update', {
+        target: lnkTarget, cwd: workDir, icon: iconPath, iconIndex: 0,
+        appUserModelId: 'com.egerena.egm-downloader',
+      });
+    } catch {}
     return { success: true };
   } catch (e) {
     return { error: e.message };
@@ -877,6 +884,26 @@ function startShowWindowPoller() {
 app.whenReady().then(async () => {
   // Set display name AFTER ready so userData path is already locked to 'egm-downloader'
   app.setName('EGM Downloader');
+
+  // Stamp our AppUserModelID onto the installer-created shortcuts ('update'
+  // never creates, so portable installs are untouched). The taskbar context
+  // menu resolves the app name through a Start Menu shortcut whose AUMID
+  // matches the window's — without the stamp it falls back to the Electron
+  // runtime's internal FileDescription and shows "Electron".
+  try {
+    const lnkOpts = {
+      target: path.join(__dirname, '..', 'EGM Downloader.exe'),
+      cwd: path.join(__dirname, '..'),
+      icon: path.join(__dirname, '..', 'static', 'icon.ico'),
+      iconIndex: 0,
+      appUserModelId: 'com.egerena.egm-downloader',
+    };
+    const smLnk = path.join(app.getPath('appData'),
+      'Microsoft', 'Windows', 'Start Menu', 'Programs', 'EGM Downloader', 'EGM Downloader.lnk');
+    shell.writeShortcutLink(smLnk, 'update', lnkOpts);
+    const deskLnk = path.join(app.getPath('desktop'), 'EGM Downloader.lnk');
+    shell.writeShortcutLink(deskLnk, 'update', lnkOpts);
+  } catch {}
   // Content-Security-Policy: applied to all responses from Flask
   // 'unsafe-inline' for scripts/styles required because templates use inline JS/CSS.
   // External scripts, frames, objects, plugins, non-self connections all blocked.
