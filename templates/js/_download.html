@@ -418,14 +418,14 @@ async function cancelDownload(item, n) {
 // ── Shared job status handler — used by both individual and bulk pollers ──────
 function applyJobProgress(d, stEl, progEl) {
   if (d.status === 'converting') {
-    setBadge(stEl, 'dl', i18nGet('card.status.converting') || 'Converting…');
+    setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : ''));
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';
   } else if (d.status === 'downloading' && d.progress >= 100) {
     // Download complete but backend hasn't emitted a conversion tag yet —
     // show Converting… as a fallback so the UI doesn't appear frozen
-    setBadge(stEl, 'dl', i18nGet('card.status.converting') || 'Converting…');
+    setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : ''));
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';

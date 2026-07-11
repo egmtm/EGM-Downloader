@@ -985,6 +985,7 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
     hw_slot = bool(hw_name) and _HW_ENCODE_SLOTS.acquire(blocking=False)
     try:
         for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
+            job["encoder"] = attempt   # surfaced in the converting badge
             cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
             if vf:
                 cmd += ["-vf", vf]
@@ -1520,7 +1521,8 @@ def check_status(job_id):
         resp = {"status": status, "error": job.get("error"),
                 "filename": job.get("filename"), "progress": job.get("progress", 0),
                 "speed": job.get("speed", ""), "eta": job.get("eta", ""),
-                "filesize": job.get("filesize", "")}
+                "filesize": job.get("filesize", ""),
+                "encoder": job.get("encoder") if status == "converting" else None}
         # Remove completed jobs from memory once the UI has consumed the result.
         if status in ("done", "error", "cancelled") and job.get("_ack"):
             jobs.pop(job_id, None)
