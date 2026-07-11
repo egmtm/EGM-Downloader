@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-05",
+  "_last_updated": "2026-07-06",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo و {0} موقع آخر",
@@ -435,6 +435,6 @@
     "settings.toggle.upscale": "رفع الدقة",
     "themes.confirm.delete_title": "حذف هذا الثيم؟",
     "themes.confirm.delete_body": "سيتم حذف «{0}» نهائياً. لا يمكن التراجع عن هذا.",
-    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
+    "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV."
   }
 }
