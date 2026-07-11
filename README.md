@@ -311,6 +311,7 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 - Video conversion (H.264 compatibility format and Upscale) now uses your GPU when available — cuts CPU load and heat dramatically, with automatic fallback to software encoding
 - The "Converting…" status now shows which encoder is active (e.g. "Converting… · h264_nvenc") so you can confirm hardware acceleration is working
 - Fixed Cancel being silently ignored during video conversion — clicking Cancel now actually stops it instead of letting it run to completion
+- ✨ New HDR downloads — videos with an HDR version (HDR10, HDR10+, HLG, Dolby Vision) now show as a separate option per resolution; saves as MKV to preserve HDR data untouched (requires an HDR-capable display and player)
 - Fixed Full HD/4K downloads sometimes grabbing a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
 - Subscriptions now detects and labels members-only videos (latest yt-dlp stable/nightly required)
 - Mac and Linux can now update optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) in-app — previously view-only
