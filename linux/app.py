@@ -796,7 +796,13 @@ def _build_formats(info):
         h = f.get("height")
         if not h or (f.get("vcodec", "none") or "none") == "none": continue
         tbr = f.get("tbr") or 0
-        if str(f.get("dynamic_range") or "").upper().startswith("HDR"):
+        dr = str(f.get("dynamic_range") or "").upper()
+        if dr and dr != "SDR":
+            # Any non-SDR range (HDR10/HDR10+/HLG/DV) gets the HDR-row treatment:
+            # MKV container, no H.264/upscale re-encode. Bucketing DV/HLG as SDR
+            # would let a higher-bitrate DV/HLG stream DISPLACE the real SDR entry
+            # at its height — the compat pass would then transcode it to SDR H.264
+            # with no tone-mapping: the classic washed/green output.
             if h not in best_hdr or tbr > (best_hdr[h].get("tbr") or 0): best_hdr[h] = f
         elif h not in best or tbr > (best[h].get("tbr") or 0):
             best[h] = f
