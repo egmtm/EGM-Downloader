@@ -143,10 +143,11 @@ function renderCard(el, item) {
   // since CDN throttling on high-res streams is common but legitimate.
   const SLOW_HINT = '4K/8K downloads may be slower — source throttling on high-bitrate streams is normal.';
   const _resSuffix = h => h >= 4320 ? ' - 8K' : h >= 2160 ? ' - 4K' : h >= 1440 ? ' - 2K' : '';
+  const HDR_HINT = i18nGet('card.quality.hdr_tooltip') || 'HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV.';
   const vOpts = (info.formats||[]).map(f => {
     const slow = (f.height || 0) >= 1440;
-    const titleAttr = slow ? ` title="${esc(SLOW_HINT)}"` : '';
-    const suffix = _resSuffix(f.height || 0);
+    const titleAttr = f.hdr ? ` title="${esc(HDR_HINT)}"` : (slow ? ` title="${esc(SLOW_HINT)}"` : '');
+    const suffix = _resSuffix(f.height || 0) + (f.hdr ? ' HDR' : '');
     return `<option value="${esc(f.id)}"${titleAttr}>${esc(f.label)}${suffix}</option>`;
   }).join('');
   const aOpts = (info.audio_formats||[]).map(f => `<option value="${esc(f.id)}">${esc(f.label)}</option>`).join('');
@@ -384,7 +385,12 @@ async function startDl(item, n) {
       thumbnail: item.info?.thumbnail || '',
       subtitles: !!document.getElementById('subtitles-chk')?.checked,
       embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
-      output_format: document.getElementById('output-format-sel')?.value || 'mp4_h264',
+      // HDR selections override the global format: HDR ships as MKV (server enforces too)
+      output_format: (() => {
+        const sel = (item.info.formats || []).find(f => f.id === item.selFmtId);
+        return sel && sel.hdr ? 'mkv' : (document.getElementById('output-format-sel')?.value || 'mp4_h264');
+      })(),
+      hdr: !!((item.info.formats || []).find(f => f.id === item.selFmtId) || {}).hdr,
     });
     if (res.error) throw new Error(res.error);
     item.jobId = res.job_id;

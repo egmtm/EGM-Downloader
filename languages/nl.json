@@ -434,6 +434,7 @@
     "tooltip.upscale_to_quality": "Wanneer een vaste kwaliteit is geselecteerd, worden video's die kleiner zijn dan die instelling proportioneel opgeschaald (opnieuw gecodeerd; voegt pixels toe, geen detail)",
     "settings.toggle.upscale": "Video opschalen",
     "themes.confirm.delete_title": "Dit thema verwijderen?",
-    "themes.confirm.delete_body": "\"{0}\" wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt."
+    "themes.confirm.delete_body": "\"{0}\" wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
+    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
   }
 }

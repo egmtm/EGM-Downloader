@@ -434,6 +434,7 @@
     "tooltip.upscale_to_quality": "عند تحديد جودة ثابتة، تُرفع دقة مقاطع الفيديو الأصغر من الإعداد المحدد بشكل متناسب لتطابقه (يُعاد الترميز؛ يُضيف بكسلات لا تفاصيل)",
     "settings.toggle.upscale": "رفع الدقة",
     "themes.confirm.delete_title": "حذف هذا الثيم؟",
-    "themes.confirm.delete_body": "سيتم حذف «{0}» نهائياً. لا يمكن التراجع عن هذا."
+    "themes.confirm.delete_body": "سيتم حذف «{0}» نهائياً. لا يمكن التراجع عن هذا.",
+    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
   }
 }

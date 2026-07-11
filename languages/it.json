@@ -434,6 +434,7 @@
     "tooltip.upscale_to_quality": "Quando è selezionata una qualità fissa, i video più piccoli di quel preset vengono ridimensionati proporzionalmente per raggiungerlo (viene rieseguita la codifica; aggiunge pixel, non dettaglio)",
     "settings.toggle.upscale": "Upscale video",
     "themes.confirm.delete_title": "Eliminare questo tema?",
-    "themes.confirm.delete_body": "\"{0}\" verrà eliminato definitivamente. Non è possibile annullare questa operazione."
+    "themes.confirm.delete_body": "\"{0}\" verrà eliminato definitivamente. Non è possibile annullare questa operazione.",
+    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
   }
 }

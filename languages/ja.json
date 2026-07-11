@@ -434,6 +434,7 @@
     "tooltip.upscale_to_quality": "固定画質が選択されている場合、その設定より小さい動画は比例的にアップスケールされます（再エンコードされ、ピクセルは増えますが詳細は増えません）",
     "settings.toggle.upscale": "アップスケール",
     "themes.confirm.delete_title": "このテーマを削除しますか？",
-    "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。"
+    "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
+    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
   }
 }
