@@ -309,9 +309,12 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 - 🎨 50 new themes — 500 total (categories TBD, more details coming soon)
 - ✨ New opt-in **Upscale to selected quality** — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail) — requested by @ligun0510!
 - Video conversion (H.264 compatibility format and Upscale) now uses your GPU when available — cuts CPU load and heat dramatically, with automatic fallback to software encoding
+- The "Converting…" status now shows which encoder is active (e.g. "Converting… · h264_nvenc") so you can confirm hardware acceleration is working
+- Fixed Cancel being silently ignored during video conversion — clicking Cancel now actually stops it instead of letting it run to completion
 - Fixed Full HD/4K downloads sometimes grabbing a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
 - Subscriptions now detects and labels members-only videos (latest yt-dlp stable/nightly required)
 - Mac and Linux can now update optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) in-app — previously view-only
+- Subscriptions download queue now stays pinned at the top of the sidebar instead of scrolling out of view with a long channel list
 - Deno now updates alongside yt-dlp, ffmpeg, and other plugins instead of its own separate button
 - Advanced panel shows current → latest version for optional libraries and ffmpeg when an update is available
 - Fixed cancelling a video conversion (H.264 fix-up or Upscale) on Mac/Linux sometimes closing the whole app instead of just that download
@@ -319,6 +322,7 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 - Deleting a custom theme now asks for confirmation first — previously deleted instantly with no way to undo
 - Removed the "Clear cache" button from Advanced settings — cleanup already happens automatically after every download and on launch
 - Windows Advanced panel tidied up — buttons now sit two-to-a-row instead of stacked
+- Fixed the Windows taskbar right-click menu showing "Electron" instead of "EGM Downloader"
 - Minor polish — Subscriptions sidebar thumbnail spacing, Update/What's New modal scrollbar spacing, more compact Site Cookies panel
 
 **v1.4 and beyond:**
