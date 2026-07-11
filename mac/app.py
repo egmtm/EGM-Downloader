@@ -911,6 +911,15 @@ def _detect_hw_encoder():
     return _HW_ENCODER_CACHE
 
 
+# Cap concurrent hardware encodes. Consumer NVENC drivers hard-limit concurrent
+# encode sessions (3-8 depending on driver generation); QSV/AMF/VideoToolbox
+# also degrade under heavy parallelism. With up to 24 concurrent jobs, sessions
+# beyond the cap would fail at init and demote the cache -- turning one busy
+# burst into CPU-only encodes until restart. "Busy" is not "broken": jobs that
+# can't get a slot use libx264 for that one encode and leave the cache alone.
+_HW_ENCODE_SLOTS = threading.BoundedSemaphore(2)
+
+
 def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
     """Shared encode step for the H.264/upscale passes: hardware encoder when one
     probes healthy, automatic libx264 retry (and cache demotion) if it fails."""
@@ -918,39 +927,46 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
     sw = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
           "-profile:v", "high", "-level", level]
     hw_name, hw_args = _detect_hw_encoder()
-    for attempt, codec_args in ([(hw_name, hw_args)] if hw_name else []) + [("libx264", sw)]:
-        cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
-        if vf:
-            cmd += ["-vf", vf]
-        cmd += codec_args + ["-pix_fmt", "yuv420p",
-                             "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp]
-        proc = _popen(*cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                      # Own process group: cancel goes through _kill_proc -> os.killpg;
-                      # without a new session this ffmpeg shares the app's own group and
-                      # killpg would SIGTERM Flask (and Electron) along with it.
-                      start_new_session=True)
-        job["proc"] = proc
-        with _active_procs_lock:
-            _active_procs[job_id] = proc
-        proc.wait()
-        job["proc"] = None
-        with _active_procs_lock:
-            _active_procs.pop(job_id, None)
-        if job.get("cancelled"):
+    # Non-blocking: over-cap jobs take the software path this once,
+    # without demoting the cache -- the GPU is busy, not broken.
+    hw_slot = bool(hw_name) and _HW_ENCODE_SLOTS.acquire(blocking=False)
+    try:
+        for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
+            cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
+            if vf:
+                cmd += ["-vf", vf]
+            cmd += codec_args + ["-pix_fmt", "yuv420p",
+                                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp]
+            proc = _popen(*cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                          # Own process group: cancel goes through _kill_proc -> os.killpg;
+                          # without a new session this ffmpeg shares the app's own group and
+                          # killpg would SIGTERM Flask (and Electron) along with it.
+                          start_new_session=True)
+            job["proc"] = proc
+            with _active_procs_lock:
+                _active_procs[job_id] = proc
+            proc.wait()
+            job["proc"] = None
+            with _active_procs_lock:
+                _active_procs.pop(job_id, None)
+            if job.get("cancelled"):
+                try: os.remove(tmp)
+                except OSError: pass
+                return False
+            if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+                return True
             try: os.remove(tmp)
-            except OSError: pass
-            return False
-        if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
-            return True
-        try: os.remove(tmp)
-        except Exception: pass
-        if attempt != "libx264":
-            print(f"[EGM] {attempt} encode failed — retrying with libx264")
-            _HW_ENCODER_CACHE = (None, None)   # stop offering a broken encoder
-        else:
-            return False
-    return False
+            except Exception: pass
+            if attempt != "libx264":
+                print(f"[EGM] {attempt} encode failed — retrying with libx264")
+                _HW_ENCODER_CACHE = (None, None)   # stop offering a broken encoder
+            else:
+                return False
+        return False
 
+    finally:
+        if hw_slot:
+            _HW_ENCODE_SLOTS.release()
 
 def _ensure_h264(job_id, path, job):
     """Universal MP4 (Max compatibility): if the downloaded video is not already H.264,
