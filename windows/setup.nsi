@@ -420,6 +420,14 @@ Section "Install"
   WriteRegStr HKCU "${REGKEY}" "Build"       "${BUILD}"
   WriteRegStr HKCU "${REGKEY}" "InstallPath" "$INSTDIR"
 
+  ; Taskbar/notification display name for the app's AppUserModelID (must match
+  ; app.setAppUserModelId in electron/main.js). Without it, Windows falls back
+  ; to the Electron runtime's internal FileDescription ("Electron") in the
+  ; taskbar right-click menu — the runtime downloads at first run, so its
+  ; version resources are not ours to patch.
+  WriteRegStr HKCU "Software\Classes\AppUserModelId\com.egerena.egm-downloader" "DisplayName" "EGM Downloader"
+  WriteRegStr HKCU "Software\Classes\AppUserModelId\com.egerena.egm-downloader" "IconUri" "$INSTDIR\static\icon.ico"
+
   ; ── Registry: Add/Remove Programs ──
   WriteRegStr HKCU "${UNINSTREG}" "DisplayName"     "${APPNAME}"
   WriteRegStr HKCU "${UNINSTREG}" "DisplayVersion"  "${VERSION}"
@@ -529,6 +537,7 @@ Choose No to keep them for a faster setup on next install." \
   Delete "$DESKTOP\EGM Downloader.lnk"
 
   ; ── Registry ──
+  DeleteRegKey HKCU "Software\Classes\AppUserModelId\com.egerena.egm-downloader"
   DeleteRegKey HKCU "${REGKEY}"
   DeleteRegKey HKCU "${UNINSTREG}"
 SectionEnd
