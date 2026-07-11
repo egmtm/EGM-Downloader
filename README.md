@@ -322,7 +322,6 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 - Deleting a custom theme now asks for confirmation first — previously deleted instantly with no way to undo
 - Removed the "Clear cache" button from Advanced settings — cleanup already happens automatically after every download and on launch
 - Windows Advanced panel tidied up — buttons now sit two-to-a-row instead of stacked
-- Fixed the Windows taskbar right-click menu showing "Electron" instead of "EGM Downloader"
 - Minor polish — Subscriptions sidebar thumbnail spacing, Update/What's New modal scrollbar spacing, more compact Site Cookies panel
 
 **v1.4 and beyond:**
