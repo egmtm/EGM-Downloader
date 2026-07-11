@@ -90,10 +90,16 @@
 
     .queue-item {
       padding:8px 10px;font-size:.68rem;font-weight:500;color:var(--acc);
-      border-left:2px solid var(--acc);background:var(--acc-dim);
+      border-left:2px solid var(--acc);
+      /* translucent accent stacked over the solid page bg — opaque, so
+         channels scrolling underneath the sticky row don't bleed through */
+      background:linear-gradient(var(--acc-dim),var(--acc-dim)),var(--bg);
       display:flex;align-items:center;gap:6px;cursor:pointer;
       border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:2;
     }
+    /* drop the list's top padding when the queue row is pinned, so it sits flush */
+    .sub-list:has(.queue-item) { padding-top:0; }
     .queue-item:hover { background:rgba(45,212,191,.12); }
     .queue-badge {
       margin-left:auto;background:rgba(45,212,191,.15);color:var(--acc);
