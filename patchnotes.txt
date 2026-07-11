@@ -6,16 +6,17 @@ v1.3 - Build TBD (TBD)
   • [ALL] Language selector can be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
   • [ALL] Downloaded subtitles now include your selected app language alongside English (when available for that video)
   • [WINDOWS] Installer redesigned to match the app's dark theme, with language selection at setup — available in all 10 supported languages
+  • [ALL] New opt-in "Upscale to selected quality" — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail)
+  • [ALL] Video conversion (the "MP4 · H.264" compatibility format and Upscale) now uses your GPU when available, cutting CPU load and heat dramatically — automatically falls back to software encoding if no compatible GPU is found or it's busy
+  • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
+  • [MAC] [LINUX] Fixed cancelling a video conversion (H.264 fix-up or Upscale) sometimes closing the whole app instead of just that download
   • [ALL] Deno now updates alongside yt-dlp, ffmpeg, and other plugins in Advanced settings, instead of its own separate button
   • [ALL] Advanced panel now shows current → latest version for optional libraries and ffmpeg when an update is available, and correctly detects updates after switching ffmpeg channels
   • [MAC] [LINUX] Optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) can now be updated in-app from Advanced settings — previously view-only on these platforms
   • [ALL] Minor spacing polish — collapsed Subscriptions sidebar thumbnails, and the Update/What's New modals no longer crowd their scrollbar against the text
   • [ALL] Site Cookies panel in Settings redesigned into a more compact, centered layout
   • [ALL] Settings panel (including Site Cookies) can now be hidden from Advanced settings for a cleaner look, same as the language selector
-  • [ALL] New opt-in "Upscale to selected quality" — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail)
-  • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
   • [ALL] Subscriptions now detects and labels members-only videos (requires the latest yt-dlp stable or nightly — this didn't work on older stable releases)
-  • [MAC] [LINUX] Fixed cancelling a video conversion (H.264 fix-up or Upscale) sometimes closing the whole app instead of just that download
   • [MAC] DMG install window refreshed with a custom background matching the app's theme
   • [ALL] Deleting a custom theme now asks for confirmation first — previously deleted instantly with no way to undo
   • [ALL] Removed the "Clear cache" button from Advanced settings — it served no real purpose, since temp/partial files are already cleaned up automatically after every download and on every app launch
