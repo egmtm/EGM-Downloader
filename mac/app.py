@@ -830,16 +830,25 @@ def _safe_filename(title: str, ext: str) -> str:
     return f"{safe}{ext}" if safe else f"download{ext}"
 
 def _build_formats(info):
-    best = {}
+    best, best_hdr = {}, {}
     for f in info.get("formats", []):
         h = f.get("height")
         if not h or (f.get("vcodec", "none") or "none") == "none": continue
         tbr = f.get("tbr") or 0
-        if h not in best or tbr > (best[h].get("tbr") or 0): best[h] = f
-    return sorted([{"id": f["format_id"], "label": f"{h}p", "height": h,
-                    "has_audio": (f.get("acodec","none") or "none") != "none",
-                    "acodec": f.get("acodec") or ""}
-                   for h, f in best.items()], key=lambda x: x["height"], reverse=True)
+        if str(f.get("dynamic_range") or "").upper().startswith("HDR"):
+            if h not in best_hdr or tbr > (best_hdr[h].get("tbr") or 0): best_hdr[h] = f
+        elif h not in best or tbr > (best[h].get("tbr") or 0):
+            best[h] = f
+    entries = [{"id": f["format_id"], "label": f"{h}p", "height": h,
+                "has_audio": (f.get("acodec","none") or "none") != "none",
+                "acodec": f.get("acodec") or ""}
+               for h, f in best.items()]
+    entries += [{"id": f["format_id"], "label": f"{h}p", "height": h, "hdr": True,
+                 "has_audio": (f.get("acodec","none") or "none") != "none",
+                 "acodec": f.get("acodec") or ""}
+                for h, f in best_hdr.items()]
+    # SDR first at each height, HDR beneath it
+    return sorted(entries, key=lambda x: (-x["height"], x.get("hdr", False)))
 
 def _build_audio_formats(info):
     seen, audio = set(), []
@@ -1039,7 +1048,7 @@ def _upscale_to_preset(job_id, path, job, target):
         return path
 
 
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264"):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264", hdr=False):
     job     = jobs.get(job_id)
     if not job:
         return  # Job was removed before worker started
@@ -1099,13 +1108,18 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     else:
         # 4d: Container — default mp4. --remux-video ensures final container even
         # when format selection picks a progressive stream that doesn't trigger merge.
+        if hdr:
+            # HDR streams are VP9.2/AV1 10-bit: MKV is the honest container, and
+            # routing through mkv keeps the H.264 compat pass and the upscale pass
+            # out of the way via their existing gates (both would strip HDR).
+            output_format = "mkv"
         container = output_format if output_format in ("mp4", "mkv") else "mp4"
         args += ["--merge-output-format", container, "--remux-video", container]
         # If the selected format's paired audio is already AAC, remux with -c copy.
         # Otherwise (opus, vorbis, unknown) re-encode audio to AAC for mp4 compatibility.
         # Video is always stream-copied (-c:v copy) — never re-encoded.
         audio_is_aac = audio_codec and ("mp4a" in audio_codec or audio_codec == "aac")
-        if audio_is_aac:
+        if audio_is_aac or hdr:
             args += ["--postprocessor-args", "ffmpeg:-c copy"]
         else:
             args += ["--postprocessor-args", "ffmpeg:-c:v copy -c:a aac -b:a 192k"]
@@ -1455,7 +1469,8 @@ def start_download():
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
-                           data.get("output_format", "mp4_h264")),
+                           data.get("output_format", "mp4_h264"),
+                           bool(data.get("hdr", False))),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 

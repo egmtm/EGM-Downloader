@@ -434,6 +434,7 @@
     "tooltip.upscale_to_quality": "Quando uma qualidade fixa é selecionada, vídeos menores que essa predefinição são ampliados proporcionalmente até ela (recodifica; adiciona pixels, não detalhes)",
     "settings.toggle.upscale": "Aumentar escala",
     "themes.confirm.delete_title": "Excluir este tema?",
-    "themes.confirm.delete_body": "\"{0}\" será excluído permanentemente. Isso não pode ser desfeito."
+    "themes.confirm.delete_body": "\"{0}\" será excluído permanentemente. Isso não pode ser desfeito.",
+    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
   }
 }

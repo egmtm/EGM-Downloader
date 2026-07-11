@@ -434,6 +434,7 @@
     "tooltip.upscale_to_quality": "Если выбрано фиксированное качество, видео меньшего разрешения пропорционально масштабируются до него (перекодирование; добавляет пиксели, а не детализацию)",
     "settings.toggle.upscale": "Апскейл видео",
     "themes.confirm.delete_title": "Удалить эту тему?",
-    "themes.confirm.delete_body": "Тема «{0}» будет удалена без возможности восстановления. Это действие нельзя отменить."
+    "themes.confirm.delete_body": "Тема «{0}» будет удалена без возможности восстановления. Это действие нельзя отменить.",
+    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
   }
 }
