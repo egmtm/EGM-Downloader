@@ -6,6 +6,6 @@ cryptography>=42.0.0
 curl_cffi>=0.7.0
 brotli>=1.2.0
 pycryptodomex>=3.23.0
-websockets>=16.0
+websockets>=16.1
 certifi>=2024.0.0
 
