@@ -10,6 +10,8 @@ v1.3 - Build TBD (TBD)
   • [ALL] Video conversion (the "MP4 · H.264" compatibility format and Upscale) now uses your GPU when available, cutting CPU load and heat dramatically — automatically falls back to software encoding if no compatible GPU is found or it's busy
   • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
   • [MAC] [LINUX] Fixed cancelling a video conversion (H.264 fix-up or Upscale) sometimes closing the whole app instead of just that download
+  • [ALL] Fixed cancel not working during video conversion — clicking Cancel while a video was converting was silently ignored, and the conversion ran to completion anyway
+  • [ALL] The "Converting…" status now shows which encoder is being used (e.g. "Converting… · h264_nvenc"), so you can confirm hardware acceleration is active
   • [ALL] Deno now updates alongside yt-dlp, ffmpeg, and other plugins in Advanced settings, instead of its own separate button
   • [ALL] Advanced panel now shows current → latest version for optional libraries and ffmpeg when an update is available, and correctly detects updates after switching ffmpeg channels
   • [MAC] [LINUX] Optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) can now be updated in-app from Advanced settings — previously view-only on these platforms
