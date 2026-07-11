@@ -340,8 +340,10 @@ async function startDl(item, n) {
     else if (audioFmt.startsWith('opus_')) ext = '.opus';
     else                                    ext = '.mp3';
   } else {
+    // HDR selections always ship as MKV (server-enforced) — the pill should say so
+    const selHdr = !!((item.info.formats || []).find(f => f.id === item.selFmtId) || {}).hdr;
     const vfmt = document.getElementById('output-format-sel')?.value || 'mp4';
-    ext = vfmt === 'mkv' ? '.mkv' : '.mp4';
+    ext = (selHdr || vfmt === 'mkv') ? '.mkv' : '.mp4';
   }
   const chosenName = await showModal(item.info.title || 'download', ext);
   if (!chosenName) return;   // cancelled
