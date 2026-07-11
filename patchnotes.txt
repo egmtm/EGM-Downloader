@@ -8,6 +8,7 @@ v1.3 - Build TBD (TBD)
   • [WINDOWS] Installer redesigned to match the app's dark theme, with language selection at setup — available in all 10 supported languages
   • [ALL] New opt-in "Upscale to selected quality" — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail)
   • [ALL] Video conversion (the "MP4 · H.264" compatibility format and Upscale) now uses your GPU when available, cutting CPU load and heat dramatically — automatically falls back to software encoding if no compatible GPU is found or it's busy
+  • [ALL] New: HDR downloads — videos with an HDR version (HDR10, HDR10+, HLG, Dolby Vision) now show it as a separate option per resolution. HDR downloads save as MKV to preserve the HDR data untouched (requires an HDR-capable display and player to actually look right)
   • [ALL] Fixed Full HD/4K downloads sometimes downloading a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
   • [MAC] [LINUX] Fixed cancelling a video conversion (H.264 fix-up or Upscale) sometimes closing the whole app instead of just that download
   • [ALL] Fixed cancel not working during video conversion — clicking Cancel while a video was converting was silently ignored, and the conversion ran to completion anyway
