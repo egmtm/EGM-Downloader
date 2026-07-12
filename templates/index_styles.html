@@ -488,6 +488,7 @@
     .whats-new-list {
       margin: 10px 0 14px;
       padding-left: 18px;
+      padding-right: 10px;
       overflow-y: auto;
       flex: 1 1 auto;
       min-height: 0;
@@ -593,7 +594,7 @@
     textarea#urls {
       width: 100%; background: var(--surf2); border: 1px solid var(--border);
       border-radius: var(--rs); color: var(--text); font-size: .88rem;
-      padding: 11px 13px; resize: vertical; min-height: 70px;
+      padding: 11px 13px; resize: vertical; min-height: 92px;
       font-family: inherit; outline: none; transition: border-color var(--ease), box-shadow var(--ease);
       overflow-y: auto;
     }
@@ -727,7 +728,7 @@
        The dropdown still lists the full label; the audio select is left untouched. */
     select#output-format-sel { min-width: 0; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
     /* ── Settings panel redesign (layout only; IDs/behavior unchanged) ── */
-    .set-grid { display: grid; grid-template-columns: 13fr 7fr; gap: 8px; margin-top: 2px; }
+    .set-grid { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 8px; margin-top: 2px; }
     .set-box { background: var(--surf2); border: 1px solid var(--border); border-radius: var(--rs); padding: 10px 12px; display: flex; flex-direction: column; min-width: 0; }
     .set-divider { height: 1px; background: var(--border); margin: 10px 0; }
     .set-format-row { display: flex; align-items: center; gap: 8px; }
@@ -737,7 +738,9 @@
     .set-cookie-area { display: flex; flex-direction: column; align-items: center; gap: 8px; }
     .set-cookie-actions { align-items: center; }
     .set-cookie-actions-loaded { width: 100%; justify-content: space-between; align-items: center; gap: 5px; }
-    .set-toggles { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-top: 10px; padding: 10px 0 10px; border-top: 1px solid var(--border); }
+    .set-toggles { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding: 10px 0 10px; border-top: 1px solid var(--border); }
+    .set-toggles .sw-wrap { min-width: 0; }
+    .set-toggles .sw-wrap span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 
@@ -786,6 +789,8 @@
     .vb-ok  { background: rgba(34,197,94,.12);  color: var(--green); }
     .vb-upd { background: rgba(245,158,11,.12); color: var(--yellow); }
     .ver-info { font-size: .72rem; color: var(--text2); display: flex; flex-direction: column; gap: 2px; }
+    .adv-chan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .adv-chan-grid .adv-port-wrap { margin-bottom: 0; }
     .sw-wrap { display: flex; align-items: center; gap: 7px; font-size: .77rem; color: var(--text2); cursor: pointer; user-select: none; }
     input.sw[type=checkbox] { appearance: none; width: 32px; height: 17px; background: var(--border2); border-radius: 999px; cursor: pointer; transition: background var(--ease); position: relative; flex-shrink: 0; }
     input.sw[type=checkbox]::after { content:''; position:absolute; top:2px; left:2px; width:13px; height:13px; background:var(--btn-primary-text); border-radius:50%; transition:left var(--ease); }
@@ -851,7 +856,7 @@
     .upd-backdrop { position:fixed; top:0; left:0; right:0; bottom:0; background:var(--modal-overlay); display:flex; align-items:center; justify-content:center; z-index:10000; opacity:0; animation:updFade .2s forwards; }
     .upd-modal { background:var(--surf); border:1px solid var(--border); border-radius:var(--r); padding:24px; max-width:420px; width:90%; box-shadow:var(--modal-shadow); max-height:90vh; display:flex; flex-direction:column; overflow:hidden; }
     .upd-modal h3 { margin:0 0 16px; color:var(--text); font-size:1.1rem; flex:0 0 auto; }
-    .upd-modal-body { color:var(--text2); font-size:.88rem; line-height:1.6; margin-bottom:20px; overflow-y:auto; flex:1 1 auto; min-height:0; }
+    .upd-modal-body { color:var(--text2); font-size:.88rem; line-height:1.6; margin-bottom:20px; padding-right:10px; overflow-y:auto; flex:1 1 auto; min-height:0; }
     .upd-ver-row { display:flex; justify-content:space-between; padding:7px 0; border-bottom:1px solid var(--border2); }
     .upd-ver-row:last-child { border-bottom:none; }
     .upd-notes { margin-top:12px; padding:10px 12px; background:var(--surf2); border-radius:var(--rs); border-left:3px solid var(--acc); font-size:.82rem; line-height:1.5; display:flex; flex-direction:column; gap:3px; }

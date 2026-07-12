@@ -97,13 +97,16 @@
             || nameInput.value.trim() !== initialName;
   }
   function autoName() {
+    // Localized base ("My Theme", "Mi Tema", …) from the locale's "… 1" placeholder.
+    const base = (i18nGet('creator.placeholder.theme_name') || 'My Theme 1').replace(/\s*1$/, '');
     let n = 1;
     try {
       const saved = JSON.parse(localStorage.getItem('egm-custom-theme') || 'null');
-      const m = saved && typeof saved.name === 'string' && saved.name.match(/^My Theme (\d+)$/);
+      const rx = new RegExp('^' + base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ' (\\d+)$');
+      const m = saved && typeof saved.name === 'string' && saved.name.match(rx);
       if (m) n = parseInt(m[1], 10) + 1;
     } catch {}
-    return 'My Theme ' + n;
+    return base + ' ' + n;
   }
   function syncPickers() { pickers.forEach(inp => { inp.value = core[inp.dataset.var]; }); }
 
@@ -151,8 +154,10 @@
     });
   }
   function confirmClose() {
-    showModal({ title: 'Close without saving?', body: "Your theme hasn't been saved or exported.",
-      cancel: 'Keep editing', ok: 'Close anyway', danger: true, onOk: closePanel });
+    showModal({ title: (i18nGet('creator.modal.close.title') || 'Close without saving?'),
+      body: (i18nGet('creator.modal.close.body2') || "Your theme hasn't been saved or exported."),
+      cancel: (i18nGet('creator.modal.close.keep') || 'Keep editing'),
+      ok: (i18nGet('creator.modal.close.confirm') || 'Close anyway'), danger: true, onOk: closePanel });
   }
 
   // ── Random (sample THEME_DATA minus memes + custom) ──────────────────────────
@@ -192,7 +197,7 @@
     if (window.electronAPI && window.electronAPI.saveFile) {
       const r = await window.electronAPI.saveFile(slug(theme.name) + '.json', payload);
       if (!r || r.canceled) return;
-      if (r.ok) toast('Theme exported ✓', 'ok');
+      if (r.ok) toast((i18nGet('theme.export.success') || 'Theme exported') + ' ✓', 'ok');
       else toast('Export failed: ' + ((r && r.error) || 'unknown'), 'err');
     } else {
       try { await navigator.clipboard.writeText(payload); toast('Theme copied to clipboard ✓', 'ok'); }
@@ -224,9 +229,10 @@
     }
     if (dupes.length) {
       showModal({
-        title: 'Overwrite "' + theme.name + '"?',
-        body: 'A saved theme with this name already exists. Overwrite it, or cancel to rename.',
-        cancel: 'Cancel', ok: 'Overwrite', danger: true,
+        title: (i18nFmt('creator.modal.overwrite.title_named', theme.name) || ('Overwrite "' + theme.name + '"?')),
+        body: (i18nGet('creator.modal.overwrite.body') || 'A saved theme with this name already exists. Overwrite it, or cancel to rename.'),
+        cancel: (i18nGet('creator.modal.overwrite.cancel') || 'Cancel'),
+        ok: (i18nGet('creator.modal.overwrite.confirm') || 'Overwrite'), danger: true,
         onOk: () => {
           if (typeof deleteSavedTheme === 'function') {
             try { dupes.forEach(t => deleteSavedTheme(t.id)); } catch {}
@@ -257,8 +263,10 @@
   nameInput.addEventListener('input', recomputeDirty);
   $('cvp-close').addEventListener('click', requestClose);
   $('cvp-reset').addEventListener('click', () => showModal({
-    title: 'Reset theme?', body: 'All color changes will be lost. This cannot be undone.',
-    cancel: 'Cancel', ok: 'Reset', danger: true,
+    title: (i18nGet('creator.modal.reset.title') || 'Reset theme?'),
+    body: (i18nGet('creator.modal.reset.body') || 'All color changes will be lost. This cannot be undone.'),
+    cancel: (i18nGet('creator.modal.overwrite.cancel') || 'Cancel'),
+    ok: (i18nGet('creator.btn.reset') || 'Reset'), danger: true,
     onOk: () => { core = Object.assign({}, baseline); syncPickers(); pushPreview(deriveAll(core)); recomputeDirty(); },
   }));
   $('cvp-random').addEventListener('click', randomize);

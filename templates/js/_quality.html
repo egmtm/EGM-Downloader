@@ -135,18 +135,9 @@ function videoQualityBgClick(e) {
 
 // ── Advanced settings panel ───────────────────────────────────────────────────
 (function() {
-  // Toggle open/close
-  // Advanced panel toggle — used by sec-hdr onclick and button
-  // Clear cache
-  document.getElementById('adv-clear-cache-btn').addEventListener('click', async () => {
-    const r = await post('/api/cache/clear', {});
-    if (r.ok) toast('Cache cleared ✓', 'ok');
-    else toast('Clear failed: ' + (r.error || 'unknown'), 'err');
-  });
-
   // Reset settings
   document.getElementById('adv-reset-btn').addEventListener('click', async () => {
-    if (!confirm('Reset everything to defaults?\n\nThis clears all settings, themes, and download history.\nThe downloaded files themselves are NOT deleted.')) return;
+    if (!confirm(i18nGet('confirm.reset_settings') || 'Reset everything to defaults?\n\nThis clears all settings, themes, and download history.\nThe downloaded files themselves are NOT deleted.')) return;
     const r = await post('/api/settings/reset', {});
     if (r.ok) {
       // Also clear download history (EGM design: reset means reset)
@@ -176,43 +167,28 @@ function videoQualityBgClick(e) {
 
   // Reinstall Deno — live, no restart. Kicks off the background installer and
   // polls /api/deno/install-status, exactly like the first-time install path.
-  document.getElementById('adv-deno-btn').addEventListener('click', async () => {
-    if (!confirm('Reinstall Deno now?\n\nThe current Deno runtime is replaced with a fresh download — no restart needed. Make sure you have an internet connection.')) return;
-    const btn = document.getElementById('adv-deno-btn');
-    if (btn) btn.disabled = true;
-    const r = await post('/api/deno/reinstall', {});
-    if (!r.started) { toast(r.error || 'Reinstall failed', 'err'); if (btn) btn.disabled = false; return; }
-    toast('Reinstalling Deno…', 'ok');
-    const iv = setInterval(async () => {
-      try {
-        const s = await fetch('/api/deno/install-status').then(r => r.json());
-        if (s.running) return;
-        clearInterval(iv);
-        if (btn) btn.disabled = false;
-        if (s.error) toast('Deno reinstall failed: ' + s.error, 'err');
-        else toast('Deno reinstalled — YouTube signature solving active', 'ok');
-        if (typeof refreshUpdGrid === 'function') refreshUpdGrid();
-      } catch {}
-    }, 800);
-  });
-
   // Reinstall Electron (Windows only — shown via platform check below)
   document.getElementById('adv-electron-btn').addEventListener('click', async () => {
-    if (!confirm('Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
+    if (!confirm(i18nGet('confirm.reinstall_electron') || 'Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
     const r = await post('/api/electron/reinstall', {});
     if (!r.ok) { toast('Failed: ' + (r.error || 'unknown'), 'err'); return; }
     // The reinstall only applies on a fresh launch — offer to restart now.
     if (window.electronAPI && window.electronAPI.quit &&
-        confirm('Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
-      toast('Restarting to reinstall Electron…', 'ok');
+        confirm(i18nGet('confirm.electron_restart_now') || 'Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
+      toast(i18nGet('toast.electron.restarting') || 'Restarting to reinstall Electron…', 'ok');
       setTimeout(() => window.electronAPI.quit({ relaunch: true }), 600);
     } else {
-      toast('Electron will reinstall the next time you open the app', 'ok');
+      toast(i18nGet('toast.electron.will_reinstall_next_launch') || 'Electron will reinstall the next time you open the app', 'ok');
     }
   });
-  // Show Electron reinstall button only on Windows (Mac/Linux bundle Electron at build time)
+  // Show Electron reinstall button only on Windows (Mac/Linux bundle Electron at build time).
+  // Collapse the shared row to a single column on non-Windows, so Reset settings
+  // doesn't sit stranded in half the row with empty space beside it.
   if (navigator.platform.startsWith('Win')) {
     document.getElementById('adv-electron-btn').style.display = '';
+  } else {
+    const row = document.getElementById('adv-electron-reset-row');
+    if (row) row.style.gridTemplateColumns = '1fr';
   }
 
   // ── Channel toggles (yt-dlp + ffmpeg) ──────────────────────────────────────
@@ -246,50 +222,6 @@ function videoQualityBgClick(e) {
       toast(`ffmpeg channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
     } catch { toast('Failed to save channel setting', 'err'); }
   });
-
-  // Export settings
-  // ── Export/Import selector modal ─────────────────────────────────────────────
-  function _showExportSelector(counts, onConfirm) {
-    const items = [
-      { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences' },
-      { key:'history',       icon:'🕓', label:'History',             sub:`${counts.history} download records` },
-      { key:'themes',        icon:'🎨', label:'Themes & preferences', sub:'Active theme, custom themes, UI preferences' },
-      { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub:`${counts.subscriptions} channels` },
-    ];
-    const state = { settings:true, history:true, themes:true, subscriptions:true };
-    egmAlert('', '', {
-      _custom: true,
-      title: '↑ Export settings',
-      hint: 'Choose what to include in your export file.',
-      items, state,
-      confirmLabel: '↑ Export',
-      confirmClass: 'btn-export',
-      onConfirm,
-    });
-  }
-
-  function _showImportSelector(data, onConfirm) {
-    const isEnvelope = data._egm_export_version !== undefined;
-    const histCount = isEnvelope && Array.isArray(data.history) ? data.history.length : 0;
-    const subCount  = isEnvelope && Array.isArray(data.subscriptions) ? data.subscriptions.length : 0;
-    const hasLs     = isEnvelope && data.localStorage && typeof data.localStorage === 'object';
-    const items = [
-      { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available: true },
-      { key:'history',       icon:'🕓', label:'History',             sub: histCount > 0 ? `${histCount} records in file` : 'Not found in this file', available: histCount > 0 },
-      { key:'themes',        icon:'🎨', label:'Themes & preferences', sub: hasLs ? 'Active theme, custom themes, UI preferences' : 'Not found in this file', available: hasLs },
-      { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub: subCount > 0 ? `${subCount} channels in file` : 'Not found in this file', available: subCount > 0 },
-    ];
-    const state = { settings:true, history:histCount>0, themes:!!hasLs, subscriptions:subCount>0 };
-    egmAlert('', '', {
-      _custom: true,
-      title: '↓ Import settings',
-      hint: 'Choose what to restore. Existing data will be merged or replaced.',
-      items, state,
-      confirmLabel: '↓ Import',
-      confirmClass: 'btn-import',
-      onConfirm,
-    });
-  }
 
   // Patch egmAlert to support the custom selector style
   const _origEgmAlert = window.egmAlert;
@@ -338,7 +270,7 @@ function videoQualityBgClick(e) {
       const ftr = document.createElement('div');
       ftr.style.cssText = 'padding:12px 16px;border-top:0.5px solid var(--border);display:flex;gap:8px';
       const cancelBtn = document.createElement('button');
-      cancelBtn.textContent = 'Cancel';
+      cancelBtn.textContent = i18nGet('quality.btn.cancel') || 'Cancel';
       cancelBtn.style.cssText = 'flex:1;padding:7px 0;font-size:12px;border-radius:6px;border:0.5px solid var(--border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit';
       cancelBtn.onclick = () => { overlay.remove(); resolve(null); };
       const confirmBtn = document.createElement('button');
@@ -380,16 +312,16 @@ function videoQualityBgClick(e) {
 
       // Show selector
       const sel = await window._egmSelectorModal({
-        title: '↑ Export settings',
-        hint: 'Choose what to include in your export file.',
+        title: (i18nGet('settings.export.title') || '↑ Export settings'),
+        hint: (i18nGet('settings.export.hint') || 'Choose what to include in your export file.'),
         items: [
-          { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available:true },
-          { key:'history',       icon:'🕓', label:'History',             sub:`${histItems.length} download records`, available:true },
-          { key:'themes',        icon:'🎨', label:'Themes & preferences', sub:'Active theme, custom themes, UI preferences', available:true },
-          { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub:`${subUrls.length} channels`, available:true },
+          { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
+          { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:(i18nFmt('settings.io.item.history.count_export', histItems.length) || `${histItems.length} download records`), available:true },
+          { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences'), available:true },
+          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:(i18nFmt('settings.io.item.subscriptions.count_export', subUrls.length) || `${subUrls.length} channels`), available:true },
         ],
         state: { settings:true, history:true, themes:true, subscriptions:true },
-        confirmLabel: '↑ Export',
+        confirmLabel: (i18nGet('panel.themes.btn.export') || '↑ Export'),
       });
       if (!sel) return;
 
@@ -403,17 +335,17 @@ function videoQualityBgClick(e) {
       };
       const content = JSON.stringify(envelope, null, 2);
       const parts = [
-        sel.settings      ? 'settings'                           : null,
-        sel.history       ? `${histItems.length} history`        : null,
-        sel.subscriptions ? `${subUrls.length} subscriptions`    : null,
-        sel.themes        ? `${Object.keys(lsKeys).length} preferences` : null,
+        sel.settings      ? (i18nGet('settings.export.part.settings') || 'settings') : null,
+        sel.history       ? (i18nFmt('settings.export.part.history', histItems.length) || `${histItems.length} history`) : null,
+        sel.subscriptions ? (i18nFmt('settings.export.part.subscriptions', subUrls.length) || `${subUrls.length} subscriptions`) : null,
+        sel.themes        ? (i18nFmt('settings.export.part.themes', Object.keys(lsKeys).length) || `${Object.keys(lsKeys).length} preferences`) : null,
       ].filter(Boolean).join(', ');
 
       if (window.electronAPI?.saveFile) {
         const r = await window.electronAPI.saveFile('egm-settings.json', content);
         if (r.canceled) return;
-        if (r.ok) toast(`Exported ✓  (${parts})`, 'ok');
-        else toast('Export failed: ' + (r.error || 'unknown'), 'err');
+        if (r.ok) toast(i18nFmt('settings.export.toast', parts) || `Exported ✓  (${parts})`, 'ok');
+        else toast(i18nFmt('settings.export.error', r.error || 'unknown') || ('Export failed: ' + (r.error || 'unknown')), 'err');
       } else {
         await navigator.clipboard.writeText(content);
         toast('Settings copied to clipboard ✓', 'ok');
@@ -443,16 +375,16 @@ function videoQualityBgClick(e) {
 
       // Show selector — only enable rows that exist in the file
       const sel = await window._egmSelectorModal({
-        title: '↓ Import settings',
-        hint: 'Choose what to restore. Existing data will be merged or replaced.',
+        title: (i18nGet('settings.import.title') || '↓ Import settings'),
+        hint: (i18nGet('settings.import.hint') || 'Choose what to restore. Existing data will be merged or replaced.'),
         items: [
-          { key:'settings',      icon:'⚙️', label:'Settings',            sub:'Download folder, format, quality, preferences', available:true },
-          { key:'history',       icon:'🕓', label:'History',             sub: histItems.length > 0 ? `${histItems.length} records in file` : 'Not found in this file', available:histItems.length>0 },
-          { key:'themes',        icon:'🎨', label:'Themes & preferences', sub: lsData ? 'Active theme, custom themes, UI preferences' : 'Not found in this file', available:!!lsData },
-          { key:'subscriptions', icon:'📺', label:'Subscriptions',        sub: subUrls.length > 0 ? `${subUrls.length} channels in file` : 'Not found in this file', available:subUrls.length>0 },
+          { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
+          { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub: histItems.length > 0 ? (i18nFmt('settings.io.item.history.count', histItems.length) || `${histItems.length} records in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:histItems.length>0 },
+          { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub: lsData ? (i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:!!lsData },
+          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub: subUrls.length > 0 ? (i18nFmt('settings.io.item.subscriptions.count', subUrls.length) || `${subUrls.length} channels in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:subUrls.length>0 },
         ],
         state: { settings:true, history:histItems.length>0, themes:!!lsData, subscriptions:subUrls.length>0 },
-        confirmLabel: '↓ Import',
+        confirmLabel: (i18nGet('panel.themes.btn.import') || '↓ Import'),
       });
       if (!sel) return;
 
@@ -461,7 +393,7 @@ function videoQualityBgClick(e) {
 
       if (sel.settings) {
         await post('/api/settings/save', settingsToImport);
-        msg = 'Settings imported';
+        msg = i18nGet('settings.import.success') || 'Settings imported';
       }
       if (sel.history && histItems.length > 0) {
         const r = await post('/api/history/import', { items: histItems });
@@ -498,7 +430,7 @@ function videoQualityBgClick(e) {
       const parts = [msg, subCount>0?`${subCount} subscriptions (re-fetch to load videos)`:null].filter(Boolean).join(' + ');
       toast(`${parts || 'Nothing selected'} — reloading…`, parts ? 'ok' : 'err');
       if (parts) setTimeout(() => location.reload(), 800);
-    } catch { toast('Could not import settings — file may not be valid settings JSON', 'err'); }
+    } catch { toast(i18nGet('settings.import.error') || 'Could not import settings — file may not be valid settings JSON', 'err'); }
   });
 })();
 

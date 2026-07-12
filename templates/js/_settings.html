@@ -5,10 +5,7 @@
     if (s.last_folder) {
       chosenPath = s.last_folder;
       document.getElementById('dl-dir').value = s.last_folder;
-      const fh = document.getElementById('settings-folder-hint'); if (fh) fh.textContent = s.last_folder.split(/[\\/]/).pop() || s.last_folder;
       document.getElementById('open-folder-btn').disabled = false;
-      const dirHint = document.getElementById('dir-hint');
-      if (dirHint) { dirHint.textContent = 'Files saved to: ' + s.last_folder; dirHint.style.color = ''; }
     }
     if (s.concurrency) {
       const sel = document.getElementById('concurrency-sel');
@@ -59,6 +56,10 @@
       const chk = document.getElementById('subtitles-chk');
       if (chk) chk.checked = true;
     }
+    {
+      const up = document.getElementById('upscale-chk');
+      if (up) up.checked = s.upscale_to_quality === true;
+    }
     if (s.embed_metadata === false) {
       const chk = document.getElementById('embed-metadata-chk');
       if (chk) chk.checked = false;
@@ -72,13 +73,14 @@
       if (sel) sel.value = s.default_audio_format;
     }
   } catch {}
-  // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows)
+  // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows).
+  // Collapse the shared row to a single column too, so Check for app update
+  // doesn't sit stranded in half the row with empty space beside it.
   const sb = document.getElementById('adv-shortcut-btn');
   if (sb && typeof window.electronAPI?.createShortcut !== 'function') {
     sb.style.display = 'none';
-    // Center Flask port when it's alone on its row (odd item count after hiding shortcut)
-    const portWrap = document.querySelector('.adv-port-wrap');
-    if (portWrap) { portWrap.style.gridColumn = '1 / -1'; portWrap.style.justifySelf = 'stretch'; }
+    const row = document.getElementById('adv-update-shortcut-row');
+    if (row) row.style.gridTemplateColumns = '1fr';
   }
 
 // ── Portable mode detection — runs immediately, hides update UI if portable ───
@@ -89,6 +91,12 @@
     const p = await fetch('/api/portable-status').then(r => r.json());
     if (p.portable) {
       document.body.classList.add('portable-mode');
+      // Portable CSS hides #footer-update-btn (body.portable-mode #footer-update-btn
+      // { display:none !important }) while Desktop shortcut stays visible (we only
+      // reach this branch when createShortcut exists) -- collapse the shared row to
+      // one column so the shortcut button doesn't sit stranded beside empty space.
+      const row = document.getElementById('adv-update-shortcut-row');
+      if (row) row.style.gridTemplateColumns = '1fr';
     }
   } catch {}
 })();
@@ -129,6 +137,9 @@ document.getElementById('check-updates-on-launch-chk').addEventListener('change'
 });
 document.getElementById('subtitles-chk').addEventListener('change', function() {
   post('/api/settings/save', { subtitles: this.checked });
+});
+document.getElementById('upscale-chk').addEventListener('change', function() {
+  post('/api/settings/save', { upscale_to_quality: this.checked });
 });
 document.getElementById('embed-metadata-chk').addEventListener('change', function() {
   post('/api/settings/save', { embed_metadata: this.checked });
@@ -182,6 +193,7 @@ function updatePluginsBadge(data) {
   if (data.ffmpeg && data.ffmpeg.up_to_date === false) count++;
   if (data.mutagen && data.mutagen.up_to_date === false) count++;
   if (data.optlibs && data.optlibs.updates_available > 0) count++;
+  if (data.deno && data.deno.up_to_date === false) count++;
   if (count > 0) {
     badge.textContent = count + ' update' + (count > 1 ? 's' : '');
     badge.className = 'adv-divider-badge upd';
@@ -210,24 +222,6 @@ function toggleSettingsPanel() {
     settingsHeader.addEventListener('click', e => {
       if (e.target.closest('button') || e.target.closest('label')) return;
       toggleSettingsPanel();
-    });
-  }
-})();
-
-// ── Cookies sub-panel toggle ──────────────────────────────────────────────────
-let ckOpen = false;
-function toggleCookiePanel() {
-  // No-op: cookies section is always visible (single-row layout since v0.98.7)
-}
-
-// Clicking anywhere on the cookies sub-row label also toggles it
-(function() {
-  const ckRow = document.getElementById('ck-toggle')?.closest('div');
-  if (ckRow) {
-    ckRow.style.cursor = 'pointer';
-    ckRow.addEventListener('click', e => {
-      if (e.target.closest('button')) return;
-      toggleCookiePanel();
     });
   }
 })();
@@ -348,14 +342,22 @@ document.getElementById('adv-shortcut-btn')?.addEventListener('click', async () 
   try {
     const r = await window.electronAPI.createShortcut();
     if (r.exists) {
-      toast('Desktop shortcut already exists', 'ok');
+      toast(i18nGet('toast.shortcut.exists') || 'Desktop shortcut already exists', 'ok');
       btn.disabled = false;
       btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
     } else if (r.success) {
-      toast('Desktop shortcut created ✓', 'ok');
-      btn.textContent = '✓ Done';
+      toast((i18nGet('shortcut.created') || 'Desktop shortcut created') + ' ✓', 'ok');
+      btn.textContent = i18nGet('card.status.done') || '✓ Done';
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>';
+        const lbl = document.createElement('span');
+        lbl.setAttribute('data-i18n', 'advanced.btn.desktop_shortcut');
+        lbl.textContent = i18nGet('advanced.btn.desktop_shortcut') || 'Desktop shortcut';
+        btn.appendChild(lbl);
+      }, 3000);
     } else {
-      toast('Shortcut error: ' + r.error, 'err');
+      toast(i18nFmt('toast.shortcut.error', r.error) || ('Shortcut error: ' + r.error), 'err');
       btn.disabled = false;
       btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
     }
@@ -371,10 +373,7 @@ document.getElementById('browse-btn').addEventListener('click', async () => {
   if (!picked) return;
   chosenPath = picked;
   document.getElementById('dl-dir').value = picked;
-  const fh2 = document.getElementById('settings-folder-hint'); if (fh2) fh2.textContent = picked.split(/[\\/]/).pop() || picked;
   document.getElementById('open-folder-btn').disabled = false;
-  const dirH = document.getElementById('dir-hint');
-  if (dirH) { dirH.textContent = 'Files will be saved to: ' + picked; dirH.style.color = ''; }
   await post('/api/settings/save', { last_folder: picked });
   toast('Folder selected', 'ok');
 });
@@ -397,7 +396,7 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
   try {
     const [data, deno] = await Promise.all([
       fetch('/api/check-updates').then(r => r.json()),
-      fetch('/api/deno/status').then(r => r.json()),
+      fetch('/api/deno/status?latest=1').then(r => r.json()),
     ]);
     data.deno = deno;
     renderUpdGrid(data);
@@ -423,7 +422,7 @@ function renderUpdGrid(data) {
   const ytD = data.ytdlp;
   const ytBadge = ytD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+    : `<span class="vbadge ${ytD.up_to_date?'vb-ok':'vb-upd'}">${ytD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const ytEl = document.createElement('div');
   ytEl.className = 'upd-item';
   ytEl.innerHTML = `
@@ -443,7 +442,7 @@ function renderUpdGrid(data) {
   const muD = data.mutagen || {};
   const muBadge = muD.up_to_date === null || muD.up_to_date === undefined
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+    : `<span class="vbadge ${muD.up_to_date?'vb-ok':'vb-upd'}">${muD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const muEl = document.createElement('div');
   muEl.className = 'upd-item';
   muEl.innerHTML = `
@@ -454,14 +453,14 @@ function renderUpdGrid(data) {
       </label>
     </div>
     <div class="upd-row">
-      <span class="upd-ver">${esc(muD.current || 'checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
+      <span class="upd-ver">${esc(muD.current || '') || i18nAttr('plugins.version.checking','checking…')}${muD.latest && !muD.up_to_date ? ` → ${esc(muD.latest)}` : ''}</span>
       ${muBadge}
     </div>`;
   grid.appendChild(muEl);
   const ffD = data.ffmpeg;
   const ffBadge = ffD.up_to_date === null
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?'✓ Up to date':'↑ Update available'}</span>`;
+    : `<span class="vbadge ${ffD.up_to_date?'vb-ok':'vb-upd'}">${ffD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const ffEl = document.createElement('div');
   ffEl.className = 'upd-item';
   ffEl.innerHTML = `
@@ -480,19 +479,26 @@ function renderUpdGrid(data) {
   // ── Deno ──────────────────────────────────────────────────────────────────
   const deD = data.deno;
   const deInstalled = deD && deD.installed;
-  const deVer = (deD && deD.version) ? esc(deD.version) : 'not installed';
+  const deVer = (deD && deD.version) ? esc(deD.version) : i18nAttr('plugins.version.not_installed','not installed');
+  const deBadge = !deInstalled
+    ? (deD && deD.latest
+        ? `<span class="vbadge vb-upd">${i18nAttr('plugins.deno.status.not_installed','✗ Not installed')}</span>`
+        : `<span class="vbadge vb-upd" style="opacity:.5">—</span>`)
+    : (deD.up_to_date === null || deD.up_to_date === undefined)
+      ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
+      : `<span class="vbadge ${deD.up_to_date?'vb-ok':'vb-upd'}">${deD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):i18nAttr('plugins.badge.update_available','↑ Update available')}</span>`;
   const deEl = document.createElement('div');
   deEl.className = 'upd-item';
   deEl.innerHTML = `
     <div class="upd-row">
-      <span class="upd-name" title="To update Deno, go to Advanced → Reinstall Deno">🦕 Deno</span>
+      <span class="upd-name">🦕 Deno</span>
       ${deInstalled
-        ? `<span style="font-size:.68rem;color:var(--text2)">bundled</span>`
-        : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">⬇ Install</button>`}
+        ? `<label class="sw-wrap" style="margin:0"><input type="checkbox" class="sw" id="sw-deno" ${deD.up_to_date===false?'checked':''}></label>`
+        : `<button class="btn btn-green btn-sm" id="install-deno-btn" onclick="installDeno()" style="font-size:.68rem;padding:2px 8px">${i18nAttr('plugins.btn.install','⬇ Install')}</button>`}
     </div>
     <div class="upd-row">
-      <span class="upd-ver">${deInstalled ? deVer : 'required for YouTube'}</span>
-      <span class="vbadge ${deInstalled?'vb-ok':'vb-upd'}">${deInstalled?'✓ Installed':'✗ Not installed'}</span>
+      <span class="upd-ver">${deInstalled ? `${deVer}${deD.latest && deD.up_to_date===false ? ` → ${esc(deD.latest)}` : ''}` : i18nAttr('plugins.deno.required_note','required for YouTube')}</span>
+      ${deBadge}
     </div>`;
   grid.appendChild(deEl);
 
@@ -501,7 +507,7 @@ function renderUpdGrid(data) {
   const olUpd = olD.updates_available || 0;
   const olBadge = olD.up_to_date === undefined
     ? `<span class="vbadge vb-upd" style="opacity:.5">—</span>`
-    : `<span class="vbadge ${olD.up_to_date?'vb-ok':'vb-upd'}">${olD.up_to_date?'✓ Up to date': olUpd + ' update' + (olUpd>1?'s':'') + ' available'}</span>`;
+    : `<span class="vbadge ${olD.up_to_date?'vb-ok':'vb-upd'}">${olD.up_to_date?i18nAttr('plugins.badge.up_to_date','✓ Up to date'):esc(i18nFmt('plugins.badge.n_updates', olUpd)||(olUpd + ' update' + (olUpd>1?'s':'') + ' available'))}</span>`;
   const olEl = document.createElement('div');
   olEl.className = 'upd-item';
   olEl.style.gridColumn = '1 / -1';
@@ -513,7 +519,15 @@ function renderUpdGrid(data) {
       </label>
     </div>
     <div class="upd-row">
-      <span class="upd-ver" style="color:var(--text2);font-size:.68rem">curl-cffi · brotli · pycryptodomex · websockets · certifi</span>
+      <span class="upd-ver" style="color:var(--text2);font-size:.68rem">${
+        olUpd > 0 && olD.current && olD.latest
+          ? Object.keys(olD.current).map(lib =>
+              olD.current[lib] !== 'not installed' && olD.latest[lib] !== 'unknown' && olD.current[lib] !== olD.latest[lib]
+                ? `${esc(lib)} ${esc(olD.current[lib])} → ${esc(olD.latest[lib])}`
+                : esc(lib)
+            ).join(' · ')
+          : 'curl-cffi · brotli · pycryptodomex · websockets · certifi'
+      }</span>
       ${olBadge}
     </div>`;
   grid.appendChild(olEl);
@@ -525,8 +539,9 @@ function syncInstallBtn() {
   const ffOn = document.getElementById('sw-ffmpeg')?.checked;
   const muOn = document.getElementById('sw-mutagen')?.checked;
   const olOn = document.getElementById('sw-optlibs')?.checked;
+  const deOn = document.getElementById('sw-deno')?.checked;
   const btn  = document.getElementById('run-update-btn');
-  if (btn) btn.style.display = (ytOn || ffOn || muOn || olOn) ? '' : 'none';
+  if (btn) btn.style.display = (ytOn || ffOn || muOn || olOn || deOn) ? '' : 'none';
 }
 
 // Re-sync after renderUpdGrid populates the grid (delegate via grid container)
@@ -538,32 +553,94 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
   const doF = document.getElementById('sw-ffmpeg')?.checked ?? false;
   const doM = document.getElementById('sw-mutagen')?.checked ?? false;
   const doO = document.getElementById('sw-optlibs')?.checked ?? false;
-  if (!doY && !doF && !doM && !doO) { toast('Select at least one item', 'err'); return; }
+  const doD = document.getElementById('sw-deno')?.checked ?? false;
+  if (!doY && !doF && !doM && !doO && !doD) { toast(i18nGet('toast.plugins.select_one')||'Select at least one item', 'err'); return; }
   const log = document.getElementById('upd-log');
+  const btn = document.getElementById('run-update-btn');
   log.textContent = ''; log.classList.add('show');
-  document.getElementById('run-update-btn').disabled = true;
+  btn.disabled = true;
+  let denoLog = [];
+  try {
+  let denoFailMsg = '';
+  if (doD) {
+    // Deno updates through its existing reinstall pipeline; stream its log here.
+    const r = await post('/api/deno/reinstall', {});
+    if (r.started) {
+      await new Promise(res => {
+        const dv = setInterval(async () => {
+          try {
+            const ds = await fetch('/api/deno/install-status').then(x => x.json());
+            denoLog = ds.log || [];
+            log.textContent = denoLog.join('\n');
+            log.scrollTop = log.scrollHeight;
+            if (!ds.running) { clearInterval(dv); res(); }
+          } catch { clearInterval(dv); res(); }
+        }, 800);
+      });
+    } else {
+      // Failure to START (e.g. a download is in progress) — record it so the
+      // completion path below reports an error, not success.
+      denoFailMsg = i18nFmt('toast.deno.update_start_failed', r.error || 'unknown')
+                    || ('Deno update could not start: ' + (r.error || 'unknown'));
+      denoLog = [denoFailMsg];
+      log.textContent = denoFailMsg;
+    }
+    if (!doY && !doF && !doM && !doO) {
+      // Deno-only run — finish here, refresh the grid state
+      btn.disabled = false;
+      if (denoFailMsg) toast(denoFailMsg, 'err');
+      else toast(i18nGet('toast.plugins.update_complete')||'Update complete ✓', 'ok');
+      try {
+        const [fresh, freshDeno] = await Promise.all([
+          fetch('/api/check-updates').then(r => r.json()),
+          fetch('/api/deno/status?latest=1').then(r => r.json()),
+        ]);
+        fresh.deno = freshDeno;
+        renderUpdGrid(fresh);
+        updatePluginsBadge(fresh);
+        syncInstallBtn();
+        // Auto-clear only on success — a failure message must stay readable.
+        if (!denoFailMsg) setTimeout(() => { log.classList.remove('show'); log.textContent = ''; }, 1500);
+      } catch {}
+      return;
+    }
+  }
   await post('/api/run-update', { ytdlp: doY, ffmpeg: doF, mutagen: doM, optlibs: doO });
-  log.textContent = 'Starting…\n';
+  log.textContent = denoLog.concat([i18nGet('plugins.log.starting')||'Starting…']).join('\n');
+  let pollFails = 0;
   const iv = setInterval(async () => {
-    const s = await fetch('/api/update-status').then(r => r.json());
-    log.textContent = (s.log||[]).join('\n');
+    let s;
+    try {
+      s = await fetch('/api/update-status').then(r => r.json());
+      pollFails = 0;
+    } catch {
+      // Tolerate transient poll errors; if the backend is really gone, stop
+      // polling and unlock the button instead of spinning disabled forever.
+      if (++pollFails >= 4) {
+        clearInterval(iv);
+        btn.disabled = false;
+        toast((i18nGet('plugins.install.error') || 'Plugin update failed'), 'err');
+      }
+      return;
+    }
+    log.textContent = denoLog.concat(s.log||[]).join('\n');
     log.scrollTop = log.scrollHeight;
     if (!s.running) {
       clearInterval(iv);
       document.getElementById('run-update-btn').disabled = false;
       if (s.done) {
-        toast('Update complete ✓', 'ok');
+        toast(i18nGet('toast.plugins.update_complete')||'Update complete ✓', 'ok');
         // Re-check versions so "Installed" reflects the new version immediately
         try {
           const [fresh, freshDeno] = await Promise.all([
             fetch('/api/check-updates').then(r => r.json()),
-            fetch('/api/deno/status').then(r => r.json()),
+            fetch('/api/deno/status?latest=1').then(r => r.json()),
           ]);
           fresh.deno = freshDeno;
           renderUpdGrid(fresh);
           updatePluginsBadge(fresh);
           // Reset toggles and hide Install button — job done
-          ['sw-ytdlp','sw-ffmpeg','sw-mutagen'].forEach(id => {
+          ['sw-ytdlp','sw-ffmpeg','sw-mutagen','sw-deno'].forEach(id => {
             const el = document.getElementById(id); if (el) el.checked = false;
           });
           syncInstallBtn();
@@ -573,9 +650,15 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
             log.textContent = '';
           }, 1500);
         } catch {}
-      } else if (s.error) toast('Error: ' + s.error, 'err');
+      } else if (s.error) toast((i18nFmt('toast.plugins.error_prefix', s.error))||('Error: ' + s.error), 'err');
     }
   }, 800);
+  } catch (e) {
+    // Network-level failure before the update even started (post() throws on
+    // fetch errors) — without this the button stayed disabled until reload.
+    btn.disabled = false;
+    toast((i18nGet('plugins.install.error') || 'Plugin update failed') + ': ' + ((e && e.message) || e), 'err');
+  }
 });
 
 // ── Deno installer ───────────────────────────────────────────────────────────
@@ -607,7 +690,7 @@ async function installDeno() {
           try {
             const [data, deno] = await Promise.all([
               fetch('/api/check-updates').then(r => r.json()),
-              fetch('/api/deno/status').then(r => r.json()),
+              fetch('/api/deno/status?latest=1').then(r => r.json()),
             ]);
             data.deno = deno;
             renderUpdGrid(data);
@@ -629,19 +712,17 @@ async function refreshCookieCard() {
     const badge      = document.getElementById('ck-badge');
     const notLoaded  = document.getElementById('ck-not-loaded');
     const loaded     = document.getElementById('ck-loaded');
-    const statusText = document.getElementById('ck-status-text');
     if (!badge) return;
 
     if (s.active) {
-      const ageStr = s.age_days != null ? ` · ${s.age_days}d old` : '';
-      badge.textContent = `Cookies: active${ageStr}`;
+      const ageStr = s.age_days != null ? (i18nFmt('status.cookies_age_suffix', s.age_days) || ` · ${s.age_days}d old`) : '';
+      badge.textContent = i18nFmt('status.cookies_active', ageStr) || `Cookies: active${ageStr}`;
       badge.className   = (s.age_days >= 10 ? 'vbadge vb-upd' : 'vbadge vb-ok');
       badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
-      if (statusText) statusText.textContent = (s.path ? s.path.split(/[\\/]/).pop() : 'cookies.txt') + ageStr;
       if (notLoaded) notLoaded.style.display = 'none';
       if (loaded)    loaded.style.display = 'flex';
     } else {
-      badge.textContent   = 'Cookies: not loaded';
+      badge.textContent   = i18nGet('cookies.status.not_loaded') || 'Cookies: not loaded';
       badge.className     = 'vbadge vb-upd';
       badge.style.cssText = 'font-size:.72rem;padding:3px 10px';
       if (notLoaded) notLoaded.style.display = 'flex';
@@ -667,28 +748,9 @@ async function browseCookiesIPC() {
     }
     const r = await post('/api/cookies/save', { content: text });
     if (r.error) { toast('Failed to save cookies: ' + r.error, 'err'); return; }
-    toast('cookies.txt loaded — authenticated downloads enabled', 'ok');
+    toast(i18nGet('toast.cookies.loaded') || 'cookies.txt loaded — authenticated downloads enabled', 'ok');
     await refreshCookieCard();
   } catch (e) { toast('Browse error: ' + e.message, 'err'); }
-}
-
-async function uploadCookies(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const text = await file.text();
-  // Accept any valid Netscape cookie file — not just YouTube ones
-  if (!text.includes('# Netscape') && !text.trim().startsWith('#')) {
-    toast('This does not look like a valid cookies.txt file', 'err');
-    input.value = '';
-    return;
-  }
-  try {
-    const r = await post('/api/cookies/save', { content: text });
-    if (r.error) { toast('Failed to save cookies: ' + r.error, 'err'); return; }
-    toast('cookies.txt loaded — authenticated downloads enabled', 'ok');
-    await refreshCookieCard();
-  } catch (e) { toast('Upload error: ' + e.message, 'err'); }
-  input.value = '';
 }
 
 async function clearCookies() {
@@ -697,19 +759,7 @@ async function clearCookies() {
     if (r.error) { toast('Failed to remove cookies: ' + r.error, 'err'); return; }
     toast('Cookies removed', 'ok');
     await refreshCookieCard();
-  } catch (e) { toast('Error: ' + e.message, 'err'); }
-}
-
-async function refreshUpdGrid() {
-  try {
-    const [data, deno] = await Promise.all([
-      fetch('/api/check-updates').then(r => r.json()),
-      fetch('/api/deno/status').then(r => r.json()),
-    ]);
-    data.deno = deno;
-    renderUpdGrid(data);
-    syncInstallBtn();
-  } catch {}
+  } catch (e) { toast((i18nFmt('toast.plugins.error_prefix', e.message))||('Error: ' + e.message), 'err'); }
 }
 
 // Cookies card clear button
@@ -728,24 +778,19 @@ refreshCookieCard();
     const r = await post('/api/deno/install', {});
     if (r.error) return;  // already running or other issue — ignore
 
-    // Show subtle badge in Update Plugins header
-    const badge = document.getElementById('deno-status-badge');
-    if (badge) { badge.textContent = '🦕 Installing Deno…'; badge.style.display = ''; }
-
     // Poll silently until done
     const iv = setInterval(async () => {
       try {
         const s = await fetch('/api/deno/install-status').then(r => r.json());
         if (!s.running) {
           clearInterval(iv);
-          if (badge) badge.style.display = 'none';
           if (s.done) {
             toast('🦕 Deno installed — YouTube quality improved', 'ok');
             // Refresh update grid if panel is open
             try {
               const [data, deno] = await Promise.all([
                 fetch('/api/check-updates').then(r => r.json()),
-                fetch('/api/deno/status').then(r => r.json()),
+                fetch('/api/deno/status?latest=1').then(r => r.json()),
               ]);
               data.deno = deno;
               renderUpdGrid(data);
@@ -759,3 +804,81 @@ refreshCookieCard();
 })();
 
 
+// ── Language selector (footer) + Advanced hide-toggle ─────────────────────────
+// Selector options are built from the I18N allowlist only (i18n.html partial);
+// names via textContent. Active language always listed first.
+function buildLangSelector(active) {
+  const sel = document.getElementById('lang-select');
+  if (!sel) return;
+  sel.textContent = '';
+  [active, ...I18N_SUPPORTED.filter(c => c !== active)].forEach(c => {
+    const o = document.createElement('option');
+    o.value = c;
+    o.textContent = I18N_NAMES[c] || c;
+    sel.appendChild(o);
+  });
+  sel.value = active;
+}
+
+document.addEventListener('i18n:ready', e => {
+  const s = e.detail || {};
+  buildLangSelector(I18N.code);
+  const row = document.getElementById('lang-row');
+  if (row && s.show_language_selector !== false) row.style.display = '';
+  const chk = document.getElementById('show-lang-selector-chk');
+  if (chk) chk.checked = s.show_language_selector !== false;
+  const spWrap = document.getElementById('settings-panel-wrap');
+  if (spWrap && s.show_settings_panel === false) spWrap.style.display = 'none';
+  const spChk = document.getElementById('show-settings-panel-chk');
+  if (spChk) spChk.checked = s.show_settings_panel !== false;
+});
+
+document.getElementById('lang-select').addEventListener('change', async function() {
+  const code = this.value;
+  if (!I18N_SUPPORTED.includes(code)) return;
+  await i18nLoad(code);          // live swap — no restart
+  buildLangSelector(code);       // keep active language first
+  post('/api/settings/save', { language: code });
+});
+
+// Advanced toggle: turning OFF asks for confirmation (inline modal, locked spec);
+// turning ON applies immediately.
+document.getElementById('show-lang-selector-chk').addEventListener('change', function() {
+  if (this.checked) {
+    document.getElementById('lang-row').style.display = '';
+    post('/api/settings/save', { show_language_selector: true });
+  } else {
+    this.checked = true;  // revert until confirmed
+    document.getElementById('hide-lang-modal').style.display = 'flex';
+  }
+});
+document.addEventListener('i18n:changed', () => { refreshCookieCard(); });
+
+document.getElementById('hide-lang-cancel-btn').addEventListener('click', () => {
+  document.getElementById('hide-lang-modal').style.display = 'none';
+});
+document.getElementById('hide-lang-confirm-btn').addEventListener('click', () => {
+  document.getElementById('hide-lang-modal').style.display = 'none';
+  document.getElementById('show-lang-selector-chk').checked = false;
+  document.getElementById('lang-row').style.display = 'none';
+  post('/api/settings/save', { show_language_selector: false });
+});
+
+document.getElementById('show-settings-panel-chk').addEventListener('change', function() {
+  if (this.checked) {
+    document.getElementById('settings-panel-wrap').style.display = '';
+    post('/api/settings/save', { show_settings_panel: true });
+  } else {
+    this.checked = true;  // revert until confirmed
+    document.getElementById('hide-settings-modal').style.display = 'flex';
+  }
+});
+document.getElementById('hide-settings-cancel-btn').addEventListener('click', () => {
+  document.getElementById('hide-settings-modal').style.display = 'none';
+});
+document.getElementById('hide-settings-confirm-btn').addEventListener('click', () => {
+  document.getElementById('hide-settings-modal').style.display = 'none';
+  document.getElementById('show-settings-panel-chk').checked = false;
+  document.getElementById('settings-panel-wrap').style.display = 'none';
+  post('/api/settings/save', { show_settings_panel: false });
+});

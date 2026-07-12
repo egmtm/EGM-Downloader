@@ -1,0 +1,100 @@
+// ── i18n runtime loader ────────────────────────────────────────────────────────
+// Single escape path for every translated string: values land via textContent
+// (or setAttribute for an allowlisted set of text attributes) — never innerHTML.
+// A key missing in the selected locale falls back to the English value through
+// the SAME path (i18nGet), silently — no console noise, no visible placeholder.
+// Locale codes are allowlisted here AND server-side (/api/language rejects
+// anything outside SUPPORTED_LANGUAGES before building a file path).
+const I18N_SUPPORTED = ['en', 'ar', 'de', 'es', 'fr', 'it', 'ja', 'nl', 'pt', 'ru'];
+const I18N_NAMES = {
+  en: 'English',  ar: 'العربية',  de: 'Deutsch',    es: 'Español', fr: 'Français',
+  it: 'Italiano', ja: '日本語',    nl: 'Nederlands', pt: 'Português', ru: 'Русский'
+};
+let I18N = { code: 'en', strings: null, en: null };
+
+async function i18nFetch(code) {
+  if (!I18N_SUPPORTED.includes(code)) return null;
+  try {
+    const r = await fetch('/api/language/' + code);
+    if (!r.ok) return null;
+    const j = await r.json();
+    return (j && typeof j.strings === 'object') ? j.strings : null;
+  } catch (e) { return null; }
+}
+
+function i18nGet(key) {
+  const v = I18N.strings && I18N.strings[key];
+  if (typeof v === 'string') return v;
+  const en = I18N.en && I18N.en[key];                 // silent English fallback —
+  return (typeof en === 'string') ? en : null;        // same gate as the hit path
+}
+
+// Attributes translated text may be written into. Anything else is rejected —
+// keeps translated content out of event handlers, URLs and style attributes.
+const I18N_SAFE_ATTRS = ['title', 'placeholder', 'aria-label', 'alt'];
+
+// {0}/{1}… placeholder formatting for dynamic strings, on the same escape
+// discipline: callers place the result via textContent, never innerHTML.
+function i18nFmt(key, ...args) {
+  const v = i18nGet(key);
+  if (v === null) return null;
+  return v.replace(/\{(\d+)\}/g, (_, i) => (args[i] !== undefined ? String(args[i]) : ''));
+}
+
+// For translated values interpolated into HTML-attribute positions of
+// template literals (tooltips on rebuilt cards): escape for attribute context.
+// Escapes &, ", < — sufficient ONLY for double-quoted attributes (every call
+// site in this codebase uses title="${i18nAttr(...)}"). Does not escape ' —
+// if a future call site ever uses a single-quoted attribute, add that escape
+// or this function stops being safe there.
+function i18nAttr(key, fallback) {
+  const v = i18nGet(key);
+  return String(v === null ? fallback : v)
+    .replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+}
+
+function i18nApply(root) {
+  const scope = root || document;
+  scope.querySelectorAll('[data-i18n]').forEach(el => {
+    const v = i18nGet(el.getAttribute('data-i18n'));
+    if (v !== null) el.textContent = v;
+  });
+  // data-i18n-attr="title:some.key" or "title:key.a,placeholder:key.b"
+  scope.querySelectorAll('[data-i18n-attr]').forEach(el => {
+    el.getAttribute('data-i18n-attr').split(',').forEach(pair => {
+      const i = pair.indexOf(':');
+      if (i < 1) return;
+      const attr = pair.slice(0, i).trim();
+      if (!I18N_SAFE_ATTRS.includes(attr)) return;
+      const v = i18nGet(pair.slice(i + 1).trim());
+      if (v !== null) el.setAttribute(attr, v);
+    });
+  });
+}
+
+async function i18nLoad(code) {
+  if (!I18N_SUPPORTED.includes(code)) code = 'en';
+  if (!I18N.en) I18N.en = await i18nFetch('en');
+  I18N.strings = (code === 'en') ? I18N.en : (await i18nFetch(code)) || I18N.en;
+  I18N.code = code;
+  document.documentElement.setAttribute('lang', code);
+  i18nApply(document);
+  // State-owned text (cookie badge, live statuses) re-renders on this signal —
+  // those elements must NOT carry data-i18n or i18nApply stomps their state.
+  document.dispatchEvent(new CustomEvent('i18n:changed', { detail: { code } }));
+}
+
+// Boot: read persisted language (first run: backend detects from OS locale and
+// persists) and apply. Pages that need the settings object after i18n is up
+// listen for the i18n:ready event. Deferred to DOMContentLoaded so the page's
+// API-token fetch interceptor is installed before we call /api/settings.
+function i18nBoot() {
+  (async () => {
+    let s = {};
+    try { s = await fetch('/api/settings').then(r => r.json()); } catch (e) {}
+    await i18nLoad(s.language || 'en');
+    document.dispatchEvent(new CustomEvent('i18n:ready', { detail: s }));
+  })();
+}
+if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', i18nBoot);
+else i18nBoot();

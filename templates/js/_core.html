@@ -53,21 +53,21 @@ function _showUpdModal(html) {
 }
 
 function showUpToDateModal(isDev = false) {
-  toast(isDev ? '✓ You\'re ahead of the latest release' : '✓ EGM Downloader is up to date', 'ok');
+  toast(isDev ? '✓ You\'re ahead of the latest release' : (i18nGet('toast.update.uptodate') || '✓ EGM Downloader is up to date'), 'ok');
 }
 
 function showUpdateErrorModal() {
-  toast('⚠ Could not reach update server', 'warn');
+  toast(i18nGet('toast.update.unreachable') || '⚠ Could not reach update server', 'warn');
 }
 
 function showUpdateAvailableModal(d) {
   // Build release notes rows safely — textContent assigned after creation
   const backdrop = _showUpdModal(`
     <div class="upd-modal">
-      <h3>🎉 Update Available!</h3>
+      <h3>${i18nAttr('update.available.title', '🎉 Update Available!')}</h3>
       <div class="upd-modal-body">
-        <div class="upd-ver-row"><span>Current</span><strong>${d.current_version}</strong></div>
-        <div class="upd-ver-row"><span>Latest</span><strong style="color:var(--acc)">v${d.latest_version}</strong></div>
+        <div class="upd-ver-row"><span>${i18nAttr('update.available.current', 'Current')}</span><strong>${d.current_version}</strong></div>
+        <div class="upd-ver-row"><span>${i18nAttr('update.available.latest', 'Latest')}</span><strong style="color:var(--acc)">v${d.latest_version}</strong></div>
         <div id="_upd_notes_slot"></div>
       </div>
       <div class="upd-actions" id="_upd_btns_slot"></div>
@@ -97,7 +97,7 @@ function showUpdateAvailableModal(d) {
     // Windows: silent download + launch installer
     const btnUpdate = document.createElement('button');
     btnUpdate.className = 'btn btn-primary';
-    btnUpdate.textContent = '⬇ Update Now';
+    btnUpdate.textContent = i18nGet('update.available.btn.update') || '⬇ Update Now';
     btnUpdate.addEventListener('click', async () => {
       btnUpdate.textContent = 'Downloading…';
       btnUpdate.disabled = true;
@@ -124,7 +124,7 @@ function showUpdateAvailableModal(d) {
     // Mac/Linux: open download URL in browser — user installs manually
     const btnDownload = document.createElement('button');
     btnDownload.className = 'btn btn-primary';
-    btnDownload.textContent = '⬇ Download Update';
+    btnDownload.textContent = i18nGet('update.available.btn.download') || '⬇ Download Update';
     btnDownload.addEventListener('click', () => {
       window.open(d.download_url || d.zip_url || 'https://egerena.com', '_blank');
       backdrop.remove();
@@ -144,7 +144,7 @@ function showUpdateAvailableModal(d) {
   // "Later" dismiss
   const btnLater = document.createElement('button');
   btnLater.className = 'btn btn-ghost';
-  btnLater.textContent = 'Later';
+  btnLater.textContent = i18nGet('update.available.btn.later') || 'Later';
   btnLater.addEventListener('click', () => backdrop.remove());
   btns.insertBefore(btnLater, btns.firstChild);
 }
@@ -219,8 +219,8 @@ async function checkForUpdatesOnLaunch() {
         if (dl.error) return; // silent fail
         const installerPath = dl.installer_path;
         toastWithAction(
-          `Update downloaded — restart to apply v${d.latest_version}`,
-          'Restart now',
+          i18nFmt('update.toast.downloaded', d.latest_version) || `Update downloaded — restart to apply v${d.latest_version}`,
+          i18nGet('update.toast.btn.restart') || 'Restart now',
           async () => {
             const launch = await window.electronAPI.launchInstaller(installerPath);
             if (!launch.error) setTimeout(() => window.electronAPI.quit(), 800);
@@ -232,8 +232,8 @@ async function checkForUpdatesOnLaunch() {
     } else if (_plat === 'mac') {
       // Mac: open download page in browser, show toast — user installs manually
       toastWithAction(
-        `v${d.latest_version} is available — download to update`,
-        'Download',
+        i18nFmt('update.toast.available', d.latest_version) || `v${d.latest_version} is available — download to update`,
+        i18nGet('update.toast.btn.download') || 'Download',
         () => { window.open(d.download_url || 'https://egerena.com/mac', '_blank'); },
         10000
       );
@@ -241,8 +241,8 @@ async function checkForUpdatesOnLaunch() {
     } else if (_plat === 'linux') {
       // Linux: same as Mac — open download page, no auto-install
       toastWithAction(
-        `v${d.latest_version} is available — download to update`,
-        'Download',
+        i18nFmt('update.toast.available', d.latest_version) || `v${d.latest_version} is available — download to update`,
+        i18nGet('update.toast.btn.download') || 'Download',
         () => { window.open(d.download_url || 'https://egerena.com/linux', '_blank'); },
         10000
       );
@@ -263,4 +263,33 @@ document.getElementById('footer-help-btn')?.addEventListener('click', () => {
   document.getElementById('help-modal').style.display = 'flex';
 });
 
-
+// ── Easter egg: Konami code fake-crash (↑↑↓↓←→←→BA) ─────────────────────────
+// Pure gag, pure frontend: the "crash" is an overlay; nothing actually stops.
+(function() {
+  const SEQ = ['ArrowUp','ArrowUp','ArrowDown','ArrowDown','ArrowLeft','ArrowRight','ArrowLeft','ArrowRight','KeyB','KeyA'];
+  let pos = 0, fired = false;
+  window.addEventListener('keydown', (e) => {
+    pos = (e.code === SEQ[pos]) ? pos + 1 : (e.code === SEQ[0] ? 1 : 0);
+    if (pos < SEQ.length || fired) return;
+    pos = 0; fired = true;
+    const ov = document.createElement('div');
+    ov.style.cssText = 'position:fixed;inset:0;z-index:99999;background:#000;color:#9aa4b0;' +
+      'font-family:Consolas,Menlo,monospace;font-size:13px;padding:48px;cursor:default;user-select:none';
+    ov.innerHTML =
+      '<div style="color:#e05555;font-size:15px;margin-bottom:14px">EGM Downloader has stopped responding</div>' +
+      '<div>backend: exit code -11 (SIGSEGV)</div>' +
+      '<div>at yt_dlp.core.extract (frame 0x7f3a19c4)</div>' +
+      '<div>at egm.download_worker (job_id: KONAMI-1986)</div>' +
+      '<div style="margin-top:14px;opacity:.6">collecting crash report…</div>';
+    document.body.appendChild(ov);
+    setTimeout(() => {
+      ov.style.cssText += ';display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:var(--bg, #0a0e14);cursor:pointer';
+      ov.innerHTML =
+        '<div style="font-size:52px;margin-bottom:14px">😜</div>' +
+        '<div style="color:var(--text, #e8eef6);font-size:20px;font-weight:700;margin-bottom:8px">Gotcha!</div>' +
+        '<div style="color:var(--text2, #9aa4b0);font-size:13px">You found the Konami code — nothing crashed, everything is fine.</div>' +
+        '<div style="color:var(--text2, #9aa4b0);font-size:12px;margin-top:16px;opacity:.7">↑ ↑ ↓ ↓ ← → ← → B A&nbsp;&nbsp;·&nbsp;&nbsp;click anywhere to close</div>';
+      ov.addEventListener('click', () => { ov.remove(); fired = false; });
+    }, 2500);
+  });
+})();
