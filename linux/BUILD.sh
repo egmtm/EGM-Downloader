@@ -220,7 +220,9 @@ cd "$REPO_ROOT"
 # tree (e.g. a rebuild with no source changes) exits non-zero and aborts the
 # whole build. Mirror the Windows guard — only commit when something changed.
 if git status --porcelain | grep -q .; then
-    echo "$BUILD_NUM" > scripts/last-released-build.txt
+    # NOTE: last-released-build.txt is intentionally NOT bumped here -- see
+    # the matching comment in windows/BUILD.sh for why. Bump it as a
+    # deliberate, separate, LAST step of the actual release process instead.
     git add -A
     git commit -m "Linux v$VERSION Build $BUILD_NUM"
     git push origin main

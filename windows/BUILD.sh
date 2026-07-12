@@ -406,7 +406,15 @@ echo ""
 echo "🚀 Pushing to GitHub..."
 cd "$REPO_ROOT"
 if git status --porcelain | grep -q .; then
-    echo "$BUILD_NUM" > "$REPO_ROOT/scripts/last-released-build.txt"
+    # NOTE: last-released-build.txt is intentionally NOT bumped here. This
+    # script runs for both test builds and the real release build, and there's
+    # no way to distinguish them from inside the script -- bumping the marker
+    # unconditionally on every build+push meant a single test build could mark
+    # that build number as "released," blocking the real release's own feed
+    # validation later (build must be > last-released, and a test build had
+    # already claimed it). Bump the marker as a deliberate, separate, LAST step
+    # of the actual release process, once the release is genuinely confirmed
+    # shipped -- not automatically here.
     git add -A
     git commit -m "Windows v$VERSION Build $BUILD_NUM"
     git push origin main
