@@ -159,3 +159,16 @@ def test_slot_cap_present_on_all_platforms():
         assert "_HW_ENCODE_SLOTS = threading.BoundedSemaphore(2)" in source, (
             f"{platform_file}: hardware-encode slot cap not found"
         )
+
+
+def test_hw_attempt_is_gated_on_a_held_slot():
+    """The load-bearing line: the hardware attempt must be conditional on BOTH a
+    healthy encoder AND a held slot. Dropping the hw_slot half (while leaving
+    the semaphore plumbing in place) reintroduces uncapped concurrent hardware
+    encodes -- a partial regression the behavioral tests above cannot see,
+    because they instrument slot acquisition rather than encoder invocations."""
+    for name, path in (("windows", "app.py"), ("mac", "mac/app.py"), ("linux", "linux/app.py")):
+        source = read_source(path)
+        assert "if (hw_name and hw_slot) else" in source, (
+            f"{name}/app.py: the hardware attempt is no longer gated on a held slot"
+        )
