@@ -223,50 +223,6 @@ function videoQualityBgClick(e) {
     } catch { toast('Failed to save channel setting', 'err'); }
   });
 
-  // Export settings
-  // ── Export/Import selector modal ─────────────────────────────────────────────
-  function _showExportSelector(counts, onConfirm) {
-    const items = [
-      { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences') },
-      { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:(i18nFmt('settings.io.item.history.count_export', counts.history) || `${counts.history} download records`) },
-      { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') },
-      { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:(i18nFmt('settings.io.item.subscriptions.count_export', counts.subscriptions) || `${counts.subscriptions} channels`) },
-    ];
-    const state = { settings:true, history:true, themes:true, subscriptions:true };
-    egmAlert('', '', {
-      _custom: true,
-      title: (i18nGet('settings.export.title') || '↑ Export settings'),
-      hint: (i18nGet('settings.export.hint') || 'Choose what to include in your export file.'),
-      items, state,
-      confirmLabel: (i18nGet('panel.themes.btn.export') || '↑ Export'),
-      confirmClass: 'btn-export',
-      onConfirm,
-    });
-  }
-
-  function _showImportSelector(data, onConfirm) {
-    const isEnvelope = data._egm_export_version !== undefined;
-    const histCount = isEnvelope && Array.isArray(data.history) ? data.history.length : 0;
-    const subCount  = isEnvelope && Array.isArray(data.subscriptions) ? data.subscriptions.length : 0;
-    const hasLs     = isEnvelope && data.localStorage && typeof data.localStorage === 'object';
-    const items = [
-      { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available: true },
-      { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub: histCount > 0 ? (i18nFmt('settings.io.item.history.count', histCount) || `${histCount} records in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available: histCount > 0 },
-      { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub: hasLs ? (i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available: hasLs },
-      { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub: subCount > 0 ? (i18nFmt('settings.io.item.subscriptions.count', subCount) || `${subCount} channels in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available: subCount > 0 },
-    ];
-    const state = { settings:true, history:histCount>0, themes:!!hasLs, subscriptions:subCount>0 };
-    egmAlert('', '', {
-      _custom: true,
-      title: (i18nGet('settings.import.title') || '↓ Import settings'),
-      hint: (i18nGet('settings.import.hint') || 'Choose what to restore. Existing data will be merged or replaced.'),
-      items, state,
-      confirmLabel: (i18nGet('panel.themes.btn.import') || '↓ Import'),
-      confirmClass: 'btn-import',
-      onConfirm,
-    });
-  }
-
   // Patch egmAlert to support the custom selector style
   const _origEgmAlert = window.egmAlert;
   window._egmSelectorModal = function(opts) {
