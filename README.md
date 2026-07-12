@@ -40,20 +40,22 @@
 ## ✨ Features
 
 - 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
+- 🌍 **10 Languages** - English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, and Russian — auto-detected from your system, changeable anytime from the footer
 - 🎬 **Video & Audio Downloads** - MP4, MKV, or MP4 H.264 (max compatibility) video; MP3, M4A, OPUS, or FLAC audio
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
+- 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
+- ⚡ **GPU-Accelerated Conversion** - Video conversion and Upscale use your GPU when available, cutting CPU load and heat dramatically; falls back to software encoding automatically
+- 📐 **Upscale to Quality** - Opt-in upscaling proportionally scales videos smaller than your chosen quality preset after download; off by default, adds pixels not detail
 - 📋 **Playlist Support** - Download entire playlists with one click
-- ⚡ **Batch Downloads** - Queue multiple URLs and start all downloads together
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
-- 🎨 **450 Themes** - 428 permanent across 30 categories + 22 seasonal themes that rotate throughout the year. If you see fewer than 450, seasonal themes appear during their respective time of year.
+- 🎨 **500 Themes** - 470 permanent across 32 categories + 30 seasonal themes that rotate throughout the year. If you see fewer than 500, seasonal themes appear during their respective time of year.
 - 🎨 **Theme Creator** - Build your own theme with 10 live-preview color pickers, export as `.json`, save directly to your library, favorite alongside built-in themes
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
-- 📝 **Custom Filenames** - Edit filenames before downloading
 - 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions
 - 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
-- 🛠️ **Plugin Updates** - Update yt-dlp and ffmpeg without reinstalling
+- 🛠️ **Plugin Updates** - Update yt-dlp, ffmpeg, and optional libraries without reinstalling
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, includes embedded Python
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
@@ -174,16 +176,16 @@
 
 ### Windows
 **Latest:** v1.3.0 Build 141  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (477 KB · ~800 MB after install)  
-**SHA256:** `80ba204b9eaf339b7036caef752efc7d34f4e8e5163344bc7d06d1d35194a074`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (589 KB · ~800 MB after install)  
+**SHA256:** `5f9a694c9b65430d730a0169d678aff7afeff8cca9f3847d686521532e1a865f`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.3.0 Build 141  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (468 KB · ~800 MB after first run)  
-**SHA256:** `998f309758ca199e7f09ba5340edb68ddd19914052d6301d18c0f68f12205619`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (587 KB · ~800 MB after first run)  
+**SHA256:** `51270fa3a8e6ae511d07e08b94aa57fe5730f5c7b0ac956cfef3f8be4360f00a`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -192,15 +194,15 @@
 ### macOS
 **Latest:** v1.3.0 Build 141  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (134 MB · ~300 MB after install)  
-**SHA256:** `329282aa587617d63d02d429a874719a0f14af19ff1c69c184637c6746985ee8`  
+**SHA256:** `51c58c3aa1f131d1eb2929b41674ca12b7357baa565730106e5a7ee2a737f54d`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Linux
 **Latest:** v1.3.0 Build 141  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (162 MB · ~300 MB after install)  
-**SHA256:** `6c8a3fd09f6e14ce6a7916aee1f872dd02bb173f1c1ce3e3c2fe59194afb0cd7`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (161 MB · ~300 MB after install)  
+**SHA256:** `af36bab30a47310a67206bbf24fe096366c34687111b2b1bfe4ced69c78cef35`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
@@ -300,31 +302,8 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 ## 🗺️ Roadmap
 
-**v1.3 — POLYGLOT — FULL THROTTLE:** *(Targeting mid-July 2026)*
-- 🌍 In-app language picker — 10 languages: English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian
-- Auto-detects your system language on first launch; change anytime from the footer, no restart needed
-- Language selector and Settings panel (incl. Site Cookies) can each be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
-- Downloaded subtitles now include your selected app language alongside English (when available)
-- Windows installer redesigned to match the app's dark theme, with language selection at setup
-- 🎨 50 new themes — 500 total (categories TBD, more details coming soon)
-- ✨ New opt-in **Upscale to selected quality** — videos smaller than the chosen quality preset are proportionally upscaled to it after download (off by default; adds pixels, not detail) — requested by @ligun0510!
-- Video conversion (H.264 compatibility format and Upscale) now uses your GPU when available — cuts CPU load and heat dramatically, with automatic fallback to software encoding
-- The "Converting…" status now shows which encoder is active (e.g. "Converting… · h264_nvenc") so you can confirm hardware acceleration is working
-- Fixed Cancel being silently ignored during video conversion — clicking Cancel now actually stops it instead of letting it run to completion
-- ✨ New HDR downloads — videos with an HDR version (HDR10, HDR10+, HLG, Dolby Vision) now show as a separate option per resolution; saves as MKV to preserve HDR data untouched (requires an HDR-capable display and player)
-- Fixed Full HD/4K downloads sometimes grabbing a smaller video than "Best available" on portrait video (TikTok, Shorts, Reels) — thank you @ligun0510!
-- Subscriptions now detects and labels members-only videos (latest yt-dlp stable/nightly required)
-- Mac and Linux can now update optional libraries (curl-cffi, brotli, pycryptodomex, websockets, certifi) in-app — previously view-only
-- Subscriptions download queue now stays pinned at the top of the sidebar instead of scrolling out of view with a long channel list
-- Deno now updates alongside yt-dlp, ffmpeg, and other plugins instead of its own separate button
-- Advanced panel shows current → latest version for optional libraries and ffmpeg when an update is available
-- Fixed cancelling a video conversion (H.264 fix-up or Upscale) on Mac/Linux sometimes closing the whole app instead of just that download
-- Mac DMG install window refreshed with a custom background matching the app's theme
-- Deleting a custom theme now asks for confirmation first — previously deleted instantly with no way to undo
-- Removed the "Clear cache" button from Advanced settings — cleanup already happens automatically after every download and on launch
-- Windows Advanced panel tidied up — buttons now sit two-to-a-row instead of stacked
-- Fixed the Windows taskbar right-click menu showing "Electron" instead of "EGM Downloader"
-- Minor polish — Subscriptions sidebar thumbnail spacing, Update/What's New modal scrollbar spacing, more compact Site Cookies panel
+**v1.3 — POLYGLOT — FULL THROTTLE:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.3.0)
+10 languages, HDR downloads, GPU-accelerated conversion, opt-in Upscale, 500 themes, redesigned Windows installer, 118 tests
 
 **v1.4 and beyond:**
 - 🧩 *Browser extension — send URLs straight to EGM Downloader without leaving your browser. Revisiting when the userbase is stronger.*
