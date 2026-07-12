@@ -245,7 +245,8 @@ function createSplash() {
     },
   });
   const splashPath = path.join(__dirname, 'splash.html');
-  splashWindow.loadFile(splashPath);
+  const _lang = (loadSettings().language || 'en');
+  splashWindow.loadFile(splashPath, { query: { lang: _lang } });
   splashWindow.center();
   splashWindow.show();
 }

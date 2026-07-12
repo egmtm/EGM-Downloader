@@ -157,21 +157,21 @@
 <body>
 
 <div class="topbar">
-  <span class="topbar-title">All Themes</span>
+  <span class="topbar-title" data-i18n="themes.topbar.all">All Themes</span>
   <div style="-webkit-app-region:no-drag">
-    <button id="theme-create-btn" title="Opens the Theme Creator panel in the main window" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rs);border:1px solid var(--acc);background:var(--acc-dim);color:var(--acc);font-size:.7rem;font-weight:600;cursor:pointer;height:28px">
-      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>Create
-    </button>
-  </div>
+    <button id="theme-create-btn" data-i18n-attr="title:themes.btn.create.tooltip" title="Opens the Theme Creator panel in the main window" style="display:flex;align-items:center;gap:4px;padding:5px 11px;border-radius:var(--rs);border:1px solid var(--acc);background:var(--acc-dim);color:var(--acc);font-size:.7rem;font-weight:600;cursor:pointer;height:28px">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg><span data-i18n="themes.btn.create">Create</span>
+    
+  </button></div>
   <div class="search-wrap">
     <span class="search-icon">🔍</span>
-    <input type="search" id="search" placeholder="Search themes...">
+    <input type="search" id="search" data-i18n-attr="placeholder:themes.search.placeholder" placeholder="Search themes...">
   </div>
 </div>
 
 <!-- Breadcrumb bar — visible when a category is selected -->
 <div id="breadcrumb-bar" style="display:none;padding:5px 14px;border-bottom:1px solid var(--border);background:var(--surf);font-size:.72rem;color:var(--text2);display:flex;align-items:center;gap:6px">
-  <span id="bc-all" style="color:var(--text2);cursor:pointer;opacity:.7">All Themes</span>
+  <span id="bc-all" style="color:var(--text2);cursor:pointer;opacity:.7" data-i18n="themes.topbar.all">All Themes</span>
   <span style="color:var(--border2);font-size:.65rem">›</span>
   <span id="bc-current" style="color:var(--acc);font-weight:500"></span>
   <span id="bc-count" style="font-size:.65rem;color:var(--text2);opacity:.6;margin-left:2px"></span>
@@ -184,7 +184,19 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="delete-theme-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;align-items:center;justify-content:center" onclick="if(event.target===this)this.style.display='none'">
+  <div style="background:var(--surf);border:1px solid var(--border);border-radius:var(--r,8px);padding:20px;max-width:340px;width:90%;box-shadow:var(--modal-shadow, 0 8px 32px rgba(0,0,0,.5))" onclick="event.stopPropagation()">
+    <h3 style="margin:0 0 8px;font-size:.95rem;color:var(--text)" id="delete-theme-modal-title" data-i18n="themes.confirm.delete_title">Delete this theme?</h3>
+    <p style="font-size:.8rem;color:var(--text2);margin:0 0 16px" id="delete-theme-modal-body"></p>
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button id="delete-theme-cancel-btn" data-i18n="quality.btn.cancel" style="padding:6px 14px;border-radius:var(--rs);border:1px solid var(--border);background:var(--surf2);color:var(--text2);font-size:.75rem;cursor:pointer">Cancel</button>
+      <button id="delete-theme-confirm-btn" data-i18n="subscriptions.btn.delete" style="padding:6px 14px;border-radius:var(--rs);border:1px solid var(--red);background:transparent;color:var(--red);font-size:.75rem;font-weight:600;cursor:pointer">Delete</button>
+    </div>
+  </div>
+</div>
+
 <script>
+{% include 'i18n.html' %}
 {% raw %}
 // ── API token interceptor — same as main window ──────────────────────────────
 (function() {
@@ -205,7 +217,7 @@
 const SECTIONS = [
   { label: 'Style',         cats: ['dark', 'futuristic', 'light', 'retro', 'space'] },
   { label: 'Vibe',          cats: ['cities', 'food', 'modern', 'moods', 'music', 'nature', 'sports', 'weather'] },
-  { label: 'Pop Culture',   cats: ['eightbit', 'animation', 'brands', 'characters', 'consoles', 'memes', 'movies', 'sneakers'] },
+  { label: 'Pop Culture',   cats: ['eightbit', 'animation', 'brands', 'characters', 'consoles', 'memes', 'movies', 'oldinternet', 'sneakers'] },
   { label: 'Heritage',      cats: ['architecture', 'decades', 'eras', 'mythology', 'puerto_rico', 'venues'] },
   { label: 'Other',         cats: ['experimental', 'os', 'custom'] },
 ];
@@ -226,6 +238,7 @@ const CAT_LABELS = {
   animation:'Animation',
   modern:'Modern',
   sneakers:'Sneakers',
+  oldinternet:'Old Internet',
 };
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';
@@ -285,12 +298,17 @@ const SEASONAL_VISIBLE = (() => {
     midsummer:    [[6,10],[7,10]],  dayofthedead: [[10,15],[11,15]],
     midautumn:    [[8,25],[10,15]], oktoberfest:  [[9,1],[10,20]],
     kwanzaa:      [[12,20],[1,10]],
+    threekingsday:[[12,7],[2,5]],   songkran:     [[3,14],[5,15]],
+    juneteenth:   [[5,20],[7,19]],  bastilleday:  [[6,14],[8,13]],
+    vaisakhi:     [[3,14],[5,14]],  obon:         [[7,14],[9,15]],
   };
   const varDates = {
     easter:   {2025:[4,20],2026:[4,5],2027:[3,28],2028:[4,16],2029:[4,1],2030:[4,21]},
     diwali:   {2025:[10,20],2026:[11,8],2027:[10,29],2028:[10,17],2029:[11,5],2030:[10,26]},
     hanukkah: {2025:[12,14],2026:[12,4],2027:[12,24],2028:[12,12],2029:[12,1],2030:[12,20]},
     eid:      {2025:[3,30],2026:[3,20],2027:[3,9],2028:[2,27],2029:[2,15],2030:[2,4]},
+    vesak:    {2025:[5,12],2026:[5,1],2027:[5,20],2028:[5,8],2029:[5,27],2030:[5,17]},
+    qingming: {2025:[4,4],2026:[4,5],2027:[4,5],2028:[4,4],2029:[4,4],2030:[4,5]},
   };
   Object.entries(varDates).forEach(([key,dates]) => {
     const base = dates[y] || dates[y-1];
@@ -422,11 +440,11 @@ function buildSidebar() {
     <div style="border-top:1px solid var(--border);margin-top:auto;padding:10px 14px;">
       <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:.72rem;color:var(--text2)">
         <input type="checkbox" id="random-toggle" ${randomOnLaunch ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
-        Random on launch
+        ${i18nAttr('themes.random_on_launch', 'Random on launch')}
       </label>
       <select id="random-scope" style="width:100%;margin-top:6px;font-size:.68rem;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:4px;padding:2px 4px;outline:none;cursor:pointer${randomOnLaunch ? '' : ';opacity:0.4;pointer-events:none'}">
-        <option value="favorites" ${randomScope === 'favorites' ? 'selected' : ''}>Favorites only</option>
-        <option value="all" ${randomScope === 'all' ? 'selected' : ''}>All themes</option>
+        <option value="favorites" ${randomScope === 'favorites' ? 'selected' : ''}>${i18nAttr('themes.filter.favorites_only', 'Favorites only')}</option>
+        <option value="all" ${randomScope === 'all' ? 'selected' : ''}>${i18nAttr('themes.topbar.all', 'All Themes')}</option>
       </select>
     </div>`;
   sb.insertAdjacentHTML('beforeend', randomHtml);
@@ -528,6 +546,13 @@ document.getElementById('bc-all').addEventListener('click', () => {
 });
 
 // ── Render grid ───────────────────────────────────────────────────────────
+document.addEventListener('i18n:ready', () => {
+  document.title = (i18nGet('themes.topbar.all') || 'All Themes') + ' — EGM Downloader';
+  buildSidebar();
+  render();
+});
+document.addEventListener('i18n:changed', () => { buildSidebar(); render(); });
+
 function render() {
   const grid = document.getElementById('grid');
   const entries = Object.entries(THEME_DATA).filter(([key, d]) => {
@@ -550,10 +575,10 @@ function render() {
 
   if (!entries.length && !saved.length) {
     grid.innerHTML = activeCat === 'favorites'
-      ? '<div class="empty">No favorites yet — click the heart on any theme to add it.</div>'
+      ? `<div class="empty">${i18nAttr('themes.favorites.empty', 'No favorites yet — click the heart on any theme to add it.')}</div>`
       : (activeCat === 'custom'
-          ? '<div class="empty">No imported themes yet — create one in the Theme Creator, or import a .json.</div>'
-          : '<div class="empty">No themes match your search.</div>');
+          ? `<div class="empty">${i18nAttr('themes.saved.empty', 'No imported themes yet — create one in the Theme Creator, or import a .json.')}</div>`
+          : `<div class="empty">${i18nAttr('themes.no_results', 'No themes match your search')}</div>`);
     return;
   }
 
@@ -566,8 +591,8 @@ function render() {
       </div>
       <span class="card-name">${esc(t.name)}</span>
       <div class="saved-actions" style="display:flex;align-items:center;gap:8px;margin-left:auto">
-        <span class="fav-heart" data-fav="${esc(t.id)}" title="${favoriteThemes.has(t.id) ? 'Remove from favorites' : 'Add to favorites'}" style="font-size:14px;cursor:pointer;color:${favoriteThemes.has(t.id) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(t.id) ? '1' : '0.4'}">${favoriteThemes.has(t.id) ? '♥' : '♡'}</span>
-        <span class="del-saved" data-del="${esc(t.id)}" title="Delete this saved theme" style="font-size:15px;line-height:1;cursor:pointer;color:var(--text2);opacity:.55">×</span>
+        <span class="fav-heart" data-fav="${esc(t.id)}" title="${favoriteThemes.has(t.id) ? i18nAttr('themes.saved.fav.remove.tooltip', 'Remove from favorites') : i18nAttr('themes.saved.fav.add.tooltip', 'Add to favorites')}" style="font-size:14px;cursor:pointer;color:${favoriteThemes.has(t.id) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(t.id) ? '1' : '0.4'}">${favoriteThemes.has(t.id) ? '♥' : '♡'}</span>
+        <span class="del-saved" data-del="${esc(t.id)}" title="${i18nAttr('themes.saved.delete.tooltip', 'Delete this saved theme')}" style="font-size:15px;line-height:1;cursor:pointer;color:var(--text2);opacity:.55">×</span>
       </div>
     </div>`).join('');
 
@@ -579,7 +604,7 @@ function render() {
         <div class="swatch" style="background:${d.acc}"></div>
       </div>
       <span class="card-name">${d.label}${d.cat === 'seasonal' ? '<span class="seasonal-badge">✦</span>' : ''}</span>
-      <span class="fav-heart" data-fav="${key}" title="${favoriteThemes.has(key) ? 'Remove from favorites' : 'Add to favorites'}" style="font-size:14px;cursor:pointer;margin-left:auto;color:${favoriteThemes.has(key) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(key) ? '1' : '0.4'}">${favoriteThemes.has(key) ? '♥' : '♡'}</span>
+      <span class="fav-heart" data-fav="${key}" title="${favoriteThemes.has(key) ? i18nAttr('themes.saved.fav.remove.tooltip', 'Remove from favorites') : i18nAttr('themes.saved.fav.add.tooltip', 'Add to favorites')}" style="font-size:14px;cursor:pointer;margin-left:auto;color:${favoriteThemes.has(key) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(key) ? '1' : '0.4'}">${favoriteThemes.has(key) ? '♥' : '♡'}</span>
     </div>
   `).join('');
 
@@ -600,14 +625,25 @@ function render() {
     del.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = del.dataset.del;
-      deleteSavedTheme(id);
-      // Drop any stale favorite pointing at the now-deleted theme so the Favorites
-      // count + section never reference a theme that no longer exists.
-      if (favoriteThemes.has(id)) { favoriteThemes.delete(id); saveFavorites(); }
-      buildSidebar();   // always refresh All + Imported counts after a removal
-      render();
+      const theme = loadSavedThemes().find(t => t.id === id);
+      const name = theme ? theme.name : '';
+      document.getElementById('delete-theme-modal-body').textContent =
+        i18nFmt('themes.confirm.delete_body', name) || `"${name}" will be permanently deleted. This cannot be undone.`;
+      document.getElementById('delete-theme-modal').style.display = 'flex';
+      document.getElementById('delete-theme-confirm-btn').onclick = () => {
+        document.getElementById('delete-theme-modal').style.display = 'none';
+        deleteSavedTheme(id);
+        // Drop any stale favorite pointing at the now-deleted theme so the Favorites
+        // count + section never reference a theme that no longer exists.
+        if (favoriteThemes.has(id)) { favoriteThemes.delete(id); saveFavorites(); }
+        buildSidebar();   // always refresh All + Imported counts after a removal
+        render();
+      };
     });
   });
+  document.getElementById('delete-theme-cancel-btn').onclick = () => {
+    document.getElementById('delete-theme-modal').style.display = 'none';
+  };
 
   grid.querySelectorAll('.theme-card[data-theme]').forEach((card, i) => {
     card.addEventListener('click', (e) => {

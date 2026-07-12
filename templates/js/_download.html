@@ -103,7 +103,7 @@ function makePh(url) {
     <div class="vbody">
       <!-- lint-allow-muted: loading-state -->
       <div class="vtitle" style="color:var(--muted)">${esc(trunc(url,70))}</div>
-      <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> Fetching…</span></div>
+      <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> ${i18nAttr('card.status.fetching', 'Fetching…')}</span></div>
     </div>`;
   document.getElementById('results').appendChild(el);
   return el;
@@ -143,10 +143,11 @@ function renderCard(el, item) {
   // since CDN throttling on high-res streams is common but legitimate.
   const SLOW_HINT = '4K/8K downloads may be slower — source throttling on high-bitrate streams is normal.';
   const _resSuffix = h => h >= 4320 ? ' - 8K' : h >= 2160 ? ' - 4K' : h >= 1440 ? ' - 2K' : '';
+  const HDR_HINT = i18nGet('card.quality.hdr_tooltip') || 'HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV.';
   const vOpts = (info.formats||[]).map(f => {
     const slow = (f.height || 0) >= 1440;
-    const titleAttr = slow ? ` title="${esc(SLOW_HINT)}"` : '';
-    const suffix = _resSuffix(f.height || 0);
+    const titleAttr = f.hdr ? ` title="${esc(HDR_HINT)}"` : (slow ? ` title="${esc(SLOW_HINT)}"` : '');
+    const suffix = _resSuffix(f.height || 0) + (f.hdr ? ' HDR' : '');
     return `<option value="${esc(f.id)}"${titleAttr}>${esc(f.label)}${suffix}</option>`;
   }).join('');
   const aOpts = (info.audio_formats||[]).map(f => `<option value="${esc(f.id)}">${esc(f.label)}</option>`).join('');
@@ -163,22 +164,22 @@ function renderCard(el, item) {
       <div class="vmeta">${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
       <div class="qual-panel">
         <div class="qual-group">
-          <span class="qual-label">Format</span>
+          <span class="qual-label">${i18nAttr('card.label.format', 'Format')}</span>
           <div class="pills">
             <input type="radio" name="fmt${n}" id="fv${n}" value="video" checked>
-            <label for="fv${n}">🎬 Video</label>
+            <label for="fv${n}">🎬 ${i18nAttr('card.format.video', 'Video')}</label>
             <input type="radio" name="fmt${n}" id="fa${n}" value="audio">
-            <label for="fa${n}">🎵 Audio</label>
+            <label for="fa${n}">🎵 ${i18nAttr('card.format.audio', 'Audio')}</label>
           </div>
         </div>
         <div class="qual-group" id="vqg${n}" ${!hasQ?'style="display:none"':''}>
-          <span class="qual-label">Video quality</span>
+          <span class="qual-label">${i18nAttr('card.label.video_quality', 'Video quality')}</span>
           <select class="qsel" id="vq${n}">
-            <option value="">Best available</option>${vOpts}
+            <option value="">${i18nAttr('card.quality.best', 'Best available')}</option>${vOpts}
           </select>
         </div>
         <div class="qual-group" id="aqg${n}" style="display:none">
-          <span class="qual-label">Audio quality</span>
+          <span class="qual-label">${i18nAttr('card.label.audio_quality', 'Audio quality')}</span>
           <select class="qsel" id="aq${n}">
             <option value="320" selected>MP3 320 kbps</option>
             <option value="192">MP3 192 kbps</option>
@@ -197,8 +198,8 @@ function renderCard(el, item) {
           <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="Move up" style="padding:2px 6px;font-size:11px">↑</button>
           <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
         </div>
-        <span class="badge b-wait" id="st${n}">Ready</span>
-        <button class="btn btn-primary btn-sm" id="dl${n}">⬇ Download</button>
+        <span class="badge b-wait" id="st${n}">${i18nAttr('status.ready', 'Ready')}</span>
+        <button class="btn btn-primary btn-sm" id="dl${n}">⬇ ${i18nAttr('card.btn.download', 'Download')}</button>
       </div>
       <div class="prog" id="prog${n}" style="display:none"><div class="prog-inner indeterminate"></div></div>
     </div>`;
@@ -305,11 +306,6 @@ async function startDl(item, n) {
   if (!chosenPath) {
     toast('Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
-    const dH = document.getElementById('dir-hint');
-    if (dH) { dH.style.color = 'var(--red)'; dH.textContent = '⚠ Select a download folder before downloading.'; }
-    setTimeout(() => {
-      const dH2 = document.getElementById('dir-hint'); if (dH2) dH2.style.color = 'var(--yellow)';
-    }, 3000);
     return;
   }
 
@@ -317,7 +313,7 @@ async function startDl(item, n) {
   if (!item.info.formats?.length && !item.info.audio_formats?.length) {
     const stEl = document.getElementById(`st${n}`);
     const dlBtn = document.getElementById(`dl${n}`);
-    setBadge(stEl, 'dl', 'Fetching quality…'); dlBtn.disabled = true;
+    setBadge(stEl, 'dl', i18nGet('card.status.fetching_quality') || 'Fetching quality…'); dlBtn.disabled = true;
     try {
       const i2 = await post('/api/info', { url: item.url });
       if (i2.error) throw new Error(i2.error);
@@ -344,8 +340,10 @@ async function startDl(item, n) {
     else if (audioFmt.startsWith('opus_')) ext = '.opus';
     else                                    ext = '.mp3';
   } else {
+    // HDR selections always ship as MKV (server-enforced) — the pill should say so
+    const selHdr = !!((item.info.formats || []).find(f => f.id === item.selFmtId) || {}).hdr;
     const vfmt = document.getElementById('output-format-sel')?.value || 'mp4';
-    ext = vfmt === 'mkv' ? '.mkv' : '.mp4';
+    ext = (selHdr || vfmt === 'mkv') ? '.mkv' : '.mp4';
   }
   const chosenName = await showModal(item.info.title || 'download', ext);
   if (!chosenName) return;   // cancelled
@@ -356,7 +354,7 @@ async function startDl(item, n) {
   const dir = chosenPath;
 
   item.status = 'downloading';
-  setBadge(stEl, 'dl', 'Downloading…');
+  setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading…');
   dlBtn.disabled = true;
   dlBtn.style.display = 'none';
   if (progEl) progEl.style.display = '';
@@ -367,7 +365,7 @@ async function startDl(item, n) {
     cancelBtn = document.createElement('button');
     cancelBtn.id = `cancel${n}`;
     cancelBtn.className = 'btn btn-red btn-sm';
-    cancelBtn.textContent = '✕ Cancel';
+    cancelBtn.textContent = '✕ ' + (i18nGet('card.btn.cancel') || 'Cancel');
     dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
   }
   cancelBtn.style.display = '';
@@ -389,7 +387,12 @@ async function startDl(item, n) {
       thumbnail: item.info?.thumbnail || '',
       subtitles: !!document.getElementById('subtitles-chk')?.checked,
       embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
-      output_format: document.getElementById('output-format-sel')?.value || 'mp4_h264',
+      // HDR selections override the global format: HDR ships as MKV (server enforces too)
+      output_format: (() => {
+        const sel = (item.info.formats || []).find(f => f.id === item.selFmtId);
+        return sel && sel.hdr ? 'mkv' : (document.getElementById('output-format-sel')?.value || 'mp4_h264');
+      })(),
+      hdr: !!((item.info.formats || []).find(f => f.id === item.selFmtId) || {}).hdr,
     });
     if (res.error) throw new Error(res.error);
     item.jobId = res.job_id;
@@ -413,7 +416,7 @@ async function cancelDownload(item, n) {
   const progEl = document.getElementById(`prog${n}`);
   const dlBtn  = document.getElementById(`dl${n}`);
   const cancelBtn = document.getElementById(`cancel${n}`);
-  setBadge(stEl, 'cancel', 'Cancelled');
+  setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
   if (progEl) progEl.style.display = 'none';
   if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
@@ -423,14 +426,14 @@ async function cancelDownload(item, n) {
 // ── Shared job status handler — used by both individual and bulk pollers ──────
 function applyJobProgress(d, stEl, progEl) {
   if (d.status === 'converting') {
-    setBadge(stEl, 'dl', 'Converting…');
+    setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : ''));
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';
   } else if (d.status === 'downloading' && d.progress >= 100) {
     // Download complete but backend hasn't emitted a conversion tag yet —
     // show Converting… as a fallback so the UI doesn't appear frozen
-    setBadge(stEl, 'dl', 'Converting…');
+    setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : ''));
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';
@@ -457,7 +460,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (d.warning) {
       toast(d.warning, 'warn');
     } else {
-      toast('Saved: ' + d.filename, 'ok');
+      toast(i18nFmt('download.saved', d.filename) || ('Saved: ' + d.filename), 'ok');
     }
     // Auto-remove the card — history panel is canonical record, toast is feedback
     const card = stEl ? stEl.closest('.vcard') : null;
@@ -495,7 +498,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     item.status = 'cancelled';
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
-    setBadge(stEl, 'cancel', 'Cancelled');
+    setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
     recheckBulkVisibility();
     return true;
@@ -508,7 +511,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
     if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
       clearInterval(iv);
       bulkCancelledJobs.delete(item.jobId);
-      setBadge(stEl, 'cancel', 'Cancelled');
+      setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
       if (progEl) progEl.style.display = 'none';
       if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';

@@ -21,7 +21,7 @@
       display:flex;flex-direction:column;transition:width .2s ease;
       overflow:hidden;position:relative;
     }
-    .sidebar.collapsed { width:55px;min-width:55px;max-width:55px; }
+    .sidebar.collapsed { width:72px;min-width:72px;max-width:72px; }
     .sidebar-resize {
       position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;z-index:10;
     }
@@ -49,7 +49,7 @@
 
     .sub-list { flex:1;overflow-y:auto;padding:4px 0; }
     .sidebar.collapsed .sub-list { display:none; }
-    .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 0;overflow-y:auto; }
+    .mini-list { display:none;flex-direction:column;align-items:center;gap:6px;padding:6px 7px;overflow-y:auto;overflow-x:hidden; }
     .sidebar.collapsed .mini-list { display:flex; }
     .mini-thumb {
       width:45px;height:45px;border-radius:50%;background:var(--surf2);
@@ -90,10 +90,16 @@
 
     .queue-item {
       padding:8px 10px;font-size:.68rem;font-weight:500;color:var(--acc);
-      border-left:2px solid var(--acc);background:var(--acc-dim);
+      border-left:2px solid var(--acc);
+      /* translucent accent stacked over the solid page bg — opaque, so
+         channels scrolling underneath the sticky row don't bleed through */
+      background:linear-gradient(var(--acc-dim),var(--acc-dim)),var(--bg);
       display:flex;align-items:center;gap:6px;cursor:pointer;
       border-bottom:1px solid var(--border);
+      position:sticky;top:0;z-index:2;
     }
+    /* drop the list's top padding when the queue row is pinned, so it sits flush */
+    .sub-list:has(.queue-item) { padding-top:0; }
     .queue-item:hover { background:rgba(45,212,191,.12); }
     .queue-badge {
       margin-left:auto;background:rgba(45,212,191,.15);color:var(--acc);
@@ -256,15 +262,15 @@
   <div class="sidebar" id="sidebar">
     <div class="sidebar-resize" id="sidebar-resize"></div>
     <div class="sidebar-header">
-      <span class="sidebar-title">Subscriptions</span>
-      <button class="collapse-btn" id="collapse-btn" title="Toggle sidebar">☰</button>
+      <span class="sidebar-title" data-i18n="subscriptions.title">Subscriptions</span>
+      <button class="collapse-btn" id="collapse-btn" data-i18n-attr="title:tooltip.subscriptions_sidebar" title="Toggle sidebar">☰</button>
     </div>
 
     <div class="add-bar">
-      <input type="text" id="add-url" placeholder="Paste URL here..." />
+      <input type="text" id="add-url" data-i18n-attr="placeholder:subscriptions.url.placeholder" placeholder="Paste URL here..." />
       <div style="display:flex;gap:4px;margin-top:4px">
-        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Paste from clipboard">📋 Paste</button>
-        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" title="Add subscription">+ Add</button>
+        <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_paste" title="Paste from clipboard">📋 <span data-i18n="url.btn.paste">Paste</span></button>
+        <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_add" title="Add subscription"><span data-i18n="subscriptions.btn.add">+ Add</span></button>
       </div>
     </div>
 
@@ -272,9 +278,9 @@
       <div style="display:flex;gap:4px">
         <button id="fetch-all-btn" onclick="fetchAllChannels()" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:5px 8px;border-radius:5px;font-size:.68rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px">
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 11A8.1 8.1 0 0 0 4.5 9M4 5v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
-          Fetch All
+          <span data-i18n="subscriptions.btn.fetch_all">Fetch All</span>
         </button>
-        <button id="fetch-all-cancel-btn" onclick="cancelFetchAll()" style="display:none;background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:.68rem;cursor:pointer">Cancel</button>
+        <button id="fetch-all-cancel-btn" onclick="cancelFetchAll()" style="display:none;background:transparent;border:1px solid var(--border);color:var(--text2);padding:5px 10px;border-radius:5px;font-size:.68rem;cursor:pointer" data-i18n="quality.btn.cancel">Cancel</button>
       </div>
       <div id="fetch-all-progress" style="display:none;font-size:.6rem;color:var(--text2);text-align:center;padding:1px 0"></div>
     </div>
@@ -284,9 +290,9 @@
     <div class="sidebar-footer">
       <button id="history-btn">
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
-        Download History
-      </button>
-      <button id="back-btn">← Back to app</button>
+        <span data-i18n="history.window.title">Download History</span>
+      
+      </button><button id="back-btn" data-i18n="subscriptions.btn.back">← Back to app</button>
     </div>
   </div>
 
@@ -294,7 +300,7 @@
     <div class="detail-empty" id="empty-state">
       <div>
         <div style="font-size:2rem;margin-bottom:8px">📡</div>
-        <div>Add a channel or playlist URL to get started</div>
+        <div data-i18n="subscriptions.empty">Add a channel or playlist URL to get started</div>
       </div>
     </div>
   </div>
@@ -306,13 +312,14 @@
       <div class="egm-modal-msg" id="egm-confirm-msg"></div>
       <input type="text" class="egm-modal-input" id="egm-confirm-input" style="display:none;width:100%;padding:6px 8px;margin-bottom:12px;border-radius:5px;border:1px solid var(--border);background:var(--surf2);color:var(--text);font-size:.78rem;box-sizing:border-box">
       <div class="egm-modal-actions">
-        <button class="egm-modal-btn" id="egm-confirm-cancel">Cancel</button>
-        <button class="egm-modal-btn danger" id="egm-confirm-ok">Delete</button>
+        <button class="egm-modal-btn" id="egm-confirm-cancel" data-i18n="quality.btn.cancel">Cancel</button>
+        <button class="egm-modal-btn danger" id="egm-confirm-ok" data-i18n="subscriptions.btn.delete">Delete</button>
       </div>
     </div>
   </div>
 
 <script>
+{% include 'i18n.html' %}
 {% raw %}
 // ── Theme support — read active theme from localStorage and apply ────────────
 function applyBodyTheme(name) {
@@ -485,7 +492,7 @@ async function pollFetchAll() {
   const total = Object.keys(_fetchAllJobs).length;
   const done = total - pending.length;
   const progress = document.getElementById('fetch-all-progress');
-  if (progress) { progress.style.display = 'block'; progress.textContent = `Fetching ${done}/${total} channels…`; }
+  if (progress) { progress.style.display = 'block'; progress.textContent = i18nFmt('subscriptions.fetch_all.progress', done, total) || `Fetching ${done}/${total} channels…`; }
 
   for (const [sub_id, job] of pending) {
     try {
@@ -526,16 +533,22 @@ async function cancelFetchAll() {
   renderSidebar();
 }
 
+document.addEventListener('i18n:ready', () => {
+  document.title = (i18nGet('subscriptions.title') || 'Subscriptions') + ' — EGM Downloader';
+  renderSidebar(); renderDetail(); if (typeof renderQueue === 'function' && window.showQueue) renderQueue();
+});
+document.addEventListener('i18n:changed', () => { renderSidebar(); renderDetail(); });
+
 function renderSidebar() {
   const list = document.getElementById('sub-list');
   if (!subs.length) {
-    list.innerHTML = '<div class="empty-state">No subscriptions yet</div>';
+    list.innerHTML = `<div class="empty-state">${i18nAttr('subscriptions.empty.no_subs', 'No subscriptions yet')}</div>`;
     return;
   }
   const activeCount = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status)).length;
   const queueHtml = activeCount > 0 ? `<div class="queue-item" id="queue-sidebar-item" onclick="showQueue=true;activeSub=null;renderSidebar();renderQueue();">
     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
-    Queue
+    ${i18nAttr('subscriptions.queue.short', 'Queue')}
     <span class="queue-badge">${activeCount}</span>
   </div>` : '';
 
@@ -557,8 +570,8 @@ function renderSidebar() {
         _fetchAllJobs[s.id].status==='done'     ? 'background:rgba(34,197,94,.12);color:var(--green)' :
                                                    'background:rgba(239,68,68,.12);color:var(--red)'
       }">${
-        _fetchAllJobs[s.id].status==='pending' ? 'Queued' :
-        _fetchAllJobs[s.id].status==='running' ? 'Fetching' :
+        _fetchAllJobs[s.id].status==='pending' ? (i18nGet('card.status.queued') || 'Queued') :
+        _fetchAllJobs[s.id].status==='running' ? (i18nGet('subscriptions.sidebar.fetching') || 'Fetching') :
         _fetchAllJobs[s.id].status==='done'    ? (_fetchAllJobs[s.id].newCount > 0 ? `+${_fetchAllJobs[s.id].newCount}` : '✓') :
                                                   'Error'
       }</span>` : ''}
@@ -708,9 +721,9 @@ function updateVideoState(videoId, status, data) {
 
   if (status === 'queued') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status queued">Queued</span>
+      <span class="video-status queued">${i18nAttr('card.status.queued', 'Queued')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   } else if (status === 'downloading') {
     const pct = Math.round(data.progress || 0);
@@ -719,31 +732,31 @@ function updateVideoState(videoId, status, data) {
       <span class="video-status downloading">${pct}%</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:${pct}%"></div></div>
       <span>${speed}</span>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   } else if (status === 'converting') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status downloading">Converting…</span>
+      <span class="video-status downloading">${i18nAttr('card.status.converting', 'Converting…')}</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   } else if (status === 'done') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status done">Downloaded</span>
+      <span class="video-status done">${i18nAttr('subscriptions.status.downloaded', 'Downloaded')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>
     </div>`;
   } else if (status === 'error') {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status error">${esc(data.error || 'Error')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>
     </div>`;
   } else if (status === 'cancelled') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status error">Cancelled</span>
+      <span class="video-status error">${i18nAttr('card.status.cancelled', 'Cancelled')}</span>
       <div style="flex:1"></div>
-      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">Clear</button>
+      <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>
     </div>`;
   } else {
     // Unknown, non-terminal status from the backend (forward-compat). Render a
@@ -752,7 +765,7 @@ function updateVideoState(videoId, status, data) {
     metaEl.innerHTML = `<div class="video-progress">
       <span class="video-status downloading">Processing…</span>
       <div class="video-progress-bar"><div class="video-progress-fill" style="width:100%"></div></div>
-      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">Cancel</button>
+      <button class="video-action-btn" onclick="cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
     </div>`;
   }
 }
@@ -836,18 +849,18 @@ function renderQueue() {
 
   let html = `<div style="padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px">
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
-    <span style="font-weight:600;font-size:.85rem">Download queue</span>
-    <span style="font-size:.65rem;color:var(--text2)">${activeJobs.length} active</span>
+    <span style="font-weight:600;font-size:.85rem">${i18nAttr('subscriptions.queue.title', 'Download queue')}</span>
+    <span style="font-size:.65rem;color:var(--text2)">${(i18nFmt('subscriptions.queue.active', activeJobs.length) || `${activeJobs.length} active`)}</span>
   </div>`;
 
   html += '<div style="flex:1;overflow-y:auto;padding:0 18px 8px">';
   for (const [videoId, job] of activeJobs) {
     const pct = Math.round(job.data?.progress || 0);
     const speed = job.data?.speed || '';
-    const statusLabel = job.status === 'queued' ? 'Queued'
+    const statusLabel = job.status === 'queued' ? (i18nGet('card.status.queued') || 'Queued')
       : job.status === 'downloading' ? `${pct}%`
-      : job.status === 'converting' ? 'Converting…'
-      : 'Processing…';
+      : job.status === 'converting' ? (i18nGet('card.status.converting') || 'Converting…')
+      : (i18nGet('card.status.processing') || 'Processing…');
 
     html += `<div class="video-card" style="display:flex;gap:12px;padding:10px 12px;margin:4px 0;border-radius:6px;align-items:center">
       <div class="video-thumb" style="width:120px;height:68px">
@@ -860,7 +873,7 @@ function renderQueue() {
           <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
           <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? 100 : pct}%"></div></div>
           ${speed ? `<span style="font-size:.55rem;color:var(--text2)">${speed}</span>` : ''}
-          <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">Cancel</button>
+          <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
         </div>
       </div>
     </div>`;
@@ -885,7 +898,7 @@ function renderDetail() {
   if (!activeSub) {
     detail.innerHTML = `<div class="detail-empty"><div>
       <div style="font-size:2rem;margin-bottom:8px">📡</div>
-      <div>Select a subscription to view details</div>
+      <div>${i18nAttr('subscriptions.detail.empty', 'Select a subscription to view details')}</div>
     </div></div>`;
     return;
   }
@@ -907,45 +920,45 @@ function renderDetail() {
             <h2 style="font-size:1.05rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
             <p style="font-size:.72rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
             <p style="font-size:.68rem;color:var(--text2)">
-              ${videos.length} videos${activeSub.last_fetched ? ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString() : ''}
+              ${(i18nFmt('subscriptions.detail.videos_count', videos.length) || `${videos.length} videos`)}${activeSub.last_fetched ? (i18nFmt('subscriptions.detail.last_fetched', new Date(activeSub.last_fetched).toLocaleDateString()) || ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString()) : ''}
             </p>
             <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);margin-top:5px;cursor:pointer">
               <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
-              Auto-fetch on open
+              ${i18nAttr('subscriptions.detail.autofetch', 'Auto-fetch on open')}
             </label>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;margin-left:16px">
             <div style="display:flex;gap:8px;align-items:center">
               <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.7rem;border-radius:5px;padding:5px 10px;cursor:pointer;height:28px">
-                <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>Latest</option>
-                <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>Oldest</option>
+                <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.latest', 'Latest')}</option>
+                <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.oldest', 'Oldest')}</option>
               </select>
-              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">Fetch</button>
-              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">Delete</button>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">${i18nAttr('subscriptions.btn.delete', 'Delete')}</button>
             </div>
-            ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">Mark all seen</button>' : ''}
+            ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">' + i18nAttr('subscriptions.btn.mark_seen', 'Mark all seen') + '</button>' : ''}
           </div>
         </div>
         <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
           <div style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
-            <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : 'Default')}</span>
-            <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Browse</button>
-            ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">Open</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">Reset</button>' : ''}
+            <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : (i18nGet('subscriptions.label.folder_default') || 'Default'))}</span>
+            <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">${i18nAttr('settings.folder.btn.browse', 'Browse')}</button>
+            ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">' + i18nAttr('settings.folder.btn.open', 'Open') + '</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">' + i18nAttr('creator.btn.reset', 'Reset') + '</button>' : ''}
           </div>
           <span style="color:var(--border)">|</span>
           <div style="display:flex;align-items:center;gap:5px">
-            <span style="font-size:.65rem;color:var(--text2)">Format</span>
+            <span style="font-size:.65rem;color:var(--text2)">${i18nAttr('subscriptions.label.format', 'Format')}</span>
             <select id="format-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
-              <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>Video</option>
-              <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>Audio</option>
+              <option value="video"${(activeSub.format || 'video') === 'video' ? ' selected' : ''}>${i18nAttr('card.format.video', 'Video')}</option>
+              <option value="audio"${(activeSub.format || 'video') === 'audio' ? ' selected' : ''}>${i18nAttr('card.format.audio', 'Audio')}</option>
             </select>
           </div>
           <div style="display:flex;align-items:center;gap:5px">
-            <span style="font-size:.65rem;color:var(--text2)">Quality</span>
+            <span style="font-size:.65rem;color:var(--text2)">${i18nAttr('subscriptions.label.quality', 'Quality')}</span>
             <select id="quality-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
               ${(activeSub.format || 'video') === 'video' ?
-                '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
+                '<option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'
               : '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'}
             </select>
           </div>
@@ -954,17 +967,17 @@ function renderDetail() {
     </div>
     <div class="video-list" id="video-list">
       ${videos.length === 0 ? `
-        <div class="empty-state">Click "Fetch" to load videos from this channel</div>
+        <div class="empty-state">${i18nAttr('subscriptions.detail.hint', 'Click \\"Fetch\\" to load videos from this channel')}</div>
       ` : (() => {
         const visible = sortedVideos.slice(0, visibleCount);
         const hasMore = sortedVideos.length > visibleCount;
         const dlBar = `<div class="dl-bar">
           <label style="display:flex;align-items:center;gap:4px;font-size:.62rem;color:var(--text2);cursor:pointer">
-            <input type="checkbox" id="select-all-check" style="accent-color:var(--acc);cursor:pointer"> Select all
+            <input type="checkbox" id="select-all-check" style="accent-color:var(--acc);cursor:pointer"> ${i18nAttr('subscriptions.detail.select_all', 'Select all')}
           </label>
           <span id="dl-count" style="font-size:.6rem;color:var(--text2)"></span>
           <div style="flex:1"></div>
-          <button class="dl-bar-btn" id="dl-selected-btn" disabled>Download selected</button>
+          <button class="dl-bar-btn" id="dl-selected-btn" disabled>${i18nAttr('subscriptions.btn.download_selected', 'Download selected')}</button>
         </div>`;
         return dlBar + visible.map(v => `
           <div class="video-card" data-video-id="${attrEsc(v.video_id || '')}">
@@ -975,20 +988,20 @@ function renderDetail() {
             </div>
             <div class="video-info" style="flex:1;min-width:0">
               <div class="video-title">${esc(v.title)}</div>
-              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">New</span>' : ''}${v.downloaded ? ` <span class="video-status done">Downloaded</span> <button class="video-action-btn" onclick="clearDownloaded('${attrEsc(v.video_id || '')}')">Clear</button>` : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">Members</span>' : ''}</div>
+              <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">' + i18nAttr('subscriptions.badge.new', 'New') + '</span>' : ''}${v.downloaded ? ` <span class="video-status done">${i18nAttr('subscriptions.status.downloaded', 'Downloaded')}</span> <button class="video-action-btn" onclick="clearDownloaded('${attrEsc(v.video_id || '')}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>` : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">' + i18nAttr('subscriptions.badge.members', 'Members') + '</span>' : ''}</div>
             </div>
             <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
-              <span style="font-size:.65rem;color:var(--text2)">Quality</span>
+              <span style="font-size:.65rem;color:var(--text2)">${i18nAttr('subscriptions.label.quality', 'Quality')}</span>
               <select class="vq-sel" data-video-id="${attrEsc(v.video_id || '')}" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.7rem;border-radius:4px;padding:3px 8px;cursor:pointer">
-                <option value="">Channel default</option>
+                <option value="">${i18nAttr('subscriptions.quality.channel_default', 'Channel default')}</option>
                 ${(activeSub.format || 'video') === 'audio'
                   ? '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
-                  : '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'}
+                  : '<option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>'}
               </select>
             </div>
           </div>
         `).join('') + (hasMore ? `
-          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const vl=document.getElementById('video-list'),st=vl?vl.scrollTop:0;visibleCount+=20;renderDetail();const nv=document.getElementById('video-list');if(nv){nv.scrollTop=st;requestAnimationFrame(()=>{nv.scrollTop=st})}">Load more (${visible.length} of ${sortedVideos.length})</button>
+          <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const vl=document.getElementById('video-list'),st=vl?vl.scrollTop:0;visibleCount+=20;renderDetail();const nv=document.getElementById('video-list');if(nv){nv.scrollTop=st;requestAnimationFrame(()=>{nv.scrollTop=st})}">${(i18nFmt('subscriptions.btn.load_more', visible.length, sortedVideos.length) || `Load more (${visible.length} of ${sortedVideos.length})`)}</button>
         ` : `<div style="text-align:center;padding:10px;font-size:.6rem;color:var(--text2);opacity:0.5">${sortedVideos.length} videos total</div>`);
       })()}
     </div>
@@ -1023,14 +1036,14 @@ function renderDetail() {
     if (format === 'audio') {
       qualitySelect.innerHTML = '<option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>';
     } else {
-      qualitySelect.innerHTML = '<option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
+      qualitySelect.innerHTML = '<option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
     }
     const opt = qualitySelect.querySelector(`option[value="${savedQuality}"]`);
     if (opt) opt.selected = true;
     // Sync per-row selects to new format options; clear any stored overrides
     const rowOpts = format === 'audio'
-      ? '<option value="">Channel default</option><option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
-      : '<option value="">Channel default</option><option value="best">Best</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
+      ? '<option value="">' + i18nAttr('subscriptions.quality.channel_default', 'Channel default') + '</option><option value="mp3_320">MP3 320kbps</option><option value="mp3_128">MP3 128kbps</option><option value="flac">FLAC</option><option value="opus_128">OPUS 128kbps</option><option value="opus_192">OPUS 192kbps</option>'
+      : '<option value="">' + i18nAttr('subscriptions.quality.channel_default', 'Channel default') + '</option><option value="best">' + i18nAttr('subscriptions.quality.best', 'Best') + '</option><option value="2160">2160p (4K)</option><option value="1440">1440p</option><option value="1080">1080p</option><option value="720">720p</option><option value="480">480p</option>';
     document.querySelectorAll('.vq-sel').forEach(s => { s.innerHTML = rowOpts; });
     videoQualityOverride = {};
   }
@@ -1231,7 +1244,7 @@ function renderDetail() {
       }
 
       updateSelectionCount();
-      dlBtn.textContent = 'Download selected';
+      dlBtn.textContent = i18nGet('subscriptions.btn.download_selected') || 'Download selected';
 
       // Start polling and run an immediate check
       startPolling();
@@ -1395,7 +1408,7 @@ async function fetchVideos(id, force) {
       renderSidebar();
       renderDetail();
     } else {
-      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || 'Fetch failed')}</div>`;
+      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`;
     }
   } catch {
     if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';

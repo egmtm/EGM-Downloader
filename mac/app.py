@@ -263,6 +263,61 @@ COOKIES_FILE = DATA_DIR / "cookies.txt"
 _settings_cache: dict = {}
 _settings_lock  = threading.Lock()
 
+# ── i18n: supported locales ───────────────────────────────────────────────────────────────
+# Single allowlist for every path a locale code can enter: OS auto-detect,
+# /api/language/<code> file lookup, and /api/settings/save persistence.
+# A code is validated against this tuple BEFORE it ever builds a file path.
+SUPPORTED_LANGUAGES = ("en", "ar", "de", "es", "fr", "it", "ja", "nl", "pt", "ru")
+LANGUAGES_DIR = Path(__file__).parent / "languages"
+
+def _detect_os_language() -> str:
+    """Map the OS locale to a supported language code; default to English."""
+    code = ""
+    try:
+        if sys.platform == "win32":
+            import ctypes
+            import locale as _locale
+            lcid = ctypes.windll.kernel32.GetUserDefaultUILanguage()
+            code = _locale.windows_locale.get(lcid, "")
+        else:
+            import locale as _locale
+            code = _locale.getlocale()[0] or ""
+            # "C"/"POSIX" means no locale configured — fall back to the env vars.
+            if code.lower() in ("", "c", "posix"):
+                code = os.environ.get("LC_ALL") or os.environ.get("LANG") or ""
+    except Exception:
+        code = ""
+    code = code.replace("-", "_").split("_")[0].lower()
+    return code if code in SUPPORTED_LANGUAGES else "en"
+
+def _get_language_setting(s: dict) -> str:
+    """Return the persisted language. Resolution order: persisted setting >
+    installer hand-off file (one-time, Windows NSIS writes it) > OS detect.
+    The winning value is persisted; after that the saved setting always wins."""
+    lang = s.get("language")
+    if lang in SUPPORTED_LANGUAGES:
+        return lang
+    lang = _read_installer_language() or _detect_os_language()
+    _save_settings({"language": lang})
+    return lang
+
+def _read_installer_language():
+    """One-time hand-off from the installer: first-run-language.txt beside
+    app.py. Contents are validated against SUPPORTED_LANGUAGES before being
+    trusted; the file is deleted after any read attempt (valid or not)."""
+    try:
+        p = Path(__file__).parent / "first-run-language.txt"
+        if not p.is_file():
+            return None
+        code = p.read_text(encoding="utf-8").strip().lower()
+    except Exception:
+        return None
+    try:
+        p.unlink()
+    except Exception:
+        pass
+    return code if code in SUPPORTED_LANGUAGES else None
+
 # ── History ────────────────────────────────────────────────────────────────────
 _history_lock = threading.Lock()
 _HISTORY_MAX  = 500
@@ -654,7 +709,7 @@ def ensure_ffmpeg():
         os.chmod(ffmpeg_bin,  0o755)
         os.chmod(ffprobe_bin, 0o755)
 
-        try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
+        try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception: pass
         print("[EGM] ffmpeg ready.")
         return True
@@ -775,16 +830,31 @@ def _safe_filename(title: str, ext: str) -> str:
     return f"{safe}{ext}" if safe else f"download{ext}"
 
 def _build_formats(info):
-    best = {}
+    best, best_hdr = {}, {}
     for f in info.get("formats", []):
         h = f.get("height")
         if not h or (f.get("vcodec", "none") or "none") == "none": continue
         tbr = f.get("tbr") or 0
-        if h not in best or tbr > (best[h].get("tbr") or 0): best[h] = f
-    return sorted([{"id": f["format_id"], "label": f"{h}p", "height": h,
-                    "has_audio": (f.get("acodec","none") or "none") != "none",
-                    "acodec": f.get("acodec") or ""}
-                   for h, f in best.items()], key=lambda x: x["height"], reverse=True)
+        dr = str(f.get("dynamic_range") or "").upper()
+        if dr and dr != "SDR":
+            # Any non-SDR range (HDR10/HDR10+/HLG/DV) gets the HDR-row treatment:
+            # MKV container, no H.264/upscale re-encode. Bucketing DV/HLG as SDR
+            # would let a higher-bitrate DV/HLG stream DISPLACE the real SDR entry
+            # at its height — the compat pass would then transcode it to SDR H.264
+            # with no tone-mapping: the classic washed/green output.
+            if h not in best_hdr or tbr > (best_hdr[h].get("tbr") or 0): best_hdr[h] = f
+        elif h not in best or tbr > (best[h].get("tbr") or 0):
+            best[h] = f
+    entries = [{"id": f["format_id"], "label": f"{h}p", "height": h,
+                "has_audio": (f.get("acodec","none") or "none") != "none",
+                "acodec": f.get("acodec") or ""}
+               for h, f in best.items()]
+    entries += [{"id": f["format_id"], "label": f"{h}p", "height": h, "hdr": True,
+                 "has_audio": (f.get("acodec","none") or "none") != "none",
+                 "acodec": f.get("acodec") or ""}
+                for h, f in best_hdr.items()]
+    # SDR first at each height, HDR beneath it
+    return sorted(entries, key=lambda x: (-x["height"], x.get("hdr", False)))
 
 def _build_audio_formats(info):
     seen, audio = set(), []
@@ -826,6 +896,99 @@ def _run_download_slot(job_id, *rest):
     finally:
         _download_sem.release()
 
+
+# ── Hardware-accelerated H.264 encode (auto-detect, safe fallback) ───────────
+_HW_ENCODER_CACHE = None
+
+def _detect_hw_encoder():
+    """Probe hardware H.264 encoders with a tiny test encode and cache the winner.
+    Presence in `ffmpeg -encoders` is NOT enough — the probe proves the GPU and
+    driver actually work. Anything failing the probe falls back to libx264."""
+    global _HW_ENCODER_CACHE
+    if _HW_ENCODER_CACHE is not None:
+        return _HW_ENCODER_CACHE
+    ffmpeg = FFMPEG_DIR / "ffmpeg"
+    candidates = [
+        ("h264_videotoolbox", ["-c:v", "h264_videotoolbox", "-q:v", "60"]),
+    ]
+    for name, args in candidates:
+        try:
+            r = _run(str(ffmpeg), "-v", "error",
+                     "-f", "lavfi", "-i", "color=black:size=256x256:duration=0.2:rate=10",
+                     *args, "-frames:v", "3", "-f", "null", "-", timeout=20)
+            if r.returncode == 0:
+                print(f"[EGM] hardware encoder available: {name}")
+                _HW_ENCODER_CACHE = (name, list(args))
+                return _HW_ENCODER_CACHE
+        except Exception:
+            pass
+    _HW_ENCODER_CACHE = (None, None)
+    return _HW_ENCODER_CACHE
+
+
+# Cap concurrent hardware encodes. Consumer NVENC drivers hard-limit concurrent
+# encode sessions (3-8 depending on driver generation); QSV/AMF/VideoToolbox
+# also degrade under heavy parallelism. With up to 24 concurrent jobs, sessions
+# beyond the cap would fail at init and demote the cache -- turning one busy
+# burst into CPU-only encodes until restart. "Busy" is not "broken": jobs that
+# can't get a slot use libx264 for that one encode and leave the cache alone.
+_HW_ENCODE_SLOTS = threading.BoundedSemaphore(2)
+
+
+def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
+    """Shared encode step for the H.264/upscale passes: hardware encoder when one
+    probes healthy, automatic libx264 retry (and cache demotion) if it fails."""
+    global _HW_ENCODER_CACHE
+    sw = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+          "-profile:v", "high", "-level", level]
+    hw_name, hw_args = _detect_hw_encoder()
+    # Non-blocking: over-cap jobs take the software path this once,
+    # without demoting the cache -- the GPU is busy, not broken.
+    hw_slot = bool(hw_name) and _HW_ENCODE_SLOTS.acquire(blocking=False)
+    try:
+        for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
+            job["encoder"] = attempt   # surfaced in the converting badge
+            cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
+            if vf:
+                cmd += ["-vf", vf]
+            cmd += codec_args + ["-pix_fmt", "yuv420p",
+                                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp]
+            proc = _popen(*cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                          # Own process group: cancel goes through _kill_proc -> os.killpg;
+                          # without a new session this ffmpeg shares the app's own group and
+                          # killpg would SIGTERM Flask (and Electron) along with it.
+                          start_new_session=True)
+            job["proc"] = proc
+            with _active_procs_lock:
+                _active_procs[job_id] = proc
+            proc.wait()
+            job["proc"] = None
+            with _active_procs_lock:
+                _active_procs.pop(job_id, None)
+            if job.get("cancelled"):
+                for _ in range(6):   # killed ffmpeg may hold the handle briefly
+                    try:
+                        os.remove(tmp); break
+                    except FileNotFoundError:
+                        break
+                    except OSError:
+                        time.sleep(0.5)
+                return False
+            if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+                return True
+            try: os.remove(tmp)
+            except Exception: pass
+            if attempt != "libx264":
+                print(f"[EGM] {attempt} encode failed — retrying with libx264")
+                _HW_ENCODER_CACHE = (None, None)   # stop offering a broken encoder
+            else:
+                return False
+        return False
+
+    finally:
+        if hw_slot:
+            _HW_ENCODE_SLOTS.release()
+
 def _ensure_h264(job_id, path, job):
     """Universal MP4 (Max compatibility): if the downloaded video is not already H.264,
     transcode it to H.264 (High@4.0, yuv420p) + AAC with +faststart so it plays on any
@@ -845,24 +1008,7 @@ def _ensure_h264(job_id, path, job):
             return path                                       # already H.264 — skip
         job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
         tmp = f"{path}.h264.mp4"
-        proc = _popen(str(ffmpeg), "-y", "-i", path,
-                      "-map", "0:v:0", "-map", "0:a:0?",
-                      "-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-                      "-pix_fmt", "yuv420p", "-profile:v", "high", "-level", "4.0",
-                      "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp,
-                      stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        job["proc"] = proc
-        with _active_procs_lock:
-            _active_procs[job_id] = proc
-        proc.wait()
-        job["proc"] = None
-        with _active_procs_lock:
-            _active_procs.pop(job_id, None)
-        if job.get("cancelled"):
-            try: os.remove(tmp)
-            except OSError: pass
-            return path
-        if proc.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0"):
             try:
                 os.remove(path); os.rename(tmp, path)
             except OSError:
@@ -876,7 +1022,39 @@ def _ensure_h264(job_id, path, job):
     except Exception:
         return path
 
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264"):
+
+def _upscale_to_preset(job_id, path, job, target):
+    """Opt-in "Upscale to selected quality": if the finished video's SHORT side is
+    below the selected preset, scale it up proportionally (short side == preset)
+    and encode H.264 High + AAC, +faststart. At/above target -> untouched.
+    Defensive like _ensure_h264 — any failure returns the original file."""
+    path = str(path)
+    try:
+        ffprobe = FFMPEG_DIR / "ffprobe"
+        ffmpeg  = FFMPEG_DIR / "ffmpeg"
+        if not ffprobe.exists() or not ffmpeg.exists():
+            return path
+        r = _run(str(ffprobe), "-v", "error", "-select_streams", "v:0",
+                 "-show_entries", "stream=width,height", "-of", "csv=p=0", path, timeout=30)
+        parts = (r.stdout or "").strip().split(",")
+        if len(parts) != 2:
+            return path
+        w, h = int(parts[0]), int(parts[1])
+        if min(w, h) >= int(target):
+            return path                                       # already at/above preset
+        job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
+        n = int(target)
+        # short side -> N, long side proportional (even): portrait vs landscape aware
+        vf = "scale='if(gt(iw,ih),-2,%d)':'if(gt(iw,ih),%d,-2)'" % (n, n)
+        tmp = path + ".up.mp4"
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.2", vf=vf):
+            os.replace(tmp, path)
+        return path
+    except Exception:
+        return path
+
+
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264", hdr=False):
     job     = jobs.get(job_id)
     if not job:
         return  # Job was removed before worker started
@@ -936,13 +1114,18 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     else:
         # 4d: Container — default mp4. --remux-video ensures final container even
         # when format selection picks a progressive stream that doesn't trigger merge.
+        if hdr:
+            # HDR streams are VP9.2/AV1 10-bit: MKV is the honest container, and
+            # routing through mkv keeps the H.264 compat pass and the upscale pass
+            # out of the way via their existing gates (both would strip HDR).
+            output_format = "mkv"
         container = output_format if output_format in ("mp4", "mkv") else "mp4"
         args += ["--merge-output-format", container, "--remux-video", container]
         # If the selected format's paired audio is already AAC, remux with -c copy.
         # Otherwise (opus, vorbis, unknown) re-encode audio to AAC for mp4 compatibility.
         # Video is always stream-copied (-c:v copy) — never re-encoded.
         audio_is_aac = audio_codec and ("mp4a" in audio_codec or audio_codec == "aac")
-        if audio_is_aac:
+        if audio_is_aac or hdr:
             args += ["--postprocessor-args", "ffmpeg:-c copy"]
         else:
             args += ["--postprocessor-args", "ffmpeg:-c:v copy -c:a aac -b:a 192k"]
@@ -960,14 +1143,19 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if format_id:
             args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"]
         elif compat:
-            _h = f"[height<={video_height}]" if (video_height and video_height != 0) else ""
+            # Resolution cap via format sorting (-S res:N = min(width,height) <= N),
+            # not [height<=N] filters: height is the LONG side on portrait video,
+            # so a height filter excludes e.g. 720x1280 from a 1080p preset and
+            # silently downloads a smaller stream (issue #17).
+            if video_height and video_height != 0:
+                args += ["-S", f"res:{video_height}"]
             args += ["-f",
-                     f"bestvideo[vcodec^=avc1]{_h}+bestaudio[acodec^=mp4a]/"
-                     f"bestvideo[vcodec^=avc1]{_h}+bestaudio/"
-                     f"best[vcodec^=avc1]{_h}/"
-                     f"bestvideo{_h}+bestaudio/best{_h}/best"]
+                     "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
+                     "bestvideo[vcodec^=avc1]+bestaudio/"
+                     "best[vcodec^=avc1]/"
+                     "bestvideo+bestaudio/best"]
         elif video_height and video_height != 0:
-            args += ["-f", f"bestvideo[height<={video_height}]+bestaudio/best[height<={video_height}]/best"]
+            args += ["-S", f"res:{video_height}", "-f", "bestvideo+bestaudio/best"]
         else:
             args += ["-f", "bestvideo+bestaudio/best"]
         # 4a: Metadata embedding — chapters + metadata into video
@@ -976,7 +1164,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             args += ["--embed-metadata", "--embed-chapters"]
         # Subtitles — embed English subs into the video (only meaningful for video downloads)
         if subtitles:
-            args += ["--write-subs", "--write-auto-subs", "--sub-langs", "en", "--embed-subs"]
+            # Subtitle language follows the app language, English as fallback.
+            # yt-dlp downloads every matching track: non-English users get their
+            # language (any regional variant) plus English when both exist, and
+            # English alone when theirs is missing.
+            _lang = _load_settings().get("language", "en")
+            _sub_langs = "en" if _lang not in SUPPORTED_LANGUAGES or _lang == "en" else f"{_lang}.*,en"
+            args += ["--write-subs", "--write-auto-subs", "--sub-langs", _sub_langs, "--embed-subs"]
     args.append(url)
 
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
@@ -1118,6 +1312,22 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if format_choice != "audio" and output_format == "mp4_h264" and str(chosen).lower().endswith(".mp4"):
             chosen = _ensure_h264(job_id, chosen, job)
 
+        # Opt-in upscale to the selected preset (fixed presets only — "Best
+        # available" has no target). Runs after the H.264 pass; adds at most one
+        # extra encode, and only when the user opted in and the source is small.
+        if (format_choice != "audio" and video_height and int(video_height or 0) != 0
+                and _load_settings().get("upscale_to_quality", False)
+                and str(chosen).lower().endswith(".mp4")):
+            chosen = _upscale_to_preset(job_id, chosen, job, video_height)
+
+        if job.get("cancelled"):
+            # Cancelled during a conversion pass — remove the job's files
+            # (still job_id-prefixed; the title rename hasn't happened yet).
+            _cleanup(job_id, out_dir)
+            job["status"] = "cancelled"
+            job["_finished_at"] = time.time()
+            return
+
         ext        = os.path.splitext(chosen)[1]
         title      = job.get("title", "").strip()
         final_name = _safe_filename(title, ext) if title else os.path.basename(chosen)
@@ -1152,6 +1362,21 @@ def _cleanup(job_id, out_dir):
         except Exception: pass
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
+
+@app.errorhandler(500)
+def _internal_error(e):
+    """Unhandled exceptions land here. Electron spawns Flask with stdio ignored,
+    so without this the traceback is lost — append it to egm_error.log so field
+    failures are diagnosable (this is how first-launch 500s get captured)."""
+    try:
+        import traceback
+        with open(DATA_DIR / "egm_error.log", "a", encoding="utf-8") as f:
+            f.write("\n[" + time.strftime("%Y-%m-%d %H:%M:%S") + "] 500 on " + request.path + "\n")
+            f.write(traceback.format_exc())
+    except Exception:
+        pass
+    return jsonify({"error": "internal server error"}), 500
+
 @app.route("/")
 def index(): return render_template("index.html", egm_token=_API_TOKEN, platform_url="https://egerena.com/apps/egmac.html")
 
@@ -1250,7 +1475,8 @@ def start_download():
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
-                           data.get("output_format", "mp4_h264")),
+                           data.get("output_format", "mp4_h264"),
+                           bool(data.get("hdr", False))),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -1259,7 +1485,7 @@ def cancel_download(job_id):
     with _jobs_lock:
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
-        if job.get("status") not in ("downloading", "queued"):
+        if job.get("status") not in ("downloading", "queued", "converting"):
             return jsonify({"error": "Not downloading"}), 400
         job["cancelled"] = True
         proc = job.get("proc")
@@ -1281,7 +1507,8 @@ def check_status(job_id):
         resp = {"status": status, "error": job.get("error"),
                 "filename": job.get("filename"), "progress": job.get("progress", 0),
                 "speed": job.get("speed", ""), "eta": job.get("eta", ""),
-                "filesize": job.get("filesize", "")}
+                "filesize": job.get("filesize", ""),
+                "encoder": job.get("encoder") if status == "converting" else None}
         # Remove completed jobs from memory once the UI has consumed the result.
         if status in ("done", "error", "cancelled") and job.get("_ack"):
             jobs.pop(job_id, None)
@@ -1314,7 +1541,21 @@ def get_settings():
         "favorite_themes":         s.get("favorite_themes", []),
         "random_theme_on_launch":  s.get("random_theme_on_launch", False),
         "random_theme_scope":      s.get("random_theme_scope", "favorites"),
+        "language":                _get_language_setting(s),
+        "show_language_selector":  s.get("show_language_selector", True),
+        "show_settings_panel":     s.get("show_settings_panel", True),
+        "upscale_to_quality":      s.get("upscale_to_quality", False),
     })
+
+@app.route("/api/language/<code>")
+def get_language(code):
+    # Allowlist gate BEFORE any path is built — never interpolate a raw code.
+    if code not in SUPPORTED_LANGUAGES:
+        return jsonify({"error": "unsupported language"}), 400
+    try:
+        return jsonify(json.loads((LANGUAGES_DIR / (code + ".json")).read_text(encoding="utf-8")))
+    except Exception:
+        return jsonify({"error": "language file unavailable"}), 404
 
 @app.route("/api/settings/save", methods=["POST"])
 def save_settings():
@@ -1325,7 +1566,8 @@ def save_settings():
                "subtitles", "embed_metadata", "output_format",
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
-               "favorite_themes", "random_theme_on_launch", "random_theme_scope"}
+               "favorite_themes", "random_theme_on_launch", "random_theme_scope",
+               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1348,6 +1590,15 @@ def save_settings():
         data.pop("random_theme_scope", None)
     if "random_theme_on_launch" in data:
         data["random_theme_on_launch"] = bool(data["random_theme_on_launch"])
+    # i18n — same allowlist as detection and /api/language: reject unknown codes.
+    if "language" in data and data.get("language") not in SUPPORTED_LANGUAGES:
+        data.pop("language", None)
+    if "show_language_selector" in data:
+        data["show_language_selector"] = bool(data["show_language_selector"])
+    if "show_settings_panel" in data:
+        data["show_settings_panel"] = bool(data["show_settings_panel"])
+    if "upscale_to_quality" in data:
+        data["upscale_to_quality"] = bool(data["upscale_to_quality"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
@@ -1433,7 +1684,7 @@ def _get_latest_ytdlp_version(channel=None):
 
 update_status: dict = {}
 
-def _run_update(do_ytdlp, do_ffmpeg):
+def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
@@ -1521,9 +1772,20 @@ def _run_update(do_ytdlp, do_ffmpeg):
                 for t in (tmp_ffmpeg, tmp_ffprobe):
                     try: t.unlink(missing_ok=True)
                     except Exception: pass
-            try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag())
+            try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
+        if do_optlibs:
+            log("Updating optional libraries...")
+            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                     "curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi",
+                     timeout=180)
+            if r.returncode == 0:
+                vers = _get_optlibs_versions()
+                log("optional libs -> " + ", ".join(f"{k} {v}" for k, v in vers.items()))
+            else:
+                err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+                log(f"optional libs update failed: {err}")
         log("All done.")
         update_status["done"] = True
     except Exception as e:
@@ -1534,17 +1796,33 @@ def _run_update(do_ytdlp, do_ffmpeg):
 OPTLIBS = ["curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi"]
 
 def _get_optlibs_versions() -> dict:
-    """Installed versions of the optional yt-dlp libraries. Informational-only on
-    this platform (bundled with the app; no in-app pip upgrade — same model as
-    mutagen), so check_updates returns current versions without a latest/up_to_date,
-    and the UI renders a neutral badge rather than an actionable toggle."""
+    """Installed versions of the optional yt-dlp libraries (same Python env
+    pip installs into — mirrors the yt-dlp update path on this platform)."""
     import importlib.metadata
+    importlib.invalidate_caches()  # see dists installed while the app is running
     result = {}
     for lib in OPTLIBS:
         try:
             result[lib] = importlib.metadata.version(lib)
         except Exception:
             result[lib] = "not installed"
+    return result
+
+
+def _get_latest_optlibs_versions() -> dict:
+    def _one(lib):
+        try:
+            with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
+                return lib, json.loads(r.read())["info"]["version"]
+        except Exception:
+            return lib, "unknown"
+    result = {}
+    # 5 independent PyPI calls -- sequential was up to 5x HTTP_TIMEOUT_SHORT (75s)
+    # worst case, blocking /api/check-updates the whole time. Parallelized so the
+    # bound is one slow call, not the sum of all five.
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(OPTLIBS)) as ex:
+        for lib, version in ex.map(_one, OPTLIBS):
+            result[lib] = version
     return result
 
 
@@ -1564,12 +1842,29 @@ def check_updates():
     ytdlp_ch  = _load_settings().get("yt_dlp_channel", "stable")
     ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
+    oc = _get_optlibs_versions()
+    ol = _get_latest_optlibs_versions()
+    optlibs_updates = sum(
+        1 for lib in oc
+        if oc[lib] != "not installed" and ol.get(lib, "unknown") != "unknown" and oc[lib] != ol[lib]
+    )
+    optlibs_ok = optlibs_updates == 0 and all(v != "not installed" for v in oc.values())
     return jsonify({
         "ytdlp":   {"current": cy, "latest": ly, "up_to_date": ytdlp_ok, "channel": ytdlp_ch},
         "ffmpeg":  {"current": cf, "latest": lf,
-                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown" and cf == lf, "channel": ffmpeg_ch},
+                    # Tag AND channel must both match: the two BtbN channels can
+                    # share a version tag, so a tag-only compare right after a
+                    # channel switch would claim "up to date" while the installed
+                    # build is still from the other channel (and the switch toast
+                    # says "Update via Plugins to apply"). Legacy tag files with
+                    # no " · channel" suffix skip the channel check (pre-suffix
+                    # installs keep the old behavior until their next update).
+                    "up_to_date": cf not in ("not installed","unknown") and lf != "unknown"
+                                  and cf.split(" ")[0] == lf
+                                  and (" · " not in cf or cf.split(" · ")[1] == ffmpeg_ch),
+                    "channel": ffmpeg_ch},
         "mutagen": {"current": cm, "latest": None, "up_to_date": None},
-        "optlibs": {"current": _get_optlibs_versions()},
+        "optlibs": {"current": oc, "latest": ol, "updates_available": optlibs_updates, "up_to_date": optlibs_ok},
     })
 
 @app.route("/api/run-update", methods=["POST"])
@@ -1579,7 +1874,8 @@ def run_update():
         update_status["running"] = True
     data = request.get_json(silent=True) or {}
     threading.Thread(target=_run_update,
-                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False))),
+                     args=(bool(data.get("ytdlp",True)), bool(data.get("ffmpeg",False)),
+                           bool(data.get("optlibs", False))),
                      daemon=True).start()
     return jsonify({"started": True})
 
@@ -1622,12 +1918,29 @@ def cookies_clear():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
+def _get_latest_deno_version() -> str:
+    try:
+        req = urllib.request.Request("https://api.github.com/repos/denoland/deno/releases/latest",
+                                     headers={"User-Agent": "EGM-Downloader"})
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
+            return json.loads(r.read()).get("tag_name", "unknown").lstrip("v")
+    except Exception:
+        return "unknown"
+
 @app.route("/api/deno/status")
 def deno_status():
-    """Return installed Deno version and whether the exe exists."""
+    """Installed Deno version; latest/up_to_date only when explicitly requested
+    (?latest=1, i.e. Check for Updates) — passive grid loads show the same
+    "—" placeholder as the other plugins and skip the GitHub API call."""
     installed = DENO_EXE.exists()
     version   = _get_deno_version() if installed else "not installed"
-    return jsonify({"installed": installed, "version": version})
+    latest    = _get_latest_deno_version() if request.args.get("latest") == "1" else None
+    up_to_date = None
+    if latest and latest != "unknown" and installed and version not in ("unknown", "not installed"):
+        up_to_date = version == latest
+    return jsonify({"installed": installed, "version": version, "latest": latest,
+                    "up_to_date": up_to_date})
 
 deno_install_status: dict = {}
 
@@ -1906,27 +2219,6 @@ def download_update():
         try: zip_path.unlink(missing_ok=True)
         except Exception: pass
         return jsonify({"error": str(e)}), 500
-
-@app.route("/api/cache/clear", methods=["POST"])
-def cache_clear():
-    """Clear temp update files and orphaned partial download files."""
-    cleared = []
-    try:
-        if UPDATE_TMP_DIR.exists():
-            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
-            cleared.append("update cache")
-    except Exception: pass
-    try:
-        last_folder = _load_settings().get("last_folder", "")
-        if last_folder:
-            dl_path = Path(last_folder)
-            if dl_path.is_dir():
-                for pattern in ("*.part", "*.ytdl"):  # *.f*.mp4 and *.f*.webm removed — too broad for user download folder
-                    for f in dl_path.glob(pattern):
-                        try: f.unlink(); cleared.append(f.name)
-                        except Exception: pass
-    except Exception: pass
-    return jsonify({"ok": True, "cleared": cleared})
 
 @app.route("/api/settings/reset", methods=["POST"])
 def settings_reset():

@@ -48,7 +48,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
 
     // Lazy-fetch info if needed
     if (!item.info.formats?.length && !item.info.audio_formats?.length) {
-      setBadge(stEl, 'dl', 'Fetching...'); dlBtn.disabled = true;
+      setBadge(stEl, 'dl', i18nGet('card.status.fetching_short') || 'Fetching...'); dlBtn.disabled = true;
       try {
         const i2 = await post('/api/info', { url: item.url });
         if (!i2.error) item.info = i2;
@@ -56,7 +56,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     }
 
     item.status = 'downloading';
-    setBadge(stEl, 'dl', 'Queued...');
+    setBadge(stEl, 'dl', i18nGet('card.status.queued_ellipsis') || 'Queued...');
     dlBtn.disabled = true;
     if (progEl) progEl.style.display = '';
 
@@ -73,7 +73,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
 
     try {
       if (bulkStop || item.status === 'cancelled') { active--; return; }
-      setBadge(stEl, 'dl', 'Downloading...');
+      setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading...');
       const res = await post('/api/download', {
         url: item.url, format: forceFormat || item.selFmt,
         format_id: null,
@@ -175,31 +175,13 @@ function cancelBulk() {
       const progEl  = document.getElementById('prog'   + n);
       const dlBtn   = document.getElementById('dl'     + n);
       const cancelBtn = document.getElementById('cancel' + n);
-      if (stEl)      setBadge(stEl, 'cancel', 'Cancelled');
+      if (stEl)      setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
       if (progEl)    progEl.style.display = 'none';
       if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
     }
   });
-  toast('All downloads cancelled');
-}
-
-function clearCompleted() {
-  // Done items are auto-removed on completion. This clears stuck error + cancelled cards.
-  const before = items.length;
-  items = items.filter(item => {
-    if (item.status === 'error' || item.status === 'cancelled') {
-      const stEl = document.getElementById('st' + item.id);
-      const card = stEl ? stEl.closest('.vcard') : null;
-      if (card) card.remove();
-      return false;
-    }
-    return true;
-  });
-  const cleared = before - items.length;
-  if (cleared > 0) toast(`Cleared ${cleared} item${cleared !== 1 ? 's' : ''}`, 'ok');
-  else toast('Nothing to clear', '');
-  if (items.length <= 1) setDlAllVisible(false);
+  toast(i18nGet('toast.bulk.all_cancelled') || 'All downloads cancelled');
 }
 
 document.getElementById('clear-btn').addEventListener('click', () => {
