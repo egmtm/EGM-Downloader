@@ -300,7 +300,7 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 ## 🗺️ Roadmap
 
-**v1.3 — POLYGLOT: FULL THROTTLE:** *(Targeting mid-July 2026)*
+**v1.3 — POLYGLOT — FULL THROTTLE:** *(Targeting mid-July 2026)*
 - 🌍 In-app language picker — 10 languages: English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, Russian
 - Auto-detects your system language on first launch; change anytime from the footer, no restart needed
 - Language selector and Settings panel (incl. Site Cookies) can each be hidden from Advanced settings for a cleaner footer, and re-enabled anytime
