@@ -27,10 +27,7 @@ v1.3 - POLYGLOT — FULL THROTTLE (Build TBD) (TBD)
   • [WINDOWS] Advanced panel tidied up — Check for app update/Desktop shortcut and Reinstall Electron/Reset settings now sit two-to-a-row instead of stacked
   • [WINDOWS] Fixed the taskbar right-click menu showing "Electron" instead of "EGM Downloader"
   • [ALL] Fixed an issue where users were attempting to enter the Konami code.
-  • [ALL] 12 new themes added — 8 international holidays (Three Kings Day, Vesak, Songkran, Juneteenth, Bastille Day, Vaisakhi, Obon, Qingming) and 4 memes (Distracted Boyfriend, Stonks, Gigachad, Hide the Pain). More on the way.
-  • [ALL] 8 more themes added — Rust, Teal Abyss, Lilac Mist, Coral Reef Light, Hologram, Boombox, Rotary Phone, Pay Phone. More on the way.
-  • [ALL] 10 more themes added — a new "Old Internet" category: You've Got Mail, Uh Oh Flower, Buddy List, Top 8, Away Message, Under Construction, Best Answer, Coldmail, Dot Com, Buzz. More on the way.
-  • [ALL] 10 more themes added — Vehicle History: Model T, Woodie Wagon, Split Window, Bug, Muscle Stripe, Prancing Red, Silver Arrow, Kei Legend, Rolling Thunder, Electric Dawn. More on the way.
+  • [ALL] 50 new themes added — 500 total. 8 international holidays and 4 memes, a category-balance batch (Dark, Light, Futuristic, Retro), a new "Old Internet" category, and Vehicle History (10 real, 10 fictional)
   • [ALL] Backed by 117 automated tests covering security, process safety, and cross-platform consistency — all passing
 
 v1.2.7 - BATTLE TESTED (Build 140) (7/2/2026)
