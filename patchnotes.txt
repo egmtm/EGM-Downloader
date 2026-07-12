@@ -1,4 +1,4 @@
-v1.3 - Build TBD (TBD)
+v1.3 - POLYGLOT — FULL THROTTLE (Build TBD) (TBD)
 -----------------------------------------
 
   • [ALL] New in-app language selector — EGM Downloader now speaks 10 languages: English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, and Russian
