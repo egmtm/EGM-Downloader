@@ -226,12 +226,6 @@ function toggleSettingsPanel() {
   }
 })();
 
-// ── Cookies sub-panel toggle ──────────────────────────────────────────────────
-let ckOpen = false;
-function toggleCookiePanel() {
-  // No-op: cookies section is always visible (single-row layout since v0.98.7)
-}
-
 // ── Paste ─────────────────────────────────────────────────────────────────────
 async function doPaste() {
   try {
@@ -759,25 +753,6 @@ async function browseCookiesIPC() {
   } catch (e) { toast('Browse error: ' + e.message, 'err'); }
 }
 
-async function uploadCookies(input) {
-  const file = input.files[0];
-  if (!file) return;
-  const text = await file.text();
-  // Accept any valid Netscape cookie file — not just YouTube ones
-  if (!text.includes('# Netscape') && !text.trim().startsWith('#')) {
-    toast('This does not look like a valid cookies.txt file', 'err');
-    input.value = '';
-    return;
-  }
-  try {
-    const r = await post('/api/cookies/save', { content: text });
-    if (r.error) { toast('Failed to save cookies: ' + r.error, 'err'); return; }
-    toast(i18nGet('toast.cookies.loaded') || 'cookies.txt loaded — authenticated downloads enabled', 'ok');
-    await refreshCookieCard();
-  } catch (e) { toast('Upload error: ' + e.message, 'err'); }
-  input.value = '';
-}
-
 async function clearCookies() {
   try {
     const r = await post('/api/cookies/clear', {});
@@ -785,18 +760,6 @@ async function clearCookies() {
     toast('Cookies removed', 'ok');
     await refreshCookieCard();
   } catch (e) { toast((i18nFmt('toast.plugins.error_prefix', e.message))||('Error: ' + e.message), 'err'); }
-}
-
-async function refreshUpdGrid() {
-  try {
-    const [data, deno] = await Promise.all([
-      fetch('/api/check-updates').then(r => r.json()),
-      fetch('/api/deno/status?latest=1').then(r => r.json()),
-    ]);
-    data.deno = deno;
-    renderUpdGrid(data);
-    syncInstallBtn();
-  } catch {}
 }
 
 // Cookies card clear button

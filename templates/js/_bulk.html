@@ -184,24 +184,6 @@ function cancelBulk() {
   toast(i18nGet('toast.bulk.all_cancelled') || 'All downloads cancelled');
 }
 
-function clearCompleted() {
-  // Done items are auto-removed on completion. This clears stuck error + cancelled cards.
-  const before = items.length;
-  items = items.filter(item => {
-    if (item.status === 'error' || item.status === 'cancelled') {
-      const stEl = document.getElementById('st' + item.id);
-      const card = stEl ? stEl.closest('.vcard') : null;
-      if (card) card.remove();
-      return false;
-    }
-    return true;
-  });
-  const cleared = before - items.length;
-  if (cleared > 0) toast(`Cleared ${cleared} item${cleared !== 1 ? 's' : ''}`, 'ok');
-  else toast('Nothing to clear', '');
-  if (items.length <= 1) setDlAllVisible(false);
-}
-
 document.getElementById('clear-btn').addEventListener('click', () => {
   document.getElementById('urls').value = '';
   showEmptyState();
