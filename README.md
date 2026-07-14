@@ -109,10 +109,10 @@
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/06-theme-creator-it-panda-theme.png">
-        <img src="screenshots/06-theme-creator-it-panda-theme.png" width="340" alt="Theme Creator — IT Panda Theme"/>
+      <a href="screenshots/06-theme-creator-panda-theme.png">
+        <img src="screenshots/06-theme-creator-panda-theme.png" width="340" alt="Theme Creator — Panda Theme"/>
       </a>
-      <br/><sub><b>Theme Creator — IT Panda Theme</b></sub>
+      <br/><sub><b>Theme Creator — Panda Theme</b></sub>
     </td>
     <td align="center">
       <a href="screenshots/07-plugins-cybercore-theme.png">
