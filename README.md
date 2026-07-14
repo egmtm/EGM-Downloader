@@ -67,7 +67,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.2.3 — FULLY LOADED. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.3.0 — POLYGLOT: FULL THROTTLE. The UI is identical across Windows, macOS, and Linux.*
 
 <div align="center">
   <a href="screenshots/01-splash-screen.png">
@@ -81,96 +81,103 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/02-main-ui-yeezus-theme.png">
-        <img src="screenshots/02-main-ui-yeezus-theme.png" width="340" alt="Main UI — Yeezus Theme"/>
+      <a href="screenshots/02-language-selector-dark-knight-ride-theme.png">
+        <img src="screenshots/02-language-selector-dark-knight-ride-theme.png" width="340" alt="Language Selector — Dark Knight Ride Theme"/>
       </a>
-      <br/><sub><b>Main UI — Yeezus Theme</b></sub>
+      <br/><sub><b>Language Selector — Dark Knight Ride Theme</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/03-advanced-optional-libs-insert-coin-theme.png">
-        <img src="screenshots/03-advanced-optional-libs-insert-coin-theme.png" width="340" alt="Optional Libraries Panel — Insert Coin Theme"/>
+      <a href="screenshots/03-hdr-selector-aurora-deep-theme.png">
+        <img src="screenshots/03-hdr-selector-aurora-deep-theme.png" width="340" alt="HDR Selector — Aurora Deep Theme"/>
       </a>
-      <br/><sub><b>Optional Libraries Panel — Insert Coin Theme</b></sub>
+      <br/><sub><b>HDR Selector — Aurora Deep Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/04-history-redesigned-odd-cab-theme.png">
-        <img src="screenshots/04-history-redesigned-odd-cab-theme.png" width="340" alt="History Redesigned — Odd Cab Theme"/>
+      <a href="screenshots/04-main-ui-buddy-list-theme.png">
+        <img src="screenshots/04-main-ui-buddy-list-theme.png" width="340" alt="Main UI — Buddy List Theme"/>
       </a>
-      <br/><sub><b>History Redesigned — Odd Cab Theme</b></sub>
+      <br/><sub><b>Main UI — Buddy List Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/05-expanded-history-tokyo-neon-theme.png">
-        <img src="screenshots/05-expanded-history-tokyo-neon-theme.png" width="340" alt="Expanded History — Tokyo Neon Theme"/>
+      <a href="screenshots/05-advanced-interface-flux-capacitor-theme.png">
+        <img src="screenshots/05-advanced-interface-flux-capacitor-theme.png" width="340" alt="Advanced Interface — Flux Capacitor Theme"/>
       </a>
-      <br/><sub><b>Expanded History — Tokyo Neon Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/06-themes-panel-redesigned-valhalla-theme.png">
-        <img src="screenshots/06-themes-panel-redesigned-valhalla-theme.png" width="340" alt="Themes Panel Redesigned — Valhalla Theme"/>
-      </a>
-      <br/><sub><b>Themes Panel Redesigned — Valhalla Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/07-help-modal-ctrl-k-jump-city-theme.png">
-        <img src="screenshots/07-help-modal-ctrl-k-jump-city-theme.png" width="340" alt="Help Modal — Ctrl+K — Jump City Theme"/>
-      </a>
-      <br/><sub><b>Help Modal — Ctrl+K — Jump City Theme</b></sub>
+      <br/><sub><b>Advanced Interface — Flux Capacitor Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/08-theme-creator-prism-theme.png">
-        <img src="screenshots/08-theme-creator-prism-theme.png" width="340" alt="Theme Creator — Prism Theme"/>
+      <a href="screenshots/06-theme-creator-it-panda-theme.png">
+        <img src="screenshots/06-theme-creator-it-panda-theme.png" width="340" alt="Theme Creator — IT Panda Theme"/>
       </a>
-      <br/><sub><b>Theme Creator — Prism Theme</b></sub>
+      <br/><sub><b>Theme Creator — IT Panda Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/09-theme-creator-custom-weird-theme.png">
-        <img src="screenshots/09-theme-creator-custom-weird-theme.png" width="340" alt="Theme Creator — Custom Theme"/>
+      <a href="screenshots/07-plugins-cybercore-theme.png">
+        <img src="screenshots/07-plugins-cybercore-theme.png" width="340" alt="Plugins — Cybercore Theme"/>
       </a>
-      <br/><sub><b>Theme Creator — Custom Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/10-subscriptions-infrared-theme.png">
-        <img src="screenshots/10-subscriptions-infrared-theme.png" width="340" alt="Subscriptions — Infrared Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions — Infrared Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/11-subscriptions-fetching-corrupted-theme.png">
-        <img src="screenshots/11-subscriptions-fetching-corrupted-theme.png" width="340" alt="Subscriptions Fetching — Corrupted Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions Fetching — Corrupted Theme</b></sub>
+      <br/><sub><b>Plugins — Cybercore Theme</b></sub>
     </td>
   </tr>
   <tr>
     <td align="center">
-      <a href="screenshots/12-subscriptions-collapsed-beos-theme.png">
-        <img src="screenshots/12-subscriptions-collapsed-beos-theme.png" width="340" alt="Subscriptions Collapsed — BeOS Theme"/>
+      <a href="screenshots/08-subscriptions-webmley-theme.png">
+        <img src="screenshots/08-subscriptions-webmley-theme.png" width="340" alt="Subscriptions — Webmley Theme"/>
       </a>
-      <br/><sub><b>Subscriptions Collapsed — BeOS Theme</b></sub>
+      <br/><sub><b>Subscriptions — Webmley Theme</b></sub>
     </td>
     <td align="center">
-      <a href="screenshots/13-fetching-playlists-new-york-theme.png">
-        <img src="screenshots/13-fetching-playlists-new-york-theme.png" width="340" alt="Fetching Playlists — New York Theme"/>
+      <a href="screenshots/09-subscriptions-unix-theme.png">
+        <img src="screenshots/09-subscriptions-unix-theme.png" width="340" alt="Subscriptions — Unix Theme"/>
       </a>
-      <br/><sub><b>Fetching Playlists — New York Theme</b></sub>
+      <br/><sub><b>Subscriptions — Unix Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/10-history-buenos-aires-theme.png">
+        <img src="screenshots/10-history-buenos-aires-theme.png" width="340" alt="History — Buenos Aires Theme"/>
+      </a>
+      <br/><sub><b>History — Buenos Aires Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/11-export-wraith-theme.png">
+        <img src="screenshots/11-export-wraith-theme.png" width="340" alt="Export — Wraith Theme"/>
+      </a>
+      <br/><sub><b>Export — Wraith Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/12-help-modal-wall-street-theme.png">
+        <img src="screenshots/12-help-modal-wall-street-theme.png" width="340" alt="Help Modal — Wall Street Theme"/>
+      </a>
+      <br/><sub><b>Help Modal — Wall Street Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/13-all-themes-quiet-luxury-theme.png">
+        <img src="screenshots/13-all-themes-quiet-luxury-theme.png" width="340" alt="All Themes — Quiet Luxury Theme"/>
+      </a>
+      <br/><sub><b>All Themes — Quiet Luxury Theme</b></sub>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <a href="screenshots/14-fetching-settings-hidden-void-theme.png">
+        <img src="screenshots/14-fetching-settings-hidden-void-theme.png" width="340" alt="Fetching — Settings Hidden — Void Theme"/>
+      </a>
+      <br/><sub><b>Fetching — Settings Hidden — Void Theme</b></sub>
+    </td>
+    <td align="center">
+      <a href="screenshots/15-main-ui-hidden-panels-odd-cab-theme.png">
+        <img src="screenshots/15-main-ui-hidden-panels-odd-cab-theme.png" width="340" alt="Main UI — Hidden Panels — Odd Cab Theme"/>
+      </a>
+      <br/><sub><b>Main UI — Hidden Panels — Odd Cab Theme</b></sub>
     </td>
   </tr>
 </table>
-
-<div align="center">
-  <a href="screenshots/14-all-themes-n64-theme.png">
-    <img src="screenshots/14-all-themes-n64-theme.png" width="520" alt="All Themes — N64 Theme"/>
-  </a>
-  <br/><sub><b>All Themes — N64 Theme</b></sub>
-</div>
 
 ## 📥 Download
 
