@@ -65,7 +65,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       cancelBtn = document.createElement('button');
       cancelBtn.id = 'cancel' + n;
       cancelBtn.className = 'btn btn-red btn-sm';
-      cancelBtn.textContent = '✕ Cancel';
+      cancelBtn.textContent = i18nGet('bulk.btn.cancel_dynamic') || '✕ Cancel';
       dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
     }
     cancelBtn.style.display = '';

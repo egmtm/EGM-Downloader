@@ -136,7 +136,7 @@ function showUpdateAvailableModal(d) {
   if (d.download) {
     const btnPage = document.createElement('button');
     btnPage.className = 'btn btn-ghost';
-    btnPage.textContent = '🌐 Open Page';
+    btnPage.textContent = i18nGet('notification.btn.open_page') || '🌐 Open Page';
     btnPage.addEventListener('click', () => { window.open(d.download, '_blank'); backdrop.remove(); });
     btns.appendChild(btnPage);
   }

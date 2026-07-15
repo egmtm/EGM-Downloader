@@ -392,7 +392,7 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
   btn.disabled = true;
   const label = btn.querySelector('.adv-btn-label') || btn;
   const origText = label.textContent;
-  label.textContent = '⏳ Checking…';
+  label.textContent = i18nGet('plugins.btn.checking') || '⏳ Checking…';
   try {
     const [data, deno] = await Promise.all([
       fetch('/api/check-updates').then(r => r.json()),
@@ -668,7 +668,7 @@ async function installDeno() {
   if (!btn) return;
 
   btn.disabled = true;
-  btn.textContent = '⏳ Installing...';
+  btn.textContent = i18nGet('plugins.btn.installing_deno') || '⏳ Installing...';
   if (log) { log.textContent = ''; log.classList.add('show'); }
 
   try {
@@ -698,7 +698,7 @@ async function installDeno() {
         } else if (s.error) {
           toast((i18nGet('toast.settings.deno_install_failed') || 'Deno install failed') + ': ' + s.error, 'err');
           btn.disabled = false;
-          btn.textContent = '⬇ Install Deno';
+          btn.textContent = i18nGet('plugins.btn.install_deno_idle') || '⬇ Install Deno';
         }
       }
     } catch {}
