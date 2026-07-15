@@ -418,7 +418,7 @@ async function cancelDownload(item, n) {
   const cancelBtn = document.getElementById(`cancel${n}`);
   setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
   if (progEl) progEl.style.display = 'none';
-  if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+  if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
   toast(i18nGet('toast.download_cancelled') || 'Download cancelled');
 }
@@ -499,7 +499,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
-    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
     recheckBulkVisibility();
     return true;
   }
@@ -513,7 +513,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
       bulkCancelledJobs.delete(item.jobId);
       setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
       if (progEl) progEl.style.display = 'none';
-      if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
       return;
     }

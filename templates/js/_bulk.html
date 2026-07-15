@@ -177,7 +177,7 @@ function cancelBulk() {
       const cancelBtn = document.getElementById('cancel' + n);
       if (stEl)      setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
       if (progEl)    progEl.style.display = 'none';
-      if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
     }
   });
