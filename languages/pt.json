@@ -504,6 +504,7 @@
     "settings.toggle.upscale": "Aumentar escala",
     "themes.confirm.delete_title": "Excluir este tema?",
     "themes.confirm.delete_body": "\"{0}\" será excluído permanentemente. Isso não pode ser desfeito.",
-    "card.quality.hdr_tooltip": "O HDR requer uma tela e um reprodutor compatíveis com HDR — caso contrário, as cores ficam desbotadas. Downloads em HDR são salvos como MKV."
+    "card.quality.hdr_tooltip": "O HDR requer uma tela e um reprodutor compatíveis com HDR — caso contrário, as cores ficam desbotadas. Downloads em HDR são salvos como MKV.",
+    "toast.quality.reset_subscriptions_note": "inscrições (obtenha novamente para carregar os vídeos)"
   }
 }
