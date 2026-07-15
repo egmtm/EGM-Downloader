@@ -504,6 +504,7 @@
     "settings.toggle.upscale": "Suréchantillonner",
     "themes.confirm.delete_title": "Supprimer ce thème ?",
     "themes.confirm.delete_body": "Le thème « {0} » sera définitivement supprimé. Cela ne peut pas être annulé.",
-    "card.quality.hdr_tooltip": "Le HDR nécessite un écran et un lecteur compatibles HDR — sinon les couleurs paraissent délavées. Les téléchargements HDR sont enregistrés au format MKV."
+    "card.quality.hdr_tooltip": "Le HDR nécessite un écran et un lecteur compatibles HDR — sinon les couleurs paraissent délavées. Les téléchargements HDR sont enregistrés au format MKV.",
+    "toast.quality.reset_subscriptions_note": "abonnements (récupérez à nouveau pour charger les vidéos)"
   }
 }
