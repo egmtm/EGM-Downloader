@@ -427,7 +427,10 @@ function videoQualityBgClick(e) {
         } catch {}
       }
 
-      const parts = [msg, subCount>0?`${subCount} subscriptions (re-fetch to load videos)`:null].filter(Boolean).join(' + ');
+      // Japanese counter words attach directly to the number (e.g. "3件"),
+      // unlike the space-separated convention every other locale uses here.
+      const subNoteSep = (I18N.code === 'ja') ? '' : ' ';
+      const parts = [msg, subCount>0?`${subCount}${subNoteSep}${i18nGet('toast.quality.reset_subscriptions_note') || 'subscriptions (re-fetch to load videos)'}`:null].filter(Boolean).join(' + ');
       toast(`${parts || (i18nGet('toast.quality.nothing_selected') || 'Nothing selected')} — reloading…`, parts ? 'ok' : 'err');
       if (parts) setTimeout(() => location.reload(), 800);
     } catch { toast(i18nGet('settings.import.error') || 'Could not import settings — file may not be valid settings JSON', 'err'); }
