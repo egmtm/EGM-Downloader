@@ -281,7 +281,7 @@ async function loadNewerOlderBatch(page, totalPages, parentBody, oldBtn) {
   } else {
     const end = document.createElement('p');
     end.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:4px 0 2px';
-    end.textContent = '— beginning of history —';
+    end.textContent = i18nGet('history.beginning_marker') || '— beginning of history —';
     parentBody.appendChild(end);
   }
 }
