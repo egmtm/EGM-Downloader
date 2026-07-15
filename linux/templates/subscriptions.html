@@ -1193,7 +1193,7 @@ function renderDetail() {
       const dlDir = subFolder || appSettings.last_folder || '';
 
       dlBtn.disabled = true;
-      dlBtn.textContent = 'Starting...';
+      dlBtn.textContent = i18nGet('subscriptions.btn.starting') || 'Starting...';
 
       for (const cb of checked) {
         const videoId = cb.dataset.videoId;

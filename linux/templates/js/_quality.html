@@ -112,7 +112,7 @@ function videoQualityBgClick(e) {
           // lint-allow-muted: loading-state
           const li = document.createElement('li');
           li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
-          li.textContent = 'See egerena.com for release notes.';
+          li.textContent = i18nGet('update.whatsnew.see_release_notes') || 'See egerena.com for release notes.';
           list.appendChild(li);
         }
       } catch {
@@ -121,7 +121,7 @@ function videoQualityBgClick(e) {
         // lint-allow-muted: loading-state
         const li = document.createElement('li');
         li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
-        li.textContent = 'See egerena.com for release notes.';
+        li.textContent = i18nGet('update.whatsnew.see_release_notes') || 'See egerena.com for release notes.';
         list.appendChild(li);
       }
 
