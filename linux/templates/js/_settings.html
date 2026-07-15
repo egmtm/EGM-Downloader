@@ -198,7 +198,7 @@ function updatePluginsBadge(data) {
     badge.textContent = count + ' update' + (count > 1 ? 's' : '');
     badge.className = 'adv-divider-badge upd';
   } else {
-    badge.textContent = 'All current';
+    badge.textContent = i18nGet('plugins.badge.all_current') || 'All current';
     badge.className = 'adv-divider-badge ok';
   }
 }
