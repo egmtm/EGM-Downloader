@@ -197,7 +197,7 @@ async function loadHistoryPanel(page = 1) {
   _historyTotal = total;
   const countEl = document.getElementById('history-panel-count');
   const infoEl  = document.getElementById('history-total-info');
-  if (countEl) countEl.textContent = total + ' total';
+  if (countEl) countEl.textContent = i18nFmt('panel.history.total', total) || (total + ' total');
   if (infoEl)  infoEl.textContent  = i18nFmt('panel.history.downloads', total) || (total + ' downloads');
 
   const tabCount = document.getElementById('history-tab-count');
@@ -217,7 +217,7 @@ async function loadHistoryPanel(page = 1) {
     empty.id = 'history-empty';
     empty.style.cssText = 'padding:12px 8px;font-size:10px;color:var(--text2);text-align:center';
     // Edge case: server reported total > 0 but returned no items — still inform the user
-    empty.textContent = total > 0 ? `${total} downloads (refresh to load)` : 'No downloads yet';
+    empty.textContent = total > 0 ? (i18nFmt('panel.history.refresh_to_load', total) || `${total} downloads (refresh to load)`) : (i18nGet('history.empty') || 'No downloads yet');
     frag.appendChild(empty);
   } else {
     const shown = sorted.slice(0, 5);
@@ -226,7 +226,7 @@ async function loadHistoryPanel(page = 1) {
     if (hidden > 0) {
       const more = document.createElement('p');
       more.style.cssText = 'font-size:8px;color:var(--border2);text-align:center;margin:2px 0';
-      more.textContent = `· · · ${hidden} more in this batch · · ·`;
+      more.textContent = i18nFmt('history.batch.more_hidden', hidden) || `· · · ${hidden} more in this batch · · ·`;
       frag.appendChild(more);
     }
     if (d && page < d.pages) {

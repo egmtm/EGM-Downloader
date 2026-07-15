@@ -62,11 +62,12 @@ function audioQualityBgClick(e) {
           return maxH > 0 && maxH < reqHeight;
         }).length;
         if (cappedCount > 0) {
-          const word = cappedCount === 1 ? 'video tops' : 'videos top';
           // Slight delay so the toast lands AFTER the download-start DOM churn
           // and the user actually sees it instead of it being overwritten visually
           setTimeout(() => {
-            toast(`${cappedCount} ${word} out below ${reqHeight}p — using best available`, 'warn');
+            toast(cappedCount === 1
+              ? (i18nFmt('toast.quality.capped_one', cappedCount, reqHeight) || `${cappedCount} video tops out below ${reqHeight}p — using best available`)
+              : (i18nFmt('toast.quality.capped_many', cappedCount, reqHeight) || `${cappedCount} videos top out below ${reqHeight}p — using best available`), 'warn');
           }, 150);
         }
       }
@@ -208,8 +209,8 @@ function videoQualityBgClick(e) {
     const ch = e.target.value;
     try {
       await post('/api/settings/save', { yt_dlp_channel: ch });
-      const note = ch === 'nightly' ? ' — ⚠ nightly may have regressions' : '';
-      toast(`yt-dlp channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
+      const note = ch === 'nightly' ? ' — ' + (i18nGet('toast.quality.channel_nightly_note') || '⚠ nightly may have regressions') : '';
+      toast(i18nFmt('toast.quality.channel_updated', 'yt-dlp', ch, note) || `yt-dlp channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
     } catch { toast(i18nGet('toast.quality.channel_setting_failed') || 'Failed to save channel setting', 'err'); }
   });
 
@@ -218,8 +219,8 @@ function videoQualityBgClick(e) {
     const ch = e.target.value;
     try {
       await post('/api/settings/save', { ffmpeg_channel: ch });
-      const note = ch === 'nightly' ? ' — ⚠ nightly may have regressions' : '';
-      toast(`ffmpeg channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
+      const note = ch === 'nightly' ? ' — ' + (i18nGet('toast.quality.channel_nightly_note') || '⚠ nightly may have regressions') : '';
+      toast(i18nFmt('toast.quality.channel_updated', 'ffmpeg', ch, note) || `ffmpeg channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
     } catch { toast(i18nGet('toast.quality.channel_setting_failed') || 'Failed to save channel setting', 'err'); }
   });
 
