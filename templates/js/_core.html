@@ -99,7 +99,7 @@ function showUpdateAvailableModal(d) {
     btnUpdate.className = 'btn btn-primary';
     btnUpdate.textContent = i18nGet('update.available.btn.update') || '⬇ Update Now';
     btnUpdate.addEventListener('click', async () => {
-      btnUpdate.textContent = 'Downloading…';
+      btnUpdate.textContent = i18nGet('card.status.downloading') || 'Downloading…';
       btnUpdate.disabled = true;
       try {
         const dl = await fetch('/api/download-update', {
