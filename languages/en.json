@@ -118,6 +118,7 @@
     "quality.option.360.desc": "Low quality · smallest files",
     "quality.btn.cancel": "Cancel",
     "toast.quality.reset_complete": "Reset complete — reloading…",
+    "toast.quality.reset_subscriptions_note": "subscriptions (re-fetch to load videos)",
     "toast.quality.reset_failed": "Reset failed",
     "toast.quality.failed_generic": "Failed",
     "toast.quality.channel_setting_failed": "Failed to save channel setting",
