@@ -118,6 +118,7 @@
     "quality.option.360.desc": "Bassa qualità · file minimi",
     "quality.btn.cancel": "Annulla",
     "toast.quality.reset_complete": "Ripristino completato — ricaricamento…",
+    "toast.quality.reset_subscriptions_note": "abbonamenti (esegui nuovamente il recupero per caricare i video)",
     "toast.quality.reset_failed": "Ripristino non riuscito",
     "toast.quality.failed_generic": "Non riuscito",
     "toast.quality.channel_setting_failed": "Salvataggio dell'impostazione del canale non riuscito",
@@ -157,6 +158,7 @@
     "tooltip.card.unpin": "Rimuovi fissaggio",
     "tooltip.card.readd_short": "Aggiungi di nuovo",
     "history.no_results": "Nessun risultato",
+    "alert.history.window_message_failed": "Impossibile inviare l'URL alla finestra principale.",
     "panel.section.recent": "RECENTE",
     "history.sort.newest": "↓ Più recenti",
     "history.sort.oldest": "↑ Più vecchi",
@@ -206,6 +208,7 @@
     "subscriptions.error.fetch_failed": "Recupero fallito",
     "subscriptions.btn.add": "+ Aggiungi",
     "subscriptions.btn.fetch_all": "Carica tutto",
+    "subscriptions.btn.starting": "Avvio...",
     "subscriptions.sidebar.fetching": "Recupero",
     "subscriptions.fetch_all.progress": "Recupero di {0}/{1} canali…",
     "subscriptions.btn.back": "← Torna all'app",
@@ -301,8 +304,10 @@
     "toast.installer.launching": "Avvio del programma di installazione…",
     "toast.installer.launch_failed": "Impossibile avviare il programma di installazione",
     "toast.update.failed_manual": "Aggiornamento non riuscito — prova a scaricare manualmente",
+    "update.whatsnew.see_release_notes": "Consulta egerena.com per le note di rilascio.",
     "plugins.deno.status.not_installed": "✗ Non installato",
     "plugins.badge.up_to_date": "✓ Aggiornato",
+    "plugins.badge.all_current": "Tutto aggiornato",
     "plugins.badge.update_available": "↑ Aggiornamento disponibile",
     "plugins.version.checking": "verifica in corso…",
     "plugins.deno.required_note": "necessario per YouTube",
@@ -504,7 +509,6 @@
     "settings.toggle.upscale": "Upscale video",
     "themes.confirm.delete_title": "Eliminare questo tema?",
     "themes.confirm.delete_body": "\"{0}\" verrà eliminato definitivamente. Non è possibile annullare questa operazione.",
-    "card.quality.hdr_tooltip": "L'HDR richiede un display e un player compatibili con HDR, altrimenti i colori appaiono sbiaditi. I download HDR vengono salvati come MKV.",
-    "toast.quality.reset_subscriptions_note": "abbonamenti (esegui nuovamente il recupero per caricare i video)"
+    "card.quality.hdr_tooltip": "L'HDR richiede un display e un player compatibili con HDR, altrimenti i colori appaiono sbiaditi. I download HDR vengono salvati come MKV."
   }
 }
