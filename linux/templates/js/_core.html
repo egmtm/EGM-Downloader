@@ -108,14 +108,14 @@ function showUpdateAvailableModal(d) {
           body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
         }).then(r => r.json());
         if (dl.error) { toast(dl.error, 'err'); backdrop.remove(); return; }
-        toast('Launching installer…', 'ok');
+        toast(i18nGet('toast.installer.launching') || 'Launching installer…', 'ok');
         backdrop.remove();
         await new Promise(res => setTimeout(res, 800));
         const launch = await window.electronAPI.launchInstaller(dl.installer_path);
-        if (launch.error) { toast('Could not launch installer: ' + launch.error, 'err'); return; }
+        if (launch.error) { toast((i18nGet('toast.installer.launch_failed') || 'Could not launch installer') + ': ' + launch.error, 'err'); return; }
         setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
       } catch {
-        toast('Update failed — try downloading manually', 'err');
+        toast(i18nGet('toast.update.failed_manual') || 'Update failed — try downloading manually', 'err');
         backdrop.remove();
       }
     });

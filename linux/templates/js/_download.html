@@ -43,7 +43,7 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
 async function fetchAll() {
   const raw  = document.getElementById('urls').value;
   const urls = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
-  if (!urls.length) { toast('Paste at least one URL', 'err'); return; }
+  if (!urls.length) { toast(i18nGet('toast.paste_url_first') || 'Paste at least one URL', 'err'); return; }
   items = [];
   fetchAbort = false;
   document.getElementById('results').innerHTML = '';
@@ -56,7 +56,7 @@ async function fetchAll() {
     document.getElementById('fetch-btn').disabled = false;
     document.getElementById('cancel-fetch-btn').style.display = 'none';
     if (items.length > 1) setDlAllVisible(true);
-    toast('Stopped — keeping ' + items.length + ' loaded video' + (items.length !== 1 ? 's' : ''));
+    toast((i18nGet('toast.stopped_keeping') || 'Stopped — keeping') + ' ' + items.length + ' loaded video' + (items.length !== 1 ? 's' : ''));
   };
 
   // Use an object so fetchPlaylistEntries can mutate the counter by reference
@@ -304,7 +304,7 @@ async function startDl(item, n) {
 
   // Block download if no folder selected
   if (!chosenPath) {
-    toast('Please select a download folder first', 'err');
+    toast(i18nGet('toast.select_folder_first') || 'Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
     return;
   }
@@ -420,7 +420,7 @@ async function cancelDownload(item, n) {
   if (progEl) progEl.style.display = 'none';
   if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
-  toast('Download cancelled');
+  toast(i18nGet('toast.download_cancelled') || 'Download cancelled');
 }
 
 // ── Shared job status handler — used by both individual and bulk pollers ──────
