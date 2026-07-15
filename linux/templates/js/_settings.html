@@ -195,7 +195,7 @@ function updatePluginsBadge(data) {
   if (data.optlibs && data.optlibs.updates_available > 0) count++;
   if (data.deno && data.deno.up_to_date === false) count++;
   if (count > 0) {
-    badge.textContent = count + ' update' + (count > 1 ? 's' : '');
+    badge.textContent = count === 1 ? (i18nFmt('plugins.badge.updates_one', count) || count + ' update') : (i18nFmt('plugins.badge.updates_many', count) || count + ' updates');
     badge.className = 'adv-divider-badge upd';
   } else {
     badge.textContent = i18nGet('plugins.badge.all_current') || 'All current';

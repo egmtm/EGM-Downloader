@@ -300,7 +300,7 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
 
       // Validate required vars
       const missing = REQUIRED_VARS.filter(v => !theme.vars[v]);
-      if (missing.length) { toast(`✗ Missing required vars: ${missing.slice(0,3).join(', ')}${missing.length>3?' …':''}`, 'err'); return; }
+      if (missing.length) { const shown = missing.slice(0,3).join(', ') + (missing.length > 3 ? ' …' : ''); toast(i18nFmt('toast.theme.missing_required_vars', shown) || `✗ Missing required vars: ${shown}`, 'err'); return; }
 
       // Show preview modal. F2: these are interpolated into style="" attributes, so a
       // hostile value like '#000"><img onerror=…>' would inject HTML — validate first
@@ -338,7 +338,9 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
         window.applyTheme('custom');
-        toast(`Theme "${esc(theme.name)}" applied ✓`, 'ok');
+        // Raw theme.name, not esc(): toast() renders via textContent, so esc()
+        // here would show literal &amp;/&lt; for names containing & or <.
+        toast(i18nFmt('toast.theme.applied', theme.name) || `Theme "${theme.name}" applied ✓`, 'ok');
       });
 
     } catch { toast(i18nGet('toast.theme.import_failed') || '✗ Could not import theme', 'err'); }

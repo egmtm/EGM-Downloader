@@ -154,7 +154,7 @@ function renderCard(el, item) {
   const hasQ  = (info.formats||[]).length > 0 || (info.audio_formats||[]).length > 0;
 
   el.innerHTML = `
-    <button class="vcard-remove" title="Remove" data-id="${n}">✕</button>
+    <button class="vcard-remove" title="${i18nAttr('tooltip.card.remove', 'Remove')}" data-id="${n}">✕</button>
     <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
       ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`}
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
@@ -195,8 +195,8 @@ function renderCard(el, item) {
       </div>
       <div class="vcontrols">
         <div style="display:flex;gap:3px;flex-shrink:0" id="qarrows${n}">
-          <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="Move up" style="padding:2px 6px;font-size:11px">↑</button>
-          <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="${i18nAttr('subscriptions.menu.move_up', 'Move up')}" style="padding:2px 6px;font-size:11px">↑</button>
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="${i18nAttr('subscriptions.menu.move_down', 'Move down')}" style="padding:2px 6px;font-size:11px">↓</button>
         </div>
         <span class="badge b-wait" id="st${n}">${i18nAttr('status.ready', 'Ready')}</span>
         <button class="btn btn-primary btn-sm" id="dl${n}">⬇ ${i18nAttr('card.btn.download', 'Download')}</button>
@@ -489,7 +489,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     item.status = 'error';
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
-    setBadge(stEl, 'error', d.error || 'Error');
+    setBadge(stEl, 'error', d.error || i18nGet('card.status.error') || '✗ Error');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
     recheckBulkVisibility();
     return true;
@@ -525,7 +525,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
       // already handles this case).
       if (d && d.error === 'Job not found') {
         clearInterval(iv);
-        setBadge(stEl, 'error', 'Download interrupted');
+        setBadge(stEl, 'error', i18nGet('card.status.interrupted') || 'Download interrupted');
         if (progEl) progEl.style.display = 'none';
         if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
         if (cancelBtn) cancelBtn.style.display = 'none';

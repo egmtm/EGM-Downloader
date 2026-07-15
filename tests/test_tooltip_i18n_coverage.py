@@ -34,16 +34,49 @@ tracing real examples before writing the exclusion, not guessed:
 New static tooltips going forward: use data-i18n-attr like everything
 else. New dynamic ones (template-literal windows): call i18nAttr()
 inline, same as the existing wired examples in those files.
+
+Scope is derived from the template tree (templates/*.html +
+templates/js/*.html), not a hand-maintained list -- the original
+hardcoded 4-window list missed the 8 JS partials, which held 3 live
+unwired tooltips (found by running this same detector over them). A new
+window or partial added later is covered automatically; the
+scope-sanity test below keeps the glob honest (a glob that silently
+matches nothing would pass vacuously). Files that are pure CSS/data
+(index_styles, theme_styles, theme_data) contribute no attribute
+matches and cost nothing to scan.
 """
+import glob
+import os
 import re
 
 from conftest import ROOT, read_source
 
-FILES = (
+
+def _template_files():
+    files = []
+    for pattern in ("templates/*.html", "templates/js/*.html"):
+        files.extend(sorted(glob.glob(os.path.join(ROOT, pattern))))
+    return tuple(os.path.relpath(f, ROOT).replace(os.sep, "/") for f in files)
+
+
+FILES = _template_files()
+
+# The windows/partials that existed when this guard was written. The glob must
+# always find at least these -- protects against a tree reorganization turning
+# the whole test into a vacuous pass.
+KNOWN_FILES = (
     "templates/index.html",
     "templates/history.html",
     "templates/themes.html",
     "templates/subscriptions.html",
+    "templates/js/_bulk.html",
+    "templates/js/_core.html",
+    "templates/js/_download.html",
+    "templates/js/_nav_history.html",
+    "templates/js/_creator.html",
+    "templates/js/_settings.html",
+    "templates/js/_quality.html",
+    "templates/js/_theme.html",
 )
 
 ATTRS = ("title", "placeholder", "aria-label", "alt")
@@ -140,3 +173,12 @@ def test_guard_has_teeth():
     found = _find_unwired(html, "fake.html")
     assert len(found) == 1
     assert found[0][2] == "title" and found[0][3] == "Drag to reorder"
+
+
+def test_scope_covers_the_whole_template_tree():
+    """The glob-derived scope must include every known window and JS partial.
+    If this fails after moving/renaming templates, update KNOWN_FILES -- but
+    make sure the new locations are still matched by _template_files()."""
+    missing = [f for f in KNOWN_FILES if f not in FILES]
+    assert not missing, f"template-tree glob no longer finds: {missing}"
+    assert len(FILES) >= len(KNOWN_FILES)

@@ -1153,7 +1153,7 @@ function renderDetail() {
     const dlBtn = document.getElementById('dl-selected-btn');
     const selectAll = document.getElementById('select-all-check');
     const allChecks = document.querySelectorAll('.video-check');
-    if (countEl) countEl.textContent = checks.length > 0 ? `${checks.length} selected` : '';
+    if (countEl) countEl.textContent = checks.length > 0 ? (i18nFmt('subscriptions.count.selected', checks.length) || `${checks.length} selected`) : '';
     if (dlBtn) dlBtn.disabled = checks.length === 0;
     if (selectAll && allChecks.length > 0) selectAll.checked = checks.length === allChecks.length;
   }

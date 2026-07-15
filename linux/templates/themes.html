@@ -522,7 +522,7 @@ function updateBreadcrumb() {
       d.label.toLowerCase().includes(searchQ) || Object.keys(THEME_DATA).find(k => THEME_DATA[k] === d && k.includes(searchQ))
     ).length;
     bcCur.textContent   = `"${searchQ}"`;
-    bcCount.textContent = `${hits} result${hits !== 1 ? 's' : ''}`;
+    bcCount.textContent = hits === 1 ? (i18nFmt('themes.search.results_one', hits) || `${hits} result`) : (i18nFmt('themes.search.results_many', hits) || `${hits} results`);
   } else {
     const label = CAT_LABELS[activeCat] || activeCat;
     // Imported (custom) themes live in the saved-themes library, not THEME_DATA.
@@ -530,7 +530,7 @@ function updateBreadcrumb() {
       ? loadSavedThemes().length
       : Object.values(THEME_DATA).filter(d => d.cat === activeCat).length;
     bcCur.textContent   = label;
-    bcCount.textContent = `${count} theme${count !== 1 ? 's' : ''}`;
+    bcCount.textContent = count === 1 ? (i18nFmt('themes.breadcrumb.count_one', count) || `${count} theme`) : (i18nFmt('themes.breadcrumb.count_many', count) || `${count} themes`);
   }
 }
 
