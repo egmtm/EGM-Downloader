@@ -118,6 +118,7 @@
     "quality.option.360.desc": "جودة منخفضة · أصغر الملفات",
     "quality.btn.cancel": "إلغاء",
     "toast.quality.reset_complete": "اكتملت إعادة الضبط — جارٍ إعادة التحميل…",
+    "toast.quality.reset_subscriptions_note": "اشتراكات (أعد الجلب لتحميل الفيديوهات)",
     "toast.quality.reset_failed": "فشلت إعادة الضبط",
     "toast.quality.failed_generic": "فشل",
     "toast.quality.channel_setting_failed": "فشل حفظ إعداد القناة",
@@ -157,6 +158,7 @@
     "tooltip.card.unpin": "إلغاء التثبيت",
     "tooltip.card.readd_short": "إعادة إضافة",
     "history.no_results": "لا توجد نتائج",
+    "alert.history.window_message_failed": "تعذّر إرسال الرابط إلى النافذة الرئيسية.",
     "panel.section.recent": "الأحدث",
     "history.sort.newest": "↓ الأحدث",
     "history.sort.oldest": "↑ الأقدم",
@@ -206,6 +208,7 @@
     "subscriptions.error.fetch_failed": "فشل الجلب",
     "subscriptions.btn.add": "+ إضافة",
     "subscriptions.btn.fetch_all": "جلب الكل",
+    "subscriptions.btn.starting": "جارٍ البدء...",
     "subscriptions.sidebar.fetching": "جارٍ الجلب",
     "subscriptions.fetch_all.progress": "جارٍ جلب {0}/{1} قناة…",
     "subscriptions.btn.back": "← العودة إلى التطبيق",
@@ -301,8 +304,10 @@
     "toast.installer.launching": "جارٍ تشغيل المثبت…",
     "toast.installer.launch_failed": "تعذّر تشغيل المثبت",
     "toast.update.failed_manual": "فشل التحديث — حاول التحميل يدوياً",
+    "update.whatsnew.see_release_notes": "راجع egerena.com للاطلاع على ملاحظات الإصدار.",
     "plugins.deno.status.not_installed": "✗ غير مثبت",
     "plugins.badge.up_to_date": "✓ محدّث",
+    "plugins.badge.all_current": "الكل محدّث",
     "plugins.badge.update_available": "↑ يتوفر تحديث",
     "plugins.version.checking": "جارٍ التحقق…",
     "plugins.deno.required_note": "مطلوب لـ YouTube",
@@ -504,7 +509,6 @@
     "settings.toggle.upscale": "رفع الدقة",
     "themes.confirm.delete_title": "حذف هذا الثيم؟",
     "themes.confirm.delete_body": "سيتم حذف «{0}» نهائياً. لا يمكن التراجع عن هذا.",
-    "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV.",
-    "toast.quality.reset_subscriptions_note": "اشتراكات (أعد الجلب لتحميل الفيديوهات)"
+    "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV."
   }
 }
