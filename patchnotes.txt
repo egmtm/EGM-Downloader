@@ -1,3 +1,10 @@
+v1.3.1 - LOST IN TRANSLATION (Build TBD) (TBD)
+-----------------------------------------
+
+  • [ALL] Fixed several tooltips in the main navigation and Advanced settings showing in English regardless of your selected language
+  • [ALL] Fixed a few tooltips in Subscriptions (drag-to-reorder, refresh, check for new videos, queue) also showing in English regardless of language
+  • [ALL] Electron runtime updated to v43.1.1 — includes upstream Chromium and Node.js stability and security updates
+
 v1.3 - POLYGLOT — FULL THROTTLE (Build 141) (7/12/2026)
 -----------------------------------------
 
