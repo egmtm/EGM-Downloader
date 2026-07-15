@@ -118,6 +118,7 @@
     "quality.option.360.desc": "低画質 · 最小ファイル",
     "quality.btn.cancel": "キャンセル",
     "toast.quality.reset_complete": "リセット完了 — 再読み込み中…",
+    "toast.quality.reset_subscriptions_note": "件の購読（動画を読み込むには再取得してください）",
     "toast.quality.reset_failed": "リセットに失敗しました",
     "toast.quality.failed_generic": "失敗しました",
     "toast.quality.channel_setting_failed": "チャンネル設定の保存に失敗しました",
@@ -157,6 +158,7 @@
     "tooltip.card.unpin": "固定解除",
     "tooltip.card.readd_short": "再追加",
     "history.no_results": "結果なし",
+    "alert.history.window_message_failed": "URL をメインウィンドウに送信できませんでした。",
     "panel.section.recent": "最近",
     "history.sort.newest": "↓ 新しい順",
     "history.sort.oldest": "↑ 古い順",
@@ -206,6 +208,7 @@
     "subscriptions.error.fetch_failed": "取得に失敗しました",
     "subscriptions.btn.add": "+ 追加",
     "subscriptions.btn.fetch_all": "すべて取得",
+    "subscriptions.btn.starting": "開始中...",
     "subscriptions.sidebar.fetching": "取得中",
     "subscriptions.fetch_all.progress": "チャンネルを取得中 {0}/{1}…",
     "subscriptions.btn.back": "← アプリに戻る",
@@ -301,8 +304,10 @@
     "toast.installer.launching": "インストーラーを起動中…",
     "toast.installer.launch_failed": "インストーラーを起動できませんでした",
     "toast.update.failed_manual": "アップデートに失敗しました — 手動でダウンロードしてください",
+    "update.whatsnew.see_release_notes": "リリースノートは egerena.com をご覧ください。",
     "plugins.deno.status.not_installed": "✗ 未インストール",
     "plugins.badge.up_to_date": "✓ 最新",
+    "plugins.badge.all_current": "すべて最新",
     "plugins.badge.update_available": "↑ アップデートあり",
     "plugins.version.checking": "確認中…",
     "plugins.deno.required_note": "YouTube に必要",
@@ -504,7 +509,6 @@
     "settings.toggle.upscale": "アップスケール",
     "themes.confirm.delete_title": "このテーマを削除しますか？",
     "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
-    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。",
-    "toast.quality.reset_subscriptions_note": "件の購読（動画を読み込むには再取得してください）"
+    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。"
   }
 }
