@@ -99,7 +99,7 @@ function showUpdateAvailableModal(d) {
     btnUpdate.className = 'btn btn-primary';
     btnUpdate.textContent = i18nGet('update.available.btn.update') || '⬇ Update Now';
     btnUpdate.addEventListener('click', async () => {
-      btnUpdate.textContent = 'Downloading…';
+      btnUpdate.textContent = i18nGet('card.status.downloading') || 'Downloading…';
       btnUpdate.disabled = true;
       try {
         const dl = await fetch('/api/download-update', {
@@ -108,14 +108,14 @@ function showUpdateAvailableModal(d) {
           body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
         }).then(r => r.json());
         if (dl.error) { toast(dl.error, 'err'); backdrop.remove(); return; }
-        toast('Launching installer…', 'ok');
+        toast(i18nGet('toast.installer.launching') || 'Launching installer…', 'ok');
         backdrop.remove();
         await new Promise(res => setTimeout(res, 800));
         const launch = await window.electronAPI.launchInstaller(dl.installer_path);
-        if (launch.error) { toast('Could not launch installer: ' + launch.error, 'err'); return; }
+        if (launch.error) { toast((i18nGet('toast.installer.launch_failed') || 'Could not launch installer') + ': ' + launch.error, 'err'); return; }
         setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
       } catch {
-        toast('Update failed — try downloading manually', 'err');
+        toast(i18nGet('toast.update.failed_manual') || 'Update failed — try downloading manually', 'err');
         backdrop.remove();
       }
     });
@@ -136,7 +136,7 @@ function showUpdateAvailableModal(d) {
   if (d.download) {
     const btnPage = document.createElement('button');
     btnPage.className = 'btn btn-ghost';
-    btnPage.textContent = '🌐 Open Page';
+    btnPage.textContent = i18nGet('notification.btn.open_page') || '🌐 Open Page';
     btnPage.addEventListener('click', () => { window.open(d.download, '_blank'); backdrop.remove(); });
     btns.appendChild(btnPage);
   }

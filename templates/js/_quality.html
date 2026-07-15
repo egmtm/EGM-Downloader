@@ -62,11 +62,12 @@ function audioQualityBgClick(e) {
           return maxH > 0 && maxH < reqHeight;
         }).length;
         if (cappedCount > 0) {
-          const word = cappedCount === 1 ? 'video tops' : 'videos top';
           // Slight delay so the toast lands AFTER the download-start DOM churn
           // and the user actually sees it instead of it being overwritten visually
           setTimeout(() => {
-            toast(`${cappedCount} ${word} out below ${reqHeight}p — using best available`, 'warn');
+            toast(cappedCount === 1
+              ? (i18nFmt('toast.quality.capped_one', cappedCount, reqHeight) || `${cappedCount} video tops out below ${reqHeight}p — using best available`)
+              : (i18nFmt('toast.quality.capped_many', cappedCount, reqHeight) || `${cappedCount} videos top out below ${reqHeight}p — using best available`), 'warn');
           }, 150);
         }
       }
@@ -112,7 +113,7 @@ function videoQualityBgClick(e) {
           // lint-allow-muted: loading-state
           const li = document.createElement('li');
           li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
-          li.textContent = 'See egerena.com for release notes.';
+          li.textContent = i18nGet('update.whatsnew.see_release_notes') || 'See egerena.com for release notes.';
           list.appendChild(li);
         }
       } catch {
@@ -121,7 +122,7 @@ function videoQualityBgClick(e) {
         // lint-allow-muted: loading-state
         const li = document.createElement('li');
         li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
-        li.textContent = 'See egerena.com for release notes.';
+        li.textContent = i18nGet('update.whatsnew.see_release_notes') || 'See egerena.com for release notes.';
         list.appendChild(li);
       }
 
@@ -158,10 +159,10 @@ function videoQualityBgClick(e) {
         const customStyle = document.getElementById('custom-theme-style');
         if (customStyle) customStyle.remove();
       } catch {}
-      toast('Reset complete — reloading…', 'ok');
+      toast(i18nGet('toast.quality.reset_complete') || 'Reset complete — reloading…', 'ok');
       setTimeout(() => location.reload(), 800);
     } else {
-      toast('Reset failed: ' + (r.error || 'unknown'), 'err');
+      toast((i18nGet('toast.quality.reset_failed') || 'Reset failed') + ': ' + (r.error || 'unknown'), 'err');
     }
   });
 
@@ -171,7 +172,7 @@ function videoQualityBgClick(e) {
   document.getElementById('adv-electron-btn').addEventListener('click', async () => {
     if (!confirm(i18nGet('confirm.reinstall_electron') || 'Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.')) return;
     const r = await post('/api/electron/reinstall', {});
-    if (!r.ok) { toast('Failed: ' + (r.error || 'unknown'), 'err'); return; }
+    if (!r.ok) { toast((i18nGet('toast.quality.failed_generic') || 'Failed') + ': ' + (r.error || 'unknown'), 'err'); return; }
     // The reinstall only applies on a fresh launch — offer to restart now.
     if (window.electronAPI && window.electronAPI.quit &&
         confirm(i18nGet('confirm.electron_restart_now') || 'Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
@@ -208,9 +209,9 @@ function videoQualityBgClick(e) {
     const ch = e.target.value;
     try {
       await post('/api/settings/save', { yt_dlp_channel: ch });
-      const note = ch === 'nightly' ? ' — ⚠ nightly may have regressions' : '';
-      toast(`yt-dlp channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
-    } catch { toast('Failed to save channel setting', 'err'); }
+      const note = ch === 'nightly' ? ' — ' + (i18nGet('toast.quality.channel_nightly_note') || '⚠ nightly may have regressions') : '';
+      toast(i18nFmt('toast.quality.channel_updated', 'yt-dlp', ch, note) || `yt-dlp channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
+    } catch { toast(i18nGet('toast.quality.channel_setting_failed') || 'Failed to save channel setting', 'err'); }
   });
 
   // ffmpeg channel switch
@@ -218,9 +219,9 @@ function videoQualityBgClick(e) {
     const ch = e.target.value;
     try {
       await post('/api/settings/save', { ffmpeg_channel: ch });
-      const note = ch === 'nightly' ? ' — ⚠ nightly may have regressions' : '';
-      toast(`ffmpeg channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
-    } catch { toast('Failed to save channel setting', 'err'); }
+      const note = ch === 'nightly' ? ' — ' + (i18nGet('toast.quality.channel_nightly_note') || '⚠ nightly may have regressions') : '';
+      toast(i18nFmt('toast.quality.channel_updated', 'ffmpeg', ch, note) || `ffmpeg channel → ${ch}${note}. Update via Plugins to apply.`, 'ok');
+    } catch { toast(i18nGet('toast.quality.channel_setting_failed') || 'Failed to save channel setting', 'err'); }
   });
 
   // Patch egmAlert to support the custom selector style
@@ -348,9 +349,9 @@ function videoQualityBgClick(e) {
         else toast(i18nFmt('settings.export.error', r.error || 'unknown') || ('Export failed: ' + (r.error || 'unknown')), 'err');
       } else {
         await navigator.clipboard.writeText(content);
-        toast('Settings copied to clipboard ✓', 'ok');
+        toast(i18nGet('toast.quality.settings_copied') || 'Settings copied to clipboard ✓', 'ok');
       }
-    } catch { toast('Could not export settings', 'err'); }
+    } catch { toast(i18nGet('toast.quality.export_failed') || 'Could not export settings', 'err'); }
   });
 
   // Import settings
@@ -360,7 +361,7 @@ function videoQualityBgClick(e) {
       if (window.electronAPI?.openFile) {
         const r = await window.electronAPI.openFile();
         if (r.canceled) return;
-        if (r.error) { toast('Could not read file: ' + r.error, 'err'); return; }
+        if (r.error) { toast((i18nGet('toast.file_read_failed_generic') || 'Could not read file') + ': ' + r.error, 'err'); return; }
         text = r.content;
       } else {
         text = await navigator.clipboard.readText();
@@ -427,8 +428,11 @@ function videoQualityBgClick(e) {
         } catch {}
       }
 
-      const parts = [msg, subCount>0?`${subCount} subscriptions (re-fetch to load videos)`:null].filter(Boolean).join(' + ');
-      toast(`${parts || 'Nothing selected'} — reloading…`, parts ? 'ok' : 'err');
+      // Japanese counter words attach directly to the number (e.g. "3件"),
+      // unlike the space-separated convention every other locale uses here.
+      const subNoteSep = (I18N.code === 'ja') ? '' : ' ';
+      const parts = [msg, subCount>0?`${subCount}${subNoteSep}${i18nGet('toast.quality.reset_subscriptions_note') || 'subscriptions (re-fetch to load videos)'}`:null].filter(Boolean).join(' + ');
+      toast(`${parts || (i18nGet('toast.quality.nothing_selected') || 'Nothing selected')} — reloading…`, parts ? 'ok' : 'err');
       if (parts) setTimeout(() => location.reload(), 800);
     } catch { toast(i18nGet('settings.import.error') || 'Could not import settings — file may not be valid settings JSON', 'err'); }
   });

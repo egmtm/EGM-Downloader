@@ -195,10 +195,10 @@ function updatePluginsBadge(data) {
   if (data.optlibs && data.optlibs.updates_available > 0) count++;
   if (data.deno && data.deno.up_to_date === false) count++;
   if (count > 0) {
-    badge.textContent = count + ' update' + (count > 1 ? 's' : '');
+    badge.textContent = count === 1 ? (i18nFmt('plugins.badge.updates_one', count) || count + ' update') : (i18nFmt('plugins.badge.updates_many', count) || count + ' updates');
     badge.className = 'adv-divider-badge upd';
   } else {
-    badge.textContent = 'All current';
+    badge.textContent = i18nGet('plugins.badge.all_current') || 'All current';
     badge.className = 'adv-divider-badge ok';
   }
 }
@@ -235,11 +235,11 @@ async function doPaste() {
     ta.value = c ? c + '\n' + t.trim() : t.trim();
     ta.dispatchEvent(new Event('input'));
     return true;
-  } catch { toast('Use Ctrl+V in the text box', 'err'); return false; }
+  } catch { toast(i18nGet('toast.settings.use_ctrl_v') || 'Use Ctrl+V in the text box', 'err'); return false; }
 }
 
 document.getElementById('paste-btn').addEventListener('click', async () => {
-  if (await doPaste()) toast('Pasted');
+  if (await doPaste()) toast(i18nGet('toast.settings.pasted') || 'Pasted');
 });
 
 document.getElementById('paste-fetch-btn').addEventListener('click', async () => {
@@ -336,7 +336,7 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
 
 // ── Settings ──────────────────────────────────────────────────────────────────
 document.getElementById('adv-shortcut-btn')?.addEventListener('click', async () => {
-  if (!confirm('Create a desktop shortcut for EGM Downloader?')) return;
+  if (!confirm(i18nGet('confirm.desktop_shortcut') || 'Create a desktop shortcut for EGM Downloader?')) return;
   const btn = document.getElementById('adv-shortcut-btn');
   btn.disabled = true; btn.textContent = '…';
   try {
@@ -362,7 +362,7 @@ document.getElementById('adv-shortcut-btn')?.addEventListener('click', async () 
       btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
     }
   } catch (e) {
-    toast('Shortcut error: ' + e.message, 'err');
+    toast((i18nGet('toast.settings.shortcut_error') || 'Shortcut error') + ': ' + e.message, 'err');
     btn.disabled = false;
     btn.innerHTML = '<span class="adv-btn-icon blue">⬡</span>Desktop shortcut';
   }
@@ -375,7 +375,7 @@ document.getElementById('browse-btn').addEventListener('click', async () => {
   document.getElementById('dl-dir').value = picked;
   document.getElementById('open-folder-btn').disabled = false;
   await post('/api/settings/save', { last_folder: picked });
-  toast('Folder selected', 'ok');
+  toast(i18nGet('toast.settings.folder_selected') || 'Folder selected', 'ok');
 });
 document.getElementById('open-folder-btn').addEventListener('click', async () => {
   const folder = chosenPath || document.getElementById('dl-dir').value.trim();
@@ -392,7 +392,7 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
   btn.disabled = true;
   const label = btn.querySelector('.adv-btn-label') || btn;
   const origText = label.textContent;
-  label.textContent = '⏳ Checking…';
+  label.textContent = i18nGet('plugins.btn.checking') || '⏳ Checking…';
   try {
     const [data, deno] = await Promise.all([
       fetch('/api/check-updates').then(r => r.json()),
@@ -409,7 +409,7 @@ document.getElementById('check-updates-btn').addEventListener('click', async () 
         setTimeout(() => { if (updOpen) togglePluginsPanel(); }, 3000);
       }
     }
-  } catch (e) { toast('Check failed: ' + e.message, 'err'); }
+  } catch (e) { toast((i18nGet('toast.settings.check_failed') || 'Check failed') + ': ' + e.message, 'err'); }
   btn.disabled = false;
   label.textContent = origText;
 });
@@ -668,13 +668,13 @@ async function installDeno() {
   if (!btn) return;
 
   btn.disabled = true;
-  btn.textContent = '⏳ Installing...';
+  btn.textContent = i18nGet('plugins.btn.installing_deno') || '⏳ Installing...';
   if (log) { log.textContent = ''; log.classList.add('show'); }
 
   try {
     const r = await post('/api/deno/install', {});
-    if (r.error) { toast('Deno install failed: ' + r.error, 'err'); btn.disabled = false; return; }
-  } catch (e) { toast('Deno install error: ' + e.message, 'err'); btn.disabled = false; return; }
+    if (r.error) { toast((i18nGet('toast.settings.deno_install_failed') || 'Deno install failed') + ': ' + r.error, 'err'); btn.disabled = false; return; }
+  } catch (e) { toast((i18nGet('toast.settings.deno_install_error') || 'Deno install error') + ': ' + e.message, 'err'); btn.disabled = false; return; }
 
   // Poll progress
   const iv = setInterval(async () => {
@@ -685,7 +685,7 @@ async function installDeno() {
       if (!s.running) {
         clearInterval(iv);
         if (s.done) {
-          toast('Deno installed — YouTube signature solving now active', 'ok');
+          toast(i18nGet('toast.settings.deno_installed_signature') || 'Deno installed — YouTube signature solving now active', 'ok');
           // Refresh the whole update grid to show installed state
           try {
             const [data, deno] = await Promise.all([
@@ -696,9 +696,9 @@ async function installDeno() {
             renderUpdGrid(data);
           } catch {}
         } else if (s.error) {
-          toast('Deno install failed: ' + s.error, 'err');
+          toast((i18nGet('toast.settings.deno_install_failed') || 'Deno install failed') + ': ' + s.error, 'err');
           btn.disabled = false;
-          btn.textContent = '⬇ Install Deno';
+          btn.textContent = i18nGet('plugins.btn.install_deno_idle') || '⬇ Install Deno';
         }
       }
     } catch {}
@@ -734,30 +734,30 @@ async function refreshCookieCard() {
 // ── IPC-based cookies file browse (native dialog, more reliable than HTML file input) ─
 async function browseCookiesIPC() {
   if (!window.electronAPI?.openFile) {
-    toast('File browse not available — try restarting the app', 'err');
+    toast(i18nGet('toast.settings.browse_unavailable') || 'File browse not available — try restarting the app', 'err');
     return;
   }
   try {
     const result = await window.electronAPI.openFile({ type: 'cookies' });
     if (!result || result.canceled) return;
-    if (result.error) { toast('Failed to read file: ' + result.error, 'err'); return; }
+    if (result.error) { toast((i18nGet('toast.settings.file_read_failed') || 'Failed to read file') + ': ' + result.error, 'err'); return; }
     const text = result.content;
     if (!text.includes('# Netscape') && !text.trim().startsWith('#')) {
-      toast('This does not look like a valid cookies.txt file', 'err');
+      toast(i18nGet('toast.settings.invalid_cookies_file') || 'This does not look like a valid cookies.txt file', 'err');
       return;
     }
     const r = await post('/api/cookies/save', { content: text });
-    if (r.error) { toast('Failed to save cookies: ' + r.error, 'err'); return; }
+    if (r.error) { toast((i18nGet('toast.settings.cookies_save_failed') || 'Failed to save cookies') + ': ' + r.error, 'err'); return; }
     toast(i18nGet('toast.cookies.loaded') || 'cookies.txt loaded — authenticated downloads enabled', 'ok');
     await refreshCookieCard();
-  } catch (e) { toast('Browse error: ' + e.message, 'err'); }
+  } catch (e) { toast((i18nGet('toast.settings.browse_error') || 'Browse error') + ': ' + e.message, 'err'); }
 }
 
 async function clearCookies() {
   try {
     const r = await post('/api/cookies/clear', {});
-    if (r.error) { toast('Failed to remove cookies: ' + r.error, 'err'); return; }
-    toast('Cookies removed', 'ok');
+    if (r.error) { toast((i18nGet('toast.settings.cookies_remove_failed') || 'Failed to remove cookies') + ': ' + r.error, 'err'); return; }
+    toast(i18nGet('toast.settings.cookies_removed') || 'Cookies removed', 'ok');
     await refreshCookieCard();
   } catch (e) { toast((i18nFmt('toast.plugins.error_prefix', e.message))||('Error: ' + e.message), 'err'); }
 }
@@ -785,7 +785,7 @@ refreshCookieCard();
         if (!s.running) {
           clearInterval(iv);
           if (s.done) {
-            toast('🦕 Deno installed — YouTube quality improved', 'ok');
+            toast(i18nGet('toast.settings.deno_installed_quality') || '🦕 Deno installed — YouTube quality improved', 'ok');
             // Refresh update grid if panel is open
             try {
               const [data, deno] = await Promise.all([

@@ -407,13 +407,13 @@ function buildSidebar() {
   let html = `<div class="cat-tab all-tab${activeCat === 'all' ? ' active' : ''}" data-cat="all">All<span class="cat-count">${countTotal()}</span></div>`;
 
   if (favoriteThemes.size > 0) {
-    html += `<div class="cat-tab fav-tab${activeCat === 'favorites' ? ' active' : ''}" data-cat="favorites" style="color:var(--acc)"><span style="margin-right:4px;font-size:13px">♥</span>Favorites<span class="cat-count">${favoriteThemes.size}</span></div>`;
+    html += `<div class="cat-tab fav-tab${activeCat === 'favorites' ? ' active' : ''}" data-cat="favorites" style="color:var(--acc)"><span style="margin-right:4px;font-size:13px">♥</span>${i18nAttr('themes.tab.favorites','Favorites')}<span class="cat-count">${favoriteThemes.size}</span></div>`;
   }
 
   // Seasonal — top-level, only if any are currently visible
   const seasonalCount = Object.entries(THEME_DATA).filter(([k,d]) => d.cat === 'seasonal' && SEASONAL_VISIBLE.has(k)).length;
   if (seasonalCount > 0) {
-    html += `<div class="cat-tab${activeCat === 'seasonal' ? ' active' : ''}" data-cat="seasonal"><span style="margin-right:4px;font-size:11px">✦</span>Seasonal<span class="cat-count">${seasonalCount}</span></div>`;
+    html += `<div class="cat-tab${activeCat === 'seasonal' ? ' active' : ''}" data-cat="seasonal"><span style="margin-right:4px;font-size:11px">✦</span>${i18nAttr('themes.tab.seasonal','Seasonal')}<span class="cat-count">${seasonalCount}</span></div>`;
   }
 
   html += `<div class="cat-divider"></div>`;
@@ -522,7 +522,7 @@ function updateBreadcrumb() {
       d.label.toLowerCase().includes(searchQ) || Object.keys(THEME_DATA).find(k => THEME_DATA[k] === d && k.includes(searchQ))
     ).length;
     bcCur.textContent   = `"${searchQ}"`;
-    bcCount.textContent = `${hits} result${hits !== 1 ? 's' : ''}`;
+    bcCount.textContent = hits === 1 ? (i18nFmt('themes.search.results_one', hits) || `${hits} result`) : (i18nFmt('themes.search.results_many', hits) || `${hits} results`);
   } else {
     const label = CAT_LABELS[activeCat] || activeCat;
     // Imported (custom) themes live in the saved-themes library, not THEME_DATA.
@@ -530,7 +530,7 @@ function updateBreadcrumb() {
       ? loadSavedThemes().length
       : Object.values(THEME_DATA).filter(d => d.cat === activeCat).length;
     bcCur.textContent   = label;
-    bcCount.textContent = `${count} theme${count !== 1 ? 's' : ''}`;
+    bcCount.textContent = count === 1 ? (i18nFmt('themes.breadcrumb.count_one', count) || `${count} theme`) : (i18nFmt('themes.breadcrumb.count_many', count) || `${count} themes`);
   }
 }
 
