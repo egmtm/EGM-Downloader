@@ -19,12 +19,12 @@ document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQ
 // dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
 async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
-    toast('Please select a download folder first', 'err');
+    toast(i18nGet('toast.select_folder_first') || 'Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
     return;
   }
   const pending = items.filter(i => i.status === 'idle' || i.status === 'error');
-  if (!pending.length) { toast('Nothing to download', 'err'); return; }
+  if (!pending.length) { toast(i18nGet('toast.nothing_to_download') || 'Nothing to download', 'err'); return; }
   bulkStop = false;
   const bar       = document.getElementById('bulk-bar');
   const modeLabel = forceFormat === 'audio' ? 'audio files' : 'videos';
@@ -151,7 +151,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
 
   bar.classList.remove('show');
   if (!bulkStop) {
-    toast('Done — ' + done + ' ' + modeLabel, 'ok');
+    toast((i18nGet('toast.done') || 'Done') + ' — ' + done + ' ' + modeLabel, 'ok');
     if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
       setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
     }

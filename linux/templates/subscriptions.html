@@ -577,14 +577,14 @@ function renderSidebar() {
       }</span>` : ''}
       <button class="kebab-btn" data-kebab="${attrEsc(s.id)}" onclick="event.stopPropagation();toggleKebab('${attrEsc(s.id)}', this)">⋮</button>
       <div class="kebab-menu" id="kebab-${attrEsc(s.id)}" style="display:none">
-        <button onclick="reorderSub('${attrEsc(s.id)}','top')" ${i === 0 ? 'disabled' : ''}>Move to top</button>
-        <button onclick="reorderSub('${attrEsc(s.id)}','up')" ${i === 0 ? 'disabled' : ''}>Move up</button>
-        <button onclick="reorderSub('${attrEsc(s.id)}','down')" ${i === subs.length - 1 ? 'disabled' : ''}>Move down</button>
-        <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','top')" ${i === 0 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_top','Move to top')}</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','up')" ${i === 0 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_up','Move up')}</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','down')" ${i === subs.length - 1 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_down','Move down')}</button>
+        <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_bottom','Move to bottom')}</button>
         <div style="border-top:1px solid var(--border);margin:3px 0"></div>
-        <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(s.id)}')" title="${i18nAttr('tooltip.subscriptions_refetch_all','Re-fetch all videos from scratch')}">Force refresh</button>
+        <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(s.id)}')" title="${i18nAttr('tooltip.subscriptions_refetch_all','Re-fetch all videos from scratch')}">${i18nAttr('subscriptions.btn.force_refresh','Force refresh')}</button>
         <div style="border-top:1px solid var(--border);margin:3px 0"></div>
-        <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(s.id)}')" style="color:var(--red)">Delete channel</button>
+        <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(s.id)}')" style="color:var(--red)">${i18nAttr('subscriptions.menu.delete_channel','Delete channel')}</button>
       </div>
     </div>
   `}).join('');
@@ -675,14 +675,14 @@ function renderSidebar() {
         const menu = document.getElementById('floating-kebab');
         document.querySelectorAll('.kebab-menu').forEach(m => m.style.display = 'none');
         menu.innerHTML = `
-          <button onclick="reorderSub('${attrEsc(subId)}','top')" ${idx === 0 ? 'disabled' : ''}>Move to top</button>
-          <button onclick="reorderSub('${attrEsc(subId)}','up')" ${idx === 0 ? 'disabled' : ''}>Move up</button>
-          <button onclick="reorderSub('${attrEsc(subId)}','down')" ${idx === subs.length - 1 ? 'disabled' : ''}>Move down</button>
-          <button onclick="reorderSub('${attrEsc(subId)}','bottom')" ${idx === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
+          <button onclick="reorderSub('${attrEsc(subId)}','top')" ${idx === 0 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_top','Move to top')}</button>
+          <button onclick="reorderSub('${attrEsc(subId)}','up')" ${idx === 0 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_up','Move up')}</button>
+          <button onclick="reorderSub('${attrEsc(subId)}','down')" ${idx === subs.length - 1 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_down','Move down')}</button>
+          <button onclick="reorderSub('${attrEsc(subId)}','bottom')" ${idx === subs.length - 1 ? 'disabled' : ''}>${i18nAttr('subscriptions.menu.move_bottom','Move to bottom')}</button>
           <div style="border-top:1px solid var(--border);margin:3px 0"></div>
-          <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(subId)}')" title="${i18nAttr('tooltip.subscriptions_refetch_all','Re-fetch all videos from scratch')}">Force refresh</button>
+          <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(subId)}')" title="${i18nAttr('tooltip.subscriptions_refetch_all','Re-fetch all videos from scratch')}">${i18nAttr('subscriptions.btn.force_refresh','Force refresh')}</button>
           <div style="border-top:1px solid var(--border);margin:3px 0"></div>
-          <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(subId)}')" style="color:var(--red)">Delete channel</button>`;
+          <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(subId)}')" style="color:var(--red)">${i18nAttr('subscriptions.menu.delete_channel','Delete channel')}</button>`;
         menu.style.display = 'block';
         const mw = menu.offsetWidth || 120;
         const mh = menu.offsetHeight || 0;
@@ -842,7 +842,7 @@ function renderQueue() {
   if (activeJobs.length === 0) {
     detail.innerHTML = `<div class="detail-empty"><div>
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="margin-bottom:8px"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
-      <div>No active downloads</div>
+      <div>${i18nAttr('subscriptions.status.no_active_downloads','No active downloads')}</div>
     </div></div>`;
     return;
   }
@@ -1411,7 +1411,7 @@ async function fetchVideos(id, force) {
       if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`;
     }
   } catch {
-    if (list) list.innerHTML = '<div class="empty-state" style="color:var(--red,#e04040)">Fetch failed</div>';
+    if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">${esc(i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`;
   }
 }
 
