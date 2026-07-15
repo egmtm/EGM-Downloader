@@ -1,4 +1,4 @@
-v1.3.1 - LOST IN TRANSLATION (Build TBD) (TBD)
+v1.3.1 - LOST IN TRANSLATION (Build 142) (7/15/2026)
 -----------------------------------------
 
   • [ALL] Fixed tooltips across the app — main navigation, Advanced settings, Subscriptions, and more — showing in English regardless of your selected language
