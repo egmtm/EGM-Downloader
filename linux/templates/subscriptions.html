@@ -560,7 +560,7 @@ function renderSidebar() {
       : `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text2)">${esc((s.name || '?')[0])}</div>`;
     return `
     <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${attrEsc(s.id)}" style="display:flex;align-items:center;gap:8px;position:relative">
-      <span class="drag-handle" title="Drag to reorder" style="cursor:grab;color:var(--border2);font-size:11px;flex-shrink:0;opacity:0.6;user-select:none">⠿</span>
+      <span class="drag-handle" title="${i18nAttr('tooltip.subscriptions_drag_reorder','Drag to reorder')}" style="cursor:grab;color:var(--border2);font-size:11px;flex-shrink:0;opacity:0.6;user-select:none">⠿</span>
       ${thumb}
       <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
@@ -582,7 +582,7 @@ function renderSidebar() {
         <button onclick="reorderSub('${attrEsc(s.id)}','down')" ${i === subs.length - 1 ? 'disabled' : ''}>Move down</button>
         <button onclick="reorderSub('${attrEsc(s.id)}','bottom')" ${i === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
         <div style="border-top:1px solid var(--border);margin:3px 0"></div>
-        <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(s.id)}')" title="Re-fetch all videos from scratch">Force refresh</button>
+        <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(s.id)}')" title="${i18nAttr('tooltip.subscriptions_refetch_all','Re-fetch all videos from scratch')}">Force refresh</button>
         <div style="border-top:1px solid var(--border);margin:3px 0"></div>
         <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(s.id)}')" style="color:var(--red)">Delete channel</button>
       </div>
@@ -647,7 +647,7 @@ function renderSidebar() {
   // Render mini thumbnails for collapsed sidebar
   const miniList = document.getElementById('mini-list');
   if (miniList) {
-    const queueMini = activeCount > 0 ? `<div class="mini-thumb${showQueue ? ' active' : ''}" id="mini-queue" title="Queue (${activeCount} active)" style="background:var(--acc-dim);color:var(--acc);font-size:12px;border-bottom:1px solid var(--border)">
+    const queueMini = activeCount > 0 ? `<div class="mini-thumb${showQueue ? ' active' : ''}" id="mini-queue" title="${i18nAttr('subscriptions.queue.short','Queue')} (${activeCount} active)" style="background:var(--acc-dim);color:var(--acc);font-size:12px;border-bottom:1px solid var(--border)">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
     </div>` : '';
 
@@ -680,7 +680,7 @@ function renderSidebar() {
           <button onclick="reorderSub('${attrEsc(subId)}','down')" ${idx === subs.length - 1 ? 'disabled' : ''}>Move down</button>
           <button onclick="reorderSub('${attrEsc(subId)}','bottom')" ${idx === subs.length - 1 ? 'disabled' : ''}>Move to bottom</button>
           <div style="border-top:1px solid var(--border);margin:3px 0"></div>
-          <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(subId)}')" title="Re-fetch all videos from scratch">Force refresh</button>
+          <button onclick="event.stopPropagation();forceRefreshSub('${attrEsc(subId)}')" title="${i18nAttr('tooltip.subscriptions_refetch_all','Re-fetch all videos from scratch')}">Force refresh</button>
           <div style="border-top:1px solid var(--border);margin:3px 0"></div>
           <button onclick="event.stopPropagation();kebabDeleteSub('${attrEsc(subId)}')" style="color:var(--red)">Delete channel</button>`;
         menu.style.display = 'block';
@@ -933,7 +933,7 @@ function renderDetail() {
                 <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.latest', 'Latest')}</option>
                 <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.oldest', 'Oldest')}</option>
               </select>
-              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="Check for new videos">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="${i18nAttr('tooltip.subscriptions_check_new','Check for new videos')}">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
               <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">${i18nAttr('subscriptions.btn.delete', 'Delete')}</button>
             </div>
             ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">' + i18nAttr('subscriptions.btn.mark_seen', 'Mark all seen') + '</button>' : ''}
