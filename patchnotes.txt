@@ -1,3 +1,10 @@
+v1.3.1 - LOST IN TRANSLATION (Build TBD) (TBD)
+-----------------------------------------
+
+  • [ALL] Fixed tooltips across the app — main navigation, Advanced settings, Subscriptions, and more — showing in English regardless of your selected language
+  • [ALL] Fixed dozens of notifications, status messages, and confirmation dialogs throughout the app also showing in English regardless of language — a deeper follow-up pass after the tooltip fix above
+  • [ALL] Electron runtime updated to v43.1.1 — includes upstream Chromium and Node.js stability and security updates
+
 v1.3 - POLYGLOT — FULL THROTTLE (Build 141) (7/12/2026)
 -----------------------------------------
 

@@ -44,15 +44,15 @@
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
         Subs
       </button>
-      <button class="nav-btn" data-nav="themes" title="Browse and switch themes">
+      <button class="nav-btn" data-nav="themes" data-i18n-attr="title:tooltip.nav.themes" title="Browse and switch themes">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21a9 9 0 0 1 0 -18c4.97 0 9 3.582 9 8c0 1.06 -.474 2.078 -1.318 2.828c-.844 .75 -1.989 1.172 -3.182 1.172h-2.5a2 2 0 0 0 -1 3.75a1.3 1.3 0 0 1 -1 2.25"/><path d="M7.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M11.5 7.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M15.5 10.5a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
         <span data-i18n="panel.tab.themes">Themes</span>
       
-      </button><button class="nav-btn" data-nav="history" title="View download history">
+      </button><button class="nav-btn" data-nav="history" data-i18n-attr="title:tooltip.nav.history" title="View download history">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8l0 4l2 2"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/></svg>
         <span data-i18n="panel.tab.history">History</span>
       
-      </button><button class="nav-btn" data-nav="advanced" title="Channels, plugins, and settings">
+      </button><button class="nav-btn" data-nav="advanced" data-i18n-attr="title:tooltip.nav.advanced" title="Channels, plugins, and settings">
         <svg class="nav-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--text2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/><path d="M15 18a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 18l11 0"/><path d="M19 18l1 0"/></svg>
         <span data-i18n="advanced.title">Advanced</span>
       
@@ -60,7 +60,7 @@
     <div id="hamburger-panel">
       <!-- Tabs -->
       <div class="hpanel-tabs">
-        <button class="hpanel-tab active" data-tab="history">History <span id="history-tab-count" style="background:rgba(255,255,255,.2);border-radius:8px;padding:0 5px;font-size:8px"></span></button>
+        <button class="hpanel-tab active" data-tab="history"><span data-i18n="panel.tab.history">History</span> <span id="history-tab-count" style="background:rgba(255,255,255,.2);border-radius:8px;padding:0 5px;font-size:8px"></span></button>
         <button class="hpanel-tab" data-tab="themes" data-i18n="panel.tab.themes">Themes</button>
         <button class="hpanel-tab" data-tab="advanced" data-i18n="advanced.title">Advanced</button>
       </div>
@@ -2112,16 +2112,16 @@
       <!-- Advanced tab -->
       <div class="hpanel-content" id="hpanel-advanced" style="display:none">
         <div style="padding:5px;display:flex;flex-direction:column;gap:4px">
-          <div class="adv-chan-grid" id="adv-update-shortcut-row"><button class="adv-btn-full" id="footer-update-btn" title="Check if a new version of EGM Downloader is available">
+          <div class="adv-chan-grid" id="adv-update-shortcut-row"><button class="adv-btn-full" id="footer-update-btn" data-i18n-attr="title:tooltip.check_app_update" title="Check if a new version of EGM Downloader is available">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg></span><span data-i18n="advanced.btn.check_app_update">Check for app update</span>
           </button>
-          <button class="adv-btn-full" id="adv-shortcut-btn" title="Creates a shortcut on your desktop for easier access">
+          <button class="adv-btn-full" id="adv-shortcut-btn" data-i18n-attr="title:tooltip.desktop_shortcut" title="Creates a shortcut on your desktop for easier access">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5a1 1 0 0 1 1 -1h16a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-16a1 1 0 0 1 -1 -1v-10"/><path d="M7 20h10"/><path d="M9 16v4"/><path d="M15 16v4"/></svg></span><span data-i18n="advanced.btn.desktop_shortcut">Desktop shortcut</span>
           </button></div>
-          <div class="adv-chan-grid"><button class="adv-btn-full" id="adv-export-btn" title="Export your settings to a file">
+          <div class="adv-chan-grid"><button class="adv-btn-full" id="adv-export-btn" data-i18n-attr="title:tooltip.export_settings" title="Export your settings to a file">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 9l5 -5l5 5"/><path d="M12 4l0 12"/></svg></span><span data-i18n="advanced.btn.export_settings">Export settings</span>
           </button>
-          <button class="adv-btn-full" id="adv-import-btn" title="Import settings from a file to restore your preferences">
+          <button class="adv-btn-full" id="adv-import-btn" data-i18n-attr="title:tooltip.import_settings" title="Import settings from a file to restore your preferences">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg></span><span data-i18n="advanced.btn.import_settings">Import settings</span>
           </button></div>
           <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.interface">Interface</span></div>
@@ -2156,10 +2156,10 @@
             <span class="adv-divider-label" data-i18n="advanced.section.plugins">Plugins</span>
             <div style="display:flex;align-items:center;gap:6px">
               <span class="adv-divider-badge" id="plugins-status-badge"></span>
-              <button class="adv-toggle-btn" id="plugins-toggle" aria-label="Toggle plugins panel" onclick="togglePluginsPanel()">▶</button>
+              <button class="adv-toggle-btn" id="plugins-toggle" data-i18n-attr="aria-label:tooltip.toggle_plugins_panel" aria-label="Toggle plugins panel" onclick="togglePluginsPanel()">▶</button>
             </div>
           </div>
-          <button class="adv-btn-full" id="check-updates-btn" title="Check for yt-dlp, ffmpeg, mutagen, Deno, and optional library updates">
+          <button class="adv-btn-full" id="check-updates-btn" data-i18n-attr="title:tooltip.check_plugin_updates" title="Check for yt-dlp, ffmpeg, mutagen, Deno, and optional library updates">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg></span><span class="adv-btn-label" data-i18n="plugins.btn.check_updates">Check for updates</span>
           </button>
           <div class="plugins-collapsible collapsed" id="plugins-body">
@@ -2175,7 +2175,7 @@
           <div class="adv-chan-grid" id="adv-electron-reset-row"><button class="adv-btn-full" id="adv-electron-btn" data-i18n-attr="title:tooltip.reinstall_electron" title="Reinstalls Electron on next restart — updates to latest compatible version" style="display:none">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></span><span data-i18n="advanced.btn.reinstall_electron">Reinstall Electron</span>
           </button>
-          <button class="adv-btn-full" id="adv-reset-btn" title="Resets the application to its default settings">
+          <button class="adv-btn-full" id="adv-reset-btn" data-i18n-attr="title:tooltip.reset_settings" title="Resets the application to its default settings">
             <span class="adv-btn-icon red"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.06 13a9 9 0 1 0 .49 -4.087"/><path d="M3 4.001v5h5"/><path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg></span><span data-i18n="advanced.btn.reset_settings">Reset settings</span>
           </button></div>
         </div>
@@ -2247,7 +2247,7 @@
   <div class="sec-hdr" id="settings-sec-hdr" onclick="toggleSettingsPanel()">
     <span class="sec-title" data-i18n-attr="title:tooltip.settings_section" title="Download folder, quality, format, and output preferences"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M10.325 4.317c.426 -1.756 2.924 -1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543 -.94 3.31 .826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756 .426 1.756 2.924 0 3.35a1.724 1.724 0 0 0 -1.066 2.573c.94 1.543 -.826 3.31 -2.37 2.37a1.724 1.724 0 0 0 -2.572 1.065c-.426 1.756 -2.924 1.756 -3.35 0a1.724 1.724 0 0 0 -2.573 -1.066c-1.543 .94 -3.31 -.826 -2.37 -2.37a1.724 1.724 0 0 0 -1.065 -2.572c-1.756 -.426 -1.756 -2.924 0 -3.35a1.724 1.724 0 0 0 1.066 -2.573c-.94 -1.543 .826 -3.31 2.37 -2.37c1 .608 2.296 .07 2.572 -1.065"/><path d="M9 12a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/></svg> <span data-i18n="settings.title">Settings</span></span>
     <div style="display:flex;align-items:center;gap:8px">
-      <button class="card-toggle" id="settings-toggle" aria-label="Toggle settings" onclick="event.stopPropagation();toggleSettingsPanel()">▶</button>
+      <button class="card-toggle" id="settings-toggle" data-i18n-attr="aria-label:tooltip.toggle_settings_panel" aria-label="Toggle settings" onclick="event.stopPropagation();toggleSettingsPanel()">▶</button>
     </div>
   </div>
   <div class="sec-body collapsed" id="settings-body">
@@ -2288,10 +2288,10 @@
       <div class="set-box" style="align-items:center">
         <span class="opt-label" data-i18n="cookies.title">Site Cookies</span>
         <div style="display:flex;justify-content:center;width:100%;margin-bottom:5px">
-            <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
+            <a href="https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc?pli=1" target="_blank" rel="noopener" data-i18n-attr="title:tooltip.cookies_extension_chromium" title="Get the 'Get cookies.txt LOCALLY' extension for Chrome, Edge, or Brave" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🌐 Chrome/Edge/Brave</a>
         </div>
         <div style="display:flex;justify-content:center;width:100%">
-            <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
+            <a href="https://addons.mozilla.org/en-US/firefox/addon/get-cookies-txt-locally/" target="_blank" rel="noopener" data-i18n-attr="title:tooltip.cookies_extension_firefox" title="Get the 'Get cookies.txt LOCALLY' extension for Firefox" style="display:inline-flex;align-items:center;gap:2px;font-size:.65rem;color:var(--text2);text-decoration:none;border:0.5px solid var(--border2);border-radius:20px;padding:1px 6px;background:var(--surf);white-space:nowrap">🦊 Firefox</a>
         </div>
         <div class="set-divider" style="width:60%"></div>
         <div style="display:flex;justify-content:center;width:100%;margin-bottom:6px">

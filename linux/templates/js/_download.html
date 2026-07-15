@@ -43,7 +43,7 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
 async function fetchAll() {
   const raw  = document.getElementById('urls').value;
   const urls = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
-  if (!urls.length) { toast('Paste at least one URL', 'err'); return; }
+  if (!urls.length) { toast(i18nGet('toast.paste_url_first') || 'Paste at least one URL', 'err'); return; }
   items = [];
   fetchAbort = false;
   document.getElementById('results').innerHTML = '';
@@ -56,7 +56,7 @@ async function fetchAll() {
     document.getElementById('fetch-btn').disabled = false;
     document.getElementById('cancel-fetch-btn').style.display = 'none';
     if (items.length > 1) setDlAllVisible(true);
-    toast('Stopped — keeping ' + items.length + ' loaded video' + (items.length !== 1 ? 's' : ''));
+    toast((i18nGet('toast.stopped_keeping') || 'Stopped — keeping') + ' ' + items.length + ' loaded video' + (items.length !== 1 ? 's' : ''));
   };
 
   // Use an object so fetchPlaylistEntries can mutate the counter by reference
@@ -154,7 +154,7 @@ function renderCard(el, item) {
   const hasQ  = (info.formats||[]).length > 0 || (info.audio_formats||[]).length > 0;
 
   el.innerHTML = `
-    <button class="vcard-remove" title="Remove" data-id="${n}">✕</button>
+    <button class="vcard-remove" title="${i18nAttr('tooltip.card.remove', 'Remove')}" data-id="${n}">✕</button>
     <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
       ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`}
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
@@ -195,8 +195,8 @@ function renderCard(el, item) {
       </div>
       <div class="vcontrols">
         <div style="display:flex;gap:3px;flex-shrink:0" id="qarrows${n}">
-          <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="Move up" style="padding:2px 6px;font-size:11px">↑</button>
-          <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="Move down" style="padding:2px 6px;font-size:11px">↓</button>
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="up" data-id="${n}" title="${i18nAttr('subscriptions.menu.move_up', 'Move up')}" style="padding:2px 6px;font-size:11px">↑</button>
+          <button class="btn btn-ghost btn-sm qarrow" data-dir="down" data-id="${n}" title="${i18nAttr('subscriptions.menu.move_down', 'Move down')}" style="padding:2px 6px;font-size:11px">↓</button>
         </div>
         <span class="badge b-wait" id="st${n}">${i18nAttr('status.ready', 'Ready')}</span>
         <button class="btn btn-primary btn-sm" id="dl${n}">⬇ ${i18nAttr('card.btn.download', 'Download')}</button>
@@ -304,7 +304,7 @@ async function startDl(item, n) {
 
   // Block download if no folder selected
   if (!chosenPath) {
-    toast('Please select a download folder first', 'err');
+    toast(i18nGet('toast.select_folder_first') || 'Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
     return;
   }
@@ -418,9 +418,9 @@ async function cancelDownload(item, n) {
   const cancelBtn = document.getElementById(`cancel${n}`);
   setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
   if (progEl) progEl.style.display = 'none';
-  if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+  if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
-  toast('Download cancelled');
+  toast(i18nGet('toast.download_cancelled') || 'Download cancelled');
 }
 
 // ── Shared job status handler — used by both individual and bulk pollers ──────
@@ -489,7 +489,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     item.status = 'error';
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
-    setBadge(stEl, 'error', d.error || 'Error');
+    setBadge(stEl, 'error', d.error || i18nGet('card.status.error') || '✗ Error');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
     recheckBulkVisibility();
     return true;
@@ -499,7 +499,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
-    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+    if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
     recheckBulkVisibility();
     return true;
   }
@@ -513,7 +513,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
       bulkCancelledJobs.delete(item.jobId);
       setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
       if (progEl) progEl.style.display = 'none';
-      if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = '⬇ Download'; }
+      if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
       return;
     }
@@ -525,7 +525,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
       // already handles this case).
       if (d && d.error === 'Job not found') {
         clearInterval(iv);
-        setBadge(stEl, 'error', 'Download interrupted');
+        setBadge(stEl, 'error', i18nGet('card.status.interrupted') || 'Download interrupted');
         if (progEl) progEl.style.display = 'none';
         if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
         if (cancelBtn) cancelBtn.style.display = 'none';

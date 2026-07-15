@@ -270,10 +270,10 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
       const r = await window.electronAPI.saveFile(filename, payload);
       if (r.canceled) return;
       if (r.ok) toast((i18nGet('theme.export.success') || 'Theme exported') + ' ✓', 'ok');
-      else toast('Export failed: ' + (r.error || 'unknown'), 'err');
+      else toast((i18nGet('toast.export_failed') || 'Export failed') + ': ' + (r.error || 'unknown'), 'err');
     } else {
       await navigator.clipboard.writeText(payload);
-      toast('Theme copied to clipboard ✓', 'ok');
+      toast(i18nGet('toast.theme_copied') || 'Theme copied to clipboard ✓', 'ok');
     }
   });
 
@@ -284,23 +284,23 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
       if (window.electronAPI?.openFile) {
         const r = await window.electronAPI.openFile();
         if (r.canceled) return;
-        if (r.error) { toast('Could not read file: ' + r.error, 'err'); return; }
+        if (r.error) { toast((i18nGet('toast.file_read_failed_generic') || 'Could not read file') + ': ' + r.error, 'err'); return; }
         text = r.content;
       } else {
         text = await navigator.clipboard.readText();
       }
 
       let theme;
-      try { theme = JSON.parse(text); } catch { toast('✗ Not a valid JSON file', 'err'); return; }
+      try { theme = JSON.parse(text); } catch { toast(i18nGet('toast.theme.invalid_json') || '✗ Not a valid JSON file', 'err'); return; }
 
       // Validate structure
-      if (!theme['egm-theme']) { toast('✗ Not a valid EGM theme file', 'err'); return; }
-      if (typeof theme.name !== 'string') { toast('✗ Theme is missing a name', 'err'); return; }
-      if (typeof theme.vars !== 'object' || Array.isArray(theme.vars)) { toast('✗ Theme has no vars block', 'err'); return; }
+      if (!theme['egm-theme']) { toast(i18nGet('toast.theme.invalid_egm_file') || '✗ Not a valid EGM theme file', 'err'); return; }
+      if (typeof theme.name !== 'string') { toast(i18nGet('toast.theme.missing_name') || '✗ Theme is missing a name', 'err'); return; }
+      if (typeof theme.vars !== 'object' || Array.isArray(theme.vars)) { toast(i18nGet('toast.theme.missing_vars') || '✗ Theme has no vars block', 'err'); return; }
 
       // Validate required vars
       const missing = REQUIRED_VARS.filter(v => !theme.vars[v]);
-      if (missing.length) { toast(`✗ Missing required vars: ${missing.slice(0,3).join(', ')}${missing.length>3?' …':''}`, 'err'); return; }
+      if (missing.length) { const shown = missing.slice(0,3).join(', ') + (missing.length > 3 ? ' …' : ''); toast(i18nFmt('toast.theme.missing_required_vars', shown) || `✗ Missing required vars: ${shown}`, 'err'); return; }
 
       // Show preview modal. F2: these are interpolated into style="" attributes, so a
       // hostile value like '#000"><img onerror=…>' would inject HTML — validate first
@@ -338,10 +338,12 @@ document.getElementById('subs-btn').addEventListener('click', (e) => {
         _applyCustomTheme(theme);
         localStorage.setItem('egm-custom-theme', JSON.stringify(theme));
         window.applyTheme('custom');
-        toast(`Theme "${esc(theme.name)}" applied ✓`, 'ok');
+        // Raw theme.name, not esc(): toast() renders via textContent, so esc()
+        // here would show literal &amp;/&lt; for names containing & or <.
+        toast(i18nFmt('toast.theme.applied', theme.name) || `Theme "${theme.name}" applied ✓`, 'ok');
       });
 
-    } catch { toast('✗ Could not import theme', 'err'); }
+    } catch { toast(i18nGet('toast.theme.import_failed') || '✗ Could not import theme', 'err'); }
   });
 })();
 

@@ -363,7 +363,7 @@
             ch.close();
             added = true;
           } catch (e) {
-            alert('Could not send URL to main window.');
+            alert(i18nGet('alert.history.window_message_failed') || 'Could not send URL to main window.');
             return;
           }
         }
