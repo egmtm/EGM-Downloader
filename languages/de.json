@@ -504,6 +504,7 @@
     "settings.toggle.upscale": "Hochskalieren",
     "themes.confirm.delete_title": "Dieses Theme löschen?",
     "themes.confirm.delete_body": "„{0}\" wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
-    "card.quality.hdr_tooltip": "HDR erfordert ein HDR-fähiges Display und einen HDR-fähigen Player — sonst wirken die Farben blass. HDR-Downloads werden als MKV gespeichert."
+    "card.quality.hdr_tooltip": "HDR erfordert ein HDR-fähiges Display und einen HDR-fähigen Player — sonst wirken die Farben blass. HDR-Downloads werden als MKV gespeichert.",
+    "toast.quality.reset_subscriptions_note": "Abonnements (zum Laden der Videos erneut abrufen)"
   }
 }
