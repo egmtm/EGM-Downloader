@@ -504,6 +504,7 @@
     "settings.toggle.upscale": "アップスケール",
     "themes.confirm.delete_title": "このテーマを削除しますか？",
     "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
-    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。"
+    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。",
+    "toast.quality.reset_subscriptions_note": "件の購読（動画を読み込むには再取得してください）"
   }
 }
