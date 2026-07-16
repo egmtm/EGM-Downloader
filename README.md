@@ -32,7 +32,6 @@
   <a href="#-download">⬇ Downloads</a> ·
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#-quick-start">🚀 Quick Start</a> ·
-  <a href="#roadmap">🗺️ Roadmap</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
   <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
 </p>
@@ -302,23 +301,6 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 - Open with Ctrl+K from anywhere in the app
 - 10 live-preview color pickers — the UI recolors in real time
 - Export as .json or save directly to your library
-
----
-
-<a id="roadmap"></a>
-
-## 🗺️ Roadmap
-
-**v1.3 — POLYGLOT — FULL THROTTLE:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.3.0)
-10 languages, HDR downloads, GPU-accelerated conversion, opt-in Upscale, 500 themes, redesigned Windows installer, 118 tests
-
-**v1.3.1 — LOST IN TRANSLATION:** ✅ Shipped — [Release notes ↗](https://github.com/egmtm/EGM-Downloader/releases/tag/v1.3.1)
-Full translation coverage for tooltips and notifications, Electron 43.1.1
-
-**v1.4 and beyond:**
-- 🧩 *Browser extension — send URLs straight to EGM Downloader without leaving your browser. Revisiting when the userbase is stronger.*
-
-**See:** [GitHub Issues](https://github.com/egmtm/EGM-Downloader/issues) for details and progress.
 
 ---
 
