@@ -1603,12 +1603,33 @@ def _get_ffmpeg_installed_tag():
     try: return FFMPEG_TAG_FILE.read_text().strip()
     except Exception: return ""
 
+
+# ── Short-TTL cache for GitHub "latest release" lookups ──────────────────────
+# These endpoints are unauthenticated (60 req/hour/IP, shared with everything
+# else on the user's network). A burst of Check-for-Updates clicks or several
+# passive refreshes could exhaust the budget and silently degrade every
+# version display to "unknown". Successful responses are cached briefly;
+# failures are never cached, so a transient error retries immediately.
+_GH_CACHE: dict = {}
+_GH_CACHE_TTL = 600  # seconds
+
+def _gh_latest_json(url: str):
+    """GET a GitHub releases/latest endpoint with a short success-only TTL cache.
+    Returns the parsed JSON dict, or raises on failure (caller handles)."""
+    now = time.time()
+    hit = _GH_CACHE.get(url)
+    if hit and now - hit[0] < _GH_CACHE_TTL:
+        return hit[1]
+    req = urllib.request.Request(url, headers={"User-Agent": "EGM-Downloader"})
+    with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
+        data = json.loads(r.read())
+    _GH_CACHE[url] = (now, data)
+    return data
+
+
 def _get_latest_ffmpeg_tag():
     try:
-        req = urllib.request.Request("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest",
-                                     headers={"User-Agent":"EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            return json.loads(r.read()).get("tag_name","unknown")
+        return _gh_latest_json("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest").get("tag_name","unknown")
     except Exception: return "unknown"
 
 def _get_latest_ytdlp_version(channel=None):
@@ -1616,11 +1637,7 @@ def _get_latest_ytdlp_version(channel=None):
         channel = _load_settings().get("yt_dlp_channel", "stable")
     repo = "yt-dlp/yt-dlp-nightly-builds" if channel == "nightly" else "yt-dlp/yt-dlp"
     try:
-        req = urllib.request.Request(
-            f"https://api.github.com/repos/{repo}/releases/latest",
-            headers={"User-Agent":"EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            return json.loads(r.read()).get("tag_name","unknown")
+        return _gh_latest_json(f"https://api.github.com/repos/{repo}/releases/latest").get("tag_name","unknown")
     except Exception: return "unknown"
 
 update_status: dict = {}
@@ -1784,9 +1801,16 @@ def _get_latest_optlibs_versions() -> dict:
 
 @app.route("/api/check-updates")
 def check_updates():
-    cy, ly = _get_ytdlp_version(), _get_latest_ytdlp_version()
-    cf, lf = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
-    cm     = _get_mutagen_version()
+    # Network "latest" lookups fan out concurrently — sequential was the sum
+    # of every timeout, so one slow endpoint stalled the whole response.
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=3) as _pool:
+        _f_ly = _pool.submit(_get_latest_ytdlp_version)
+        _f_lf = _pool.submit(_get_latest_ffmpeg_tag)
+        _f_ol = _pool.submit(_get_latest_optlibs_versions)
+        cy, cf = _get_ytdlp_version(), _get_ffmpeg_version()
+        cm     = _get_mutagen_version()
+        ly, lf = _f_ly.result(), _f_lf.result()
     # Mutagen on Linux is informational-only — bundled Python has no pip,
     # so we can't upgrade in-app. latest=None / up_to_date=None tells the UI
     # to render the "—" badge instead of green/red, and prevents the slow
@@ -1796,7 +1820,7 @@ def check_updates():
     ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
     ytdlp_ok = cy != "unknown" and cy == ly
     oc = _get_optlibs_versions()
-    ol = _get_latest_optlibs_versions()
+    ol = _f_ol.result()
     optlibs_updates = sum(
         1 for lib in oc
         if oc[lib] != "not installed" and ol.get(lib, "unknown") != "unknown" and oc[lib] != ol[lib]
@@ -1901,10 +1925,7 @@ def cookies_clear():
 
 def _get_latest_deno_version() -> str:
     try:
-        req = urllib.request.Request("https://api.github.com/repos/denoland/deno/releases/latest",
-                                     headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            return json.loads(r.read()).get("tag_name", "unknown").lstrip("v")
+        return _gh_latest_json("https://api.github.com/repos/denoland/deno/releases/latest").get("tag_name", "unknown").lstrip("v")
     except Exception:
         return "unknown"
 
@@ -1933,11 +1954,7 @@ def _run_deno_install():
         DENO_DIR.mkdir(parents=True, exist_ok=True)
         log("Fetching latest Deno release info...")
 
-        req = urllib.request.Request(
-            "https://api.github.com/repos/denoland/deno/releases/latest",
-            headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            release = json.loads(r.read())
+        release = _gh_latest_json("https://api.github.com/repos/denoland/deno/releases/latest")
         tag    = release.get("tag_name", "")
         assets = release.get("assets", [])
         url = next(
