@@ -531,6 +531,11 @@
     "settings.toggle.upscale": "Апскейл видео",
     "themes.confirm.delete_title": "Удалить эту тему?",
     "themes.confirm.delete_body": "Тема «{0}» будет удалена без возможности восстановления. Это действие нельзя отменить.",
-    "card.quality.hdr_tooltip": "Для HDR требуется дисплей и плеер с поддержкой HDR — иначе цвета будут блёклыми. Загрузки HDR сохраняются в формате MKV."
+    "card.quality.hdr_tooltip": "Для HDR требуется дисплей и плеер с поддержкой HDR — иначе цвета будут блёклыми. Загрузки HDR сохраняются в формате MKV.",
+    "advanced.btn.log_console": "Log console",
+    "tooltip.log_console": "Opens a read-only window showing the application's live log",
+    "console.title": "Log Console",
+    "console.readonly_note": "Read-only — live application log",
+    "console.empty": "No log entries yet."
   }
 }

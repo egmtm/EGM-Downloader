@@ -531,6 +531,11 @@
     "settings.toggle.upscale": "Hochskalieren",
     "themes.confirm.delete_title": "Dieses Theme löschen?",
     "themes.confirm.delete_body": "„{0}\" wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
-    "card.quality.hdr_tooltip": "HDR erfordert ein HDR-fähiges Display und einen HDR-fähigen Player — sonst wirken die Farben blass. HDR-Downloads werden als MKV gespeichert."
+    "card.quality.hdr_tooltip": "HDR erfordert ein HDR-fähiges Display und einen HDR-fähigen Player — sonst wirken die Farben blass. HDR-Downloads werden als MKV gespeichert.",
+    "advanced.btn.log_console": "Log console",
+    "tooltip.log_console": "Opens a read-only window showing the application's live log",
+    "console.title": "Log Console",
+    "console.readonly_note": "Read-only — live application log",
+    "console.empty": "No log entries yet."
   }
 }

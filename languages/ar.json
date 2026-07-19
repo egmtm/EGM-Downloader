@@ -531,6 +531,11 @@
     "settings.toggle.upscale": "رفع الدقة",
     "themes.confirm.delete_title": "حذف هذا الثيم؟",
     "themes.confirm.delete_body": "سيتم حذف «{0}» نهائياً. لا يمكن التراجع عن هذا.",
-    "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV."
+    "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV.",
+    "advanced.btn.log_console": "Log console",
+    "tooltip.log_console": "Opens a read-only window showing the application's live log",
+    "console.title": "Log Console",
+    "console.readonly_note": "Read-only — live application log",
+    "console.empty": "No log entries yet."
   }
 }
