@@ -537,7 +537,7 @@
     "console.title": "Консоль журнала",
     "console.readonly_note": "Только чтение — журнал приложения в реальном времени",
     "console.empty": "Записей в журнале пока нет.",
-    "console.toggle.ytdlp": "Show yt-dlp output",
-    "console.btn.export": "Export"
+    "console.toggle.ytdlp": "Показать вывод yt-dlp",
+    "console.btn.export": "Экспорт"
   }
 }
