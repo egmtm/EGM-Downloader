@@ -537,7 +537,7 @@
     "console.title": "Log-Konsole",
     "console.readonly_note": "Schreibgeschützt — Live-Log der Anwendung",
     "console.empty": "Noch keine Protokolleinträge.",
-    "console.toggle.ytdlp": "Show yt-dlp output",
-    "console.btn.export": "Export"
+    "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
+    "console.btn.export": "Exportieren"
   }
 }
