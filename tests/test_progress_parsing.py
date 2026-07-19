@@ -80,6 +80,24 @@ def test_merge_phase_clears_both_speed_and_eta():
         )
 
 
+def test_merge_phase_clears_download_progress():
+    """The merger branch must also pop \"progress\" (not just speed/eta) --
+    otherwise the download phase's final ~100% lingers on the converting
+    badge/bar until the encode pump (a separate code path) repopulates a
+    real percentage, misleadingly reading as an already-finished conversion
+    the instant it starts. The other two conversion-trigger sites in this
+    file (the ffprobe-based H.264 checks) already do this; the yt-dlp
+    merger-text detector was the one site missing it."""
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        i = src.index('"[Merger]" in line')
+        block = src[i:i + 400]
+        assert 'job.pop("progress", None)' in block, (
+            f"{p}: merge branch must pop progress -- otherwise the download "
+            f"phase's final percentage lingers through the whole conversion"
+        )
+
+
 def test_eta_charset_is_injection_safe_for_raw_interpolation():
     """subscriptions.html interpolates the eta/speed meta into an innerHTML
     template literal. That is safe ONLY while these regexes can't capture
