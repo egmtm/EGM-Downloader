@@ -1355,7 +1355,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 sm = speed_re.search(line)
                 job["speed"] = sm.group(1).strip() if sm else ""
                 em = eta_re.search(line)
-                if em: job["eta"] = em.group(1)
+                job["eta"] = em.group(1) if em else ""
                 szm = size_re.search(line)
                 if szm: job["filesize"] = szm.group(1).strip()
 

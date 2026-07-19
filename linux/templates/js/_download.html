@@ -444,7 +444,8 @@ function applyJobProgress(d, stEl, progEl) {
     if (progEl) progEl.style.display = '';
   } else if (d.status === 'downloading' && d.progress > 0) {
     const spd = d.speed ? ` · ${d.speed}` : '';
-    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
+    const eta = d.eta ? ` · ETA ${d.eta}` : '';
+    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}${eta}`);
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
   }
