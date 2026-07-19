@@ -896,7 +896,41 @@ def _detect_hw_encoder():
 _HW_ENCODE_SLOTS = threading.BoundedSemaphore(2)
 
 
-def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
+
+def _media_duration_s(ffprobe, path):
+    """Duration in seconds via ffprobe, or None. Used to turn ffmpeg -progress
+    time positions into a percentage for the converting card."""
+    try:
+        r = _run(str(ffprobe), "-v", "error", "-show_entries", "format=duration",
+                 "-of", "csv=p=0", str(path), timeout=30)
+        d = float((r.stdout or "").strip())
+        return d if d > 0 else None
+    except Exception:
+        return None
+
+
+def _pump_encode_progress(proc, job, duration_s):
+    """Reader for ffmpeg -progress pipe:1 (key=value lines on stdout).
+    Updates job["progress"] 0-100 while the encode runs. Daemon-threaded by the
+    caller; exits when the pipe closes. Never raises."""
+    try:
+        for raw in iter(proc.stdout.readline, b""):
+            line = raw.decode("utf-8", "replace").strip()
+            if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
+                try:
+                    us = int(line.split("=", 1)[1])
+                    if duration_s:
+                        pct = max(0.0, min(99.0, us / 1_000_000 / duration_s * 100))
+                        job["progress"] = round(pct, 1)
+                except ValueError:
+                    pass   # ffmpeg emits "N/A" before the first frame
+            elif line.startswith("progress=end"):
+                job["progress"] = 100
+    except Exception:
+        pass
+
+
+def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=None):
     """Shared encode step for the H.264/upscale passes: hardware encoder when one
     probes healthy, automatic libx264 retry (and cache demotion) if it fails."""
     global _HW_ENCODER_CACHE
@@ -906,6 +940,7 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
     # Non-blocking: over-cap jobs take the software path this once,
     # without demoting the cache -- the GPU is busy, not broken.
     hw_slot = bool(hw_name) and _HW_ENCODE_SLOTS.acquire(blocking=False)
+    duration_s = _media_duration_s(ffprobe, in_path) if ffprobe else None
     try:
         for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
             job["encoder"] = attempt   # surfaced in the converting badge
@@ -913,8 +948,9 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
             if vf:
                 cmd += ["-vf", vf]
             cmd += codec_args + ["-pix_fmt", "yuv420p",
-                                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp]
-            proc = _popen(*cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+                                 "-progress", "pipe:1", "-nostats", tmp]
+            proc = _popen(*cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
                           # Own process group: cancel goes through _kill_proc -> os.killpg;
                           # without a new session this ffmpeg shares the app's own group and
                           # killpg would SIGTERM Flask (and Electron) along with it.
@@ -922,6 +958,8 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
             job["proc"] = proc
             with _active_procs_lock:
                 _active_procs[job_id] = proc
+            threading.Thread(target=_pump_encode_progress,
+                             args=(proc, job, duration_s), daemon=True).start()
             proc.wait()
             job["proc"] = None
             with _active_procs_lock:
@@ -969,7 +1007,7 @@ def _ensure_h264(job_id, path, job):
             return path                                       # already H.264 — skip
         job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
         tmp = f"{path}.h264.mp4"
-        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0"):
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0", ffprobe=ffprobe):
             try:
                 os.remove(path); os.rename(tmp, path)
             except OSError:
@@ -1008,7 +1046,7 @@ def _upscale_to_preset(job_id, path, job, target):
         # short side -> N, long side proportional (even): portrait vs landscape aware
         vf = "scale='if(gt(iw,ih),-2,%d)':'if(gt(iw,ih),%d,-2)'" % (n, n)
         tmp = path + ".up.mp4"
-        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.2", vf=vf):
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.2", vf=vf, ffprobe=ffprobe):
             os.replace(tmp, path)
         return path
     except Exception:
