@@ -874,7 +874,7 @@ function renderQueue() {
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
           <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? 100 : pct}%"></div></div>
-          ${meta ? `<span style="font-size:.55rem;color:var(--text2);white-space:nowrap">${meta}</span>` : ''}
+          ${meta ? `<span style="font-size:.55rem;color:var(--text2);white-space:nowrap">${esc(meta)}</span>` : ''}
           <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
         </div>
       </div>
