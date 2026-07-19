@@ -1339,7 +1339,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # [download]  47.3% of 1.23GiB at 2.34MiB/s ETA 00:30
         pct_re   = _re.compile(r"\[download\]\s+([\d.]+)%")
         speed_re = _re.compile(r"at\s+([\d.]+\s*[KMG]iB/s)")
-        eta_re   = _re.compile(r"ETA\s+(\d+:\d+)")
+        eta_re   = _re.compile(r"ETA\s+(\d+(?::\d+){1,2})")   # MM:SS or H:MM:SS — one group misread 1:23:45 as "1:23"
         size_re  = _re.compile(r"of\s+([\d.]+\s*[KMGiB]+)")
         for line in proc.stdout:
             _yt_log(line.rstrip())
@@ -1348,6 +1348,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             if "[Merger]" in line or "[VideoRemuxer]" in line or "[ExtractAudio]" in line:
                 job["status"] = "converting"
                 job["speed"]  = ""
+                job["eta"]    = ""   # subs queue rows render eta regardless of status — don't leave the last download-phase value on screen through a long conversion
                 continue
             m = pct_re.search(line)
             if m:
