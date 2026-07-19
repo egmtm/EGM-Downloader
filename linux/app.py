@@ -237,6 +237,30 @@ APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
+
+
+# ── Rotating debug log ───────────────────────────────────────────────────────
+# Captures the [EGM] diagnostic lines (hardware-encoder detection, plugin
+# update results, retries) to a small on-disk log so field issues can be
+# diagnosed from a file instead of an invisible console. Single rotation
+# generation, few-hundred-KB cap — negligible disk cost.
+_DEBUG_LOG_MAX = 300 * 1024
+
+def _egm_log(msg):
+    line = f"[EGM] {msg}"
+    print(line)
+    try:
+        logp = DATA_DIR / "egm_debug.log"
+        try:
+            if logp.exists() and logp.stat().st_size > _DEBUG_LOG_MAX:
+                logp.replace(logp.with_suffix(".log.old"))
+        except OSError:
+            pass
+        with open(logp, "a", encoding="utf-8") as fh:
+            fh.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {line}\n")
+    except Exception:
+        pass   # logging must never break the app
+
 HISTORY_FILE  = DATA_DIR / "egm_history.json"
 SUBS_FILE     = DATA_DIR / "egm_subscriptions.json"
 COOKIES_FILE  = DATA_DIR / "cookies.txt"
@@ -317,7 +341,7 @@ def _save_history(items: list):
     try:
         _atomic_write_text(HISTORY_FILE, json.dumps(items, indent=2), owner_only=True)
     except Exception as e:
-        print(f"[EGM] history save failed: {e}")
+        _egm_log(f"history save failed: {e}")
 
 def _is_internal_host(host: str) -> bool:
     """Return True if host resolves to a loopback/private/link-local/reserved
@@ -452,7 +476,7 @@ def _save_settings(data: dict):
         except Exception as e:
             # Don't crash the request, but make a failed persist diagnosable —
             # previously swallowed silently, so a lost-settings report had no trail.
-            print(f"[EGM] settings save failed: {e}")
+            _egm_log(f"settings save failed: {e}")
 
 def _get_last_folder() -> str:
     return _load_settings().get("last_folder", "")
@@ -631,10 +655,10 @@ def ensure_ffmpeg():
     ffprobe_bin = FFMPEG_DIR / "ffprobe"
 
     if ffmpeg_bin.exists() and ffprobe_bin.exists():
-        print("[EGM] ffmpeg ready.")
+        _egm_log("ffmpeg ready.")
         return True
 
-    print("[EGM] Downloading ffmpeg (first run only)...")
+    _egm_log("Downloading ffmpeg (first run only)...")
     FFMPEG_DIR.mkdir(exist_ok=True)
     tmp = FFMPEG_DIR / "ffmpeg_tmp.tar.xz"
     try:
@@ -643,11 +667,11 @@ def ensure_ffmpeg():
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
         ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
-        print(f"[EGM] {msg}")
+        _egm_log(f"{msg}")
         if not ok:
             tmp.unlink(missing_ok=True)
             return
-        print("[EGM] Extracting ffmpeg...")
+        _egm_log("Extracting ffmpeg...")
         with tarfile.open(tmp, "r:xz") as t:
             for member in t.getmembers():
                 # Tar slip guard: skip path traversal / absolute paths
@@ -666,10 +690,10 @@ def ensure_ffmpeg():
             FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception:
             pass
-        print("[EGM] ffmpeg ready.")
+        _egm_log("ffmpeg ready.")
         return True
     except Exception as e:
-        print(f"[EGM] ffmpeg download failed: {e}")
+        _egm_log(f"ffmpeg download failed: {e}")
         try:
             tmp.unlink(missing_ok=True)
         except Exception:
@@ -878,7 +902,7 @@ def _detect_hw_encoder():
                      "-f", "lavfi", "-i", "color=black:size=256x256:duration=0.2:rate=10",
                      *args, "-frames:v", "3", "-f", "null", "-", timeout=20)
             if r.returncode == 0:
-                print(f"[EGM] hardware encoder available: {name}")
+                _egm_log(f"hardware encoder available: {name}")
                 _HW_ENCODER_CACHE = (name, list(args))
                 return _HW_ENCODER_CACHE
         except Exception:
@@ -978,7 +1002,7 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
             try: os.remove(tmp)
             except Exception: pass
             if attempt != "libx264":
-                print(f"[EGM] {attempt} encode failed — retrying with libx264")
+                _egm_log(f"{attempt} encode failed — retrying with libx264")
                 _HW_ENCODER_CACHE = (None, None)   # stop offering a broken encoder
             else:
                 return False
@@ -1683,7 +1707,7 @@ update_status: dict = {}
 def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
-    def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
+    def log(m): _egm_log(f"{m}"); update_status["log"].append(m)
     try:
         if do_ytdlp:
             PACKAGES_DIR.mkdir(parents=True, exist_ok=True)
@@ -1986,7 +2010,7 @@ deno_install_status: dict = {}
 def _run_deno_install():
     global deno_install_status
     deno_install_status = {"running": True, "log": [], "done": False, "error": None}
-    def log(m): print(f"[EGM] {m}"); deno_install_status["log"].append(m)
+    def log(m): _egm_log(f"{m}"); deno_install_status["log"].append(m)
     tmp = DENO_DIR / "deno_tmp.zip"
     try:
         DENO_DIR.mkdir(parents=True, exist_ok=True)
