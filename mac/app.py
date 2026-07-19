@@ -1001,19 +1001,32 @@ def _pump_encode_progress(proc, job, duration_s):
     """Reader for ffmpeg -progress pipe:1 (key=value lines on stdout).
     Updates job["progress"] 0-100 while the encode runs. Daemon-threaded by the
     caller; exits when the pipe closes. Never raises."""
+    announced = False
     try:
         for raw in iter(proc.stdout.readline, b""):
             line = raw.decode("utf-8", "replace").strip()
+            us = None
             if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
                 try:
                     us = int(line.split("=", 1)[1])
-                    if duration_s:
-                        pct = max(0.0, min(99.0, us / 1_000_000 / duration_s * 100))
-                        job["progress"] = round(pct, 1)
                 except ValueError:
-                    pass   # ffmpeg emits "N/A" before the first frame
+                    us = None   # ffmpeg emits "N/A" before the first frame
+            elif line.startswith("out_time="):
+                # fallback for builds emitting only HH:MM:SS.micro
+                try:
+                    hh, mm, ss = line.split("=", 1)[1].split(":")
+                    us = int((int(hh) * 3600 + int(mm) * 60 + float(ss)) * 1_000_000)
+                except (ValueError, IndexError):
+                    us = None
             elif line.startswith("progress=end"):
                 job["progress"] = 100
+                continue
+            if us is not None and duration_s:
+                if not announced:
+                    _egm_log("encode progress reporting active")
+                    announced = True
+                pct = max(0.0, min(99.0, us / 1_000_000 / duration_s * 100))
+                job["progress"] = round(pct, 1)
     except Exception:
         pass
 
