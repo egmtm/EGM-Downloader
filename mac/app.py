@@ -1300,6 +1300,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 job["status"] = "converting"
                 job["speed"]  = ""
                 job["eta"]    = ""   # subs queue rows render eta regardless of status — don't leave the last download-phase value on screen through a long conversion
+                job.pop("progress", None)  # else the download's ~100% lingers on the converting badge through the merge; the encode pump repopulates real percentages
                 continue
             m = pct_re.search(line)
             if m:

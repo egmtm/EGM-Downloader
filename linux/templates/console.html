@@ -94,6 +94,10 @@ let since = 0;
 let ytSince = 0;
 let pinned = true;   // auto-scroll pinned to bottom; unpins when the user scrolls up
 const ytToggle = document.getElementById('yt-toggle');
+ytToggle.checked = localStorage.getItem('egm-console-yt') === '1';
+ytToggle.addEventListener('change', () => {
+  try { localStorage.setItem('egm-console-yt', ytToggle.checked ? '1' : '0'); } catch {}
+});
 
 wrap.addEventListener('scroll', () => {
   pinned = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 12;
