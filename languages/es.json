@@ -537,7 +537,7 @@
     "console.title": "Consola de registro",
     "console.readonly_note": "Solo lectura — registro en vivo de la aplicación",
     "console.empty": "Aún no hay entradas de registro.",
-    "console.toggle.ytdlp": "Show yt-dlp output",
-    "console.btn.export": "Export"
+    "console.toggle.ytdlp": "Mostrar salida de yt-dlp",
+    "console.btn.export": "Exportar"
   }
 }
