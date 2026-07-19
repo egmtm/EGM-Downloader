@@ -1,0 +1,50 @@
+name: Frontend Tests
+
+on:
+  push:
+    branches: ["main", "testing/**"]
+    paths:
+      - "templates/**"
+      - "languages/**"
+      - "app.py"
+      - "tests/frontend/**"
+      - ".github/workflows/frontend-tests.yml"
+  pull_request:
+    paths:
+      - "templates/**"
+      - "languages/**"
+      - "app.py"
+      - "tests/frontend/**"
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0  # v7.0.0
+
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+
+      - name: Set up Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e  # v6
+        with:
+          node-version: "22"
+
+      - name: Install Python deps
+        run: pip install flask
+
+      - name: Install frontend test deps
+        working-directory: tests/frontend
+        run: npm install --no-audit --no-fund
+
+      - name: Render page
+        working-directory: tests/frontend
+        run: python render_page.py /tmp/egm_rendered_index.html
+
+      - name: Run jsdom regression tests
+        working-directory: tests/frontend
+        run: node --test
