@@ -25,9 +25,11 @@
 
   .log-wrap{flex:1;overflow-y:auto;padding:10px 14px;font-family:Consolas,Menlo,'SF Mono',monospace;font-size:11.5px;line-height:1.55;user-select:text}
   .log-line{white-space:pre-wrap;word-break:break-word;color:var(--text2)}
+  /* lint-allow-muted: supplementary-metadata (timestamp prefix beside each log line) */
   .log-line .lt{color:var(--muted);margin-right:8px}
   .log-line.err{color:var(--red)}
   .log-line.okc{color:var(--green)}
+  /* lint-allow-muted: empty-state */
   .log-empty{color:var(--muted);padding:20px 6px;font-style:italic}
 
   .log-wrap::-webkit-scrollbar{width:8px}
@@ -59,6 +61,20 @@
     return _f.call(this, url, opts);
   };
 })();
+
+// ── Theme + window title (same pattern as the other child windows) ───────────
+let _themeClass = '';
+function applyConsoleTheme(name) {
+  if (_themeClass) { document.body.classList.remove(_themeClass); _themeClass = ''; }
+  if (name && name !== 'void') { document.body.classList.add(name); _themeClass = name; }
+}
+applyConsoleTheme(localStorage.getItem('egm-theme') || 'void');
+if (window.electronAPI && window.electronAPI.onThemeChanged) {
+  window.electronAPI.onThemeChanged(t => applyConsoleTheme(t));
+}
+document.addEventListener('i18n:ready', () => {
+  document.title = (i18nGet('console.title') || 'Log Console') + ' — EGM Downloader';
+});
 
 // ── Live log ─────────────────────────────────────────────────────────────────
 const wrap  = document.getElementById('log-wrap');

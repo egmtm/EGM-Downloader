@@ -245,14 +245,15 @@ def test_security_markers_in_all_main_js():
 
 
 def test_istrustedsender_count_locked():
-    """isTrustedSender must appear EXACTLY 50 times total across the 3 main.js
-    (windows 18, linux 16, mac 16). Every ipcMain handler must be gated by it;
+    """isTrustedSender must appear EXACTLY 53 times total across the 3 main.js
+    (windows 19, linux 17, mac 17). Every ipcMain handler must be gated by it;
     locking the count auto-catches an accidental handler addition that bypasses
     the gate — the same check done by hand every delta review. If you added a
     legitimate, gated ipcMain handler, bump EXPECTED_TOTAL after confirming the
     new handler calls isTrustedSender.
+    (50 → 53 in v1.3.2: the gated open-console-window handler, one per platform.)
     """
-    EXPECTED_TOTAL = 50
+    EXPECTED_TOTAL = 53
     counts = {
         name: read_source(path).count("isTrustedSender")
         for name, path in (

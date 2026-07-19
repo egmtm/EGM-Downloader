@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openCookiesFile:    ()               => ipcRenderer.invoke('open-cookies-file'),
   openHistoryWindow:  (from)           => ipcRenderer.invoke('open-history-window', from),
   openThemesWindow:   ()               => ipcRenderer.invoke('open-themes-window'),
+  openConsoleWindow:  ()               => ipcRenderer.invoke('open-console-window'),
   openSubscriptions:  ()               => ipcRenderer.invoke('open-subscriptions-window'),
   closeSubscriptions: ()               => ipcRenderer.invoke('close-subscriptions'),
   notifySubsDownloads: (active)        => ipcRenderer.send('subs-active-downloads', !!active),
