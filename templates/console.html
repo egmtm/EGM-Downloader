@@ -24,11 +24,14 @@
   .tb-note{font-size:10px;color:var(--text2);opacity:.7}
 
   .log-wrap{flex:1;overflow-y:auto;padding:10px 14px;font-family:Consolas,Menlo,'SF Mono',monospace;font-size:11.5px;line-height:1.55;user-select:text}
-  .log-line{white-space:pre-wrap;word-break:break-word;color:var(--text2)}
-  /* lint-allow-muted: supplementary-metadata (timestamp prefix beside each log line) */
-  .log-line .lt{color:var(--muted);margin-right:8px}
-  .log-line.err{color:var(--red)}
-  .log-line.okc{color:var(--green)}
+  /* Body text uses --text (the one var every theme guarantees readable on its
+     bg) with slight opacity; --text2/--muted go too dim on several themes. */
+  .log-line{white-space:pre-wrap;word-break:break-word;color:var(--text);opacity:.85}
+  .log-line .lt{color:var(--text2);margin-right:8px}
+  .log-line.err{color:var(--red);opacity:1}
+  .log-line.okc{color:var(--green);opacity:1}
+  .log-line.yt{opacity:.6;font-size:11px}
+  .log-line.yt .lt{opacity:.8}
   /* lint-allow-muted: empty-state */
   .log-empty{color:var(--muted);padding:20px 6px;font-style:italic}
 
@@ -39,7 +42,14 @@
 <body>
   <div class="titlebar">
     <h1><span class="live-dot" id="live-dot"></span><span data-i18n="console.title">Log Console</span></h1>
-    <span class="tb-note" data-i18n="console.readonly_note">Read-only — live application log</span>
+    <div style="display:flex;align-items:center;gap:12px">
+      <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none">
+        <input type="checkbox" id="yt-toggle" style="accent-color:var(--acc)">
+        <span data-i18n="console.toggle.ytdlp">Show yt-dlp output</span>
+      </label>
+      <button id="export-btn" style="font-size:10.5px;padding:3px 12px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2)" data-i18n="console.btn.export">Export</button>
+      <span class="tb-note" data-i18n="console.readonly_note">Read-only — live application log</span>
+    </div>
   </div>
   <div class="log-wrap" id="log-wrap">
     <div class="log-empty" id="log-empty" data-i18n="console.empty">No log entries yet.</div>
@@ -81,7 +91,9 @@ const wrap  = document.getElementById('log-wrap');
 const empty = document.getElementById('log-empty');
 const dot   = document.getElementById('live-dot');
 let since = 0;
+let ytSince = 0;
 let pinned = true;   // auto-scroll pinned to bottom; unpins when the user scrolls up
+const ytToggle = document.getElementById('yt-toggle');
 
 wrap.addEventListener('scroll', () => {
   pinned = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 12;
@@ -95,30 +107,53 @@ function classify(m) {
   return '';
 }
 
+function appendLines(entries, extraClass) {
+  if (!entries || !entries.length) return;
+  if (empty.parentNode) empty.remove();
+  const frag = document.createDocumentFragment();
+  for (const e of entries) {
+    const div = document.createElement('div');
+    div.className = 'log-line ' + (extraClass || classify(e.m));
+    const t = document.createElement('span'); t.className = 'lt'; t.textContent = e.t;
+    div.appendChild(t);
+    div.appendChild(document.createTextNode(e.m));
+    frag.appendChild(div);
+  }
+  wrap.appendChild(frag);
+  // cap DOM so a long-open window never balloons (2x ring: diag + yt streams)
+  while (wrap.children.length > 2000) wrap.removeChild(wrap.firstChild);
+  if (pinned) wrap.scrollTop = wrap.scrollHeight;
+}
+
 async function poll() {
   try {
-    const d = await fetch(`/api/logs?since=${since}`).then(r => r.json());
-    if (d.lines && d.lines.length) {
-      if (empty.parentNode) empty.remove();
-      const frag = document.createDocumentFragment();
-      for (const e of d.lines) {
-        const div = document.createElement('div');
-        div.className = 'log-line ' + classify(e.m);
-        const t = document.createElement('span'); t.className = 'lt'; t.textContent = e.t;
-        div.appendChild(t);
-        div.appendChild(document.createTextNode(e.m));
-        frag.appendChild(div);
-      }
-      wrap.appendChild(frag);
-      // cap DOM at the ring size so a long-open window never balloons
-      while (wrap.children.length > 1000) wrap.removeChild(wrap.firstChild);
-      if (pinned) wrap.scrollTop = wrap.scrollHeight;
-    }
+    const yt = ytToggle.checked ? `&yt=1&yts=${ytSince}` : '';
+    const d = await fetch(`/api/logs?since=${since}${yt}`).then(r => r.json());
+    appendLines(d.lines);
+    if (ytToggle.checked && d.yt_lines) { appendLines(d.yt_lines, 'yt'); ytSince = d.yt_next ?? ytSince; }
     since = d.next ?? since;
   } catch {}
   setTimeout(poll, 1000);
 }
 poll();
+
+// ── Export: full diagnostic ring (+ yt ring when the toggle is on) as a file ──
+document.getElementById('export-btn').addEventListener('click', async () => {
+  try {
+    const d = await fetch(`/api/logs?since=0&yt=1&yts=0`).then(r => r.json());
+    const parts = (d.lines || []).map(e => `${e.t} [EGM] ${e.m}`);
+    if (ytToggle.checked) {
+      for (const e of (d.yt_lines || [])) parts.push(`${e.t} [yt-dlp] ${e.m}`);
+    }
+    const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
+    const blob = new Blob([parts.join('\n') + '\n'], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `egm-log-${stamp}.txt`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 5000);
+  } catch {}
+});
 </script>
 </body>
 </html>

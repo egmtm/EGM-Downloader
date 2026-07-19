@@ -536,6 +536,8 @@
     "tooltip.log_console": "Apre una finestra di sola lettura che mostra il log dal vivo dell'applicazione",
     "console.title": "Console log",
     "console.readonly_note": "Sola lettura — log dal vivo dell'applicazione",
-    "console.empty": "Nessuna voce di log ancora."
+    "console.empty": "Nessuna voce di log ancora.",
+    "console.toggle.ytdlp": "Show yt-dlp output",
+    "console.btn.export": "Export"
   }
 }
