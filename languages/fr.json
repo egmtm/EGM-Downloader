@@ -537,7 +537,7 @@
     "console.title": "Console des journaux",
     "console.readonly_note": "Lecture seule — journal en direct de l'application",
     "console.empty": "Aucune entrée de journal pour l'instant.",
-    "console.toggle.ytdlp": "Show yt-dlp output",
-    "console.btn.export": "Export"
+    "console.toggle.ytdlp": "Afficher la sortie de yt-dlp",
+    "console.btn.export": "Exporter"
   }
 }
