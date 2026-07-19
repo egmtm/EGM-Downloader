@@ -531,6 +531,11 @@
     "settings.toggle.upscale": "Suréchantillonner",
     "themes.confirm.delete_title": "Supprimer ce thème ?",
     "themes.confirm.delete_body": "Le thème « {0} » sera définitivement supprimé. Cela ne peut pas être annulé.",
-    "card.quality.hdr_tooltip": "Le HDR nécessite un écran et un lecteur compatibles HDR — sinon les couleurs paraissent délavées. Les téléchargements HDR sont enregistrés au format MKV."
+    "card.quality.hdr_tooltip": "Le HDR nécessite un écran et un lecteur compatibles HDR — sinon les couleurs paraissent délavées. Les téléchargements HDR sont enregistrés au format MKV.",
+    "advanced.btn.log_console": "Log console",
+    "tooltip.log_console": "Opens a read-only window showing the application's live log",
+    "console.title": "Log Console",
+    "console.readonly_note": "Read-only — live application log",
+    "console.empty": "No log entries yet."
   }
 }

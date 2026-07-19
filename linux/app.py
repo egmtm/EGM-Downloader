@@ -244,11 +244,22 @@ SETTINGS_FILE = DATA_DIR / "egm_settings.json"
 # update results, retries) to a small on-disk log so field issues can be
 # diagnosed from a file instead of an invisible console. Single rotation
 # generation, few-hundred-KB cap — negligible disk cost.
+_LOG_RING: list = []
+_LOG_RING_LOCK = threading.Lock()
+_LOG_RING_MAX = 1000
+_LOG_SEQ = 0
+
 _DEBUG_LOG_MAX = 300 * 1024
 
 def _egm_log(msg):
+    global _LOG_SEQ
     line = f"[EGM] {msg}"
     print(line)
+    with _LOG_RING_LOCK:
+        _LOG_SEQ += 1
+        _LOG_RING.append({"n": _LOG_SEQ, "t": time.strftime("%H:%M:%S"), "m": str(msg)})
+        if len(_LOG_RING) > _LOG_RING_MAX:
+            del _LOG_RING[: len(_LOG_RING) - _LOG_RING_MAX]
     try:
         logp = DATA_DIR / "egm_debug.log"
         try:
@@ -1087,6 +1098,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     except Exception as e:
         # An unwritable or removed download dir (e.g. an unplugged USB drive or a
         # deleted saved folder) must fail the job, not leave it stuck "queued".
+        _egm_log(f"download error: {str(e).splitlines()[0][:200] if str(e) else 'unknown'}")
         job["status"] = "error"; job["error"] = _friendly_error(str(e)); job["_finished_at"] = time.time()
         return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
@@ -1243,6 +1255,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
         if job.get("cancelled"):
             _cleanup(job_id, out_dir)
+            _egm_log("download cancelled")
             job["status"] = "cancelled"
             job["_finished_at"] = time.time()
             return
@@ -1357,6 +1370,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["filename"] = final_path.name
         job["_finished_at"] = time.time()
         _append_history(job, final_path)
+        _egm_log(f"download complete: {final_path.name}")
         job["status"]   = "done"
 
     except Exception as e:
@@ -2256,6 +2270,17 @@ def import_history():
     with _history_lock:
         _save_history(cleaned)
     return jsonify({"ok": True, "count": len(cleaned)})
+
+@app.route("/api/logs")
+def api_logs():
+    since = request.args.get("since", 0, type=int)
+    with _LOG_RING_LOCK:
+        lines = [e for e in _LOG_RING if e["n"] > since]
+        nxt = _LOG_SEQ
+    return jsonify({"lines": lines, "next": nxt})
+
+@app.route("/console-page")
+def console_page(): return render_template("console.html", egm_token=_API_TOKEN)
 
 @app.route("/history-page")
 def history_page(): return render_template("history.html", egm_token=_API_TOKEN)

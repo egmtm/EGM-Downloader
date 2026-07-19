@@ -531,6 +531,11 @@
     "settings.toggle.upscale": "Escalar vídeo",
     "themes.confirm.delete_title": "¿Eliminar este tema?",
     "themes.confirm.delete_body": "«{0}» se eliminará permanentemente. Esto no se puede deshacer.",
-    "card.quality.hdr_tooltip": "HDR requiere una pantalla y un reproductor compatibles con HDR; de lo contrario, los colores se ven apagados. Las descargas HDR se guardan como MKV."
+    "card.quality.hdr_tooltip": "HDR requiere una pantalla y un reproductor compatibles con HDR; de lo contrario, los colores se ven apagados. Las descargas HDR se guardan como MKV.",
+    "advanced.btn.log_console": "Log console",
+    "tooltip.log_console": "Opens a read-only window showing the application's live log",
+    "console.title": "Log Console",
+    "console.readonly_note": "Read-only — live application log",
+    "console.empty": "No log entries yet."
   }
 }

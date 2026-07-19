@@ -531,6 +531,11 @@
     "settings.toggle.upscale": "アップスケール",
     "themes.confirm.delete_title": "このテーマを削除しますか？",
     "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
-    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。"
+    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。",
+    "advanced.btn.log_console": "Log console",
+    "tooltip.log_console": "Opens a read-only window showing the application's live log",
+    "console.title": "Log Console",
+    "console.readonly_note": "Read-only — live application log",
+    "console.empty": "No log entries yet."
   }
 }

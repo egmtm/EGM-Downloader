@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Log Console — EGM Downloader</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#0b1120;--surf:#111c2e;--surf2:#162338;--surf3:#1c2d47;
+    --border:#1e3a5f;--border2:#274d7a;--acc:#3b82f6;--acc-h:#60a5fa;
+    --text:#e2e8f0;--text2:#8b949e;--muted:#4a5568;
+    --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
+    --shadow:0 4px 32px rgba(0,0,0,.6);
+  }
+  body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+  {% include 'theme_styles.html' %}
+
+  .titlebar{background:var(--surf2);padding:10px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+  .titlebar h1{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
+  .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
+  .live-dot.paused{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
+  .tb-note{font-size:10px;color:var(--text2);opacity:.7}
+
+  .log-wrap{flex:1;overflow-y:auto;padding:10px 14px;font-family:Consolas,Menlo,'SF Mono',monospace;font-size:11.5px;line-height:1.55;user-select:text}
+  .log-line{white-space:pre-wrap;word-break:break-word;color:var(--text2)}
+  .log-line .lt{color:var(--muted);margin-right:8px}
+  .log-line.err{color:var(--red)}
+  .log-line.okc{color:var(--green)}
+  .log-empty{color:var(--muted);padding:20px 6px;font-style:italic}
+
+  .log-wrap::-webkit-scrollbar{width:8px}
+  .log-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+</style>
+</head>
+<body>
+  <div class="titlebar">
+    <h1><span class="live-dot" id="live-dot"></span><span data-i18n="console.title">Log Console</span></h1>
+    <span class="tb-note" data-i18n="console.readonly_note">Read-only — live application log</span>
+  </div>
+  <div class="log-wrap" id="log-wrap">
+    <div class="log-empty" id="log-empty" data-i18n="console.empty">No log entries yet.</div>
+  </div>
+
+{% include 'i18n.html' %}
+<script>
+// ── API token interceptor (same pattern as the other windows) ────────────────
+(function() {
+  const _t = '{{ egm_token }}';
+  if (!_t) return;
+  const _f = window.fetch;
+  window.fetch = function(url, opts) {
+    if (typeof url === 'string' && url.startsWith('/api/')) {
+      opts = opts || {};
+      opts.headers = opts.headers || {};
+      opts.headers['X-EGM-Token'] = _t;
+    }
+    return _f.call(this, url, opts);
+  };
+})();
+
+// ── Live log ─────────────────────────────────────────────────────────────────
+const wrap  = document.getElementById('log-wrap');
+const empty = document.getElementById('log-empty');
+const dot   = document.getElementById('live-dot');
+let since = 0;
+let pinned = true;   // auto-scroll pinned to bottom; unpins when the user scrolls up
+
+wrap.addEventListener('scroll', () => {
+  pinned = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 12;
+  dot.classList.toggle('paused', !pinned);
+});
+
+function classify(m) {
+  const l = m.toLowerCase();
+  if (l.includes('error') || l.includes('failed')) return 'err';
+  if (l.includes('complete') || l.includes('available') || l.startsWith('ok')) return 'okc';
+  return '';
+}
+
+async function poll() {
+  try {
+    const d = await fetch(`/api/logs?since=${since}`).then(r => r.json());
+    if (d.lines && d.lines.length) {
+      if (empty.parentNode) empty.remove();
+      const frag = document.createDocumentFragment();
+      for (const e of d.lines) {
+        const div = document.createElement('div');
+        div.className = 'log-line ' + classify(e.m);
+        const t = document.createElement('span'); t.className = 'lt'; t.textContent = e.t;
+        div.appendChild(t);
+        div.appendChild(document.createTextNode(e.m));
+        frag.appendChild(div);
+      }
+      wrap.appendChild(frag);
+      // cap DOM at the ring size so a long-open window never balloons
+      while (wrap.children.length > 1000) wrap.removeChild(wrap.firstChild);
+      if (pinned) wrap.scrollTop = wrap.scrollHeight;
+    }
+    since = d.next ?? since;
+  } catch {}
+  setTimeout(poll, 1000);
+}
+poll();
+</script>
+</body>
+</html>

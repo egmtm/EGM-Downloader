@@ -873,6 +873,10 @@ document.getElementById('show-settings-panel-chk').addEventListener('change', fu
     document.getElementById('hide-settings-modal').style.display = 'flex';
   }
 });
+document.getElementById('adv-console-btn')?.addEventListener('click', () => {
+  window.open('/console-page', '_blank');
+});
+
 document.getElementById('hide-settings-cancel-btn').addEventListener('click', () => {
   document.getElementById('hide-settings-modal').style.display = 'none';
 });

@@ -531,6 +531,11 @@
     "settings.toggle.upscale": "Upscale video",
     "themes.confirm.delete_title": "Delete this theme?",
     "themes.confirm.delete_body": "\"{0}\" will be permanently deleted. This cannot be undone.",
-    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV."
+    "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV.",
+    "advanced.btn.log_console": "Log console",
+    "tooltip.log_console": "Opens a read-only window showing the application's live log",
+    "console.title": "Log Console",
+    "console.readonly_note": "Read-only — live application log",
+    "console.empty": "No log entries yet."
   }
 }
