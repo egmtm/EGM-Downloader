@@ -537,7 +537,7 @@
     "console.title": "ログコンソール",
     "console.readonly_note": "読み取り専用 — アプリケーションのライブログ",
     "console.empty": "まだログエントリはありません。",
-    "console.toggle.ytdlp": "Show yt-dlp output",
-    "console.btn.export": "Export"
+    "console.toggle.ytdlp": "yt-dlp の出力を表示",
+    "console.btn.export": "エクスポート"
   }
 }
