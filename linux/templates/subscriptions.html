@@ -857,6 +857,8 @@ function renderQueue() {
   for (const [videoId, job] of activeJobs) {
     const pct = Math.round(job.data?.progress || 0);
     const speed = job.data?.speed || '';
+    const eta = job.data?.eta || '';
+    const meta = [speed, eta ? `ETA ${eta}` : ''].filter(Boolean).join(' · ');
     const statusLabel = job.status === 'queued' ? (i18nGet('card.status.queued') || 'Queued')
       : job.status === 'downloading' ? `${pct}%`
       : job.status === 'converting' ? (i18nGet('card.status.converting') || 'Converting…')
@@ -872,7 +874,7 @@ function renderQueue() {
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
           <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? 100 : pct}%"></div></div>
-          ${speed ? `<span style="font-size:.55rem;color:var(--text2)">${speed}</span>` : ''}
+          ${meta ? `<span style="font-size:.55rem;color:var(--text2);white-space:nowrap">${meta}</span>` : ''}
           <button class="video-action-btn" onclick="cancelJob('${attrEsc(job.jobId)}','${attrEsc(videoId)}')" style="color:var(--red);border-color:var(--red)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>
         </div>
       </div>
