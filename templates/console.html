@@ -146,10 +146,17 @@ document.getElementById('export-btn').addEventListener('click', async () => {
       for (const e of (d.yt_lines || [])) parts.push(`${e.t} [yt-dlp] ${e.m}`);
     }
     const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
-    const blob = new Blob([parts.join('\n') + '\n'], { type: 'text/plain' });
+    const text = parts.join('\n') + '\n';
+    const name = `egm-log-${stamp}.txt`;
+    if (window.electronAPI?.saveFile) {
+      // native Save As dialog (extension-aware handler routes .txt correctly)
+      await window.electronAPI.saveFile(name, text);
+      return;
+    }
+    const blob = new Blob([text], { type: 'text/plain' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `egm-log-${stamp}.txt`;
+    a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 5000);
   } catch {}

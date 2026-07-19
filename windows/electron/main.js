@@ -474,10 +474,15 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 // ── IPC: save file dialog (settings export) ───────────────────────────────────
 ipcMain.handle('save-file', async (event, defaultName, content) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-  const result = await dialog.showSaveDialog(mainWindow, {
-    title:       'Export Settings',
+  // Extension-aware: .txt exports (log console) get a text filter/title;
+  // everything else keeps the original JSON behavior (settings/theme export).
+  const isTxt = /\.txt$/i.test(defaultName || '');
+  const parent = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+  const result = await dialog.showSaveDialog(parent, {
+    title:       isTxt ? 'Export Log' : 'Export Settings',
     defaultPath: defaultName || 'egm-settings.json',
-    filters:     [{ name: 'JSON', extensions: ['json'] }],
+    filters:     isTxt ? [{ name: 'Text', extensions: ['txt'] }]
+                       : [{ name: 'JSON', extensions: ['json'] }],
   });
   if (result.canceled || !result.filePath) return { canceled: true };
   try {
