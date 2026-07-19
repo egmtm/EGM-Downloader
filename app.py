@@ -326,6 +326,20 @@ _LOG_SEQ = 0
 
 _DEBUG_LOG_MAX = 300 * 1024
 
+_YT_RING: list = []
+_YT_SEQ = 0
+
+def _yt_log(line):
+    """Raw yt-dlp output ring (separate from diagnostics so a long download's
+    firehose can't evict the diagnostic history). Displayed only when the
+    console's yt-dlp toggle is on."""
+    global _YT_SEQ
+    with _LOG_RING_LOCK:
+        _YT_SEQ += 1
+        _YT_RING.append({"n": _YT_SEQ, "t": time.strftime("%H:%M:%S"), "m": line})
+        if len(_YT_RING) > _LOG_RING_MAX:
+            del _YT_RING[: len(_YT_RING) - _LOG_RING_MAX]
+
 def _egm_log(msg):
     global _LOG_SEQ
     line = f"[EGM] {msg}"
@@ -1328,6 +1342,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         eta_re   = _re.compile(r"ETA\s+(\d+:\d+)")
         size_re  = _re.compile(r"of\s+([\d.]+\s*[KMGiB]+)")
         for line in proc.stdout:
+            _yt_log(line.rstrip())
             line = line.rstrip()
             # Detect merge/convert phase — no percentage available from yt-dlp
             if "[Merger]" in line or "[VideoRemuxer]" in line or "[ExtractAudio]" in line:
@@ -2456,10 +2471,16 @@ def import_history():
 @app.route("/api/logs")
 def api_logs():
     since = request.args.get("since", 0, type=int)
+    want_yt = request.args.get("yt", 0, type=int)
+    yts = request.args.get("yts", 0, type=int)
     with _LOG_RING_LOCK:
         lines = [e for e in _LOG_RING if e["n"] > since]
         nxt = _LOG_SEQ
-    return jsonify({"lines": lines, "next": nxt})
+        resp = {"lines": lines, "next": nxt}
+        if want_yt:
+            resp["yt_lines"] = [e for e in _YT_RING if e["n"] > yts]
+            resp["yt_next"] = _YT_SEQ
+    return jsonify(resp)
 
 @app.route("/console-page")
 def console_page(): return render_template("console.html", egm_token=_API_TOKEN)

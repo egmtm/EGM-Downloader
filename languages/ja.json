@@ -536,6 +536,8 @@
     "tooltip.log_console": "アプリケーションのライブログを表示する読み取り専用ウィンドウを開きます",
     "console.title": "ログコンソール",
     "console.readonly_note": "読み取り専用 — アプリケーションのライブログ",
-    "console.empty": "まだログエントリはありません。"
+    "console.empty": "まだログエントリはありません。",
+    "console.toggle.ytdlp": "Show yt-dlp output",
+    "console.btn.export": "Export"
   }
 }

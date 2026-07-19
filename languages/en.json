@@ -536,6 +536,8 @@
     "tooltip.log_console": "Opens a read-only window showing the application's live log",
     "console.title": "Log Console",
     "console.readonly_note": "Read-only — live application log",
-    "console.empty": "No log entries yet."
+    "console.empty": "No log entries yet.",
+    "console.toggle.ytdlp": "Show yt-dlp output",
+    "console.btn.export": "Export"
   }
 }

@@ -536,6 +536,8 @@
     "tooltip.log_console": "Ouvre une fenêtre en lecture seule affichant le journal en direct de l'application",
     "console.title": "Console des journaux",
     "console.readonly_note": "Lecture seule — journal en direct de l'application",
-    "console.empty": "Aucune entrée de journal pour l'instant."
+    "console.empty": "Aucune entrée de journal pour l'instant.",
+    "console.toggle.ytdlp": "Show yt-dlp output",
+    "console.btn.export": "Export"
   }
 }

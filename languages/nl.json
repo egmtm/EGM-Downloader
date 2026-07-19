@@ -536,6 +536,8 @@
     "tooltip.log_console": "Opent een alleen-lezen venster met het live logboek van de app",
     "console.title": "Logconsole",
     "console.readonly_note": "Alleen-lezen — live logboek van de app",
-    "console.empty": "Nog geen logvermeldingen."
+    "console.empty": "Nog geen logvermeldingen.",
+    "console.toggle.ytdlp": "Show yt-dlp output",
+    "console.btn.export": "Export"
   }
 }

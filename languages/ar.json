@@ -536,6 +536,8 @@
     "tooltip.log_console": "يفتح نافذة للقراءة فقط تعرض سجل التطبيق مباشرة",
     "console.title": "وحدة تحكم السجل",
     "console.readonly_note": "للقراءة فقط — سجل التطبيق المباشر",
-    "console.empty": "لا توجد إدخالات سجل بعد."
+    "console.empty": "لا توجد إدخالات سجل بعد.",
+    "console.toggle.ytdlp": "Show yt-dlp output",
+    "console.btn.export": "Export"
   }
 }
