@@ -1,4 +1,4 @@
-v1.3.2 - TUNE-UP (Build TBD) (TBD)
+v1.3.2 - TUNE-UP (Build 143) (7/20/2026)
 -----------------------------------------
 
   • [ALL] New: Log Console (Advanced > Maintenance) — a read-only window showing the app's live diagnostic log, with an option to also show raw yt-dlp output and export the log to a file, for easier troubleshooting
