@@ -1400,7 +1400,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["filename"] = final_path.name
         job["_finished_at"] = time.time()
         _append_history(job, final_path)
-        _egm_log(f"download complete: {final_path.name}")
+        # Extension only, not the filename -- yt-dlp names files from the
+        # video title by default, and this line lands in egm_debug.log, the
+        # file the support field protocol asks users to email in.
+        _egm_log(f"download complete: {final_path.suffix or 'no-ext'}")
         job["status"]   = "done"
 
     except Exception as e:
