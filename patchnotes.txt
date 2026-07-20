@@ -1,3 +1,11 @@
+v1.3.3 - LOOSE ENDS (Build TBD) (TBD)
+-----------------------------------------
+
+  • [WINDOWS] Fixed: right-click the app → Properties → Details showed an old, outdated version number — now matches the actual app version
+  • [ALL] Fixed: the reorder arrows on a multi-video fetch could show incorrectly or not update after fetching info for a video
+  • [ALL] The diagnostic log file no longer includes full download links or file names, for better privacy
+  • [ALL] Expanded internal test coverage for this cycle's fixes
+
 v1.3.2 - TUNE-UP (Build 143) (7/20/2026)
 -----------------------------------------
 

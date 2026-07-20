@@ -56,6 +56,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     }
 
     item.status = 'downloading';
+    updateQueueArrows();   // card left the idle queue — hide its arrows, re-edge the rest
     setBadge(stEl, 'dl', i18nGet('card.status.queued_ellipsis') || 'Queued...');
     dlBtn.disabled = true;
     if (progEl) progEl.style.display = '';
@@ -128,6 +129,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       dlBtn.disabled = false; dlBtn.style.display = '';
       if (progEl) progEl.style.display = 'none';
       if (cancelBtn) cancelBtn.style.display = 'none';
+      updateQueueArrows();   // left the idle queue — keep the arrow rule true
       done++;
     }
     active--;
@@ -181,6 +183,7 @@ function cancelBulk() {
       if (cancelBtn) cancelBtn.style.display = 'none';
     }
   });
+  updateQueueArrows();   // whole queue left idle — hide every arrow in one pass
   toast(i18nGet('toast.bulk.all_cancelled') || 'All downloads cancelled');
 }
 

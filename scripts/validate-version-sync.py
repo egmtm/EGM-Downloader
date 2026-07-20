@@ -133,6 +133,34 @@ def check_windows_package_json(v):
     return errors
 
 
+def check_windows_launcher_rc(v):
+    """The native launcher's embedded PE version resource (Explorer ->
+    Properties -> Details). Found stuck at 0.99.11 on a live v1.3.2 build --
+    cosmetic only, but this check exists so it can't go stale again."""
+    errors = []
+    rel = "windows/launcher.rc"
+    path = ROOT / rel
+    if not path.exists():
+        errors.append(f"{rel}: file not found")
+        return errors
+    text = path.read_text(encoding="utf-8")
+
+    parts = v.split(".")
+    while len(parts) < 4:
+        parts.append("0")
+    comma_form = ",".join(parts[:4])
+
+    if not re.search(rf'FILEVERSION\s+{re.escape(comma_form)}', text):
+        errors.append(f"{rel}: FILEVERSION does not match expected {comma_form}")
+    if not re.search(rf'PRODUCTVERSION\s+{re.escape(comma_form)}', text):
+        errors.append(f"{rel}: PRODUCTVERSION does not match expected {comma_form}")
+    if not re.search(rf'VALUE "FileVersion",\s*"{re.escape(v)}"', text):
+        errors.append(f"{rel}: FileVersion string does not match expected '{v}'")
+    if not re.search(rf'VALUE "ProductVersion",\s*"{re.escape(v)}"', text):
+        errors.append(f"{rel}: ProductVersion string does not match expected '{v}'")
+    return errors
+
+
 # --------------------------------------------------------------------------
 # Mac checks
 # --------------------------------------------------------------------------
@@ -680,6 +708,7 @@ def main():
         ("app.py",                              lambda: check_root_app_py(v, b)),
         ("templates/index.html",                lambda: check_root_index_html(v, b, date, time)),
         ("windows/electron/package.json",       lambda: check_windows_package_json(v)),
+        ("windows/launcher.rc",                 lambda: check_windows_launcher_rc(v)),
         ("linux/app.py",                        lambda: check_linux_app_py(v, b)),
         ("linux/templates/index.html",          lambda: check_linux_index_html(v, b, date, time)),
         ("linux/electron/package.json",         lambda: check_linux_package_json(v)),
