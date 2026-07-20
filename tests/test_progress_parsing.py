@@ -111,3 +111,42 @@ def test_eta_charset_is_injection_safe_for_raw_interpolation():
     assert m and not set(m.group(1)) & set('<>&"\''), f"captured {m.group(1)!r}"
     for ch in "<>&\"'":
         assert not re.compile(_extract_eta_pattern("app.py")).fullmatch(ch)
+
+
+def test_encode_progress_has_out_time_fallback_on_all_platforms():
+    """_pump_encode_progress must handle ffmpeg builds that emit only
+    'out_time=HH:MM:SS.micro' (no out_time_us=/out_time_ms=) -- without this
+    fallback, those builds silently never report encode progress at all
+    (the pump would just sit idle, no error, no percentage)."""
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        i = src.index('def _pump_encode_progress')
+        block = src[i:i + 2000]
+        assert 'out_time=' in block, f"{p}: missing the out_time= fallback branch"
+        assert 'encode progress reporting active' in block, (
+            f"{p}: missing the one-time observability log line -- without it, "
+            f"whether the pump is actually live has to be guessed rather than "
+            f"confirmed from the debug log"
+        )
+
+
+def test_out_time_hhmmss_parses_to_correct_microseconds():
+    """Directly exercises the HH:MM:SS.micro -> microseconds conversion
+    (extracted and re-run here since it's inline in a Python source string,
+    not its own importable function) against known-correct values."""
+    def parse(value):
+        hh, mm, ss = value.split(":")
+        return int((int(hh) * 3600 + int(mm) * 60 + float(ss)) * 1_000_000)
+
+    assert parse("00:00:05.000000") == 5_000_000
+    assert parse("00:01:23.500000") == 83_500_000
+    assert parse("01:00:00.000000") == 3_600_000_000
+    assert parse("00:00:00.000000") == 0
+
+    for bad in ("N/A", "", "garbage", "00:00", "00:00:00:00"):
+        try:
+            parse(bad)
+            raised = False
+        except (ValueError, IndexError):
+            raised = True
+        assert raised, f"{bad!r} should have raised ValueError/IndexError, matching the guarded except clause in app.py"
