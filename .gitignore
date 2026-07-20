@@ -28,6 +28,7 @@ windows/electron/dist/
 dist/
 windows/build/
 windows/dist/
+windows/BUILD_*.sh
 mac/build/
 mac/dist/
 linux/build/
