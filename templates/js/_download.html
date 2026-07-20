@@ -119,11 +119,20 @@ function updateQueueArrows() {
   const results = document.getElementById('results');
   if (!results) return;
   // Use DOM order as source of truth — items[] may drift from DOM after swaps
-  const idleCards = [...results.querySelectorAll('.vcard')].filter(card => {
+  const allCards = [...results.querySelectorAll('.vcard')];
+  const idleCards = allCards.filter(card => {
     const id = card.querySelector('.qarrow')?.dataset.id;
     if (!id) return false;
     const item = items.find(i => String(i.id) === String(id));
     return item && item.status === 'idle';
+  });
+  // Non-idle cards (downloading/error/cancelled — or fetch-error placeholders
+  // with no items[] entry) never show reorder arrows: the queue is only
+  // reorderable while idle, and the click handler already no-ops them. Hiding
+  // here makes the UI match the rule at every call, not just on first render.
+  allCards.forEach(card => {
+    if (idleCards.includes(card)) return;
+    card.querySelectorAll('.qarrow').forEach(b => { b.style.visibility = 'hidden'; });
   });
   idleCards.forEach((card, pos) => {
     const wrap = card.querySelector('[id^="qarrows"]');
@@ -360,6 +369,7 @@ async function startDl(item, n) {
   const dir = chosenPath;
 
   item.status = 'downloading';
+  updateQueueArrows();   // card left the idle queue — hide its arrows, re-edge the rest
   setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading…');
   dlBtn.disabled = true;
   dlBtn.style.display = 'none';
@@ -426,6 +436,7 @@ async function cancelDownload(item, n) {
   if (progEl) progEl.style.display = 'none';
   if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
+  updateQueueArrows();   // no longer idle — keep the arrow rule true after cancel
   toast(i18nGet('toast.download_cancelled') || 'Download cancelled');
 }
 
@@ -503,6 +514,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'error', d.error || i18nGet('card.status.error') || '✗ Error');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
+    updateQueueArrows();   // left the idle queue — keep the arrow rule true
     recheckBulkVisibility();
     return true;
   }
@@ -512,6 +524,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
+    updateQueueArrows();   // left the idle queue — keep the arrow rule true
     recheckBulkVisibility();
     return true;
   }
@@ -542,6 +555,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
         if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
         if (cancelBtn) cancelBtn.style.display = 'none';
         item.status = 'error';
+        updateQueueArrows();   // left the idle queue — keep the arrow rule true
         return;
       }
       applyJobProgress(d, stEl, progEl);

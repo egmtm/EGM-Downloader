@@ -135,3 +135,41 @@ test("queue arrows: edges hidden, middle visible, and removeItem recomputes edge
   assert.equal(vis(3, "up"), "visible", "after removal, remaining last card: up visible");
   assert.equal(vis(3, "down"), "hidden", "after removal, remaining last card: down hidden");
 });
+
+test("queue arrows: a status transition hides the card's own arrows and re-edges the rest", async () => {
+  const { w, d } = await bootPage();
+  const results = d.getElementById("results");
+  const mkCard = (n) => {
+    const el = d.createElement("div");
+    el.className = "vcard";
+    el.id = "tcard" + n;
+    el.innerHTML = `
+      <span id="st${n}"></span>
+      <div id="qarrows${n}">
+        <button class="qarrow" data-dir="up" data-id="${n}"></button>
+        <button class="qarrow" data-dir="down" data-id="${n}"></button>
+      </div>`;
+    results.appendChild(el);
+    return el;
+  };
+  const els = [1, 2, 3].map(mkCard);
+  w.eval(`items = [1,2,3].map(n => ({ id: n, status: 'idle' })); updateQueueArrows();`);
+  const vis = (n, dir) => els[n - 1].querySelector(`.qarrow[data-dir="${dir}"]`).style.visibility;
+  assert.equal(vis(1, "down"), "visible", "sanity: first card starts with down visible");
+
+  // Card 1 starts downloading: its own arrows must hide (the click handler
+  // already no-ops non-idle cards -- the UI must match), and card 2 becomes
+  // the first idle card, so its up arrow must hide too.
+  w.eval(`items[0].status = 'downloading'; updateQueueArrows();`);
+  assert.equal(vis(1, "up"), "hidden", "downloading card: up hidden");
+  assert.equal(vis(1, "down"), "hidden", "downloading card: down hidden");
+  assert.equal(vis(2, "up"), "hidden", "new first idle card: up hidden");
+  assert.equal(vis(2, "down"), "visible", "new first idle card: down visible");
+  assert.equal(vis(3, "up"), "visible", "last idle card: up visible");
+  assert.equal(vis(3, "down"), "hidden", "last idle card: down hidden");
+
+  // Cancelled cards never return to idle -- arrows stay hidden.
+  w.eval(`items[0].status = 'cancelled'; updateQueueArrows();`);
+  assert.equal(vis(1, "up"), "hidden", "cancelled card: up stays hidden");
+  assert.equal(vis(1, "down"), "hidden", "cancelled card: down stays hidden");
+});
