@@ -179,6 +179,31 @@ def update_windows_package_json(v, dry_run):
                lambda d: d.__setitem__("version", v), dry_run)
 
 
+def update_windows_launcher_rc(v, dry_run):
+    """windows/launcher.rc -- the native launcher's embedded PE version
+    resource (what Explorer's Properties -> Details reads). Was never part
+    of the version-sync pipeline at all; found stuck at 0.99.11 on a live
+    v1.3.2 build (cosmetic only -- the app itself was unaffected)."""
+    path = ROOT / "windows" / "launcher.rc"
+    parts = v.split(".")
+    while len(parts) < 4:
+        parts.append("0")
+    comma_form = ",".join(parts[:4])
+
+    patch(path, "windows/launcher.rc -> FILEVERSION",
+          r'(FILEVERSION\s+)[\d,]+',
+          rf'\g<1>{comma_form}', dry_run)
+    patch(path, "windows/launcher.rc -> PRODUCTVERSION",
+          r'(PRODUCTVERSION\s+)[\d,]+',
+          rf'\g<1>{comma_form}', dry_run)
+    patch(path, "windows/launcher.rc -> FileVersion string",
+          r'(VALUE "FileVersion",\s*)"[\d.]+"',
+          rf'\g<1>"{v}"', dry_run)
+    patch(path, "windows/launcher.rc -> ProductVersion string",
+          r'(VALUE "ProductVersion",\s*)"[\d.]+"',
+          rf'\g<1>"{v}"', dry_run)
+
+
 # --------------------------------------------------------------------------
 # Platform updaters -- LINUX
 # --------------------------------------------------------------------------
@@ -342,6 +367,7 @@ def main():
     update_root_app_py(new_version, new_build, args.dry_run)
     update_root_index_html(new_version, new_build, date, time_str, args.dry_run)
     update_windows_package_json(new_version, args.dry_run)
+    update_windows_launcher_rc(new_version, args.dry_run)
 
     print("\n-- Linux -------------------------------------------------")
     update_linux_app_py(new_version, new_build, args.dry_run)
