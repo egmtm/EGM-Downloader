@@ -150,3 +150,56 @@ def test_out_time_hhmmss_parses_to_correct_microseconds():
         except (ValueError, IndexError):
             raised = True
         assert raised, f"{bad!r} should have raised ValueError/IndexError, matching the guarded except clause in app.py"
+
+
+# ── Behavioral: the REAL pump function, not a re-implemented copy ─────────────
+#
+# test_out_time_hhmmss_parses_to_correct_microseconds above re-implements the
+# conversion, which guards the *math* but not the *wiring* -- if the branch
+# structure in _pump_encode_progress drifts (a fallthrough lost to an early
+# continue, the shared pct block moved, the out_time= branch orphaned), a
+# copy-based test stays green while the app silently stops reporting. This is
+# the instrumenting-the-wrong-layer class the v1.3 pre-release review caught
+# in the hw-slots guard. These tests feed synthetic ffmpeg -progress output
+# through the actual function via the imported app module.
+
+import io
+
+
+class _FakeProc:
+    def __init__(self, payload: bytes):
+        self.stdout = io.BytesIO(payload)
+
+
+def test_pump_end_to_end_us_form(app_module):
+    job = {}
+    feed = (b"out_time_us=N/A\n"          # pre-first-frame: must not crash or write
+            b"out_time_us=30000000\n"     # 30s of 60s -> 50.0
+            b"progress=continue\n"
+            b"progress=end\n")            # -> 100
+    app_module._pump_encode_progress(_FakeProc(feed), job, 60.0)
+    assert job["progress"] == 100
+
+
+def test_pump_end_to_end_out_time_fallback(app_module):
+    """A build emitting ONLY out_time= must still produce percentages --
+    through the real function, so a lost fallthrough or orphaned branch
+    fails here even if the source still contains the substring."""
+    job = {}
+    app_module._pump_encode_progress(_FakeProc(b"out_time=00:00:30.000000\n"), job, 60.0)
+    assert job.get("progress") == 50.0
+
+
+def test_pump_stays_silent_without_duration_or_match(app_module):
+    job = {}
+    app_module._pump_encode_progress(_FakeProc(b"out_time=N/A\nout_time_us=N/A\nfps=30\n"), job, 60.0)
+    assert "progress" not in job
+    job2 = {}
+    app_module._pump_encode_progress(_FakeProc(b"out_time_us=30000000\n"), job2, None)
+    assert "progress" not in job2   # no duration -> badge stays indeterminate
+
+
+def test_pump_clamps_past_duration_positions(app_module):
+    job = {}
+    app_module._pump_encode_progress(_FakeProc(b"out_time_us=999000000\n"), job, 60.0)
+    assert job["progress"] == 99.0  # never shows 100 before progress=end
