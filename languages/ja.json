@@ -4,11 +4,11 @@
   "_language_english": "Japanese",
   "_code": "ja",
   "_direction": "ltr",
-  "_version": "1.3.1",
+  "_version": "1.3.2",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-13",
+  "_last_updated": "2026-07-14",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & 他{0}サイト",
@@ -531,6 +531,13 @@
     "settings.toggle.upscale": "アップスケール",
     "themes.confirm.delete_title": "このテーマを削除しますか？",
     "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
-    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。"
+    "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。",
+    "advanced.btn.log_console": "ログコンソール",
+    "tooltip.log_console": "アプリケーションのライブログを表示する読み取り専用ウィンドウを開きます",
+    "console.title": "ログコンソール",
+    "console.readonly_note": "読み取り専用 — アプリケーションのライブログ",
+    "console.empty": "まだログエントリはありません。",
+    "console.toggle.ytdlp": "yt-dlp の出力を表示",
+    "console.btn.export": "エクスポート"
   }
 }
