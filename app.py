@@ -312,6 +312,55 @@ UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "
 
 # Settings / history / cookies — routed through get_data_dir() for portable support
 SETTINGS_FILE = get_data_dir() / "egm_settings.json"
+
+
+# ── Rotating debug log ───────────────────────────────────────────────────────
+# Captures the [EGM] diagnostic lines (hardware-encoder detection, plugin
+# update results, retries) to a small on-disk log so field issues can be
+# diagnosed from a file instead of an invisible console. Single rotation
+# generation, few-hundred-KB cap — negligible disk cost.
+_LOG_RING: list = []
+_LOG_RING_LOCK = threading.Lock()
+_LOG_RING_MAX = 1000
+_LOG_SEQ = 0
+
+_DEBUG_LOG_MAX = 300 * 1024
+
+_YT_RING: list = []
+_YT_SEQ = 0
+
+def _yt_log(line):
+    """Raw yt-dlp output ring (separate from diagnostics so a long download's
+    firehose can't evict the diagnostic history). Displayed only when the
+    console's yt-dlp toggle is on."""
+    global _YT_SEQ
+    with _LOG_RING_LOCK:
+        _YT_SEQ += 1
+        _YT_RING.append({"n": _YT_SEQ, "t": time.strftime("%H:%M:%S"), "m": line})
+        if len(_YT_RING) > _LOG_RING_MAX:
+            del _YT_RING[: len(_YT_RING) - _LOG_RING_MAX]
+
+def _egm_log(msg):
+    global _LOG_SEQ
+    line = f"[EGM] {msg}"
+    print(line)
+    with _LOG_RING_LOCK:
+        _LOG_SEQ += 1
+        _LOG_RING.append({"n": _LOG_SEQ, "t": time.strftime("%H:%M:%S"), "m": str(msg)})
+        if len(_LOG_RING) > _LOG_RING_MAX:
+            del _LOG_RING[: len(_LOG_RING) - _LOG_RING_MAX]
+    try:
+        logp = get_data_dir() / "egm_debug.log"
+        try:
+            if logp.exists() and logp.stat().st_size > _DEBUG_LOG_MAX:
+                logp.replace(logp.with_suffix(".log.old"))
+        except OSError:
+            pass
+        with open(logp, "a", encoding="utf-8") as fh:
+            fh.write(f"{time.strftime('%Y-%m-%d %H:%M:%S')} {line}\n")
+    except Exception:
+        pass   # logging must never break the app
+
 HISTORY_FILE  = get_data_dir() / "egm_history.json"
 SUBS_FILE     = get_data_dir() / "egm_subscriptions.json"
 
@@ -394,7 +443,7 @@ def _save_history(items: list):
     try:
         _atomic_write_text(HISTORY_FILE, json.dumps(items, indent=2), owner_only=True)
     except Exception as e:
-        print(f"[EGM] history save failed: {e}")
+        _egm_log(f"history save failed: {e}")
 
 def _is_internal_host(host: str) -> bool:
     """Return True if host resolves to a loopback/private/link-local/reserved
@@ -530,7 +579,7 @@ def _save_settings(data: dict):
         except Exception as e:
             # Don't crash the request, but make a failed persist diagnosable —
             # previously swallowed silently, so a lost-settings report had no trail.
-            print(f"[EGM] settings save failed: {e}")
+            _egm_log(f"settings save failed: {e}")
 
 def _get_last_folder() -> str:
     return _load_settings().get("last_folder", "")
@@ -719,9 +768,9 @@ DENO_ZIP_URL = ("https://github.com/denoland/deno/releases/latest/download/"
 
 def ensure_ffmpeg():
     if (FFMPEG_DIR / "ffmpeg.exe").exists() and (FFMPEG_DIR / "ffprobe.exe").exists():
-        print("[EGM] ffmpeg ready.")
+        _egm_log("ffmpeg ready.")
         return True
-    print("[EGM] Downloading ffmpeg (first run only)...")
+    _egm_log("Downloading ffmpeg (first run only)...")
     FFMPEG_DIR.mkdir(exist_ok=True)
     tmp = FFMPEG_DIR / "ffmpeg_tmp.zip"
     try:
@@ -730,7 +779,7 @@ def ensure_ffmpeg():
         with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(tmp, "wb") as f:
             shutil.copyfileobj(r, f)
         ok, msg = _verify_upstream_checksum(tmp, "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/checksums.sha256", os.path.basename(ffmpeg_url))
-        print(f"[EGM] {msg}")
+        _egm_log(f"{msg}")
         if not ok:
             tmp.unlink(missing_ok=True)
             return
@@ -746,10 +795,10 @@ def ensure_ffmpeg():
         tmp.unlink(missing_ok=True)
         try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception: pass
-        print("[EGM] ffmpeg ready.")
+        _egm_log("ffmpeg ready.")
         return True
     except Exception as e:
-        print(f"[EGM] ffmpeg download failed: {e}")
+        _egm_log(f"ffmpeg download failed: {e}")
         try: tmp.unlink(missing_ok=True)
         except Exception: pass
         return False
@@ -970,7 +1019,7 @@ def _detect_hw_encoder():
                      "-f", "lavfi", "-i", "color=black:size=256x256:duration=0.2:rate=10",
                      *args, "-frames:v", "3", "-f", "null", "-", timeout=20)
             if r.returncode == 0:
-                print(f"[EGM] hardware encoder available: {name}")
+                _egm_log(f"hardware encoder available: {name}")
                 _HW_ENCODER_CACHE = (name, list(args))
                 return _HW_ENCODER_CACHE
         except Exception:
@@ -988,7 +1037,54 @@ def _detect_hw_encoder():
 _HW_ENCODE_SLOTS = threading.BoundedSemaphore(2)
 
 
-def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
+
+def _media_duration_s(ffprobe, path):
+    """Duration in seconds via ffprobe, or None. Used to turn ffmpeg -progress
+    time positions into a percentage for the converting card."""
+    try:
+        r = _run(str(ffprobe), "-v", "error", "-show_entries", "format=duration",
+                 "-of", "csv=p=0", str(path), timeout=30)
+        d = float((r.stdout or "").strip())
+        return d if d > 0 else None
+    except Exception:
+        return None
+
+
+def _pump_encode_progress(proc, job, duration_s):
+    """Reader for ffmpeg -progress pipe:1 (key=value lines on stdout).
+    Updates job["progress"] 0-100 while the encode runs. Daemon-threaded by the
+    caller; exits when the pipe closes. Never raises."""
+    announced = False
+    try:
+        for raw in iter(proc.stdout.readline, b""):
+            line = raw.decode("utf-8", "replace").strip()
+            us = None
+            if line.startswith("out_time_us=") or line.startswith("out_time_ms="):
+                try:
+                    us = int(line.split("=", 1)[1])
+                except ValueError:
+                    us = None   # ffmpeg emits "N/A" before the first frame
+            elif line.startswith("out_time="):
+                # fallback for builds emitting only HH:MM:SS.micro
+                try:
+                    hh, mm, ss = line.split("=", 1)[1].split(":")
+                    us = int((int(hh) * 3600 + int(mm) * 60 + float(ss)) * 1_000_000)
+                except (ValueError, IndexError):
+                    us = None
+            elif line.startswith("progress=end"):
+                job["progress"] = 100
+                continue
+            if us is not None and duration_s:
+                if not announced:
+                    _egm_log("encode progress reporting active")
+                    announced = True
+                pct = max(0.0, min(99.0, us / 1_000_000 / duration_s * 100))
+                job["progress"] = round(pct, 1)
+    except Exception:
+        pass
+
+
+def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=None):
     """Shared encode step for the H.264/upscale passes: hardware encoder when one
     probes healthy, automatic libx264 retry (and cache demotion) if it fails."""
     global _HW_ENCODER_CACHE
@@ -998,6 +1094,7 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
     # Non-blocking: over-cap jobs take the software path this once,
     # without demoting the cache -- the GPU is busy, not broken.
     hw_slot = bool(hw_name) and _HW_ENCODE_SLOTS.acquire(blocking=False)
+    duration_s = _media_duration_s(ffprobe, in_path) if ffprobe else None
     try:
         for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
             job["encoder"] = attempt   # surfaced in the converting badge
@@ -1005,11 +1102,14 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
             if vf:
                 cmd += ["-vf", vf]
             cmd += codec_args + ["-pix_fmt", "yuv420p",
-                                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart", tmp]
-            proc = _popen(*cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+                                 "-progress", "pipe:1", "-nostats", tmp]
+            proc = _popen(*cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             job["proc"] = proc
             with _active_procs_lock:
                 _active_procs[job_id] = proc
+            threading.Thread(target=_pump_encode_progress,
+                             args=(proc, job, duration_s), daemon=True).start()
             proc.wait()
             job["proc"] = None
             with _active_procs_lock:
@@ -1028,7 +1128,7 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None):
             try: os.remove(tmp)
             except Exception: pass
             if attempt != "libx264":
-                print(f"[EGM] {attempt} encode failed — retrying with libx264")
+                _egm_log(f"{attempt} encode failed — retrying with libx264")
                 _HW_ENCODER_CACHE = (None, None)   # stop offering a broken encoder
             else:
                 return False
@@ -1057,7 +1157,7 @@ def _ensure_h264(job_id, path, job):
             return path                                       # already H.264 — skip
         job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
         tmp = f"{path}.h264.mp4"
-        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0"):
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0", ffprobe=ffprobe):
             try:
                 os.remove(path); os.rename(tmp, path)
             except OSError:
@@ -1096,7 +1196,7 @@ def _upscale_to_preset(job_id, path, job, target):
         # short side -> N, long side proportional (even): portrait vs landscape aware
         vf = "scale='if(gt(iw,ih),-2,%d)':'if(gt(iw,ih),%d,-2)'" % (n, n)
         tmp = path + ".up.mp4"
-        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.2", vf=vf):
+        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.2", vf=vf, ffprobe=ffprobe):
             os.replace(tmp, path)
         return path
     except Exception:
@@ -1113,6 +1213,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     except Exception as e:
         # An unwritable or removed download dir (e.g. an unplugged USB drive or a
         # deleted saved folder) must fail the job, not leave it stuck "queued".
+        _egm_log(f"download error: {str(e).splitlines()[0][:200] if str(e) else 'unknown'}")
         job["status"] = "error"; job["error"] = _friendly_error(str(e)); job["_finished_at"] = time.time()
         return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
@@ -1224,6 +1325,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
     try:
+        _egm_log(f"download started ({format_choice}): {url}")
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace")
         job["proc"]    = proc
@@ -1250,14 +1352,17 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # [download]  47.3% of 1.23GiB at 2.34MiB/s ETA 00:30
         pct_re   = _re.compile(r"\[download\]\s+([\d.]+)%")
         speed_re = _re.compile(r"at\s+([\d.]+\s*[KMG]iB/s)")
-        eta_re   = _re.compile(r"ETA\s+(\d+:\d+)")
+        eta_re   = _re.compile(r"ETA\s+(\d+(?::\d+){1,2})")   # MM:SS or H:MM:SS — one group misread 1:23:45 as "1:23"
         size_re  = _re.compile(r"of\s+([\d.]+\s*[KMGiB]+)")
         for line in proc.stdout:
+            _yt_log(line.rstrip())
             line = line.rstrip()
             # Detect merge/convert phase — no percentage available from yt-dlp
             if "[Merger]" in line or "[VideoRemuxer]" in line or "[ExtractAudio]" in line:
                 job["status"] = "converting"
                 job["speed"]  = ""
+                job["eta"]    = ""   # subs queue rows render eta regardless of status — don't leave the last download-phase value on screen through a long conversion
+                job.pop("progress", None)  # else the download's ~100% lingers on the converting badge through the merge; the encode pump repopulates real percentages
                 continue
             m = pct_re.search(line)
             if m:
@@ -1265,7 +1370,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 sm = speed_re.search(line)
                 job["speed"] = sm.group(1).strip() if sm else ""
                 em = eta_re.search(line)
-                if em: job["eta"] = em.group(1)
+                job["eta"] = em.group(1) if em else ""
                 szm = size_re.search(line)
                 if szm: job["filesize"] = szm.group(1).strip()
 
@@ -1281,6 +1386,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         if job.get("cancelled"):
             # proc is dead — now safe to clean up partial files
             _cleanup(job_id, out_dir)
+            _egm_log("download cancelled")
             job["status"] = "cancelled"
             job["_finished_at"] = time.time()
             return
@@ -1395,6 +1501,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["filename"] = final_path.name
         job["_finished_at"] = time.time()
         _append_history(job, final_path)
+        _egm_log(f"download complete: {final_path.name}")
         job["status"]   = "done"
 
     except Exception as e:
@@ -1705,12 +1812,33 @@ def _get_ffmpeg_installed_tag():
     try: return FFMPEG_TAG_FILE.read_text().strip()
     except Exception: return ""
 
+
+# ── Short-TTL cache for GitHub "latest release" lookups ──────────────────────
+# These endpoints are unauthenticated (60 req/hour/IP, shared with everything
+# else on the user's network). A burst of Check-for-Updates clicks or several
+# passive refreshes could exhaust the budget and silently degrade every
+# version display to "unknown". Successful responses are cached briefly;
+# failures are never cached, so a transient error retries immediately.
+_GH_CACHE: dict = {}
+_GH_CACHE_TTL = 600  # seconds
+
+def _gh_latest_json(url: str):
+    """GET a GitHub releases/latest endpoint with a short success-only TTL cache.
+    Returns the parsed JSON dict, or raises on failure (caller handles)."""
+    now = time.time()
+    hit = _GH_CACHE.get(url)
+    if hit and now - hit[0] < _GH_CACHE_TTL:
+        return hit[1]
+    req = urllib.request.Request(url, headers={"User-Agent": "EGM-Downloader"})
+    with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
+        data = json.loads(r.read())
+    _GH_CACHE[url] = (now, data)
+    return data
+
+
 def _get_latest_ffmpeg_tag():
     try:
-        req = urllib.request.Request("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest",
-                                     headers={"User-Agent":"EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            return json.loads(r.read()).get("tag_name","unknown")
+        return _gh_latest_json("https://api.github.com/repos/BtbN/FFmpeg-Builds/releases/latest").get("tag_name","unknown")
     except Exception: return "unknown"
 
 def _get_latest_ytdlp_version(channel=None):
@@ -1718,11 +1846,7 @@ def _get_latest_ytdlp_version(channel=None):
         channel = _load_settings().get("yt_dlp_channel", "stable")
     repo = "yt-dlp/yt-dlp-nightly-builds" if channel == "nightly" else "yt-dlp/yt-dlp"
     try:
-        req = urllib.request.Request(
-            f"https://api.github.com/repos/{repo}/releases/latest",
-            headers={"User-Agent":"EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            return json.loads(r.read()).get("tag_name","unknown")
+        return _gh_latest_json(f"https://api.github.com/repos/{repo}/releases/latest").get("tag_name","unknown")
     except Exception: return "unknown"
 
 update_status: dict = {}
@@ -1774,7 +1898,7 @@ def _get_latest_optlibs_versions() -> dict:
 def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
-    def log(m): print(f"[EGM] {m}"); update_status["log"].append(m)
+    def log(m): _egm_log(f"{m}"); update_status["log"].append(m)
     try:
         if do_ytdlp:
             channel = _load_settings().get("yt_dlp_channel", "stable")
@@ -1858,12 +1982,19 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
 
 @app.route("/api/check-updates")
 def check_updates():
-    cy, ly  = _get_ytdlp_version(), _get_latest_ytdlp_version()
-    cf, lf  = _get_ffmpeg_version(), _get_latest_ffmpeg_tag()
-    cm      = _get_mutagen_version()
-    lm      = _get_latest_mutagen_version()
-    oc      = _get_optlibs_versions()
-    ol      = _get_latest_optlibs_versions()
+    # Local version reads are cheap and stay inline; the four network
+    # "latest" lookups fan out concurrently — sequential was the sum of
+    # every timeout, so one slow endpoint stalled the whole response.
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=4) as _pool:
+        _f_ly = _pool.submit(_get_latest_ytdlp_version)
+        _f_lf = _pool.submit(_get_latest_ffmpeg_tag)
+        _f_lm = _pool.submit(_get_latest_mutagen_version)
+        _f_ol = _pool.submit(_get_latest_optlibs_versions)
+        cy, cf = _get_ytdlp_version(), _get_ffmpeg_version()
+        cm, oc = _get_mutagen_version(), _get_optlibs_versions()
+        ly, lf = _f_ly.result(), _f_lf.result()
+        lm, ol = _f_lm.result(), _f_ol.result()
     settings = _load_settings()
     ytdlp_ch  = settings.get("yt_dlp_channel", "stable")
     ffmpeg_ch = settings.get("ffmpeg_channel", "stable")
@@ -1948,10 +2079,7 @@ def cookies_clear():
 
 def _get_latest_deno_version() -> str:
     try:
-        req = urllib.request.Request("https://api.github.com/repos/denoland/deno/releases/latest",
-                                     headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            return json.loads(r.read()).get("tag_name", "unknown").lstrip("v")
+        return _gh_latest_json("https://api.github.com/repos/denoland/deno/releases/latest").get("tag_name", "unknown").lstrip("v")
     except Exception:
         return "unknown"
 
@@ -1974,18 +2102,14 @@ deno_install_status: dict = {}
 def _run_deno_install():
     global deno_install_status
     deno_install_status = {"running": True, "log": [], "done": False, "error": None}
-    def log(m): print(f"[EGM] {m}"); deno_install_status["log"].append(m)
+    def log(m): _egm_log(f"{m}"); deno_install_status["log"].append(m)
     tmp = DENO_DIR / "deno_tmp.zip"
     try:
         DENO_DIR.mkdir(parents=True, exist_ok=True)
         log("Fetching latest Deno release info...")
 
         # Resolve the actual download URL via the GitHub API (avoids 302 redirect issues)
-        req = urllib.request.Request(
-            "https://api.github.com/repos/denoland/deno/releases/latest",
-            headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            release = json.loads(r.read())
+        release = _gh_latest_json("https://api.github.com/repos/denoland/deno/releases/latest")
         tag = release.get("tag_name", "")
         assets = release.get("assets", [])
         url = next(
@@ -2358,6 +2482,23 @@ def import_history():
     with _history_lock:
         _save_history(cleaned)
     return jsonify({"ok": True, "count": len(cleaned)})
+
+@app.route("/api/logs")
+def api_logs():
+    since = request.args.get("since", 0, type=int)
+    want_yt = request.args.get("yt", 0, type=int)
+    yts = request.args.get("yts", 0, type=int)
+    with _LOG_RING_LOCK:
+        lines = [e for e in _LOG_RING if e["n"] > since]
+        nxt = _LOG_SEQ
+        resp = {"lines": lines, "next": nxt}
+        if want_yt:
+            resp["yt_lines"] = [e for e in _YT_RING if e["n"] > yts]
+            resp["yt_next"] = _YT_SEQ
+    return jsonify(resp)
+
+@app.route("/console-page")
+def console_page(): return render_template("console.html", egm_token=_API_TOKEN)
 
 @app.route("/history-page")
 def history_page(): return render_template("history.html", egm_token=_API_TOKEN)

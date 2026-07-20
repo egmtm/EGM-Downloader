@@ -4,11 +4,11 @@
   "_language_english": "Russian",
   "_code": "ru",
   "_direction": "ltr",
-  "_version": "1.3.1",
+  "_version": "1.3.2",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-13",
+  "_last_updated": "2026-07-14",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -531,6 +531,13 @@
     "settings.toggle.upscale": "Апскейл видео",
     "themes.confirm.delete_title": "Удалить эту тему?",
     "themes.confirm.delete_body": "Тема «{0}» будет удалена без возможности восстановления. Это действие нельзя отменить.",
-    "card.quality.hdr_tooltip": "Для HDR требуется дисплей и плеер с поддержкой HDR — иначе цвета будут блёклыми. Загрузки HDR сохраняются в формате MKV."
+    "card.quality.hdr_tooltip": "Для HDR требуется дисплей и плеер с поддержкой HDR — иначе цвета будут блёклыми. Загрузки HDR сохраняются в формате MKV.",
+    "advanced.btn.log_console": "Консоль журнала",
+    "tooltip.log_console": "Открывает окно только для чтения с журналом приложения в реальном времени",
+    "console.title": "Консоль журнала",
+    "console.readonly_note": "Только чтение — журнал приложения в реальном времени",
+    "console.empty": "Записей в журнале пока нет.",
+    "console.toggle.ytdlp": "Показать вывод yt-dlp",
+    "console.btn.export": "Экспорт"
   }
 }

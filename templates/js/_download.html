@@ -426,9 +426,14 @@ async function cancelDownload(item, n) {
 // ── Shared job status handler — used by both individual and bulk pollers ──────
 function applyJobProgress(d, stEl, progEl) {
   if (d.status === 'converting') {
-    setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : ''));
+    const hasPct = typeof d.progress === 'number' && d.progress > 0;
+    const pct = hasPct ? ` · ${Math.round(d.progress)}%` : '';
+    setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : '') + pct);
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
-    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (pi) {
+      if (hasPct) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
+      else { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    }
     if (progEl) progEl.style.display = '';
   } else if (d.status === 'downloading' && d.progress >= 100) {
     // Download complete but backend hasn't emitted a conversion tag yet —
@@ -439,7 +444,8 @@ function applyJobProgress(d, stEl, progEl) {
     if (progEl) progEl.style.display = '';
   } else if (d.status === 'downloading' && d.progress > 0) {
     const spd = d.speed ? ` · ${d.speed}` : '';
-    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}`);
+    const eta = d.eta ? ` · ETA ${d.eta}` : '';
+    setBadge(stEl, 'dl', `${Math.round(d.progress)}%${spd}${eta}`);
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
   }

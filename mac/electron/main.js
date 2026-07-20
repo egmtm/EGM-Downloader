@@ -367,10 +367,15 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 // ── IPC: save file dialog (settings export) ───────────────────────────────────
 ipcMain.handle('save-file', async (event, defaultName, content) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-  const result = await dialog.showSaveDialog(mainWindow, {
-    title:       'Export Settings',
+  // Extension-aware: .txt exports (log console) get a text filter/title;
+  // everything else keeps the original JSON behavior (settings/theme export).
+  const isTxt = /\.txt$/i.test(defaultName || '');
+  const parent = BrowserWindow.fromWebContents(event.sender) || mainWindow;
+  const result = await dialog.showSaveDialog(parent, {
+    title:       isTxt ? 'Export Log' : 'Export Settings',
     defaultPath: defaultName || 'egm-settings.json',
-    filters:     [{ name: 'JSON', extensions: ['json'] }],
+    filters:     isTxt ? [{ name: 'Text', extensions: ['txt'] }]
+                       : [{ name: 'JSON', extensions: ['json'] }],
   });
   if (result.canceled || !result.filePath) return { canceled: true };
   try {
@@ -495,6 +500,50 @@ ipcMain.handle('open-themes-window', async (event) => {
   themesWindow.on('resize', debouncedSave);
   themesWindow.on('move',   debouncedSave);
   themesWindow.on('closed', () => { themesWindow = null; });
+});
+
+
+// -- IPC: open log-console window -------------------------------------------
+// Opened via IPC like every other child window — a plain window.open() from the
+// renderer is denied by hardenWindow's setWindowOpenHandler (it only routes
+// https: links to the external browser), so the IPC path is the only one that
+// works in the packaged app.
+let consoleWindow = null;
+const CONSOLE_BOUNDS_FILE = path.join(app.getPath('userData'), 'egm_console_window.json');
+
+function loadConsoleBounds() {
+  try {
+    const saved = JSON.parse(fs.readFileSync(CONSOLE_BOUNDS_FILE, 'utf8'));
+    const displays = require('electron').screen.getAllDisplays();
+    const onScreen = displays.some(d => {
+      const b = d.bounds;
+      return saved.x < b.x + b.width && saved.x + saved.width > b.x &&
+             saved.y < b.y + b.height && saved.y + saved.height > b.y;
+    });
+    return onScreen ? saved : { width: saved.width || 760, height: saved.height || 520 };
+  } catch { return { width: 760, height: 520 }; }
+}
+function saveConsoleBounds(win) {
+  try { fs.writeFileSync(CONSOLE_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
+}
+ipcMain.handle('open-console-window', async (event) => {
+  if (!isTrustedSender(event)) return;
+  if (consoleWindow && !consoleWindow.isDestroyed()) { consoleWindow.focus(); return; }
+  const bounds = loadConsoleBounds();
+  consoleWindow = new BrowserWindow({
+    ...bounds, minWidth: 480, minHeight: 320,
+    title: 'Log Console — EGM Downloader',
+    icon: path.join(__dirname, '..', 'app', 'static', 'icon-512.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    autoHideMenuBar: true,
+  });
+  consoleWindow.loadURL(`${APP_URL}/console-page`);
+  hardenWindow(consoleWindow);
+  let saveTimer = null;
+  const debouncedSave = () => { clearTimeout(saveTimer); saveTimer = setTimeout(() => saveConsoleBounds(consoleWindow), 500); };
+  consoleWindow.on('resize', debouncedSave);
+  consoleWindow.on('move',   debouncedSave);
+  consoleWindow.on('closed', () => { consoleWindow = null; });
 });
 
 

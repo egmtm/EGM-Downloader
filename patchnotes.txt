@@ -1,3 +1,14 @@
+v1.3.2 - TUNE-UP (Build TBD) (TBD)
+-----------------------------------------
+
+  • [ALL] New: Log Console (Advanced > Maintenance) — a read-only window showing the app's live diagnostic log, with an option to also show raw yt-dlp output and export the log to a file, for easier troubleshooting
+  • [ALL] Conversion now shows real progress — a percentage and filling bar instead of just a spinner, when the conversion step supports it
+  • [ALL] Download cards and the subscriptions queue now show the estimated time remaining (ETA) alongside speed
+  • [ALL] Checking for updates (yt-dlp, ffmpeg, plugins) now feels noticeably faster — the lookups run in parallel instead of one after another
+  • [ALL] Repeated update checks are now protected against hitting GitHub's request limit, which could previously cause version info to briefly show as "unknown"
+  • [ALL] Added a small diagnostic log file to help troubleshoot issues if they come up
+  • [ALL] Minor internal code cleanup — no user-facing changes
+
 v1.3.1 - LOST IN TRANSLATION (Build 142) (7/15/2026)
 -----------------------------------------
 

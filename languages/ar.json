@@ -4,11 +4,11 @@
   "_language_english": "Arabic",
   "_code": "ar",
   "_direction": "rtl",
-  "_version": "1.3.1",
+  "_version": "1.3.2",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-13",
+  "_last_updated": "2026-07-14",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo و {0} موقع آخر",
@@ -531,6 +531,13 @@
     "settings.toggle.upscale": "رفع الدقة",
     "themes.confirm.delete_title": "حذف هذا الثيم؟",
     "themes.confirm.delete_body": "سيتم حذف «{0}» نهائياً. لا يمكن التراجع عن هذا.",
-    "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV."
+    "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV.",
+    "advanced.btn.log_console": "وحدة تحكم السجل",
+    "tooltip.log_console": "يفتح نافذة للقراءة فقط تعرض سجل التطبيق مباشرة",
+    "console.title": "وحدة تحكم السجل",
+    "console.readonly_note": "للقراءة فقط — سجل التطبيق المباشر",
+    "console.empty": "لا توجد إدخالات سجل بعد.",
+    "console.toggle.ytdlp": "إظهار مخرجات yt-dlp",
+    "console.btn.export": "تصدير"
   }
 }

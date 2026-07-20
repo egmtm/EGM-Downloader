@@ -7,8 +7,40 @@
 # Requirements (Linux/Mac/WSL):
 #   - makensis (sudo apt install nsis  OR  brew install makensis)
 #   - python3 (standard library only)
+#   - osslsigncode (optional but recommended: sudo apt install osslsigncode)
+#     — lets --continue verify the launcher is actually signed before it gets
+#     baked into the installer, instead of just trusting a flag was passed.
+#
+# TWO-PHASE BUILD (added for EGM's Windows code-signing question, v1.3.2+):
+# Previously this script compiled "EGM Downloader.exe" (the native launcher)
+# and immediately packed the UNSIGNED copy into egm-setup.exe via NSIS. EGM
+# could then only sign the outer installer wrapper afterward — the launcher
+# actually running on a user's machine post-install was never signed, since
+# it was already sealed inside the installer by the time signing happened.
+#
+# Fixed by splitting the build into two stops:
+#   1. bash windows/BUILD.sh              — compiles the launcher, STOPS.
+#      -> EGM signs windows/EGM Downloader.exe now.
+#   2. bash windows/BUILD.sh --continue   — skips recompiling (uses the now-
+#      signed launcher as-is), verifies it's actually signed if osslsigncode
+#      is available, then proceeds through NSIS + portable packaging with
+#      the SIGNED launcher baked into both. EGM still signs egm-setup.exe
+#      afterward, same as before — this adds a signing step, doesn't replace
+#      the existing one.
+#
+# Stopping by default (no flag) is deliberate: a forgotten flag fails safe
+# (nothing gets packaged) rather than failing silent (an unsigned launcher
+# quietly ships). --continue is the one thing that has to be typed on
+# purpose.
 
 set -e
+
+RESUME=0
+for arg in "$@"; do
+    case "$arg" in
+        --continue) RESUME=1 ;;
+    esac
+done
 
 # Resolve repo root regardless of where script is called from
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
@@ -21,6 +53,11 @@ echo "║  EGM Downloader — Windows Build       ║"
 echo "╚════════════════════════════════════════╝"
 echo ""
 echo "   Repo root: $REPO_ROOT"
+if [ "$RESUME" -eq 1 ]; then
+    echo "   Mode: --continue (resuming after launcher signing)"
+else
+    echo "   Mode: phase 1 (will stop after compiling the launcher for signing)"
+fi
 echo ""
 
 # ── Prerequisites ─────────────────────────────────────────────────────────────
@@ -41,9 +78,19 @@ if ! command -v x86_64-w64-mingw32-gcc &> /dev/null; then
     echo "            brew install mingw-w64       (macOS)"
     exit 1
 fi
+HAVE_OSSLSIGNCODE=0
+if command -v osslsigncode &> /dev/null; then
+    HAVE_OSSLSIGNCODE=1
+fi
 echo "   ✓ makensis: $(makensis -VERSION)"
 echo "   ✓ Python:   $(python3 --version)"
 echo "   ✓ mingw-w64: $(x86_64-w64-mingw32-gcc --version | head -1)"
+if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
+    echo "   ✓ osslsigncode: available (launcher signature will be verified on --continue)"
+else
+    echo "   ⚠ osslsigncode: not found — --continue will skip signature verification and"
+    echo "     ask for manual confirmation instead (sudo apt install osslsigncode to enable it)"
+fi
 echo ""
 
 # ── Read version from version.json (single source of truth) ──────────────────
@@ -78,18 +125,66 @@ echo ""
 echo "🧹 Cleaning old Windows build artifacts..."
 mkdir -p "$REPO_ROOT/dist"
 rm -f "$REPO_ROOT/dist/egm-setup.exe" "$REPO_ROOT/dist/EGMd.zip"
+if [ "$RESUME" -eq 0 ]; then
+    # Phase 1 recompiles the launcher fresh, so the old one (signed or not)
+    # is stale either way. On --continue, the launcher in place IS the
+    # signed one EGM just produced — must not be touched.
+    rm -f "$WIN_DIR/EGM Downloader.exe"
+fi
 echo "   ✓ Cleaned"
 echo ""
 
 # ── Compile launcher EXE (replaces .vbs) ─────────────────────────────────────
-echo "🔨 Compiling launcher EXE (EGM Downloader.exe)..."
-cd "$REPO_ROOT/windows"
-x86_64-w64-mingw32-windres launcher.rc -O coff -o launcher.res
-x86_64-w64-mingw32-gcc -O2 -mwindows -municode -s launcher.c launcher.res -o "EGM Downloader.exe"
-LAUNCHER_SIZE=$(stat -c %s "EGM Downloader.exe")
-echo "   ✓ EGM Downloader.exe — $LAUNCHER_SIZE bytes"
-rm -f launcher.res
-cd "$REPO_ROOT"
+if [ "$RESUME" -eq 0 ]; then
+    echo "🔨 Compiling launcher EXE (EGM Downloader.exe)..."
+    cd "$REPO_ROOT/windows"
+    x86_64-w64-mingw32-windres launcher.rc -O coff -o launcher.res
+    x86_64-w64-mingw32-gcc -O2 -mwindows -municode -s launcher.c launcher.res -o "EGM Downloader.exe"
+    LAUNCHER_SIZE=$(stat -c %s "EGM Downloader.exe")
+    echo "   ✓ EGM Downloader.exe — $LAUNCHER_SIZE bytes"
+    rm -f launcher.res
+    cd "$REPO_ROOT"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  STOP — launcher compiled, not yet signed                  ║"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    echo ""
+    echo "   → Sign windows/EGM Downloader.exe now."
+    echo "   → Then re-run:  bash windows/BUILD.sh --continue"
+    echo ""
+    exit 0
+fi
+
+# ── Resuming after signing: verify, don't just trust ─────────────────────────
+LAUNCHER_PATH="$WIN_DIR/EGM Downloader.exe"
+if [ ! -f "$LAUNCHER_PATH" ]; then
+    echo "❌ $LAUNCHER_PATH not found — run without --continue first to compile it."
+    exit 1
+fi
+LAUNCHER_SIZE=$(stat -c %s "$LAUNCHER_PATH")
+echo "🔒 Verifying the launcher is actually signed before packaging it in..."
+if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
+    if osslsigncode verify -in "$LAUNCHER_PATH" -ignore-timestamp -ignore-cdp > /tmp/osslsigncode_out.txt 2>&1; then
+        echo "   ✓ Signature verified — $LAUNCHER_SIZE bytes"
+    else
+        echo "   ❌ No valid signature found on EGM Downloader.exe:"
+        sed 's/^/     /' /tmp/osslsigncode_out.txt
+        echo ""
+        echo "   Sign it before continuing — packaging an unsigned launcher into the"
+        echo "   installer is exactly the gap this two-phase build exists to close."
+        rm -f /tmp/osslsigncode_out.txt
+        exit 1
+    fi
+    rm -f /tmp/osslsigncode_out.txt
+else
+    echo "   ⚠ osslsigncode not installed — can't verify automatically."
+    read -r -p "   Have you signed windows/EGM Downloader.exe? [y/N] " CONFIRM
+    if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+        echo "   Aborting — sign it first, or install osslsigncode for automatic checks."
+        exit 1
+    fi
+    echo "   ✓ Manual confirmation received — $LAUNCHER_SIZE bytes"
+fi
 echo ""
 
 # ── Compile NSIS installer ───────────────────────────────────────────────────
@@ -216,6 +311,7 @@ cp "$REPO_ROOT/patchnotes.txt"                "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/templates/index.html"           "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/index_styles.html"    "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/index_scripts.html"   "$PORTABLE_STAGE/templates/"
+cp "$REPO_ROOT/templates/console.html"         "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/history.html"         "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/themes.html"          "$PORTABLE_STAGE/templates/"
 cp "$REPO_ROOT/templates/theme_styles.html"    "$PORTABLE_STAGE/templates/"
