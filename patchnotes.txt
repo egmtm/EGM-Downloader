@@ -1,4 +1,4 @@
-v1.3.3 - LOOSE ENDS (Build TBD) (TBD)
+v1.3.3 - LOOSE ENDS (Build 144) (7/20/2026)
 -----------------------------------------
 
   • [WINDOWS] Fixed: right-click the app → Properties → Details showed an old, outdated version number — now matches the actual app version
