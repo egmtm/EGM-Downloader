@@ -90,3 +90,48 @@ test("converting badge: encoder + percentage when present, indeterminate otherwi
   w.applyJobProgress({ status: "converting", encoder: "libx264" }, stEl, progEl);
   assert.ok(progEl.querySelector(".prog-inner").classList.contains("indeterminate"), "merge phase indeterminate");
 });
+
+test("queue arrows: edges hidden, middle visible, and removeItem recomputes edges", async () => {
+  const { w, d } = await bootPage();
+  const results = d.getElementById("results");
+  assert.ok(results, "results container present");
+
+  // Three idle cards, matching the real markup shape (.vcard > [id^=qarrows] > .qarrow x2)
+  const mkCard = (n) => {
+    const el = d.createElement("div");
+    el.className = "vcard";
+    el.id = "card" + n;
+    el.innerHTML = `
+      <span id="st${n}"></span>
+      <div id="qarrows${n}">
+        <button class="qarrow" data-dir="up" data-id="${n}"></button>
+        <button class="qarrow" data-dir="down" data-id="${n}"></button>
+      </div>`;
+    results.appendChild(el);
+    return el;
+  };
+  const els = [1, 2, 3].map(mkCard);
+
+  // Seed items[] (script-scope `let`, not a window property -- eval runs in
+  // the same script realm as the page's own inline scripts) and call the
+  // real updateQueueArrows()/removeItem() rather than reimplementing the
+  // visibility logic in the test.
+  w.eval(`items = [1,2,3].map(n => ({ id: n, status: 'idle' })); updateQueueArrows();`);
+
+  const vis = (n, dir) => els[n - 1].querySelector(`.qarrow[data-dir="${dir}"]`).style.visibility;
+  assert.equal(vis(1, "up"), "hidden", "first card: up hidden");
+  assert.equal(vis(1, "down"), "visible", "first card: down visible");
+  assert.equal(vis(2, "up"), "visible", "middle card: up visible");
+  assert.equal(vis(2, "down"), "visible", "middle card: down visible");
+  assert.equal(vis(3, "up"), "visible", "last card: up visible");
+  assert.equal(vis(3, "down"), "hidden", "last card: down hidden");
+
+  // Remove the first card -- the new first (card 2) must gain a hidden up
+  // arrow. This exercises the real removeItem() -> updateQueueArrows() call
+  // added by this fix, not a hand-rolled recomputation.
+  w.eval(`removeItem(1, document.getElementById("card1"))`);
+  assert.equal(vis(2, "up"), "hidden", "after removal, new first card: up hidden");
+  assert.equal(vis(2, "down"), "visible", "after removal, new first card: down visible");
+  assert.equal(vis(3, "up"), "visible", "after removal, remaining last card: up visible");
+  assert.equal(vis(3, "down"), "hidden", "after removal, remaining last card: down hidden");
+});
