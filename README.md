@@ -182,16 +182,16 @@
 
 ### Windows
 **Latest:** v1.3.3 Build 144  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (612 KB · ~800 MB after install)  
-**SHA256:** `0caf60ba7051a366e8dc3968900b781071d5fd3401935c5f45de580038bebc8e`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (613 KB · ~800 MB after install)  
+**SHA256:** `8db3ee48e603d71c0337c05e2efec5e241872362c9cbe065304bf8c295eea453`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.3.3 Build 144  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (613 KB · ~800 MB after first run)  
-**SHA256:** `a802327a305aa77fee69c4adc52e2acc09f1cef8d1b77b835b5683b26f223dc2`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (614 KB · ~800 MB after first run)  
+**SHA256:** `8dc7ed5b401c1b081afff25b8a81bbd0bc836d4f9502b1346039b85b4514ac7c`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -200,7 +200,7 @@
 ### macOS
 **Latest:** v1.3.3 Build 144  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (134 MB · ~300 MB after install)  
-**SHA256:** `c6c7df01d83e8c1f9a0d931abc1d391ef5ae6cef0b4b802ac75847d912c61626`  
+**SHA256:** `430481b3f0873a32d63e8527c8caa84b10c43003d53e6cc74159863348bddf85`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -208,7 +208,7 @@
 ### Linux
 **Latest:** v1.3.3 Build 144  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (161 MB · ~300 MB after install)  
-**SHA256:** `3e055306389a03b9e95a3b0b9d8a81a0f053964ee97625749157204af75d36c6`  
+**SHA256:** `297fa7570418eb6cd1a90b37661a46553d4ea5a2a7ce0ee125142f5a4cffbfa8`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
