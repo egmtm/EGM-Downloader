@@ -32,12 +32,17 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
         } else if (!info2.error) {
           pItem.info = info2;
           renderCard(el, pItem);
+          updateQueueArrows();   // renderCard rebuilds the card — visibility resets
         }
       } catch {}
       pendingInfo.count--;
       if (fetchAbort && pendingInfo.count === 0) finishFetch();
     })();
   }
+  // Every real fetch routes through here: /api/playlist returns entries even
+  // for a single watch URL (one-entry "playlist"), so fetchSingle — the only
+  // path that updated the arrows — almost never runs in practice.
+  updateQueueArrows();
 }
 
 async function fetchAll() {
@@ -271,6 +276,7 @@ function removeItem(id, el) {
   items = items.filter(i => i.id !== id);
   el.remove();
   if (items.length <= 1) setDlAllVisible(false);
+  updateQueueArrows();   // the new first/last cards gain an edge
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
