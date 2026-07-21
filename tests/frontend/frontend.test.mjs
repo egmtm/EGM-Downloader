@@ -196,3 +196,29 @@ test("shell activity: cancel drains the report (bar/badge/sleep blocker released
   assert.equal(last.active, 0, "cancelled last job drains active to 0");
   assert.equal(last.progress, -1, "drained report clears the progress bar");
 });
+
+test("playlist-path fetch errors render a localized error card, not a stuck stub", async () => {
+  const { w, d } = await bootPage({
+    onFetch: (u) => {
+      if (u === "/api/info") return { ok: true, json: async () => ({
+        error: "ERROR: [youtube] abc: Video unavailable",
+        error_key: "download.error.unavailable",
+      }) };
+      return null;
+    },
+  });
+  const results = d.getElementById("results");
+  // Drive the real per-entry flow with one stub entry -- the path every real
+  // fetch takes (single URLs come back as one-entry playlists). Before the
+  // fix, an /api/info error left the stub card spinning forever with no
+  // error shown at all.
+  w.eval(`fetchAbort = false; items = []; fetchPlaylistEntries([{ url: 'https://example.com/watch?v=1', title: 'T' }], { count: 0 }, () => {});`);
+  await new Promise((r) => setTimeout(r, 150));
+  const badge = results.querySelector(".b-error");
+  assert.ok(badge, "error card rendered on the playlist path");
+  assert.ok(
+    badge.textContent.includes(en.strings["download.error.unavailable"]),
+    `error resolved in the active locale, got: ${badge && badge.textContent}`,
+  );
+  assert.equal(w.eval("items.length"), 0, "failed entry removed from items[] (error-card convention)");
+});

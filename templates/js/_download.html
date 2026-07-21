@@ -33,6 +33,16 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
           pItem.info = info2;
           renderCard(el, pItem);
           updateQueueArrows();   // renderCard rebuilds the card — visibility resets
+        } else {
+          // /api/info failed for this entry — show the localized error card
+          // instead of leaving the stub spinning forever. This is the path
+          // every real fetch takes (single URLs come back as one-entry
+          // playlists), so the error localization has to reach it too. Error
+          // cards carry no items[] entry (established convention — see the
+          // reorder-arrow handler).
+          renderErr(el, pItem.url, info2.error, info2.error_key);
+          items = items.filter(i => i !== pItem);
+          updateQueueArrows();   // the stub was an idle card — re-derive edges
         }
       } catch {}
       pendingInfo.count--;
@@ -148,7 +158,7 @@ function renderErr(el, url, msg, i18nKey) {
   const shown = (i18nKey && i18nGet(i18nKey)) || msg;
   el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
     <div class="vbody"><div class="vtitle">${esc(trunc(url,70))}</div>
-    <div class="vmeta"><span class="badge b-error">Error: ${esc(shown)}</span></div></div>`;
+    <div class="vmeta"><span class="badge b-error">${esc((i18nGet('fetch.error.prefix') || 'Error') + ': ' + shown)}</span></div></div>`;
 }
 
 function renderCard(el, item) {

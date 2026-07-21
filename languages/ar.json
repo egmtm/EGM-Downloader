@@ -358,6 +358,7 @@
     "download.error.404": "المحتوى غير موجود (404).",
     "download.error.429": "طلبات كثيرة جداً (429). انتظر لحظة وحاول مرة أخرى.",
     "fetch.error.timeout": "انتهت مهلة الطلب. حاول مرة أخرى.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "تعذر جلب معلومات الفيديو. قد يكون الرابط غير مدعوم.",
     "fetch.error.url_scheme": "يتم دعم روابط http و https فقط.",
     "footer.link.website": "egerena.com",

@@ -94,3 +94,24 @@ def test_error_map_identical_across_platforms():
     assert blocks["windows"] == blocks["linux"] == blocks["mac"], (
         "_ERROR_MAP drifted between platforms"
     )
+
+
+def test_bot_pattern_matches_whole_word_only():
+    """'bot' in the login pattern must be word-bounded. Unanchored, it
+    matched as a substring of unrelated error text ('robots.txt', 'both',
+    'sabotage'...) and -- because classification is first-match-wins and
+    login sits first -- shadowed every later, correct class for that text.
+    Found in delta review #4 by pairwise shadow analysis, not sample
+    testing (the samples all happened to avoid the substring)."""
+    import os
+    os.environ.setdefault("EGM_DEV_MODE", "1")
+    for name, path in PLATFORMS:
+        mod = _load_module(path)
+        assert mod._classify_error("Sign in to confirm you're not a bot") == "login", name
+        assert mod._classify_error("not a bot.") == "login", name
+        for text, why in (
+            ("ERROR: robots.txt disallows fetching this page", "substring of 'robots'"),
+            ("ERROR: Cannot download both video and audio streams", "substring of 'both'"),
+        ):
+            got = mod._classify_error(text)
+            assert got != "login", f"{name}: {why} misclassified as login ({text!r})"
