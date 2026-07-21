@@ -1066,8 +1066,8 @@ app.whenReady().then(async () => {
     });
   });
 
-  createTray();
-  setupThumbar();         // tray first — visible immediately
+  createTray();         // tray first — visible immediately
+  setupThumbar();
   createSplash();       // show splash — visible during Flask/ffmpeg startup
   startFlask();         // spawn backend (non-blocking — createWindow waits for it)
   await createWindow(); // window polls until Flask responds, then loads
