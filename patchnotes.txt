@@ -1,4 +1,4 @@
-v1.3.4 - TASKBAR PRESENCE (Build TBD) (TBD)
+v1.3.4 - IN YOUR FACE (Build TBD) (TBD)
 -----------------------------------------
 
   • [ALL] New: the taskbar/dock icon now shows download/conversion progress and an active-job count badge (Windows taskbar overlay, native dock/launcher badge on Mac and Linux)
