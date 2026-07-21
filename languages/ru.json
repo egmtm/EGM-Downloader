@@ -540,7 +540,7 @@
     "tray.open": "Открыть EGM Downloader",
     "tray.quit": "Выход",
     "footer.btn.diagnostics": "Диагностика",
-    "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
-    "download.error.extract": "Could not extract video info. The page may have changed."
+    "download.error.no_formats": "Форматы для скачивания не найдены. Обычно это означает, что видео доступно только участникам канала — если вы участник этого канала, загрузите файлы cookie своего аккаунта в Настройках и попробуйте снова. Видео также может быть приватным, заблокированным по региону или иным образом ограниченным.",
+    "download.error.extract": "Не удалось получить информацию о видео. Возможно, страница изменилась."
   }
 }
