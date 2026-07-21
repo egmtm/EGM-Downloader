@@ -4,11 +4,11 @@
   "_language_english": "Italian",
   "_code": "it",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} altri siti",
@@ -358,6 +358,7 @@
     "download.error.404": "Contenuto non trovato (404).",
     "download.error.429": "Troppe richieste (429). Attendi un momento e riprova.",
     "fetch.error.timeout": "Richiesta scaduta. Riprova.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Impossibile recuperare le info del video. L'URL potrebbe non essere supportato.",
     "fetch.error.url_scheme": "Sono supportati solo URL http e https.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "Eliminare questo tema?",
     "themes.confirm.delete_body": "\"{0}\" verrà eliminato definitivamente. Non è possibile annullare questa operazione.",
     "card.quality.hdr_tooltip": "L'HDR richiede un display e un player compatibili con HDR, altrimenti i colori appaiono sbiaditi. I download HDR vengono salvati come MKV.",
-    "advanced.btn.log_console": "Console log",
-    "tooltip.log_console": "Apre una finestra di sola lettura che mostra il log dal vivo dell'applicazione",
-    "console.title": "Console log",
+    "console.title": "Diagnostica",
     "console.readonly_note": "Sola lettura — log dal vivo dell'applicazione",
     "console.empty": "Nessuna voce di log ancora.",
     "console.toggle.ytdlp": "Mostra output di yt-dlp",
-    "console.btn.export": "Esporta"
+    "console.btn.export": "Esporta",
+    "tray.open": "Apri EGM Downloader",
+    "tray.quit": "Esci",
+    "footer.btn.diagnostics": "Diagnostica",
+    "download.error.no_formats": "Nessun formato scaricabile trovato. Di solito si tratta di un video riservato ai membri — se sei membro di questo canale, carica i cookie del tuo account in Impostazioni e riprova. Potrebbe anche essere privato, bloccato per area geografica o limitato in altro modo.",
+    "download.error.extract": "Impossibile estrarre le informazioni del video. La pagina potrebbe essere cambiata."
   }
 }

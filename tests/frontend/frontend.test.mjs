@@ -173,3 +173,52 @@ test("queue arrows: a status transition hides the card's own arrows and re-edges
   assert.equal(vis(1, "up"), "hidden", "cancelled card: up stays hidden");
   assert.equal(vis(1, "down"), "hidden", "cancelled card: down stays hidden");
 });
+
+test("shell activity: cancel drains the report (bar/badge/sleep blocker released)", async () => {
+  const { w } = await bootPage();
+  // Inject a capturing electronAPI the way the preload would have -- the
+  // reportActivity guard (window.electronAPI?.setActivity) then engages.
+  w._activityCalls = [];
+  w.eval(`window.electronAPI = { setActivity: (a) => window._activityCalls.push(a) };`);
+
+  // One active download reports active:1 with its progress.
+  w.eval(`items = [{ id: 1, status: 'downloading', _lastProgress: 40 }]; _lastActivityKey = ''; reportActivity();`);
+  let last = w._activityCalls[w._activityCalls.length - 1];
+  assert.equal(last.active, 1, "downloading item reports active:1");
+  assert.ok(Math.abs(last.progress - 0.4) < 1e-9, "progress averaged to 0.4");
+
+  // Cancelling the last active job must DRAIN the report -- this exercises
+  // the real applyJobDone cancelled branch. Without its reportActivity()
+  // call, the taskbar bar/badge freeze at the last state and the
+  // powerSaveBlocker stays held until the app quits.
+  w.eval(`applyJobDone({ status: 'cancelled' }, items[0], null, null, null, null);`);
+  last = w._activityCalls[w._activityCalls.length - 1];
+  assert.equal(last.active, 0, "cancelled last job drains active to 0");
+  assert.equal(last.progress, -1, "drained report clears the progress bar");
+});
+
+test("playlist-path fetch errors render a localized error card, not a stuck stub", async () => {
+  const { w, d } = await bootPage({
+    onFetch: (u) => {
+      if (u === "/api/info") return { ok: true, json: async () => ({
+        error: "ERROR: [youtube] abc: Video unavailable",
+        error_key: "download.error.unavailable",
+      }) };
+      return null;
+    },
+  });
+  const results = d.getElementById("results");
+  // Drive the real per-entry flow with one stub entry -- the path every real
+  // fetch takes (single URLs come back as one-entry playlists). Before the
+  // fix, an /api/info error left the stub card spinning forever with no
+  // error shown at all.
+  w.eval(`fetchAbort = false; items = []; fetchPlaylistEntries([{ url: 'https://example.com/watch?v=1', title: 'T' }], { count: 0 }, () => {});`);
+  await new Promise((r) => setTimeout(r, 150));
+  const badge = results.querySelector(".b-error");
+  assert.ok(badge, "error card rendered on the playlist path");
+  assert.ok(
+    badge.textContent.includes(en.strings["download.error.unavailable"]),
+    `error resolved in the active locale, got: ${badge && badge.textContent}`,
+  );
+  assert.equal(w.eval("items.length"), 0, "failed entry removed from items[] (error-card convention)");
+});

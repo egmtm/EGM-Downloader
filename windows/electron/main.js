@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, nativeImage, screen, session } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, nativeImage, screen, session, powerSaveBlocker } = require('electron');
 const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -290,14 +290,38 @@ function waitForFlask(retries = 180, delay = 1000) {
 }
 
 // ── Create tray ───────────────────────────────────────────────────────────────
-function createTray() {
-  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
-  tray = new Tray(safeIcon(iconPath, 16));
-  tray.setToolTip('EGM Downloader');
 
-  const contextMenu = Menu.buildFromTemplate([
+// ── Shell i18n: tray strings ──────────────────────────────────────────────────
+// The main process has no access to the renderer's i18n, so the tray menu
+// reads the locale file directly. Falls back to English on any failure;
+// refreshed live via the set-language channel.
+let _shellLang = null;
+const SHELL_FALLBACK = {
+  trayOpen: 'Open EGM Downloader', trayQuit: 'Quit',
+};
+function shellStrings() {
+  const KEYS = { trayOpen: 'tray.open', trayQuit: 'tray.quit' };
+  try {
+    const lang = _shellLang || (readSettings().language || 'en');
+    if (!/^[a-z]{2}$/.test(lang)) return { ...SHELL_FALLBACK };
+    const raw = JSON.parse(fs.readFileSync(
+      path.join(__dirname, '..', 'languages', `${lang}.json`), 'utf8')).strings || {};
+    const out = {};
+    for (const k of Object.keys(KEYS)) out[k] = raw[KEYS[k]] || SHELL_FALLBACK[k];
+    return out;
+  } catch { return { ...SHELL_FALLBACK }; }
+}
+function refreshShellText() {
+  try {
+    if (tray) tray.setContextMenu(buildTrayMenu());
+  } catch {}
+}
+
+function buildTrayMenu() {
+  const t = shellStrings();
+  return Menu.buildFromTemplate([
     {
-      label: 'Open EGM Downloader',
+      label: t.trayOpen,
       click: () => {
         if (!mainWindow) return;
         restoreWindowState();
@@ -307,12 +331,17 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: 'Quit',
+      label: t.trayQuit,
       click: () => { app.isQuitting = true; app.quit(); },
     },
   ]);
+}
 
-  tray.setContextMenu(contextMenu);
+function createTray() {
+  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
+  tray = new Tray(safeIcon(iconPath, 16));
+  tray.setToolTip('EGM Downloader');
+  tray.setContextMenu(buildTrayMenu());
 
   // Left-click tray icon → restore and show
   tray.on('click', () => {
@@ -474,7 +503,7 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 // ── IPC: save file dialog (settings export) ───────────────────────────────────
 ipcMain.handle('save-file', async (event, defaultName, content) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-  // Extension-aware: .txt exports (log console) get a text filter/title;
+  // Extension-aware: .txt exports (the Diagnostics window) get a text filter/title;
   // everything else keeps the original JSON behavior (settings/theme export).
   const isTxt = /\.txt$/i.test(defaultName || '');
   const parent = BrowserWindow.fromWebContents(event.sender) || mainWindow;
@@ -669,7 +698,7 @@ ipcMain.handle('open-console-window', async (event) => {
   const bounds = loadConsoleBounds();
   consoleWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 320,
-    title: 'Log Console — EGM Downloader',
+    title: 'Diagnostics — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
@@ -745,6 +774,8 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     if (choice === 0) { subsForceClose = true; subsWindow.close(); }
   });
   subsWindow.on('closed', () => {
+    _activityBySender.delete(subsWindow);
+    _applyAggregateActivity();
     subsWindow = null;
     subsActiveDownloads = false; subsForceClose = false;
     if (mainWindow && !mainWindow.isDestroyed()) {
@@ -762,6 +793,61 @@ ipcMain.handle('close-subscriptions', async (event) => {
 
 // Item 1: renderer keeps main.js informed whether subscriptions has active
 // downloads, so subsWindow.on('close') above can decide whether to confirm.
+
+// ── Activity reporting: taskbar progress, badge, sleep blocker ───────────────
+// Each window (main, subscriptions) sends { progress: 0..1 | -1, active: n }
+// on every poll tick where its own state changed. Main and subscriptions can
+// both have genuinely concurrent activity -- subscriptions hides the main
+// window visually ("sub-app mode") but doesn't pause it, so a download
+// started in the main window keeps running (and keeps being reportable)
+// while subscriptions is the visible window. Tracked per-sender and
+// aggregated into what the shell actually shows, so neither window's report
+// can silently clobber the other's.
+let _psbId = null;
+const _activityBySender = new Map();   // BrowserWindow -> {active, progress}
+
+function _badgeIconForCount(n) {
+  if (n <= 0) return null;
+  const name = n > 9 ? '9plus' : String(n);
+  return safeIcon(path.join(__dirname, '..', 'static', `badge-${name}.png`), 32);
+}
+
+function _applyAggregateActivity() {
+  let active = 0, weighted = 0, counted = 0;
+  for (const st of _activityBySender.values()) {
+    active += st.active;
+    if (st.progress >= 0) { weighted += st.progress; counted++; }
+  }
+  const prog = counted > 0 ? weighted / counted : -1;
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setProgressBar(active > 0 ? prog : -1);
+    const icon = _badgeIconForCount(active);
+    if (icon) { try { mainWindow.setOverlayIcon(icon, `${active} active`); } catch {} }
+    else { mainWindow.setOverlayIcon(null, ''); }
+  }
+  if (active > 0 && _psbId === null) {
+    _psbId = powerSaveBlocker.start('prevent-app-suspension');
+  } else if (active === 0 && _psbId !== null) {
+    try { powerSaveBlocker.stop(_psbId); } catch {}
+    _psbId = null;
+  }
+}
+
+ipcMain.on('set-activity', (event, a) => {
+  try {
+    if (!isTrustedSender(event)) return;
+    if (!a || typeof a !== 'object') return;
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) return;
+    const active = Number.isInteger(a.active) && a.active > 0 ? a.active : 0;
+    const prog = (typeof a.progress === 'number' && a.progress >= 0 && a.progress <= 1) ? a.progress : -1;
+    if (active === 0) _activityBySender.delete(win);
+    else _activityBySender.set(win, { active, progress: prog });
+    _applyAggregateActivity();
+  } catch {}
+});
+
 ipcMain.on('subs-active-downloads', (event, active) => {
   if (!isTrustedSender(event)) return;
   subsActiveDownloads = !!active;
@@ -796,6 +882,13 @@ ipcMain.on('refocus-window', (event) => {
 // Theme key validation — alphanumeric only, prevents IPC injection while
 // supporting any future theme without allowlist maintenance
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
+ipcMain.on('set-language', (event, lang) => {
+  if (!isTrustedSender(event)) return;
+  if (typeof lang !== 'string' || !/^[a-z]{2}$/.test(lang)) return;
+  _shellLang = lang;
+  refreshShellText();
+});
+
 ipcMain.on('set-theme', (event, theme) => {
   if (!isTrustedSender(event)) return;
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return;
@@ -978,7 +1071,7 @@ app.whenReady().then(async () => {
     });
   });
 
-  createTray();         // tray first — visible immediately
+  createTray();
   createSplash();       // show splash — visible during Flask/ffmpeg startup
   startFlask();         // spawn backend (non-blocking — createWindow waits for it)
   await createWindow(); // window polls until Flask responds, then loads
@@ -994,6 +1087,10 @@ app.on('window-all-closed', () => {
 // Single cleanup point for every quit path (X button, tray Quit, crash)
 app.on('before-quit', () => {
   app.isQuitting = true;
+  // OS-level power save blockers are released on process death regardless,
+  // but stop it explicitly here too -- same "single cleanup point" spirit
+  // as the tray teardown right below, not left to rely on implicit cleanup.
+  if (_psbId !== null) { try { powerSaveBlocker.stop(_psbId); } catch {} _psbId = null; }
   if (tray) { tray.destroy(); tray = null; }
   if (!flaskProc) return;
 

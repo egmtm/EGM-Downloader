@@ -4,11 +4,11 @@
   "_language_english": "Portuguese",
   "_code": "pt",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo e mais {0} sites",
@@ -358,6 +358,7 @@
     "download.error.404": "Conteúdo não encontrado (404).",
     "download.error.429": "Muitas requisições (429). Aguarde um momento e tente novamente.",
     "fetch.error.timeout": "A requisição expirou. Por favor, tente novamente.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Não foi possível obter informações do vídeo. A URL pode não ser compatível.",
     "fetch.error.url_scheme": "Apenas URLs http e https são suportadas.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "Excluir este tema?",
     "themes.confirm.delete_body": "\"{0}\" será excluído permanentemente. Isso não pode ser desfeito.",
     "card.quality.hdr_tooltip": "O HDR requer uma tela e um reprodutor compatíveis com HDR — caso contrário, as cores ficam desbotadas. Downloads em HDR são salvos como MKV.",
-    "advanced.btn.log_console": "Console de log",
-    "tooltip.log_console": "Abre uma janela somente leitura mostrando o log ao vivo do aplicativo",
-    "console.title": "Console de log",
+    "console.title": "Diagnóstico",
     "console.readonly_note": "Somente leitura — log ao vivo do aplicativo",
     "console.empty": "Ainda não há entradas de log.",
     "console.toggle.ytdlp": "Mostrar saída do yt-dlp",
-    "console.btn.export": "Exportar"
+    "console.btn.export": "Exportar",
+    "tray.open": "Abrir EGM Downloader",
+    "tray.quit": "Sair",
+    "footer.btn.diagnostics": "Diagnóstico",
+    "download.error.no_formats": "Nenhum formato para download foi encontrado. Isso geralmente indica um vídeo exclusivo para membros — se você for membro deste canal, carregue os cookies da sua conta em Configurações e tente novamente. Também pode ser privado, bloqueado por região ou restrito de outra forma.",
+    "download.error.extract": "Não foi possível extrair as informações do vídeo. A página pode ter mudado."
   }
 }

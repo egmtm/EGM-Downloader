@@ -57,6 +57,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
 
     item.status = 'downloading';
     updateQueueArrows();   // card left the idle queue — hide its arrows, re-edge the rest
+    reportActivity();   // engage the shell state (bar/badge/sleep blocker) immediately, not at the first poll tick
     setBadge(stEl, 'dl', i18nGet('card.status.queued_ellipsis') || 'Queued...');
     dlBtn.disabled = true;
     if (progEl) progEl.style.display = '';
@@ -115,6 +116,11 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
             const liveStEl   = document.getElementById('st'   + n) || stEl;
             const liveDlBtn  = document.getElementById('dl'   + n) || dlBtn;
             const liveProgEl = document.getElementById('prog' + n) || progEl;
+            // Feed the shell activity report every tick, same as pollJob does —
+            // otherwise bulk runs show no taskbar progress and hold no sleep
+            // blocker until the first item finishes.
+            if (typeof d.progress === 'number') item._lastProgress = d.progress;
+            reportActivity();
             applyJobProgress(d, liveStEl, liveProgEl);
             if (applyJobDone(d, item, liveStEl, liveDlBtn, liveProgEl, cancelBtn)) {
               clearInterval(wiv);
@@ -130,6 +136,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       if (progEl) progEl.style.display = 'none';
       if (cancelBtn) cancelBtn.style.display = 'none';
       updateQueueArrows();   // left the idle queue — keep the arrow rule true
+      reportActivity();   // left the active set — drain the shell state too
       done++;
     }
     active--;
