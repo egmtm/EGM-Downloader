@@ -358,6 +358,7 @@
     "download.error.404": "Contenu introuvable (404).",
     "download.error.429": "Trop de requêtes (429). Attendez un moment et réessayez.",
     "fetch.error.timeout": "La requête a expiré. Veuillez réessayer.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Impossible d'obtenir les informations de la vidéo. L'URL peut ne pas être prise en charge.",
     "fetch.error.url_scheme": "Seules les URLs http et https sont prises en charge.",
     "footer.link.website": "egerena.com",

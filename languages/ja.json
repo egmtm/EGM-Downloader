@@ -358,6 +358,7 @@
     "download.error.404": "コンテンツが見つかりません(404)。",
     "download.error.429": "リクエストが多すぎます(429)。しばらく待ってからもう一度お試しください。",
     "fetch.error.timeout": "リクエストがタイムアウトしました。もう一度お試しください。",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "動画情報を取得できませんでした。URLがサポートされていない可能性があります。",
     "fetch.error.url_scheme": "httpおよびhttpsのURLのみサポートされています。",
     "footer.link.website": "egerena.com",

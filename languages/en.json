@@ -358,6 +358,7 @@
     "download.error.404": "Content not found (404).",
     "download.error.429": "Too many requests (429). Please wait a moment and try again.",
     "fetch.error.timeout": "Request timed out. Please try again.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Could not fetch video info. The URL may be unsupported.",
     "fetch.error.url_scheme": "Only http and https URLs are supported.",
     "footer.link.website": "egerena.com",

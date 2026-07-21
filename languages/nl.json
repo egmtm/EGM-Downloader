@@ -358,6 +358,7 @@
     "download.error.404": "Inhoud niet gevonden (404).",
     "download.error.429": "Te veel verzoeken (429). Wacht even en probeer opnieuw.",
     "fetch.error.timeout": "Verzoek verlopen. Probeer opnieuw.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Kan video-info niet ophalen. De URL wordt mogelijk niet ondersteund.",
     "fetch.error.url_scheme": "Alleen http- en https-URL's worden ondersteund.",
     "footer.link.website": "egerena.com",

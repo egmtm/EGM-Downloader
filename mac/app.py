@@ -615,7 +615,7 @@ _ERROR_MAP = [
     # long-form guidance that used to live here as hardcoded English now lives
     # in the locale files (download.error.no_formats etc.), where Linguist
     # translates it.
-    (_re.compile(r"Sign in to confirm|bot|login required",            _re.I), "login"),
+    (_re.compile(r"Sign in to confirm|\bbot\b|login required",            _re.I), "login"),
     (_re.compile(r"Private video",                                     _re.I), "private"),
     (_re.compile(r"Video unavailable|has been removed|no longer",     _re.I), "unavailable"),
     (_re.compile(r"Requested format is not available|format.*not.*available", _re.I), "format"),
