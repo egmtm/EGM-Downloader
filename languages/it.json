@@ -538,6 +538,8 @@
     "console.readonly_note": "Sola lettura — log dal vivo dell'applicazione",
     "console.empty": "Nessuna voce di log ancora.",
     "console.toggle.ytdlp": "Mostra output di yt-dlp",
-    "console.btn.export": "Esporta"
+    "console.btn.export": "Esporta",
+    "notify.download_complete": "Download complete",
+    "notify.download_failed": "Download failed"
   }
 }

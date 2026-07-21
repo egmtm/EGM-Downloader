@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openSubscriptions:  ()               => ipcRenderer.invoke('open-subscriptions-window'),
   closeSubscriptions: ()               => ipcRenderer.invoke('close-subscriptions'),
   notifySubsDownloads: (active)        => ipcRenderer.send('subs-active-downloads', !!active),
+  setActivity:        (a)              => ipcRenderer.send('set-activity', a),
   refocusWindow:       ()                 => ipcRenderer.send('refocus-window'),
   setTheme:          (theme)         => { if (isStr(theme) && THEME_RE.test(theme)) ipcRenderer.send('set-theme', theme); },
   sendUrlToMain:     (url)           => { if (isHttpUrl(url)) ipcRenderer.send('send-url-to-main', url); },

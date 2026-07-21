@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, screen, session } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, screen, session, powerSaveBlocker } = require('electron');
 const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -666,6 +666,32 @@ ipcMain.handle('close-subscriptions', async (event) => {
 
 // Item 1: renderer keeps main.js informed whether subscriptions has active
 // downloads, so subsWindow.on('close') above can decide whether to confirm.
+
+// ── Activity reporting: taskbar progress, badge, sleep blocker ───────────────
+// Renderer sends { progress: 0..1 | -1, active: n, badge: dataURL|null } on
+// every poll tick where something changed. -1 clears the bar. The sleep
+// blocker holds only while active > 0 so long downloads/encodes survive the
+// OS idle timer, and releases the moment the queue drains.
+let _psbId = null;
+ipcMain.on('set-activity', (event, a) => {
+  try {
+    if (!isTrustedSender(event)) return;
+    if (!a || typeof a !== 'object') return;
+    const active = Number.isInteger(a.active) && a.active > 0 ? a.active : 0;
+    const prog = (typeof a.progress === 'number' && a.progress >= 0 && a.progress <= 1) ? a.progress : -1;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setProgressBar(active > 0 ? prog : -1);
+      try { app.setBadgeCount(active); } catch {}
+    }
+    if (active > 0 && _psbId === null) {
+      _psbId = powerSaveBlocker.start('prevent-app-suspension');
+    } else if (active === 0 && _psbId !== null) {
+      try { powerSaveBlocker.stop(_psbId); } catch {}
+      _psbId = null;
+    }
+  } catch {}
+});
+
 ipcMain.on('subs-active-downloads', (event, active) => {
   if (!isTrustedSender(event)) return;
   subsActiveDownloads = !!active;

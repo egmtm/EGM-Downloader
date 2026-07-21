@@ -538,6 +538,8 @@
     "console.readonly_note": "Schreibgeschützt — Live-Log der Anwendung",
     "console.empty": "Noch keine Protokolleinträge.",
     "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
-    "console.btn.export": "Exportieren"
+    "console.btn.export": "Exportieren",
+    "notify.download_complete": "Download complete",
+    "notify.download_failed": "Download failed"
   }
 }
