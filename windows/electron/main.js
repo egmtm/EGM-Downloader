@@ -290,14 +290,41 @@ function waitForFlask(retries = 180, delay = 1000) {
 }
 
 // ── Create tray ───────────────────────────────────────────────────────────────
-function createTray() {
-  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
-  tray = new Tray(safeIcon(iconPath, 16));
-  tray.setToolTip('EGM Downloader');
 
-  const contextMenu = Menu.buildFromTemplate([
+// ── Shell i18n: tray + thumbnail-toolbar strings ─────────────────────────────
+// The main process has no access to the renderer's i18n, so shell surfaces
+// (tray menu, thumbar tooltips) read the locale file directly. Falls back to
+// English on any failure; refreshed live via the set-language channel.
+let _shellLang = null;
+const SHELL_FALLBACK = {
+  trayOpen: 'Open EGM Downloader', trayQuit: 'Quit',
+  thumbFolder: 'Open download folder', thumbCancel: 'Cancel active downloads',
+};
+function shellStrings() {
+  const KEYS = { trayOpen: 'tray.open', trayQuit: 'tray.quit',
+                 thumbFolder: 'thumbar.open_folder', thumbCancel: 'thumbar.cancel_active' };
+  try {
+    const lang = _shellLang || (readSettings().language || 'en');
+    if (!/^[a-z]{2}$/.test(lang)) return { ...SHELL_FALLBACK };
+    const raw = JSON.parse(fs.readFileSync(
+      path.join(__dirname, '..', 'languages', `${lang}.json`), 'utf8')).strings || {};
+    const out = {};
+    for (const k of Object.keys(KEYS)) out[k] = raw[KEYS[k]] || SHELL_FALLBACK[k];
+    return out;
+  } catch { return { ...SHELL_FALLBACK }; }
+}
+function refreshShellText() {
+  try {
+    if (tray) tray.setContextMenu(buildTrayMenu());
+    setupThumbar();
+  } catch {}
+}
+
+function buildTrayMenu() {
+  const t = shellStrings();
+  return Menu.buildFromTemplate([
     {
-      label: 'Open EGM Downloader',
+      label: t.trayOpen,
       click: () => {
         if (!mainWindow) return;
         restoreWindowState();
@@ -307,12 +334,17 @@ function createTray() {
     },
     { type: 'separator' },
     {
-      label: 'Quit',
+      label: t.trayQuit,
       click: () => { app.isQuitting = true; app.quit(); },
     },
   ]);
+}
 
-  tray.setContextMenu(contextMenu);
+function createTray() {
+  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
+  tray = new Tray(safeIcon(iconPath, 16));
+  tray.setToolTip('EGM Downloader');
+  tray.setContextMenu(buildTrayMenu());
 
   // Left-click tray icon → restore and show
   tray.on('click', () => {
@@ -776,10 +808,10 @@ function setupThumbar() {
   try {
     if (!mainWindow || mainWindow.isDestroyed()) return;
     mainWindow.setThumbarButtons([
-      { tooltip: 'Open download folder',
+      { tooltip: shellStrings().thumbFolder,
         icon: safeIcon(path.join(__dirname, '..', 'static', 'thumb-folder.png'), 24),
         click: () => { try { mainWindow.webContents.send('thumbar-cmd', 'open-folder'); } catch {} } },
-      { tooltip: 'Cancel active downloads',
+      { tooltip: shellStrings().thumbCancel,
         icon: safeIcon(path.join(__dirname, '..', 'static', 'thumb-cancel.png'), 24),
         click: () => { try { mainWindow.webContents.send('thumbar-cmd', 'cancel-all'); } catch {} } },
     ]);
@@ -845,6 +877,13 @@ ipcMain.on('refocus-window', (event) => {
 // Theme key validation — alphanumeric only, prevents IPC injection while
 // supporting any future theme without allowlist maintenance
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
+ipcMain.on('set-language', (event, lang) => {
+  if (!isTrustedSender(event)) return;
+  if (typeof lang !== 'string' || !/^[a-z]{2}$/.test(lang)) return;
+  _shellLang = lang;
+  refreshShellText();
+});
+
 ipcMain.on('set-theme', (event, theme) => {
   if (!isTrustedSender(event)) return;
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return;

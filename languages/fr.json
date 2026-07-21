@@ -540,6 +540,10 @@
     "console.toggle.ytdlp": "Afficher la sortie de yt-dlp",
     "console.btn.export": "Exporter",
     "notify.download_complete": "Download complete",
-    "notify.download_failed": "Download failed"
+    "notify.download_failed": "Download failed",
+    "tray.open": "Open EGM Downloader",
+    "tray.quit": "Quit",
+    "thumbar.open_folder": "Open download folder",
+    "thumbar.cancel_active": "Cancel active downloads"
   }
 }
