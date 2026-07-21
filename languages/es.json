@@ -539,11 +539,7 @@
     "console.empty": "Aún no hay entradas de registro.",
     "console.toggle.ytdlp": "Mostrar salida de yt-dlp",
     "console.btn.export": "Exportar",
-    "notify.download_complete": "Descarga completada",
-    "notify.download_failed": "Error al descargar",
     "tray.open": "Abrir EGM Downloader",
-    "tray.quit": "Salir",
-    "thumbar.open_folder": "Abrir carpeta de descargas",
-    "thumbar.cancel_active": "Cancelar descargas activas"
+    "tray.quit": "Salir"
   }
 }

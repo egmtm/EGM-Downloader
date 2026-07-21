@@ -839,7 +839,7 @@ document.getElementById('lang-select').addEventListener('change', async function
   await i18nLoad(code);          // live swap — no restart
   buildLangSelector(code);       // keep active language first
   post('/api/settings/save', { language: code });
-  window.electronAPI?.setLanguage?.(code);   // shell surfaces (tray, thumbar) follow live
+  window.electronAPI?.setLanguage?.(code);   // shell surfaces (tray) follow live
 });
 
 // Advanced toggle: turning OFF asks for confirmation (inline modal, locked spec);

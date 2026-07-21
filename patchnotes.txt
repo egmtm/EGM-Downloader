@@ -3,8 +3,7 @@ v1.3.4 - IN YOUR FACE (Build TBD) (TBD)
 
   • [ALL] New: the taskbar/dock icon now shows download/conversion progress and an active-job count badge (Windows taskbar overlay, native dock/launcher badge on Mac and Linux)
   • [ALL] The app now prevents your system from sleeping while a download or conversion is running
-  • [ALL] New: a desktop notification when a download finishes or fails, if the app isn't in view
-  • [WINDOWS] New: hover the taskbar icon for quick Open Folder and Cancel buttons
+  • [ALL] Desktop notifications and the Windows taskbar hover buttons from earlier testing builds have been removed — they weren't reliable enough to ship
 
 v1.3.3 - LOOSE ENDS (Build 144) (7/20/2026)
 -----------------------------------------

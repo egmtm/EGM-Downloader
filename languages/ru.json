@@ -539,11 +539,7 @@
     "console.empty": "Записей в журнале пока нет.",
     "console.toggle.ytdlp": "Показать вывод yt-dlp",
     "console.btn.export": "Экспорт",
-    "notify.download_complete": "Загрузка завершена",
-    "notify.download_failed": "Ошибка загрузки",
     "tray.open": "Открыть EGM Downloader",
-    "tray.quit": "Выход",
-    "thumbar.open_folder": "Открыть папку загрузок",
-    "thumbar.cancel_active": "Отменить активные загрузки"
+    "tray.quit": "Выход"
   }
 }

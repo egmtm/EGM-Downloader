@@ -539,11 +539,7 @@
     "console.empty": "Nog geen logvermeldingen.",
     "console.toggle.ytdlp": "yt-dlp-uitvoer tonen",
     "console.btn.export": "Exporteren",
-    "notify.download_complete": "Download voltooid",
-    "notify.download_failed": "Download mislukt",
     "tray.open": "EGM Downloader openen",
-    "tray.quit": "Afsluiten",
-    "thumbar.open_folder": "Downloadmap openen",
-    "thumbar.cancel_active": "Actieve downloads annuleren"
+    "tray.quit": "Afsluiten"
   }
 }

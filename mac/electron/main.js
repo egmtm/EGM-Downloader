@@ -681,7 +681,7 @@ const VALID_THEME_RE = /^[a-z0-9-]+$/;
 ipcMain.on('set-language', (event, lang) => {
   if (!isTrustedSender(event)) return;
   if (typeof lang !== 'string' || !/^[a-z]{2}$/.test(lang)) return;
-  // No localized shell surfaces on this platform yet (no tray/thumbar);
+  // No localized shell surfaces on this platform yet (no tray);
   // handler exists for bridge parity and future shell strings.
 });
 

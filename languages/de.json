@@ -539,11 +539,7 @@
     "console.empty": "Noch keine Protokolleinträge.",
     "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
     "console.btn.export": "Exportieren",
-    "notify.download_complete": "Download abgeschlossen",
-    "notify.download_failed": "Download fehlgeschlagen",
     "tray.open": "EGM Downloader öffnen",
-    "tray.quit": "Beenden",
-    "thumbar.open_folder": "Download-Ordner öffnen",
-    "thumbar.cancel_active": "Aktive Downloads abbrechen"
+    "tray.quit": "Beenden"
   }
 }
