@@ -370,6 +370,7 @@ async function startDl(item, n) {
 
   item.status = 'downloading';
   updateQueueArrows();   // card left the idle queue — hide its arrows, re-edge the rest
+  reportActivity();   // engage the shell state (bar/badge/sleep blocker) immediately, not at the first poll tick
   setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading…');
   dlBtn.disabled = true;
   dlBtn.style.display = 'none';
@@ -529,6 +530,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     setBadge(stEl, 'cancel', i18nGet('card.status.cancelled') || 'Cancelled');
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
     updateQueueArrows();   // left the idle queue — keep the arrow rule true
+    reportActivity();   // cancelled jobs leave the active set — drain the shell state too
     recheckBulkVisibility();
     return true;
   }
@@ -551,9 +553,13 @@ window.electronAPI?.onThumbarCommand?.((cmd) => {
 });
 
 // ── OS activity: taskbar progress, badge count, sleep blocker ────────────────
-// Aggregates active jobs (main cards; subscriptions report via their own
-// channel) and reports to the shell on change. Badge overlay (Windows) is a
-// small canvas-drawn count; other platforms use their native badge counters.
+// Aggregates active jobs from the MAIN-WINDOW cards only and reports to the
+// shell on change. The subscriptions window does NOT report yet — its queue
+// downloads hold no sleep blocker and show no taskbar progress; wiring it
+// needs per-sender aggregation in main.js (two windows sharing one
+// last-writer-wins channel would clobber each other's counts). Badge overlay
+// (Windows) is a small canvas-drawn count; other platforms use their native
+// badge counters.
 let _lastActivityKey = '';
 function reportActivity() {
   if (!window.electronAPI?.setActivity) return;
@@ -597,6 +603,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
       if (progEl) progEl.style.display = 'none';
       if (dlBtn)  { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
+      reportActivity();   // this poller stops here — without a report, the taskbar bar/badge freeze and the sleep blocker stays held
       return;
     }
     try {
@@ -615,6 +622,7 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
         if (cancelBtn) cancelBtn.style.display = 'none';
         item.status = 'error';
         updateQueueArrows();   // left the idle queue — keep the arrow rule true
+        reportActivity();   // polling stops — release the shell state (bar/badge/sleep blocker)
         return;
       }
       applyJobProgress(d, stEl, progEl);
