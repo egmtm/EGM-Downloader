@@ -678,6 +678,13 @@ ipcMain.on('refocus-window', (event) => {
 // Theme key validation — alphanumeric only, prevents IPC injection while
 // supporting any future theme without allowlist maintenance
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
+ipcMain.on('set-language', (event, lang) => {
+  if (!isTrustedSender(event)) return;
+  if (typeof lang !== 'string' || !/^[a-z]{2}$/.test(lang)) return;
+  // No localized shell surfaces on this platform yet (no tray/thumbar);
+  // handler exists for bridge parity and future shell strings.
+});
+
 ipcMain.on('set-theme', (event, theme) => {
   if (!isTrustedSender(event)) return;
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return;

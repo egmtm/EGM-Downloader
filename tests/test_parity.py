@@ -253,7 +253,7 @@ def test_istrustedsender_count_locked():
     new handler calls isTrustedSender.
     (50 → 53 in v1.3.2: the gated open-console-window handler, one per platform.)
     """
-    EXPECTED_TOTAL = 56   # +3: set-activity handler (taskbar progress/badge/sleep-blocker), one per platform
+    EXPECTED_TOTAL = 59   # +3 set-activity (taskbar/badge/sleep-blocker) +3 set-language (shell i18n), one per platform each
     counts = {
         name: read_source(path).count("isTrustedSender")
         for name, path in (
