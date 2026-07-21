@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, screen, session } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, screen, session, powerSaveBlocker } = require('electron');
 const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -414,7 +414,7 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 // ── IPC: save file dialog (settings export) ───────────────────────────────────
 ipcMain.handle('save-file', async (event, defaultName, content) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-  // Extension-aware: .txt exports (log console) get a text filter/title;
+  // Extension-aware: .txt exports (the Diagnostics window) get a text filter/title;
   // everything else keeps the original JSON behavior (settings/theme export).
   const isTxt = /\.txt$/i.test(defaultName || '');
   const parent = BrowserWindow.fromWebContents(event.sender) || mainWindow;
@@ -578,7 +578,7 @@ ipcMain.handle('open-console-window', async (event) => {
   const bounds = loadConsoleBounds();
   consoleWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 320,
-    title: 'Log Console — EGM Downloader',
+    title: 'Diagnostics — EGM Downloader',
     icon: path.join(__dirname, '..', 'app', 'static', 'icon-512.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
@@ -653,6 +653,8 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     if (choice === 0) { subsForceClose = true; subsWindow.close(); }
   });
   subsWindow.on('closed', () => {
+    _activityBySender.delete(subsWindow);
+    _applyAggregateActivity();
     subsWindow = null;
     subsActiveDownloads = false; subsForceClose = false;
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
@@ -666,6 +668,53 @@ ipcMain.handle('close-subscriptions', async (event) => {
 
 // Item 1: renderer keeps main.js informed whether subscriptions has active
 // downloads, so subsWindow.on('close') above can decide whether to confirm.
+
+// ── Activity reporting: taskbar progress, badge, sleep blocker ───────────────
+// Each window (main, subscriptions) sends { progress: 0..1 | -1, active: n }
+// on every poll tick where its own state changed. Main and subscriptions can
+// both have genuinely concurrent activity -- subscriptions hides the main
+// window visually ("sub-app mode") but doesn't pause it, so a download
+// started in the main window keeps running (and keeps being reportable)
+// while subscriptions is the visible window. Tracked per-sender and
+// aggregated into what the shell actually shows, so neither window's report
+// can silently clobber the other's.
+let _psbId = null;
+const _activityBySender = new Map();   // BrowserWindow -> {active, progress}
+
+function _applyAggregateActivity() {
+  let active = 0, weighted = 0, counted = 0;
+  for (const st of _activityBySender.values()) {
+    active += st.active;
+    if (st.progress >= 0) { weighted += st.progress; counted++; }
+  }
+  const prog = counted > 0 ? weighted / counted : -1;
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setProgressBar(active > 0 ? prog : -1);
+    try { app.setBadgeCount(active); } catch {}
+  }
+  if (active > 0 && _psbId === null) {
+    _psbId = powerSaveBlocker.start('prevent-app-suspension');
+  } else if (active === 0 && _psbId !== null) {
+    try { powerSaveBlocker.stop(_psbId); } catch {}
+    _psbId = null;
+  }
+}
+
+ipcMain.on('set-activity', (event, a) => {
+  try {
+    if (!isTrustedSender(event)) return;
+    if (!a || typeof a !== 'object') return;
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) return;
+    const active = Number.isInteger(a.active) && a.active > 0 ? a.active : 0;
+    const prog = (typeof a.progress === 'number' && a.progress >= 0 && a.progress <= 1) ? a.progress : -1;
+    if (active === 0) _activityBySender.delete(win);
+    else _activityBySender.set(win, { active, progress: prog });
+    _applyAggregateActivity();
+  } catch {}
+});
+
 ipcMain.on('subs-active-downloads', (event, active) => {
   if (!isTrustedSender(event)) return;
   subsActiveDownloads = !!active;
@@ -698,6 +747,13 @@ ipcMain.on('refocus-window', (event) => {
 // Theme key validation — alphanumeric only, prevents IPC injection while
 // supporting any future theme without allowlist maintenance
 const VALID_THEME_RE = /^[a-z0-9-]+$/;
+ipcMain.on('set-language', (event, lang) => {
+  if (!isTrustedSender(event)) return;
+  if (typeof lang !== 'string' || !/^[a-z]{2}$/.test(lang)) return;
+  // No localized shell surfaces on this platform yet (no tray);
+  // handler exists for bridge parity and future shell strings.
+});
+
 ipcMain.on('set-theme', (event, theme) => {
   if (!isTrustedSender(event)) return;
   if (!theme || typeof theme !== 'string' || !VALID_THEME_RE.test(theme)) return;
@@ -782,6 +838,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   app.isQuitting = true;
+  if (_psbId !== null) { try { powerSaveBlocker.stop(_psbId); } catch {} _psbId = null; }
   if (!flaskProc) return;
 
   const pid = flaskProc.pid;

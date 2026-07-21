@@ -55,7 +55,7 @@
 - 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions
 - 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
 - 🛠️ **Plugin Updates** - Update yt-dlp, ffmpeg, and optional libraries without reinstalling
-- 📋 **Log Console** - Live diagnostic log viewer in Advanced settings, with optional raw yt-dlp output and export to file for troubleshooting
+- 📋 **Diagnostics** - Live diagnostic log viewer, available from the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, includes embedded Python
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux

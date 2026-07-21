@@ -4,11 +4,11 @@
   "_language_english": "Russian",
   "_code": "ru",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -358,6 +358,7 @@
     "download.error.404": "Контент не найден (404).",
     "download.error.429": "Слишком много запросов (429). Подождите и попробуйте снова.",
     "fetch.error.timeout": "Время запроса истекло. Попробуйте снова.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Не удалось получить информацию о видео. URL может не поддерживаться.",
     "fetch.error.url_scheme": "Поддерживаются только URL http и https.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "Удалить эту тему?",
     "themes.confirm.delete_body": "Тема «{0}» будет удалена без возможности восстановления. Это действие нельзя отменить.",
     "card.quality.hdr_tooltip": "Для HDR требуется дисплей и плеер с поддержкой HDR — иначе цвета будут блёклыми. Загрузки HDR сохраняются в формате MKV.",
-    "advanced.btn.log_console": "Консоль журнала",
-    "tooltip.log_console": "Открывает окно только для чтения с журналом приложения в реальном времени",
-    "console.title": "Консоль журнала",
+    "console.title": "Диагностика",
     "console.readonly_note": "Только чтение — журнал приложения в реальном времени",
     "console.empty": "Записей в журнале пока нет.",
     "console.toggle.ytdlp": "Показать вывод yt-dlp",
-    "console.btn.export": "Экспорт"
+    "console.btn.export": "Экспорт",
+    "tray.open": "Открыть EGM Downloader",
+    "tray.quit": "Выход",
+    "footer.btn.diagnostics": "Диагностика",
+    "download.error.no_formats": "Форматы для скачивания не найдены. Обычно это означает, что видео доступно только участникам канала — если вы участник этого канала, загрузите файлы cookie своего аккаунта в Настройках и попробуйте снова. Видео также может быть приватным, заблокированным по региону или иным образом ограниченным.",
+    "download.error.extract": "Не удалось получить информацию о видео. Возможно, страница изменилась."
   }
 }

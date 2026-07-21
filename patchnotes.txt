@@ -1,3 +1,11 @@
+v1.3.4 - IN YOUR FACE (Build TBD) (TBD)
+-----------------------------------------
+
+  • [ALL] New: the taskbar/dock icon now shows download/conversion progress and an active-job count badge, for downloads started from the main window or from Subscriptions (Windows taskbar overlay, native dock/launcher badge on Mac and Linux)
+  • [ALL] The app now prevents your system from sleeping while a download or conversion is running
+  • [ALL] The Log Console is now called Diagnostics, and it's easier to find — available directly from the footer (next to Help) and from the Subscriptions window, instead of buried in Advanced settings
+  • [ALL] Download error messages are now translated into your language where possible, with clearer guidance for common cases (like members-only videos)
+
 v1.3.3 - LOOSE ENDS (Build 144) (7/20/2026)
 -----------------------------------------
 

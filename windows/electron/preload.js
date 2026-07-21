@@ -29,7 +29,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openSubscriptions:  ()               => ipcRenderer.invoke('open-subscriptions-window'),
   closeSubscriptions: ()               => ipcRenderer.invoke('close-subscriptions'),
   notifySubsDownloads: (active)        => ipcRenderer.send('subs-active-downloads', !!active),
+  setActivity:        (a)              => ipcRenderer.send('set-activity', a),
   refocusWindow:       ()                 => ipcRenderer.send('refocus-window'),
+  setLanguage:        (lang)           => { if (isStr(lang) && /^[a-z]{2}$/.test(lang)) ipcRenderer.send('set-language', lang); },
   setTheme:           (theme)          => { if (isStr(theme) && THEME_RE.test(theme)) ipcRenderer.send('set-theme', theme); },
   sendUrlToMain:      (url)            => { if (isHttpUrl(url)) ipcRenderer.send('send-url-to-main', url); },
   // Tell main the in-page Theme Creator panel opened/closed (it widens the window

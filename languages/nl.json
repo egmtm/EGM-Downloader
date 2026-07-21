@@ -4,11 +4,11 @@
   "_language_english": "Dutch",
   "_code": "nl",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} meer sites",
@@ -358,6 +358,7 @@
     "download.error.404": "Inhoud niet gevonden (404).",
     "download.error.429": "Te veel verzoeken (429). Wacht even en probeer opnieuw.",
     "fetch.error.timeout": "Verzoek verlopen. Probeer opnieuw.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Kan video-info niet ophalen. De URL wordt mogelijk niet ondersteund.",
     "fetch.error.url_scheme": "Alleen http- en https-URL's worden ondersteund.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "Dit thema verwijderen?",
     "themes.confirm.delete_body": "\"{0}\" wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "card.quality.hdr_tooltip": "HDR vereist een HDR-geschikt scherm en een HDR-geschikte speler — anders zien kleuren er vaal uit. HDR-downloads worden opgeslagen als MKV.",
-    "advanced.btn.log_console": "Logconsole",
-    "tooltip.log_console": "Opent een alleen-lezen venster met het live logboek van de app",
-    "console.title": "Logconsole",
+    "console.title": "Diagnostiek",
     "console.readonly_note": "Alleen-lezen — live logboek van de app",
     "console.empty": "Nog geen logvermeldingen.",
     "console.toggle.ytdlp": "yt-dlp-uitvoer tonen",
-    "console.btn.export": "Exporteren"
+    "console.btn.export": "Exporteren",
+    "tray.open": "EGM Downloader openen",
+    "tray.quit": "Afsluiten",
+    "footer.btn.diagnostics": "Diagnostiek",
+    "download.error.no_formats": "Geen downloadbare formaten gevonden. Dit is meestal een video die alleen voor leden is — als je lid bent van dit kanaal, laad dan je accountcookies in Instellingen en probeer het opnieuw. Het kan ook privé, regionaal geblokkeerd of anderszins beperkt zijn.",
+    "download.error.extract": "Kon video-informatie niet ophalen. De pagina is mogelijk gewijzigd."
   }
 }

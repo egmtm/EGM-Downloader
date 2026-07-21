@@ -4,11 +4,11 @@
   "_language_english": "Spanish",
   "_code": "es",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo y {0} sitios más",
@@ -358,6 +358,7 @@
     "download.error.404": "Contenido no encontrado (404).",
     "download.error.429": "Demasiadas solicitudes (429). Espera un momento e intenta de nuevo.",
     "fetch.error.timeout": "La solicitud expiró. Por favor intenta de nuevo.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "No se pudo obtener la información del video. La URL puede no ser compatible.",
     "fetch.error.url_scheme": "Solo se admiten URLs http y https.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "¿Eliminar este tema?",
     "themes.confirm.delete_body": "«{0}» se eliminará permanentemente. Esto no se puede deshacer.",
     "card.quality.hdr_tooltip": "HDR requiere una pantalla y un reproductor compatibles con HDR; de lo contrario, los colores se ven apagados. Las descargas HDR se guardan como MKV.",
-    "advanced.btn.log_console": "Consola de registro",
-    "tooltip.log_console": "Abre una ventana de solo lectura que muestra el registro en vivo de la aplicación",
-    "console.title": "Consola de registro",
+    "console.title": "Diagnóstico",
     "console.readonly_note": "Solo lectura — registro en vivo de la aplicación",
     "console.empty": "Aún no hay entradas de registro.",
     "console.toggle.ytdlp": "Mostrar salida de yt-dlp",
-    "console.btn.export": "Exportar"
+    "console.btn.export": "Exportar",
+    "tray.open": "Abrir EGM Downloader",
+    "tray.quit": "Salir",
+    "footer.btn.diagnostics": "Diagnóstico",
+    "download.error.no_formats": "No se encontraron formatos descargables. Esto suele deberse a que es un vídeo solo para miembros — si eres miembro de este canal, carga las cookies de tu cuenta en Configuración e inténtalo de nuevo. También podría ser privado, estar bloqueado por región o restringido de otra forma.",
+    "download.error.extract": "No se pudo extraer la información del vídeo. Puede que la página haya cambiado."
   }
 }

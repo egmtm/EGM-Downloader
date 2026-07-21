@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Log Console — EGM Downloader</title>
+<title>Diagnostics — EGM Downloader</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
@@ -41,7 +41,7 @@
 </head>
 <body>
   <div class="titlebar">
-    <h1><span class="live-dot" id="live-dot"></span><span data-i18n="console.title">Log Console</span></h1>
+    <h1><span class="live-dot" id="live-dot"></span><span data-i18n="console.title">Diagnostics</span></h1>
     <div style="display:flex;align-items:center;gap:12px">
       <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none">
         <input type="checkbox" id="yt-toggle" style="accent-color:var(--acc)">
@@ -83,7 +83,7 @@ if (window.electronAPI && window.electronAPI.onThemeChanged) {
   window.electronAPI.onThemeChanged(t => applyConsoleTheme(t));
 }
 document.addEventListener('i18n:ready', () => {
-  document.title = (i18nGet('console.title') || 'Log Console') + ' — EGM Downloader';
+  document.title = (i18nGet('console.title') || 'Diagnostics') + ' — EGM Downloader';
 });
 
 // ── Live log ─────────────────────────────────────────────────────────────────

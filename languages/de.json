@@ -4,11 +4,11 @@
   "_language_english": "German",
   "_code": "de",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} weitere Seiten",
@@ -358,6 +358,7 @@
     "download.error.404": "Inhalt nicht gefunden (404).",
     "download.error.429": "Zu viele Anfragen (429). Bitte warte einen Moment und versuche es erneut.",
     "fetch.error.timeout": "Anfrage abgelaufen. Bitte versuche es erneut.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Video-Informationen konnten nicht geladen werden. Die URL wird möglicherweise nicht unterstützt.",
     "fetch.error.url_scheme": "Nur http- und https-URLs werden unterstützt.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "Dieses Theme löschen?",
     "themes.confirm.delete_body": "„{0}\" wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
     "card.quality.hdr_tooltip": "HDR erfordert ein HDR-fähiges Display und einen HDR-fähigen Player — sonst wirken die Farben blass. HDR-Downloads werden als MKV gespeichert.",
-    "advanced.btn.log_console": "Log-Konsole",
-    "tooltip.log_console": "Öffnet ein schreibgeschütztes Fenster mit dem Live-Log der Anwendung",
-    "console.title": "Log-Konsole",
+    "console.title": "Diagnose",
     "console.readonly_note": "Schreibgeschützt — Live-Log der Anwendung",
     "console.empty": "Noch keine Protokolleinträge.",
     "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
-    "console.btn.export": "Exportieren"
+    "console.btn.export": "Exportieren",
+    "tray.open": "EGM Downloader öffnen",
+    "tray.quit": "Beenden",
+    "footer.btn.diagnostics": "Diagnose",
+    "download.error.no_formats": "Keine herunterladbaren Formate gefunden. Das ist meist ein Video nur für Mitglieder — falls du Mitglied dieses Kanals bist, lade deine Konto-Cookies in den Einstellungen und versuche es erneut. Es könnte auch privat, regional gesperrt oder anderweitig eingeschränkt sein.",
+    "download.error.extract": "Videoinformationen konnten nicht extrahiert werden. Die Seite hat sich möglicherweise geändert."
   }
 }

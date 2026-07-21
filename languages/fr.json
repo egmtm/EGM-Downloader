@@ -4,11 +4,11 @@
   "_language_english": "French",
   "_code": "fr",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo et {0} sites supplémentaires",
@@ -358,6 +358,7 @@
     "download.error.404": "Contenu introuvable (404).",
     "download.error.429": "Trop de requêtes (429). Attendez un moment et réessayez.",
     "fetch.error.timeout": "La requête a expiré. Veuillez réessayer.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Impossible d'obtenir les informations de la vidéo. L'URL peut ne pas être prise en charge.",
     "fetch.error.url_scheme": "Seules les URLs http et https sont prises en charge.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "Supprimer ce thème ?",
     "themes.confirm.delete_body": "Le thème « {0} » sera définitivement supprimé. Cela ne peut pas être annulé.",
     "card.quality.hdr_tooltip": "Le HDR nécessite un écran et un lecteur compatibles HDR — sinon les couleurs paraissent délavées. Les téléchargements HDR sont enregistrés au format MKV.",
-    "advanced.btn.log_console": "Console des journaux",
-    "tooltip.log_console": "Ouvre une fenêtre en lecture seule affichant le journal en direct de l'application",
-    "console.title": "Console des journaux",
+    "console.title": "Diagnostics",
     "console.readonly_note": "Lecture seule — journal en direct de l'application",
     "console.empty": "Aucune entrée de journal pour l'instant.",
     "console.toggle.ytdlp": "Afficher la sortie de yt-dlp",
-    "console.btn.export": "Exporter"
+    "console.btn.export": "Exporter",
+    "tray.open": "Ouvrir EGM Downloader",
+    "tray.quit": "Quitter",
+    "footer.btn.diagnostics": "Diagnostics",
+    "download.error.no_formats": "Aucun format téléchargeable trouvé. Il s'agit généralement d'une vidéo réservée aux membres — si vous êtes membre de cette chaîne, chargez les cookies de votre compte dans les Paramètres et réessayez. Elle peut aussi être privée, bloquée par région, ou restreinte d'une autre manière.",
+    "download.error.extract": "Impossible d'extraire les informations de la vidéo. La page a peut-être changé."
   }
 }

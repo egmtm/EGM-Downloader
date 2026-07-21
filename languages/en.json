@@ -358,6 +358,7 @@
     "download.error.404": "Content not found (404).",
     "download.error.429": "Too many requests (429). Please wait a moment and try again.",
     "fetch.error.timeout": "Request timed out. Please try again.",
+    "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Could not fetch video info. The URL may be unsupported.",
     "fetch.error.url_scheme": "Only http and https URLs are supported.",
     "footer.link.website": "egerena.com",
@@ -532,12 +533,15 @@
     "themes.confirm.delete_title": "Delete this theme?",
     "themes.confirm.delete_body": "\"{0}\" will be permanently deleted. This cannot be undone.",
     "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV.",
-    "advanced.btn.log_console": "Log console",
-    "tooltip.log_console": "Opens a read-only window showing the application's live log",
-    "console.title": "Log Console",
+    "console.title": "Diagnostics",
     "console.readonly_note": "Read-only — live application log",
     "console.empty": "No log entries yet.",
     "console.toggle.ytdlp": "Show yt-dlp output",
-    "console.btn.export": "Export"
+    "console.btn.export": "Export",
+    "tray.open": "Open EGM Downloader",
+    "tray.quit": "Quit",
+    "footer.btn.diagnostics": "Diagnostics",
+    "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
+    "download.error.extract": "Could not extract video info. The page may have changed."
   }
 }
