@@ -532,13 +532,13 @@
     "themes.confirm.delete_title": "このテーマを削除しますか？",
     "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
     "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。",
-    "console.title": "ログコンソール",
+    "console.title": "診断",
     "console.readonly_note": "読み取り専用 — アプリケーションのライブログ",
     "console.empty": "まだログエントリはありません。",
     "console.toggle.ytdlp": "yt-dlp の出力を表示",
     "console.btn.export": "エクスポート",
     "tray.open": "EGM Downloader を開く",
     "tray.quit": "終了",
-    "footer.btn.diagnostics": "Diagnostics"
+    "footer.btn.diagnostics": "診断"
   }
 }
