@@ -4,11 +4,11 @@
   "_language_english": "Russian",
   "_code": "ru",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -539,11 +539,11 @@
     "console.empty": "Записей в журнале пока нет.",
     "console.toggle.ytdlp": "Показать вывод yt-dlp",
     "console.btn.export": "Экспорт",
-    "notify.download_complete": "Download complete",
-    "notify.download_failed": "Download failed",
-    "tray.open": "Open EGM Downloader",
-    "tray.quit": "Quit",
-    "thumbar.open_folder": "Open download folder",
-    "thumbar.cancel_active": "Cancel active downloads"
+    "notify.download_complete": "Загрузка завершена",
+    "notify.download_failed": "Ошибка загрузки",
+    "tray.open": "Открыть EGM Downloader",
+    "tray.quit": "Выход",
+    "thumbar.open_folder": "Открыть папку загрузок",
+    "thumbar.cancel_active": "Отменить активные загрузки"
   }
 }
