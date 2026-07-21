@@ -874,18 +874,6 @@ document.getElementById('show-settings-panel-chk').addEventListener('change', fu
     document.getElementById('hide-settings-modal').style.display = 'flex';
   }
 });
-document.getElementById('adv-console-btn')?.addEventListener('click', () => {
-  // IPC first: hardenWindow's setWindowOpenHandler denies window.open in the
-  // packaged app (it only routes https: links externally), so the bare
-  // window.open is a dev/browser fallback only — same pattern as the
-  // history/themes/subscriptions openers.
-  if (window.electronAPI && window.electronAPI.openConsoleWindow) {
-    window.electronAPI.openConsoleWindow();
-  } else {
-    window.open('/console-page', '_blank');
-  }
-});
-
 document.getElementById('hide-settings-cancel-btn').addEventListener('click', () => {
   document.getElementById('hide-settings-modal').style.display = 'none';
 });
