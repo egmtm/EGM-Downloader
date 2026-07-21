@@ -540,7 +540,7 @@
     "tray.open": "EGM Downloader openen",
     "tray.quit": "Afsluiten",
     "footer.btn.diagnostics": "Diagnostiek",
-    "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
-    "download.error.extract": "Could not extract video info. The page may have changed."
+    "download.error.no_formats": "Geen downloadbare formaten gevonden. Dit is meestal een video die alleen voor leden is — als je lid bent van dit kanaal, laad dan je accountcookies in Instellingen en probeer het opnieuw. Het kan ook privé, regionaal geblokkeerd of anderszins beperkt zijn.",
+    "download.error.extract": "Kon video-informatie niet ophalen. De pagina is mogelijk gewijzigd."
   }
 }
