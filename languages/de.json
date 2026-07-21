@@ -532,13 +532,13 @@
     "themes.confirm.delete_title": "Dieses Theme löschen?",
     "themes.confirm.delete_body": "„{0}\" wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
     "card.quality.hdr_tooltip": "HDR erfordert ein HDR-fähiges Display und einen HDR-fähigen Player — sonst wirken die Farben blass. HDR-Downloads werden als MKV gespeichert.",
-    "console.title": "Log-Konsole",
+    "console.title": "Diagnose",
     "console.readonly_note": "Schreibgeschützt — Live-Log der Anwendung",
     "console.empty": "Noch keine Protokolleinträge.",
     "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
     "console.btn.export": "Exportieren",
     "tray.open": "EGM Downloader öffnen",
     "tray.quit": "Beenden",
-    "footer.btn.diagnostics": "Diagnostics"
+    "footer.btn.diagnostics": "Diagnose"
   }
 }
