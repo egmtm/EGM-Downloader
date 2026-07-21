@@ -1,4 +1,4 @@
-v1.3.4 - IN YOUR FACE (Build TBD) (TBD)
+v1.3.4 - IN YOUR FACE (Build 145) (7/21/2026)
 -----------------------------------------
 
   • [ALL] New: the taskbar/dock icon now shows download/conversion progress and an active-job count badge, for downloads started from the main window or from Subscriptions (Windows taskbar overlay, native dock/launcher badge on Mac and Linux)
