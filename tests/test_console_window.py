@@ -59,31 +59,38 @@ def test_preload_exposes_open_console_window_on_all_platforms():
         )
 
 
-def test_settings_button_prefers_ipc_over_window_open():
+def test_diagnostics_buttons_prefer_ipc_over_window_open():
     """The renderer must try electronAPI.openConsoleWindow first; a bare
     window.open is exactly the wiring hardenWindow denies in the packaged
-    app. The window.open must only exist as the else-branch fallback."""
-    src = read_source("templates/js/_settings.html")
-    idx = src.index("adv-console-btn")
-    block = src[idx:idx + 600]
-    assert "window.electronAPI.openConsoleWindow" in block, (
-        "console button must open via the IPC path (electronAPI.openConsoleWindow)"
-    )
-    assert re.search(
-        r"if\s*\(window\.electronAPI\s*&&\s*window\.electronAPI\.openConsoleWindow\)",
-        block,
-    ), "console button must guard on electronAPI before falling back to window.open"
-    # The actual window.open CALL is allowed only AFTER the electronAPI guard
-    # (fallback position). Match the call, not the string "window.open" --
-    # the explanatory comment above the guard mentions it too.
-    guard_pos = re.search(
-        r"if\s*\(window\.electronAPI\s*&&\s*window\.electronAPI\.openConsoleWindow\)", block
-    ).start()
-    open_call = re.search(r"window\.open\('/console-page'", block)
-    assert open_call, "dev/browser fallback window.open('/console-page') missing"
-    assert guard_pos < open_call.start(), (
-        "window.open must be the fallback branch, not the primary path"
-    )
+    app. The window.open must only exist as the else-branch fallback.
+    Checks both entry points: the main-window footer pill and the
+    subscriptions-window sidebar button."""
+    cases = [
+        ("templates/js/_core.html", "getElementById('footer-diagnostics-btn')"),
+        ("templates/subscriptions.html", "getElementById('diagnostics-btn')"),
+    ]
+    for path, needle in cases:
+        src = read_source(path)
+        idx = src.index(needle)
+        block = src[idx:idx + 600]
+        assert "window.electronAPI.openConsoleWindow" in block, (
+            f"{path}: {needle} must open via the IPC path (electronAPI.openConsoleWindow)"
+        )
+        guard_match = re.search(
+            r"if\s*\(window\.electronAPI\s*&&\s*window\.electronAPI\.openConsoleWindow\)",
+            block,
+        )
+        assert guard_match, (
+            f"{path}: {needle} must guard on electronAPI before falling back to window.open"
+        )
+        # The actual window.open CALL is allowed only AFTER the electronAPI guard
+        # (fallback position). Match the call, not the string "window.open" --
+        # the explanatory comment above the guard mentions it too.
+        open_call = re.search(r"window\.open\('/console-page'", block)
+        assert open_call, f"{path}: dev/browser fallback window.open('/console-page') missing"
+        assert guard_match.start() < open_call.start(), (
+            f"{path}: window.open must be the fallback branch, not the primary path"
+        )
 
 
 def test_console_page_follows_child_window_conventions():
