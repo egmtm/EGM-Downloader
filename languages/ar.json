@@ -532,13 +532,13 @@
     "themes.confirm.delete_title": "حذف هذا الثيم؟",
     "themes.confirm.delete_body": "سيتم حذف «{0}» نهائياً. لا يمكن التراجع عن هذا.",
     "card.quality.hdr_tooltip": "يتطلب HDR شاشة ومشغلاً يدعمان HDR — وإلا تبدو الألوان باهتة. تُحفظ تحميلات HDR بصيغة MKV.",
-    "console.title": "وحدة تحكم السجل",
+    "console.title": "التشخيصات",
     "console.readonly_note": "للقراءة فقط — سجل التطبيق المباشر",
     "console.empty": "لا توجد إدخالات سجل بعد.",
     "console.toggle.ytdlp": "إظهار مخرجات yt-dlp",
     "console.btn.export": "تصدير",
     "tray.open": "فتح EGM Downloader",
     "tray.quit": "إنهاء",
-    "footer.btn.diagnostics": "Diagnostics"
+    "footer.btn.diagnostics": "التشخيصات"
   }
 }
