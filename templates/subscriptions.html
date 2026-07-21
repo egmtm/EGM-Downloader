@@ -751,7 +751,7 @@ function updateVideoState(videoId, status, data) {
     </div>`;
   } else if (status === 'error') {
     metaEl.innerHTML = `<div class="video-progress">
-      <span class="video-status error">${esc(data.error || 'Error')}</span>
+      <span class="video-status error">${esc((data.error_code && i18nGet(`download.error.${data.error_code}`)) || data.error || i18nGet('download.error.generic') || 'Error')}</span>
       <div style="flex:1"></div>
       <button class="video-action-btn" onclick="clearVideoState('${attrEsc(videoId)}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>
     </div>`;

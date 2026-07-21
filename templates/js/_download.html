@@ -469,6 +469,19 @@ function applyJobProgress(d, stEl, progEl) {
   }
 }
 
+
+// ── Localized error resolution ───────────────────────────────────────────────
+// Backend classifies known error patterns into stable codes; the UI resolves
+// them to the locale's download.error.* strings. Unclassified errors show
+// their raw text — never less informative than before.
+function localizeError(d) {
+  if (d && d.error_code) {
+    const t = i18nGet(`download.error.${d.error_code}`);
+    if (t) return t;
+  }
+  return (d && d.error) || i18nGet('download.error.generic') || 'Download failed.';
+}
+
 function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   // Helper to hide bulk buttons once nothing is actionable anymore
   const recheckBulkVisibility = () => {
@@ -515,7 +528,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     reportActivity();
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
-    setBadge(stEl, 'error', d.error || i18nGet('card.status.error') || '✗ Error');
+    setBadge(stEl, 'error', localizeError(d));
     if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; }
     updateQueueArrows();   // left the idle queue — keep the arrow rule true
     recheckBulkVisibility();

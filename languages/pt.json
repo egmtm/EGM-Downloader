@@ -539,6 +539,8 @@
     "console.btn.export": "Exportar",
     "tray.open": "Abrir EGM Downloader",
     "tray.quit": "Sair",
-    "footer.btn.diagnostics": "Diagnóstico"
+    "footer.btn.diagnostics": "Diagnóstico",
+    "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
+    "download.error.extract": "Could not extract video info. The page may have changed."
   }
 }

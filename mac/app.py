@@ -610,24 +610,33 @@ threading.Thread(target=_jobs_cleanup_worker, daemon=True, name="jobs-cleanup").
 
 # ── Friendly error messages ───────────────────────────────────────────────────
 _ERROR_MAP = [
-    (_re.compile(r"Sign in to confirm|bot|login required",            _re.I), "YouTube requires sign-in for this video. Try adding cookies in Settings."),
-    (_re.compile(r"Private video",                                     _re.I), "This video is private."),
-    (_re.compile(r"Video unavailable|has been removed|no longer",     _re.I), "This video is unavailable or has been removed."),
-    (_re.compile(r"Requested format is not available|format.*not.*available", _re.I), "The selected quality isn't available. Try a different format."),
-    (_re.compile(r"Unable to extract|Could not extract",              _re.I), "Could not extract video info. The page may have changed."),
-    (_re.compile(r"HTTP Error 403",                                    _re.I), "Access denied (403). This video may be region-locked or require login."),
-    (_re.compile(r"HTTP Error 404",                                    _re.I), "Video not found (404). The URL may be incorrect or the video deleted."),
-    (_re.compile(r"HTTP Error 429|Too many requests",                 _re.I), "Too many requests. Please wait a moment before trying again."),
-    (_re.compile(r"This live event will begin|premiere",              _re.I), "This video is a scheduled premiere and hasn't started yet."),
-    (_re.compile(r"members.only|membership required",                 _re.I), "This video is for channel members only."),
-    (_re.compile(r"No video formats found|No formats found",          _re.I), "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted."),
+    # (pattern, code) — codes resolve to download.error.{code} locale keys in
+    # the UI, with the raw text as fallback for anything unclassified. The
+    # long-form guidance that used to live here as hardcoded English now lives
+    # in the locale files (download.error.no_formats etc.), where Linguist
+    # translates it.
+    (_re.compile(r"Sign in to confirm|bot|login required",            _re.I), "login"),
+    (_re.compile(r"Private video",                                     _re.I), "private"),
+    (_re.compile(r"Video unavailable|has been removed|no longer",     _re.I), "unavailable"),
+    (_re.compile(r"Requested format is not available|format.*not.*available", _re.I), "format"),
+    (_re.compile(r"Unable to extract|Could not extract",              _re.I), "extract"),
+    (_re.compile(r"HTTP Error 403",                                    _re.I), "403"),
+    (_re.compile(r"HTTP Error 404",                                    _re.I), "404"),
+    (_re.compile(r"HTTP Error 429|Too many requests",                 _re.I), "429"),
+    (_re.compile(r"This live event will begin|premiere",              _re.I), "premiere"),
+    (_re.compile(r"members.only|membership required",                 _re.I), "members"),
+    (_re.compile(r"No video formats found|No formats found",          _re.I), "no_formats"),
+    (_re.compile(r"available in your country|not available in your region|geo.restricted|geo.blocked", _re.I), "region"),
+    (_re.compile(r"getaddrinfo|Errno 1[01]\b|Network is unreachable|Connection (refused|reset|timed out)|Temporary failure in name resolution", _re.I), "network"),
 ]
 
-def _friendly_error(raw: str) -> str:
-    for pattern, friendly in _ERROR_MAP:
-        if pattern.search(raw):
-            return friendly
-    return raw
+def _classify_error(raw: str):
+    """Stable error code for a raw yt-dlp/exception string, or None if the
+    error doesn't match any known class (UI then shows the raw text)."""
+    for pattern, code in _ERROR_MAP:
+        if pattern.search(raw or ""):
+            return code
+    return None
 
 def _kill_proc(proc: subprocess.Popen) -> None:
     """Kill a yt-dlp process and its entire child tree (including ffmpeg).
@@ -1165,7 +1174,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # An unwritable or removed download dir (e.g. an unplugged USB drive or a
         # deleted saved folder) must fail the job, not leave it stuck "queued".
         _egm_log(f"download error: {str(e).splitlines()[0][:200] if str(e) else 'unknown'}")
-        job["status"] = "error"; job["error"] = _friendly_error(str(e)); job["_finished_at"] = time.time()
+        job["status"] = "error"; job["error"] = str(e); job["error_code"] = _classify_error(str(e)); job["_finished_at"] = time.time()
         return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
 
@@ -1397,7 +1406,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                    if l.strip() and not l.strip().startswith("WARNING")]
             raw_err = err[-1] if err else stderr_data.strip()
             job["status"] = "error"
-            job["error"]  = _friendly_error(raw_err)
+            job["error"]  = raw_err
+            job["error_code"] = _classify_error(raw_err)
             job["_finished_at"] = time.time()
             return
 
@@ -1469,7 +1479,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         with _active_procs_lock:
             _active_procs.pop(job_id, None)
         job["status"] = "error"
-        job["error"]  = _friendly_error(str(e))
+        job["error"]  = str(e)
+        job["error_code"] = _classify_error(str(e))
         job["_finished_at"] = time.time()
 
 def _cleanup(job_id, out_dir):
@@ -1620,7 +1631,7 @@ def check_status(job_id):
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
         status = job["status"]
-        resp = {"status": status, "error": job.get("error"),
+        resp = {"status": status, "error": job.get("error"), "error_code": job.get("error_code"),
                 "filename": job.get("filename"), "progress": job.get("progress", 0),
                 "speed": job.get("speed", ""), "eta": job.get("eta", ""),
                 "filesize": job.get("filesize", ""),
