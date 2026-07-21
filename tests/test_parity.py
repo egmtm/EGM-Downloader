@@ -253,7 +253,7 @@ def test_istrustedsender_count_locked():
     new handler calls isTrustedSender.
     (50 → 53 in v1.3.2: the gated open-console-window handler, one per platform.)
     """
-    EXPECTED_TOTAL = 53
+    EXPECTED_TOTAL = 56   # +3: set-activity handler (taskbar progress/badge/sleep-blocker), one per platform
     counts = {
         name: read_source(path).count("isTrustedSender")
         for name, path in (
@@ -482,7 +482,7 @@ def test_preload_bridge_full_parity():
 
     # Windows extras must be a KNOWN allowlist — catches accidental Windows-only feature functions
     win_only = win_keys - shared
-    allowed_win_only = {"launchInstaller", "createShortcut"}  # legitimately Windows-only
+    allowed_win_only = {"launchInstaller", "createShortcut", "onThumbarCommand"}  # legitimately Windows-only (thumbar = Windows taskbar thumbnail toolbar)
     unexpected = win_only - allowed_win_only
     assert not unexpected, (
         f"Windows-only bridge functions not in allowlist: {unexpected}. "

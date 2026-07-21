@@ -538,6 +538,8 @@
     "console.readonly_note": "Только чтение — журнал приложения в реальном времени",
     "console.empty": "Записей в журнале пока нет.",
     "console.toggle.ytdlp": "Показать вывод yt-dlp",
-    "console.btn.export": "Экспорт"
+    "console.btn.export": "Экспорт",
+    "notify.download_complete": "Download complete",
+    "notify.download_failed": "Download failed"
   }
 }

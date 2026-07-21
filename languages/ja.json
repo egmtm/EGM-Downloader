@@ -538,6 +538,8 @@
     "console.readonly_note": "読み取り専用 — アプリケーションのライブログ",
     "console.empty": "まだログエントリはありません。",
     "console.toggle.ytdlp": "yt-dlp の出力を表示",
-    "console.btn.export": "エクスポート"
+    "console.btn.export": "エクスポート",
+    "notify.download_complete": "Download complete",
+    "notify.download_failed": "Download failed"
   }
 }

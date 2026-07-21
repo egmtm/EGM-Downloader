@@ -538,6 +538,8 @@
     "console.readonly_note": "Alleen-lezen — live logboek van de app",
     "console.empty": "Nog geen logvermeldingen.",
     "console.toggle.ytdlp": "yt-dlp-uitvoer tonen",
-    "console.btn.export": "Exporteren"
+    "console.btn.export": "Exporteren",
+    "notify.download_complete": "Download complete",
+    "notify.download_failed": "Download failed"
   }
 }

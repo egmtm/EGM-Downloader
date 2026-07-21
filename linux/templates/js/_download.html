@@ -478,6 +478,8 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   };
   if (d.status === 'done') {
     item.status = 'done';
+    notifyJobFinished(item, true, d.filename);
+    reportActivity();
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     if (d.warning) {
@@ -510,6 +512,8 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   }
   if (d.status === 'error') {
     item.status = 'error';
+    notifyJobFinished(item, false, d.error);
+    reportActivity();
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     setBadge(stEl, 'error', d.error || i18nGet('card.status.error') || '✗ Error');
@@ -531,6 +535,59 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   return false;
 }
 
+
+// ── Taskbar thumbnail-toolbar commands (Windows) ─────────────────────────────
+window.electronAPI?.onThumbarCommand?.((cmd) => {
+  if (cmd === 'open-folder') {
+    document.getElementById('open-folder-btn')?.click();
+  } else if (cmd === 'cancel-all') {
+    // reuse each active card's own cancel button — full per-card semantics
+    items.forEach(i => {
+      if (i.status === 'downloading' || i.status === 'converting') {
+        document.getElementById(`cancel${i.id}`)?.click();
+      }
+    });
+  }
+});
+
+// ── OS activity: taskbar progress, badge count, sleep blocker ────────────────
+// Aggregates active jobs (main cards; subscriptions report via their own
+// channel) and reports to the shell on change. Badge overlay (Windows) is a
+// small canvas-drawn count; other platforms use their native badge counters.
+let _lastActivityKey = '';
+function reportActivity() {
+  if (!window.electronAPI?.setActivity) return;
+  const act = items.filter(i => i.status === 'downloading' || i.status === 'converting');
+  const jobs = act.map(i => i._lastProgress || 0);
+  const progress = jobs.length ? jobs.reduce((a, b) => a + b, 0) / jobs.length / 100 : -1;
+  const key = `${act.length}:${progress.toFixed(3)}`;
+  if (key === _lastActivityKey) return;
+  _lastActivityKey = key;
+  let badge = null;
+  if (act.length > 0) {
+    try {
+      const c = document.createElement('canvas'); c.width = 32; c.height = 32;
+      const g = c.getContext('2d');
+      g.fillStyle = '#d93025'; g.beginPath(); g.arc(16, 16, 16, 0, 7); g.fill();
+      g.fillStyle = '#fff'; g.font = 'bold 20px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText(act.length > 9 ? '9+' : String(act.length), 16, 18);
+      badge = c.toDataURL('image/png');
+    } catch {}
+  }
+  window.electronAPI.setActivity({ active: act.length, progress, badge });
+}
+
+function notifyJobFinished(item, ok, detail) {
+  // OS notification only when the window isn't being looked at
+  try {
+    if (!document.hidden) return;
+    if (typeof Notification === 'undefined' || Notification.permission === 'denied') return;
+    const title = ok ? (i18nGet('notify.download_complete') || 'Download complete')
+                     : (i18nGet('notify.download_failed') || 'Download failed');
+    new Notification(title, { body: detail || item.info?.title || item.url, silent: false });
+  } catch {}
+}
+
 function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
   const iv = setInterval(async () => {
     if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
@@ -545,6 +602,8 @@ function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
     try {
       const d = await fetch(`/api/status/${item.jobId}`).then(r => r.json());
       if (item.status === 'cancelled') return;
+      if (typeof d.progress === 'number') item._lastProgress = d.progress;
+      reportActivity();
       // Backend evicted the job (cleanup worker / app restart) — stop polling so
       // the card doesn't hang on "Downloading…" forever (the subscriptions poller
       // already handles this case).

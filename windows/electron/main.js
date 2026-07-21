@@ -1,4 +1,4 @@
-const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, nativeImage, screen, session } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, shell, Tray, Menu, nativeImage, screen, session, powerSaveBlocker } = require('electron');
 const { spawn, execSync, execFileSync } = require('child_process');
 const path = require('path');
 const fs   = require('fs');
@@ -762,6 +762,55 @@ ipcMain.handle('close-subscriptions', async (event) => {
 
 // Item 1: renderer keeps main.js informed whether subscriptions has active
 // downloads, so subsWindow.on('close') above can decide whether to confirm.
+
+// ── Activity reporting: taskbar progress, badge, sleep blocker ───────────────
+// Renderer sends { progress: 0..1 | -1, active: n, badge: dataURL|null } on
+// every poll tick where something changed. -1 clears the bar. The sleep
+// blocker holds only while active > 0 so long downloads/encodes survive the
+// OS idle timer, and releases the moment the queue drains.
+
+// ── Taskbar thumbnail toolbar (Windows) ──────────────────────────────────────
+// Buttons relay to the renderer, which reuses the existing UI handlers so the
+// cards update exactly as if the user clicked in-app.
+function setupThumbar() {
+  try {
+    if (!mainWindow || mainWindow.isDestroyed()) return;
+    mainWindow.setThumbarButtons([
+      { tooltip: 'Open download folder',
+        icon: safeIcon(path.join(__dirname, '..', 'static', 'thumb-folder.png'), 24),
+        click: () => { try { mainWindow.webContents.send('thumbar-cmd', 'open-folder'); } catch {} } },
+      { tooltip: 'Cancel active downloads',
+        icon: safeIcon(path.join(__dirname, '..', 'static', 'thumb-cancel.png'), 24),
+        click: () => { try { mainWindow.webContents.send('thumbar-cmd', 'cancel-all'); } catch {} } },
+    ]);
+  } catch {}
+}
+
+let _psbId = null;
+ipcMain.on('set-activity', (event, a) => {
+  try {
+    if (!isTrustedSender(event)) return;
+    if (!a || typeof a !== 'object') return;
+    const active = Number.isInteger(a.active) && a.active > 0 ? a.active : 0;
+    const prog = (typeof a.progress === 'number' && a.progress >= 0 && a.progress <= 1) ? a.progress : -1;
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.setProgressBar(active > 0 ? prog : -1);
+      if (active > 0 && typeof a.badge === 'string'
+          && a.badge.startsWith('data:image/png;base64,') && a.badge.length < 20000) {
+        try { mainWindow.setOverlayIcon(nativeImage.createFromDataURL(a.badge), `${active} active`); } catch {}
+      } else {
+        mainWindow.setOverlayIcon(null, '');
+      }
+    }
+    if (active > 0 && _psbId === null) {
+      _psbId = powerSaveBlocker.start('prevent-app-suspension');
+    } else if (active === 0 && _psbId !== null) {
+      try { powerSaveBlocker.stop(_psbId); } catch {}
+      _psbId = null;
+    }
+  } catch {}
+});
+
 ipcMain.on('subs-active-downloads', (event, active) => {
   if (!isTrustedSender(event)) return;
   subsActiveDownloads = !!active;
@@ -978,7 +1027,8 @@ app.whenReady().then(async () => {
     });
   });
 
-  createTray();         // tray first — visible immediately
+  createTray();
+  setupThumbar();         // tray first — visible immediately
   createSplash();       // show splash — visible during Flask/ffmpeg startup
   startFlask();         // spawn backend (non-blocking — createWindow waits for it)
   await createWindow(); // window polls until Flask responds, then loads
