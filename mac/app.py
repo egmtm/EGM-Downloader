@@ -1513,22 +1513,29 @@ def get_info():
     url  = data.get("url", "").strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
-        return jsonify({"error": "Only http and https URLs are supported"}), 400
+        return jsonify({"error": "Only http and https URLs are supported",
+                        "error_key": "fetch.error.url_scheme"}), 400
     try:
         r = _ytdlp("--no-playlist", "-j", url, timeout=60)
         if r.returncode != 0:
             err = [l for l in r.stderr.splitlines() if l.strip() and not l.startswith("WARNING")]
-            return jsonify({"error": err[-1] if err else "yt-dlp error"}), 400
+            raw = err[-1] if err else "yt-dlp error"
+            code = _classify_error(raw)
+            return jsonify({"error": raw,
+                            "error_key": f"download.error.{code}" if code else None}), 400
         jl = next((l for l in r.stdout.splitlines() if l.strip().startswith("{")), None)
-        if not jl: return jsonify({"error": "No metadata returned"}), 400
+        if not jl: return jsonify({"error": "No metadata returned",
+                                   "error_key": "fetch.error.no_metadata"}), 400
         info = json.loads(jl)
         return jsonify({"title": info.get("title",""), "thumbnail": info.get("thumbnail",""),
                         "duration": info.get("duration"),
                         "uploader": info.get("uploader") or info.get("channel") or "",
                         "formats": _build_formats(info), "audio_formats": _build_audio_formats(info),
                         "width": info.get("width"), "height": info.get("height")})
-    except subprocess.TimeoutExpired: return jsonify({"error": "Timed out"}), 400
-    except Exception as e: return jsonify({"error": str(e)}), 400
+    except subprocess.TimeoutExpired: return jsonify({"error": "Timed out",
+                                                      "error_key": "fetch.error.timeout"}), 400
+    except Exception as e: return jsonify({"error": str(e),
+                                           "error_key": (lambda c: f"download.error.{c}" if c else None)(_classify_error(str(e)))}), 400
 
 @app.route("/api/playlist", methods=["POST"])
 def get_playlist():

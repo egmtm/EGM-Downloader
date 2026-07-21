@@ -5,7 +5,7 @@ document.getElementById('fetch-btn').addEventListener('click', fetchAll);
 async function fetchSingle(url, ph) {
   const info = await post('/api/info', { url });
   if (fetchAbort) { ph.remove(); return; }
-  if (info.error) throw new Error(info.error);
+  if (info.error) { const er = new Error(info.error); er.i18nKey = info.error_key; throw er; }
   renderCard(ph, addItem(url, info));
   updateQueueArrows();
 }
@@ -87,7 +87,7 @@ async function fetchAll() {
       } else {
         await fetchSingle(url, ph);
       }
-    } catch (e) { renderErr(ph, url, e.message); }
+    } catch (e) { renderErr(ph, url, e.message, e.i18nKey); }
   }
 
   // Finish immediately if not aborted, or if aborted with no pending info calls
@@ -144,10 +144,11 @@ function updateQueueArrows() {
 }
 
 
-function renderErr(el, url, msg) {
+function renderErr(el, url, msg, i18nKey) {
+  const shown = (i18nKey && i18nGet(i18nKey)) || msg;
   el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
     <div class="vbody"><div class="vtitle">${esc(trunc(url,70))}</div>
-    <div class="vmeta"><span class="badge b-error">Error: ${esc(msg)}</span></div></div>`;
+    <div class="vmeta"><span class="badge b-error">Error: ${esc(shown)}</span></div></div>`;
 }
 
 function renderCard(el, item) {
