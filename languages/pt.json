@@ -532,13 +532,13 @@
     "themes.confirm.delete_title": "Excluir este tema?",
     "themes.confirm.delete_body": "\"{0}\" será excluído permanentemente. Isso não pode ser desfeito.",
     "card.quality.hdr_tooltip": "O HDR requer uma tela e um reprodutor compatíveis com HDR — caso contrário, as cores ficam desbotadas. Downloads em HDR são salvos como MKV.",
-    "console.title": "Console de log",
+    "console.title": "Diagnóstico",
     "console.readonly_note": "Somente leitura — log ao vivo do aplicativo",
     "console.empty": "Ainda não há entradas de log.",
     "console.toggle.ytdlp": "Mostrar saída do yt-dlp",
     "console.btn.export": "Exportar",
     "tray.open": "Abrir EGM Downloader",
     "tray.quit": "Sair",
-    "footer.btn.diagnostics": "Diagnostics"
+    "footer.btn.diagnostics": "Diagnóstico"
   }
 }
