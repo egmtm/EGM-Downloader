@@ -540,7 +540,7 @@
     "tray.open": "EGM Downloader を開く",
     "tray.quit": "終了",
     "footer.btn.diagnostics": "診断",
-    "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
-    "download.error.extract": "Could not extract video info. The page may have changed."
+    "download.error.no_formats": "ダウンロード可能な形式が見つかりませんでした。多くの場合、メンバー限定動画です — このチャンネルのメンバーであれば、設定でアカウントの Cookie を読み込んでもう一度お試しください。非公開、地域制限、またはその他の制限がかかっている可能性もあります。",
+    "download.error.extract": "動画情報を取得できませんでした。ページが変更された可能性があります。"
   }
 }
