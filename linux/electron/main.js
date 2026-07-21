@@ -653,6 +653,8 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     if (choice === 0) { subsForceClose = true; subsWindow.close(); }
   });
   subsWindow.on('closed', () => {
+    _activityBySender.delete(subsWindow);
+    _applyAggregateActivity();
     subsWindow = null;
     subsActiveDownloads = false; subsForceClose = false;
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.show();
@@ -668,27 +670,48 @@ ipcMain.handle('close-subscriptions', async (event) => {
 // downloads, so subsWindow.on('close') above can decide whether to confirm.
 
 // ── Activity reporting: taskbar progress, badge, sleep blocker ───────────────
-// Renderer sends { progress: 0..1 | -1, active: n, badge: dataURL|null } on
-// every poll tick where something changed. -1 clears the bar. The sleep
-// blocker holds only while active > 0 so long downloads/encodes survive the
-// OS idle timer, and releases the moment the queue drains.
+// Each window (main, subscriptions) sends { progress: 0..1 | -1, active: n }
+// on every poll tick where its own state changed. Main and subscriptions can
+// both have genuinely concurrent activity -- subscriptions hides the main
+// window visually ("sub-app mode") but doesn't pause it, so a download
+// started in the main window keeps running (and keeps being reportable)
+// while subscriptions is the visible window. Tracked per-sender and
+// aggregated into what the shell actually shows, so neither window's report
+// can silently clobber the other's.
 let _psbId = null;
+const _activityBySender = new Map();   // BrowserWindow -> {active, progress}
+
+function _applyAggregateActivity() {
+  let active = 0, weighted = 0, counted = 0;
+  for (const st of _activityBySender.values()) {
+    active += st.active;
+    if (st.progress >= 0) { weighted += st.progress; counted++; }
+  }
+  const prog = counted > 0 ? weighted / counted : -1;
+
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setProgressBar(active > 0 ? prog : -1);
+    try { app.setBadgeCount(active); } catch {}
+  }
+  if (active > 0 && _psbId === null) {
+    _psbId = powerSaveBlocker.start('prevent-app-suspension');
+  } else if (active === 0 && _psbId !== null) {
+    try { powerSaveBlocker.stop(_psbId); } catch {}
+    _psbId = null;
+  }
+}
+
 ipcMain.on('set-activity', (event, a) => {
   try {
     if (!isTrustedSender(event)) return;
     if (!a || typeof a !== 'object') return;
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (!win || win.isDestroyed()) return;
     const active = Number.isInteger(a.active) && a.active > 0 ? a.active : 0;
     const prog = (typeof a.progress === 'number' && a.progress >= 0 && a.progress <= 1) ? a.progress : -1;
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.setProgressBar(active > 0 ? prog : -1);
-      try { app.setBadgeCount(active); } catch {}
-    }
-    if (active > 0 && _psbId === null) {
-      _psbId = powerSaveBlocker.start('prevent-app-suspension');
-    } else if (active === 0 && _psbId !== null) {
-      try { powerSaveBlocker.stop(_psbId); } catch {}
-      _psbId = null;
-    }
+    if (active === 0) _activityBySender.delete(win);
+    else _activityBySender.set(win, { active, progress: prog });
+    _applyAggregateActivity();
   } catch {}
 });
 
@@ -815,6 +838,7 @@ app.on('window-all-closed', () => {
 
 app.on('before-quit', () => {
   app.isQuitting = true;
+  if (_psbId !== null) { try { powerSaveBlocker.stop(_psbId); } catch {} _psbId = null; }
   if (!flaskProc) return;
 
   const pid = flaskProc.pid;

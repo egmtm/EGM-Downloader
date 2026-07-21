@@ -537,13 +537,15 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
 
 
 // ── OS activity: taskbar progress, badge count, sleep blocker ────────────────
-// Aggregates active jobs from the MAIN-WINDOW cards only and reports to the
-// shell on change. The subscriptions window does NOT report yet — its queue
-// downloads hold no sleep blocker and show no taskbar progress; wiring it
-// needs per-sender aggregation in main.js (two windows sharing one
-// last-writer-wins channel would clobber each other's counts). Badge overlay
-// (Windows) is a small canvas-drawn count; other platforms use their native
-// badge counters.
+// Aggregates active jobs from this window's cards and reports to the shell
+// on change. Subscriptions reports its own activity the same way -- main.js
+// tracks both senders separately and aggregates (neither window's report
+// clobbers the other's; a download started here keeps being reportable even
+// while subscriptions is the visible window). The Windows overlay badge is
+// now picked by main.js from small pre-rendered icons based on the
+// aggregate count, not drawn here -- a badge drawn in just one window could
+// never reflect the combined count anyway. Mac/Linux use their native badge
+// counters, also computed from the aggregate on the main-process side.
 let _lastActivityKey = '';
 function reportActivity() {
   if (!window.electronAPI?.setActivity) return;
@@ -553,18 +555,7 @@ function reportActivity() {
   const key = `${act.length}:${progress.toFixed(3)}`;
   if (key === _lastActivityKey) return;
   _lastActivityKey = key;
-  let badge = null;
-  if (act.length > 0) {
-    try {
-      const c = document.createElement('canvas'); c.width = 32; c.height = 32;
-      const g = c.getContext('2d');
-      g.fillStyle = '#d93025'; g.beginPath(); g.arc(16, 16, 16, 0, 7); g.fill();
-      g.fillStyle = '#fff'; g.font = 'bold 20px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle';
-      g.fillText(act.length > 9 ? '9+' : String(act.length), 16, 18);
-      badge = c.toDataURL('image/png');
-    } catch {}
-  }
-  window.electronAPI.setActivity({ active: act.length, progress, badge });
+  window.electronAPI.setActivity({ active: act.length, progress });
 }
 
 function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {

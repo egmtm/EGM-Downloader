@@ -835,6 +835,7 @@ async function pollJobs() {
     }
   }
   syncCloseGuard();
+  reportActivity();
 }
 
 // ── Render detail ────────────────────────────────────────────────────────────
@@ -1548,6 +1549,22 @@ function syncCloseGuard() {
   if (window.electronAPI && window.electronAPI.notifySubsDownloads) {
     window.electronAPI.notifySubsDownloads(active);
   }
+}
+
+// Same shape and dedup convention as the main window's reportActivity() --
+// main.js tracks each window's report separately and aggregates them, so
+// this window's activity adds to (not replaces) whatever the main window
+// is independently reporting.
+let _lastActivityKey = '';
+function reportActivity() {
+  if (!window.electronAPI?.setActivity) return;
+  const act = [...allJobs.values()].filter(j => !TERMINAL_STATES.includes(j.status));
+  const jobs = act.map(j => (typeof j.data?.progress === 'number' ? j.data.progress : 0));
+  const progress = jobs.length ? jobs.reduce((a, b) => a + b, 0) / jobs.length / 100 : -1;
+  const key = `${act.length}:${progress.toFixed(3)}`;
+  if (key === _lastActivityKey) return;
+  _lastActivityKey = key;
+  window.electronAPI.setActivity({ active: act.length, progress });
 }
 
 document.getElementById('back-btn').addEventListener('click', () => {
