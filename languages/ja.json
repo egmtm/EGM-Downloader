@@ -539,6 +539,8 @@
     "console.btn.export": "エクスポート",
     "tray.open": "EGM Downloader を開く",
     "tray.quit": "終了",
-    "footer.btn.diagnostics": "診断"
+    "footer.btn.diagnostics": "診断",
+    "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
+    "download.error.extract": "Could not extract video info. The page may have changed."
   }
 }
