@@ -1276,6 +1276,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
     try:
+        # Host only, not the full URL -- a private/signed URL can carry an
+        # access token in its query string, and this line lands in
+        # egm_debug.log, the file the support field protocol asks users to
+        # email in. The full URL still reaches _yt_log()/_YT_RING via yt-dlp's
+        # own stdout below, which is memory-only and console-only.
+        _log_host = urllib.parse.urlparse(url).hostname or "unknown-host"
+        _egm_log(f"download started ({format_choice}): {_log_host}")
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace",
                          start_new_session=True)

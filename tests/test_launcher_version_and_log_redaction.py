@@ -77,18 +77,24 @@ def test_download_complete_log_line_does_not_use_raw_filename():
 
 
 def test_download_started_log_line_does_not_use_raw_url():
-    """Root's download-started _egm_log call must log the host, not the raw
+    """The download-started _egm_log call must log the host, not the raw
     URL -- a private/signed URL can carry an access token in its query
-    string. (Only root currently has this line; mac/linux don't have a
-    download-started log at all, a separate pre-existing platform gap, not
-    part of this fix.)"""
-    src = read_source("app.py")
-    i = src.index('_egm_log(f"download started')
-    line = src[i:i + 120]
-    assert ": {url}" not in line, (
-        "download-started log line interpolates the raw URL directly -- "
-        "must resolve to just the hostname first"
-    )
-    assert "_log_host" in line, (
-        "download-started log line should still log the host for diagnostic value"
-    )
+    string. Now present and consistent on all 3 platforms (mac/linux
+    previously had no download-started log at all -- closed as a platform
+    parity gap, not part of the original redaction fix)."""
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        assert '_egm_log(f"download started' in src, (
+            f"{p}: missing the download-started diagnostic log line -- "
+            f"platform parity gap, should match the other 2 platforms"
+        )
+        i = src.index('_egm_log(f"download started')
+        line = src[i:i + 120]
+        assert ": {url}" not in line, (
+            f"{p}: download-started log line interpolates the raw URL "
+            f"directly -- must resolve to just the hostname first"
+        )
+        assert "_log_host" in line, (
+            f"{p}: download-started log line should still log the host "
+            f"for diagnostic value"
+        )
