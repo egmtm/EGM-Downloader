@@ -539,11 +539,7 @@
     "console.empty": "まだログエントリはありません。",
     "console.toggle.ytdlp": "yt-dlp の出力を表示",
     "console.btn.export": "エクスポート",
-    "notify.download_complete": "ダウンロード完了",
-    "notify.download_failed": "ダウンロード失敗",
     "tray.open": "EGM Downloader を開く",
-    "tray.quit": "終了",
-    "thumbar.open_folder": "ダウンロードフォルダを開く",
-    "thumbar.cancel_active": "アクティブなダウンロードをキャンセル"
+    "tray.quit": "終了"
   }
 }

@@ -482,7 +482,7 @@ def test_preload_bridge_full_parity():
 
     # Windows extras must be a KNOWN allowlist — catches accidental Windows-only feature functions
     win_only = win_keys - shared
-    allowed_win_only = {"launchInstaller", "createShortcut", "onThumbarCommand"}  # legitimately Windows-only (thumbar = Windows taskbar thumbnail toolbar)
+    allowed_win_only = {"launchInstaller", "createShortcut"}  # legitimately Windows-only
     unexpected = win_only - allowed_win_only
     assert not unexpected, (
         f"Windows-only bridge functions not in allowlist: {unexpected}. "

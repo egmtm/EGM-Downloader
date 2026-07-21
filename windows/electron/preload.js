@@ -29,7 +29,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openSubscriptions:  ()               => ipcRenderer.invoke('open-subscriptions-window'),
   closeSubscriptions: ()               => ipcRenderer.invoke('close-subscriptions'),
   notifySubsDownloads: (active)        => ipcRenderer.send('subs-active-downloads', !!active),
-  onThumbarCommand:  (cb)             => ipcRenderer.on('thumbar-cmd', (_e, cmd) => { if (cmd === 'open-folder' || cmd === 'cancel-all') cb(cmd); }),
   setActivity:        (a)              => ipcRenderer.send('set-activity', a),
   refocusWindow:       ()                 => ipcRenderer.send('refocus-window'),
   setLanguage:        (lang)           => { if (isStr(lang) && /^[a-z]{2}$/.test(lang)) ipcRenderer.send('set-language', lang); },

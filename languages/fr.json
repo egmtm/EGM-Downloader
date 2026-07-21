@@ -539,11 +539,7 @@
     "console.empty": "Aucune entrée de journal pour l'instant.",
     "console.toggle.ytdlp": "Afficher la sortie de yt-dlp",
     "console.btn.export": "Exporter",
-    "notify.download_complete": "Téléchargement terminé",
-    "notify.download_failed": "Échec du téléchargement",
     "tray.open": "Ouvrir EGM Downloader",
-    "tray.quit": "Quitter",
-    "thumbar.open_folder": "Ouvrir le dossier de téléchargement",
-    "thumbar.cancel_active": "Annuler les téléchargements actifs"
+    "tray.quit": "Quitter"
   }
 }

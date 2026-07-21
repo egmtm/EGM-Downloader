@@ -539,11 +539,7 @@
     "console.empty": "لا توجد إدخالات سجل بعد.",
     "console.toggle.ytdlp": "إظهار مخرجات yt-dlp",
     "console.btn.export": "تصدير",
-    "notify.download_complete": "اكتمل التحميل",
-    "notify.download_failed": "فشل التحميل",
     "tray.open": "فتح EGM Downloader",
-    "tray.quit": "إنهاء",
-    "thumbar.open_folder": "فتح مجلد التحميل",
-    "thumbar.cancel_active": "إلغاء التحميلات النشطة"
+    "tray.quit": "إنهاء"
   }
 }

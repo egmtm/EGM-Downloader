@@ -291,18 +291,16 @@ function waitForFlask(retries = 180, delay = 1000) {
 
 // ── Create tray ───────────────────────────────────────────────────────────────
 
-// ── Shell i18n: tray + thumbnail-toolbar strings ─────────────────────────────
-// The main process has no access to the renderer's i18n, so shell surfaces
-// (tray menu, thumbar tooltips) read the locale file directly. Falls back to
-// English on any failure; refreshed live via the set-language channel.
+// ── Shell i18n: tray strings ──────────────────────────────────────────────────
+// The main process has no access to the renderer's i18n, so the tray menu
+// reads the locale file directly. Falls back to English on any failure;
+// refreshed live via the set-language channel.
 let _shellLang = null;
 const SHELL_FALLBACK = {
   trayOpen: 'Open EGM Downloader', trayQuit: 'Quit',
-  thumbFolder: 'Open download folder', thumbCancel: 'Cancel active downloads',
 };
 function shellStrings() {
-  const KEYS = { trayOpen: 'tray.open', trayQuit: 'tray.quit',
-                 thumbFolder: 'thumbar.open_folder', thumbCancel: 'thumbar.cancel_active' };
+  const KEYS = { trayOpen: 'tray.open', trayQuit: 'tray.quit' };
   try {
     const lang = _shellLang || (readSettings().language || 'en');
     if (!/^[a-z]{2}$/.test(lang)) return { ...SHELL_FALLBACK };
@@ -316,7 +314,6 @@ function shellStrings() {
 function refreshShellText() {
   try {
     if (tray) tray.setContextMenu(buildTrayMenu());
-    setupThumbar();
   } catch {}
 }
 
@@ -801,23 +798,6 @@ ipcMain.handle('close-subscriptions', async (event) => {
 // blocker holds only while active > 0 so long downloads/encodes survive the
 // OS idle timer, and releases the moment the queue drains.
 
-// ── Taskbar thumbnail toolbar (Windows) ──────────────────────────────────────
-// Buttons relay to the renderer, which reuses the existing UI handlers so the
-// cards update exactly as if the user clicked in-app.
-function setupThumbar() {
-  try {
-    if (!mainWindow || mainWindow.isDestroyed()) return;
-    mainWindow.setThumbarButtons([
-      { tooltip: shellStrings().thumbFolder,
-        icon: safeIcon(path.join(__dirname, '..', 'static', 'thumb-folder.png'), 24),
-        click: () => { try { mainWindow.webContents.send('thumbar-cmd', 'open-folder'); } catch {} } },
-      { tooltip: shellStrings().thumbCancel,
-        icon: safeIcon(path.join(__dirname, '..', 'static', 'thumb-cancel.png'), 24),
-        click: () => { try { mainWindow.webContents.send('thumbar-cmd', 'cancel-all'); } catch {} } },
-    ]);
-  } catch {}
-}
-
 let _psbId = null;
 ipcMain.on('set-activity', (event, a) => {
   try {
@@ -1066,8 +1046,7 @@ app.whenReady().then(async () => {
     });
   });
 
-  createTray();         // tray first — visible immediately
-  setupThumbar();
+  createTray();
   createSplash();       // show splash — visible during Flask/ffmpeg startup
   startFlask();         // spawn backend (non-blocking — createWindow waits for it)
   await createWindow(); // window polls until Flask responds, then loads

@@ -479,7 +479,6 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   };
   if (d.status === 'done') {
     item.status = 'done';
-    notifyJobFinished(item, true, d.filename);
     reportActivity();
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
@@ -513,7 +512,6 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   }
   if (d.status === 'error') {
     item.status = 'error';
-    notifyJobFinished(item, false, d.error);
     reportActivity();
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
@@ -537,20 +535,6 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   return false;
 }
 
-
-// ── Taskbar thumbnail-toolbar commands (Windows) ─────────────────────────────
-window.electronAPI?.onThumbarCommand?.((cmd) => {
-  if (cmd === 'open-folder') {
-    document.getElementById('open-folder-btn')?.click();
-  } else if (cmd === 'cancel-all') {
-    // reuse each active card's own cancel button — full per-card semantics
-    items.forEach(i => {
-      if (i.status === 'downloading' || i.status === 'converting') {
-        document.getElementById(`cancel${i.id}`)?.click();
-      }
-    });
-  }
-});
 
 // ── OS activity: taskbar progress, badge count, sleep blocker ────────────────
 // Aggregates active jobs from the MAIN-WINDOW cards only and reports to the
@@ -581,17 +565,6 @@ function reportActivity() {
     } catch {}
   }
   window.electronAPI.setActivity({ active: act.length, progress, badge });
-}
-
-function notifyJobFinished(item, ok, detail) {
-  // OS notification only when the window isn't being looked at
-  try {
-    if (!document.hidden) return;
-    if (typeof Notification === 'undefined' || Notification.permission === 'denied') return;
-    const title = ok ? (i18nGet('notify.download_complete') || 'Download complete')
-                     : (i18nGet('notify.download_failed') || 'Download failed');
-    new Notification(title, { body: detail || item.info?.title || item.url, silent: false });
-  } catch {}
 }
 
 function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
