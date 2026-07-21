@@ -4,11 +4,11 @@
   "_language_english": "Japanese",
   "_code": "ja",
   "_direction": "ltr",
-  "_version": "1.3.2",
+  "_version": "1.3.4",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-14",
+  "_last_updated": "2026-07-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & 他{0}サイト",
@@ -539,11 +539,11 @@
     "console.empty": "まだログエントリはありません。",
     "console.toggle.ytdlp": "yt-dlp の出力を表示",
     "console.btn.export": "エクスポート",
-    "notify.download_complete": "Download complete",
-    "notify.download_failed": "Download failed",
-    "tray.open": "Open EGM Downloader",
-    "tray.quit": "Quit",
-    "thumbar.open_folder": "Open download folder",
-    "thumbar.cancel_active": "Cancel active downloads"
+    "notify.download_complete": "ダウンロード完了",
+    "notify.download_failed": "ダウンロード失敗",
+    "tray.open": "EGM Downloader を開く",
+    "tray.quit": "終了",
+    "thumbar.open_folder": "ダウンロードフォルダを開く",
+    "thumbar.cancel_active": "アクティブなダウンロードをキャンセル"
   }
 }
