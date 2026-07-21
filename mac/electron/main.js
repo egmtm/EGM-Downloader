@@ -367,7 +367,7 @@ ipcMain.handle('open-folder', async (event, folderPath) => {
 // ── IPC: save file dialog (settings export) ───────────────────────────────────
 ipcMain.handle('save-file', async (event, defaultName, content) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-  // Extension-aware: .txt exports (log console) get a text filter/title;
+  // Extension-aware: .txt exports (the Diagnostics window) get a text filter/title;
   // everything else keeps the original JSON behavior (settings/theme export).
   const isTxt = /\.txt$/i.test(defaultName || '');
   const parent = BrowserWindow.fromWebContents(event.sender) || mainWindow;
@@ -532,7 +532,7 @@ ipcMain.handle('open-console-window', async (event) => {
   const bounds = loadConsoleBounds();
   consoleWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 320,
-    title: 'Log Console — EGM Downloader',
+    title: 'Diagnostics — EGM Downloader',
     icon: path.join(__dirname, '..', 'app', 'static', 'icon-512.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
