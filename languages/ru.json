@@ -537,6 +537,7 @@
     "console.readonly_note": "Только чтение — журнал приложения в реальном времени",
     "console.empty": "Записей в журнале пока нет.",
     "console.toggle.ytdlp": "Показать вывод yt-dlp",
+    "console.toggle.flask": "Show Flask output",
     "console.btn.export": "Экспорт",
     "tray.open": "Открыть EGM Downloader",
     "tray.quit": "Выход",

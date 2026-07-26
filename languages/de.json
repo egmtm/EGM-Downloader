@@ -537,6 +537,7 @@
     "console.readonly_note": "Schreibgeschützt — Live-Log der Anwendung",
     "console.empty": "Noch keine Protokolleinträge.",
     "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
+    "console.toggle.flask": "Show Flask output",
     "console.btn.export": "Exportieren",
     "tray.open": "EGM Downloader öffnen",
     "tray.quit": "Beenden",

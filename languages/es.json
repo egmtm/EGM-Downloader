@@ -537,6 +537,7 @@
     "console.readonly_note": "Solo lectura — registro en vivo de la aplicación",
     "console.empty": "Aún no hay entradas de registro.",
     "console.toggle.ytdlp": "Mostrar salida de yt-dlp",
+    "console.toggle.flask": "Show Flask output",
     "console.btn.export": "Exportar",
     "tray.open": "Abrir EGM Downloader",
     "tray.quit": "Salir",

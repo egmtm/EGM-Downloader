@@ -537,6 +537,7 @@
     "console.readonly_note": "Alleen-lezen — live logboek van de app",
     "console.empty": "Nog geen logvermeldingen.",
     "console.toggle.ytdlp": "yt-dlp-uitvoer tonen",
+    "console.toggle.flask": "Show Flask output",
     "console.btn.export": "Exporteren",
     "tray.open": "EGM Downloader openen",
     "tray.quit": "Afsluiten",

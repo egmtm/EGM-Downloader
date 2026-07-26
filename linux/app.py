@@ -265,6 +265,49 @@ def _yt_log(line):
         if len(_YT_RING) > _LOG_RING_MAX:
             del _YT_RING[: len(_YT_RING) - _LOG_RING_MAX]
 
+_FLASK_RING: list = []
+_FLASK_SEQ = 0
+
+def _flask_raw_log(line):
+    """Raw stdout/stderr ring -- everything a terminal-launched run would
+    show (Werkzeug's own request logging, print()s, uncaught tracebacks),
+    unfiltered. Memory-only like _YT_RING, same reasoning: this can contain
+    full local paths (a traceback) or other detail that doesn't belong in
+    egm_debug.log, the file the support field protocol asks users to email
+    in. Displayed only when the console's Flask-output toggle is on."""
+    global _FLASK_SEQ
+    with _LOG_RING_LOCK:
+        _FLASK_SEQ += 1
+        _FLASK_RING.append({"n": _FLASK_SEQ, "t": time.strftime("%H:%M:%S"), "m": line})
+        if len(_FLASK_RING) > _LOG_RING_MAX:
+            del _FLASK_RING[: len(_FLASK_RING) - _LOG_RING_MAX]
+
+class _StdTee:
+    """Tees sys.stdout/sys.stderr writes to the real stream (so a terminal-
+    launched run behaves exactly as before) and _flask_raw_log, line-
+    buffered so a write() spanning a partial line doesn't ring-append a
+    fragment."""
+    def __init__(self, real):
+        self._real = real
+        self._buf = ""
+
+    def write(self, s):
+        self._real.write(s)
+        self._buf += s
+        while "\n" in self._buf:
+            line, self._buf = self._buf.split("\n", 1)
+            _flask_raw_log(line)
+        return len(s)
+
+    def flush(self):
+        self._real.flush()
+
+    def isatty(self):
+        return False
+
+sys.stdout = _StdTee(sys.stdout)
+sys.stderr = _StdTee(sys.stderr)
+
 def _egm_log(msg):
     global _LOG_SEQ
     line = f"[EGM] {msg}"
@@ -2334,6 +2377,8 @@ def api_logs():
     since = request.args.get("since", 0, type=int)
     want_yt = request.args.get("yt", 0, type=int)
     yts = request.args.get("yts", 0, type=int)
+    want_flask = request.args.get("flask", 0, type=int)
+    fs = request.args.get("fs", 0, type=int)
     with _LOG_RING_LOCK:
         lines = [e for e in _LOG_RING if e["n"] > since]
         nxt = _LOG_SEQ
@@ -2341,6 +2386,9 @@ def api_logs():
         if want_yt:
             resp["yt_lines"] = [e for e in _YT_RING if e["n"] > yts]
             resp["yt_next"] = _YT_SEQ
+        if want_flask:
+            resp["flask_lines"] = [e for e in _FLASK_RING if e["n"] > fs]
+            resp["flask_next"] = _FLASK_SEQ
     return jsonify(resp)
 
 @app.route("/console-page")

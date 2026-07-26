@@ -32,6 +32,8 @@
   .log-line.okc{color:var(--green);opacity:1}
   .log-line.yt{opacity:.6;font-size:11px}
   .log-line.yt .lt{opacity:.8}
+  .log-line.flask{opacity:.6;font-size:11px}
+  .log-line.flask .lt{opacity:.8}
   /* lint-allow-muted: empty-state */
   .log-empty{color:var(--muted);padding:20px 6px;font-style:italic}
 
@@ -46,6 +48,10 @@
       <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none">
         <input type="checkbox" id="yt-toggle" style="accent-color:var(--acc)">
         <span data-i18n="console.toggle.ytdlp">Show yt-dlp output</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none">
+        <input type="checkbox" id="flask-toggle" style="accent-color:var(--acc)">
+        <span data-i18n="console.toggle.flask">Show Flask output</span>
       </label>
       <button id="export-btn" style="font-size:10.5px;padding:3px 12px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2)" data-i18n="console.btn.export">Export</button>
       <span class="tb-note" data-i18n="console.readonly_note">Read-only — live application log</span>
@@ -98,6 +104,11 @@ ytToggle.checked = localStorage.getItem('egm-console-yt') === '1';
 ytToggle.addEventListener('change', () => {
   try { localStorage.setItem('egm-console-yt', ytToggle.checked ? '1' : '0'); } catch {}
 });
+const flaskToggle = document.getElementById('flask-toggle');
+flaskToggle.checked = localStorage.getItem('egm-console-flask') === '1';
+flaskToggle.addEventListener('change', () => {
+  try { localStorage.setItem('egm-console-flask', flaskToggle.checked ? '1' : '0'); } catch {}
+});
 
 wrap.addEventListener('scroll', () => {
   pinned = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 12;
@@ -124,30 +135,36 @@ function appendLines(entries, extraClass) {
     frag.appendChild(div);
   }
   wrap.appendChild(frag);
-  // cap DOM so a long-open window never balloons (2x ring: diag + yt streams)
+  // cap DOM so a long-open window never balloons (3x ring: diag + yt + flask streams)
   while (wrap.children.length > 2000) wrap.removeChild(wrap.firstChild);
   if (pinned) wrap.scrollTop = wrap.scrollHeight;
 }
 
+let flaskSince = 0;
 async function poll() {
   try {
     const yt = ytToggle.checked ? `&yt=1&yts=${ytSince}` : '';
-    const d = await fetch(`/api/logs?since=${since}${yt}`).then(r => r.json());
+    const fl = flaskToggle.checked ? `&flask=1&fs=${flaskSince}` : '';
+    const d = await fetch(`/api/logs?since=${since}${yt}${fl}`).then(r => r.json());
     appendLines(d.lines);
     if (ytToggle.checked && d.yt_lines) { appendLines(d.yt_lines, 'yt'); ytSince = d.yt_next ?? ytSince; }
+    if (flaskToggle.checked && d.flask_lines) { appendLines(d.flask_lines, 'flask'); flaskSince = d.flask_next ?? flaskSince; }
     since = d.next ?? since;
   } catch {}
   setTimeout(poll, 1000);
 }
 poll();
 
-// ── Export: full diagnostic ring (+ yt ring when the toggle is on) as a file ──
+// ── Export: full diagnostic ring (+ yt/flask rings when their toggles are on) as a file ──
 document.getElementById('export-btn').addEventListener('click', async () => {
   try {
-    const d = await fetch(`/api/logs?since=0&yt=1&yts=0`).then(r => r.json());
+    const d = await fetch(`/api/logs?since=0&yt=1&yts=0&flask=1&fs=0`).then(r => r.json());
     const parts = (d.lines || []).map(e => `${e.t} [EGM] ${e.m}`);
     if (ytToggle.checked) {
       for (const e of (d.yt_lines || [])) parts.push(`${e.t} [yt-dlp] ${e.m}`);
+    }
+    if (flaskToggle.checked) {
+      for (const e of (d.flask_lines || [])) parts.push(`${e.t} [flask] ${e.m}`);
     }
     const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
     const text = parts.join('\n') + '\n';

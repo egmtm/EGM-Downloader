@@ -537,6 +537,7 @@
     "console.readonly_note": "للقراءة فقط — سجل التطبيق المباشر",
     "console.empty": "لا توجد إدخالات سجل بعد.",
     "console.toggle.ytdlp": "إظهار مخرجات yt-dlp",
+    "console.toggle.flask": "Show Flask output",
     "console.btn.export": "تصدير",
     "tray.open": "فتح EGM Downloader",
     "tray.quit": "إنهاء",
