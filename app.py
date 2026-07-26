@@ -361,24 +361,47 @@ class _StdTee:
     """Tees sys.stdout/sys.stderr writes to the real stream (so a terminal-
     launched run behaves exactly as before) and _flask_raw_log, line-
     buffered so a write() spanning a partial line doesn't ring-append a
-    fragment."""
+    fragment. Hardened on three fronts: the real stream may be None (a
+    console-less Windows launch -- plain print() special-cases a None
+    sys.stdout, but wrapping it in a Tee would have un-done that safety) or
+    broken (EPIPE on a dead consumer) -- neither may ever break the caller;
+    the line buffer is lock-guarded because Flask runs threaded=True and
+    concurrent request handlers' writes would otherwise race the
+    read-modify-write on _buf and lose lines; and unknown attribute reads
+    (.encoding/.buffer/.fileno from libraries probing sys.stdout) delegate
+    to the real stream instead of raising on the wrapper."""
     def __init__(self, real):
         self._real = real
         self._buf = ""
+        self._lock = threading.Lock()
 
     def write(self, s):
-        self._real.write(s)
-        self._buf += s
-        while "\n" in self._buf:
-            line, self._buf = self._buf.split("\n", 1)
-            _flask_raw_log(line)
+        try:
+            if self._real is not None:
+                self._real.write(s)
+        except Exception:
+            pass   # a broken/absent real stream must never break the app
+        with self._lock:
+            self._buf += s
+            while "\n" in self._buf:
+                line, self._buf = self._buf.split("\n", 1)
+                _flask_raw_log(line)
         return len(s)
 
     def flush(self):
-        self._real.flush()
+        try:
+            if self._real is not None:
+                self._real.flush()
+        except Exception:
+            pass
 
     def isatty(self):
         return False
+
+    def __getattr__(self, name):
+        # .encoding/.buffer/.fileno/... -- delegate to the real stream so
+        # libraries probing sys.stdout see the original's attributes.
+        return getattr(self._real, name)
 
 sys.stdout = _StdTee(sys.stdout)
 sys.stderr = _StdTee(sys.stderr)
