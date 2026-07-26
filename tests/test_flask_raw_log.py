@@ -74,7 +74,7 @@ def test_stdtee_reassembles_partial_writes_and_is_thread_safe():
         with lock:
             captured.append(line)
 
-    namespace = {"_flask_raw_log": _flask_raw_log}
+    namespace = {"_flask_raw_log": _flask_raw_log, "threading": threading}
     exec(class_src, namespace)
     StdTee = namespace["_StdTee"]
 
@@ -115,3 +115,126 @@ def test_flask_toggle_i18n_key_translated_across_all_locales():
     for loc in locales:
         d = json.load(open(os.path.join(lang_dir, f"{loc}.json")))["strings"]
         assert "console.toggle.flask" in d, f"{loc}: missing console.toggle.flask"
+
+
+def _load_real_stdtee(captured):
+    """The REAL class from source, same extraction technique as above."""
+    import threading
+
+    src = read_source("app.py")
+    m = re.search(r"class _StdTee:.*?\n\nsys\.stdout", src, re.DOTALL)
+    class_src = m.group(0).rsplit("\n\nsys.stdout", 1)[0]
+    namespace = {"_flask_raw_log": captured.append, "threading": threading}
+    exec(class_src, namespace)
+    return namespace["_StdTee"]
+
+
+def test_stdtee_survives_hostile_thread_interleaving():
+    """The earlier thread test writes whole lines on the default switch
+    interval -- a schedule where the _buf read-modify-write race almost
+    never fires, so it passes even on unlocked code. This one forces the
+    race: tiny switch interval, 8 threads x 250 whole-line writes. On the
+    unlocked version the _buf += read-modify-write loses lines with
+    near-certainty under this schedule; with the lock it must be exact:
+    every line accounted for, none torn. (Each write() carries a complete
+    line deliberately -- a PARTIAL line split across two write() calls can
+    legitimately interleave with another thread's writes, exactly as
+    concurrent print()s do on a real terminal, so that is not a guarantee
+    the Tee makes or this test asserts.)"""
+    import sys
+    import threading
+
+    captured = []
+    StdTee = _load_real_stdtee(captured)
+
+    class Null:
+        def write(self, s):
+            pass
+
+        def flush(self):
+            pass
+
+    tee = StdTee(Null())
+    old_interval = sys.getswitchinterval()
+    sys.setswitchinterval(1e-6)
+    try:
+        # Three independent rounds: the race is probabilistic per schedule,
+        # so one round can get lucky on broken code -- three compound the
+        # detection odds while staying fast.
+        for _round in range(3):
+            captured.clear()
+
+            def worker(tid):
+                for i in range(250):
+                    tee.write(f"t{tid}-{i}\n")
+
+            threads = [threading.Thread(target=worker, args=(t,)) for t in range(8)]
+            for t in threads:
+                t.start()
+            for t in threads:
+                t.join()
+
+            assert len(captured) == 8 * 250, (
+                f"round {_round}: lost/duplicated lines: {len(captured)} != 2000"
+            )
+            pat = re.compile(r"^t[0-7]-\d+$")
+            bad = [c for c in captured if not pat.match(c)]
+            assert not bad, f"round {_round}: torn lines under contention: {bad[:5]}"
+            for tid in range(8):
+                mine = [c for c in captured if c.startswith(f"t{tid}-")]
+                assert len(mine) == 250, f"round {_round}: thread {tid}: {len(mine)}/250 survived"
+    finally:
+        sys.setswitchinterval(old_interval)
+
+
+def test_stdtee_tolerates_none_and_broken_real_stream():
+    """sys.stdout can be None on a console-less Windows launch -- plain
+    print() special-cases that, but wrapping None in a Tee un-does the
+    special case, so the Tee itself must tolerate it. Same for a real
+    stream that raises (EPIPE on a dead consumer): logging must never
+    break the app. Capture must still work in both cases."""
+    captured = []
+    StdTee = _load_real_stdtee(captured)
+
+    tee = StdTee(None)
+    tee.write("no real stream, still captured\n")
+    tee.flush()
+    assert captured == ["no real stream, still captured"]
+
+    class Broken:
+        def write(self, s):
+            raise OSError("broken pipe")
+
+        def flush(self):
+            raise OSError("broken pipe")
+
+    captured.clear()
+    tee2 = StdTee(Broken())
+    tee2.write("broken real stream, still captured\n")
+    tee2.flush()
+    assert captured == ["broken real stream, still captured"]
+
+
+def test_stdtee_delegates_unknown_attributes_to_real_stream():
+    """Libraries probe sys.stdout for .encoding/.buffer/.fileno -- the Tee
+    must present the real stream's attributes rather than raising on the
+    wrapper (the class of breakage a process-wide redirect can cause in
+    code the app doesn't own)."""
+    captured = []
+    StdTee = _load_real_stdtee(captured)
+
+    class FakeReal:
+        encoding = "utf-8"
+
+        def write(self, s):
+            pass
+
+        def flush(self):
+            pass
+
+        def fileno(self):
+            return 42
+
+    tee = StdTee(FakeReal())
+    assert tee.encoding == "utf-8"
+    assert tee.fileno() == 42

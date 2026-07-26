@@ -136,7 +136,7 @@ function appendLines(entries, extraClass) {
   }
   wrap.appendChild(frag);
   // cap DOM so a long-open window never balloons (3x ring: diag + yt + flask streams)
-  while (wrap.children.length > 2000) wrap.removeChild(wrap.firstChild);
+  while (wrap.children.length > 3000) wrap.removeChild(wrap.firstChild);
   if (pinned) wrap.scrollTop = wrap.scrollHeight;
 }
 
