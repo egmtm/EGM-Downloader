@@ -345,6 +345,43 @@ class _StdTee:
         # libraries probing sys.stdout see the original's attributes.
         return getattr(self._real, name)
 
+_FFMPEG_RING: list = []
+_FFMPEG_SEQ = 0
+
+def _ffmpeg_log(line):
+    """Raw ffmpeg stderr ring, mirroring _YT_RING/_FLASK_RING's shape and
+    locking exactly. Memory-only -- ffmpeg stderr can echo local file
+    paths. Scoped to _run_h264_encode's directly-spawned ffmpeg process
+    only (not yt-dlp's internal postprocessing ffmpeg, and not the short
+    synchronous probe calls). Displayed only when the console's ffmpeg
+    toggle is on."""
+    global _FFMPEG_SEQ
+    with _LOG_RING_LOCK:
+        _FFMPEG_SEQ += 1
+        _FFMPEG_RING.append({"n": _FFMPEG_SEQ, "t": time.strftime("%H:%M:%S"), "m": line})
+        if len(_FFMPEG_RING) > _LOG_RING_MAX:
+            del _FFMPEG_RING[: len(_FFMPEG_RING) - _LOG_RING_MAX]
+
+def _drain_ffmpeg_stderr(p):
+    """Background thread: drains a spawned ffmpeg process's stderr into
+    _ffmpeg_log line-by-line. stderr is binary (matching stdout, which
+    _pump_encode_progress requires to stay binary) so lines are decoded
+    manually here, same pattern as _pump_encode_progress's own manual
+    decode. Must never raise -- mirrors _pump_encode_progress's
+    established 'never raises' contract, since this runs as a daemon
+    thread against a live subprocess (and, in tests, sometimes a bare
+    mock object with no .stderr)."""
+    try:
+        if p.stderr is None:
+            return
+        for raw in iter(p.stderr.readline, b""):
+            line = raw.decode("utf-8", "replace").rstrip()
+            if not line:
+                continue
+            _ffmpeg_log(line)
+    except Exception:
+        pass
+
 sys.stdout = _StdTee(sys.stdout)
 sys.stderr = _StdTee(sys.stderr)
 
@@ -1126,7 +1163,7 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
             cmd += codec_args + ["-pix_fmt", "yuv420p",
                                  "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
                                  "-progress", "pipe:1", "-nostats", tmp]
-            proc = _popen(*cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            proc = _popen(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           # Own process group: cancel goes through _kill_proc -> os.killpg;
                           # without a new session this ffmpeg shares the app's own group and
                           # killpg would SIGTERM Flask (and Electron) along with it.
@@ -1136,6 +1173,8 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
                 _active_procs[job_id] = proc
             threading.Thread(target=_pump_encode_progress,
                              args=(proc, job, duration_s), daemon=True).start()
+            threading.Thread(target=_drain_ffmpeg_stderr,
+                             args=(proc,), daemon=True).start()
             proc.wait()
             job["proc"] = None
             with _active_procs_lock:
@@ -2552,6 +2591,8 @@ def api_logs():
     yts = request.args.get("yts", 0, type=int)
     want_flask = request.args.get("flask", 0, type=int)
     fs = request.args.get("fs", 0, type=int)
+    want_ffmpeg = request.args.get("ffmpeg", 0, type=int)
+    fm = request.args.get("fm", 0, type=int)
     with _LOG_RING_LOCK:
         lines = [e for e in _LOG_RING if e["n"] > since]
         nxt = _LOG_SEQ
@@ -2562,6 +2603,9 @@ def api_logs():
         if want_flask:
             resp["flask_lines"] = [e for e in _FLASK_RING if e["n"] > fs]
             resp["flask_next"] = _FLASK_SEQ
+        if want_ffmpeg:
+            resp["ffmpeg_lines"] = [e for e in _FFMPEG_RING if e["n"] > fm]
+            resp["ffmpeg_next"] = _FFMPEG_SEQ
     return jsonify(resp)
 
 @app.route("/console-page")

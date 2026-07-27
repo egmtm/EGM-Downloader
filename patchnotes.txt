@@ -4,6 +4,7 @@ v1.3.5 - LOOSE CHANGE (Build TBD) (TBD)
   • [ALL] New: a Patreon link in the footer, next to Support EGM, for anyone who'd like to help fund development
   • [ALL] Fixed: hovering the active-downloads row in the Subscriptions queue could make it hard to read
   • [ALL] New: Diagnostics can now show raw Flask output too, alongside the existing yt-dlp toggle — everything you'd see running the app from a terminal
+  • [ALL] New: Diagnostics can now also show raw ffmpeg output during H.264 encoding/upscale conversions, alongside the yt-dlp and Flask toggles
 
 v1.3.4 - IN YOUR FACE (Build 145) (7/21/2026)
 -----------------------------------------
