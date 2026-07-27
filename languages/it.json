@@ -537,6 +537,7 @@
     "console.empty": "Nessuna voce di log ancora.",
     "console.toggle.ytdlp": "Mostra output di yt-dlp",
     "console.toggle.flask": "Mostra output di Flask",
+    "console.toggle.ffmpeg": "Mostra output di ffmpeg",
     "console.btn.export": "Esporta",
     "tray.open": "Apri EGM Downloader",
     "tray.quit": "Esci",
