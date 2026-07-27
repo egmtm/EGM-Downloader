@@ -233,3 +233,188 @@ def test_ffmpeg_toggle_present_in_console_html_and_mirrored_on_linux():
     for marker in ("ffmpeg-toggle", "console.toggle.ffmpeg", "ffmpeg_lines",
                    "egm-console-ffmpeg", "log-line.ffmpeg"):
         assert marker in root, f"console.html missing expected ffmpeg marker: {marker}"
+
+
+# ── Hardening added in the delta review of 404b751 ────────────────────────────
+
+def _load_real_drain(captured):
+    """The real _drain_ffmpeg_stderr from source, with a working
+    _ffmpeg_log bound in its namespace.
+
+    The namespace matters: exec'ing this function with an EMPTY namespace
+    (as the bare-mock test above does, which is fine there because its
+    mocks never reach the log call) leaves _ffmpeg_log undefined. Any mock
+    that DOES yield a line would then raise NameError *inside* the
+    function's own resilience wrapper -- swallowed, so the test would pass
+    while capturing nothing. Binding it here keeps the capture assertions
+    below honest."""
+    import re as _re
+
+    src = read_source("app.py")
+    m = _re.search(r"def _drain_ffmpeg_stderr\(p\):.*?(?=\nsys\.stdout = _StdTee)",
+                   src, _re.DOTALL)
+    assert m, "could not locate _drain_ffmpeg_stderr source"
+    namespace = {"_ffmpeg_log": captured.append}
+    exec(m.group(0), namespace)
+    return namespace["_drain_ffmpeg_stderr"]
+
+
+class _FakeStderr:
+    """Minimal binary pipe stand-in: yields the given chunks, then EOF."""
+
+    def __init__(self, chunks):
+        self._chunks = list(chunks)
+
+    def readline(self):
+        return self._chunks.pop(0) if self._chunks else b""
+
+
+def test_drain_captures_lines_when_the_log_hook_is_actually_bound():
+    """Guards the vacuity described in _load_real_drain: with a real
+    _ffmpeg_log bound, a line-yielding process must genuinely capture."""
+    captured = []
+    drain = _load_real_drain(captured)
+
+    class P:
+        stderr = _FakeStderr([b"frame= 100 fps=25\n", b"[libx264] encoded 42 frames\n"])
+
+    drain(P())
+    assert captured == ["frame= 100 fps=25", "[libx264] encoded 42 frames"]
+
+
+def test_drain_survives_every_hostile_stream_shape():
+    """The 'never raises' contract, exercised against the shapes a live
+    subprocess or a test mock can actually present -- not just the two
+    (missing/None stderr) the bare-mock test covers. Each case must return
+    cleanly AND leave the process object usable by the caller."""
+    captured = []
+    drain = _load_real_drain(captured)
+
+    class NoStderrAttr:
+        pass
+
+    class NoneStderr:
+        stderr = None
+
+    class RaisingReadline:
+        class S:
+            def readline(self):
+                raise ValueError("I/O operation on closed file")
+
+        stderr = S()
+
+    class NonBytesReadline:
+        class S:
+            def readline(self):
+                return None      # never equals the b"" sentinel; .decode() fails
+
+        stderr = S()
+
+    for obj in (NoStderrAttr(), NoneStderr(), RaisingReadline(), NonBytesReadline()):
+        before = len(captured)
+        drain(obj)               # must not raise
+        assert len(captured) == before, f"{type(obj).__name__} should capture nothing"
+
+
+def test_drain_decodes_invalid_utf8_without_losing_the_line():
+    """ffmpeg stderr is binary and can carry non-UTF-8 bytes (a filename in
+    a legacy encoding). The line must survive with replacement chars rather
+    than raising and killing the drain -- which would stop the pipe from
+    being read at all (see the deadlock test below)."""
+    captured = []
+    drain = _load_real_drain(captured)
+
+    class P:
+        stderr = _FakeStderr([b"\xff\xfe bad bytes here\n", b"still draining\n"])
+
+    drain(P())
+    assert len(captured) == 2, "an undecodable line must not abort the drain"
+    assert "bad bytes here" in captured[0]
+    assert captured[1] == "still draining"
+
+
+def test_ffmpeg_stderr_pipe_cannot_deadlock_the_encode():
+    """The load-bearing property of piping stderr instead of DEVNULL: a
+    process writing far more than the OS pipe buffer (~64KB) must still
+    exit, because the drain thread keeps reading. If the drain is ever
+    removed, made conditional on the toggle, or started after proc.wait(),
+    ffmpeg blocks forever on a full stderr pipe and the encode hangs with
+    the card stuck on 'Converting…'. Uses a real child process and the
+    real drain function.
+    """
+    import subprocess
+    import sys as _sys
+    import threading
+
+    captured = []
+    drain = _load_real_drain(captured)
+
+    # ~210KB of stderr: >3x a typical 64KB pipe buffer.
+    child = subprocess.Popen(
+        [_sys.executable, "-c",
+         "import sys\n"
+         "for i in range(3000):\n"
+         "    sys.stderr.write('noisy ffmpeg stderr line %d ' % i + 'x' * 50 + chr(10))\n"
+         "sys.stderr.flush()\n"],
+        stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
+    )
+    t = threading.Thread(target=drain, args=(child,), daemon=True)
+    t.start()
+    assert child.wait(timeout=30) == 0, "child blocked on a full stderr pipe"
+    t.join(timeout=10)
+    assert not t.is_alive(), "drain thread must exit at EOF"
+    assert len(captured) == 3000, f"captured {len(captured)}/3000 lines"
+
+
+def test_drain_thread_is_actually_started_before_proc_wait():
+    """The spawn-site guard above asserts `"_drain_ffmpeg_stderr" in block`
+    -- which the explanatory NOTE comment above the _popen call satisfies
+    on its own. Deleting the real `threading.Thread(target=
+    _drain_ffmpeg_stderr, ...).start()` line therefore passes it, and that
+    deletion is precisely what reintroduces the pipe deadlock: stderr is
+    piped but never read, so ffmpeg blocks once the ~64KB buffer fills and
+    proc.wait() never returns.
+
+    This asserts the executable facts instead: the thread is genuinely
+    started (comments stripped first), and started BEFORE proc.wait() --
+    starting it after would deadlock exactly the same way.
+    """
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        i = src.index("def _run_h264_encode")
+        j = src.index("def ", i + 10)
+        block = src[i:j]
+        code = "\n".join(
+            ln for ln in block.split("\n") if not ln.lstrip().startswith("#")
+        )
+
+        def _thread_start_index(target):
+            """Index of a real `threading.Thread(target=<target>...).start()`
+            in the comment-stripped code, or None. Deliberately not one
+            regex: `args=(proc,)` contains a ')', so a naive `[^)]*` never
+            reaches `.start()` and the assertion would fail (or pass)
+            for the wrong reason."""
+            for tm in re.finditer(r"threading\.Thread\(", code):
+                tail = code[tm.start():tm.start() + 200]
+                if f"target={target}" in tail and ".start()" in tail:
+                    return tm.start()
+            return None
+
+        drain_at = _thread_start_index("_drain_ffmpeg_stderr")
+        assert drain_at is not None, (
+            f"{p}: no real threading.Thread(target=_drain_ffmpeg_stderr...).start() "
+            f"call in _run_h264_encode -- piping stderr without draining it "
+            f"deadlocks the encode once the pipe buffer fills"
+        )
+
+        wait_idx = code.index("proc.wait()")
+        assert drain_at < wait_idx, (
+            f"{p}: the stderr drain thread must start BEFORE proc.wait() -- "
+            f"starting it afterwards deadlocks on a full stderr pipe"
+        )
+
+        # Same property for the stdout pump, which shares the deadlock risk.
+        pump_at = _thread_start_index("_pump_encode_progress")
+        assert pump_at is not None and pump_at < wait_idx, (
+            f"{p}: the stdout pump thread must start before proc.wait()"
+        )
