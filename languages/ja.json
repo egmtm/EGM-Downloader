@@ -537,6 +537,7 @@
     "console.empty": "まだログエントリはありません。",
     "console.toggle.ytdlp": "yt-dlp の出力を表示",
     "console.toggle.flask": "Flask の出力を表示",
+    "console.toggle.ffmpeg": "ffmpeg の出力を表示",
     "console.btn.export": "エクスポート",
     "tray.open": "EGM Downloader を開く",
     "tray.quit": "終了",
