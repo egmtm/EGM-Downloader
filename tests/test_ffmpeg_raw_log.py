@@ -418,3 +418,148 @@ def test_drain_thread_is_actually_started_before_proc_wait():
         assert pump_at is not None and pump_at < wait_idx, (
             f"{p}: the stdout pump thread must start before proc.wait()"
         )
+
+
+# ── hw-encoder probe failure output now routes into the ffmpeg ring ──────────
+
+def test_hw_probe_failure_helper_present_on_all_platforms():
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        assert "def _log_hw_probe_failure(" in src, (
+            f"{p}: missing _log_hw_probe_failure"
+        )
+        i = src.index("def _detect_hw_encoder")
+        j = src.index("def ", i + 10)
+        block = src[i:j]
+        assert "_log_hw_probe_failure(name, r.stderr)" in block, (
+            f"{p}: hw-probe non-zero-returncode path must route stderr into "
+            f"the ffmpeg ring"
+        )
+        assert "_log_hw_probe_failure(name, str(e))" in block, (
+            f"{p}: hw-probe exception path must route the failure into "
+            f"the ffmpeg ring too"
+        )
+
+
+def test_hw_probe_failure_helper_never_writes_to_disk_log():
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        i = src.index("def _log_hw_probe_failure")
+        j = src.index("def _detect_hw_encoder")
+        block = src[i:j]
+        assert "_atomic_write_text" not in block, (
+            f"{p}: _log_hw_probe_failure must not write to disk"
+        )
+        assert "open(" not in block, (
+            f"{p}: _log_hw_probe_failure must not perform any file write"
+        )
+
+
+def test_hw_probe_failure_helper_feeds_the_real_ffmpeg_ring():
+    """Executes the REAL _log_hw_probe_failure + _ffmpeg_log pair extracted
+    from source, confirms multi-line probe stderr lands in the ring with
+    the per-candidate prefix, blank lines are dropped, and an empty/None
+    message is a silent no-op (nothing to report)."""
+    src = read_source("app.py")
+    m = re.search(
+        r"_FFMPEG_RING: list = \[\].*?(?=\nsys\.stdout = _StdTee)",
+        src, re.DOTALL,
+    )
+    assert m, "could not locate the ffmpeg ring block"
+    ring_and_log_src = m.group(0)
+
+    hw_m = re.search(
+        r"\ndef _log_hw_probe_failure\(name, text\):.*?(?=\ndef _detect_hw_encoder)",
+        src, re.DOTALL,
+    )
+    assert hw_m, "could not locate _log_hw_probe_failure"
+
+    namespace = {
+        "threading": __import__("threading"),
+        "time": __import__("time"),
+        "_LOG_RING_LOCK": __import__("threading").Lock(),
+        "_LOG_RING_MAX": 1000,
+    }
+    exec(ring_and_log_src, namespace)
+    exec(hw_m.group(0), namespace)
+    log_failure = namespace["_log_hw_probe_failure"]
+    ring = namespace["_FFMPEG_RING"]
+
+    log_failure("h264_nvenc", "Cannot load nvcuda.dll\n\n[error] init failed\n")
+    messages = [e["m"] for e in ring]
+    assert "[hw-probe:h264_nvenc] Cannot load nvcuda.dll" in messages
+    assert "[hw-probe:h264_nvenc] [error] init failed" in messages
+    assert "" not in messages, "blank lines must not be logged"
+
+    before = len(ring)
+    log_failure("h264_qsv", "")
+    log_failure("h264_amf", None)
+    assert len(ring) == before, "empty/None probe output must be a no-op"
+
+
+def test_ffmpeg_log_defined_before_detect_hw_encoder_on_all_platforms():
+    """_detect_hw_encoder calls _log_hw_probe_failure, which calls
+    _ffmpeg_log -- source-order sanity so the helper isn't referencing a
+    name that (at module load, before any call happens) doesn't exist yet
+    further down the file. Python's late binding tolerates this at
+    definition time either way, but wrong order would be a readability/
+    maintenance trap, so it's asserted directly."""
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        ffmpeg_log_at = src.index("def _ffmpeg_log(")
+        detect_at = src.index("def _detect_hw_encoder(")
+        assert ffmpeg_log_at < detect_at, (
+            f"{p}: _ffmpeg_log must be defined before _detect_hw_encoder"
+        )
+
+
+# ── Diagnostics toggle labels shortened, full text moved to a tooltip ────────
+
+def test_toggle_labels_shortened_with_full_text_as_tooltip():
+    root = read_source("templates/console.html")
+    linux = read_source("linux/templates/console.html")
+    assert root == linux, "templates/console.html and its Linux mirror have diverged"
+
+    for tool, label_key, sentence_key in (
+        ("yt-dlp", "console.toggle.ytdlp.label", "console.toggle.ytdlp"),
+        ("Flask", "console.toggle.flask.label", "console.toggle.flask"),
+        ("ffmpeg", "console.toggle.ffmpeg.label", "console.toggle.ffmpeg"),
+    ):
+        assert f'data-i18n="{label_key}"' in root, (
+            f"missing short-label i18n wiring for {tool}"
+        )
+        assert f'data-i18n-attr="title:{sentence_key}"' in root, (
+            f"missing tooltip i18n wiring for {tool} (full sentence should "
+            f"move to a title= tooltip, not stay as the visible label)"
+        )
+    # The old long-form visible labels must be gone from the visible span --
+    # they now live only in the title= attribute.
+    assert "Show yt-dlp output</span>" not in root
+    assert "Show Flask output</span>" not in root
+    assert "Show ffmpeg output</span>" not in root
+
+
+def test_toggle_label_i18n_keys_are_untranslated_tool_names_everywhere():
+    """yt-dlp/Flask/ffmpeg are tool/brand names -- per standing convention
+    (same as theme names) these must NOT be translated, so the .label
+    value must be identical across every locale, unlike the full-sentence
+    tooltip text which genuinely varies per language."""
+    import json
+    import os
+
+    lang_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "languages")
+    expected = {
+        "console.toggle.ytdlp.label": "yt-dlp",
+        "console.toggle.flask.label": "Flask",
+        "console.toggle.ffmpeg.label": "ffmpeg",
+    }
+    locales = ["ar", "de", "en", "es", "fr", "it", "ja", "nl", "pt", "ru"]
+    for loc in locales:
+        d = json.load(open(os.path.join(lang_dir, f"{loc}.json"), encoding="utf-8"))["strings"]
+        for key, value in expected.items():
+            assert key in d, f"{loc}: missing {key}"
+            assert d[key] == value, (
+                f"{loc}: {key} must stay '{value}' (tool/brand name, "
+                f"not translated) but is {d[key]!r}"
+            )
+
