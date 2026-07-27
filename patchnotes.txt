@@ -1,4 +1,4 @@
-v1.3.5 - LOOSE CHANGE (Build TBD) (TBD)
+v1.3.5 - FULL DIAGNOSIS (Build TBD) (TBD)
 -----------------------------------------
 
   • [ALL] New: a Patreon link in the footer, next to Support EGM, for anyone who'd like to help fund development
