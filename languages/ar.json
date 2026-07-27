@@ -537,6 +537,7 @@
     "console.empty": "لا توجد إدخالات سجل بعد.",
     "console.toggle.ytdlp": "إظهار مخرجات yt-dlp",
     "console.toggle.flask": "إظهار مخرجات Flask",
+    "console.toggle.ffmpeg": "إظهار مخرجات ffmpeg",
     "console.btn.export": "تصدير",
     "tray.open": "فتح EGM Downloader",
     "tray.quit": "إنهاء",
