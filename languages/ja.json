@@ -534,7 +534,6 @@
     "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
     "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。",
     "console.title": "診断",
-    "console.readonly_note": "読み取り専用 — アプリケーションのライブログ",
     "console.empty": "まだログエントリはありません。",
     "console.toggle.ytdlp": "yt-dlp の出力を表示",
     "console.toggle.flask": "Flask の出力を表示",

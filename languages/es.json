@@ -534,7 +534,6 @@
     "themes.confirm.delete_body": "«{0}» se eliminará permanentemente. Esto no se puede deshacer.",
     "card.quality.hdr_tooltip": "HDR requiere una pantalla y un reproductor compatibles con HDR; de lo contrario, los colores se ven apagados. Las descargas HDR se guardan como MKV.",
     "console.title": "Diagnóstico",
-    "console.readonly_note": "Solo lectura — registro en vivo de la aplicación",
     "console.empty": "Aún no hay entradas de registro.",
     "console.toggle.ytdlp": "Mostrar salida de yt-dlp",
     "console.toggle.flask": "Mostrar salida de Flask",
