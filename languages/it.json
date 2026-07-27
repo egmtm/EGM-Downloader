@@ -534,7 +534,6 @@
     "themes.confirm.delete_body": "\"{0}\" verrà eliminato definitivamente. Non è possibile annullare questa operazione.",
     "card.quality.hdr_tooltip": "L'HDR richiede un display e un player compatibili con HDR, altrimenti i colori appaiono sbiaditi. I download HDR vengono salvati come MKV.",
     "console.title": "Diagnostica",
-    "console.readonly_note": "Sola lettura — log dal vivo dell'applicazione",
     "console.empty": "Nessuna voce di log ancora.",
     "console.toggle.ytdlp": "Mostra output di yt-dlp",
     "console.toggle.flask": "Mostra output di Flask",

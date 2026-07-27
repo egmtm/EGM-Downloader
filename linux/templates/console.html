@@ -21,7 +21,6 @@
   .titlebar h1{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
   .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
   .live-dot.paused{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
-  .tb-note{font-size:10px;color:var(--text2);opacity:.7}
 
   .log-wrap{flex:1;overflow-y:auto;padding:10px 14px;font-family:Consolas,Menlo,'SF Mono',monospace;font-size:11.5px;line-height:1.55;user-select:text}
   /* Body text uses --text (the one var every theme guarantees readable on its
@@ -54,7 +53,6 @@
         <span data-i18n="console.toggle.flask">Show Flask output</span>
       </label>
       <button id="export-btn" style="font-size:10.5px;padding:3px 12px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2)" data-i18n="console.btn.export">Export</button>
-      <span class="tb-note" data-i18n="console.readonly_note">Read-only — live application log</span>
     </div>
   </div>
   <div class="log-wrap" id="log-wrap">

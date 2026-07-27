@@ -534,7 +534,6 @@
     "themes.confirm.delete_body": "\"{0}\" wordt permanent verwijderd. Dit kan niet ongedaan worden gemaakt.",
     "card.quality.hdr_tooltip": "HDR vereist een HDR-geschikt scherm en een HDR-geschikte speler — anders zien kleuren er vaal uit. HDR-downloads worden opgeslagen als MKV.",
     "console.title": "Diagnostiek",
-    "console.readonly_note": "Alleen-lezen — live logboek van de app",
     "console.empty": "Nog geen logvermeldingen.",
     "console.toggle.ytdlp": "yt-dlp-uitvoer tonen",
     "console.toggle.flask": "Flask-uitvoer tonen",
