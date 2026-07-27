@@ -537,6 +537,7 @@
     "console.empty": "Aún no hay entradas de registro.",
     "console.toggle.ytdlp": "Mostrar salida de yt-dlp",
     "console.toggle.flask": "Mostrar salida de Flask",
+    "console.toggle.ffmpeg": "Mostrar salida de ffmpeg",
     "console.btn.export": "Exportar",
     "tray.open": "Abrir EGM Downloader",
     "tray.quit": "Salir",
