@@ -537,6 +537,7 @@
     "console.empty": "Noch keine Protokolleinträge.",
     "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
     "console.toggle.flask": "Flask-Ausgabe anzeigen",
+    "console.toggle.ffmpeg": "ffmpeg-Ausgabe anzeigen",
     "console.btn.export": "Exportieren",
     "tray.open": "EGM Downloader öffnen",
     "tray.quit": "Beenden",
