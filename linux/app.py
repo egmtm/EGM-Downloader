@@ -1022,6 +1022,21 @@ def _run_download_slot(job_id, *rest):
 # ── Hardware-accelerated H.264 encode (auto-detect, safe fallback) ───────────
 _HW_ENCODER_CACHE = None
 
+def _log_hw_probe_failure(name, text):
+    """Routes a failed hardware-encoder probe's output into the ffmpeg ring
+    (visible under the Diagnostics ffmpeg toggle) instead of discarding it.
+    Previously the probe's stderr went nowhere -- when hardware encoding
+    silently fails and the app falls back to libx264, this was the single
+    most useful diagnostic for a hardware-encoding support case, and it was
+    unavailable. Prefixed per-candidate so multiple probe failures in one
+    session stay distinguishable."""
+    if not text:
+        return
+    for line in str(text).splitlines():
+        line = line.strip()
+        if line:
+            _ffmpeg_log(f"[hw-probe:{name}] {line}")
+
 def _detect_hw_encoder():
     """Probe hardware H.264 encoders with a tiny test encode and cache the winner.
     Presence in `ffmpeg -encoders` is NOT enough — the probe proves the GPU and
@@ -1042,8 +1057,9 @@ def _detect_hw_encoder():
                 _egm_log(f"hardware encoder available: {name}")
                 _HW_ENCODER_CACHE = (name, list(args))
                 return _HW_ENCODER_CACHE
-        except Exception:
-            pass
+            _log_hw_probe_failure(name, r.stderr)
+        except Exception as e:
+            _log_hw_probe_failure(name, str(e))
     _HW_ENCODER_CACHE = (None, None)
     return _HW_ENCODER_CACHE
 
