@@ -537,6 +537,7 @@
     "console.empty": "Aucune entrée de journal pour l'instant.",
     "console.toggle.ytdlp": "Afficher la sortie de yt-dlp",
     "console.toggle.flask": "Afficher la sortie de Flask",
+    "console.toggle.ffmpeg": "Afficher la sortie de ffmpeg",
     "console.btn.export": "Exporter",
     "tray.open": "Ouvrir EGM Downloader",
     "tray.quit": "Quitter",
