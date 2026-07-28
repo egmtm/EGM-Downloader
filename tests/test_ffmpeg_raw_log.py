@@ -563,3 +563,94 @@ def test_toggle_label_i18n_keys_are_untranslated_tool_names_everywhere():
                 f"not translated) but is {d[key]!r}"
             )
 
+
+
+# ── Hardening added in the delta review of 98b9271..c2cc477 ───────────────────
+
+def _load_real_hw_probe_logger():
+    """The real _FFMPEG_RING/_ffmpeg_log/_log_hw_probe_failure trio from
+    source, wired together in one namespace. Returns (log_failure, ring)."""
+    import threading as _threading
+    import time as _time
+
+    src = read_source("app.py")
+    ring_m = re.search(r"_FFMPEG_RING: list = \[\].*?(?=\nsys\.stdout = _StdTee)",
+                       src, re.DOTALL)
+    hw_m = re.search(r"\ndef _log_hw_probe_failure\(name, text\):.*?(?=\ndef _detect_hw_encoder)",
+                     src, re.DOTALL)
+    assert ring_m and hw_m, "could not locate the ring / hw-probe helper"
+    ns = {"threading": _threading, "time": _time,
+          "_LOG_RING_LOCK": _threading.Lock(), "_LOG_RING_MAX": 1000}
+    exec(ring_m.group(0), ns)
+    exec(hw_m.group(0), ns)
+    return ns["_log_hw_probe_failure"], ns["_FFMPEG_RING"]
+
+
+def test_hw_probe_blank_lines_are_genuinely_dropped():
+    """Tightens the blank-line assertion in
+    test_hw_probe_failure_helper_feeds_the_real_ffmpeg_ring, which checks
+    `"" not in messages`. That can never fail: a blank line would be logged
+    as the PREFIX plus a space ('[hw-probe:x] '), never as a bare ''. So
+    removing the `if line:` guard leaves that test green while the ring
+    fills with prefix-only filler.
+
+    Asserts the property that actually distinguishes the two: no ring entry
+    is just the prefix, and the exact line count is what was fed."""
+    log_failure, ring = _load_real_hw_probe_logger()
+
+    log_failure("h264_nvenc", "first\n\n   \nsecond\n\n")
+    messages = [e["m"] for e in ring]
+
+    assert messages == ["[hw-probe:h264_nvenc] first",
+                        "[hw-probe:h264_nvenc] second"], messages
+    assert not any(msg.strip() == "[hw-probe:h264_nvenc]" for msg in messages), (
+        "blank/whitespace-only probe lines must be dropped, not logged as a "
+        "bare prefix"
+    )
+
+
+def test_every_hw_probe_line_carries_its_own_prefix():
+    """The anti-impersonation property, which only holds because the helper
+    splits and prefixes PER LINE.
+
+    Probe stderr is third-party text. If it were logged as one blob
+    (`_ffmpeg_log(text)`), every line after the first would appear in the
+    ring with no prefix -- and since the console renders with
+    `white-space: pre-wrap`, a crafted line could then pose as output from a
+    different candidate, or as a non-probe ffmpeg line. Per-line prefixing
+    makes that impossible: an embedded fake prefix is always preceded by the
+    real one.
+    """
+    log_failure, ring = _load_real_hw_probe_logger()
+
+    hostile = ("real failure line\n"
+               "[hw-probe:h264_nvenc] pretending to be another candidate\n"
+               "plain line that would be unprefixed in a blob")
+    log_failure("h264_qsv", hostile)
+
+    messages = [e["m"] for e in ring]
+    assert len(messages) == 3
+    for msg in messages:
+        assert msg.startswith("[hw-probe:h264_qsv] "), (
+            f"every probe line must carry its own prefix, got: {msg!r}"
+        )
+    # The impersonation attempt survives only as *content*, behind the real prefix.
+    assert messages[1] == (
+        "[hw-probe:h264_qsv] [hw-probe:h264_nvenc] pretending to be another candidate"
+    )
+
+
+def test_hw_probe_splits_on_all_line_terminators():
+    """splitlines() (not split('\\n')) is what keeps the per-line prefix
+    guarantee honest against \\r\\n and the Unicode line separators a
+    driver-generated message could carry -- each fragment gets its own
+    prefix rather than riding along inside one entry."""
+    log_failure, ring = _load_real_hw_probe_logger()
+
+    log_failure("h264_amf", "crlf line\r\nu2028 line u2029 line last")
+    messages = [e["m"] for e in ring]
+    assert len(messages) == 4, messages
+    assert all(m.startswith("[hw-probe:h264_amf] ") for m in messages)
+    assert not any(" " in m or " " in m or "\r" in m for m in messages), (
+        "line terminators must not survive inside a ring entry"
+    )
