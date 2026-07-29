@@ -773,10 +773,16 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     });
     if (choice === 0) { subsForceClose = true; subsWindow.close(); }
   });
+  // Teardown order matters: the activity slot is dropped and the reference
+  // cleared BEFORE re-aggregating, so the per-window shell loop never
+  // iterates the window being torn down. The re-aggregate is wrapped
+  // because a throw there would skip the window restore below -- and the
+  // main window is hidden in sub-app mode, so that would leave no visible
+  // window at all.
   subsWindow.on('closed', () => {
     _activityBySender.delete(subsWindow);
-    _applyAggregateActivity();
     subsWindow = null;
+    try { _applyAggregateActivity(); } catch {}
     subsActiveDownloads = false; subsForceClose = false;
     if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) mainWindow.restore();
