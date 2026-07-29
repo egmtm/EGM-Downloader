@@ -643,10 +643,23 @@ function _applyAggregateActivity() {
   }
   const prog = counted > 0 ? weighted / counted : -1;
 
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setProgressBar(active > 0 ? prog : -1);
-    try { app.setBadgeCount(active); } catch {}
+  // Progress bar applied to every existing top-level window, not just
+  // mainWindow -- subsWindow has its own window (main.js hides mainWindow
+  // while subscriptions is open, "sub-app mode"), and on macOS
+  // setProgressBar's dock-icon effect is tied to the window it's called
+  // on. Targeting mainWindow alone meant a hidden window received the
+  // update while the one actually on screen never did. A hidden/destroyed
+  // window's update is a harmless no-op.
+  for (const win of [mainWindow, subsWindow]) {
+    if (!win || win.isDestroyed()) continue;
+    win.setProgressBar(active > 0 ? prog : -1);
   }
+  // Dock badge count is app-level (not tied to any one window), so it's
+  // set unconditionally -- it was previously nested inside the mainWindow
+  // guard above, which meant it silently stopped updating in any state
+  // where mainWindow didn't exist, even though nothing about it actually
+  // depends on mainWindow.
+  try { app.setBadgeCount(active); } catch {}
   if (active > 0 && _psbId === null) {
     _psbId = powerSaveBlocker.start('prevent-app-suspension');
   } else if (active === 0 && _psbId !== null) {
