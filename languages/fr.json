@@ -546,6 +546,11 @@
     "tray.quit": "Quitter",
     "footer.btn.diagnostics": "Diagnostics",
     "download.error.no_formats": "Aucun format téléchargeable trouvé. Il s'agit généralement d'une vidéo réservée aux membres — si vous êtes membre de cette chaîne, chargez les cookies de votre compte dans les Paramètres et réessayez. Elle peut aussi être privée, bloquée par région, ou restreinte d'une autre manière.",
-    "download.error.extract": "Impossible d'extraire les informations de la vidéo. La page a peut-être changé."
+    "download.error.extract": "Impossible d'extraire les informations de la vidéo. La page a peut-être changé.",
+    "konami.title": "EGM Downloader ne répond plus",
+    "konami.collecting": "Collecte du rapport de plantage…",
+    "konami.gotcha": "Gotcha !",
+    "konami.found": "Vous avez trouvé le code Konami — rien n'a planté, tout va bien.",
+    "konami.close_hint": "Cliquez n'importe où pour fermer"
   }
 }
