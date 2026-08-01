@@ -7,7 +7,7 @@ v1.3.5 - FULL DIAGNOSIS (Build TBD) (TBD)
   • [ALL] New: Diagnostics can now also show raw ffmpeg output during H.264 encoding/upscale conversions, alongside the yt-dlp and Flask toggles — now including hardware-encoder failure details, previously invisible, for easier GPU troubleshooting
   • [ALL] The Diagnostics toggles now show compact tool names (yt-dlp / Flask / ffmpeg) with the full description as a hover tooltip, to keep the titlebar tidy in longer languages
   • [ALL] Fixed: the taskbar/dock progress badge (added in v1.3.4) wasn't showing for downloads started from Subscriptions
-  • [ALL] The Konami code easter egg's text is now translated too, for consistency with the rest of the app
+  • [ALL] Up up down down left right left right B A — still doesn't unlock anything. Now multilingual.
 
 v1.3.4 - IN YOUR FACE (Build 145) (7/21/2026)
 -----------------------------------------

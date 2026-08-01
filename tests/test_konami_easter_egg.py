@@ -105,10 +105,22 @@ def test_konami_i18n_keys_present_and_genuinely_translated_across_locales():
         d = json.load(open(os.path.join(lang_dir, f"{loc}.json"), encoding="utf-8"))["strings"]
         for key in KONAMI_KEYS:
             assert key in d, f"{loc}: missing {key}"
-            # "Konami" itself must survive untranslated inside konami.found,
-            # matching the proper-noun convention (theme names, tool names).
+            # "Konami" is a proper noun and should generally survive
+            # untranslated, matching the theme-name/tool-name convention --
+            # except Japanese, where transliterating a Latin-script brand
+            # name into katakana (コナミ, the same rendering the real
+            # company uses) is the standard, correct localization practice,
+            # not a translation error. Every other locale here uses a
+            # Latin-adjacent or Cyrillic/Arabic script where the brand name
+            # is conventionally left in Latin script instead.
             if key == "konami.found":
-                assert "Konami" in d[key], (
-                    f"{loc}: 'Konami' must appear verbatim (proper noun) "
-                    f"inside konami.found, got {d[key]!r}"
-                )
+                if loc == "ja":
+                    assert "コナミ" in d[key], (
+                        f"ja: expected 'Konami' transliterated to コナミ "
+                        f"inside konami.found, got {d[key]!r}"
+                    )
+                else:
+                    assert "Konami" in d[key], (
+                        f"{loc}: 'Konami' must appear verbatim (proper "
+                        f"noun) inside konami.found, got {d[key]!r}"
+                    )
