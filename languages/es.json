@@ -546,6 +546,11 @@
     "tray.quit": "Salir",
     "footer.btn.diagnostics": "Diagnóstico",
     "download.error.no_formats": "No se encontraron formatos descargables. Esto suele deberse a que es un vídeo solo para miembros — si eres miembro de este canal, carga las cookies de tu cuenta en Configuración e inténtalo de nuevo. También podría ser privado, estar bloqueado por región o restringido de otra forma.",
-    "download.error.extract": "No se pudo extraer la información del vídeo. Puede que la página haya cambiado."
+    "download.error.extract": "No se pudo extraer la información del vídeo. Puede que la página haya cambiado.",
+    "konami.title": "EGM Downloader ha dejado de responder",
+    "konami.collecting": "Recopilando informe de fallos…",
+    "konami.gotcha": "¡Te pillé!",
+    "konami.found": "Has encontrado el código Konami — nada se ha bloqueado, todo está bien.",
+    "konami.close_hint": "Haz clic en cualquier lugar para cerrar"
   }
 }
