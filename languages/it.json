@@ -546,6 +546,11 @@
     "tray.quit": "Esci",
     "footer.btn.diagnostics": "Diagnostica",
     "download.error.no_formats": "Nessun formato scaricabile trovato. Di solito si tratta di un video riservato ai membri — se sei membro di questo canale, carica i cookie del tuo account in Impostazioni e riprova. Potrebbe anche essere privato, bloccato per area geografica o limitato in altro modo.",
-    "download.error.extract": "Impossibile estrarre le informazioni del video. La pagina potrebbe essere cambiata."
+    "download.error.extract": "Impossibile estrarre le informazioni del video. La pagina potrebbe essere cambiata.",
+    "konami.title": "EGM Downloader non risponde",
+    "konami.collecting": "Raccolta report di arresto anomalo…",
+    "konami.gotcha": "Beccato!",
+    "konami.found": "Hai trovato il codice Konami — nulla è andato in crash, va tutto bene.",
+    "konami.close_hint": "Fai clic in un punto qualsiasi per chiudere"
   }
 }
