@@ -546,6 +546,11 @@
     "tray.quit": "Afsluiten",
     "footer.btn.diagnostics": "Diagnostiek",
     "download.error.no_formats": "Geen downloadbare formaten gevonden. Dit is meestal een video die alleen voor leden is — als je lid bent van dit kanaal, laad dan je accountcookies in Instellingen en probeer het opnieuw. Het kan ook privé, regionaal geblokkeerd of anderszins beperkt zijn.",
-    "download.error.extract": "Kon video-informatie niet ophalen. De pagina is mogelijk gewijzigd."
+    "download.error.extract": "Kon video-informatie niet ophalen. De pagina is mogelijk gewijzigd.",
+    "konami.title": "EGM Downloader reageert niet meer",
+    "konami.collecting": "Crashrapport verzamelen…",
+    "konami.gotcha": "Gesnapt!",
+    "konami.found": "Je hebt de Konami-code gevonden — er is niets vastgelopen, alles is in orde.",
+    "konami.close_hint": "Klik ergens om te sluiten"
   }
 }
