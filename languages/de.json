@@ -546,6 +546,11 @@
     "tray.quit": "Beenden",
     "footer.btn.diagnostics": "Diagnose",
     "download.error.no_formats": "Keine herunterladbaren Formate gefunden. Das ist meist ein Video nur für Mitglieder — falls du Mitglied dieses Kanals bist, lade deine Konto-Cookies in den Einstellungen und versuche es erneut. Es könnte auch privat, regional gesperrt oder anderweitig eingeschränkt sein.",
-    "download.error.extract": "Videoinformationen konnten nicht extrahiert werden. Die Seite hat sich möglicherweise geändert."
+    "download.error.extract": "Videoinformationen konnten nicht extrahiert werden. Die Seite hat sich möglicherweise geändert.",
+    "konami.title": "EGM Downloader reagiert nicht mehr",
+    "konami.collecting": "Absturzbericht wird gesammelt…",
+    "konami.gotcha": "Erwischt!",
+    "konami.found": "Du hast den Konami-Code gefunden — nichts ist abgestürzt, alles ist in Ordnung.",
+    "konami.close_hint": "Klicke irgendwo, um zu schließen"
   }
 }
