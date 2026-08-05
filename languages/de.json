@@ -4,11 +4,11 @@
   "_language_english": "German",
   "_code": "de",
   "_direction": "ltr",
-  "_version": "1.3.4",
+  "_version": "1.3.5",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-16",
+  "_last_updated": "2026-07-17",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} weitere Seiten",
@@ -534,14 +534,23 @@
     "themes.confirm.delete_body": "„{0}\" wird endgültig gelöscht. Dies kann nicht rückgängig gemacht werden.",
     "card.quality.hdr_tooltip": "HDR erfordert ein HDR-fähiges Display und einen HDR-fähigen Player — sonst wirken die Farben blass. HDR-Downloads werden als MKV gespeichert.",
     "console.title": "Diagnose",
-    "console.readonly_note": "Schreibgeschützt — Live-Log der Anwendung",
     "console.empty": "Noch keine Protokolleinträge.",
     "console.toggle.ytdlp": "yt-dlp-Ausgabe anzeigen",
+    "console.toggle.ytdlp.label": "yt-dlp",
+    "console.toggle.flask": "Flask-Ausgabe anzeigen",
+    "console.toggle.flask.label": "Flask",
+    "console.toggle.ffmpeg": "ffmpeg-Ausgabe anzeigen",
+    "console.toggle.ffmpeg.label": "ffmpeg",
     "console.btn.export": "Exportieren",
     "tray.open": "EGM Downloader öffnen",
     "tray.quit": "Beenden",
     "footer.btn.diagnostics": "Diagnose",
     "download.error.no_formats": "Keine herunterladbaren Formate gefunden. Das ist meist ein Video nur für Mitglieder — falls du Mitglied dieses Kanals bist, lade deine Konto-Cookies in den Einstellungen und versuche es erneut. Es könnte auch privat, regional gesperrt oder anderweitig eingeschränkt sein.",
-    "download.error.extract": "Videoinformationen konnten nicht extrahiert werden. Die Seite hat sich möglicherweise geändert."
+    "download.error.extract": "Videoinformationen konnten nicht extrahiert werden. Die Seite hat sich möglicherweise geändert.",
+    "konami.title": "EGM Downloader reagiert nicht mehr",
+    "konami.collecting": "Absturzbericht wird gesammelt…",
+    "konami.gotcha": "Erwischt!",
+    "konami.found": "Du hast den Konami-Code gefunden — nichts ist abgestürzt, alles ist in Ordnung.",
+    "konami.close_hint": "Klicke irgendwo, um zu schließen"
   }
 }

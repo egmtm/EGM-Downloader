@@ -118,3 +118,273 @@ def test_all_ten_badge_assets_exist_and_are_shipped():
     for name in names:
         assert name in build_sh, f"windows/BUILD.sh doesn't ship static/{name}"
         assert name in nsi, f"windows/setup.nsi doesn't ship static/{name}"
+
+
+# ── Taskbar/dock updates must reach whichever window actually has one ────────
+# main.js hides mainWindow while subscriptions is open ("sub-app mode" --
+# subsWindow is a normal, un-parented BrowserWindow with its own independent
+# taskbar button). _applyAggregateActivity used to write setProgressBar/
+# setOverlayIcon to mainWindow only, so a download started from Subscriptions
+# updated the shell state correctly internally, but the visible window (the
+# one with the actual taskbar button on screen) never received the update --
+# the hidden mainWindow did, invisibly. Reported as: works from the main
+# window, silently doesn't from Subscriptions.
+
+def test_progress_bar_reaches_every_existing_window_on_all_platforms():
+    for p in MAIN_JS:
+        src = read_source(p)
+        i = src.index("function _applyAggregateActivity")
+        j = src.index("\nipcMain.on('set-activity'", i)
+        block = src[i:j]
+        assert "for (const win of [mainWindow, subsWindow])" in block, (
+            f"{p}: setProgressBar must be applied to every existing "
+            f"top-level window, not just mainWindow -- mainWindow is "
+            f"hidden while Subscriptions is open, so targeting it alone "
+            f"means the update never reaches the window actually visible "
+            f"on screen"
+        )
+        assert "win.setProgressBar(active > 0 ? prog : -1)" in block, (
+            f"{p}: the per-window loop must call setProgressBar on `win`, "
+            f"not still be hardcoded to `mainWindow`"
+        )
+        # The old single-window-only pattern must be gone, not just
+        # supplemented -- otherwise this could regress to double-guarding
+        # (loop present but old mainWindow-only call still there too).
+        assert "mainWindow.setProgressBar(active > 0 ? prog : -1)" not in block, (
+            f"{p}: leftover mainWindow-only setProgressBar call alongside "
+            f"the new per-window loop"
+        )
+
+
+def test_windows_overlay_icon_reaches_every_existing_window():
+    p = "windows/electron/main.js"
+    src = read_source(p)
+    i = src.index("function _applyAggregateActivity")
+    j = src.index("\nipcMain.on('set-activity'", i)
+    block = src[i:j]
+    assert "win.setOverlayIcon(icon, `${active} active`)" in block, (
+        f"{p}: setOverlayIcon must be applied per-window (win), same "
+        f"reasoning as setProgressBar -- the overlay badge has the "
+        f"identical hidden-mainWindow problem"
+    )
+    assert "mainWindow.setOverlayIcon" not in block, (
+        f"{p}: leftover mainWindow-only setOverlayIcon call"
+    )
+
+
+def test_mac_linux_badge_count_is_not_gated_behind_mainwindow_existing():
+    """app.setBadgeCount() is app-level (dock/launcher badge, not tied to
+    any specific window) -- it must fire unconditionally whenever activity
+    changes, not be nested inside the per-window loop or an
+    if (mainWindow...) guard the way setProgressBar legitimately is."""
+    for p in ("mac/electron/main.js", "linux/electron/main.js"):
+        src = read_source(p)
+        i = src.index("function _applyAggregateActivity")
+        j = src.index("\nipcMain.on('set-activity'", i)
+        block = src[i:j]
+
+        loop_start = block.index("for (const win of [mainWindow, subsWindow])")
+        loop_end = block.index("}", block.index("continue", loop_start)) + 1
+        loop_body = block[loop_start:loop_end]
+        assert "setBadgeCount" not in loop_body, (
+            f"{p}: setBadgeCount must not be inside the per-window loop -- "
+            f"it's an app-level call, calling it once per window is "
+            f"redundant and couples it to window existence for no reason"
+        )
+
+        after_loop = block[loop_end:]
+        assert "app.setBadgeCount(active)" in after_loop, (
+            f"{p}: app.setBadgeCount(active) must be called unconditionally "
+            f"after the per-window loop, not nested inside any window-"
+            f"existence guard -- it previously only fired when mainWindow "
+            f"existed and wasn't destroyed, even though the badge itself "
+            f"has nothing to do with mainWindow specifically"
+        )
+
+
+def test_hidden_or_destroyed_window_in_the_loop_is_a_harmless_skip():
+    """Executes the real per-window loop body (extracted from source)
+    against a mix of a live mock window, a destroyed one, and None --
+    confirms only the live window gets the calls, and nothing raises."""
+    for p in MAIN_JS:
+        src = read_source(p)
+        i = src.index("for (const win of [mainWindow, subsWindow])")
+        open_brace = src.index("{", i)
+        depth = 0
+        k = open_brace
+        while True:
+            if src[k] == "{":
+                depth += 1
+            elif src[k] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+            k += 1
+        loop_src = src[i:k + 1]
+
+        node_script = f"""
+        const calls = [];
+        function makeWin(destroyed) {{
+          return {{
+            isDestroyed: () => destroyed,
+            setProgressBar: (v) => calls.push(['setProgressBar', v]),
+            setOverlayIcon: (icon, desc) => calls.push(['setOverlayIcon', icon, desc]),
+          }};
+        }}
+        const active = 3;
+        const prog = 0.5;
+        const icon = 'FAKE_ICON';
+        const mainWindow = makeWin(true);   // destroyed -- must be skipped
+        const subsWindow = makeWin(false);  // live -- must receive the calls
+        {loop_src}
+        console.log(JSON.stringify(calls));
+        """
+        result = __import__("subprocess").run(
+            ["node", "-e", node_script],
+            capture_output=True, text=True, timeout=10,
+        )
+        assert result.returncode == 0, f"{p}: loop raised: {result.stderr}"
+        import json
+        calls = json.loads(result.stdout.strip())
+        targets = [c[0] for c in calls]
+        assert "setProgressBar" in targets, (
+            f"{p}: the live (non-destroyed) window must receive setProgressBar"
+        )
+        # Exactly one setProgressBar call -- the destroyed mainWindow must
+        # not have been touched, and there must be no duplicate for the
+        # live window either.
+        assert targets.count("setProgressBar") == 1, (
+            f"{p}: expected exactly 1 setProgressBar call (destroyed "
+            f"window skipped), got {targets.count('setProgressBar')}"
+        )
+
+
+
+# ── Hardening added in the delta review of 069675e ───────────────────────────
+
+def _extract_per_window_loop(path):
+    """The real `for (const win of [mainWindow, subsWindow]) { ... }` body,
+    brace-matched out of source (same technique as the test above)."""
+    src = read_source(path)
+    i = src.index("for (const win of [mainWindow, subsWindow])")
+    k = src.index("{", i)
+    depth = 0
+    while True:
+        if src[k] == "{":
+            depth += 1
+        elif src[k] == "}":
+            depth -= 1
+            if depth == 0:
+                break
+        k += 1
+    return src[i:k + 1]
+
+
+def _run_loop_under_node(loop_src, decl):
+    """Execute the real loop against mock windows and return the calls made."""
+    import json
+    import subprocess
+
+    script = f"""
+    const calls = [];
+    function makeWin(destroyed) {{
+      return {{
+        isDestroyed: () => destroyed,
+        setProgressBar: (v) => calls.push(['setProgressBar', v]),
+        setOverlayIcon: (icon, desc) => calls.push(['setOverlayIcon', icon, desc]),
+      }};
+    }}
+    const active = 3, prog = 0.5, icon = 'FAKE_ICON';
+    {decl}
+    {loop_src}
+    console.log(JSON.stringify(calls));
+    """
+    r = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=10)
+    assert r.returncode == 0, f"loop raised: {r.stderr}"
+    return json.loads(r.stdout.strip())
+
+
+def test_per_window_loop_tolerates_a_null_window():
+    """The `!win` half of the guard, which nothing else exercises.
+
+    test_hidden_or_destroyed_window_in_the_loop_is_a_harmless_skip says it
+    covers "a live mock window, a destroyed one, and None", but both its
+    mocks are objects -- the null branch is never taken. That branch is not
+    an edge case: `subsWindow` is declared `let subsWindow = null` and is
+    null whenever Subscriptions isn't open, i.e. during every ordinary
+    main-window download. Dropping `!win ||` therefore throws a TypeError
+    on the most common path, where the set-activity handler's outer
+    try/catch swallows it and the taskbar progress silently stops working
+    altogether -- with the suite still green.
+    """
+    for p in MAIN_JS:
+        loop = _extract_per_window_loop(p)
+
+        # subsWindow null (Subscriptions closed) -- the normal case.
+        calls = _run_loop_under_node(
+            loop, "const mainWindow = makeWin(false); const subsWindow = null;")
+        assert [c[0] for c in calls].count("setProgressBar") == 1, (
+            f"{p}: with subsWindow null, mainWindow alone must be updated"
+        )
+
+        # mainWindow null (pre-creation / post-teardown) -- subs still updated.
+        calls = _run_loop_under_node(
+            loop, "const mainWindow = null; const subsWindow = makeWin(false);")
+        assert [c[0] for c in calls].count("setProgressBar") == 1, (
+            f"{p}: with mainWindow null, subsWindow alone must be updated"
+        )
+
+        # Both absent -- no calls, no throw.
+        assert _run_loop_under_node(
+            loop, "const mainWindow = null; const subsWindow = null;") == []
+
+        # And the guard itself must still be there.
+        assert "if (!win || win.isDestroyed()) continue;" in loop, (
+            f"{p}: the per-window loop must guard on `!win` as well as "
+            f"isDestroyed() -- subsWindow is null whenever Subscriptions "
+            f"is closed"
+        )
+
+
+def test_subs_close_clears_state_before_reaggregating_and_cannot_strand_the_user():
+    """The subsWindow 'closed' handler must clear its own state BEFORE
+    calling _applyAggregateActivity(), and must not let that call throw.
+
+    mainWindow is hidden while Subscriptions is open ("sub-app mode"), and
+    this handler is what shows it again. Since 069675e the aggregate call
+    reaches into window objects, so an exception there would abort the
+    handler before mainWindow.show() -- leaving the user with no visible
+    window at all. Clearing first also means the loop never iterates the
+    window currently being torn down.
+    """
+    for p in MAIN_JS:
+        src = read_source(p)
+        i = src.index("subsWindow.on('closed'")
+        j = src.index("});", i)
+        # Strip comments first: the handler's own explanatory comment names
+        # mainWindow.show(), and an index search over raw source would match
+        # that prose instead of the call -- the exact failure mode this
+        # file's other guards have been bitten by.
+        block = "\n".join(
+            ln for ln in src[i:j].split("\n") if not ln.lstrip().startswith("//")
+        )
+
+        null_at = block.index("subsWindow = null;")
+        agg_at = block.index("_applyAggregateActivity()")
+        assert null_at < agg_at, (
+            f"{p}: `subsWindow = null` must come before the "
+            f"_applyAggregateActivity() call, so the per-window loop does "
+            f"not touch the window being torn down"
+        )
+
+        assert re.search(r"try\s*\{\s*_applyAggregateActivity\(\);\s*\}\s*catch", block), (
+            f"{p}: the _applyAggregateActivity() call in the subs 'closed' "
+            f"handler must be wrapped -- a throw here skips the "
+            f"mainWindow.show() below and leaves no visible window"
+        )
+
+        show_at = block.index("mainWindow.show()")
+        assert agg_at < show_at, (
+            f"{p}: mainWindow.show() must come after the aggregate update, "
+            f"so restoring the UI is never blocked by it"
+        )

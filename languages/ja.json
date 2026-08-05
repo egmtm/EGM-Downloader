@@ -4,11 +4,11 @@
   "_language_english": "Japanese",
   "_code": "ja",
   "_direction": "ltr",
-  "_version": "1.3.4",
+  "_version": "1.3.5",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-16",
+  "_last_updated": "2026-07-17",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & 他{0}サイト",
@@ -534,14 +534,23 @@
     "themes.confirm.delete_body": "「{0}」は完全に削除されます。この操作は元に戻せません。",
     "card.quality.hdr_tooltip": "HDR には対応ディスプレイと対応プレーヤーが必要です — そうでない場合、色がくすんで見えます。HDR ダウンロードは MKV 形式で保存されます。",
     "console.title": "診断",
-    "console.readonly_note": "読み取り専用 — アプリケーションのライブログ",
     "console.empty": "まだログエントリはありません。",
     "console.toggle.ytdlp": "yt-dlp の出力を表示",
+    "console.toggle.ytdlp.label": "yt-dlp",
+    "console.toggle.flask": "Flask の出力を表示",
+    "console.toggle.flask.label": "Flask",
+    "console.toggle.ffmpeg": "ffmpeg の出力を表示",
+    "console.toggle.ffmpeg.label": "ffmpeg",
     "console.btn.export": "エクスポート",
     "tray.open": "EGM Downloader を開く",
     "tray.quit": "終了",
     "footer.btn.diagnostics": "診断",
     "download.error.no_formats": "ダウンロード可能な形式が見つかりませんでした。多くの場合、メンバー限定動画です — このチャンネルのメンバーであれば、設定でアカウントの Cookie を読み込んでもう一度お試しください。非公開、地域制限、またはその他の制限がかかっている可能性もあります。",
-    "download.error.extract": "動画情報を取得できませんでした。ページが変更された可能性があります。"
+    "download.error.extract": "動画情報を取得できませんでした。ページが変更された可能性があります。",
+    "konami.title": "EGM Downloader が応答していません",
+    "konami.collecting": "クラッシュレポートを収集中…",
+    "konami.gotcha": "やられた！",
+    "konami.found": "コナミコマンドを見つけましたね — クラッシュはしていません、すべて正常です。",
+    "konami.close_hint": "どこかをクリックして閉じる"
   }
 }
