@@ -124,3 +124,85 @@ def test_konami_i18n_keys_present_and_genuinely_translated_across_locales():
                         f"{loc}: 'Konami' must appear verbatim (proper "
                         f"noun) inside konami.found, got {d[key]!r}"
                     )
+
+
+# ── Hardening added in the delta review of ffca4f8..80027a8 ──────────────────
+
+def test_no_unescaped_interpolation_reaches_the_overlay_innerhtml():
+    """Generalizes test_konami_translated_strings_are_escaped_before_reaching_
+    innerhtml from a whitelist into an invariant.
+
+    That test asserts the five *known* keys are wrapped in esc(). It cannot
+    see a SIXTH interpolation added later without esc() -- verified by
+    mutation: adding `${i18nGet('konami.subtitle') || 'extra'}` to the
+    overlay markup leaves it green. Since the overlay is assembled with
+    innerHTML, the property worth pinning is "nothing unescaped is
+    interpolated here", not "these five are escaped".
+
+    An interpolation passes if it either calls esc() inline, or is a bare
+    identifier that was assigned from an esc(...) expression inside the same
+    block.
+    """
+    for p in CORE_JS_FILES:
+        block = _konami_block(read_source(p))
+
+        # Identifiers assigned from esc(...) in this block are pre-escaped.
+        pre_escaped = set(
+            re.findall(r"const\s+(\w+)\s*=\s*esc\(", block)
+        )
+
+        for expr in re.findall(r"\$\{([^{}]*)\}", block):
+            expr = expr.strip()
+            if "esc(" in expr:
+                continue
+            if re.fullmatch(r"\w+", expr) and expr in pre_escaped:
+                continue
+            raise AssertionError(
+                f"{p}: unescaped interpolation `${{{expr}}}` reaches the "
+                f"Konami overlay's innerHTML. Wrap it in esc(), or assign it "
+                f"from esc(...) first -- every other value in this block does."
+            )
+
+        # Sanity: the scan must actually be finding interpolations, or the
+        # invariant above passes vacuously.
+        assert len(re.findall(r"\$\{[^{}]*\}", block)) >= 5, (
+            f"{p}: expected at least 5 interpolations in the Konami block; "
+            f"the block extraction or the markup shape changed"
+        )
+
+
+def test_locale_files_have_no_duplicate_json_keys():
+    """json.load() silently keeps the LAST of any duplicated key, so a
+    locale file can carry two entries for the same key and every existing
+    check -- including the key-count parity tests -- still passes while one
+    value is silently discarded.
+
+    This is not hypothetical: commit 5005b06 ("dedupe konami.* placeholder
+    keys") exists because it happened during this very release. Nothing
+    prevented a recurrence, so this guard does.
+    """
+    import collections
+    import glob
+    import json
+    import os
+
+    lang_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "languages")
+    offenders = {}
+    for path in sorted(glob.glob(os.path.join(lang_dir, "*.json"))):
+        seen = []
+
+        def _hook(pairs, _seen=seen):
+            counts = collections.Counter(k for k, _ in pairs)
+            _seen.extend(k for k, n in counts.items() if n > 1)
+            return dict(pairs)
+
+        with open(path, encoding="utf-8") as fh:
+            json.load(fh, object_pairs_hook=_hook)
+        if seen:
+            offenders[os.path.basename(path)] = sorted(set(seen))
+
+    assert not offenders, (
+        f"duplicate JSON keys found (json.load keeps only the last value, so "
+        f"one translation is silently dropped and key-count parity still "
+        f"passes): {offenders}"
+    )
