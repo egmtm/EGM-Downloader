@@ -773,10 +773,16 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     });
     if (choice === 0) { subsForceClose = true; subsWindow.close(); }
   });
+  // Teardown order matters: the activity slot is dropped and the reference
+  // cleared BEFORE re-aggregating, so the per-window shell loop never
+  // iterates the window being torn down. The re-aggregate is wrapped
+  // because a throw there would skip the window restore below -- and the
+  // main window is hidden in sub-app mode, so that would leave no visible
+  // window at all.
   subsWindow.on('closed', () => {
     _activityBySender.delete(subsWindow);
-    _applyAggregateActivity();
     subsWindow = null;
+    try { _applyAggregateActivity(); } catch {}
     subsActiveDownloads = false; subsForceClose = false;
     if (mainWindow && !mainWindow.isDestroyed()) {
       if (mainWindow.isMinimized()) mainWindow.restore();
@@ -820,11 +826,21 @@ function _applyAggregateActivity() {
   }
   const prog = counted > 0 ? weighted / counted : -1;
 
-  if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.setProgressBar(active > 0 ? prog : -1);
-    const icon = _badgeIconForCount(active);
-    if (icon) { try { mainWindow.setOverlayIcon(icon, `${active} active`); } catch {} }
-    else { mainWindow.setOverlayIcon(null, ''); }
+  // Applied to every existing top-level window, not just mainWindow --
+  // subsWindow has its own independent taskbar button (no skipTaskbar,
+  // no parent), and main.js hides mainWindow while subscriptions is open
+  // ("sub-app mode"). Targeting mainWindow alone meant the progress
+  // bar/badge were written to a window with no taskbar presence at that
+  // moment, while the window the user was actually looking at never
+  // received them. A hidden/destroyed window's update is a harmless
+  // no-op; whichever window currently has a taskbar button gets the
+  // real one.
+  const icon = _badgeIconForCount(active);
+  for (const win of [mainWindow, subsWindow]) {
+    if (!win || win.isDestroyed()) continue;
+    win.setProgressBar(active > 0 ? prog : -1);
+    if (icon) { try { win.setOverlayIcon(icon, `${active} active`); } catch {} }
+    else { win.setOverlayIcon(null, ''); }
   }
   if (active > 0 && _psbId === null) {
     _psbId = powerSaveBlocker.start('prevent-app-suspension');

@@ -4,11 +4,11 @@
   "_language_english": "English",
   "_code": "en",
   "_direction": "ltr",
-  "_version": "1.3.1",
+  "_version": "1.3.5",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-13",
+  "_last_updated": "2026-07-17",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} more sites",
@@ -534,14 +534,23 @@
     "themes.confirm.delete_body": "\"{0}\" will be permanently deleted. This cannot be undone.",
     "card.quality.hdr_tooltip": "HDR requires an HDR-capable display and player — colors look washed out otherwise. HDR downloads are saved as MKV.",
     "console.title": "Diagnostics",
-    "console.readonly_note": "Read-only — live application log",
     "console.empty": "No log entries yet.",
     "console.toggle.ytdlp": "Show yt-dlp output",
+    "console.toggle.ytdlp.label": "yt-dlp",
+    "console.toggle.flask": "Show Flask output",
+    "console.toggle.flask.label": "Flask",
+    "console.toggle.ffmpeg": "Show ffmpeg output",
+    "console.toggle.ffmpeg.label": "ffmpeg",
     "console.btn.export": "Export",
     "tray.open": "Open EGM Downloader",
     "tray.quit": "Quit",
     "footer.btn.diagnostics": "Diagnostics",
     "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
-    "download.error.extract": "Could not extract video info. The page may have changed."
+    "download.error.extract": "Could not extract video info. The page may have changed.",
+    "konami.title": "EGM Downloader has stopped responding",
+    "konami.collecting": "collecting crash report…",
+    "konami.gotcha": "Gotcha!",
+    "konami.found": "You found the Konami code — nothing crashed, everything is fine.",
+    "konami.close_hint": "click anywhere to close"
   }
 }

@@ -4,11 +4,11 @@
   "_language_english": "Russian",
   "_code": "ru",
   "_direction": "ltr",
-  "_version": "1.3.4",
+  "_version": "1.3.5",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-16",
+  "_last_updated": "2026-07-17",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -534,14 +534,23 @@
     "themes.confirm.delete_body": "Тема «{0}» будет удалена без возможности восстановления. Это действие нельзя отменить.",
     "card.quality.hdr_tooltip": "Для HDR требуется дисплей и плеер с поддержкой HDR — иначе цвета будут блёклыми. Загрузки HDR сохраняются в формате MKV.",
     "console.title": "Диагностика",
-    "console.readonly_note": "Только чтение — журнал приложения в реальном времени",
     "console.empty": "Записей в журнале пока нет.",
     "console.toggle.ytdlp": "Показать вывод yt-dlp",
+    "console.toggle.ytdlp.label": "yt-dlp",
+    "console.toggle.flask": "Показать вывод Flask",
+    "console.toggle.flask.label": "Flask",
+    "console.toggle.ffmpeg": "Показать вывод ffmpeg",
+    "console.toggle.ffmpeg.label": "ffmpeg",
     "console.btn.export": "Экспорт",
     "tray.open": "Открыть EGM Downloader",
     "tray.quit": "Выход",
     "footer.btn.diagnostics": "Диагностика",
     "download.error.no_formats": "Форматы для скачивания не найдены. Обычно это означает, что видео доступно только участникам канала — если вы участник этого канала, загрузите файлы cookie своего аккаунта в Настройках и попробуйте снова. Видео также может быть приватным, заблокированным по региону или иным образом ограниченным.",
-    "download.error.extract": "Не удалось получить информацию о видео. Возможно, страница изменилась."
+    "download.error.extract": "Не удалось получить информацию о видео. Возможно, страница изменилась.",
+    "konami.title": "EGM Downloader не отвечает",
+    "konami.collecting": "Сбор отчёта о сбое…",
+    "konami.gotcha": "Попался!",
+    "konami.found": "Вы нашли код Konami — ничего не сломалось, всё в порядке.",
+    "konami.close_hint": "Нажмите в любом месте, чтобы закрыть"
   }
 }

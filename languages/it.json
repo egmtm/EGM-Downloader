@@ -4,11 +4,11 @@
   "_language_english": "Italian",
   "_code": "it",
   "_direction": "ltr",
-  "_version": "1.3.4",
+  "_version": "1.3.5",
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-07-16",
+  "_last_updated": "2026-07-17",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} altri siti",
@@ -534,14 +534,23 @@
     "themes.confirm.delete_body": "\"{0}\" verrà eliminato definitivamente. Non è possibile annullare questa operazione.",
     "card.quality.hdr_tooltip": "L'HDR richiede un display e un player compatibili con HDR, altrimenti i colori appaiono sbiaditi. I download HDR vengono salvati come MKV.",
     "console.title": "Diagnostica",
-    "console.readonly_note": "Sola lettura — log dal vivo dell'applicazione",
     "console.empty": "Nessuna voce di log ancora.",
     "console.toggle.ytdlp": "Mostra output di yt-dlp",
+    "console.toggle.ytdlp.label": "yt-dlp",
+    "console.toggle.flask": "Mostra output di Flask",
+    "console.toggle.flask.label": "Flask",
+    "console.toggle.ffmpeg": "Mostra output di ffmpeg",
+    "console.toggle.ffmpeg.label": "ffmpeg",
     "console.btn.export": "Esporta",
     "tray.open": "Apri EGM Downloader",
     "tray.quit": "Esci",
     "footer.btn.diagnostics": "Diagnostica",
     "download.error.no_formats": "Nessun formato scaricabile trovato. Di solito si tratta di un video riservato ai membri — se sei membro di questo canale, carica i cookie del tuo account in Impostazioni e riprova. Potrebbe anche essere privato, bloccato per area geografica o limitato in altro modo.",
-    "download.error.extract": "Impossibile estrarre le informazioni del video. La pagina potrebbe essere cambiata."
+    "download.error.extract": "Impossibile estrarre le informazioni del video. La pagina potrebbe essere cambiata.",
+    "konami.title": "EGM Downloader non risponde",
+    "konami.collecting": "Raccolta report di arresto anomalo…",
+    "konami.gotcha": "Beccato!",
+    "konami.found": "Hai trovato il codice Konami — nulla è andato in crash, va tutto bene.",
+    "konami.close_hint": "Fai clic in un punto qualsiasi per chiudere"
   }
 }

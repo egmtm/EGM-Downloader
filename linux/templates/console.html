@@ -21,7 +21,6 @@
   .titlebar h1{font-size:13px;font-weight:500;color:var(--text);display:flex;align-items:center;gap:8px}
   .live-dot{width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green)}
   .live-dot.paused{background:var(--yellow);box-shadow:0 0 6px var(--yellow)}
-  .tb-note{font-size:10px;color:var(--text2);opacity:.7}
 
   .log-wrap{flex:1;overflow-y:auto;padding:10px 14px;font-family:Consolas,Menlo,'SF Mono',monospace;font-size:11.5px;line-height:1.55;user-select:text}
   /* Body text uses --text (the one var every theme guarantees readable on its
@@ -32,6 +31,10 @@
   .log-line.okc{color:var(--green);opacity:1}
   .log-line.yt{opacity:.6;font-size:11px}
   .log-line.yt .lt{opacity:.8}
+  .log-line.flask{opacity:.6;font-size:11px}
+  .log-line.flask .lt{opacity:.8}
+  .log-line.ffmpeg{opacity:.6;font-size:11px}
+  .log-line.ffmpeg .lt{opacity:.8}
   /* lint-allow-muted: empty-state */
   .log-empty{color:var(--muted);padding:20px 6px;font-style:italic}
 
@@ -43,12 +46,19 @@
   <div class="titlebar">
     <h1><span class="live-dot" id="live-dot"></span><span data-i18n="console.title">Diagnostics</span></h1>
     <div style="display:flex;align-items:center;gap:12px">
-      <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none">
+      <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none" data-i18n-attr="title:console.toggle.ffmpeg" title="Show ffmpeg output">
+        <input type="checkbox" id="ffmpeg-toggle" style="accent-color:var(--acc)">
+        <span data-i18n="console.toggle.ffmpeg.label">ffmpeg</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none" data-i18n-attr="title:console.toggle.flask" title="Show Flask output">
+        <input type="checkbox" id="flask-toggle" style="accent-color:var(--acc)">
+        <span data-i18n="console.toggle.flask.label">Flask</span>
+      </label>
+      <label style="display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--text2);cursor:pointer;user-select:none" data-i18n-attr="title:console.toggle.ytdlp" title="Show yt-dlp output">
         <input type="checkbox" id="yt-toggle" style="accent-color:var(--acc)">
-        <span data-i18n="console.toggle.ytdlp">Show yt-dlp output</span>
+        <span data-i18n="console.toggle.ytdlp.label">yt-dlp</span>
       </label>
       <button id="export-btn" style="font-size:10.5px;padding:3px 12px;border-radius:5px;cursor:pointer;border:1px solid var(--border2);background:transparent;color:var(--text2)" data-i18n="console.btn.export">Export</button>
-      <span class="tb-note" data-i18n="console.readonly_note">Read-only — live application log</span>
     </div>
   </div>
   <div class="log-wrap" id="log-wrap">
@@ -98,6 +108,16 @@ ytToggle.checked = localStorage.getItem('egm-console-yt') === '1';
 ytToggle.addEventListener('change', () => {
   try { localStorage.setItem('egm-console-yt', ytToggle.checked ? '1' : '0'); } catch {}
 });
+const flaskToggle = document.getElementById('flask-toggle');
+flaskToggle.checked = localStorage.getItem('egm-console-flask') === '1';
+flaskToggle.addEventListener('change', () => {
+  try { localStorage.setItem('egm-console-flask', flaskToggle.checked ? '1' : '0'); } catch {}
+});
+const ffmpegToggle = document.getElementById('ffmpeg-toggle');
+ffmpegToggle.checked = localStorage.getItem('egm-console-ffmpeg') === '1';
+ffmpegToggle.addEventListener('change', () => {
+  try { localStorage.setItem('egm-console-ffmpeg', ffmpegToggle.checked ? '1' : '0'); } catch {}
+});
 
 wrap.addEventListener('scroll', () => {
   pinned = wrap.scrollTop + wrap.clientHeight >= wrap.scrollHeight - 12;
@@ -124,30 +144,42 @@ function appendLines(entries, extraClass) {
     frag.appendChild(div);
   }
   wrap.appendChild(frag);
-  // cap DOM so a long-open window never balloons (2x ring: diag + yt streams)
-  while (wrap.children.length > 2000) wrap.removeChild(wrap.firstChild);
+  // cap DOM so a long-open window never balloons (4x ring: diag + yt + flask + ffmpeg streams)
+  while (wrap.children.length > 4000) wrap.removeChild(wrap.firstChild);
   if (pinned) wrap.scrollTop = wrap.scrollHeight;
 }
 
+let flaskSince = 0;
+let ffmpegSince = 0;
 async function poll() {
   try {
     const yt = ytToggle.checked ? `&yt=1&yts=${ytSince}` : '';
-    const d = await fetch(`/api/logs?since=${since}${yt}`).then(r => r.json());
+    const fl = flaskToggle.checked ? `&flask=1&fs=${flaskSince}` : '';
+    const fm = ffmpegToggle.checked ? `&ffmpeg=1&fm=${ffmpegSince}` : '';
+    const d = await fetch(`/api/logs?since=${since}${yt}${fl}${fm}`).then(r => r.json());
     appendLines(d.lines);
     if (ytToggle.checked && d.yt_lines) { appendLines(d.yt_lines, 'yt'); ytSince = d.yt_next ?? ytSince; }
+    if (flaskToggle.checked && d.flask_lines) { appendLines(d.flask_lines, 'flask'); flaskSince = d.flask_next ?? flaskSince; }
+    if (ffmpegToggle.checked && d.ffmpeg_lines) { appendLines(d.ffmpeg_lines, 'ffmpeg'); ffmpegSince = d.ffmpeg_next ?? ffmpegSince; }
     since = d.next ?? since;
   } catch {}
   setTimeout(poll, 1000);
 }
 poll();
 
-// ── Export: full diagnostic ring (+ yt ring when the toggle is on) as a file ──
+// ── Export: full diagnostic ring (+ yt/flask/ffmpeg rings when their toggles are on) as a file ──
 document.getElementById('export-btn').addEventListener('click', async () => {
   try {
-    const d = await fetch(`/api/logs?since=0&yt=1&yts=0`).then(r => r.json());
+    const d = await fetch(`/api/logs?since=0&yt=1&yts=0&flask=1&fs=0&ffmpeg=1&fm=0`).then(r => r.json());
     const parts = (d.lines || []).map(e => `${e.t} [EGM] ${e.m}`);
     if (ytToggle.checked) {
       for (const e of (d.yt_lines || [])) parts.push(`${e.t} [yt-dlp] ${e.m}`);
+    }
+    if (flaskToggle.checked) {
+      for (const e of (d.flask_lines || [])) parts.push(`${e.t} [flask] ${e.m}`);
+    }
+    if (ffmpegToggle.checked) {
+      for (const e of (d.ffmpeg_lines || [])) parts.push(`${e.t} [ffmpeg] ${e.m}`);
     }
     const stamp = new Date().toISOString().replace(/[:T]/g, '-').slice(0, 19);
     const text = parts.join('\n') + '\n';

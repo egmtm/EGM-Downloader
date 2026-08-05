@@ -282,6 +282,109 @@ def _yt_log(line):
         if len(_YT_RING) > _LOG_RING_MAX:
             del _YT_RING[: len(_YT_RING) - _LOG_RING_MAX]
 
+_FLASK_RING: list = []
+_FLASK_SEQ = 0
+
+def _flask_raw_log(line):
+    """Raw stdout/stderr ring -- everything a terminal-launched run would
+    show (Werkzeug's own request logging, print()s, uncaught tracebacks),
+    unfiltered. Memory-only like _YT_RING, same reasoning: this can contain
+    full local paths (a traceback) or other detail that doesn't belong in
+    egm_debug.log, the file the support field protocol asks users to email
+    in. Displayed only when the console's Flask-output toggle is on."""
+    global _FLASK_SEQ
+    with _LOG_RING_LOCK:
+        _FLASK_SEQ += 1
+        _FLASK_RING.append({"n": _FLASK_SEQ, "t": time.strftime("%H:%M:%S"), "m": line})
+        if len(_FLASK_RING) > _LOG_RING_MAX:
+            del _FLASK_RING[: len(_FLASK_RING) - _LOG_RING_MAX]
+
+class _StdTee:
+    """Tees sys.stdout/sys.stderr writes to the real stream (so a terminal-
+    launched run behaves exactly as before) and _flask_raw_log, line-
+    buffered so a write() spanning a partial line doesn't ring-append a
+    fragment. Hardened on three fronts: the real stream may be None (a
+    console-less Windows launch -- plain print() special-cases a None
+    sys.stdout, but wrapping it in a Tee would have un-done that safety) or
+    broken (EPIPE on a dead consumer) -- neither may ever break the caller;
+    the line buffer is lock-guarded because Flask runs threaded=True and
+    concurrent request handlers' writes would otherwise race the
+    read-modify-write on _buf and lose lines; and unknown attribute reads
+    (.encoding/.buffer/.fileno from libraries probing sys.stdout) delegate
+    to the real stream instead of raising on the wrapper."""
+    def __init__(self, real):
+        self._real = real
+        self._buf = ""
+        self._lock = threading.Lock()
+
+    def write(self, s):
+        try:
+            if self._real is not None:
+                self._real.write(s)
+        except Exception:
+            pass   # a broken/absent real stream must never break the app
+        with self._lock:
+            self._buf += s
+            while "\n" in self._buf:
+                line, self._buf = self._buf.split("\n", 1)
+                _flask_raw_log(line)
+        return len(s)
+
+    def flush(self):
+        try:
+            if self._real is not None:
+                self._real.flush()
+        except Exception:
+            pass
+
+    def isatty(self):
+        return False
+
+    def __getattr__(self, name):
+        # .encoding/.buffer/.fileno/... -- delegate to the real stream so
+        # libraries probing sys.stdout see the original's attributes.
+        return getattr(self._real, name)
+
+_FFMPEG_RING: list = []
+_FFMPEG_SEQ = 0
+
+def _ffmpeg_log(line):
+    """Raw ffmpeg stderr ring, mirroring _YT_RING/_FLASK_RING's shape and
+    locking exactly. Memory-only -- ffmpeg stderr can echo local file
+    paths. Scoped to _run_h264_encode's directly-spawned ffmpeg process
+    only (not yt-dlp's internal postprocessing ffmpeg, and not the short
+    synchronous probe calls). Displayed only when the console's ffmpeg
+    toggle is on."""
+    global _FFMPEG_SEQ
+    with _LOG_RING_LOCK:
+        _FFMPEG_SEQ += 1
+        _FFMPEG_RING.append({"n": _FFMPEG_SEQ, "t": time.strftime("%H:%M:%S"), "m": line})
+        if len(_FFMPEG_RING) > _LOG_RING_MAX:
+            del _FFMPEG_RING[: len(_FFMPEG_RING) - _LOG_RING_MAX]
+
+def _drain_ffmpeg_stderr(p):
+    """Background thread: drains a spawned ffmpeg process's stderr into
+    _ffmpeg_log line-by-line. stderr is binary (matching stdout, which
+    _pump_encode_progress requires to stay binary) so lines are decoded
+    manually here, same pattern as _pump_encode_progress's own manual
+    decode. Must never raise -- mirrors _pump_encode_progress's
+    established 'never raises' contract, since this runs as a daemon
+    thread against a live subprocess (and, in tests, sometimes a bare
+    mock object with no .stderr)."""
+    try:
+        if p.stderr is None:
+            return
+        for raw in iter(p.stderr.readline, b""):
+            line = raw.decode("utf-8", "replace").rstrip()
+            if not line:
+                continue
+            _ffmpeg_log(line)
+    except Exception:
+        pass
+
+sys.stdout = _StdTee(sys.stdout)
+sys.stderr = _StdTee(sys.stderr)
+
 def _egm_log(msg):
     global _LOG_SEQ
     line = f"[EGM] {msg}"
@@ -958,6 +1061,21 @@ def _run_download_slot(job_id, *rest):
 # ── Hardware-accelerated H.264 encode (auto-detect, safe fallback) ───────────
 _HW_ENCODER_CACHE = None
 
+def _log_hw_probe_failure(name, text):
+    """Routes a failed hardware-encoder probe's output into the ffmpeg ring
+    (visible under the Diagnostics ffmpeg toggle) instead of discarding it.
+    Previously the probe's stderr went nowhere -- when hardware encoding
+    silently fails and the app falls back to libx264, this was the single
+    most useful diagnostic for a hardware-encoding support case, and it was
+    unavailable. Prefixed per-candidate so multiple probe failures in one
+    session stay distinguishable."""
+    if not text:
+        return
+    for line in str(text).splitlines():
+        line = line.strip()
+        if line:
+            _ffmpeg_log(f"[hw-probe:{name}] {line}")
+
 def _detect_hw_encoder():
     """Probe hardware H.264 encoders with a tiny test encode and cache the winner.
     Presence in `ffmpeg -encoders` is NOT enough — the probe proves the GPU and
@@ -978,8 +1096,9 @@ def _detect_hw_encoder():
                 _egm_log(f"hardware encoder available: {name}")
                 _HW_ENCODER_CACHE = (name, list(args))
                 return _HW_ENCODER_CACHE
-        except Exception:
-            pass
+            _log_hw_probe_failure(name, r.stderr)
+        except Exception as e:
+            _log_hw_probe_failure(name, str(e))
     _HW_ENCODER_CACHE = (None, None)
     return _HW_ENCODER_CACHE
 
@@ -1060,7 +1179,7 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
             cmd += codec_args + ["-pix_fmt", "yuv420p",
                                  "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
                                  "-progress", "pipe:1", "-nostats", tmp]
-            proc = _popen(*cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+            proc = _popen(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           # Own process group: cancel goes through _kill_proc -> os.killpg;
                           # without a new session this ffmpeg shares the app's own group and
                           # killpg would SIGTERM Flask (and Electron) along with it.
@@ -1070,6 +1189,8 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
                 _active_procs[job_id] = proc
             threading.Thread(target=_pump_encode_progress,
                              args=(proc, job, duration_s), daemon=True).start()
+            threading.Thread(target=_drain_ffmpeg_stderr,
+                             args=(proc,), daemon=True).start()
             proc.wait()
             job["proc"] = None
             with _active_procs_lock:
@@ -2484,6 +2605,10 @@ def api_logs():
     since = request.args.get("since", 0, type=int)
     want_yt = request.args.get("yt", 0, type=int)
     yts = request.args.get("yts", 0, type=int)
+    want_flask = request.args.get("flask", 0, type=int)
+    fs = request.args.get("fs", 0, type=int)
+    want_ffmpeg = request.args.get("ffmpeg", 0, type=int)
+    fm = request.args.get("fm", 0, type=int)
     with _LOG_RING_LOCK:
         lines = [e for e in _LOG_RING if e["n"] > since]
         nxt = _LOG_SEQ
@@ -2491,6 +2616,12 @@ def api_logs():
         if want_yt:
             resp["yt_lines"] = [e for e in _YT_RING if e["n"] > yts]
             resp["yt_next"] = _YT_SEQ
+        if want_flask:
+            resp["flask_lines"] = [e for e in _FLASK_RING if e["n"] > fs]
+            resp["flask_next"] = _FLASK_SEQ
+        if want_ffmpeg:
+            resp["ffmpeg_lines"] = [e for e in _FFMPEG_RING if e["n"] > fm]
+            resp["ffmpeg_next"] = _FFMPEG_SEQ
     return jsonify(resp)
 
 @app.route("/console-page")
