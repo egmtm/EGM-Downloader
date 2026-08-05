@@ -8,6 +8,7 @@ v1.3.5 - FULL DIAGNOSIS (Build TBD) (TBD)
   • [ALL] The Diagnostics toggles now show compact tool names (yt-dlp / Flask / ffmpeg) with the full description as a hover tooltip, to keep the titlebar tidy in longer languages
   • [ALL] Fixed: the taskbar/dock progress badge (added in v1.3.4) wasn't showing for downloads started from Subscriptions
   • [ALL] Up up down down left right left right B A — still doesn't unlock anything. Now multilingual.
+  • [ALL] Electron runtime updated to v43.3.0 — includes upstream Chromium and Node.js stability and security updates
 
 v1.3.4 - IN YOUR FACE (Build 145) (7/21/2026)
 -----------------------------------------
