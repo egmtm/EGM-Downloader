@@ -12,7 +12,7 @@
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <a href="https://github.com/egmtm/EGM-Downloader/discussions"><img src="https://img.shields.io/badge/github-discussions-181717?logo=github" alt="GitHub Discussions"/></a>
     <a href="https://x.com/EGMDownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-000000?logo=x&logoColor=white" alt="Follow on X"/></a>
-    <img src="https://img.shields.io/badge/Electron-43.2.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-43.3.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Big_Sur+-000000?logo=apple&logoColor=white" alt="macOS"/>
@@ -183,16 +183,16 @@
 
 ### Windows
 **Latest:** v1.3.5 Build 146  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (622 KB · ~800 MB after install)  
-**SHA256:** `22f689f3285e8c216ab333c67f75472245b8b87490d9da30cc474de82ff3eba6`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (625 KB · ~800 MB after install)  
+**SHA256:** `fc8720697147e5167b23dfd6074c1213d7a50a2561a86a23fe4bb678250f6206`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.3.5 Build 146  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (626 KB · ~800 MB after first run)  
-**SHA256:** `449c56aea67ae80afd1af6adeb346fdf868f5eb5b3b2913ba880eaee57c926e4`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (631 KB · ~800 MB after first run)  
+**SHA256:** `6d512d3b4f3470ffd12318f07d16e82a42d0a5fc33ef878430bef39ecce1d90d`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -200,16 +200,16 @@
 
 ### macOS
 **Latest:** v1.3.5 Build 146  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (134 MB · ~300 MB after install)  
-**SHA256:** `5564295537c21cbaa668590da5252d849ea58bc56195a8d8ae18854eaee8d400`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (133 MB · ~300 MB after install)  
+**SHA256:** `26a1cc3a01546b056b3fa499f5d72f0391aabe3e4d0cbfbc4b7ee0553f476180`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Linux
 **Latest:** v1.3.5 Build 146  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (161 MB · ~300 MB after install)  
-**SHA256:** `8d1c6aa7414196ce8f6842e57bc25e7227aeaf1613a5cf2249b570ee54e87747`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (163 MB · ~300 MB after install)  
+**SHA256:** `6335b047adb0d94bdfe433e1a1dee3bc75c64e9bbe7cf1dc84ee99c0c0682c5d`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
