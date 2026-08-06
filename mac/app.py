@@ -1294,8 +1294,16 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     except Exception as e:
         # An unwritable or removed download dir (e.g. an unplugged USB drive or a
         # deleted saved folder) must fail the job, not leave it stuck "queued".
-        _egm_log(f"download error: {str(e).splitlines()[0][:200] if str(e) else 'unknown'}")
-        job["status"] = "error"; job["error"] = str(e); job["error_code"] = _classify_error(str(e)); job["_finished_at"] = time.time()
+        # Logged via _classify_error, not the raw exception text: yt-dlp/OS
+        # exceptions here can embed the download URL (sometimes with a signed
+        # token in the query string) or a filesystem path, and this line writes
+        # to egm_debug.log -- the file the support field protocol asks users to
+        # email in. Same "raw detail to a memory ring, classified summary to
+        # disk" boundary _flask_raw_log/_ffmpeg_log establish elsewhere; job["error"]
+        # still keeps the full raw text in memory for the UI, unaffected.
+        _err_code = _classify_error(str(e))
+        _egm_log(f"download error: {_err_code or 'unclassified'}")
+        job["status"] = "error"; job["error"] = str(e); job["error_code"] = _err_code; job["_finished_at"] = time.time()
         return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")
 
