@@ -182,7 +182,7 @@
 ## 📥 Download
 
 ### Windows
-**Latest:** v1.3.4 Build 145  
+**Latest:** v1.3.5 Build 146  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (622 KB · ~800 MB after install)  
 **SHA256:** `22f689f3285e8c216ab333c67f75472245b8b87490d9da30cc474de82ff3eba6`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
@@ -190,7 +190,7 @@
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
-**Latest:** v1.3.4 Build 145  
+**Latest:** v1.3.5 Build 146  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (626 KB · ~800 MB after first run)  
 **SHA256:** `449c56aea67ae80afd1af6adeb346fdf868f5eb5b3b2913ba880eaee57c926e4`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
@@ -199,7 +199,7 @@
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 ### macOS
-**Latest:** v1.3.4 Build 145  
+**Latest:** v1.3.5 Build 146  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (134 MB · ~300 MB after install)  
 **SHA256:** `5564295537c21cbaa668590da5252d849ea58bc56195a8d8ae18854eaee8d400`  
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
@@ -207,7 +207,7 @@
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Linux
-**Latest:** v1.3.4 Build 145  
+**Latest:** v1.3.5 Build 146  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (161 MB · ~300 MB after install)  
 **SHA256:** `8d1c6aa7414196ce8f6842e57bc25e7227aeaf1613a5cf2249b570ee54e87747`  
 **Format:** AppImage (Universal)  
