@@ -98,3 +98,33 @@ def test_download_started_log_line_does_not_use_raw_url():
             f"{p}: download-started log line should still log the host "
             f"for diagnostic value"
         )
+
+
+def test_download_dir_error_log_line_does_not_use_raw_exception_text():
+    """The download-dir _egm_log call (unwritable/removed download dir) must
+    use _classify_error's stable code, never the raw exception text -- a
+    yt-dlp/OS exception here can embed the download URL (sometimes with a
+    signed token in the query string) or a filesystem path, and this line
+    lands in egm_debug.log, the file support asks users to email in.
+    Carried-forward item from the v1.3.4 security handoff, closed here.
+    job["error"] still keeps the full raw text in memory for the UI --
+    only the on-disk log line is affected."""
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        assert '_egm_log(f"download error:' in src, (
+            f"{p}: missing the download-dir-error diagnostic log line"
+        )
+        i = src.index('_egm_log(f"download error:')
+        line = src[max(0, i - 200):i + 120]
+        assert "str(e).splitlines()" not in line, (
+            f"{p}: download-dir-error log line still interpolates the raw "
+            f"exception text directly -- must route through _classify_error"
+        )
+        assert "_classify_error(str(e))" in line, (
+            f"{p}: download-dir-error log line must compute a stable error "
+            f"code via _classify_error before logging"
+        )
+        assert '_egm_log(f"download error: {_err_code or \'unclassified\'}")' in src, (
+            f"{p}: download-dir-error log line must log the classified code "
+            f"(or the literal 'unclassified'), never raw exception content"
+        )
