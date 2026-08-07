@@ -177,7 +177,7 @@ def ensure_python_deps():
     except ImportError: pass
     _gui_msg("Installing Python packages…")
     subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets", "certifi"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.16.0", "brotli", "pycryptodomex", "websockets", "certifi"],
                    check=True, timeout=300, creationflags=NO_WIN)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
@@ -359,7 +359,7 @@ def ensure_python_deps_embedded(py_exe):
         return
     _gui_msg("Installing Python packages…")
     subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi", "brotli", "pycryptodomex", "websockets", "certifi"],
+                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.16.0", "brotli", "pycryptodomex", "websockets", "certifi"],
                    check=True, timeout=600, creationflags=NO_WIN)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────

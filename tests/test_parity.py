@@ -903,7 +903,7 @@ def test_optional_libs_consistent_across_all_sites():
     pip_blocks = re.findall(r'"pip",\s*"install"(.*?)\]', launch, re.DOTALL)
     assert len(pip_blocks) == 2, f"expected 2 pip-install lists in launch.py, found {len(pip_blocks)}"
     for i, block in enumerate(pip_blocks):
-        toks = {_norm_lib(t) for t in re.findall(r'"([^"]+)"', block)}
+        toks = {_norm_lib(re.split(r"[><=!~]", t)[0]) for t in re.findall(r'"([^"]+)"', block)}
         missing = libs - toks
         assert not missing, f"launch.py pip-install list #{i} missing optional libs: {missing}"
 
@@ -955,6 +955,53 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
             f"confirm yt-dlp actually supports the new range "
             f"(python3 -m yt_dlp --list-impersonate-targets, real targets "
             f"listed rather than '(unavailable)') before raising this bound"
+        )
+
+
+def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
+    """requirements.txt only governs the INITIAL/bundled install.
+    curl-cffi is also in OPTLIBS, so it can be re-upgraded live via the
+    in-app "Update Plugins" button (do_optlibs, all 3 platforms) and via
+    windows/launch.py's two first-launch bootstrap installers -- both are
+    unconstrained `pip install --upgrade curl-cffi` calls, independent of
+    requirements.txt. This is exactly how curl_cffi ended up at an
+    unsupported 0.16.0+ in the first place: requirements.txt was never
+    the problem by itself, an already-running or freshly-installed app
+    could self-upgrade straight past the supported range regardless of
+    what requirements.txt says. Every one of these must carry the same
+    ceiling, and app.py/mac/linux's _CURL_CFFI_CEILING constant (used to
+    cap what /api/check-updates reports as "latest", so the Update
+    Plugins UI doesn't nag forever for an update that's deliberately
+    blocked) must agree with requirements.txt's actual pin."""
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        assert "_CURL_CFFI_CEILING = (0, 16, 0)" in src, (
+            f"{p}: missing or drifted _CURL_CFFI_CEILING constant"
+        )
+        i = src.index('if do_optlibs:')
+        j = src.index('\n', src.index('curl-cffi', i))
+        line = src[i:j]
+        assert "curl-cffi<0.16.0" in line, (
+            f"{p}: the do_optlibs 'Update Plugins' pip install still "
+            f"upgrades curl-cffi unconstrained -- this is the exact path "
+            f"that put curl_cffi at an unsupported 0.16.0+ originally"
+        )
+
+    launch = read_source("windows/launch.py")
+    bootstrap_installs = [
+        m.start() for m in re.finditer(r'"-m", "pip", "install"', launch)
+    ]
+    assert len(bootstrap_installs) == 2, (
+        "windows/launch.py: expected exactly 2 pip-install bootstrap call "
+        "sites (installer + portable) -- count changed, update this test"
+    )
+    for pos in bootstrap_installs:
+        end = launch.index("\n", launch.index("curl_cffi", pos))
+        block = launch[pos:end]
+        assert "curl_cffi<0.16.0" in block, (
+            "windows/launch.py: a first-launch bootstrap pip-install still "
+            "pulls curl_cffi unconstrained -- a brand-new install would hit "
+            "the same unsupported-version bug on first run"
         )
 
 
