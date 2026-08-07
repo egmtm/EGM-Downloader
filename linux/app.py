@@ -1990,7 +1990,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             # against the running env, not the target dir (same reason the
             # yt-dlp path above uses it) — without it the overlay never updates.
             r = _run(sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall",
-                     "curl-cffi", "brotli", "pycryptodomex", "websockets", "certifi",
+                     "curl-cffi<0.16.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--target", str(PACKAGES_DIR), timeout=300)
             if r.returncode == 0:
                 vers = _get_optlibs_versions()
@@ -2045,11 +2045,44 @@ def _get_optlibs_versions() -> dict:
     return result
 
 
+def _parse_simple_version(v):
+    """Parses a plain 'X.Y.Z'-style version string into a comparable tuple.
+    Returns None for anything that doesn't cleanly split into integers
+    (pre-releases, beta tags, etc.) -- callers should skip those rather than
+    guess at ordering."""
+    try:
+        return tuple(int(p) for p in v.split("."))
+    except (ValueError, AttributeError):
+        return None
+
+# yt-dlp's curl_cffi support has a hard version ceiling (see requirements.txt's
+# curl_cffi pin and the comment there). Kept in sync manually across three
+# places -- requirements.txt, this constant, and the do_optlibs pip spec below
+# -- test_curl_cffi_optlibs_ceiling_matches_requirements_pin holds them together.
+_CURL_CFFI_CEILING = (0, 16, 0)
+
 def _get_latest_optlibs_versions() -> dict:
     def _one(lib):
         try:
             with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
-                return lib, json.loads(r.read())["info"]["version"]
+                data = json.loads(r.read())
+            if lib == "curl-cffi":
+                # Report the latest version actually installable within
+                # yt-dlp's supported range, not PyPI's raw latest -- otherwise
+                # "Update Plugins" nags forever for an update that would just
+                # break Kick (and every other impersonation-dependent site)
+                # again, and clicking it would silently reinstall a version
+                # that can't work.
+                best = None
+                for v in data.get("releases", {}):
+                    parsed = _parse_simple_version(v)
+                    if parsed is None or parsed >= _CURL_CFFI_CEILING:
+                        continue
+                    if best is None or parsed > best:
+                        best = parsed
+                if best is not None:
+                    return lib, ".".join(str(p) for p in best)
+            return lib, data["info"]["version"]
         except Exception:
             return lib, "unknown"
     result = {}
