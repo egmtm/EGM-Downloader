@@ -923,6 +923,41 @@ def test_optional_libs_consistent_across_all_sites():
         f"launch.py portable `required` tuple missing optional libs: {import_names - required}"
 
 
+def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
+    """yt-dlp's own networking/_curlcffi.py hard-gates curl_cffi to '0.5.10 and
+    0.10.x through 0.15.x' -- anything outside that range raises ImportError
+    at import time, which yt-dlp swallows silently and just reports every
+    impersonate target as unavailable (no error surfaced to the user or to
+    egm_debug.log). A site whose extractor needs impersonation (Kick, at
+    minimum) then gets a plain-networking request and a 403, with nothing in
+    the app pointing at the real cause.
+
+    Confirmed directly against real yt-dlp (stable 2026.07.04 AND nightly
+    2026.08.04, neither had caught up) before fixing: curl_cffi>=0.16.0
+    (the previous pin, from a routine dependency bump) breaks Kick this way;
+    downgrading to curl_cffi==0.15.0 immediately restored every impersonate
+    target and got Kick's extractor past the exact request that was 403ing.
+
+    This upper bound is a moving target -- yt-dlp will eventually add 0.16.x+
+    support, at which point this ceiling should move too. It is NOT
+    hardcoded blindly: raising it should come with the same live
+    confirmation this fix did (--list-impersonate-targets against the actual
+    pinned yt-dlp version showing 0.16.x+ as available, not '(unavailable)'),
+    not just bumping the number because a newer curl_cffi exists."""
+    for req in ("requirements.txt", "linux/requirements.txt"):
+        line = next(
+            (l for l in read_source(req).splitlines() if l.strip().startswith("curl_cffi")),
+            None,
+        )
+        assert line, f"{req}: no curl_cffi line found"
+        assert "<0.16.0" in line or re.search(r"==0\.1[0-5]\.\d", line), (
+            f"{req}: curl_cffi pin ({line!r}) doesn't exclude 0.16.0+ -- "
+            f"confirm yt-dlp actually supports the new range "
+            f"(python3 -m yt_dlp --list-impersonate-targets, real targets "
+            f"listed rather than '(unavailable)') before raising this bound"
+        )
+
+
 def test_mp4_h264_is_the_default_everywhere():
     """Universal MP4 (mp4_h264) must be the DEFAULT output on every platform AND in the UI.
     test_universal_mp4_h264_wired only checks the option/codec/transcode EXIST; this locks
