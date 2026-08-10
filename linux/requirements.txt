@@ -3,7 +3,7 @@ yt-dlp>=2026.7.4
 bgutil-ytdlp-pot-provider
 mutagen>=1.48.1
 cryptography>=50.0.0
-curl_cffi>=0.10.0,<0.16.0
+curl_cffi>=0.16.0,<0.17.0
 brotli>=1.2.0
 pycryptodomex>=3.23.0
 websockets>=17.0.1
