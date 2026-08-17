@@ -555,24 +555,68 @@ def _extract_patchnote_bullets(patchnotes_text, platform_tag):
     return bullets
 
 
-def test_patchnotes_current_version_has_enough_bullets():
-    """The most recent patchnotes.txt entry must yield >= 3 update-feed bullets for
-    EACH platform tag, using BUILD.sh's exact extraction.
+def _extract_patchnote_bullets_naive(patchnotes_text, platform_tag):
+    """Same filter as _extract_patchnote_bullets, but scans the WHOLE current
+    version entry (bounded only by the next 'v\\d' header) instead of stopping
+    at the first blank line. This is the "true" bullet count regardless of
+    section spacing -- used as a reference to detect early-stop truncation,
+    rather than a fixed minimum count (see test_patchnotes_current_version_
+    is_not_truncated for why a fixed minimum stopped being a reliable proxy
+    for that once small maintenance releases became a normal, valid shape)."""
+    bullets, in_block = [], False
+    for line in patchnotes_text.splitlines():
+        if re.match(r'^v\d', line):
+            if in_block:
+                break
+            in_block = True
+            continue
+        if in_block and line.startswith('  • '):
+            m = re.match(rf'^\[({platform_tag}|ALL)\]\s+(.+)$', line[4:].strip())
+            if m:
+                bullets.append(m.group(2))
+    return bullets
+
+
+def test_patchnotes_current_version_is_not_truncated():
+    """The most recent patchnotes.txt entry's BUILD.sh-style per-platform
+    extraction (which stops at the first blank line, same as BUILD.sh itself)
+    must match the naive full-block extraction (which doesn't). A mismatch
+    means the blank-line early-stop is actually firing and silently dropping
+    real bullets -- BUILD.sh's own bullet count would then be wrong at
+    release time.
+
+    Previously this asserted a fixed >= 3 minimum. That was really a proxy
+    for "didn't truncate", which worked while every release had far more
+    than 3 real bullets -- a truncation from 15 down to 1 was obviously
+    wrong under that floor. It stopped being a reliable proxy once
+    genuinely small maintenance-only releases (a single dependency bump,
+    no user-facing changes) became a normal, valid shape: a real 2-bullet
+    release and a truncated 15-into-2 release look identical under any
+    fixed minimum. Comparing against the naive count catches truncation
+    regardless of how many real bullets there are -- including exactly 1.
 
     Regression: in the v1.1.2 cycle a blank line BETWEEN sections
-    (THEMES/IMPROVEMENTS/FIXES) made the extractor stop at the first blank line and
-    emit 1 bullet instead of 10 — an empty/near-empty _version_notes that was only
-    caught mid-build by the BUILD.sh validator. This runs before any build starts.
+    (THEMES/IMPROVEMENTS/FIXES) made the extractor stop at the first blank
+    line and emit 1 bullet instead of 10 — an empty/near-empty
+    _version_notes that was only caught mid-build by the BUILD.sh
+    validator. This runs before any build starts.
     """
     pn = read_source("patchnotes.txt")
     for tag in ("WINDOWS", "MAC", "LINUX"):
         bullets = _extract_patchnote_bullets(pn, tag)
-        assert len(bullets) >= 3, (
-            f"patchnotes.txt: the current version entry yields only {len(bullets)} "
-            f"[{tag}|ALL] bullet(s) (need >= 3). Most common cause: a blank line "
-            f"BETWEEN sections (THEMES/IMPROVEMENTS/FIXES) makes BUILD.sh's extractor "
-            f"stop early. Keep all bullets in one contiguous block (no blank lines "
+        naive = _extract_patchnote_bullets_naive(pn, tag)
+        assert bullets == naive, (
+            f"patchnotes.txt: BUILD.sh-style extraction found {len(bullets)} "
+            f"[{tag}|ALL] bullet(s) but the full version entry actually has "
+            f"{len(naive)} -- a blank line BETWEEN sections (THEMES/"
+            f"IMPROVEMENTS/FIXES) is making BUILD.sh's extractor stop early. "
+            f"Keep all bullets in one contiguous block (no blank lines "
             f"between sections within a version entry)."
+        )
+        assert len(bullets) >= 1, (
+            f"patchnotes.txt: the current version entry has zero [{tag}|ALL] "
+            f"bullets -- every release needs at least one line describing "
+            f"what changed, even a small maintenance-only one."
         )
 
 
@@ -1051,7 +1095,8 @@ def test_history_fields_escaped_against_xss():
 
 def test_generated_feeds_have_enough_bullets():
     """_version_notes in every generated feed must:
-      - carry >= 3 bullets (not truncated)
+      - match patchnotes.txt's own per-platform bullet count exactly (not
+        truncated or collapsed during generation)
       - have all [TAG] prefixes stripped (user-facing text only)
       - contain no foreign-platform bullets (no [WINDOWS] text in Mac/Linux feeds)
 
@@ -1062,6 +1107,15 @@ def test_generated_feeds_have_enough_bullets():
     The patchnotes.txt source guard passed green both times because it checks
     the source, not the artifact. This guard checks the artifact.
 
+    Previously this asserted a fixed >= 3 minimum on the feed alone, which
+    stopped being a reliable proxy for "not collapsed" once genuinely small
+    maintenance-only releases became a normal, valid shape -- a real
+    2-bullet release and a 21-into-2 collapse look identical under any fixed
+    floor once the floor is low enough to allow real small releases through.
+    Cross-referencing the feed's count against patchnotes.txt's own
+    extraction (same helper the source-level guard uses) catches a collapse
+    regardless of how many real bullets there are, including exactly 1.
+
     Run after feeds are generated (dist/*.json must exist).
     """
     import json as _json
@@ -1069,15 +1123,15 @@ def test_generated_feeds_have_enough_bullets():
 
     ROOT = _Path(__file__).parent.parent
     feeds = {
-        "dist/egm-version.json":          "win",
-        "dist/egm-portable-version.json": "win",
-        "dist/egmac-update.json":         "mac",
-        "dist/egmlinux-update.json":      "linux",
+        "dist/egm-version.json":          "WINDOWS",
+        "dist/egm-portable-version.json": "WINDOWS",
+        "dist/egmac-update.json":         "MAC",
+        "dist/egmlinux-update.json":      "LINUX",
     }
     foreign_tags = {
-        "win":   ["[MAC]", "[LINUX]"],
-        "mac":   ["[WINDOWS]", "[LINUX]"],
-        "linux": ["[WINDOWS]", "[MAC]"],
+        "WINDOWS": ["[MAC]", "[LINUX]"],
+        "MAC":     ["[WINDOWS]", "[LINUX]"],
+        "LINUX":   ["[WINDOWS]", "[MAC]"],
     }
 
     missing = [f for f in feeds if not (ROOT / f).exists()]
@@ -1085,23 +1139,31 @@ def test_generated_feeds_have_enough_bullets():
         import pytest
         pytest.skip(f"Feed(s) not yet generated: {missing}")
 
-    for feed_path, plat in feeds.items():
+    pn = read_source("patchnotes.txt")
+
+    for feed_path, tag in feeds.items():
         d = _json.loads((ROOT / feed_path).read_text(encoding="utf-8"))
         notes = d.get("_version_notes", [])
+        source_bullets = _extract_patchnote_bullets(pn, tag)
 
-        assert len(notes) >= 3, (
-            f"{feed_path}: _version_notes has only {len(notes)} bullet(s) (need >= 3). "
-            f"Feed generation truncated the notes. Regenerate."
+        assert len(notes) == len(source_bullets), (
+            f"{feed_path}: _version_notes has {len(notes)} bullet(s) but "
+            f"patchnotes.txt's current [{tag}|ALL] entry has {len(source_bullets)} "
+            f"-- feed generation dropped or collapsed bullets. Regenerate."
+        )
+        assert len(notes) >= 1, (
+            f"{feed_path}: _version_notes is empty -- every release needs at "
+            f"least one line describing what changed."
         )
         tag_prefixed = [n for n in notes if n.lstrip().startswith("[")]
         assert not tag_prefixed, (
             f"{feed_path}: {len(tag_prefixed)} bullet(s) still carry [TAG] prefix — "
             f"gen_notes() must strip tags before storing. Example: {tag_prefixed[0]!r}"
         )
-        for bad_tag in foreign_tags[plat]:
+        for bad_tag in foreign_tags[tag]:
             leaks = [n for n in notes if bad_tag in n]
             assert not leaks, (
-                f"{feed_path} ({plat}): {len(leaks)} bullet(s) contain foreign tag "
+                f"{feed_path} ({tag}): {len(leaks)} bullet(s) contain foreign tag "
                 f"{bad_tag!r} — per-platform filtering is broken. Example: {leaks[0]!r}"
             )
 
