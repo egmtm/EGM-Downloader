@@ -127,45 +127,6 @@ def test_pump_encode_progress_stdout_reading_is_unaffected():
         )
 
 
-def test_drain_ffmpeg_stderr_never_raises_against_a_bare_mock_process():
-    """The regression this session actually hit: tests elsewhere
-    (test_hw_encode_slots.py) monkeypatch _popen to return bare fake
-    objects with no .stderr attribute. _pump_encode_progress tolerates
-    this by design (broad try/except, documented as 'never raises').
-    _drain_ffmpeg_stderr must have the identical contract, or a bare
-    mock leaks an AttributeError into a background thread and pytest's
-    thread-exception hook fails unrelated tests running at the time."""
-    src = read_source("app.py")
-    m = re.search(
-        r"def _drain_ffmpeg_stderr\(p\):.*?(?=\nsys\.stdout = _StdTee)",
-        src, re.DOTALL,
-    )
-    assert m, "could not locate _drain_ffmpeg_stderr source"
-    func_src = m.group(0)
-
-    class FailThenSucceed:
-        """Bare fake process object, same shape as the existing
-        test_hw_encode_slots.py mocks -- .pid/.returncode/.wait() only,
-        no .stdout/.stderr."""
-        pid = 1234
-        returncode = 0
-
-        def wait(self):
-            return 0
-
-    namespace = {}
-    exec(func_src, namespace)
-    drain = namespace["_drain_ffmpeg_stderr"]
-
-    # No .stderr attribute at all -- must not raise.
-    drain(FailThenSucceed())
-
-    class HasNoneStderr:
-        stderr = None
-
-    drain(HasNoneStderr())  # must also not raise
-
-
 def test_ffmpeg_drain_thread_actually_captures_real_subprocess_output():
     """Spawns a real child process and drains its real stderr through the
     actual _drain_ffmpeg_stderr / _ffmpeg_log functions extracted from
@@ -242,12 +203,10 @@ def _load_real_drain(captured):
     _ffmpeg_log bound in its namespace.
 
     The namespace matters: exec'ing this function with an EMPTY namespace
-    (as the bare-mock test above does, which is fine there because its
-    mocks never reach the log call) leaves _ffmpeg_log undefined. Any mock
-    that DOES yield a line would then raise NameError *inside* the
-    function's own resilience wrapper -- swallowed, so the test would pass
-    while capturing nothing. Binding it here keeps the capture assertions
-    below honest."""
+    would leave _ffmpeg_log undefined. Any mock that DOES yield a line
+    would then raise NameError *inside* the function's own resilience
+    wrapper -- swallowed, so a test would pass while capturing nothing.
+    Binding it here keeps the capture assertions below honest."""
     import re as _re
 
     src = read_source("app.py")
@@ -283,10 +242,16 @@ def test_drain_captures_lines_when_the_log_hook_is_actually_bound():
 
 
 def test_drain_survives_every_hostile_stream_shape():
-    """The 'never raises' contract, exercised against the shapes a live
-    subprocess or a test mock can actually present -- not just the two
-    (missing/None stderr) the bare-mock test covers. Each case must return
-    cleanly AND leave the process object usable by the caller."""
+    """The 'never raises' contract, exercised against every shape a live
+    subprocess or a test mock can actually present -- a bare object with no
+    .stderr attribute at all (test_hw_encode_slots.py monkeypatches _popen
+    to return exactly this), a .stderr that's explicitly None, a readline()
+    that raises, and a readline() that returns something that isn't bytes.
+    Without this contract matching _pump_encode_progress's identical 'never
+    raises' guarantee, a bare mock leaks an exception into a background
+    thread and pytest's thread-exception hook fails unrelated tests running
+    at the time. Each case must return cleanly AND leave the process object
+    usable by the caller."""
     captured = []
     drain = _load_real_drain(captured)
 
