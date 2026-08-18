@@ -1990,7 +1990,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             # against the running env, not the target dir (same reason the
             # yt-dlp path above uses it) — without it the overlay never updates.
             r = _run(sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall",
-                     "curl-cffi<0.16.0", "brotli", "pycryptodomex", "websockets", "certifi",
+                     "curl-cffi<0.17.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--target", str(PACKAGES_DIR), timeout=300)
             if r.returncode == 0:
                 vers = _get_optlibs_versions()
@@ -2056,10 +2056,13 @@ def _parse_simple_version(v):
         return None
 
 # yt-dlp's curl_cffi support has a hard version ceiling (see requirements.txt's
-# curl_cffi pin and the comment there). Kept in sync manually across three
-# places -- requirements.txt, this constant, and the do_optlibs pip spec below
-# -- test_curl_cffi_optlibs_ceiling_matches_requirements_pin holds them together.
-_CURL_CFFI_CEILING = (0, 16, 0)
+# curl_cffi pin and the comment there). Kept in sync manually across four
+# places -- requirements.txt (both), this constant, the do_optlibs pip spec
+# below, and windows/launch.py's two bootstrap installs --
+# test_curl_cffi_ceiling_also_enforced_on_every_live_update_path holds the
+# code-side three together; test_curl_cffi_stays_within_yt_dlps_supported_
+# version_range covers requirements.txt.
+_CURL_CFFI_CEILING = (0, 17, 0)
 
 def _get_latest_optlibs_versions() -> dict:
     def _one(lib):
