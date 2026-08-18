@@ -3,7 +3,18 @@ yt-dlp>=2026.7.4
 bgutil-ytdlp-pot-provider
 mutagen>=1.48.1
 cryptography>=50.0.0
-curl_cffi>=0.10.0,<0.16.0
+# curl_cffi ceiling raised to <0.17.0, matching yt-dlp nightly's new
+# supported range (confirmed via python3 -m yt_dlp --list-impersonate-targets
+# against yt-dlp nightly 2026.08.18.122307: real targets listed, not
+# "(unavailable)"). NOT yet verified against yt-dlp STABLE -- as of this
+# change, PyPI's latest yt-dlp stable (pinned above) is still 2026.7.4,
+# which does NOT support curl_cffi 0.16.x (only 0.10.x-0.15.x). Building/
+# testing this repo state today will still 403 on Kick and other
+# impersonation-dependent sites, because the yt-dlp floor above hasn't
+# caught up yet -- this is a deliberate, known gap, not a regression. Do
+# not cut a release until yt-dlp stable ships 0.16.x support and that
+# combination is re-verified the same way.
+curl_cffi>=0.10.0,<0.17.0
 brotli>=1.2.0
 pycryptodomex>=3.23.0
 websockets>=17.0.1

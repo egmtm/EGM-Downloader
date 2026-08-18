@@ -924,34 +924,48 @@ def test_optional_libs_consistent_across_all_sites():
 
 
 def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
-    """yt-dlp's own networking/_curlcffi.py hard-gates curl_cffi to '0.5.10 and
-    0.10.x through 0.15.x' -- anything outside that range raises ImportError
-    at import time, which yt-dlp swallows silently and just reports every
-    impersonate target as unavailable (no error surfaced to the user or to
-    egm_debug.log). A site whose extractor needs impersonation (Kick, at
-    minimum) then gets a plain-networking request and a 403, with nothing in
-    the app pointing at the real cause.
+    """yt-dlp's own networking/_curlcffi.py hard-gates curl_cffi to a specific
+    range -- anything outside it raises ImportError at import time, which
+    yt-dlp swallows silently and just reports every impersonate target as
+    unavailable (no error surfaced to the user or to egm_debug.log). A site
+    whose extractor needs impersonation (Kick, at minimum) then gets a
+    plain-networking request and a 403, with nothing in the app pointing at
+    the real cause.
 
+    History: originally gated to "0.5.10 and 0.10.x through 0.15.x".
     Confirmed directly against real yt-dlp (stable 2026.07.04 AND nightly
-    2026.08.04, neither had caught up) before fixing: curl_cffi>=0.16.0
-    (the previous pin, from a routine dependency bump) breaks Kick this way;
-    downgrading to curl_cffi==0.15.0 immediately restored every impersonate
-    target and got Kick's extractor past the exact request that was 403ing.
+    2026.08.04, neither had caught up) before the first fix: curl_cffi>=0.16.0
+    breaks Kick this way; downgrading to curl_cffi==0.15.0 immediately
+    restored every impersonate target.
 
-    This upper bound is a moving target -- yt-dlp will eventually add 0.16.x+
-    support, at which point this ceiling should move too. It is NOT
-    hardcoded blindly: raising it should come with the same live
-    confirmation this fix did (--list-impersonate-targets against the actual
-    pinned yt-dlp version showing 0.16.x+ as available, not '(unavailable)'),
-    not just bumping the number because a newer curl_cffi exists."""
+    Raised to <0.17.0 (0.16.x now included) after yt-dlp nightly 2026.08.18
+    added support -- confirmed the same way: curl_cffi==0.16.0 installed,
+    `python3 -m yt_dlp --list-impersonate-targets` against that nightly
+    showed real targets, not "(unavailable)".
+
+    IMPORTANT caveat, current as of this bound: yt-dlp STABLE (PyPI's latest
+    published release, still 2026.7.4 as of this test) has NOT caught up --
+    only nightly has. requirements.txt's yt-dlp floor is still pinned to
+    stable, so this repo's actual dependency combination (curl_cffi 0.16.x +
+    yt-dlp stable) does not yet work end-to-end; a build from this exact
+    state will still 403 on Kick. This is deliberate -- EGM asked to stage
+    the curl_cffi side ahead of time on the testing branch, with release
+    explicitly held until yt-dlp stable ships matching support -- not a gap
+    this test is supposed to catch. See the caveat comment directly above
+    the curl_cffi line in requirements.txt for the full explanation.
+
+    This upper bound remains a moving target -- raising it further should
+    come with the same live confirmation every bump so far has: real targets
+    listed under --list-impersonate-targets against the yt-dlp version(s) in
+    question, not just bumping the number because a newer curl_cffi exists."""
     for req in ("requirements.txt", "linux/requirements.txt"):
         line = next(
             (l for l in read_source(req).splitlines() if l.strip().startswith("curl_cffi")),
             None,
         )
         assert line, f"{req}: no curl_cffi line found"
-        assert "<0.16.0" in line or re.search(r"==0\.1[0-5]\.\d", line), (
-            f"{req}: curl_cffi pin ({line!r}) doesn't exclude 0.16.0+ -- "
+        assert "<0.17.0" in line or re.search(r"==0\.1[0-6]\.\d", line), (
+            f"{req}: curl_cffi pin ({line!r}) doesn't exclude 0.17.0+ -- "
             f"confirm yt-dlp actually supports the new range "
             f"(python3 -m yt_dlp --list-impersonate-targets, real targets "
             f"listed rather than '(unavailable)') before raising this bound"
@@ -972,19 +986,28 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
     ceiling, and app.py/mac/linux's _CURL_CFFI_CEILING constant (used to
     cap what /api/check-updates reports as "latest", so the Update
     Plugins UI doesn't nag forever for an update that's deliberately
-    blocked) must agree with requirements.txt's actual pin."""
+    blocked) must agree with requirements.txt's actual pin.
+
+    Ceiling raised 0.16.0 -> 0.17.0 (0.16.x now included) after yt-dlp
+    nightly 2026.08.18 added support -- see the matching caveat in
+    test_curl_cffi_stays_within_yt_dlps_supported_version_range and the
+    comment above the curl_cffi line in requirements.txt: this ceiling is
+    ahead of what yt-dlp STABLE actually supports as of this change, staged
+    deliberately on the testing branch with release held until stable
+    catches up."""
     for p in PLATFORM_APP_FILES:
         src = read_source(p)
-        assert "_CURL_CFFI_CEILING = (0, 16, 0)" in src, (
+        assert "_CURL_CFFI_CEILING = (0, 17, 0)" in src, (
             f"{p}: missing or drifted _CURL_CFFI_CEILING constant"
         )
         i = src.index('if do_optlibs:')
         j = src.index('\n', src.index('curl-cffi', i))
         line = src[i:j]
-        assert "curl-cffi<0.16.0" in line, (
+        assert "curl-cffi<0.17.0" in line, (
             f"{p}: the do_optlibs 'Update Plugins' pip install still "
-            f"upgrades curl-cffi unconstrained -- this is the exact path "
-            f"that put curl_cffi at an unsupported 0.16.0+ originally"
+            f"upgrades curl-cffi below the currently-confirmed ceiling -- "
+            f"this is the exact path that put curl_cffi at an unsupported "
+            f"version originally"
         )
 
     launch = read_source("windows/launch.py")
@@ -998,10 +1021,11 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
     for pos in bootstrap_installs:
         end = launch.index("\n", launch.index("curl_cffi", pos))
         block = launch[pos:end]
-        assert "curl_cffi<0.16.0" in block, (
+        assert "curl_cffi<0.17.0" in block, (
             "windows/launch.py: a first-launch bootstrap pip-install still "
-            "pulls curl_cffi unconstrained -- a brand-new install would hit "
-            "the same unsupported-version bug on first run"
+            "pulls curl_cffi below the currently-confirmed ceiling -- a "
+            "brand-new install would hit the same unsupported-version bug "
+            "on first run"
         )
 
 
