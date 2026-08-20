@@ -985,18 +985,21 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
     Raised to <0.17.0 (0.16.x now included) after yt-dlp nightly 2026.08.18
     added support -- confirmed the same way: curl_cffi==0.16.0 installed,
     `python3 -m yt_dlp --list-impersonate-targets` against that nightly
-    showed real targets, not "(unavailable)".
+    showed real targets, not "(unavailable)". At that point this ceiling
+    was ahead of yt-dlp STABLE -- staged deliberately on the testing branch
+    per EGM, with release held until stable caught up.
 
-    IMPORTANT caveat, current as of this bound: yt-dlp STABLE (PyPI's latest
-    published release, still 2026.7.4 as of this test) has NOT caught up --
-    only nightly has. requirements.txt's yt-dlp floor is still pinned to
-    stable, so this repo's actual dependency combination (curl_cffi 0.16.x +
-    yt-dlp stable) does not yet work end-to-end; a build from this exact
-    state will still 403 on Kick. This is deliberate -- EGM asked to stage
-    the curl_cffi side ahead of time on the testing branch, with release
-    explicitly held until yt-dlp stable ships matching support -- not a gap
-    this test is supposed to catch. See the caveat comment directly above
-    the curl_cffi line in requirements.txt for the full explanation.
+    yt-dlp 2026.08.19 stable shipped the same support (changelog:
+    "Request Handler: curl_cffi: Support curl_cffi 0.16.x", #17439) --
+    reconfirmed live against that exact stable release, then
+    requirements.txt's yt-dlp floor was bumped to it, closing the
+    stable-vs-nightly gap. curl_cffi 0.16.x and the pinned yt-dlp floor
+    now genuinely work together, not just on nightly.
+
+    Separately, NOT covered by this test: Kick.com VOD downloads still
+    404 due to an unrelated site-side URL scheme change (yt-dlp issue
+    #17284 / PR #17322, both open as of yt-dlp 2026.08.19) -- a Kick
+    extractor bug, not a curl_cffi/networking issue.
 
     This upper bound remains a moving target -- raising it further should
     come with the same live confirmation every bump so far has: real targets
