@@ -279,9 +279,9 @@ for line in pn.splitlines():
         if line.startswith('  \u2022 '):
             text = line[4:].strip()
             # Only include bullets tagged [WINDOWS] or [ALL] for the Windows feed
-            m = re.match(r'^\[(WINDOWS|ALL)\]\s+(.+)\$', text)
-            if m:
-                bullets.append(m.group(2))
+            m = re.match(r'^((?:\[[A-Z]+\]\s*)+)(.+)\$', text)
+            if m and ({'ALL', 'WINDOWS'} & set(re.findall(r'\[([A-Z]+)\]', m.group(1)))):
+                bullets.append(m.group(2).strip())
         elif line.strip() == '' and bullets:
             break
 print('|||'.join(bullets))

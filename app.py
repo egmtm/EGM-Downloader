@@ -1356,7 +1356,14 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # disk" boundary _flask_raw_log/_ffmpeg_log establish elsewhere; job["error"]
         # still keeps the full raw text in memory for the UI, unaffected.
         _err_code = _classify_error(str(e))
-        _egm_log(f"download error: {_err_code or 'unclassified'}")
+        # 'unclassified' alone was near-useless here: _ERROR_MAP's patterns are
+        # yt-dlp-shaped, and this site's real causes (unwritable/removed folder,
+        # unplugged drive, disk full) are OSErrors that match none of them -- so
+        # the one line meant to diagnose them said nothing. type(e).__name__ and
+        # .strerror give the actual cause and are both path-free; the offending
+        # path lives in .filename/str(e), which deliberately stay out of the log.
+        _detail = _err_code or f"{type(e).__name__}: {getattr(e, 'strerror', None) or 'unknown'}"
+        _egm_log(f"download error: {_detail}")
         job["status"] = "error"; job["error"] = str(e); job["error_code"] = _err_code; job["_finished_at"] = time.time()
         return
     out_tmpl = str(out_dir / f"{job_id}.%(ext)s")

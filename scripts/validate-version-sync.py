@@ -547,6 +547,17 @@ FEED_PLATFORM_TAG = {
 _SHA256_RE = re.compile(r'^[0-9a-f]{64}$')
 
 
+# A bullet may carry MORE THAN ONE leading tag, e.g. "• [MAC] [LINUX] Foo"
+# (patchnotes.txt already uses this form). scripts/gen-update-json.py -- which
+# actually BUILDS the feeds -- matches the whole run of leading tags and tests
+# set membership. Any replica of that extraction must do the same, or it
+# disagrees with the shipped feed: a single-tag `^\[(TAG|ALL)\]` pattern counts
+# "[MAC] [LINUX] Foo" for MAC but drops it for LINUX, and leaves "[LINUX] "
+# embedded in the note text for MAC.
+_BULLET_TAGS_RE = re.compile(r'^((?:\[[A-Z]+\]\s*)+)(.+)$')
+_TAG_RE = re.compile(r'\[([A-Z]+)\]')
+
+
 def _extract_patchnote_bullets(patchnotes_text, platform_tag):
     """Extracts the current (most recent) patchnotes.txt entry's [<PLATFORM>]/
     [ALL] bullets. Kept in sync with the identical extraction in
@@ -562,9 +573,9 @@ def _extract_patchnote_bullets(patchnotes_text, platform_tag):
             continue
         if in_block:
             if line.startswith('  \u2022 '):
-                m = re.match(rf'^\[({platform_tag}|ALL)\]\s+(.+)$', line[4:].strip())
-                if m:
-                    bullets.append(m.group(2))
+                m = _BULLET_TAGS_RE.match(line[4:].strip())
+                if m and ({'ALL', platform_tag} & set(_TAG_RE.findall(m.group(1)))):
+                    bullets.append(m.group(2).strip())
             elif line.strip() == '' and bullets:
                 break
     return bullets
