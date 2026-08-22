@@ -952,6 +952,14 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
     stable-vs-nightly gap. curl_cffi 0.16.x and the pinned yt-dlp floor
     now genuinely work together, not just on nightly.
 
+    Floor (not ceiling) raised 0.10.0 -> 0.16.1 after curl_cffi's own
+    0.16.1 patch release (bumps curl-impersonate to 2.1.1, closes
+    curl_cffi upstream issue #837) -- confirmed the same way,
+    curl_cffi==0.16.1 against yt-dlp 2026.08.19 stable: real
+    impersonate targets. Ensures fresh installs and "Update Plugins"
+    pull at least this patch rather than an older 0.10.x-0.15.x version
+    still technically inside the ceiling.
+
     Separately, NOT covered by this test: Kick.com VOD downloads still
     404 due to an unrelated site-side URL scheme change (yt-dlp issue
     #17284 / PR #17322, both open as of yt-dlp 2026.08.19) -- a Kick
