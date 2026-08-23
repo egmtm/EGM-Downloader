@@ -1,3 +1,10 @@
+v1.3.6 - TBD (Build TBD) (TBD)
+-----------------------------------------
+
+  • [ALL] Fixed: downloads from Kick.com and other sites requiring browser impersonation were failing due to a dependency version issue
+  • [ALL] Electron runtime updated to v43.4.0 — includes upstream Chromium and Node.js stability and security updates
+  • [ALL] Minor internal test suite cleanup
+
 v1.3.5 - FULL DIAGNOSIS (Build 146) (8/6/2026)
 -----------------------------------------
 

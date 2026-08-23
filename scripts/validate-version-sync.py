@@ -537,7 +537,48 @@ ALL_FEED_FILES = [
     'egmlinux-update.json',       # Linux (informational)
 ]
 
+FEED_PLATFORM_TAG = {
+    'egm-version.json':          'WINDOWS',
+    'egm-portable-version.json': 'WINDOWS',
+    'egmac-update.json':         'MAC',
+    'egmlinux-update.json':      'LINUX',
+}
+
 _SHA256_RE = re.compile(r'^[0-9a-f]{64}$')
+
+
+# A bullet may carry MORE THAN ONE leading tag, e.g. "• [MAC] [LINUX] Foo"
+# (patchnotes.txt already uses this form). scripts/gen-update-json.py -- which
+# actually BUILDS the feeds -- matches the whole run of leading tags and tests
+# set membership. Any replica of that extraction must do the same, or it
+# disagrees with the shipped feed: a single-tag `^\[(TAG|ALL)\]` pattern counts
+# "[MAC] [LINUX] Foo" for MAC but drops it for LINUX, and leaves "[LINUX] "
+# embedded in the note text for MAC.
+_BULLET_TAGS_RE = re.compile(r'^((?:\[[A-Z]+\]\s*)+)(.+)$')
+_TAG_RE = re.compile(r'\[([A-Z]+)\]')
+
+
+def _extract_patchnote_bullets(patchnotes_text, platform_tag):
+    """Extracts the current (most recent) patchnotes.txt entry's [<PLATFORM>]/
+    [ALL] bullets. Kept in sync with the identical extraction in
+    tests/test_parity.py (_extract_patchnote_bullets) and windows/BUILD.sh's
+    own inline version — all three must agree on what "the current entry's
+    bullets" means. If you change one, change all three."""
+    bullets, in_block = [], False
+    for line in patchnotes_text.splitlines():
+        if re.match(r'^v\d', line):
+            if in_block:
+                break
+            in_block = True
+            continue
+        if in_block:
+            if line.startswith('  \u2022 '):
+                m = _BULLET_TAGS_RE.match(line[4:].strip())
+                if m and ({'ALL', platform_tag} & set(_TAG_RE.findall(m.group(1)))):
+                    bullets.append(m.group(2).strip())
+            elif line.strip() == '' and bullets:
+                break
+    return bullets
 
 
 def _load_feed(name):
@@ -583,11 +624,22 @@ def check_feed_build_monotonic():
 
 
 def check_feed_notes_and_headline():
-    """Every feed's _version_notes must have >= 3 bullets, and — when a keyword list
-    is configured (scripts/release-keywords.txt) — at least one bullet must mention a
-    headline keyword. Catches thin notes and the v1.1 incident where feeds shipped
-    with only maintenance bullets and never mentioned Subscriptions. An EMPTY keyword
-    file intentionally skips the headline requirement (a pure maintenance release)."""
+    """Every feed's _version_notes must match patchnotes.txt's own per-platform
+    bullet count exactly (not truncated/collapsed during generation), and —
+    when a keyword list is configured (scripts/release-keywords.txt) — at
+    least one bullet must mention a headline keyword. Catches thin/collapsed
+    notes and the v1.1 incident where feeds shipped with only maintenance
+    bullets and never mentioned Subscriptions. An EMPTY keyword file
+    intentionally skips the headline requirement (a pure maintenance release).
+
+    Previously this asserted a fixed >= 3 minimum on the feed alone. That
+    stopped being a reliable proxy for "not truncated" once genuinely small
+    maintenance-only releases (a single dependency bump, no user-facing
+    changes) became a normal, valid shape -- a real 2-bullet release and a
+    21-into-2 collapse look identical under any fixed floor low enough to
+    let real small releases through. Cross-referencing against patchnotes.txt's
+    own extraction catches a collapse regardless of how many real bullets
+    there are, including exactly 1."""
     errors = []
     kw_path = ROOT / 'scripts' / 'release-keywords.txt'
     keywords = []
@@ -595,14 +647,25 @@ def check_feed_notes_and_headline():
         keywords = [ln.strip().lower()
                     for ln in kw_path.read_text(encoding='utf-8').splitlines()
                     if ln.strip() and not ln.strip().startswith('#')]
+    pn_path = ROOT / 'patchnotes.txt'
+    pn_text = pn_path.read_text(encoding='utf-8') if pn_path.exists() else ''
     for name in ALL_FEED_FILES:
         d = _load_feed(name)
         if d is None:
             continue
         notes = d.get('_version_notes', [])
         n = len(notes) if isinstance(notes, list) else 0
-        if not isinstance(notes, list) or n < 3:
-            errors.append(f"dist/{name}: _version_notes must have >= 3 bullets (has {n})")
+        tag = FEED_PLATFORM_TAG[name]
+        source_n = len(_extract_patchnote_bullets(pn_text, tag))
+        if not isinstance(notes, list) or n != source_n:
+            errors.append(
+                f"dist/{name}: _version_notes has {n} bullet(s) but "
+                f"patchnotes.txt's current [{tag}|ALL] entry has {source_n} "
+                f"-- feed generation dropped or collapsed bullets."
+            )
+            continue
+        if n < 1:
+            errors.append(f"dist/{name}: _version_notes is empty")
             continue
         if keywords:
             joined = " ".join(str(x) for x in notes).lower()
