@@ -115,16 +115,77 @@ def test_download_dir_error_log_line_does_not_use_raw_exception_text():
             f"{p}: missing the download-dir-error diagnostic log line"
         )
         i = src.index('_egm_log(f"download error:')
-        line = src[max(0, i - 200):i + 120]
-        assert "str(e).splitlines()" not in line, (
+        # Anchor on the classify call rather than a fixed-width window --
+        # a comment added above the block used to push it out of range.
+        start = src.rindex("_err_code = _classify_error(str(e))", 0, i)
+        block = src[start:src.index("\n", i)]
+        assert "str(e).splitlines()" not in block, (
             f"{p}: download-dir-error log line still interpolates the raw "
             f"exception text directly -- must route through _classify_error"
         )
-        assert "_classify_error(str(e))" in line, (
-            f"{p}: download-dir-error log line must compute a stable error "
-            f"code via _classify_error before logging"
+        log_line = src[i:src.index("\n", i)]
+        assert "str(e)" not in log_line, (
+            f"{p}: the logged text must never contain raw str(e) -- it embeds "
+            f"the offending path (and can embed a signed download URL)"
         )
-        assert '_egm_log(f"download error: {_err_code or \'unclassified\'}")' in src, (
-            f"{p}: download-dir-error log line must log the classified code "
-            f"(or the literal 'unclassified'), never raw exception content"
+        # The fallback when _classify_error returns None (the common case for
+        # this site's OSErrors) must stay path-free: exception type + .strerror
+        # only. test_download_dir_error_log_is_path_free_but_still_diagnostic
+        # exercises that behaviourally against real OSError instances.
+        assert "type(e).__name__" in block and "strerror" in block, (
+            f"{p}: unclassified download-dir errors must still log the "
+            f"exception type and OS message -- logging a bare 'unclassified' "
+            f"leaves the one line meant to diagnose these failures saying "
+            f"nothing useful"
         )
+
+
+def test_download_dir_error_log_is_path_free_but_still_diagnostic():
+    """The download-dir failure line writes to egm_debug.log -- the file the
+    support protocol asks users to email -- so it must not carry the raw
+    exception text (which embeds the offending path, and can embed a signed
+    download URL). It must still say something useful, though: this site's
+    real-world causes are OSErrors (unwritable folder, unplugged drive, disk
+    full) and _ERROR_MAP's patterns are yt-dlp-shaped, so _classify_error
+    returns None for essentially all of them. Logging a bare 'unclassified'
+    would leave the one line meant to diagnose these failures saying nothing.
+
+    Both halves are asserted here: the resulting text must contain the
+    exception type and its OS message, and must NOT contain the path.
+    """
+    import re as _re
+
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        i = src.index('_detail = _err_code or')
+        expr = src[i:src.index('\n', i)].split('=', 1)[1].strip()
+
+        # No raw str(e) anywhere on the logged line.
+        log_i = src.index('_egm_log(f"download error:', i)
+        log_line = src[log_i:src.index('\n', log_i)]
+        assert 'str(e)' not in log_line, (
+            f"{p}: the download-error log line interpolates raw str(e) -- that "
+            f"embeds the offending filesystem path into egm_debug.log"
+        )
+
+        for exc, secret in (
+            (PermissionError(13, 'Permission denied', r'D:\Videos\private'),
+             r'D:\Videos\private'),
+            (FileNotFoundError(2, 'No such file or directory', '/mnt/usb/dl'),
+             '/mnt/usb/dl'),
+            (OSError(28, 'No space left on device', '/home/bob/Downloads'),
+             '/home/bob/Downloads'),
+        ):
+            detail = eval(expr, {}, {'_err_code': None, 'e': exc})  # noqa: S307
+            assert secret not in detail, (
+                f"{p}: the offending path leaked into the log text: {detail!r}"
+            )
+            assert type(exc).__name__ in detail, (
+                f"{p}: log text lost the exception type: {detail!r}"
+            )
+            assert exc.strerror in detail, (
+                f"{p}: log text lost the OS error message: {detail!r}"
+            )
+
+        # A classified error still logs just the stable code.
+        assert eval(expr, {}, {'_err_code': 'network', 'e': OSError()}) == 'network'

@@ -204,8 +204,12 @@ def test_mac_linux_badge_count_is_not_gated_behind_mainwindow_existing():
 
 def test_hidden_or_destroyed_window_in_the_loop_is_a_harmless_skip():
     """Executes the real per-window loop body (extracted from source)
-    against a mix of a live mock window, a destroyed one, and None --
-    confirms only the live window gets the calls, and nothing raises."""
+    against a live mock window and a destroyed one -- confirms only the
+    live window gets the calls, and nothing raises. The `subsWindow = null`
+    case (the actual common path, not just an edge case) is covered
+    separately by test_per_window_loop_tolerates_a_null_window, since a
+    destroyed-object mock and a bare None exercise different halves of the
+    `if (!win || win.isDestroyed())` guard."""
     for p in MAIN_JS:
         src = read_source(p)
         i = src.index("for (const win of [mainWindow, subsWindow])")

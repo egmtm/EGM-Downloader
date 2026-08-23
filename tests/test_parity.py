@@ -533,6 +533,17 @@ def test_video_id_xss_guard():
 
 # ── Build-feed guards ──────────────────────────────────────────────────────────
 
+# A bullet may carry MORE THAN ONE leading tag, e.g. "• [MAC] [LINUX] Foo"
+# (patchnotes.txt already uses this form). scripts/gen-update-json.py -- which
+# actually BUILDS the feeds -- matches the whole run of leading tags and tests
+# set membership. Any replica of that extraction must do the same, or it
+# disagrees with the shipped feed: a single-tag `^\[(TAG|ALL)\]` pattern counts
+# "[MAC] [LINUX] Foo" for MAC but drops it for LINUX, and leaves "[LINUX] "
+# embedded in the note text for MAC.
+_BULLET_TAGS_RE = re.compile(r'^((?:\[[A-Z]+\]\s*)+)(.+)$')
+_TAG_RE = re.compile(r'\[([A-Z]+)\]')
+
+
 def _extract_patchnote_bullets(patchnotes_text, platform_tag):
     """Replicate windows/BUILD.sh's update-feed bullet extraction for the most
     recent (current) patchnotes entry, filtered to [<PLATFORM>] or [ALL] tags.
@@ -547,36 +558,186 @@ def _extract_patchnote_bullets(patchnotes_text, platform_tag):
             continue
         if in_block:
             if line.startswith('  • '):
-                m = re.match(rf'^\[({platform_tag}|ALL)\]\s+(.+)$', line[4:].strip())
-                if m:
-                    bullets.append(m.group(2))
+                m = _BULLET_TAGS_RE.match(line[4:].strip())
+                if m and ({'ALL', platform_tag} & set(_TAG_RE.findall(m.group(1)))):
+                    bullets.append(m.group(2).strip())
             elif line.strip() == '' and bullets:
                 break
     return bullets
 
 
-def test_patchnotes_current_version_has_enough_bullets():
-    """The most recent patchnotes.txt entry must yield >= 3 update-feed bullets for
-    EACH platform tag, using BUILD.sh's exact extraction.
+def _extract_patchnote_bullets_naive(patchnotes_text, platform_tag):
+    """Same filter as _extract_patchnote_bullets, but scans the WHOLE current
+    version entry (bounded only by the next 'v\\d' header) instead of stopping
+    at the first blank line. This is the "true" bullet count regardless of
+    section spacing -- used as a reference to detect early-stop truncation,
+    rather than a fixed minimum count (see test_patchnotes_current_version_
+    is_not_truncated for why a fixed minimum stopped being a reliable proxy
+    for that once small maintenance releases became a normal, valid shape)."""
+    bullets, in_block = [], False
+    for line in patchnotes_text.splitlines():
+        if re.match(r'^v\d', line):
+            if in_block:
+                break
+            in_block = True
+            continue
+        if in_block and line.startswith('  • '):
+            m = _BULLET_TAGS_RE.match(line[4:].strip())
+            if m and ({'ALL', platform_tag} & set(_TAG_RE.findall(m.group(1)))):
+                bullets.append(m.group(2).strip())
+    return bullets
+
+
+def test_patchnotes_current_version_is_not_truncated():
+    """The most recent patchnotes.txt entry's BUILD.sh-style per-platform
+    extraction (which stops at the first blank line, same as BUILD.sh itself)
+    must match the naive full-block extraction (which doesn't). A mismatch
+    means the blank-line early-stop is actually firing and silently dropping
+    real bullets -- BUILD.sh's own bullet count would then be wrong at
+    release time.
+
+    Previously this asserted a fixed >= 3 minimum. That was really a proxy
+    for "didn't truncate", which worked while every release had far more
+    than 3 real bullets -- a truncation from 15 down to 1 was obviously
+    wrong under that floor. It stopped being a reliable proxy once
+    genuinely small maintenance-only releases (a single dependency bump,
+    no user-facing changes) became a normal, valid shape: a real 2-bullet
+    release and a truncated 15-into-2 release look identical under any
+    fixed minimum. Comparing against the naive count catches truncation
+    regardless of how many real bullets there are -- including exactly 1.
 
     Regression: in the v1.1.2 cycle a blank line BETWEEN sections
-    (THEMES/IMPROVEMENTS/FIXES) made the extractor stop at the first blank line and
-    emit 1 bullet instead of 10 — an empty/near-empty _version_notes that was only
-    caught mid-build by the BUILD.sh validator. This runs before any build starts.
+    (THEMES/IMPROVEMENTS/FIXES) made the extractor stop at the first blank
+    line and emit 1 bullet instead of 10 — an empty/near-empty
+    _version_notes that was only caught mid-build by the BUILD.sh
+    validator. This runs before any build starts.
     """
     pn = read_source("patchnotes.txt")
     for tag in ("WINDOWS", "MAC", "LINUX"):
         bullets = _extract_patchnote_bullets(pn, tag)
-        assert len(bullets) >= 3, (
-            f"patchnotes.txt: the current version entry yields only {len(bullets)} "
-            f"[{tag}|ALL] bullet(s) (need >= 3). Most common cause: a blank line "
-            f"BETWEEN sections (THEMES/IMPROVEMENTS/FIXES) makes BUILD.sh's extractor "
-            f"stop early. Keep all bullets in one contiguous block (no blank lines "
+        naive = _extract_patchnote_bullets_naive(pn, tag)
+        assert bullets == naive, (
+            f"patchnotes.txt: BUILD.sh-style extraction found {len(bullets)} "
+            f"[{tag}|ALL] bullet(s) but the full version entry actually has "
+            f"{len(naive)} -- a blank line BETWEEN sections (THEMES/"
+            f"IMPROVEMENTS/FIXES) is making BUILD.sh's extractor stop early. "
+            f"Keep all bullets in one contiguous block (no blank lines "
             f"between sections within a version entry)."
+        )
+        assert len(bullets) >= 1, (
+            f"patchnotes.txt: the current version entry has zero [{tag}|ALL] "
+            f"bullets -- every release needs at least one line describing "
+            f"what changed, even a small maintenance-only one."
         )
 
 
 # ── Shared theme validator (theme_validator.html) ──────────────────────────────
+
+def test_all_patchnote_bullet_extractions_agree_with_the_generator():
+    """scripts/gen-update-json.py::gen_notes is what actually BUILDS each
+    feed's _version_notes, so it is the source of truth for "which bullets
+    belong to platform X". Three replicas of that extraction exist -- this
+    file's two (_extract_patchnote_bullets and its _naive twin),
+    scripts/validate-version-sync.py's, and windows/BUILD.sh's inline copy --
+    and validate-version-sync.py now compares the SHIPPED feed's bullet count
+    against its replica. If a replica disagrees with the generator, the
+    validator rejects a correctly-generated feed and blocks the release cut.
+
+    That is not hypothetical. A bullet may carry more than one leading tag,
+    e.g. "• [MAC] [LINUX] Foo" -- a form patchnotes.txt already uses. The
+    generator matches the whole run of leading tags and tests set membership;
+    the replicas originally matched only a tag in FIRST position, so they
+    counted that bullet for MAC and dropped it for LINUX (and left "[LINUX] "
+    embedded in MAC's note text). gen-update-json.py's own comment records
+    fixing exactly this bug once already.
+
+    The replicas are kept in sync by hand -- the docstrings say "if you
+    change one, change all three". This test is what makes that mechanical.
+    """
+    import importlib.util
+    import os
+    import pathlib
+    import subprocess
+    import sys
+    import tempfile
+
+    fixture = (
+        "v9.9.9 - FIXTURE (Build 999) (1/1/2026)\n"
+        "-----------------------------------------\n"
+        "\n"
+        "  \u2022 [ALL] Shared change\n"
+        "  \u2022 [MAC] [LINUX] Multi-tag, second position matters\n"
+        "  \u2022 [WINDOWS] [MAC] Another multi-tag\n"
+        "  \u2022 [WINDOWS] Windows only\n"
+        "\n"
+        "v1.0.0 - OLDER (Build 1) (1/1/2025)\n"
+        "-----------------------------------------\n"
+        "\n"
+        "  \u2022 [ALL] Previous release, must not leak into the current one\n"
+    )
+
+    root = os.path.dirname(os.path.dirname(__file__))
+
+    spec = importlib.util.spec_from_file_location(
+        "egm_gen", os.path.join(root, "scripts", "gen-update-json.py"))
+    gen = importlib.util.module_from_spec(spec)
+    _argv, sys.argv = sys.argv, ["gen-update-json.py"]
+    try:
+        spec.loader.exec_module(gen)
+    finally:
+        sys.argv = _argv
+
+    vspec = importlib.util.spec_from_file_location(
+        "egm_validate", os.path.join(root, "scripts", "validate-version-sync.py"))
+    val = importlib.util.module_from_spec(vspec)
+    _argv, sys.argv = sys.argv, ["validate-version-sync.py"]
+    try:
+        vspec.loader.exec_module(val)
+    finally:
+        sys.argv = _argv
+
+    with tempfile.TemporaryDirectory() as td:
+        fpath = pathlib.Path(td) / "patchnotes.txt"
+        fpath.write_text(fixture, encoding="utf-8")
+        gen.PATCHNOTES = fpath
+
+        for plat, tag in (("win", "WINDOWS"), ("mac", "MAC"), ("linux", "LINUX")):
+            reference = gen.gen_notes(plat)
+            assert reference, f"fixture produced no {tag} bullets -- fixture is broken"
+
+            for name, fn in (
+                ("tests/_extract_patchnote_bullets", _extract_patchnote_bullets),
+                ("tests/_extract_patchnote_bullets_naive", _extract_patchnote_bullets_naive),
+                ("validate-version-sync.py", val._extract_patchnote_bullets),
+            ):
+                got = fn(fixture, tag)
+                assert got == reference, (
+                    f"{name} disagrees with gen-update-json.py's gen_notes() "
+                    f"for [{tag}]: {got!r} vs {reference!r}. The generator "
+                    f"builds the real feed, so a replica that disagrees makes "
+                    f"validate-version-sync.py reject a valid feed."
+                )
+
+        # windows/BUILD.sh's inline copy (Windows feed only) -- run the real
+        # snippet, not a paraphrase of it.
+        sh = read_source("windows/BUILD.sh")
+        i = sh.index("bullets = []")
+        j = sh.index("print('|||'.join(bullets))") + len("print('|||'.join(bullets))")
+        snippet = sh[i:j].replace("\\$", "$")
+        code = "import re\npn = open(PN, encoding='utf-8').read()\n" + snippet
+        with tempfile.TemporaryDirectory() as td2:
+            fp2 = pathlib.Path(td2) / "pn.txt"
+            fp2.write_text(fixture, encoding="utf-8")
+            r = subprocess.run(
+                [sys.executable, "-c", f"PN = {str(fp2)!r}\n" + code],
+                capture_output=True, text=True, timeout=30)
+        assert r.returncode == 0, f"BUILD.sh snippet failed: {r.stderr}"
+        build_bullets = [b for b in r.stdout.strip().split("|||") if b]
+        assert build_bullets == gen.gen_notes("win"), (
+            f"windows/BUILD.sh's inline extraction disagrees with "
+            f"gen_notes('win'): {build_bullets!r} vs {gen.gen_notes('win')!r}"
+        )
+
 
 def test_theme_validator_covers_all_vars():
     """THEME_VAR_TYPES (theme_validator.html) must name EXACTLY the same vars as
@@ -1040,6 +1201,53 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
         )
 
 
+def test_no_pip_install_path_can_pull_curl_cffi_past_the_ceiling():
+    """Companion to the test above, which checks the ONE currently-known
+    install site per app.py (the do_optlibs block) plus windows/launch.py.
+
+    windows/launch.py is additionally protected by a count-lock -- adding a
+    third bootstrap install there fails the test until someone updates it.
+    The three app.py files had no equivalent: an uncapped
+    `pip install --upgrade curl-cffi` added anywhere OUTSIDE the do_optlibs
+    block (a future "repair optional libraries" path, say) passed the entire
+    suite. That is exactly the shape of the original bug -- an unconstrained
+    upgrade path independent of requirements.txt -- so it should not be able
+    to reappear silently.
+
+    This scans EVERY pip-install call site in each app.py and requires the
+    ceiling on any of them that mentions curl-cffi at all.
+    """
+    call_re = re.compile(r'"-m",\s*"pip",\s*"install"')
+    for p in PLATFORM_APP_FILES:
+        src = read_source(p)
+        sites = [m.start() for m in call_re.finditer(src)]
+        assert sites, f"{p}: no pip-install call sites found -- scan is broken"
+
+        capped = 0
+        for pos in sites:
+            # The argument list: up to the call's timeout= kwarg or ~500 chars,
+            # whichever comes first.
+            window = src[pos:pos + 500]
+            end = window.find("timeout=")
+            args = window[:end] if end != -1 else window
+            if "curl-cffi" not in args and "curl_cffi" not in args:
+                continue
+            capped += 1
+            assert "<0.17.0" in args, (
+                f"{p}: a pip-install call site pulls curl-cffi without the "
+                f"version ceiling:\n    {args.strip()[:200]}\n"
+                f"Every install path must carry the cap -- an uncapped upgrade "
+                f"is how curl_cffi reached an unsupported version originally."
+            )
+
+        assert capped == 1, (
+            f"{p}: expected exactly 1 pip-install site mentioning curl-cffi "
+            f"(do_optlibs), found {capped}. If you added a legitimate new "
+            f"install path, confirm it carries the ceiling and update this "
+            f"count -- same discipline as windows/launch.py's bootstrap lock."
+        )
+
+
 def test_mp4_h264_is_the_default_everywhere():
     """Universal MP4 (mp4_h264) must be the DEFAULT output on every platform AND in the UI.
     test_universal_mp4_h264_wired only checks the option/codec/transcode EXIST; this locks
@@ -1086,7 +1294,8 @@ def test_history_fields_escaped_against_xss():
 
 def test_generated_feeds_have_enough_bullets():
     """_version_notes in every generated feed must:
-      - carry >= 3 bullets (not truncated)
+      - match patchnotes.txt's own per-platform bullet count exactly (not
+        truncated or collapsed during generation)
       - have all [TAG] prefixes stripped (user-facing text only)
       - contain no foreign-platform bullets (no [WINDOWS] text in Mac/Linux feeds)
 
@@ -1097,6 +1306,15 @@ def test_generated_feeds_have_enough_bullets():
     The patchnotes.txt source guard passed green both times because it checks
     the source, not the artifact. This guard checks the artifact.
 
+    Previously this asserted a fixed >= 3 minimum on the feed alone, which
+    stopped being a reliable proxy for "not collapsed" once genuinely small
+    maintenance-only releases became a normal, valid shape -- a real
+    2-bullet release and a 21-into-2 collapse look identical under any fixed
+    floor once the floor is low enough to allow real small releases through.
+    Cross-referencing the feed's count against patchnotes.txt's own
+    extraction (same helper the source-level guard uses) catches a collapse
+    regardless of how many real bullets there are, including exactly 1.
+
     Run after feeds are generated (dist/*.json must exist).
     """
     import json as _json
@@ -1104,15 +1322,15 @@ def test_generated_feeds_have_enough_bullets():
 
     ROOT = _Path(__file__).parent.parent
     feeds = {
-        "dist/egm-version.json":          "win",
-        "dist/egm-portable-version.json": "win",
-        "dist/egmac-update.json":         "mac",
-        "dist/egmlinux-update.json":      "linux",
+        "dist/egm-version.json":          "WINDOWS",
+        "dist/egm-portable-version.json": "WINDOWS",
+        "dist/egmac-update.json":         "MAC",
+        "dist/egmlinux-update.json":      "LINUX",
     }
     foreign_tags = {
-        "win":   ["[MAC]", "[LINUX]"],
-        "mac":   ["[WINDOWS]", "[LINUX]"],
-        "linux": ["[WINDOWS]", "[MAC]"],
+        "WINDOWS": ["[MAC]", "[LINUX]"],
+        "MAC":     ["[WINDOWS]", "[LINUX]"],
+        "LINUX":   ["[WINDOWS]", "[MAC]"],
     }
 
     missing = [f for f in feeds if not (ROOT / f).exists()]
@@ -1120,23 +1338,31 @@ def test_generated_feeds_have_enough_bullets():
         import pytest
         pytest.skip(f"Feed(s) not yet generated: {missing}")
 
-    for feed_path, plat in feeds.items():
+    pn = read_source("patchnotes.txt")
+
+    for feed_path, tag in feeds.items():
         d = _json.loads((ROOT / feed_path).read_text(encoding="utf-8"))
         notes = d.get("_version_notes", [])
+        source_bullets = _extract_patchnote_bullets(pn, tag)
 
-        assert len(notes) >= 3, (
-            f"{feed_path}: _version_notes has only {len(notes)} bullet(s) (need >= 3). "
-            f"Feed generation truncated the notes. Regenerate."
+        assert len(notes) == len(source_bullets), (
+            f"{feed_path}: _version_notes has {len(notes)} bullet(s) but "
+            f"patchnotes.txt's current [{tag}|ALL] entry has {len(source_bullets)} "
+            f"-- feed generation dropped or collapsed bullets. Regenerate."
+        )
+        assert len(notes) >= 1, (
+            f"{feed_path}: _version_notes is empty -- every release needs at "
+            f"least one line describing what changed."
         )
         tag_prefixed = [n for n in notes if n.lstrip().startswith("[")]
         assert not tag_prefixed, (
             f"{feed_path}: {len(tag_prefixed)} bullet(s) still carry [TAG] prefix — "
             f"gen_notes() must strip tags before storing. Example: {tag_prefixed[0]!r}"
         )
-        for bad_tag in foreign_tags[plat]:
+        for bad_tag in foreign_tags[tag]:
             leaks = [n for n in notes if bad_tag in n]
             assert not leaks, (
-                f"{feed_path} ({plat}): {len(leaks)} bullet(s) contain foreign tag "
+                f"{feed_path} ({tag}): {len(leaks)} bullet(s) contain foreign tag "
                 f"{bad_tag!r} — per-platform filtering is broken. Example: {leaks[0]!r}"
             )
 
