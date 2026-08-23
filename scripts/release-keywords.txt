@@ -4,7 +4,8 @@
 #
 # MAINTAINED PER RELEASE: before generating feeds, set this to the current release's
 # headline term(s). For a pure maintenance release with no headline feature, leave
-# this file empty (only comments) — the headline check then skips, but the
-# ">= 3 bullets" requirement still applies.
-ffmpeg
-diagnostics
+# this file empty (only comments) — the headline check then skips. The feed's bullet
+# count is separately checked against patchnotes.txt's own count (not a fixed
+# minimum), so a genuinely small release isn't blocked by this file either.
+kick
+electron

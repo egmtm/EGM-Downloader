@@ -9,8 +9,8 @@
 
 /* Version info block — shows up in Properties → Details */
 1 VERSIONINFO
-FILEVERSION     1,3,5,0
-PRODUCTVERSION  1,3,5,0
+FILEVERSION     1,3,6,0
+PRODUCTVERSION  1,3,6,0
 FILEOS          0x40004L
 FILETYPE        0x1L
 {
@@ -20,12 +20,12 @@ FILETYPE        0x1L
         {
             VALUE "CompanyName",      "EGM"
             VALUE "FileDescription",  "EGM Downloader Launcher"
-            VALUE "FileVersion",      "1.3.5"
+            VALUE "FileVersion",      "1.3.6"
             VALUE "InternalName",     "EGM Downloader"
             VALUE "LegalCopyright",   "Copyright (C) EGM"
             VALUE "OriginalFilename", "EGM Downloader.exe"
             VALUE "ProductName",      "EGM Downloader"
-            VALUE "ProductVersion",   "1.3.5"
+            VALUE "ProductVersion",   "1.3.6"
         }
     }
     BLOCK "VarFileInfo"

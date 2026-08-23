@@ -1,4 +1,4 @@
-v1.3.6 - TBD (Build TBD) (TBD)
+v1.3.6 - QUIET FIX (Build 147) (8/22/2026)
 -----------------------------------------
 
   • [ALL] Fixed: downloads from Kick.com and other sites requiring browser impersonation were failing due to a dependency version issue
