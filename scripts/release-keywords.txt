@@ -7,5 +7,4 @@
 # this file empty (only comments) — the headline check then skips. The feed's bullet
 # count is separately checked against patchnotes.txt's own count (not a fixed
 # minimum), so a genuinely small release isn't blocked by this file either.
-kick
 electron
