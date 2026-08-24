@@ -1471,3 +1471,77 @@ def test_i18n_keys_exist_in_en_locale():
                     k = item.split(":", 1)[1].strip()
                     if k not in keys: bad.append((os.path.relpath(p, root), k))
     assert not bad, f"templates reference keys missing from en.json: {bad}"
+
+
+def test_electron_runtime_version_is_identical_across_all_three_platforms():
+    """The Electron runtime is declared in SIX hand-edited places -- a
+    package.json range and a package-lock.json pin for each of Windows, Mac and
+    Linux -- and nothing else in the gate reads any of them.
+
+    Verified by mutation: setting mac/electron/package.json to "^43.3.0" while
+    the other two stayed at "^43.4.1" left validate-version-sync.py at rc=0 and
+    the suite fully green, so a 2-of-3 bump ships a different Chromium/Node on
+    one platform with no signal anywhere. This is the same manual-N-way-sync
+    shape as the curl_cffi ceiling, which does have a guard.
+
+    The LOCKFILE is what actually governs what ships (`npm ci` installs the
+    pinned version; electron-builder packages whatever landed in node_modules),
+    so the pins are checked for equality including the integrity hash -- three
+    platforms resolving the same version from different tarballs would mean one
+    of them was hand-edited. The range is then checked to actually admit the
+    pin, which catches the "bumped package.json, forgot to regenerate the
+    lockfile" direction.
+    """
+    import json as _json
+    import os as _os
+
+    root = _os.path.dirname(_os.path.dirname(__file__))
+    platforms = ("windows", "mac", "linux")
+
+    ranges, pins = {}, {}
+    for plat in platforms:
+        pkg_path = _os.path.join(root, plat, "electron", "package.json")
+        lock_path = _os.path.join(root, plat, "electron", "package-lock.json")
+        pkg = _json.load(open(pkg_path, encoding="utf-8"))
+        lock = _json.load(open(lock_path, encoding="utf-8"))
+
+        # Windows declares electron under "dependencies", mac/linux under
+        # "devDependencies" -- both are legitimate here, so accept either
+        # rather than pinning the section and failing on a valid layout.
+        decl = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+        assert "electron" in decl, f"{plat}/electron/package.json declares no electron dependency"
+        ranges[plat] = decl["electron"]
+
+        entry = lock.get("packages", {}).get("node_modules/electron")
+        assert entry, f"{plat}/electron/package-lock.json has no node_modules/electron entry"
+        pins[plat] = (entry.get("version"), entry.get("integrity"))
+        assert pins[plat][0], f"{plat} lockfile electron entry has no version"
+        assert pins[plat][1], f"{plat} lockfile electron entry has no integrity hash"
+
+    assert len(set(ranges.values())) == 1, (
+        f"Electron version range differs across platforms: {ranges}. "
+        "All three package.json files must request the same runtime."
+    )
+    assert len(set(pins.values())) == 1, (
+        f"Electron lockfile pin differs across platforms: {pins}. "
+        "All three package-lock.json files must pin the same version AND the "
+        "same integrity hash -- this is what decides the shipped runtime."
+    )
+
+    # The range must actually admit the pin. Asserting the range SHAPE first
+    # keeps this an invariant rather than a whitelist: a range form this parser
+    # cannot reason about fails loudly instead of silently passing.
+    rng = next(iter(set(ranges.values())))
+    pinned = pins[platforms[0]][0]
+    assert re.fullmatch(r'\^\d+\.\d+\.\d+', rng), (
+        f"Electron range {rng!r} is not the ^X.Y.Z form this guard understands; "
+        "widen the check deliberately rather than leaving the pin unverified."
+    )
+    floor = tuple(int(n) for n in rng.lstrip("^").split("."))
+    got = tuple(int(n) for n in pinned.split("."))
+    assert got[0] == floor[0] and got >= floor, (
+        f"Electron lockfile pins {pinned} which does not satisfy {rng} -- "
+        "package.json was bumped without regenerating package-lock.json, so "
+        "`npm ci` would reject the lockfile and the build would fall back to "
+        "a non-deterministic `npm install`."
+    )
