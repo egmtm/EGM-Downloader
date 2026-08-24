@@ -1,4 +1,4 @@
-v1.3.7 - QUIETER FIX (Build TBD) (TBD)
+v1.3.7 - QUIETER FIX (Build 148) (8/24/2026)
 -----------------------------------------
 
   • [ALL] Electron runtime updated to v43.4.1 — includes upstream Chromium and Node.js stability and security updates
