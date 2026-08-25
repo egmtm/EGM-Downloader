@@ -170,7 +170,7 @@ cat > INSTRUCTIONS.txt << 'EOF'
 
 VERSION: v1.3.7
 PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
-MINIMUM MACOS: 11.0 (Big Sur) or later
+MINIMUM MACOS: 13.0 (Ventura) or later
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   INSTALLATION
@@ -213,7 +213,7 @@ FEATURES:
   SYSTEM REQUIREMENTS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-• macOS 11.0 (Big Sur) or later
+• macOS 13.0 (Ventura) or later
 • Apple Silicon (M1/M2/M3/M4/M5)
 • ~200 MB disk space
 • Internet connection (for downloads)
