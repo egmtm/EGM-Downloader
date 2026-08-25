@@ -2,6 +2,7 @@ v1.3.8 - TBD (Build TBD) (TBD)
 -----------------------------------------
 
   • [ALL] Electron runtime updated to v44.0.0 — includes upstream Chromium 152 and Node.js 24.18.1 stability and security updates
+  • [MAC] macOS 13.0 (Ventura) or later is now required — the Electron 44 runtime no longer supports Big Sur or Monterey
 
 v1.3.7 - QUIETER FIX (Build 148) (8/24/2026)
 -----------------------------------------
