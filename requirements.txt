@@ -13,9 +13,9 @@ cryptography>=50.0.0
 # nightly, not stable -- that gap is now closed, since the yt-dlp floor
 # above is pinned to the stable release that added support.
 #
-# Floor raised to 0.16.1 (curl_cffi's own release, bumps curl-impersonate
-# to 2.1.1, closes curl_cffi upstream issue #837) -- confirmed the same
-# way, curl_cffi==0.16.1 against yt-dlp 2026.08.19: real impersonate
+# Floor raised to 0.16.2 (curl_cffi's own release, ships an Android wheel
+# per CPython minor and fixes a handful of upstream issues) -- confirmed the same
+# way, curl_cffi==0.16.2 against yt-dlp 2026.08.19: real impersonate
 # targets, not "(unavailable)". A patch release within the already-
 # verified 0.16.x line, so this ensures fresh installs and "Update
 # Plugins" pull at least this fix rather than an older 0.10.x-0.15.x
@@ -26,7 +26,7 @@ cryptography>=50.0.0
 # #17284, fix in progress at PR #17322, both still open as of yt-dlp
 # 2026.08.19). That's a Kick extractor bug, not a curl_cffi/networking
 # issue -- this pin doesn't touch it either way.
-curl_cffi>=0.16.1,<0.17.0
+curl_cffi>=0.16.2,<0.17.0
 brotli>=1.2.0
 pycryptodomex>=3.23.0
 websockets>=17.0.1
