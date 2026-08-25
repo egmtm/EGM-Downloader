@@ -205,6 +205,7 @@
 **Requirements:** macOS 11.0 (Big Sur) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
+> ⚠️ Next release drops macOS 11/12 support — see [System Requirements](#system-requirements) below
 
 ### Linux
 **Latest:** v1.3.7 Build 148  
@@ -221,6 +222,8 @@
 ### ⚙️ System Requirements
 
 **Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
+
+> ⚠️ Starting with the next release, macOS 11 (Big Sur) and 12 (Monterey) will no longer be supported. macOS 13 (Ventura) or later will be required, due to an upcoming Electron runtime update. If you're on an older macOS, this will be your last compatible version — please plan accordingly.
 
 **macOS:** macOS 11.0+ · Apple Silicon (M1–M5) · ~300 MB disk space
 
