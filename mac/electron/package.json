@@ -80,7 +80,8 @@
       "hardenedRuntime": true,
       "gatekeeperAssess": false,
       "entitlements": "entitlements.mac.plist",
-      "entitlementsInherit": "entitlements.mac.plist"
+      "entitlementsInherit": "entitlements.mac.plist",
+      "minimumSystemVersion": "13.0"
     },
     "dmg": {
       "background": "../../static/dmg-background.png",
