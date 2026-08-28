@@ -1559,21 +1559,30 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
 
 
 def test_macos_minimum_version_is_stated_consistently_everywhere():
-    """The macOS floor is written out in FIVE hand-edited places -- three in
-    README.md (badge, Mac download section, System Requirements) and two inside
-    the INSTRUCTIONS.txt heredoc in mac/BUILD.sh, which is SHIPPED to end users
-    inside the DMG/zip.
+    """The macOS floor is written out in SIX hand-edited places -- three in
+    README.md (badge, Mac download section, System Requirements), two inside
+    the INSTRUCTIONS.txt heredoc in mac/BUILD.sh (which is SHIPPED to end
+    users inside the DMG/zip), and mac/electron/package.json's
+    build.mac.minimumSystemVersion -- the one electron-builder actually
+    reads to set the app's LSMinimumSystemVersion, previously left as an
+    inherited Electron default rather than a declared property of this
+    build (v1.3.8 security review, closed by declaring it explicitly).
 
-    The Electron 44 bump raised the floor from Big Sur (11.0) to Ventura (13.0)
-    and updated the three README copies; both shipped copies in mac/BUILD.sh
-    were missed and still told users Big Sur was supported, on a build that
-    macOS refuses to launch below 13.0. The README is the copy a reviewer looks
-    at; INSTRUCTIONS.txt is the copy the user actually reads after downloading.
+    The Electron 44 bump raised the floor from Big Sur (11.0) to Ventura
+    (13.0) and updated the three README copies; both shipped copies in
+    mac/BUILD.sh were missed and still told users Big Sur was supported, on
+    a build that macOS refuses to launch below 13.0. The README is the copy
+    a reviewer looks at; INSTRUCTIONS.txt is the copy the user actually
+    reads after downloading; minimumSystemVersion is the copy that
+    determines whether macOS itself gives a clear refusal or the app just
+    fails to start with no explanation.
 
     Rather than pin the literal "13.0", this collects every macOS version
-    mentioned as a requirement and asserts they AGREE -- so the next floor bump
-    passes as soon as all five move together, and fails the moment one lags.
+    mentioned as a requirement and asserts they AGREE -- so the next floor
+    bump passes as soon as all six move together, and fails the moment one
+    lags.
     """
+    import json as _json
     import os as _os
     import re as _re
 
@@ -1591,7 +1600,7 @@ def test_macos_minimum_version_is_stated_consistently_everywhere():
         for n, line in enumerate(open(path, encoding="utf-8"), 1):
             # shields.io badge URLs spell release names with underscores
             # ("macOS-Big_Sur+"), so normalise separators before matching --
-            # the badge is one of the five copies and would otherwise be the
+            # the badge is one of the six copies and would otherwise be the
             # one this guard silently skipped.
             low = line.lower().replace("_", " ").replace("-", " ")
             # Only consider lines that are actually stating a requirement --
@@ -1603,6 +1612,19 @@ def test_macos_minimum_version_is_stated_consistently_everywhere():
             for name, v in _NAMES.items():
                 if name in low:
                     found.setdefault(v, []).append(f"{rel}:{n}")
+
+    pkg_path = _os.path.join(root, "mac/electron/package.json")
+    pkg = _json.load(open(pkg_path, encoding="utf-8"))
+    min_sys = pkg.get("build", {}).get("mac", {}).get("minimumSystemVersion")
+    assert min_sys, (
+        "mac/electron/package.json build.mac.minimumSystemVersion is missing -- "
+        "electron-builder would fall back to whatever Electron's own template "
+        "declares, an inherited default rather than a property of this build "
+        "(v1.3.8 security review §4). Declare it explicitly."
+    )
+    found.setdefault(min_sys, []).append(
+        "mac/electron/package.json:build.mac.minimumSystemVersion"
+    )
 
     assert found, (
         "no macOS version requirement found in README.md or mac/BUILD.sh -- "
@@ -1616,11 +1638,12 @@ def test_macos_minimum_version_is_stated_consistently_everywhere():
         f"INSTRUCTIONS.txt, found {[c for c in cited if c.startswith('mac/BUILD.sh')]}"
     )
     assert len(found) == 1, (
-        "macOS minimum version disagrees across README.md and mac/BUILD.sh's "
-        "shipped INSTRUCTIONS.txt: "
+        "macOS minimum version disagrees across README.md, mac/BUILD.sh's "
+        "shipped INSTRUCTIONS.txt, and mac/electron/package.json's "
+        "minimumSystemVersion: "
         + "; ".join(f"{v} at {', '.join(c)}" for v, c in sorted(found.items()))
         + " -- every copy must state the same floor, including the one that "
-          "ships inside the DMG."
+          "ships inside the DMG and the one electron-builder actually reads."
     )
 
 
