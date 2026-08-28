@@ -1,4 +1,4 @@
-v1.3.8 - TBD (Build TBD) (TBD)
+v1.3.8 - NOT SO QUIET (Build 149) (8/28/2026)
 -----------------------------------------
 
   • [ALL] Electron runtime updated to v44.0.0 — includes upstream Chromium 152 and Node.js 24.18.1 stability and security updates
