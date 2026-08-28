@@ -1121,6 +1121,17 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
     pull at least this patch rather than an older 0.10.x-0.15.x version
     still technically inside the ceiling.
 
+    Floor raised again 0.16.1 -> 0.16.2 alongside the Electron 44 bump --
+    confirmed to the same standard: curl_cffi==0.16.2 with yt-dlp
+    2026.08.19 lists 38 real impersonate targets and zero
+    "(unavailable)", and live impersonated requests complete against a
+    real host on Chrome, Safari and Firefox fingerprints. The only
+    packaging change in 0.16.2 is the Android wheel splitting from one
+    cp313-abi3 build into per-CPython-minor builds (cp313, cp314); every
+    wheel this app actually installs -- macosx arm64, manylinux x86_64,
+    win_amd64 -- is still cp310-abi3 and byte-for-byte the same shape as
+    0.16.1, so the bundled Python 3.11 resolves exactly as before.
+
     Separately, NOT covered by this test: Kick.com VOD downloads still
     404 due to an unrelated site-side URL scheme change (yt-dlp issue
     #17284 / PR #17322, both open as of yt-dlp 2026.08.19) -- a Kick
@@ -1544,4 +1555,192 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
         "package.json was bumped without regenerating package-lock.json, so "
         "`npm ci` would reject the lockfile and the build would fall back to "
         "a non-deterministic `npm install`."
+    )
+
+
+def test_macos_minimum_version_is_stated_consistently_everywhere():
+    """The macOS floor is written out in FIVE hand-edited places -- three in
+    README.md (badge, Mac download section, System Requirements) and two inside
+    the INSTRUCTIONS.txt heredoc in mac/BUILD.sh, which is SHIPPED to end users
+    inside the DMG/zip.
+
+    The Electron 44 bump raised the floor from Big Sur (11.0) to Ventura (13.0)
+    and updated the three README copies; both shipped copies in mac/BUILD.sh
+    were missed and still told users Big Sur was supported, on a build that
+    macOS refuses to launch below 13.0. The README is the copy a reviewer looks
+    at; INSTRUCTIONS.txt is the copy the user actually reads after downloading.
+
+    Rather than pin the literal "13.0", this collects every macOS version
+    mentioned as a requirement and asserts they AGREE -- so the next floor bump
+    passes as soon as all five move together, and fails the moment one lags.
+    """
+    import os as _os
+    import re as _re
+
+    root = _os.path.dirname(_os.path.dirname(__file__))
+
+    # Version floors stated as "macOS <maj>.<min>" or "MINIMUM MACOS: <maj>.<min>".
+    _FLOOR = _re.compile(r'(?:MINIMUM MACOS:|macOS)\s*(\d+\.\d+)', _re.IGNORECASE)
+    # Named releases carry the same claim in prose and drift independently.
+    _NAMES = {"big sur": "11.0", "monterey": "12.0", "ventura": "13.0",
+              "sonoma": "14.0", "sequoia": "15.0"}
+
+    found = {}   # version string -> list of "file:line" citations
+    for rel in ("README.md", "mac/BUILD.sh"):
+        path = _os.path.join(root, rel)
+        for n, line in enumerate(open(path, encoding="utf-8"), 1):
+            # shields.io badge URLs spell release names with underscores
+            # ("macOS-Big_Sur+"), so normalise separators before matching --
+            # the badge is one of the five copies and would otherwise be the
+            # one this guard silently skipped.
+            low = line.lower().replace("_", " ").replace("-", " ")
+            # Only consider lines that are actually stating a requirement --
+            # patchnotes-style prose and theme names mention releases too.
+            if not any(w in low for w in ("requirement", "minimum macos", "macos-", "macos ")):
+                continue
+            for v in _FLOOR.findall(line):
+                found.setdefault(v, []).append(f"{rel}:{n}")
+            for name, v in _NAMES.items():
+                if name in low:
+                    found.setdefault(v, []).append(f"{rel}:{n}")
+
+    assert found, (
+        "no macOS version requirement found in README.md or mac/BUILD.sh -- "
+        "this guard has lost its anchor and must be updated, not deleted"
+    )
+    # Vacuity check: the two shipped INSTRUCTIONS.txt copies must be among the
+    # citations, otherwise the guard is only ever reading the README.
+    cited = [c for cites in found.values() for c in cites]
+    assert sum(1 for c in cited if c.startswith("mac/BUILD.sh")) >= 2, (
+        f"expected at least 2 macOS floor statements in mac/BUILD.sh's shipped "
+        f"INSTRUCTIONS.txt, found {[c for c in cited if c.startswith('mac/BUILD.sh')]}"
+    )
+    assert len(found) == 1, (
+        "macOS minimum version disagrees across README.md and mac/BUILD.sh's "
+        "shipped INSTRUCTIONS.txt: "
+        + "; ".join(f"{v} at {', '.join(c)}" for v, c in sorted(found.items()))
+        + " -- every copy must state the same floor, including the one that "
+          "ships inside the DMG."
+    )
+
+
+def _browser_window_blocks(src):
+    """Yield (line_no, webPreferences_source) for every `new BrowserWindow({...})`.
+
+    Brace-matched rather than fixed-width sliced: earlier rounds produced false
+    results from windowed slices that cut a config in half, and a window's
+    options block is long enough that any fixed window would be a guess.
+    """
+    import re as _re
+    for m in _re.finditer(r'new BrowserWindow\(\s*\{', src):
+        line = src[:m.start()].count("\n") + 1
+        i = src.index("{", m.start())
+        depth = 0
+        for j in range(i, len(src)):
+            if src[j] == "{":
+                depth += 1
+            elif src[j] == "}":
+                depth -= 1
+                if depth == 0:
+                    break
+        block = src[i:j + 1]
+        wp = _re.search(r'webPreferences:\s*\{', block)
+        if not wp:
+            yield line, None
+            continue
+        k = block.index("{", wp.start())
+        d = 0
+        for n in range(k, len(block)):
+            if block[n] == "{":
+                d += 1
+            elif block[n] == "}":
+                d -= 1
+                if d == 0:
+                    break
+        yield line, block[k:n + 1]
+
+
+def test_every_browser_window_keeps_the_electron_security_defaults():
+    """Every window must be created with nodeIntegration:false,
+    contextIsolation:true and sandbox:true, and must never disable
+    webSecurity.
+
+    These four flags are the app's entire renderer isolation story -- the Flask
+    UI is a local web page with full DOM access, and the only thing standing
+    between it and Node is these values on 18 window definitions (6 per
+    platform). Every review since this project started has re-verified them by
+    hand after each Electron bump, including the 43.4.1 -> 44.0.0 major, and
+    nothing in the gate has ever checked them: grepping tests/ for
+    contextIsolation, nodeIntegration, sandbox or Content-Security-Policy
+    returned zero hits before this test existed.
+
+    The scan is derived from the source, not a list of known windows, so a
+    seventh window added later is covered the day it lands rather than the day
+    someone remembers to extend a whitelist. A window with no webPreferences at
+    all is a failure too -- Electron's own defaults are weaker than these.
+    """
+    for plat in PLATFORM_NAMES:
+        src = read_source(f"{plat}/electron/main.js")
+        blocks = list(_browser_window_blocks(src))
+        assert len(blocks) >= 6, (
+            f"{plat}/electron/main.js: found {len(blocks)} BrowserWindow "
+            "definitions, expected at least 6 -- the scan lost its anchor "
+            "and would pass vacuously"
+        )
+        for line, wp in blocks:
+            where = f"{plat}/electron/main.js:{line}"
+            assert wp is not None, f"{where}: BrowserWindow created with no webPreferences block"
+            for flag, want in (("nodeIntegration", "false"),
+                               ("contextIsolation", "true"),
+                               ("sandbox", "true")):
+                assert re.search(rf'\b{flag}:\s*{want}\b', wp), (
+                    f"{where}: webPreferences must set {flag}: {want} -- got:\n{wp}"
+                )
+            # webSecurity defaults to true; the only failure mode is an
+            # explicit opt-out, so assert its absence rather than its presence.
+            assert not re.search(r'\bwebSecurity:\s*false\b', wp), (
+                f"{where}: webSecurity: false disables the same-origin policy"
+            )
+
+
+def test_response_csp_is_locked_and_identical_across_platforms():
+    """The CSP injected via onHeadersReceived is the second half of the
+    isolation story and is duplicated verbatim in all three main.js files.
+
+    Pinned directive-by-directive rather than as one blob so a genuine
+    formatting change doesn't force a test edit, while a weakened directive
+    (script-src gaining a remote origin, frame-src or object-src losing 'none',
+    connect-src opening up) fails.
+    """
+    required = {
+        "default-src": "'self'",
+        "connect-src": "'self'",
+        "frame-src":   "'none'",
+        "object-src":  "'none'",
+        "base-uri":    "'self'",
+        "form-action": "'self'",
+    }
+    seen = {}
+    for plat in PLATFORM_NAMES:
+        src = read_source(f"{plat}/electron/main.js")
+        m = re.search(r"'Content-Security-Policy':\s*\[(.*?)\]", src, re.S)
+        assert m, f"{plat}/electron/main.js: no Content-Security-Policy header set"
+        policy = " ".join(re.findall(r'"([^"]*)"', m.group(1)))
+        assert policy.strip(), f"{plat}: Content-Security-Policy resolved to an empty policy"
+        for directive, value in required.items():
+            assert re.search(rf'\b{re.escape(directive)}\s+{re.escape(value)}\s*;?', policy), (
+                f"{plat}/electron/main.js: CSP directive \"{directive} {value}\" "
+                f"missing or weakened -- got: {policy}"
+            )
+        # script-src may carry 'unsafe-inline' (the templates inline their JS)
+        # but must never reach off-origin.
+        script_src = re.search(r"script-src([^;]*)", policy)
+        assert script_src, f"{plat}: CSP has no script-src directive"
+        assert "http://" not in script_src.group(1) and "https://" not in script_src.group(1), (
+            f"{plat}/electron/main.js: script-src allows a remote origin: {script_src.group(1)!r}"
+        )
+        seen[plat] = policy
+    assert len(set(seen.values())) == 1, (
+        "Content-Security-Policy differs across platforms: "
+        + "; ".join(f"{p}={v!r}" for p, v in seen.items())
     )
