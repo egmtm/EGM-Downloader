@@ -2,7 +2,7 @@ flask>=3.1.3
 yt-dlp>=2026.8.19
 bgutil-ytdlp-pot-provider
 mutagen>=1.48.1
-cryptography>=50.0.0
+cryptography>=50.0.1
 # curl_cffi ceiling <0.17.0 (0.16.x included) matches yt-dlp's supported
 # range as of yt-dlp 2026.08.19 stable, which added curl_cffi 0.16.x
 # support (yt-dlp changelog: "Request Handler: curl_cffi: Support
