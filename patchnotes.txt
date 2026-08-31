@@ -1,3 +1,8 @@
+v1.3.9 - RUNTIME PARITY (Build TBD) (TBD)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.1.0 — includes upstream Chromium 152.0.7977.65 and Node.js 24.19.0 stability and security updates
+
 v1.3.8 - NOT SO QUIET (Build 149) (8/28/2026)
 -----------------------------------------
 
