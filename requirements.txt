@@ -26,6 +26,11 @@ cryptography>=50.0.1
 # #17284, fix in progress at PR #17322, both still open as of yt-dlp
 # 2026.08.19). That's a Kick extractor bug, not a curl_cffi/networking
 # issue -- this pin doesn't touch it either way.
+#
+# Floor raised to 0.16.3 -- confirmed the same way, curl_cffi==0.16.3
+# against yt-dlp 2026.08.19 stable: real impersonate targets (Chrome-136,
+# Safari-18.4, etc.), not "(unavailable)". (v1.3.10 security review §4
+# flagged this bump landed without a verification note; this closes it.)
 curl_cffi>=0.16.3,<0.17.0
 brotli>=1.2.0
 pycryptodomex>=3.23.0
