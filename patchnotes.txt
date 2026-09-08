@@ -1,3 +1,8 @@
+v1.3.12 - RUNTIME PARITY IV (Build 153) (9/8/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.3.0 — crash and correctness fixes on top of Chromium 152.0.7977.78 and Node.js 24.20.0
+
 v1.3.11 - RUNTIME PARITY III (Build 152) (9/4/2026)
 -----------------------------------------
 
