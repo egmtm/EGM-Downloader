@@ -12,7 +12,7 @@
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <a href="https://github.com/egmtm/EGM-Downloader/discussions"><img src="https://img.shields.io/badge/github-discussions-181717?logo=github" alt="GitHub Discussions"/></a>
     <a href="https://x.com/EGMDownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-000000?logo=x&logoColor=white" alt="Follow on X"/></a>
-    <img src="https://img.shields.io/badge/Electron-44.2.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-44.3.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Ventura+-000000?logo=apple&logoColor=white" alt="macOS"/>
@@ -184,7 +184,7 @@
 ### Windows
 **Latest:** v1.3.12 Build 153  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (626 KB · ~800 MB after install)  
-**SHA256:** `b8bbadf581de56928eebe9ec9bc710d61643d63a03ee25a7b43ec19fa5dd623c`  
+**SHA256:** `a88c49cf1a1a3cbb47cf0ae959e3829f75fbc6671f59d88d756ae73a2a3d06eb`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -192,7 +192,7 @@
 ### Windows Portable
 **Latest:** v1.3.12 Build 153  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (632 KB · ~800 MB after first run)  
-**SHA256:** `60ea2ca4674a6cf733187ed790f48c24dae3cafb28ce5b56edf78569f996a318`  
+**SHA256:** `5f378bdc77e599b4af1d325b1d74a1b42e91ba979b16b3d0f79a94bb6f5a7900`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -201,7 +201,7 @@
 ### macOS
 **Latest:** v1.3.12 Build 153  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (140 MB · ~300 MB after install)  
-**SHA256:** `0ddfbbc27b8e4dd669fa3683d07a79ba59156612afcc142ffd4715347d17d644`  
+**SHA256:** `39d55bf717b4cc73cb39c0afa60a6c14bb5f97816a59325a049807209721cd6e`  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -209,7 +209,7 @@
 ### Linux
 **Latest:** v1.3.12 Build 153  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (169 MB · ~300 MB after install)  
-**SHA256:** `20f089a861382a8c112d2f3faab3aa71faa7b2a4dc0e4f050653555acf8a94b4`  
+**SHA256:** `e89213afe3ba0498227e4b6e822465d1192b94f06e4f2958a8606805e1c200ac`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
