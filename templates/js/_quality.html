@@ -87,49 +87,69 @@ function videoQualityBgClick(e) {
   // Outside-click intentionally disabled — Cancel is the only dismiss path
 }
 
-// ── What's New — show once per version ───────────────────────────────────────
+// ── What's New — shown automatically once per version, or manually via the
+// footer button. Both paths call the same showWhatsNewModal(), which always
+// fetches the CURRENTLY RUNNING version's notes (the signed update feed only
+// ever carries one version's worth of _version_notes -- there's no history
+// to page through yet).
+async function showWhatsNewModal(currentVersion) {
+  document.getElementById('whats-new-version').textContent = currentVersion;
+  // whatsnew.title's {0} placeholder isn't always at the end (e.g. Japanese
+  // puts the version first) -- split on the literal placeholder and place
+  // the version <span> between the two resulting text segments, rather than
+  // assuming English word order.
+  const titleTemplate = i18nGet('whatsnew.title') || "🎉 What's New in {0}";
+  const [before, after] = titleTemplate.split('{0}');
+  document.getElementById('whats-new-title-before').textContent = before ?? '';
+  document.getElementById('whats-new-title-after').textContent = after ?? '';
+  document.getElementById('whats-new-modal').style.display = 'flex';
+
+  // Fetch release notes from the platform JSON feed
+  const list = document.getElementById('whats-new-list');
+  const showFallback = () => {
+    list.innerHTML = '';
+    // lint-allow-muted: loading-state
+    const li = document.createElement('li');
+    li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
+    li.textContent = i18nGet('update.whatsnew.see_release_notes') || 'See egerena.com for release notes.';
+    list.appendChild(li);
+  };
+  try {
+    const wn = await fetch('/api/whats-new').then(r => r.json());
+    const notes = wn.notes_list || [];
+    list.innerHTML = '';
+    if (notes.length > 0) {
+      for (const note of notes) {
+        const li = document.createElement('li');
+        li.textContent = note;
+        list.appendChild(li);
+      }
+    } else {
+      showFallback();
+    }
+  } catch {
+    showFallback();
+  }
+}
+
+document.getElementById('whats-new-dismiss-btn').addEventListener('click', async () => {
+  document.getElementById('whats-new-modal').style.display = 'none';
+  const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
+  if (currentVersion) await post('/api/settings/save', { last_seen_version: currentVersion });
+});
+
+document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
+  const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
+  if (currentVersion) showWhatsNewModal(currentVersion);
+});
+
+// Show once per version, automatically, on page load.
 (async function() {
   try {
     const s = await fetch('/api/settings').then(r => r.json());
     const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
     if (currentVersion && s.last_seen_version !== currentVersion) {
-      // Show What's New modal immediately with loading state
-      document.getElementById('whats-new-version').textContent = currentVersion;
-      document.getElementById('whats-new-modal').style.display = 'flex';
-
-      // Fetch release notes from the platform JSON feed
-      try {
-        const wn = await fetch('/api/whats-new').then(r => r.json());
-        const list = document.getElementById('whats-new-list');
-        const notes = wn.notes_list || [];
-        list.innerHTML = '';
-        if (notes.length > 0) {
-          for (const note of notes) {
-            const li = document.createElement('li');
-            li.textContent = note;
-            list.appendChild(li);
-          }
-        } else {
-          // lint-allow-muted: loading-state
-          const li = document.createElement('li');
-          li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
-          li.textContent = i18nGet('update.whatsnew.see_release_notes') || 'See egerena.com for release notes.';
-          list.appendChild(li);
-        }
-      } catch {
-        const list = document.getElementById('whats-new-list');
-        list.innerHTML = '';
-        // lint-allow-muted: loading-state
-        const li = document.createElement('li');
-        li.style.cssText = 'list-style:none;color:var(--muted);font-style:italic';
-        li.textContent = i18nGet('update.whatsnew.see_release_notes') || 'See egerena.com for release notes.';
-        list.appendChild(li);
-      }
-
-      document.getElementById('whats-new-dismiss-btn').addEventListener('click', async () => {
-        document.getElementById('whats-new-modal').style.display = 'none';
-        await post('/api/settings/save', { last_seen_version: currentVersion });
-      }, { once: true });
+      await showWhatsNewModal(currentVersion);
     }
   } catch {}
 })();
