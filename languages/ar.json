@@ -545,7 +545,7 @@
     "tray.open": "فتح EGM Downloader",
     "tray.quit": "إنهاء",
     "footer.btn.diagnostics": "التشخيصات",
-    "footer.btn.whatsnew": "What's New",
+    "footer.btn.whatsnew": "الجديد",
     "download.error.no_formats": "لم يُعثر على صيغ قابلة للتحميل. غالباً ما يكون هذا فيديو حصرياً للأعضاء — إذا كنت عضواً في هذه القناة، حمّل ملفات تعريف ارتباط حسابك في الإعدادات وحاول مرة أخرى. قد يكون أيضاً خاصاً أو مقيداً بمنطقة جغرافية أو مقيداً بطريقة أخرى.",
     "download.error.extract": "تعذّر استخراج معلومات الفيديو. ربما تغيّرت الصفحة.",
     "konami.title": "توقف EGM Downloader عن الاستجابة",
