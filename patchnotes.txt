@@ -1,4 +1,4 @@
-v1.4.0 - TBD (Build TBD) (TBD)
+v1.4.0 - WHAT'S NEW (Build 154) (9/15/2026)
 -----------------------------------------
 
   • [ALL] New: a "What's New" button in the footer, next to Diagnostics, to reopen the release notes for the currently running version at any time
