@@ -182,6 +182,7 @@
 ## 📥 Download
 
 ### Windows
+🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.3.12 Build 153  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (626 KB · ~800 MB after install)  
 **SHA256:** `a88c49cf1a1a3cbb47cf0ae959e3829f75fbc6671f59d88d756ae73a2a3d06eb`  
@@ -199,6 +200,7 @@
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 ### macOS
+🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.3.12 Build 153  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (140 MB · ~300 MB after install)  
 **SHA256:** `39d55bf717b4cc73cb39c0afa60a6c14bb5f97816a59325a049807209721cd6e`  
@@ -207,6 +209,7 @@
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Linux
+🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.3.12 Build 153  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (169 MB · ~300 MB after install)  
 **SHA256:** `e89213afe3ba0498227e4b6e822465d1192b94f06e4f2958a8606805e1c200ac`  
