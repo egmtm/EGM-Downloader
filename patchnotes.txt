@@ -2,6 +2,7 @@ v1.4.0 - TBD (Build TBD) (TBD)
 -----------------------------------------
 
   • [ALL] New: a "What's New" button in the footer, next to Diagnostics, to reopen the release notes for the currently running version at any time
+  • [ALL] Electron runtime updated to v44.4.0 — crash and correctness fixes on top of Chromium 152.0.7977.78 and Node.js 24.21.0
 
 v1.3.12 - RUNTIME PARITY IV (Build 153) (9/8/2026)
 -----------------------------------------
