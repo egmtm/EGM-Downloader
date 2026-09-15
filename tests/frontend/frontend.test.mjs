@@ -4,6 +4,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { bootPage, en } from "./harness.mjs";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 test("i18n boot applies English strings to the live DOM", async () => {
   const { d } = await bootPage();
@@ -221,4 +224,64 @@ test("playlist-path fetch errors render a localized error card, not a stuck stub
     `error resolved in the active locale, got: ${badge && badge.textContent}`,
   );
   assert.equal(w.eval("items.length"), 0, "failed entry removed from items[] (error-card convention)");
+});
+
+// ── What's New modal: behavioural cover for the two bugs fixed in 5d19073 ─────
+// tests/test_whats_new_button.py guards these at the source-text level (that
+// split('{0}') is written, that the listener call carries no {once: true}).
+// Those assertions are satisfied by the SHAPE of the code, so an edit that
+// keeps the shape and breaks the behaviour passes them -- verified by mutation:
+// assigning '' to whats-new-title-after, or moving the dismiss listener back
+// inside showWhatsNewModal, both leave the Python guards fully green. These two
+// drive the real DOM instead, so they fail on the effect rather than the syntax.
+
+test("whats-new heading honours locale word order, not just English's", async () => {
+  const ja = JSON.parse(
+    readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "..", "languages", "ja.json"), "utf8"),
+  );
+  const { w, d } = await bootPage({
+    settings: { language: "ja", last_seen_version: "1.3.12" },   // suppress the auto-show
+    onFetch: (u) => (u === "/api/language/ja" ? { ok: true, json: async () => ja } : null),
+  });
+
+  w.eval("showWhatsNewModal('1.4.0')");
+  await new Promise((r) => setTimeout(r, 100));
+
+  // Japanese places the version FIRST ("{0}の新機能"), so a fix that only
+  // rendered the segment before the placeholder -- or appended the version to
+  // a flattened prefix -- drops "の新機能" or emits it in the wrong order.
+  const heading = d.getElementById("whats-new-heading").textContent.replace(/\s+/g, " ").trim();
+  const expected = ja.strings["whatsnew.title"].replace("{0}", "1.4.0").replace(/\s+/g, " ").trim();
+  assert.equal(heading, expected, "heading must match the ja template with {0} substituted in place");
+  assert.ok(heading.endsWith("の新機能"), `version must precede the suffix in ja, got: ${heading}`);
+});
+
+test("whats-new dismiss stays live across repeated manual opens", async () => {
+  const { w, d, saved } = await bootPage({
+    // Mark the running version seen so the automatic once-per-version path does
+    // not fire -- this test is about the manual footer trigger in isolation.
+    settings: { last_seen_version: "1.3.12" },
+  });
+  const modal = d.getElementById("whats-new-modal");
+  const openBtn = d.getElementById("footer-whatsnew-btn");
+  const dismissBtn = d.getElementById("whats-new-dismiss-btn");
+  assert.equal(modal.style.display, "none", "modal starts hidden (version already seen)");
+
+  const savesBefore = saved.length;
+  for (const pass of [1, 2, 3]) {
+    openBtn.click();
+    await new Promise((r) => setTimeout(r, 60));
+    assert.equal(modal.style.display, "flex", `manual open #${pass} shows the modal`);
+    dismissBtn.click();
+    await new Promise((r) => setTimeout(r, 60));
+    // A {once: true} listener is consumed by the first dismiss, leaving every
+    // later "Got it" dead and the modal stuck open.
+    assert.equal(modal.style.display, "none", `dismiss #${pass} still closes the modal`);
+  }
+
+  // Exactly one save per dismiss: attaching the listener inside the show
+  // function instead of once at load would stack a fresh listener per open,
+  // firing 1+2+3 saves instead of 3.
+  assert.equal(saved.length - savesBefore, 3, `expected one settings save per dismiss, got ${saved.length - savesBefore}`);
+  assert.equal(saved[saved.length - 1].last_seen_version, "1.3.12", "dismiss records the running version");
 });

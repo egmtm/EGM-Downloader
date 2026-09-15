@@ -131,3 +131,65 @@ def test_footer_whatsnew_key_present_in_every_locale():
         assert d["strings"]["footer.btn.whatsnew"].strip(), (
             f"{fname}: footer.btn.whatsnew is present but empty"
         )
+
+
+# ── Same bug class as whatsnew.title, found by asking "where else?" ───────────
+
+FOOTER_I18N_KEYS = (
+    "footer.btn.whatsnew",
+    "footer.btn.diagnostics",
+    "footer.btn.help",
+    "footer.btn.support",
+    "footer.link.website",
+    "footer.link.github",
+)
+
+
+def test_every_translated_footer_string_is_actually_wired_to_the_dom():
+    """whatsnew.title sat translated in all 10 locales and never applied,
+    because the i18n guards only run one way: they verify that every key a
+    template REFERENCES exists in en.json, never that every key en.json
+    DEFINES is reachable. Nothing fails when a translation is simply never
+    hooked up, so the string is quietly English forever.
+
+    footer.btn.support was the live second instance -- the PayPal link
+    rendered a hardcoded "&#9829; Support EGM" and carried only
+    data-i18n-attr for its tooltip, while '♥ Support EGM' was translated in
+    every locale. This pins the footer's own keys in the reachable
+    direction; it is deliberately scoped to the footer rather than the whole
+    corpus, because keys assembled at runtime (download.error.<code> from
+    the backend's error_key, card.status.<state>) have no static reference
+    and a repo-wide version of this check would be mostly false positives.
+    """
+    import json as _json
+    import os as _os
+
+    root = _os.path.dirname(_os.path.dirname(__file__))
+    en = _json.load(open(_os.path.join(root, "languages", "en.json"), encoding="utf-8"))["strings"]
+
+    for p in INDEX_FILES:
+        src = read_source(p)
+        for key in FOOTER_I18N_KEYS:
+            assert key in en, f"languages/en.json: {key} is missing (guard anchor lost)"
+            # data-i18n= sets element TEXT. data-i18n-attr= only sets a title/
+            # aria attribute, which is what made footer.btn.support look wired
+            # while the visible label stayed English -- so require the text
+            # binding specifically.
+            assert f'data-i18n="{key}"' in src, (
+                f"{p}: {key} is translated in en.json but never bound to element "
+                f"text -- a data-i18n-attr binding alone leaves the visible "
+                f"label hardcoded in every locale"
+            )
+
+
+def test_support_link_label_is_not_hardcoded_english():
+    """Narrow companion to the above: the Support link's visible text must
+    come from footer.btn.support, not from the literal in the template."""
+    for p in INDEX_FILES:
+        src = read_source(p)
+        i = src.index("paypal.me/egerenacom")
+        anchor = src[src.rindex("<a ", 0, i):src.index("</a>", i)]
+        assert 'data-i18n="footer.btn.support"' in anchor, (
+            f"{p}: the PayPal/Support anchor must bind footer.btn.support to "
+            f"its text, got: {anchor[:220]}"
+        )

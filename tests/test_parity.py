@@ -1132,6 +1132,17 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
     win_amd64 -- is still cp310-abi3 and byte-for-byte the same shape as
     0.16.1, so the bundled Python 3.11 resolves exactly as before.
 
+    Floor raised again 0.16.2 -> 0.16.3. requirements.txt's own comment
+    carries the verification note (added retroactively in b8fcbe8 after a
+    review flagged the bump had landed without one); independently
+    reconfirmed here to the same standard -- curl_cffi==0.16.3 with yt-dlp
+    2026.08.19 lists 38 real impersonate targets and zero "(unavailable)",
+    and live impersonated requests complete against a real host on Chrome,
+    Firefox and Safari fingerprints. NOTE: this docstring and
+    requirements.txt's comment are two hand-maintained records of the same
+    decision, and the 0.16.3 bump updated only one of them -- keep both
+    moving together on the next raise.
+
     Separately, NOT covered by this test: Kick.com VOD downloads still
     404 due to an unrelated site-side URL scheme change (yt-dlp issue
     #17284 / PR #17322, both open as of yt-dlp 2026.08.19) -- a Kick
