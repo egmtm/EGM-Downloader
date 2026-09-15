@@ -1658,6 +1658,42 @@ def test_macos_minimum_version_is_stated_consistently_everywhere():
     )
 
 
+def test_dmg_build_uses_apfs_not_the_hfs_plus_default():
+    """macOS 26 (Tahoe) and 27 (Golden Gate) have a known bug where HFS+
+    external media/sparse images can fail to mount automatically (Apple's own
+    Tahoe 26.4 beta release notes: "HFS external media might fail to mount
+    automatically" -- FB168672160). dmgbuild (bundled inside electron-builder's
+    dmg-builder) defaults to building the DMG's intermediate sparse image as
+    HFS+, which hits this bug directly: the build fails with "Unable to attach
+    disk image" / "Unable to detach device cleanly" on affected macOS
+    versions, blocking every Mac release until fixed.
+
+    electron-builder's dmg.filesystem option (added specifically for this,
+    resolving electron-userland/electron-builder#9615) switches the
+    intermediate sparse image to APFS instead. This only affects the
+    BUILD-time working image -- the final shipped .dmg format is unchanged,
+    and APFS itself only requires macOS 10.13+, well under this project's own
+    13.0 (Ventura) floor -- so there's no user-facing effect, only a
+    build-reliability one. electron-builder's own default remains HFS+ for
+    backward compatibility, so this must be set explicitly or a fresh
+    checkout silently reverts to the broken default the moment someone edits
+    this file without knowing why the line is there."""
+    import json as _json
+    import os as _os
+
+    root = _os.path.dirname(_os.path.dirname(__file__))
+    pkg = _json.load(open(_os.path.join(root, "mac/electron/package.json"), encoding="utf-8"))
+    filesystem = pkg.get("build", {}).get("dmg", {}).get("filesystem")
+    assert filesystem == "APFS", (
+        f"mac/electron/package.json build.dmg.filesystem is {filesystem!r}, "
+        f"expected 'APFS' -- electron-builder's own default ('HFS+') hits a "
+        f"known macOS 26/27 mounting bug that blocks DMG builds outright "
+        f"(electron-userland/electron-builder#9615). Do not remove this "
+        f"setting without confirming the underlying HFS+ bug has been fixed "
+        f"on the macOS versions actually used to build."
+    )
+
+
 def _browser_window_blocks(src):
     """Yield (line_no, webPreferences_source) for every `new BrowserWindow({...})`.
 
