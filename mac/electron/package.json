@@ -84,6 +84,7 @@
       "minimumSystemVersion": "13.0"
     },
     "dmg": {
+      "filesystem": "APFS",
       "background": "../../static/dmg-background.png",
       "contents": [
         {
