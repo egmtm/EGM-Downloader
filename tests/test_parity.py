@@ -1694,6 +1694,38 @@ def test_dmg_build_uses_apfs_not_the_hfs_plus_default():
     )
 
 
+def test_mac_build_sh_and_dmg_probe_are_syntactically_valid_bash():
+    """mac/BUILD.sh branches its packaging/notarization/instructions logic on
+    DMG_TOOLCHAIN_BROKEN (added while the macOS 27 Golden Gate hdiutil hang
+    was blocking DMG builds -- see the flag's own comment at the top of the
+    file for the full story and the re-enable condition). `bash -n` parses
+    the ENTIRE file, both branches of every if/else, without executing
+    anything platform-specific -- so this genuinely validates both the
+    DMG path and the zip-only path from this Linux CI, not just whichever
+    one the flag currently selects.
+
+    This exists because a real syntax error (a missing `fi`, closing the
+    wrong nesting level) was introduced and caught by hand while writing
+    that branching -- `bash -n` would have caught it immediately and
+    mechanically instead of requiring a careful manual re-read. Also covers
+    scripts/check-dmg-toolchain.sh, the flag's own re-enable diagnostic,
+    which has the identical property (written and reviewed without a Mac
+    available to actually run it)."""
+    import subprocess as _subprocess
+    import os as _os
+
+    root = _os.path.dirname(_os.path.dirname(__file__))
+    for rel in ("mac/BUILD.sh", "scripts/check-dmg-toolchain.sh"):
+        path = _os.path.join(root, rel)
+        assert _os.path.exists(path), f"{rel} does not exist"
+        result = _subprocess.run(
+            ["bash", "-n", path], capture_output=True, text=True
+        )
+        assert result.returncode == 0, (
+            f"{rel} has a bash syntax error:\n{result.stderr}"
+        )
+
+
 def _browser_window_blocks(src):
     """Yield (line_no, webPreferences_source) for every `new BrowserWindow({...})`.
 
