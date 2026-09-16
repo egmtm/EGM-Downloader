@@ -5,6 +5,30 @@
 
 set -e
 
+# ── Temporary zip-only mode (macOS 27 Golden Gate / 26 Tahoe hdiutil issue) ───
+# Set to 1 to skip the DMG target entirely and ship EGMdM.zip containing the
+# signed+stapled .app instead of a signed+stapled .dmg. electron-builder's
+# `dmg-builder` shells out to `hdiutil` for the DMG's intermediate image, and
+# hdiutil has been hanging indefinitely (no error, no completion) on macOS 27
+# even after switching that intermediate image to APFS
+# (electron-userland/electron-builder#9615 -- fixed the *documented* HFS+
+# mounting bug, but this hang persists past that fix, so it's a different,
+# undocumented failure as of this writing).
+#
+# Before flipping this back to 0: run scripts/check-dmg-toolchain.sh on the
+# actual build Mac. It prints PASS the day the underlying hdiutil pipeline
+# works again -- that's the signal to re-enable DMG, not a calendar guess.
+#
+# Flipping this flag changes three things together, in one place: the
+# electron-builder target (dmg+zip -> zip only), the notarize/staple target
+# (the .dmg -> the .app directly, since a bare zip can't be stapled), and the
+# INSTALLATION section of the shipped INSTRUCTIONS.txt. Nothing in
+# mac/electron/package.json changes -- the "dmg" target and settings block
+# stay exactly as committed, correct and ready for the day this flips back.
+#
+# Set: 2026-09-16. Ref: EGM_v1.4.0_dmg_consult.md (Sept 2026 consultation).
+DMG_TOOLCHAIN_BROKEN=1
+
 # Resolve repo root regardless of where script is called from
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
@@ -17,6 +41,9 @@ echo "║  EGM Downloader — macOS ARM64 Build║"
 echo "╚════════════════════════════════════╝"
 echo ""
 echo "   Repo root: $REPO_ROOT"
+if [ "$DMG_TOOLCHAIN_BROKEN" = "1" ]; then
+    echo "   ⚠ DMG_TOOLCHAIN_BROKEN=1 — building zip-only (see comment at top of this script)"
+fi
 echo ""
 
 # ── Prerequisites ─────────────────────────────────────────────────────────────
@@ -119,36 +146,72 @@ echo ""
 # ── Build Electron app ────────────────────────────────────────────────────────
 echo "🔨 Building Electron app..."
 cd "$ELECTRON_DIR"
-npm run build --quiet
+if [ "$DMG_TOOLCHAIN_BROKEN" = "1" ]; then
+    # CLI target override beats package.json's mac.target (dmg+zip) --
+    # package.json itself is untouched, so this reverts by flipping the flag,
+    # nothing to remember to undo here.
+    npx electron-builder --mac zip --arm64
+else
+    npm run build --quiet
+fi
 echo "   ✓ App built"
 echo ""
-
-# ── Package into zip ─────────────────────────────────────────────────────────
-echo "📦 Packaging EGMdM.zip..."
-mkdir -p "$REPO_ROOT/dist"
-DMG=$(ls "$ELECTRON_DIR/dist/"*.dmg 2>/dev/null | head -1)
-if [ -z "$DMG" ]; then
-    echo "❌ No .dmg found in electron/dist/"
-    exit 1
-fi
 
 # ── Code signing verification ─────────────────────────────────────────────────
 echo "🔐 Verifying code signature..."
 APP_PATH="$ELECTRON_DIR/dist/mac-arm64/EGM Downloader.app"
+APP_IS_SIGNED=0
 if codesign --verify --deep --strict "$APP_PATH" 2>/dev/null; then
     SIGNING_ID=$(codesign -dvv "$APP_PATH" 2>&1 | grep "Authority=" | head -1 | sed 's/Authority=//')
     echo "   ✓ App is code-signed: $SIGNING_ID"
+    APP_IS_SIGNED=1
 else
     echo "   ⚠ App signature not found — skipping notarization"
 fi
 echo ""
 
-# ── Notarization + Stapling ───────────────────────────────────────────────────
-if codesign --verify --deep --strict "$APP_PATH" 2>/dev/null; then
-    echo "📤 Submitting DMG for Apple notarization (this takes 2-5 min)..."
-    # Use `if <cmd>` so a transient notarization failure does not trip `set -e`
-    # and abort the build — a signed-but-not-notarized DMG is still shippable.
-    if xcrun notarytool submit "$DMG" \
+mkdir -p "$REPO_ROOT/dist"
+
+if [ "$DMG_TOOLCHAIN_BROKEN" = "1" ]; then
+    # ── Notarization + Stapling (zip-only: staple the .app itself) ───────────
+    # A bare zip can't hold a notarization ticket -- Apple's stapler only
+    # accepts a .app or .dmg. So: wrap the .app in a temporary zip just to
+    # submit it (ditto -k preserves the code signature; plain `zip` can
+    # corrupt it), staple the ticket to the real .app once notarization
+    # comes back, then build the actual shipped EGMdM.zip from the now
+    # -stapled .app afterward.
+    if [ "$APP_IS_SIGNED" = "1" ]; then
+        NOTARIZE_ZIP="$ELECTRON_DIR/dist/notarize-submission.zip"
+        echo "📤 Submitting app for Apple notarization (this takes 2-5 min)..."
+        ditto -c -k --keepParent "$APP_PATH" "$NOTARIZE_ZIP"
+        if xcrun notarytool submit "$NOTARIZE_ZIP" \
+            --keychain-profile "EGM-Notarize" \
+            --wait; then
+            echo "   ✓ Notarization accepted"
+            echo "📌 Stapling notarization ticket to the app..."
+            xcrun stapler staple "$APP_PATH"
+            echo "   ✓ Ticket stapled — app will pass Gatekeeper without warnings"
+        else
+            echo "   ⚠ Notarization failed — app is signed but not notarized"
+        fi
+        rm -f "$NOTARIZE_ZIP"
+        echo ""
+    fi
+else
+    # ── Package into zip ───────────────────────────────────────────────────
+    echo "📦 Packaging EGMdM.zip..."
+    DMG=$(ls "$ELECTRON_DIR/dist/"*.dmg 2>/dev/null | head -1)
+    if [ -z "$DMG" ]; then
+        echo "❌ No .dmg found in electron/dist/"
+        exit 1
+    fi
+
+    # ── Notarization + Stapling ───────────────────────────────────────────────
+    if [ "$APP_IS_SIGNED" = "1" ]; then
+        echo "📤 Submitting DMG for Apple notarization (this takes 2-5 min)..."
+        # Use `if <cmd>` so a transient notarization failure does not trip `set -e`
+        # and abort the build — a signed-but-not-notarized DMG is still shippable.
+        if xcrun notarytool submit "$DMG" \
         --keychain-profile "EGM-Notarize" \
         --wait; then
         echo "   ✓ Notarization accepted"
@@ -159,11 +222,25 @@ if codesign --verify --deep --strict "$APP_PATH" 2>/dev/null; then
         echo "   ⚠ Notarization failed — DMG is signed but not notarized"
     fi
     echo ""
+    fi
 fi
 
 # ── Create end-user INSTRUCTIONS.txt ──────────────────────────────────────────
 cd "$ELECTRON_DIR/dist"
-cat > INSTRUCTIONS.txt << 'EOF'
+if [ "$DMG_TOOLCHAIN_BROKEN" = "1" ]; then
+    INSTALL_STEPS='1. Unzip this file if your browser has not already done so
+
+2. Drag "EGM Downloader" to your Applications folder
+
+3. Open Applications folder and launch "EGM Downloader"'
+else
+    INSTALL_STEPS='1. Double-click "EGM Downloader.dmg"
+
+2. Drag "EGM Downloader" to your Applications folder
+
+3. Open Applications folder and launch "EGM Downloader"'
+fi
+cat > INSTRUCTIONS.txt << EOF
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -176,11 +253,7 @@ MINIMUM MACOS: 13.0 (Ventura) or later
   INSTALLATION
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-1. Double-click "EGM Downloader.dmg"
-
-2. Drag "EGM Downloader" to your Applications folder
-
-3. Open Applications folder and launch "EGM Downloader"
+$INSTALL_STEPS
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   FIRST RUN
@@ -242,9 +315,19 @@ full terms: https://github.com/egmtm/EGM-Downloader/blob/main/LICENSE
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 EOF
 
-# ── Create zip with DMG + INSTRUCTIONS ────────────────────────────────────────
-zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt
-echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
+# ── Create final EGMdM.zip ─────────────────────────────────────────────────
+if [ "$DMG_TOOLCHAIN_BROKEN" = "1" ]; then
+    echo "📦 Packaging EGMdM.zip (app, not DMG)..."
+    cd "$ELECTRON_DIR/dist/mac-arm64"
+    cp "$ELECTRON_DIR/dist/INSTRUCTIONS.txt" .
+    zip -r "$REPO_ROOT/dist/EGMdM.zip" "EGM Downloader.app" INSTRUCTIONS.txt
+    echo "   ✓ dist/EGMdM.zip created (app + INSTRUCTIONS.txt)"
+else
+    # Create zip with DMG + INSTRUCTIONS
+    echo "📦 Packaging EGMdM.zip..."
+    zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt
+    echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
+fi
 echo ""
 
 # ── Compute SHA256 checksum ───────────────────────────────────────────────────
