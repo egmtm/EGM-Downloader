@@ -67,7 +67,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.3.0 — POLYGLOT: FULL THROTTLE. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots captured on v1.4.0 — WHAT'S NEW. The UI is identical across Windows, macOS, and Linux. More screenshots coming soon.*
 
 <div align="center">
   <a href="screenshots/01-splash-screen.png">
@@ -81,100 +81,16 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/02-language-selector-dark-knight-ride-theme.png">
-        <img src="screenshots/02-language-selector-dark-knight-ride-theme.png" width="340" alt="Language Selector — Dark Knight Ride Theme"/>
+      <a href="screenshots/02-main-ui.png">
+        <img src="screenshots/02-main-ui.png" width="340" alt="Main UI"/>
       </a>
-      <br/><sub><b>Language Selector — Dark Knight Ride Theme</b></sub>
+      <br/><sub><b>Main UI</b></sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/03-hdr-selector-aurora-deep-theme.png">
-        <img src="screenshots/03-hdr-selector-aurora-deep-theme.png" width="340" alt="HDR Selector — Aurora Deep Theme"/>
+      <a href="screenshots/03-whats-new-modal.png">
+        <img src="screenshots/03-whats-new-modal.png" width="340" alt="What's New Modal"/>
       </a>
-      <br/><sub><b>HDR Selector — Aurora Deep Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/04-main-ui-buddy-list-theme.png">
-        <img src="screenshots/04-main-ui-buddy-list-theme.png" width="340" alt="Main UI — Buddy List Theme"/>
-      </a>
-      <br/><sub><b>Main UI — Buddy List Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/05-advanced-interface-flux-capacitor-theme.png">
-        <img src="screenshots/05-advanced-interface-flux-capacitor-theme.png" width="340" alt="Advanced Interface — Flux Capacitor Theme"/>
-      </a>
-      <br/><sub><b>Advanced Interface — Flux Capacitor Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/06-theme-creator-panda-theme.png">
-        <img src="screenshots/06-theme-creator-panda-theme.png" width="340" alt="Theme Creator — Panda Theme"/>
-      </a>
-      <br/><sub><b>Theme Creator — Panda Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/07-plugins-cybercore-theme.png">
-        <img src="screenshots/07-plugins-cybercore-theme.png" width="340" alt="Plugins — Cybercore Theme"/>
-      </a>
-      <br/><sub><b>Plugins — Cybercore Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/08-subscriptions-webmley-theme.png">
-        <img src="screenshots/08-subscriptions-webmley-theme.png" width="340" alt="Subscriptions — Webmley Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions — Webmley Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/09-subscriptions-unix-theme.png">
-        <img src="screenshots/09-subscriptions-unix-theme.png" width="340" alt="Subscriptions — Unix Theme"/>
-      </a>
-      <br/><sub><b>Subscriptions — Unix Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/10-history-buenos-aires-theme.png">
-        <img src="screenshots/10-history-buenos-aires-theme.png" width="340" alt="History — Buenos Aires Theme"/>
-      </a>
-      <br/><sub><b>History — Buenos Aires Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/11-export-wraith-theme.png">
-        <img src="screenshots/11-export-wraith-theme.png" width="340" alt="Export — Wraith Theme"/>
-      </a>
-      <br/><sub><b>Export — Wraith Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/12-help-modal-wall-street-theme.png">
-        <img src="screenshots/12-help-modal-wall-street-theme.png" width="340" alt="Help Modal — Wall Street Theme"/>
-      </a>
-      <br/><sub><b>Help Modal — Wall Street Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/13-all-themes-quiet-luxury-theme.png">
-        <img src="screenshots/13-all-themes-quiet-luxury-theme.png" width="340" alt="All Themes — Quiet Luxury Theme"/>
-      </a>
-      <br/><sub><b>All Themes — Quiet Luxury Theme</b></sub>
-    </td>
-  </tr>
-  <tr>
-    <td align="center">
-      <a href="screenshots/14-fetching-settings-hidden-void-theme.png">
-        <img src="screenshots/14-fetching-settings-hidden-void-theme.png" width="340" alt="Fetching — Settings Hidden — Void Theme"/>
-      </a>
-      <br/><sub><b>Fetching — Settings Hidden — Void Theme</b></sub>
-    </td>
-    <td align="center">
-      <a href="screenshots/15-main-ui-hidden-panels-odd-cab-theme.png">
-        <img src="screenshots/15-main-ui-hidden-panels-odd-cab-theme.png" width="340" alt="Main UI — Hidden Panels — Odd Cab Theme"/>
-      </a>
-      <br/><sub><b>Main UI — Hidden Panels — Odd Cab Theme</b></sub>
+      <br/><sub><b>What's New Modal</b></sub>
     </td>
   </tr>
 </table>
