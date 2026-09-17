@@ -62,7 +62,7 @@ Steps:
 Expected: All videos download
 Actual: Only first 50 videos download
 
-Environment: Windows 11, EGM Downloader v1.4.0 Build 154
+Environment: Windows 11, EGM Downloader v1.4.1 Build 155
 ```
 
 ### Suggesting Features
