@@ -10,6 +10,19 @@ const here = dirname(fileURLToPath(import.meta.url));
 const repo = join(here, "..", "..");
 export const en = JSON.parse(readFileSync(join(repo, "languages", "en.json"), "utf8"));
 
+// The actual running app version, read from the same rendered HTML bootPage
+// loads below -- never hardcode this in a test. A hardcoded version string
+// used to "mark the current version as already seen" (to suppress the
+// once-per-version auto-show) goes stale the moment the app version bumps,
+// silently flipping the auto-show back on and breaking any test that assumed
+// the modal starts hidden. Reading it dynamically means this can't recur.
+export const CURRENT_APP_VERSION = (() => {
+  const html = readFileSync(process.env.EGM_RENDERED_PAGE || "/tmp/egm_rendered_index.html", "utf8");
+  const m = html.match(/id="footer-version-pill"[^>]*>v?([\d.]+)</);
+  if (!m) throw new Error("could not read the current app version from footer-version-pill in the rendered page");
+  return m[1];
+})();
+
 export function bootPage({ settings = {}, onFetch } = {}) {
   const html = readFileSync(process.env.EGM_RENDERED_PAGE || "/tmp/egm_rendered_index.html", "utf8");
   const saved = [];
