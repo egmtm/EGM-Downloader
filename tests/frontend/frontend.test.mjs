@@ -3,7 +3,7 @@
 // that previously regressed or nearly regressed during development.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bootPage, en } from "./harness.mjs";
+import { bootPage, en, CURRENT_APP_VERSION } from "./harness.mjs";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -240,7 +240,7 @@ test("whats-new heading honours locale word order, not just English's", async ()
     readFileSync(join(dirname(fileURLToPath(import.meta.url)), "..", "..", "languages", "ja.json"), "utf8"),
   );
   const { w, d } = await bootPage({
-    settings: { language: "ja", last_seen_version: "1.3.12" },   // suppress the auto-show
+    settings: { language: "ja", last_seen_version: CURRENT_APP_VERSION },   // suppress the auto-show
     onFetch: (u) => (u === "/api/language/ja" ? { ok: true, json: async () => ja } : null),
   });
 
@@ -260,7 +260,7 @@ test("whats-new dismiss stays live across repeated manual opens", async () => {
   const { w, d, saved } = await bootPage({
     // Mark the running version seen so the automatic once-per-version path does
     // not fire -- this test is about the manual footer trigger in isolation.
-    settings: { last_seen_version: "1.3.12" },
+    settings: { last_seen_version: CURRENT_APP_VERSION },
   });
   const modal = d.getElementById("whats-new-modal");
   const openBtn = d.getElementById("footer-whatsnew-btn");
@@ -283,5 +283,5 @@ test("whats-new dismiss stays live across repeated manual opens", async () => {
   // function instead of once at load would stack a fresh listener per open,
   // firing 1+2+3 saves instead of 3.
   assert.equal(saved.length - savesBefore, 3, `expected one settings save per dismiss, got ${saved.length - savesBefore}`);
-  assert.equal(saved[saved.length - 1].last_seen_version, "1.3.12", "dismiss records the running version");
+  assert.equal(saved[saved.length - 1].last_seen_version, CURRENT_APP_VERSION, "dismiss records the running version");
 });
