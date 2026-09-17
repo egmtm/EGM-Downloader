@@ -12,21 +12,20 @@ QUALITY_FILES = ("templates/js/_quality.html", "linux/templates/js/_quality.html
 
 
 def test_footer_whatsnew_button_present_and_correctly_ordered():
-    """The button must be the first item in the footer's link/button row,
-    ahead of the website link and the version pill (EGM moved it here ahead
-    of v1.4.1 -- previously it sat between the version pill and Diagnostics),
-    on both platform copies."""
+    """What's New is first, the version pill is second (EGM moved the pill
+    here ahead of v1.4.2 -- previously it sat after the website/GitHub/X
+    links), then the website link, then Diagnostics, on both platform
+    copies."""
     for p in INDEX_FILES:
         src = read_source(p)
         btn_at = src.index('id="footer-whatsnew-btn"')
-        website_at = src.index('data-i18n="footer.link.website"')
         pill_at = src.index('id="footer-version-pill"')
+        website_at = src.index('data-i18n="footer.link.website"')
         diag_at = src.index('id="footer-diagnostics-btn"')
-        assert btn_at < website_at < pill_at < diag_at, (
-            f"{p}: footer-whatsnew-btn must be the first item in the footer "
-            f"row, ahead of the website link, the version pill, and "
-            f"Diagnostics, found at btn={btn_at} website={website_at} "
-            f"pill={pill_at} diag={diag_at}"
+        assert btn_at < pill_at < website_at < diag_at, (
+            f"{p}: expected order What's New -> version pill -> website "
+            f"link -> Diagnostics, found at btn={btn_at} pill={pill_at} "
+            f"website={website_at} diag={diag_at}"
         )
         assert 'data-i18n="footer.btn.whatsnew"' in src, (
             f"{p}: footer-whatsnew-btn is missing its data-i18n wiring"
