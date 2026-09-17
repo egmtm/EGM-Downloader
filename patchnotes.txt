@@ -1,3 +1,8 @@
+v1.4.1 - TBD (Build TBD) (TBD)
+-----------------------------------------
+
+  • [ALL] The "What's New" footer button is now the first item in the footer, ahead of the website link and version number
+
 v1.4.0 - WHAT'S NEW (Build 154) (9/15/2026)
 -----------------------------------------
 

@@ -12,17 +12,21 @@ QUALITY_FILES = ("templates/js/_quality.html", "linux/templates/js/_quality.html
 
 
 def test_footer_whatsnew_button_present_and_correctly_ordered():
-    """The button must sit between the version pill and the Diagnostics
-    button (EGM's specified placement), on both platform copies."""
+    """The button must be the first item in the footer's link/button row,
+    ahead of the website link and the version pill (EGM moved it here ahead
+    of v1.4.1 -- previously it sat between the version pill and Diagnostics),
+    on both platform copies."""
     for p in INDEX_FILES:
         src = read_source(p)
-        pill_at = src.index('id="footer-version-pill"')
         btn_at = src.index('id="footer-whatsnew-btn"')
+        website_at = src.index('data-i18n="footer.link.website"')
+        pill_at = src.index('id="footer-version-pill"')
         diag_at = src.index('id="footer-diagnostics-btn"')
-        assert pill_at < btn_at < diag_at, (
-            f"{p}: footer-whatsnew-btn must sit between the version pill "
-            f"and the Diagnostics button, found at pill={pill_at} "
-            f"btn={btn_at} diag={diag_at}"
+        assert btn_at < website_at < pill_at < diag_at, (
+            f"{p}: footer-whatsnew-btn must be the first item in the footer "
+            f"row, ahead of the website link, the version pill, and "
+            f"Diagnostics, found at btn={btn_at} website={website_at} "
+            f"pill={pill_at} diag={diag_at}"
         )
         assert 'data-i18n="footer.btn.whatsnew"' in src, (
             f"{p}: footer-whatsnew-btn is missing its data-i18n wiring"
