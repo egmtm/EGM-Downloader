@@ -1,7 +1,8 @@
-v1.4.1 - TBD (Build TBD) (TBD)
+v1.4.1 - FRONT AND CENTER (Build 155) (9/16/2026)
 -----------------------------------------
 
   • [ALL] The "What's New" footer button is now the first item in the footer, ahead of the website link and version number
+  • [ALL] Electron runtime updated to v44.4.1 — object lifetime hardening and Windows protocol-handler fixes
 
 v1.4.0 - WHAT'S NEW (Build 154) (9/15/2026)
 -----------------------------------------
