@@ -1,7 +1,8 @@
-v1.4.2 - TBD (Build TBD) (TBD)
+v1.4.2 - TBD (Build 156) (9/18/2026)
 -----------------------------------------
 
   • [ALL] The version number is now the second item in the footer, right after the "What's New" button
+  • [ALL] Electron runtime updated to v44.4.2 — Chromium updated to 152.0.7977.130
 
 v1.4.1 - FRONT AND CENTER (Build 155) (9/16/2026)
 -----------------------------------------
