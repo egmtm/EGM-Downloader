@@ -67,7 +67,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.4.0 — WHAT'S NEW. The UI is identical across Windows, macOS, and Linux. More screenshots coming soon.*
+> 📸 *Screenshots captured on v1.4.2 — FRONT AND CENTER: RELOADED. The UI is identical across Windows, macOS, and Linux. More screenshots coming soon.*
 
 <div align="center">
   <a href="screenshots/01-splash-screen.png">
