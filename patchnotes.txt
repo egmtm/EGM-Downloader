@@ -1,4 +1,4 @@
-v1.4.2 - TBD (Build 156) (9/18/2026)
+v1.4.2 - FRONT AND CENTER: RELOADED (Build 156) (9/18/2026)
 -----------------------------------------
 
   • [ALL] The version number is now the second item in the footer, right after the "What's New" button
