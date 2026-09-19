@@ -5,6 +5,7 @@
   
   <p>
     <img src="https://img.shields.io/badge/dynamic/json?url=https://egerena.com/version.json&query=version&label=version&style=flat-square&color=0078b0" alt="Version"/>
+    <img src="https://img.shields.io/badge/Electron-44.4.3-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg" alt="Version Sync"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg" alt="Python Lint"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
@@ -12,7 +13,6 @@
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <a href="https://github.com/egmtm/EGM-Downloader/discussions"><img src="https://img.shields.io/badge/github-discussions-181717?logo=github" alt="GitHub Discussions"/></a>
     <a href="https://x.com/EGMDownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-000000?logo=x&logoColor=white" alt="Follow on X"/></a>
-    <img src="https://img.shields.io/badge/Electron-44.4.3-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Ventura+-000000?logo=apple&logoColor=white" alt="macOS"/>
