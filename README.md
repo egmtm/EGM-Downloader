@@ -33,6 +33,7 @@
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#-quick-start">🚀 Quick Start</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
+  <a href="#roadmap">🗺️ Roadmap</a> ·
   <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
 </p>
 
@@ -146,6 +147,16 @@
 **Linux:** 64-bit distribution · ~300 MB disk space · FUSE support
 Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
 > Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
+
+---
+
+<a id="roadmap"></a>
+
+## 🗺️ Roadmap
+
+**v1.5:**
+- ⚡ Electron runtime updated to v45 — the next major runtime upgrade
+- 🚫 SponsorBlock integration — an optional toggle to automatically skip sponsor segments in downloaded YouTube videos, powered by the community-run [SponsorBlock](https://sponsor.ajay.app/) database
 
 ---
 
