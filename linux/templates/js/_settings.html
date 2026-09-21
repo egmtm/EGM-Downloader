@@ -72,6 +72,16 @@
       const sel = document.getElementById('default-audio-fmt-sel');
       if (sel) sel.value = s.default_audio_format;
     }
+    {
+      const sbChk = document.getElementById('sponsorblock-enabled-chk');
+      const sbCats = Array.isArray(s.sponsorblock_categories) ? s.sponsorblock_categories : [];
+      if (sbChk) sbChk.checked = s.sponsorblock_enabled === true;
+      for (const cat of ['sponsor', 'intro', 'outro', 'selfpromo']) {
+        const catChk = document.getElementById(`sb-cat-${cat}-chk`);
+        if (catChk) catChk.checked = sbCats.includes(cat);
+      }
+      if (typeof updateSponsorblockRowVisibility === 'function') updateSponsorblockRowVisibility();
+    }
   } catch {}
   // Hide Desktop shortcut button if createShortcut IPC isn't available (non-Windows).
   // Collapse the shared row to a single column too, so Check for app update
@@ -150,6 +160,38 @@ document.getElementById('output-format-sel').addEventListener('change', function
 document.getElementById('default-audio-fmt-sel').addEventListener('change', function() {
   post('/api/settings/save', { default_audio_format: this.value });
 });
+
+// SponsorBlock — main toggle shows/hides the category checkboxes (a hidden category
+// keeps its last checked state in the DOM; only VISIBLE + checked categories are ever
+// saved, so re-enabling later doesn't resurrect a stale selection silently).
+function updateSponsorblockRowVisibility() {
+  const on = document.getElementById('sponsorblock-enabled-chk')?.checked === true;
+  document.querySelectorAll('#sponsorblock-row .sb-category').forEach((el) => {
+    el.classList.toggle('sb-hidden', !on);
+  });
+}
+// Shared with _download.html / _bulk.html — returns [] when SponsorBlock is off,
+// regardless of which categories are checked underneath (they're irrelevant while
+// hidden, and the backend treats an empty list as "no removal requested" either way).
+function getSponsorblockCategories() {
+  if (document.getElementById('sponsorblock-enabled-chk')?.checked !== true) return [];
+  return ['sponsor', 'intro', 'outro', 'selfpromo'].filter(
+    (cat) => document.getElementById(`sb-cat-${cat}-chk`)?.checked === true
+  );
+}
+function saveSponsorblockCategories() {
+  const cats = ['sponsor', 'intro', 'outro', 'selfpromo'].filter(
+    (cat) => document.getElementById(`sb-cat-${cat}-chk`)?.checked === true
+  );
+  post('/api/settings/save', { sponsorblock_categories: cats });
+}
+document.getElementById('sponsorblock-enabled-chk').addEventListener('change', function() {
+  updateSponsorblockRowVisibility();
+  post('/api/settings/save', { sponsorblock_enabled: this.checked });
+});
+for (const cat of ['sponsor', 'intro', 'outro', 'selfpromo']) {
+  document.getElementById(`sb-cat-${cat}-chk`).addEventListener('change', saveSponsorblockCategories);
+}
 
 // Save concurrency and fragments whenever changed
 document.getElementById('concurrency-sel').addEventListener('change', () => {

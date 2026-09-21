@@ -403,6 +403,29 @@ _settings_lock  = threading.Lock()
 SUPPORTED_LANGUAGES = ("en", "ar", "de", "es", "fr", "it", "ja", "nl", "pt", "ru")
 LANGUAGES_DIR = Path(__file__).parent / "languages"
 
+# ── SponsorBlock: category allowlist ──────────────────────────────────────────────────────
+# Single allowlist for every path a category can enter: /api/settings/save (the global
+# default), /api/subscriptions/update (per-channel override), and /api/download itself
+# (whatever a request actually asks for gets validated against this before it's ever
+# joined into a yt-dlp --sponsorblock-remove argument). Deliberately narrower than every
+# category SponsorBlock/yt-dlp support -- poi_highlight and chapter are mark-only, not
+# removable, so they're not offered at all; filler/interaction/music_offtopic/hook exist
+# upstream but aren't exposed in this app's first pass.
+SPONSORBLOCK_CATEGORIES = ("sponsor", "intro", "outro", "selfpromo")
+
+def _clean_sponsorblock_categories(value) -> list:
+    """Filter to only the allowed category strings, preserving order, deduping.
+    Never trust client input directly into a subprocess argument list."""
+    if not isinstance(value, list):
+        return []
+    seen = set()
+    out = []
+    for c in value:
+        if isinstance(c, str) and c in SPONSORBLOCK_CATEGORIES and c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
+
 def _detect_os_language() -> str:
     """Map the OS locale to a supported language code; default to English."""
     code = ""
@@ -621,6 +644,13 @@ def _load_subscriptions_unlocked() -> list:
             _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
         except Exception:
             _subs_cache = []
+        # Backfill defaults for records written before a field existed -- .get(key,
+        # default) at read time, same spirit as _load_settings()'s per-key defaults,
+        # just applied per-record since subscriptions are a list of independent objects.
+        # Non-destructive: the file on disk is untouched until something else saves it.
+        for _s in _subs_cache:
+            _s.setdefault("sponsorblock_enabled", False)
+            _s.setdefault("sponsorblock_categories", [])
     return list(_subs_cache)
 
 def _save_subscriptions_unlocked(subs: list):
@@ -1245,7 +1275,7 @@ def _upscale_to_preset(job_id, path, job, target):
         return path
 
 
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264", hdr=False):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264", hdr=False, sponsorblock_categories=None):
     job     = jobs.get(job_id)
     if not job:
         return  # Job was removed before worker started
@@ -1374,6 +1404,14 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             _lang = _load_settings().get("language", "en")
             _sub_langs = "en" if _lang not in SUPPORTED_LANGUAGES or _lang == "en" else f"{_lang}.*,en"
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", _sub_langs, "--embed-subs"]
+    # SponsorBlock — re-sanitize defensively even though every caller (the main
+    # /api/download route and each subscription's stored setting) already validates
+    # against SPONSORBLOCK_CATEGORIES before this function is ever called. This is a
+    # subprocess argument list; never trust that an earlier layer's validation was
+    # actually exercised on every path that can reach here.
+    _sb_categories = _clean_sponsorblock_categories(sponsorblock_categories) if sponsorblock_categories else []
+    if _sb_categories:
+        args += ["--sponsorblock-remove", ",".join(_sb_categories)]
     args.append(url)
 
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
@@ -1694,7 +1732,8 @@ def start_download():
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
                            data.get("output_format", "mp4_h264"),
-                           bool(data.get("hdr", False))),
+                           bool(data.get("hdr", False)),
+                           _clean_sponsorblock_categories(data.get("sponsorblock_categories"))),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -1763,6 +1802,8 @@ def get_settings():
         "show_language_selector":  s.get("show_language_selector", True),
         "show_settings_panel":     s.get("show_settings_panel", True),
         "upscale_to_quality":      s.get("upscale_to_quality", False),
+        "sponsorblock_enabled":    s.get("sponsorblock_enabled", False),
+        "sponsorblock_categories": s.get("sponsorblock_categories", list(SPONSORBLOCK_CATEGORIES)),
     })
 
 @app.route("/api/language/<code>")
@@ -1785,7 +1826,8 @@ def save_settings():
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
                "favorite_themes", "random_theme_on_launch", "random_theme_scope",
-               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality"}
+               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality",
+               "sponsorblock_enabled", "sponsorblock_categories"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1817,6 +1859,10 @@ def save_settings():
         data["show_settings_panel"] = bool(data["show_settings_panel"])
     if "upscale_to_quality" in data:
         data["upscale_to_quality"] = bool(data["upscale_to_quality"])
+    if "sponsorblock_enabled" in data:
+        data["sponsorblock_enabled"] = bool(data["sponsorblock_enabled"])
+    if "sponsorblock_categories" in data:
+        data["sponsorblock_categories"] = _clean_sponsorblock_categories(data["sponsorblock_categories"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
@@ -2564,6 +2610,8 @@ def add_subscription():
         "auto_fetch_on_open": False,
         "download_folder": None,
         "format": "video",
+        "sponsorblock_enabled": False,
+        "sponsorblock_categories": [],
         "videos": []
     }
 
@@ -2606,7 +2654,8 @@ def update_subscription():
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
-    allowed = {"name", "download_folder", "format", "quality", "auto_fetch_on_open"}
+    allowed = {"name", "download_folder", "format", "quality", "auto_fetch_on_open",
+               "sponsorblock_enabled", "sponsorblock_categories"}
 
     _VALID_QUALITY = {"best", "2160", "1440", "1080", "720", "480",
                       "mp3_320", "mp3_128", "flac", "wav", "opus_128", "opus_192"}
@@ -2633,6 +2682,10 @@ def update_subscription():
                         v = v if v in _VALID_QUALITY else "best"
                     elif k == "auto_fetch_on_open":
                         v = bool(v)
+                    elif k == "sponsorblock_enabled":
+                        v = bool(v)
+                    elif k == "sponsorblock_categories":
+                        v = _clean_sponsorblock_categories(v)
                     s[k] = v
                 return ("ok", s)
         return ("notfound", None)
