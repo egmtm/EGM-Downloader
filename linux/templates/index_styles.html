@@ -741,6 +741,11 @@
     .set-toggles { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding: 10px 0 10px; border-top: 1px solid var(--border); }
     .set-toggles .sw-wrap { min-width: 0; }
     .set-toggles .sw-wrap span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    /* SponsorBlock category checkboxes -- hidden via JS (class toggle) when the main
+       SponsorBlock checkbox is off. With justify-content:space-between already on the
+       shared .set-toggles wrapper, hiding these collapses the row to just the main
+       checkbox on the left -- flexbox needs no "between" when there's only one item. */
+    #sponsorblock-row .sb-category.sb-hidden { display: none; }
 
     .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 

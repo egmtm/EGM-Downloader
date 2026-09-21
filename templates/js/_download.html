@@ -415,6 +415,7 @@ async function startDl(item, n) {
       thumbnail: item.info?.thumbnail || '',
       subtitles: !!document.getElementById('subtitles-chk')?.checked,
       embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
+      sponsorblock_categories: getSponsorblockCategories(),
       // HDR selections override the global format: HDR ships as MKV (server enforces too)
       output_format: (() => {
         const sel = (item.info.formats || []).find(f => f.id === item.selFmtId);
