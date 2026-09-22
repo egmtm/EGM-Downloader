@@ -5,7 +5,7 @@
   
   <p>
     <img src="https://img.shields.io/badge/dynamic/json?url=https://egerena.com/version.json&query=version&label=version&style=flat-square&color=0078b0" alt="Version"/>
-    <img src="https://img.shields.io/badge/Electron-44.4.3-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-44.4.4-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg" alt="Version Sync"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg" alt="Python Lint"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
@@ -101,8 +101,8 @@
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.4.4 Build 158  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (612 KB · ~800 MB after install)  
-**SHA256:** `338e6ad78aea7d03438aed9aceefb7821d8eba6ae4c8c50972726fb91cb88861`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (613 KB · ~800 MB after install)  
+**SHA256:** `2907b31c28c531af070399257410e694a1ee7e29a47cc6acf28e1f4f9c5c96f0`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -110,7 +110,7 @@
 ### Windows Portable
 **Latest:** v1.4.4 Build 158  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (618 KB · ~800 MB after first run)  
-**SHA256:** `93b7631111b365e7b0d185ad1923aff29014c79b340fa11279ead1b05a22cb9c`  
+**SHA256:** `f38cac74737c030fefdc517f5c1543fd8fdd12214e008bd913a5612c65d64b4e`  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -120,7 +120,7 @@
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.4.4 Build 158  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (141 MB · ~300 MB after install)  
-**SHA256:** `babc4e00720a4cea0e5e662ba30377b98a4ce6084ea4a2e908911a37af356b47`  
+**SHA256:** `5583fe3064a296d0c15b34412de55be7595d4a3230583623b5ddb04dc04229ac`  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -128,8 +128,8 @@
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.4.4 Build 158  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (170 MB · ~300 MB after install)  
-**SHA256:** `72fd92c267277c32063ea680ed5411f06bd95396e84d7a333aa691ffc24924d3`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (169 MB · ~300 MB after install)  
+**SHA256:** `c7deffc377e876077ce46a8159e747554d271ed4344715f55789bd6f9faf2f85`  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
