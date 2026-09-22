@@ -316,11 +316,26 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
         fetch('/api/settings').then(r => r.json()),
         fetch('/api/history?page=1&per_page=10000').then(r => r.json()),
       ]);
-      let subUrls = [];
+      let subEntries = [];
       try {
         const subsData = await fetch('/api/subscriptions').then(r => r.json());
         const subsList = subsData && Array.isArray(subsData.subscriptions) ? subsData.subscriptions : [];
-        subUrls = subsList.map(s => s.url).filter(Boolean);
+        // Full per-channel settings, not just the URL -- quality, auto-fetch and
+        // SponsorBlock were previously dropped entirely on export/import (every
+        // re-imported subscription silently reverted to defaults). Deliberately not
+        // the whole raw subscription object: id/videos/thumbnail_url/description/
+        // last_fetched/added_at are either internal, regenerated on the next fetch,
+        // or not meaningful to restore.
+        subEntries = subsList.filter(s => s && s.url).map(s => ({
+          url: s.url,
+          name: s.name || '',
+          download_folder: s.download_folder || null,
+          format: s.format || 'video',
+          quality: s.quality || 'best',
+          auto_fetch_on_open: !!s.auto_fetch_on_open,
+          sponsorblock_enabled: !!s.sponsorblock_enabled,
+          sponsorblock_categories: Array.isArray(s.sponsorblock_categories) ? s.sponsorblock_categories : [],
+        }));
       } catch {}
       const lsKeys = {};
       try {
@@ -339,7 +354,7 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
           { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
           { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub:(i18nFmt('settings.io.item.history.count_export', histItems.length) || `${histItems.length} download records`), available:true },
           { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub:(i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences'), available:true },
-          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:(i18nFmt('settings.io.item.subscriptions.count_export', subUrls.length) || `${subUrls.length} channels`), available:true },
+          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub:(i18nFmt('settings.io.item.subscriptions.count_export', subEntries.length) || `${subEntries.length} channels`), available:true },
         ],
         state: { settings:true, history:true, themes:true, subscriptions:true },
         confirmLabel: (i18nGet('panel.themes.btn.export') || '↑ Export'),
@@ -347,18 +362,18 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
       if (!sel) return;
 
       const envelope = {
-        _egm_export_version: 3,
+        _egm_export_version: 4,
         exported_at: new Date().toISOString(),
         settings:       sel.settings       ? (s || {})      : {},
         history:        sel.history        ? histItems       : [],
-        subscriptions:  sel.subscriptions  ? subUrls         : [],
+        subscriptions:  sel.subscriptions  ? subEntries      : [],
         localStorage:   sel.themes         ? lsKeys          : {},
       };
       const content = JSON.stringify(envelope, null, 2);
       const parts = [
         sel.settings      ? (i18nGet('settings.export.part.settings') || 'settings') : null,
         sel.history       ? (i18nFmt('settings.export.part.history', histItems.length) || `${histItems.length} history`) : null,
-        sel.subscriptions ? (i18nFmt('settings.export.part.subscriptions', subUrls.length) || `${subUrls.length} subscriptions`) : null,
+        sel.subscriptions ? (i18nFmt('settings.export.part.subscriptions', subEntries.length) || `${subEntries.length} subscriptions`) : null,
         sel.themes        ? (i18nFmt('settings.export.part.themes', Object.keys(lsKeys).length) || `${Object.keys(lsKeys).length} preferences`) : null,
       ].filter(Boolean).join(', ');
 
@@ -391,7 +406,13 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
 
       const isEnvelope = data._egm_export_version !== undefined;
       const histItems  = isEnvelope && Array.isArray(data.history) ? data.history : [];
-      const subUrls    = isEnvelope && Array.isArray(data.subscriptions) ? data.subscriptions : [];
+      // Backward compatible with exports from before _egm_export_version 4, where
+      // each entry was a bare URL string rather than {url, name, ...settings}.
+      const subEntries = isEnvelope && Array.isArray(data.subscriptions)
+        ? data.subscriptions
+            .map(e => (typeof e === 'string' ? { url: e } : (e && typeof e === 'object' ? e : null)))
+            .filter(e => e && typeof e.url === 'string' && e.url.trim())
+        : [];
       const lsData     = isEnvelope && data.localStorage && typeof data.localStorage === 'object' ? data.localStorage : null;
 
       // Show selector — only enable rows that exist in the file
@@ -402,9 +423,9 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
           { key:'settings',      icon:'⚙️', label:(i18nGet('settings.io.item.settings.label')||'Settings'),            sub:(i18nGet('settings.io.item.settings.desc')||'Download folder, format, quality, preferences'), available:true },
           { key:'history',       icon:'🕓', label:(i18nGet('settings.io.item.history.label')||'History'),             sub: histItems.length > 0 ? (i18nFmt('settings.io.item.history.count', histItems.length) || `${histItems.length} records in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:histItems.length>0 },
           { key:'themes',        icon:'🎨', label:(i18nGet('settings.io.item.themes.label')||'Themes & preferences'), sub: lsData ? (i18nGet('settings.io.item.themes.desc')||'Active theme, custom themes, UI preferences') : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:!!lsData },
-          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub: subUrls.length > 0 ? (i18nFmt('settings.io.item.subscriptions.count', subUrls.length) || `${subUrls.length} channels in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:subUrls.length>0 },
+          { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub: subEntries.length > 0 ? (i18nFmt('settings.io.item.subscriptions.count', subEntries.length) || `${subEntries.length} channels in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:subEntries.length>0 },
         ],
-        state: { settings:true, history:histItems.length>0, themes:!!lsData, subscriptions:subUrls.length>0 },
+        state: { settings:true, history:histItems.length>0, themes:!!lsData, subscriptions:subEntries.length>0 },
         confirmLabel: (i18nGet('panel.themes.btn.import') || '↓ Import'),
       });
       if (!sel) return;
@@ -432,16 +453,38 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
       }
 
       let subCount = 0;
-      if (sel.subscriptions && subUrls.length > 0) {
+      if (sel.subscriptions && subEntries.length > 0) {
         try {
           const existing = await fetch('/api/subscriptions').then(r => r.json());
           const existingList = existing && Array.isArray(existing.subscriptions) ? existing.subscriptions : [];
           const existingUrls = new Set(existingList.map(s => s.url));
-          for (const url of subUrls) {
-            if (typeof url !== 'string' || !url.trim()) continue;
-            if (existingUrls.has(url.trim())) continue;
+          for (const entry of subEntries) {
+            const url = entry.url.trim();
+            if (existingUrls.has(url)) continue;
             try {
-              await fetch('/api/subscriptions/add', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ url: url.trim() }) });
+              const r = await fetch('/api/subscriptions/add', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url, name: entry.name || '' })
+              }).then(r => r.json());
+              const newId = r && r.subscription && r.subscription.id;
+              // Per-channel settings beyond url/name -- applied as a second call since
+              // /api/subscriptions/add only accepts url+name. Best-effort: if this
+              // fails, the subscription itself was still added successfully above,
+              // just with default settings rather than the exported ones.
+              if (newId) {
+                await fetch('/api/subscriptions/update', {
+                  method: 'POST', headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    id: newId,
+                    download_folder: entry.download_folder || null,
+                    format: entry.format || 'video',
+                    quality: entry.quality || 'best',
+                    auto_fetch_on_open: !!entry.auto_fetch_on_open,
+                    sponsorblock_enabled: !!entry.sponsorblock_enabled,
+                    sponsorblock_categories: Array.isArray(entry.sponsorblock_categories) ? entry.sponsorblock_categories : [],
+                  })
+                });
+              }
               subCount++;
             } catch {}
           }
