@@ -412,6 +412,7 @@ function egmPrompt(msg, defaultValue = '') {
 let subs = [];
 let activeSub = null;
 let showQueue = false;
+let globalSettings = {};
 
 // ── HTML escape — prevents stored XSS from user-controlled data ──────────────
 function esc(s) {
@@ -932,6 +933,25 @@ function renderDetail() {
               <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
               ${i18nAttr('subscriptions.detail.autofetch', 'Auto-fetch on open')}
             </label>
+            ${globalSettings.sponsorblock_enabled ? `
+            <div style="display:flex;align-items:center;gap:14px;margin-top:5px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);cursor:pointer" title="${attrEsc(i18nGet('tooltip.sponsorblock') || 'Automatically remove selected segment types from downloaded YouTube videos, using the community-run SponsorBlock database')}">
+                <input type="checkbox" id="sub-sponsorblock-toggle" ${activeSub.sponsorblock_enabled ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+                ${i18nAttr('settings.toggle.sponsorblock', 'SponsorBlock')}
+              </label>
+              <div id="sub-sponsorblock-categories" style="display:${activeSub.sponsorblock_enabled ? 'flex' : 'none'};align-items:center;gap:14px;flex-wrap:wrap">
+                ${[
+                  { cat: 'sponsor',   labelKey: 'settings.toggle.sponsorblock_sponsor',   label: 'Sponsor',    tipKey: 'tooltip.sponsorblock_sponsor',   tip: 'Paid sponsor reads and advertisements' },
+                  { cat: 'intro',     labelKey: 'settings.toggle.sponsorblock_intro',     label: 'Intro',      tipKey: 'tooltip.sponsorblock_intro',     tip: 'Intermission or intro animation' },
+                  { cat: 'outro',     labelKey: 'settings.toggle.sponsorblock_outro',     label: 'Outro',      tipKey: 'tooltip.sponsorblock_outro',     tip: 'Endcards and credits at the end of the video' },
+                  { cat: 'selfpromo', labelKey: 'settings.toggle.sponsorblock_selfpromo', label: 'Self Promo', tipKey: 'tooltip.sponsorblock_selfpromo', tip: "Unpaid self-promotion for the creator's own channel or content" },
+                ].map(c => `
+                <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);cursor:pointer" title="${attrEsc(i18nGet(c.tipKey) || c.tip)}">
+                  <input type="checkbox" class="sub-sb-cat" data-cat="${c.cat}" ${(activeSub.sponsorblock_categories || []).includes(c.cat) ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+                  ${i18nAttr(c.labelKey, c.label)}
+                </label>`).join('')}
+              </div>
+            </div>` : ''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;margin-left:16px">
             <div style="display:flex;gap:8px;align-items:center">
@@ -1030,6 +1050,37 @@ function renderDetail() {
         body: JSON.stringify({ id: activeSub.id, auto_fetch_on_open: e.target.checked })
       });
       activeSub.auto_fetch_on_open = e.target.checked;
+    });
+  }
+
+  // SponsorBlock — per subscription. Only present in the DOM at all when
+  // globalSettings.sponsorblock_enabled is true (see renderDetail() above); when the
+  // global toggle is off this section renders empty, same as EGM's "hidden entirely,
+  // not greyed out" decision.
+  const subSponsorblock = document.getElementById('sub-sponsorblock-toggle');
+  if (subSponsorblock) {
+    subSponsorblock.addEventListener('change', async (e) => {
+      const catsBox = document.getElementById('sub-sponsorblock-categories');
+      if (catsBox) catsBox.style.display = e.target.checked ? 'flex' : 'none';
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, sponsorblock_enabled: e.target.checked })
+      });
+      activeSub.sponsorblock_enabled = e.target.checked;
+    });
+    document.querySelectorAll('.sub-sb-cat').forEach((chk) => {
+      chk.addEventListener('change', async () => {
+        const cats = Array.from(document.querySelectorAll('.sub-sb-cat'))
+          .filter((c) => c.checked)
+          .map((c) => c.dataset.cat);
+        await fetch('/api/subscriptions/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: activeSub.id, sponsorblock_categories: cats })
+        });
+        activeSub.sponsorblock_categories = cats;
+      });
     });
   }
 
@@ -1578,7 +1629,10 @@ document.getElementById('back-btn').addEventListener('click', () => {
 });
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-loadSubs().then(() => {
+async function loadGlobalSettings() {
+  try { globalSettings = await fetch('/api/settings').then(r => r.json()); } catch { globalSettings = {}; }
+}
+Promise.all([loadSubs(), loadGlobalSettings()]).then(() => {
   const autoFetchSubs = subs.filter(s => s.auto_fetch_on_open);
   if (autoFetchSubs.length > 0) {
     // Select first auto-fetch channel so user sees it loading
