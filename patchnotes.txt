@@ -1,3 +1,8 @@
+v1.4.4 - JUST ANOTHER UPDATE (Build 158) (9/22/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.4.4 — fixes a startup reliability issue where the app window could occasionally fail to appear
+
 v1.4.3 - FRONT AND CENTER: BOOGALOO (Build 157) (9/18/2026)
 -----------------------------------------
 
