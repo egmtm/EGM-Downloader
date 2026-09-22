@@ -78,6 +78,49 @@ def test_thumbnail_https_url_is_attempted(app_mod):
     )
 
 
+# ── _clean_sponsorblock_categories — subprocess-arg allowlist ──────────────────
+# This is the single gate every SponsorBlock category list passes through before
+# it can reach a yt-dlp subprocess argument (settings save, subscription update,
+# and the download route itself all call it). If this regresses, unvalidated
+# client input could reach --sponsorblock-remove directly.
+
+def test_sponsorblock_categories_rejects_unknown_values(app_mod):
+    result = app_mod._clean_sponsorblock_categories(
+        ["sponsor", "not_a_real_category", "intro", "; rm -rf /"]
+    )
+    assert result == ["sponsor", "intro"], (
+        "unknown/malicious category strings must be dropped, not passed through"
+    )
+
+
+def test_sponsorblock_categories_rejects_non_list_input(app_mod):
+    for bad in ("sponsor", {"sponsor": True}, None, 42, True):
+        assert app_mod._clean_sponsorblock_categories(bad) == [], (
+            f"non-list input {bad!r} must return [], not raise or coerce"
+        )
+
+
+def test_sponsorblock_categories_dedupes_preserving_order(app_mod):
+    result = app_mod._clean_sponsorblock_categories(
+        ["outro", "sponsor", "outro", "sponsor", "intro"]
+    )
+    assert result == ["outro", "sponsor", "intro"], (
+        "duplicates must collapse to first occurrence, original order preserved"
+    )
+
+
+def test_sponsorblock_categories_excludes_mark_only_categories(app_mod):
+    """poi_highlight and chapter exist in SponsorBlock's data but are mark-only,
+    not removable via --sponsorblock-remove (verified directly against this app's
+    pinned yt-dlp binary) -- must never be offered, even if requested."""
+    result = app_mod._clean_sponsorblock_categories(["poi_highlight", "chapter", "sponsor"])
+    assert result == ["sponsor"], (
+        "poi_highlight/chapter are mark-only and must not pass this filter"
+    )
+    assert "poi_highlight" not in app_mod.SPONSORBLOCK_CATEGORIES
+    assert "chapter" not in app_mod.SPONSORBLOCK_CATEGORIES
+
+
 # ── serve_thumbnail — path traversal protection ────────────────────────────────
 
 def test_thumbnail_regex_blocks_path_traversal():
