@@ -1553,20 +1553,42 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
     # The range must actually admit the pin. Asserting the range SHAPE first
     # keeps this an invariant rather than a whitelist: a range form this parser
     # cannot reason about fails loudly instead of silently passing.
+    #
+    # Two forms are understood:
+    #   ^X.Y.Z       -- the normal stable-release case. The pin must be >= the
+    #                   floor and share the same major (a caret range's own
+    #                   contract), same as before.
+    #   X.Y.Z-TAG.N  -- an exact pre-release pin (e.g. testing an Electron
+    #                   alpha/beta ahead of its stable release). npm's own
+    #                   semver treats a caret range as NOT matching a
+    #                   pre-release of a different line, so pinning an alpha
+    #                   means declaring the exact version with no caret at
+    #                   all -- there is no "floor" to check here, the
+    #                   declared string simply must equal what actually
+    #                   resolved into the lockfile.
     rng = next(iter(set(ranges.values())))
     pinned = pins[platforms[0]][0]
-    assert re.fullmatch(r'\^\d+\.\d+\.\d+', rng), (
-        f"Electron range {rng!r} is not the ^X.Y.Z form this guard understands; "
-        "widen the check deliberately rather than leaving the pin unverified."
-    )
-    floor = tuple(int(n) for n in rng.lstrip("^").split("."))
-    got = tuple(int(n) for n in pinned.split("."))
-    assert got[0] == floor[0] and got >= floor, (
-        f"Electron lockfile pins {pinned} which does not satisfy {rng} -- "
-        "package.json was bumped without regenerating package-lock.json, so "
-        "`npm ci` would reject the lockfile and the build would fall back to "
-        "a non-deterministic `npm install`."
-    )
+    if re.fullmatch(r'\^\d+\.\d+\.\d+', rng):
+        floor = tuple(int(n) for n in rng.lstrip("^").split("."))
+        got = tuple(int(n) for n in pinned.split("."))
+        assert got[0] == floor[0] and got >= floor, (
+            f"Electron lockfile pins {pinned} which does not satisfy {rng} -- "
+            "package.json was bumped without regenerating package-lock.json, so "
+            "`npm ci` would reject the lockfile and the build would fall back to "
+            "a non-deterministic `npm install`."
+        )
+    elif re.fullmatch(r'\d+\.\d+\.\d+-[0-9A-Za-z.]+', rng):
+        assert rng == pinned, (
+            f"Electron package.json declares the exact pre-release {rng!r} but "
+            f"the lockfile pins {pinned!r} -- these must be identical for an "
+            "exact (non-caret) pin; regenerate the lockfile."
+        )
+    else:
+        raise AssertionError(
+            f"Electron range {rng!r} is neither the ^X.Y.Z form nor an exact "
+            "X.Y.Z-TAG.N pre-release pin this guard understands; widen the "
+            "check deliberately rather than leaving the pin unverified."
+        )
 
 
 def test_macos_minimum_version_is_stated_consistently_everywhere():
