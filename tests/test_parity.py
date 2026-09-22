@@ -1569,6 +1569,18 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
     rng = next(iter(set(ranges.values())))
     pinned = pins[platforms[0]][0]
     if re.fullmatch(r'\^\d+\.\d+\.\d+', rng):
+        # A caret range can never be satisfied by a pre-release (npm semver
+        # excludes them), so reject that pairing explicitly. Without this,
+        # int() on the "0-alpha" component raised ValueError instead of the
+        # assertion below -- the test still failed, but with a parse error
+        # rather than the message explaining what to do about it.
+        assert re.fullmatch(r'\d+\.\d+\.\d+', pinned), (
+            f"Electron package.json declares the caret range {rng!r} but the "
+            f"lockfile pins the pre-release {pinned!r} -- a caret range never "
+            "matches a pre-release, so `npm ci` would reject this lockfile. "
+            "Either pin the pre-release exactly in package.json, or regenerate "
+            "the lockfile against a stable release."
+        )
         floor = tuple(int(n) for n in rng.lstrip("^").split("."))
         got = tuple(int(n) for n in pinned.split("."))
         assert got[0] == floor[0] and got >= floor, (
@@ -1836,3 +1848,40 @@ def test_response_csp_is_locked_and_identical_across_platforms():
         "Content-Security-Policy differs across platforms: "
         + "; ".join(f"{p}={v!r}" for p, v in seen.items())
     )
+
+
+def test_sponsorblock_allowlist_is_identical_across_platforms():
+    """SPONSORBLOCK_CATEGORIES is the allowlist every category list is filtered
+    against before it can reach a `--sponsorblock-remove` argument, and it is
+    hand-maintained in all three app.py files.
+
+    ALLOWED settings keys already have a parity guard
+    (test_allowed_keys_identical_across_platforms); this tuple did not.
+    Verified by mutation: adding "filler" to mac/app.py's tuple alone left the
+    whole suite green, so one platform could silently offer -- and pass through
+    -- a category the other two reject.
+    """
+    found = {}
+    for name, f in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        src = read_source(f)
+        m = re.search(r'^SPONSORBLOCK_CATEGORIES\s*=\s*\(([^)]*)\)', src, re.MULTILINE)
+        assert m, f"{f}: SPONSORBLOCK_CATEGORIES tuple not found (guard anchor lost)"
+        cats = tuple(re.findall(r'"([^"]+)"', m.group(1)))
+        assert cats, f"{f}: SPONSORBLOCK_CATEGORIES parsed as empty"
+        found[name] = cats
+
+    assert len(set(found.values())) == 1, (
+        "SPONSORBLOCK_CATEGORIES differs across platforms: "
+        + "; ".join(f"{n}={list(c)}" for n, c in sorted(found.items()))
+        + " -- all three must offer exactly the same category set."
+    )
+
+    # Mark-only categories are not removable via --sponsorblock-remove, so they
+    # must never enter the allowlist on any platform (the dedicated behavioural
+    # test in test_security.py covers the filter; this covers the data).
+    for name, cats in found.items():
+        for mark_only in ("poi_highlight", "chapter"):
+            assert mark_only not in cats, (
+                f"{name}: {mark_only!r} is mark-only and cannot be removed; "
+                "it must not appear in SPONSORBLOCK_CATEGORIES"
+            )
