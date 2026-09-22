@@ -942,9 +942,9 @@ function renderDetail() {
               <div id="sub-sponsorblock-categories" style="display:${activeSub.sponsorblock_enabled ? 'flex' : 'none'};align-items:center;gap:14px;flex-wrap:wrap">
                 ${[
                   { cat: 'sponsor',   labelKey: 'settings.toggle.sponsorblock_sponsor',   label: 'Sponsor',    tipKey: 'tooltip.sponsorblock_sponsor',   tip: 'Paid sponsor reads and advertisements' },
+                  { cat: 'selfpromo', labelKey: 'settings.toggle.sponsorblock_selfpromo', label: 'Self Promo', tipKey: 'tooltip.sponsorblock_selfpromo', tip: "Unpaid self-promotion for the creator's own channel or content" },
                   { cat: 'intro',     labelKey: 'settings.toggle.sponsorblock_intro',     label: 'Intro',      tipKey: 'tooltip.sponsorblock_intro',     tip: 'Intermission or intro animation' },
                   { cat: 'outro',     labelKey: 'settings.toggle.sponsorblock_outro',     label: 'Outro',      tipKey: 'tooltip.sponsorblock_outro',     tip: 'Endcards and credits at the end of the video' },
-                  { cat: 'selfpromo', labelKey: 'settings.toggle.sponsorblock_selfpromo', label: 'Self Promo', tipKey: 'tooltip.sponsorblock_selfpromo', tip: "Unpaid self-promotion for the creator's own channel or content" },
                 ].map(c => `
                 <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);cursor:pointer" title="${attrEsc(i18nGet(c.tipKey) || c.tip)}">
                   <input type="checkbox" class="sub-sb-cat" data-cat="${c.cat}" ${(activeSub.sponsorblock_categories || []).includes(c.cat) ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
