@@ -1268,6 +1268,15 @@ function renderDetail() {
           const qualityFields = subFormat === 'audio'
             ? { audio_quality: aq }
             : (q && q !== 'best' ? { video_height: q } : {});
+          // SponsorBlock: the per-channel selection only applies when BOTH the
+          // global toggle and this channel's own toggle are on -- the same two
+          // conditions that make the category checkboxes visible in renderDetail().
+          // Without this the per-channel UI saved and restored correctly but was
+          // never sent to /api/download, so it had no effect on any download.
+          // The backend re-validates against SPONSORBLOCK_CATEGORIES regardless.
+          const sbCategories = (globalSettings.sponsorblock_enabled && activeSub.sponsorblock_enabled)
+            ? (Array.isArray(activeSub.sponsorblock_categories) ? activeSub.sponsorblock_categories : [])
+            : [];
           const resp = await fetch('/api/download', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1279,6 +1288,7 @@ function renderDetail() {
               thumbnail: video?.thumbnail_url || '',
               embed_metadata: true,
               subtitles: false,
+              sponsorblock_categories: sbCategories,
               ...qualityFields
             })
           });
