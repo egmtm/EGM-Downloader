@@ -1,4 +1,4 @@
-v1.4.5 - TBD (Build 159) (9/23/2026)
+v1.4.5 - JUST ANOTHER UPDATE II (Build 159) (9/23/2026)
 -----------------------------------------
 
   • [ALL] Electron runtime updated to v44.4.5 — backported Chromium, PDFium, and V8 fixes
