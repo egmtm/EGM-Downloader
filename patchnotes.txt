@@ -3,6 +3,16 @@ v1.5.0 - TBD (Build TBD) (TBD)
 
   • [ALL] New: SponsorBlock integration — automatically remove sponsor reads, intros, outros, and self-promotion segments from downloaded YouTube videos, powered by the community-run SponsorBlock database. Off by default, choose exactly which segment types to remove, adjustable per subscription
 
+v1.4.5 - JUST ANOTHER UPDATE II (Build 159) (9/23/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.4.5 — backported Chromium, PDFium, and V8 fixes
+
+v1.4.4 - JUST ANOTHER UPDATE (Build 158) (9/22/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.4.4 — fixes a startup reliability issue where the app window could occasionally fail to appear
+
 v1.4.3 - FRONT AND CENTER: BOOGALOO (Build 157) (9/18/2026)
 -----------------------------------------
 
