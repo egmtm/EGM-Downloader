@@ -1,9 +1,9 @@
 {
-  "version": "1.4.4",
-  "build": 158,
+  "version": "1.4.5",
+  "build": 159,
   "channel": "stable",
-  "date": "9/22/2026",
-  "time": "2:46 PM EST",
+  "date": "9/23/2026",
+  "time": "8:55 AM EST",
   "platforms": {
     "windows": {
       "installer": "egm-setup.exe",
@@ -27,5 +27,5 @@
       "updateJson": "egmlinux-update.json"
     }
   },
-  "buildDate": "9/22/2026 2:46 PM EST"
+  "buildDate": "9/23/2026 8:55 AM EST"
 }
