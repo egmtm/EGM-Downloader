@@ -118,7 +118,7 @@ def test_footer_whatsnew_button_click_handler_calls_show_function():
 
 def test_footer_whatsnew_key_present_in_every_locale():
     """The new footer.btn.whatsnew key must exist in all 10 locales (English
-    placeholder is fine pending Linguist translation -- this only guards
+    placeholder is fine pending translation -- this only guards
     against the key being missing entirely, which would silently fall back
     to the raw key name in the UI)."""
     import os
