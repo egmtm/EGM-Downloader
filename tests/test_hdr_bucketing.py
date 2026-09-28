@@ -10,7 +10,7 @@ genuine SDR entry outright. A user picking the resulting "plain" quality row
 would silently download DV/HLG video that then runs through the H.264 compat
 pass with no tone-mapping: the classic washed-out/green output.
 
-Found and fixed via Claude Code's round-10 delta review, verified by manual
+Found and fixed via external review (round 10), verified by manual
 reproduction at the time but never given a permanent guard until now.
 """
 from conftest import read_source
