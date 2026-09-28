@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# EGM Downloader — commit-msg hook
+# Blocks commit messages that mention internal agent or tool names.
+# The public repo must stay free of those. The list is stored as SHA-256
+# hashes so this file does not itself name anything.
+#
+# Install once per clone:
+#   git config core.hooksPath .githooks
+
+python3 - "$1" <<'PY'
+import hashlib, re, sys
+
+BLOCKED = {
+    "8f36fa180f96592a562cce0876be408c412aa002148f7cce1db1d98e95a312ae",
+    "e117fc61b613553c380b34b0ed4f7afe087008fab3d56bb7d08b825353a55d5c",
+    "3ea125d0bff386e6754b3782b300016fc79a9cf8f8669c0a5c3db64467ddb681",
+    "eb1f4da5bd0093657e8234b1e58ae94453a0c383cc01c57435799f3965eafc74",
+    "c857d09db23e6822e3600bc06ad8d58f92ed62bc8efd81c753f77048662cb97d",
+    "c70eca6b0f88f44d81a41311647e50fda1ac454ec04ffd442b0eb4743a993131",
+    "09cf980b5ff304ac11b7f6d2c5c263da2a867425798ef5cc5d2ebcf55c4fcd23",
+    "c9ad8f2cc1294afa0ef22fc2c019ff7243cdd272b2147ddca3f34c5036b05768",
+    "aba15524b2897bcdfa5b456ea2b9408ae840d5e2987312d138429b7a61bc3a70",
+    "60965168ce762e949600281ba6d01fee136e5b6e8257b1f216f9025ed324474c",
+    "7d3194f79e645c42e4396dda38be04766810ec6a00d00aced3ffc2a0a1f1a9ef",
+}
+
+with open(sys.argv[1], encoding="utf-8", errors="replace") as f:
+    lines = [l for l in f.read().splitlines() if not l.startswith("#")]
+
+bad = sorted({w for l in lines for w in re.findall(r"[A-Za-z0-9]+", l)
+              if hashlib.sha256(w.lower().encode()).hexdigest() in BLOCKED})
+if bad:
+    print("❌ Commit message mentions internal agent/tool names: " + ", ".join(bad))
+    print("   Reword generically (e.g. 'external review', 'maintainer') and retry.")
+    sys.exit(1)
+PY
