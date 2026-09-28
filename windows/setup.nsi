@@ -129,7 +129,7 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 ; under solid compression.
 !insertmacro MUI_RESERVEFILE_LANGDLL
 
-; ── Installer strings — 10 languages (source: Linguist v1.3 table) ───────────
+; ── Installer strings — 10 languages (source: v1.3 translation table) ───────────
 LangString EGM_WELCOME_TITLE ${LANG_ENGLISH} "Welcome to EGM Downloader v${VERSION}"
 LangString EGM_WELCOME_TITLE ${LANG_ARABIC} "مرحباً بك في EGM Downloader v${VERSION}"
 LangString EGM_WELCOME_TITLE ${LANG_GERMAN} "Willkommen bei EGM Downloader v${VERSION}"

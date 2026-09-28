@@ -746,7 +746,7 @@ _ERROR_MAP = [
     # (pattern, code) — codes resolve to download.error.{code} locale keys in
     # the UI, with the raw text as fallback for anything unclassified. The
     # long-form guidance that used to live here as hardcoded English now lives
-    # in the locale files (download.error.no_formats etc.), where Linguist
+    # in the locale files (download.error.no_formats etc.), where the translator
     # translates it.
     (_re.compile(r"Sign in to confirm|\bbot\b|login required",            _re.I), "login"),
     (_re.compile(r"Private video",                                     _re.I), "private"),
