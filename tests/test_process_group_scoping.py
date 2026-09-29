@@ -12,7 +12,7 @@ which has always had it.
 That fix was verified by manual reproduction at the time (a real _kill_proc
 call against a plain-_popen-spawned child, in an isolated simulator process)
 but never had a permanent automated guard -- this test is that guard, added
-after OVERSEER asked whether one existed.
+after a reviewer asked whether one existed.
 
 Scope: any function whose result is registered in _active_procs (i.e. is a
 process _kill_proc can be called against) must spawn its subprocess with

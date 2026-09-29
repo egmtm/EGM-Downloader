@@ -3,8 +3,8 @@
 #
 # Packages the existing manual sequence so no step can be partially skipped
 # under time pressure. Adds NO new checks — every step below is the same
-# command the team already runs by hand at each release cut (see
-# FUTURE_FIXES_NO_ETA item 3 + CODEMASTER's addendum for the exact spec).
+# command the team already runs by hand at each release cut (the
+# exact spec lives in the maintainer's release notes).
 #
 # Out of scope by design: scripts/apply-signed-checksums.py and
 # scripts/verify-theme-batch.py — those run at different times
