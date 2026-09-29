@@ -3,7 +3,7 @@
 Windows/Mac/Linux update feeds in one deterministic pass.
 
 Every release cut this cycle involved the same manual sequence: EGM pastes
-checksums for the signed binaries, CODEMASTER hand-writes a one-off script to
+checksums for the signed binaries, the maintainer hand-writes a one-off script to
 cross-check them, calls gen-update-json.py per platform, then re-parses each
 generated feed to confirm it actually matches what was given -- the same
 verification, rewritten from scratch, every single release. This script does
