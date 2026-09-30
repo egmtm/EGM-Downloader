@@ -29,14 +29,21 @@ BLOCKED = {
 }
 
 with open(sys.argv[1], encoding="utf-8", errors="replace") as f:
-    lines = [l for l in f.read().splitlines() if not l.startswith("#")]
+    raw = f.read().splitlines()
+
+# Scan every line of the message, including lines that start with "#".
+# Only the template git appends in editor mode (and the --verbose diff
+# after it) is skipped; git strips those before the commit is written.
+cut = next((i for i, l in enumerate(raw) if re.match(
+    r"# (Please enter (the|a) commit message|-{24} >8 -{24})", l)), len(raw))
+lines = raw[:cut]
 
 trailer = [l for l in lines if re.match(r"\s*co-authored-by\s*:", l, re.I)]
 if trailer:
     print("❌ Commit message has a Co-Authored-By trailer. Remove it and retry.")
     sys.exit(1)
 
-bad = sorted({w for l in lines for w in re.findall(r"[A-Za-z0-9]+", l)
+bad = sorted({w for l in lines for w in re.findall(r"[A-Za-z]+", l)
               if hashlib.sha256(w.lower().encode()).hexdigest() in BLOCKED})
 if bad:
     print("❌ Commit message mentions internal agent/tool names: " + ", ".join(bad))
