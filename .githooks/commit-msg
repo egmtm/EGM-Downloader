@@ -26,6 +26,8 @@ BLOCKED = {
     "053ea4804ef1bb33d4a3d6fb024a614b6d257cebc2bc7cd915da9c9522f37ffc",
     "5d72436256ada53828b51895a94bb8489e9f1ac4fe937a8024ef1594e7045ff6",
     "553133ea03bb73bd9d747281fdfc7d1164d8cb59f4d638d198c7443c681c6848",
+    "b5cf43ae07a7364e0c0ca9e838f01f278fc6a71c207a6f8c3de8d908608b2db1",
+    "65872389ee6b3b5032637e412acdded56cafc1f71f39abc5e68f93e31da0cd86",
 }
 
 with open(sys.argv[1], encoding="utf-8", errors="replace") as f:
