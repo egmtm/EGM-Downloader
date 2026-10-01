@@ -20,11 +20,10 @@ This script is the single source of truth for version management. It updates:
 
   Mac:
     - mac/electron/package.json          (version + buildVersion, ".0" suffix)
-    - mac/BUILD.sh                       (VERSION banner + DMG filename example)
+    - mac/BUILD.sh                       (VERSION banner)
 
   README.md:
     - All three "Latest:" lines in the Download section
-    - Project Stats block (Version + Build)
 
 Usage:
     # Standard workflow - bump build number before every build
@@ -286,10 +285,6 @@ def update_mac_build_sh(v, dry_run):
     patch(path, "mac/BUILD.sh -> VERSION banner",
           r'(VERSION: )v[\d.]+',
           rf'\g<1>v{v}', dry_run)
-    # EGM Downloader-0.xx.0-arm64.dmg (filename in instructions block)
-    patch(path, "mac/BUILD.sh -> DMG filename example",
-          r'(EGM Downloader-)[\d.]+(-arm64\.dmg)',
-          rf'\g<1>{v}.0\g<2>', dry_run)
 
 
 # --------------------------------------------------------------------------
@@ -303,21 +298,6 @@ def update_readme(v, b, dry_run):
     patch(path, "README.md -> Latest: version + build (x3)",
           r'(\*\*Latest:\*\*\s+)v[\d.]+ Build \d+',
           rf'\g<1>v{v} Build {b}', dry_run, count=0)
-
-    # Project Stats block:
-    #   - **Version:** 0.xx
-    #   - **Build:** NN
-    patch(path, "README.md -> Project Stats -> Version",
-          r'(- \*\*Version:\*\*\s+)[\d.]+',
-          rf'\g<1>{v}', dry_run)
-
-    # The Build line has been seen in two forms historically:
-    #   "- **Build:** 88 (Windows/Mac) / 92 (Linux)"
-    #   "- **Build:** 93"
-    # Match either -- just overwrite everything after the colon and bold.
-    patch(path, "README.md -> Project Stats -> Build",
-          r'(- \*\*Build:\*\*\s+)[^\n]+',
-          rf'\g<1>{b}', dry_run)
 
 
 # --------------------------------------------------------------------------
