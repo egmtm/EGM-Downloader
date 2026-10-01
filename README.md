@@ -196,6 +196,12 @@ We've taken the concept in a different direction (native apps vs. web-based, end
 
 ---
 
+## 🤖 AI Disclosure
+
+EGM Downloader is built by one developer working with AI tools. They help with code, tests, documentation, translations and design assets. Everything that ships is reviewed and approved by a human, and the full source is open for anyone to inspect.
+
+---
+
 ## ⚖️ Legal & Responsible Use
 
 EGM Downloader is a tool for downloading video content from the internet. While the software itself is legal, **you are responsible for how you use it.**
