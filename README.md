@@ -31,7 +31,6 @@
 <p align="center">
   <a href="#-download">⬇ Downloads</a> ·
   <a href="#screenshots">📸 Screenshots</a> ·
-  <a href="#-quick-start">🚀 Quick Start</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
   <a href="#roadmap">🗺️ Roadmap</a> ·
   <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
@@ -70,27 +69,18 @@
 
 > 📸 *Screenshots captured on v1.4.2 — FRONT AND CENTER: RELOADED. The UI is identical across Windows, macOS, and Linux. More screenshots coming soon.*
 
-<div align="center">
-  <a href="screenshots/01-splash-screen.png">
-    <img src="screenshots/01-splash-screen.png" width="520" alt="Splash Screen"/>
-  </a>
-  <br/><sub><b>Splash Screen</b></sub>
-</div>
-
-<br/>
-
 <table>
   <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/02-main-ui.png">
-        <img src="screenshots/02-main-ui.png" width="340" alt="Main UI"/>
-      </a>
+    <td align="center" width="33%">
+      <a href="screenshots/01-splash-screen.png"><img src="screenshots/01-splash-screen.png" width="260" alt="Splash Screen"/></a>
+      <br/><sub><b>Splash Screen</b></sub>
+    </td>
+    <td align="center" width="33%">
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI"/></a>
       <br/><sub><b>Main UI</b></sub>
     </td>
-    <td align="center" width="50%">
-      <a href="screenshots/03-whats-new-modal.png">
-        <img src="screenshots/03-whats-new-modal.png" width="340" alt="What's New Modal"/>
-      </a>
+    <td align="center" width="33%">
+      <a href="screenshots/03-whats-new-modal.png"><img src="screenshots/03-whats-new-modal.png" width="260" alt="What's New Modal"/></a>
       <br/><sub><b>What's New Modal</b></sub>
     </td>
   </tr>
@@ -103,6 +93,7 @@
 **Latest:** v1.4.7 Build 161  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (613 KB · ~800 MB after install)  
 **SHA256:** `63c187f6efccc2f20c3d2c424e25820735e28f1879f4ab275831cafdab88b0c1`  
+**Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -111,6 +102,7 @@
 **Latest:** v1.4.7 Build 161  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (618 KB · ~800 MB after first run)  
 **SHA256:** `0a64bfa60169b76459accbfa6ea2104af16b35b49bf2daea76dbb7d63db30c69`  
+**Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -121,6 +113,7 @@
 **Latest:** v1.4.7 Build 161  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (141 MB · ~300 MB after install)  
 **SHA256:** `1e3834e8bf985d552ce25d13120ca270c364cf8c38eef9f26ac1899fd87aff32`  
+**Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
@@ -130,9 +123,12 @@
 **Latest:** v1.4.7 Build 161  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (169 MB · ~300 MB after install)  
 **SHA256:** `43bb5b3511ea44604314406449a3762974414715ba7cf8e5b667ad7a01f398c5`  
+**Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
+
+**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
 
 ---
 
@@ -160,37 +156,6 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 ---
 
-## 🚀 Quick Start
-
-### Windows
-1. Extract `EGMd.zip`
-2. Run `egm-setup.exe` and follow the installer
-3. Paste a video URL, fetch the video info, then click Download!
-
-### Windows Portable
-> **Requires [Python 3.10+](https://www.python.org/downloads/)** on your system (tick “Add Python to PATH” during install). Everything else is fetched automatically on first run.
-
-1. Extract `EGMd-portable.zip` to any folder or USB drive
-2. Run `EGM Downloader.exe`
-3. Paste a video URL, fetch the video info, then click Download!
-
-> Settings and data stay in the same folder — take it anywhere.
-
-### macOS
-1. Extract `EGMdM.zip`
-2. Open the `.dmg` file
-3. Drag "EGM Downloader" to Applications
-4. Launch from Applications folder
-
-### Linux
-1. Extract `EGMdL.zip`
-2. Make executable: `chmod +x "EGM Downloader.AppImage"`
-3. Double-click to launch (or run from terminal)
-
-**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
-
----
-
 ## 💡 Usage
 
 1. **Paste URL** - Copy any video URL and paste it into the app, then click "Fetch". You can also use "Paste & Fetch" to paste and fetch in one step.
@@ -202,36 +167,12 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 ### Advanced Features
 
-**Playlist Downloads:**
-- Paste playlist URL
-- Select "Download All" or choose specific videos, then pick your desired resolution. You can also use "Download All Audio" and choose your preferred bitrate.
-- Videos and audio downloads are processed in sequence.
-
-**Batch Downloads:**
-- Add multiple URLs to the queue
-- Select format (MP4/MP3) and quality for each
-- Start all queued downloads together
-- Cancel individual downloads anytime
-
-**Plugin Updates:**
-- Click "Update Plugins" in the Advanced panel
-- Update yt-dlp for newest site support
-- Update ffmpeg for latest codecs
-
-**Cookies / Login-Required Content:**
-- Some sites require browser cookies for premium or age-restricted content
-- Import cookies from Chrome, Edge, Brave, or Firefox directly in the app
-- Cookies are stored locally on your machine and are never transmitted
-
-**Subscriptions:**
-- Subscribe to YouTube channels and playlists — fetch new videos automatically
-- Per-channel settings: custom download folder, format, and quality
-- Download queue shows all active downloads across all channels
-
-**Theme Creator:**
-- Open with Ctrl+K from anywhere in the app
-- 10 live-preview color pickers — the UI recolors in real time
-- Export as .json or save directly to your library
+- **Playlists:** Paste a playlist URL, choose "Download All" (or pick specific videos), then a resolution. "Download All Audio" does the same with your preferred bitrate. Items are processed in sequence.
+- **Batch downloads:** Queue multiple URLs, set format and quality for each, start them together, and cancel any individual download anytime.
+- **Plugin updates:** "Update Plugins" in the Advanced panel updates yt-dlp (newest site support) and ffmpeg (latest codecs).
+- **Cookies / login-required content:** For premium or age-restricted content, import cookies from Chrome, Edge, Brave, or Firefox in the app. They stay on your machine and are never transmitted.
+- **Subscriptions:** Follow YouTube channels and playlists and fetch new videos automatically, with per-channel folder, format, and quality settings and one download queue across all channels.
+- **Theme Creator:** Press Ctrl+K anywhere in the app. 10 live-preview color pickers recolor the UI in real time; export as `.json` or save to your library.
 
 ---
 
@@ -295,32 +236,7 @@ If you're unsure whether your use case is legal, consult a legal professional in
 
 ## 🛠️ For Developers
 
-### Repository Structure
-
-```
-EGM-Downloader/
-│
-├── app.py                          ← Flask backend         [shared — all platforms]
-├── templates/                      ← UI templates          [shared — Windows + Mac]
-│   ├── index.html                  ← Main UI shell
-│   ├── subscriptions.html          ← Subscriptions window
-│   ├── history.html                ← Download history
-│   ├── themes.html                 ← Theme picker
-│   ├── theme_data.html             ← THEME_DATA + THEMES array
-│   ├── theme_validator.html        ← Shared CSS variable validation gate
-│   ├── theme_styles.html           ← Theme CSS definitions
-│   └── js/                         ← Extracted JS partials
-├── static/                         ← App icons             [shared — all platforms]
-├── languages/                      ← i18n language files   [shared — all platforms]
-│
-├── windows/                        ← Windows platform files
-├── mac/                            ← macOS platform files
-├── linux/                          ← Linux platform files
-├── scripts/                        ← Build automation
-└── tests/                          ← Automated test suite
-```
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for the complete build guide, version management workflow, and CI details.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the project structure, complete build guide, version management workflow, and CI details.
 
 ---
 
