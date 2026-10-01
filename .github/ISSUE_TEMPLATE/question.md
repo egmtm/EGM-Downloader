@@ -21,7 +21,7 @@ assignees: ''
 - [ ] README.md
 - [ ] CONTRIBUTING.md (for development questions)
 - [ ] Existing issues
-- [ ] Troubleshooting section
+- [ ] Instructions file included with the download (troubleshooting section)
 
 **If applicable, what have you already tried?**
 
