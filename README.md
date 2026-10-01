@@ -32,7 +32,6 @@
   <a href="#-download">⬇ Downloads</a> ·
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
-  <a href="#roadmap">🗺️ Roadmap</a> ·
   <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
 </p>
 
@@ -46,6 +45,7 @@
 - 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
 - 📋 **Playlist Support** - Download entire playlists with one click
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
+- 🚫 **SponsorBlock** - Optionally cut sponsor reads, self promotion, intros and outros out of downloaded YouTube videos, using the community [SponsorBlock](https://sponsor.ajay.app/) database. Off by default; choose categories globally or per subscription.
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
 - ⚡ **GPU-Accelerated Conversion** - Video conversion and Upscale use your GPU when available, cutting CPU load and heat dramatically; falls back to software encoding automatically
 - 📐 **Upscale to Quality** - Opt-in upscaling proportionally scales videos smaller than your chosen quality preset after download; off by default, adds pixels not detail
@@ -143,16 +143,6 @@
 **Linux:** 64-bit distribution · ~300 MB disk space · FUSE support
 Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
 > Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
-
----
-
-<a id="roadmap"></a>
-
-## 🗺️ Roadmap
-
-**v1.5:**
-- ⚡ Electron runtime updated to v45 — the next major runtime upgrade
-- 🚫 SponsorBlock integration — an optional toggle to automatically skip sponsor segments in downloaded YouTube videos, powered by the community-run [SponsorBlock](https://sponsor.ajay.app/) database
 
 ---
 
