@@ -67,6 +67,14 @@ TROUBLESHOOTING
       → Delete the electron\node_modules folder inside your install
         directory, then relaunch — it will reinstall automatically
 
+  Need more detail about a problem
+      → Log files are saved in the logs folder inside your install
+        directory
+      → For a detailed startup error, open a command prompt in your
+        install directory and run these two commands:
+            set EGM_SILENT=1
+            python launch.py
+
 
 SUPPORT
 ────────

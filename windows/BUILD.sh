@@ -459,6 +459,15 @@ TROUBLESHOOTING
   Blank screen on launch
       → Right-click "EGM Downloader.exe" → Run as administrator
 
+  Need more detail about a problem
+      → Log files are saved in the data\logs folder inside this folder
+      → For a detailed startup error, open a command prompt in this
+        folder and run these two commands:
+            set EGM_SILENT=1
+            python\python.exe launch.py
+        (On the very first launch, before the python folder exists,
+        use "python launch.py" as the second command instead.)
+
 
 SUPPORT
 ────────
