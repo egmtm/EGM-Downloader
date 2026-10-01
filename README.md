@@ -90,18 +90,18 @@
 
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
-**Latest:** v1.4.3 Build 157  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (612 KB · ~800 MB after install)  
-**SHA256:** `338e6ad78aea7d03438aed9aceefb7821d8eba6ae4c8c50972726fb91cb88861`  
+**Latest:** v1.4.7 Build 161  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (613 KB · ~800 MB after install)  
+**SHA256:** `63c187f6efccc2f20c3d2c424e25820735e28f1879f4ab275831cafdab88b0c1`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
-**Latest:** v1.4.3 Build 157  
+**Latest:** v1.4.7 Build 161  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (618 KB · ~800 MB after first run)  
-**SHA256:** `93b7631111b365e7b0d185ad1923aff29014c79b340fa11279ead1b05a22cb9c`  
+**SHA256:** `0a64bfa60169b76459accbfa6ea2104af16b35b49bf2daea76dbb7d63db30c69`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
@@ -110,9 +110,9 @@
 
 ### macOS
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
-**Latest:** v1.4.3 Build 157  
+**Latest:** v1.4.7 Build 161  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (141 MB · ~300 MB after install)  
-**SHA256:** `babc4e00720a4cea0e5e662ba30377b98a4ce6084ea4a2e908911a37af356b47`  
+**SHA256:** `1e3834e8bf985d552ce25d13120ca270c364cf8c38eef9f26ac1899fd87aff32`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -120,9 +120,9 @@
 
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
-**Latest:** v1.4.3 Build 157  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (170 MB · ~300 MB after install)  
-**SHA256:** `72fd92c267277c32063ea680ed5411f06bd95396e84d7a333aa691ffc24924d3`  
+**Latest:** v1.4.7 Build 161  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (169 MB · ~300 MB after install)  
+**SHA256:** `43bb5b3511ea44604314406449a3762974414715ba7cf8e5b667ad7a01f398c5`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
