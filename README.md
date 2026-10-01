@@ -254,21 +254,6 @@ See [CREDITS.md](CREDITS.md) for complete acknowledgments and licenses.
 
 ---
 
-## 🐛 Troubleshooting
-
-**Windows — app won't start:** Make sure [Python 3.10+](https://www.python.org/downloads/) is installed and on PATH · check the `logs/` folder · for detailed errors, open a command prompt in the app folder and run `python launch.py`
-
-**macOS — download stuck:** Update plugins → restart the app → check Console.app for errors
-
-**Linux — AppImage won't launch:**
-- Ensure executable: `chmod +x "EGM Downloader.AppImage"`
-- Install FUSE: `sudo apt install libfuse2` (Ubuntu/Debian)
-- Run from terminal to see errors
-
-**Need more help?** [Open an issue on GitHub](https://github.com/egmtm/EGM-Downloader/issues)
-
----
-
 ## 📜 License
 
 This project is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)** — see the [LICENSE](LICENSE) file for details.
@@ -282,6 +267,7 @@ This project is licensed under the **GNU Affero General Public License v3.0 (AGP
 ## 📞 Support & Security
 
 - 🐛 **Bug Reports / Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
+- 🛠️ **Troubleshooting:** The instructions file included with each download covers the common fixes. Still stuck? Open an issue.
 - 🐦 **Updates & Announcements:** [@EGMDownloader](https://x.com/EGMDownloader) on X
 - 📖 **Contributing:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
 - 🔒 **Security Vulnerabilities:** Do not open a public issue — email contact@egerena.com or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We aim to respond within 48 hours.
