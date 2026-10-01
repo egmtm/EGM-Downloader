@@ -366,10 +366,14 @@ EGM-Downloader/
 │
 ├── app.py                    # Flask backend (Windows + Mac)
 ├── templates/                # UI templates (Windows + Mac)
-│   ├── index.html            # Main UI
-│   ├── history.html          # Version history
+│   ├── index.html            # Main UI shell
+│   ├── subscriptions.html    # Subscriptions window
+│   ├── history.html          # Download history
 │   ├── themes.html           # Theme picker
-│   └── theme_styles.html     # Theme CSS definitions
+│   ├── theme_data.html       # THEME_DATA + THEMES array
+│   ├── theme_validator.html  # Shared CSS variable validation gate
+│   ├── theme_styles.html     # Theme CSS definitions
+│   └── js/                   # Extracted JS partials
 ├── static/                   # Icons, assets (all platforms)
 ├── languages/                # i18n language files (all platforms)
 │   └── en.json, es.json, fr.json, pt.json, de.json, it.json, ...
@@ -379,6 +383,7 @@ EGM-Downloader/
 │   ├── validate-version-sync.py # Version sync validator (CI)
 │   ├── gen-update-json.py    # Update JSON generator
 │   └── add-patchnote.py      # Changelog helper
+├── tests/                    # Automated test suite
 │
 ├── version.json              # SINGLE SOURCE OF TRUTH
 │                              # Never edit manually!
