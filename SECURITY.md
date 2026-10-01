@@ -132,6 +132,7 @@ EGM Downloader makes network requests to:
 - **egerena.com** - To check for updates (Windows/Mac only)
 - **Package managers** - To download yt-dlp and FFmpeg updates
 - **Video thumbnail CDNs** - To cache thumbnails for the download history view (HTTPS-only, 500 KB cap per image)
+- **sponsor.ajay.app** - Only when the optional SponsorBlock feature is turned on (off by default). yt-dlp looks up community submitted segment data using the first 4 characters of a hash (SHA256) of the video ID. The video ID itself is not sent, and the app makes no SponsorBlock requests of its own.
 
 All network activity is related to core functionality. We do not send telemetry or analytics.
 
