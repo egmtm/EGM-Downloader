@@ -231,7 +231,8 @@ If a download is stuck or fails:
   SUPPORT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Website: https://egerena.com/apps/egmac.html
+Website: https://egm.egerena.com
+Downloads: https://egerena.com/apps/egmac.html
 GitHub: https://github.com/egmtm/EGM-Downloader
 X: https://x.com/EGMDownloader
 
