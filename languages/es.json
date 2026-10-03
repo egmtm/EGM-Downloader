@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-02",
+  "_last_updated": "2026-10-03",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo y {0} sitios más",
@@ -89,7 +89,7 @@
     "card.btn.download": "Descargar",
     "card.btn.cancel": "Cancelar",
     "card.status.queued": "En cola",
-    "card.status.downloading": "Descargando...",
+    "card.status.downloading": "Descargando…",
     "card.status.fetching_short": "Obteniendo...",
     "card.status.fetching_quality": "Obteniendo calidad…",
     "card.status.queued_ellipsis": "En cola...",
