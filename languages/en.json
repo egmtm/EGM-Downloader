@@ -308,7 +308,6 @@
     "toast.select_folder_first": "Please select a download folder first",
     "toast.nothing_to_download": "Nothing to download",
     "toast.paste_url_first": "Paste at least one URL",
-    "toast.stopped_keeping": "Stopped — keeping",
     "toast.stopped_keeping_one": "Stopped — keeping {0} loaded video",
     "toast.stopped_keeping_many": "Stopped — keeping {0} loaded videos",
     "toast.download_cancelled": "Download cancelled",

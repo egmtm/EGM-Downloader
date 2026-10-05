@@ -308,7 +308,6 @@
     "toast.select_folder_first": "Selecciona primero una carpeta de descarga",
     "toast.nothing_to_download": "Nada que descargar",
     "toast.paste_url_first": "Pega al menos una URL",
-    "toast.stopped_keeping": "Detenido — conservando",
     "toast.stopped_keeping_one": "Detenido — conservando {0} video cargado",
     "toast.stopped_keeping_many": "Detenido — conservando {0} videos cargados",
     "toast.download_cancelled": "Descarga cancelada",
