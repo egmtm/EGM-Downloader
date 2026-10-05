@@ -303,7 +303,6 @@
     "toast.select_folder_first": "Selecione primeiro uma pasta de download",
     "toast.nothing_to_download": "Nada para baixar",
     "toast.paste_url_first": "Cole pelo menos uma URL",
-    "toast.stopped_keeping": "Parado — mantendo",
     "toast.stopped_keeping_one": "Parado — mantendo {0} vídeo carregado",
     "toast.stopped_keeping_many": "Parado — mantendo {0} vídeos carregados",
     "toast.download_cancelled": "Download cancelado",
