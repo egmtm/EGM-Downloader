@@ -304,6 +304,8 @@
     "toast.nothing_to_download": "Niets om te downloaden",
     "toast.paste_url_first": "Plak minstens één URL",
     "toast.stopped_keeping": "Gestopt — behouden",
+    "toast.stopped_keeping_one": "Gestopt — {0} geladen video behouden",
+    "toast.stopped_keeping_many": "Gestopt — {0} geladen video's behouden",
     "toast.download_cancelled": "Download geannuleerd",
     "bulk.btn.cancel_dynamic": "✕ Annuleren",
     "toast.done": "Klaar",

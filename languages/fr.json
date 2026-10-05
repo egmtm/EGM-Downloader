@@ -304,6 +304,8 @@
     "toast.nothing_to_download": "Rien à télécharger",
     "toast.paste_url_first": "Collez au moins une URL",
     "toast.stopped_keeping": "Arrêté — conservation",
+    "toast.stopped_keeping_one": "Arrêté — conservation de {0} vidéo chargée",
+    "toast.stopped_keeping_many": "Arrêté — conservation de {0} vidéos chargées",
     "toast.download_cancelled": "Téléchargement annulé",
     "bulk.btn.cancel_dynamic": "✕ Annuler",
     "toast.done": "Terminé",
