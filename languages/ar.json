@@ -309,6 +309,8 @@
     "toast.nothing_to_download": "لا شيء للتحميل",
     "toast.paste_url_first": "الصق رابطاً واحداً على الأقل",
     "toast.stopped_keeping": "تم الإيقاف — مع الاحتفاظ",
+    "toast.stopped_keeping_one": "تم الإيقاف — الإبقاء على {0} فيديو محمل",
+    "toast.stopped_keeping_many": "تم الإيقاف — الإبقاء على {0} من الفيديوهات المحملة",
     "toast.download_cancelled": "تم إلغاء التحميل",
     "bulk.btn.cancel_dynamic": "✕ إلغاء",
     "toast.done": "تم",

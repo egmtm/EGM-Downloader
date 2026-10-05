@@ -71,7 +71,9 @@ async function fetchAll() {
     document.getElementById('fetch-btn').disabled = false;
     document.getElementById('cancel-fetch-btn').style.display = 'none';
     if (items.length > 1) setDlAllVisible(true);
-    toast((i18nGet('toast.stopped_keeping') || 'Stopped — keeping') + ' ' + items.length + ' loaded video' + (items.length !== 1 ? 's' : ''));
+    toast(items.length === 1
+      ? (i18nFmt('toast.stopped_keeping_one', items.length) || 'Stopped — keeping 1 loaded video')
+      : (i18nFmt('toast.stopped_keeping_many', items.length) || ('Stopped — keeping ' + items.length + ' loaded videos')));
   };
 
   // Use an object so fetchPlaylistEntries can mutate the counter by reference

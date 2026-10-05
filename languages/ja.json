@@ -309,6 +309,8 @@
     "toast.nothing_to_download": "ダウンロードするものがありません",
     "toast.paste_url_first": "少なくとも1つの URL を貼り付けてください",
     "toast.stopped_keeping": "停止しました — 保持中",
+    "toast.stopped_keeping_one": "停止しました — 読み込み済みの {0} 本の動画を保持しています",
+    "toast.stopped_keeping_many": "停止しました — 読み込み済みの {0} 本の動画を保持しています",
     "toast.download_cancelled": "ダウンロードをキャンセルしました",
     "bulk.btn.cancel_dynamic": "✕ キャンセル",
     "toast.done": "完了",

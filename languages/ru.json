@@ -309,6 +309,8 @@
     "toast.nothing_to_download": "Нечего загружать",
     "toast.paste_url_first": "Вставьте хотя бы один URL",
     "toast.stopped_keeping": "Остановлено — сохранение",
+    "toast.stopped_keeping_one": "Остановлено — сохранено {0} загруженное видео",
+    "toast.stopped_keeping_many": "Остановлено — сохранено загруженных видео: {0}",
     "toast.download_cancelled": "Загрузка отменена",
     "bulk.btn.cancel_dynamic": "✕ Отмена",
     "toast.done": "Готово",
