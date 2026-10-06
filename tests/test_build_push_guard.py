@@ -27,8 +27,18 @@ def _push_block(rel):
     return "\n".join(lines[start:end + 1])
 
 
+def _clean_env():
+    """Environment for the throwaway repos. Git exports GIT_DIR, GIT_INDEX_FILE
+    and friends into hooks (the pre-commit and pre-push suite runs), and any of
+    them would point these commands at the real repository instead of the temp
+    one (this once flipped core.bare and the author name of the real repo)."""
+    env = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+    env.update(GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_SYSTEM="/dev/null")
+    return env
+
+
 def _git(cwd, *args):
-    env = dict(os.environ, GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_SYSTEM="/dev/null")
+    env = _clean_env()
     r = subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, env=env)
     assert r.returncode == 0, r.stderr
     return r.stdout.strip()
@@ -55,7 +65,7 @@ def repo(tmp_path):
 
 def _run(rel, work):
     script = f'set -e\nVERSION=9.9.9\nBUILD_NUM=1\n{_push_block(rel)}\n'
-    env = dict(os.environ, GIT_CONFIG_GLOBAL="/dev/null", GIT_CONFIG_SYSTEM="/dev/null")
+    env = _clean_env()
     return subprocess.run(["bash", "-c", script], cwd=work, capture_output=True,
                           text=True, env=env)
 
