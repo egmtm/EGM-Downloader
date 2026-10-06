@@ -1331,7 +1331,8 @@ def _ensure_h264(job_id, path, job):
             return path
         try: os.remove(tmp)
         except OSError: pass
-        job["warning"] = "Saved in the source codec - H.264 conversion was unavailable."
+        job["warning"] = "The H.264 conversion failed, so the video was saved in its original codec."
+        job["warning_key"] = "download.warning.source_codec"
         return path
     except Exception:
         return path
@@ -1647,7 +1648,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
             if _main_file and os.path.getsize(_main_file) > 0:
                 # Download succeeded — only postprocessing (thumbnail/metadata) failed
-                # Rename and deliver with a warning instead of hard error
+                # Rename and deliver the file instead of a hard error
                 _ext   = os.path.splitext(_main_file)[1]
                 _title = job.get("title", "").strip()
                 _fname = _safe_filename(_title, _ext) if _title else os.path.basename(_main_file)
@@ -1659,7 +1660,6 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 except OSError: _fpath = Path(_main_file)
                 job["file"]        = str(_fpath)
                 job["filename"]    = _fpath.name
-                job["warning"]     = "Download complete — metadata embedding skipped."
                 job["_finished_at"] = time.time()
                 _append_history(job, _fpath)
                 job["status"]      = "done"

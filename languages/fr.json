@@ -97,6 +97,7 @@
     "card.status.recording": "Recording",
     "card.btn.stop_save": "Stop and save",
     "download.warning.live_partial": "The recording ended early. Saved what was captured.",
+    "download.warning.source_codec": "The H.264 conversion failed, so the video was saved in its original codec.",
     "card.status.queued": "En attente",
     "card.status.downloading": "Téléchargement…",
     "card.status.fetching_short": "Récupération...",
