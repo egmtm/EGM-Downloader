@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-05",
+  "_last_updated": "2026-10-06",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} altri siti",
@@ -95,9 +95,9 @@
     "card.btn.cancel": "Annulla",
     "card.badge.live": "LIVE",
     "card.status.recording": "Registrazione",
-    "card.status.reconnecting": "Reconnecting… {0}/{1}",
+    "card.status.reconnecting": "Riconnessione… {0}/{1}",
     "card.btn.stop_save": "Interrompi e salva",
-    "download.warning.live_gap": "The stream was interrupted and reconnected. A few seconds may be missing or repeated.",
+    "download.warning.live_gap": "La trasmissione è stata interrotta e riconnessa. Alcuni secondi potrebbero mancare o essere ripetuti.",
     "download.warning.live_partial": "La registrazione è terminata prima del previsto. La parte registrata è stata salvata.",
     "download.warning.source_codec": "La conversione in H.264 non è riuscita, quindi il video è stato salvato con il codec originale.",
     "card.status.queued": "In coda",
