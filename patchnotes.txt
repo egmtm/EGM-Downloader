@@ -6,6 +6,9 @@ v1.5.0 - TBD (Build TBD) (TBD)
   • [ALL] Changed: "Quit when done" in the main window now also waits for Subscriptions downloads, shows the same 10 second countdown with a Cancel button, and no longer closes the app if a download failed or was cancelled.
   • [ALL] New: Live streams now show a LIVE tag, the recording time and size while they record, and a "Stop and save" button next to Cancel that ends the recording and keeps what was captured. If a live recording fails partway, whatever was captured is now saved instead of lost. Cancel still discards the recording.
   • [ALL] Fixed: When Universal MP4 could not convert a video to H.264, the video was saved in its original codec and you were never told. A notice now says so.
+  • [ALL] Changed: Subscriptions export and import now carry each subscription's own settings (download folder, format, quality, auto fetch and SponsorBlock), not just the links. Older export files still import.
+  • [ALL] Changed: Improved wording in nine languages (Spanish, Arabic, German, French, Italian, Japanese, Dutch, Portuguese and Russian).
+  • [ALL] Fixed: The message shown when you stop fetching a playlist is now translated.
 
 v1.4.7 - JUST ANOTHER UPDATE IV (Build 161) (9/30/2026)
 -----------------------------------------
