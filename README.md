@@ -44,6 +44,7 @@
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
 - 📋 **Playlist Support** - Download entire playlists with one click
+- 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. "Stop and save" ends the recording and keeps what was captured, and a recording that fails partway is saved instead of lost.
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
 - 🚫 **SponsorBlock** - Optionally cut sponsor reads, self promotion, intros and outros out of downloaded YouTube videos, using the community [SponsorBlock](https://sponsor.ajay.app/) database. Off by default; choose categories globally or per subscription.
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
@@ -60,6 +61,7 @@
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, includes embedded Python
 - 📋 **Diagnostics** - Live diagnostic log viewer, available from the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
+- ⏱️ **Quit When Done** - Close the app automatically after the last download finishes, with a 10 second countdown and a Cancel button. Works from the main window and the Subscriptions queue, and won't close if a download failed or was cancelled.
 
 ---
 
