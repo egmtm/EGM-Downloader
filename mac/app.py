@@ -1499,8 +1499,6 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # and our stdout loop waits forever (process never exits).
         # Cap at 200 lines — only the last line matters for error reporting.
         stderr_lines = deque(maxlen=200)
-        _live_stats_re = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
-        _live_note_re  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity", _re.I)
         def _drain_stderr():
             recent = deque(maxlen=8)
             for l in proc.stderr:
@@ -1509,13 +1507,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                     continue
                 # Live only: ffmpeg reports recording time and size here (no percent
                 # exists), and its warnings explain why a recording ended.
-                m = _live_stats_re.search(l)
+                m = _LIVE_STATS_RE.search(l)
                 if m:
                     job["live_size"] = "" if m.group(1) == "N/A" else m.group(1)
                     job["live_time"] = m.group(2)
                 else:
-                    note = l.strip()
-                    if note and "for reading" not in note and note not in recent and _live_note_re.search(note):   # "Opening <segment url>" lines are noise and carry tokens
+                    note = _live_note(l)
+                    if note and note not in recent:
                         recent.append(note)
                         _yt_log(note)
         stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
@@ -1568,16 +1566,17 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # save, or when the stream or connection failed partway. A normal end
         # (exit 0) already left a finished file.
         rc = proc.returncode
-        if job.get("live") and (job.get("stop_keep") or rc != 0):
-            job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
-            job.pop("progress", None)
-            _saved = _salvage_live_part(job_id, out_dir, FFMPEG_DIR / "ffmpeg",
-                                        ".mkv" if output_format == "mkv" else ".mp4",
-                                        format_choice == "audio")
-            if _saved:
-                if not job.get("stop_keep"):
-                    job["warning"] = "The recording ended early. Saved what was captured."
-                    job["warning_key"] = "download.warning.live_partial"
+        if job.get("live"):
+            _live = _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, FFMPEG_DIR / "ffmpeg",
+                                 ".mkv" if output_format == "mkv" else ".mp4",
+                                 format_choice == "audio", rc)
+            if _live == "cancelled":
+                _cleanup(job_id, out_dir)
+                _egm_log("download cancelled")
+                job["status"] = "cancelled"
+                job["_finished_at"] = time.time()
+                return
+            if _live == "saved":
                 rc = 0
             elif job.get("stop_keep"):
                 _cleanup(job_id, out_dir)   # nothing recorded yet: same as Cancel
@@ -1738,8 +1737,235 @@ def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
         except OSError: pass
     return None
 
+# ── Live recordings: carry on after the stream drops ───────────────────────────
+# When the stream's server errors for even a few seconds, ffmpeg's HLS reader
+# gives up and exits as if the stream had ended (usually with exit code 0), and
+# no ffmpeg option prevents that. So after every live run we ask yt-dlp whether
+# the stream is still live and, if it is, record again (up to _LIVE_MAX_RETRIES
+# more times) and join the pieces. A new run starts a few segments behind the
+# live edge, so a short cut tends to repeat a few seconds rather than lose them.
+_LIVE_MAX_RETRIES = 4
+_LIVE_UNKNOWN_WAITS = (2, 4, 8)   # seconds before asking again when the stream state is unclear
+_LIVE_STATS_RE = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
+_LIVE_NOTE_RE  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity", _re.I)
+_LIVE_URL_RE   = _re.compile(r"https?://[^\s'\"<>]+")
+_LIVE_OVER_RE  = _re.compile(r"not currently live|is offline|\boffline\b|has ended|stream ended|no longer live|not live", _re.I)
+_LIVE_PERMANENT = {"private", "unavailable", "members", "region", "premiere"}
+_LIVE_MEDIA_EXTS = {".mp4", ".mkv", ".m4a", ".mp3", ".flac", ".opus", ".wav", ".aac", ".ogg", ".webm"}
+
+def _live_hms_to_s(text):
+    h, m, s = (int(x) for x in text.split(":"))
+    return h * 3600 + m * 60 + s
+
+def _live_s_to_hms(n):
+    return f"{n // 3600:02d}:{n % 3600 // 60:02d}:{n % 60:02d}"
+
+def _live_size_kib(text):
+    """ffmpeg's size= value ('364544KiB', '512kB', 'N/A') as whole KiB, or None."""
+    m = _re.fullmatch(r"([\d.]+)\s*([kKmMgG])i?B", (text or "").strip())
+    if not m:
+        return None
+    return int(float(m.group(1)) * {"k": 1, "m": 1024, "g": 1024 * 1024}[m.group(2).lower()])
+
+def _live_note(line):
+    """A log worthy ffmpeg line for the Console with any stream link removed, or ''.
+    ("Opening <segment url>" lines are noise and carry tokens.)"""
+    note = line.strip()
+    if not note or "for reading" in note or not _LIVE_NOTE_RE.search(note):
+        return ""
+    return _LIVE_URL_RE.sub("<url>", note)
+
+def _live_wait(job, seconds):
+    """Sleep in short steps. False as soon as the user cancelled or pressed Stop and save."""
+    end = time.time() + seconds
+    while time.time() < end:
+        if job.get("cancelled") or job.get("stop_keep"):
+            return False
+        time.sleep(0.25)
+    return not (job.get("cancelled") or job.get("stop_keep"))
+
+def _live_is_still_live(job, url):
+    """Ask yt-dlp whether the stream is still live. True: yes. False: it is over or
+    cannot be recorded (private, members only, region...). None: could not tell
+    (site or network trouble). The check runs as the job's process, so Cancel and
+    Stop and save end it at once."""
+    proc = _popen_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github",
+                     *_ffmpeg_args(), *_deno_args(), *_cookies_args(), *_bgutil_args(),
+                     "--no-playlist", "-j", url,
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                     text=True, encoding="utf-8", errors="replace",
+                     start_new_session=True)   # own group: Cancel's killpg must not reach the app
+    job["proc"] = proc
+    deadline = time.time() + 45
+    out = err = None
+    try:
+        while out is None:
+            try:
+                out, err = proc.communicate(timeout=0.5)
+            except subprocess.TimeoutExpired:
+                if job.get("cancelled") or job.get("stop_keep") or time.time() > deadline:
+                    _kill_proc(proc)
+                    proc.communicate()
+                    return None
+    finally:
+        job["proc"] = None
+    if proc.returncode:
+        raw = err or ""
+        return False if (_LIVE_OVER_RE.search(raw) or _classify_error(raw) in _LIVE_PERMANENT) else None
+    line = next((l for l in (out or "").splitlines() if l.strip().startswith("{")), None)
+    try:
+        return bool(json.loads(line).get("is_live")) if line else None
+    except ValueError:
+        return None
+
+def _run_live_attempt(job, job_id, cmd, base_s, base_kib):
+    """One more yt-dlp run of a live recording, with the same pipes, process registry
+    and live progress as the first run. Time and size carry on from where the earlier
+    runs stopped. Returns the exit code."""
+    proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                     text=True, encoding="utf-8", errors="replace",
+                     start_new_session=True)   # own group: Cancel's killpg must not reach the app
+    job["proc"] = proc
+    with _active_procs_lock:
+        _active_procs[job_id] = proc
+    if job.get("cancelled") or job.get("stop_keep"):
+        _kill_proc(proc)   # pressed in the instant before the process existed
+
+    def _drain():
+        recent = deque(maxlen=8)
+        for l in proc.stderr:
+            m = _LIVE_STATS_RE.search(l)
+            if m:
+                job.pop("live_reconnecting", None)
+                kib = _live_size_kib(m.group(1))
+                job["live_size"] = "" if kib is None else f"{base_kib + kib}KiB"
+                job["live_time"] = _live_s_to_hms(base_s + _live_hms_to_s(m.group(2)))
+            else:
+                note = _live_note(l)
+                if note and note not in recent:
+                    recent.append(note)
+                    _yt_log(note)
+    t = threading.Thread(target=_drain, daemon=True)
+    t.start()
+    for line in proc.stdout:
+        _yt_log(line.rstrip())
+    proc.wait()
+    t.join()
+    job["proc"] = None
+    with _active_procs_lock:
+        _active_procs.pop(job_id, None)
+    return proc.returncode
+
+def _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only):
+    """The recording of one yt-dlp run: the finished file when yt-dlp got to make one,
+    otherwise the leftover .part turned into a normal file. None when the run captured
+    nothing usable."""
+    done = [p for p in glob.glob(str(Path(out_dir) / f"{sid}.*"))
+            if Path(p).suffix.lower() in _LIVE_MEDIA_EXTS and ".temp." not in Path(p).name
+            and not _re.search(r"\.f[\w-]+\.\w+$", Path(p).name) and os.path.getsize(p) > 0]
+    if done:
+        return max(done, key=os.path.getsize)
+    return _salvage_live_part(sid, out_dir, ffmpeg, want_ext, audio_only)
+
+def _live_join(job_id, out_dir, segs, ffmpeg):
+    """Join the pieces of an interrupted recording into the first piece's file with a
+    stream copy (no re-encode). True when done; on any failure the first piece is left
+    as it was."""
+    first = Path(segs[0])
+    ext = first.suffix
+    if not Path(ffmpeg).exists() or any(Path(s).suffix.lower() != ext.lower() for s in segs):
+        return False
+    lst = Path(out_dir) / f"{job_id}_join.txt"
+    tmp = Path(out_dir) / f"{job_id}_join{ext}"
+    ok = False
+    try:
+        lst.write_text("".join(f"file '{Path(s).name}'\n" for s in segs), encoding="utf-8")
+        cmd = [str(ffmpeg), "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy"]
+        if ext.lower() in (".mp4", ".m4a"):
+            cmd += ["-movflags", "+faststart"]
+        r = _run(*cmd, str(tmp), timeout=3600)
+        # The concat reader exits 0 even when it skips an unreadable piece, so check the length too.
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        want = [_media_duration_s(probe, s) for s in segs]
+        got = _media_duration_s(probe, tmp) if tmp.exists() else None
+        if r.returncode == 0 and got and None not in want and got >= sum(want) - 1.0:
+            os.replace(tmp, first)
+            ok = True
+    except Exception:
+        pass
+    for p in (lst, tmp):
+        try: os.remove(p)
+        except OSError: pass
+    return ok
+
+def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
+    """After the first yt-dlp run of a live job has ended (any exit code): keep what was
+    captured and, when the stream is still live and the user did not stop it, record
+    again (up to _LIVE_MAX_RETRIES times) and join the pieces into {job_id}<ext>.
+    Returns "saved" (a usable recording sits at {job_id}<ext>), "cancelled", or None
+    (nothing was captured)."""
+    if job.get("stop_keep") or rc != 0:
+        job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        job.pop("progress", None)
+    first = _live_collect(job_id, out_dir, ffmpeg, want_ext, audio_only)
+    segs = [first] if first else []
+    attempts = unknown = 0
+    while (segs and not job.get("stop_keep") and not job.get("cancelled")
+           and attempts < _LIVE_MAX_RETRIES):
+        job["status"] = "downloading"
+        if not _live_wait(job, 2 if unknown == 0 else _LIVE_UNKNOWN_WAITS[unknown - 1]):
+            break
+        state = _live_is_still_live(job, url)
+        if job.get("cancelled") or job.get("stop_keep") or state is False:
+            break
+        if state is None:
+            unknown += 1
+            if unknown > len(_LIVE_UNKNOWN_WAITS):
+                break
+            continue
+        unknown = 0
+        attempts += 1
+        job["live_reconnecting"] = attempts
+        job["live_retries_max"] = _LIVE_MAX_RETRIES
+        sid = f"{job_id}_r{attempts + 1}"
+        cmd2 = [str(Path(out_dir) / f"{sid}.%(ext)s") if c == out_tmpl else c for c in cmd]
+        base_s = _live_hms_to_s(job.get("live_time") or "00:00:00")
+        base_kib = _live_size_kib(job.get("live_size")) or 0
+        rc = _run_live_attempt(job, job_id, cmd2, base_s, base_kib)
+        if job.get("cancelled"):
+            break
+        if job.get("stop_keep") or rc != 0:
+            job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        seg = _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only)
+        if not seg:
+            break
+        segs.append(seg)
+    job.pop("live_reconnecting", None)
+    job.pop("live_retries_max", None)
+    if job.get("cancelled"):
+        return "cancelled"
+    if not segs:
+        return None
+    if len(segs) > 1:
+        job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        job.pop("progress", None)
+        if _live_join(job_id, out_dir, segs, ffmpeg):
+            job["warning"] = "The stream was interrupted and reconnected. A few seconds may be missing or repeated."
+            job["warning_key"] = "download.warning.live_gap"
+        else:
+            job["warning"] = "The recording ended early. Saved what was captured."
+            job["warning_key"] = "download.warning.live_partial"
+        for p in glob.glob(str(Path(out_dir) / f"{job_id}_*")):
+            try: os.remove(p)
+            except OSError: pass
+    elif rc != 0 and not job.get("stop_keep"):
+        job["warning"] = "The recording ended early. Saved what was captured."
+        job["warning_key"] = "download.warning.live_partial"
+    return "saved"
+
 def _cleanup(job_id, out_dir):
-    for f in glob.glob(str(Path(out_dir) / f"{job_id}.*")):
+    # {job_id}.* plus the extra pieces of an interrupted live recording ({job_id}_r2.*, {job_id}_join.*)
+    for f in glob.glob(str(Path(out_dir) / f"{job_id}.*")) + glob.glob(str(Path(out_dir) / f"{job_id}_*")):
         try: os.remove(f)
         except Exception: pass
 
@@ -1920,6 +2146,8 @@ def check_status(job_id):
                 "encoder": job.get("encoder") if status == "converting" else None}
         if job.get("live"):
             resp["live_time"] = job.get("live_time", ""); resp["live_size"] = job.get("live_size", "")
+            if job.get("live_reconnecting"):
+                resp["live_reconnecting"] = job["live_reconnecting"]; resp["live_retries_max"] = job.get("live_retries_max", 0)
         if job.get("warning_key"):
             resp["warning"] = job.get("warning", ""); resp["warning_key"] = job["warning_key"]
         # Remove completed jobs from memory once the UI has consumed the result.

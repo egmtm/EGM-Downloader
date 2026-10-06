@@ -529,6 +529,12 @@ function applyJobProgress(d, stEl, progEl) {
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.live_reconnecting) {
+    // Live stream dropped and is being recorded again (the pieces are joined at the end)
+    setBadge(stEl, 'dl', i18nFmt('card.status.reconnecting', d.live_reconnecting, d.live_retries_max) || `Reconnecting… ${d.live_reconnecting}/${d.live_retries_max}`);
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
   } else if (d.status === 'downloading' && d.live_time) {
     // Live recording: no percent exists, show how much has been captured instead
     setBadge(stEl, 'dl', (i18nGet('card.status.recording') || 'Recording') + ` · ${d.live_time}` + (d.live_size ? ` · ${d.live_size}` : ''));

@@ -34,8 +34,8 @@ def test_each_platform_backend_has_the_live_pieces():
         assert '"is_live": bool(info.get("is_live"))' in s, f"{p}: /api/info must report is_live"
         assert '"live": bool(data.get("is_live"))' in s, f"{p}: the job must remember the live flag"
         assert 'resp["live_time"]' in s and 'resp["warning_key"]' in s, p
-        # Rescue only ever runs for live jobs, and the old exit code test is gone
-        assert 'if job.get("live") and (job.get("stop_keep") or rc != 0):' in s, p
+        # Rescue and reconnect only ever run for live jobs, and the old exit code test is gone
+        assert 'if job.get("live"):\n            _live = _live_finish(' in s, p
         assert "if proc.returncode != 0:" not in s, p
 
 

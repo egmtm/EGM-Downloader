@@ -93,3 +93,25 @@ test("the rescue warning is shown in the app language via its key", async () => 
     items[items.length-1], document.getElementById('st301'), document.getElementById('dl301'), document.getElementById('prog301'), null)`);
   assert.ok([...d.querySelectorAll("#toasts .toast")].some((t) => t.textContent === "plain text warning"));
 });
+
+test("while a dropped stream is being recorded again the card says Reconnecting n/max, then goes back to Recording", async () => {
+  const { w, d } = await bootPage();
+  liveItem(w);
+  const run = (job) => w.eval(`(() => { const st = document.getElementById('st301'), pr = document.getElementById('prog301');
+    applyJobProgress(${JSON.stringify(job)}, st, pr);
+    return { text: st.textContent.trim(), indet: pr.querySelector('.prog-inner').classList.contains('indeterminate') }; })()`);
+  const rc = run({ status: "downloading", progress: 0, live_time: "00:00:15", live_size: "594KiB", live_reconnecting: 2, live_retries_max: 4 });
+  assert.equal(rc.text, "Reconnecting… 2/4");
+  assert.equal(rc.indet, true);
+  const back = run({ status: "downloading", progress: 0, live_time: "00:00:17", live_size: "610KiB" });
+  assert.equal(back.text, `${en.strings["card.status.recording"]} · 00:00:17 · 610KiB`);
+});
+
+test("the stream was interrupted warning is shown in the app language via its key", async () => {
+  const { w, d } = await bootPage();
+  liveItem(w);
+  w.eval(`applyJobDone({ status: 'done', progress: 100, filename: 'x.mp4', warning: 'English fallback', warning_key: 'download.warning.live_gap' },
+    items[0], document.getElementById('st301'), document.getElementById('dl301'), document.getElementById('prog301'), null)`);
+  const toasts = [...d.querySelectorAll("#toasts .toast")].map((t) => t.textContent);
+  assert.ok(toasts.includes(en.strings["download.warning.live_gap"]), JSON.stringify(toasts));
+});
