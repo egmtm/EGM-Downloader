@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "Coda di download",
     "subscriptions.queue.short": "Coda",
     "subscriptions.queue.active": "{0} attivi",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} video",
     "subscriptions.detail.last_fetched": " · Ultimo recupero: {0}",
     "subscriptions.detail.autofetch": "Recupero automatico all'apertura",

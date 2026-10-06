@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "Download queue",
     "subscriptions.queue.short": "Queue",
     "subscriptions.queue.active": "{0} active",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} videos",
     "subscriptions.detail.last_fetched": " · Last fetched: {0}",
     "subscriptions.detail.autofetch": "Auto-fetch on open",

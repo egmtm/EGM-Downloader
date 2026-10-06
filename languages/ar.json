@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "قائمة التحميل",
     "subscriptions.queue.short": "قائمة الانتظار",
     "subscriptions.queue.active": "{0} نشط",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} فيديو",
     "subscriptions.detail.last_fetched": " · آخر جلب: {0}",
     "subscriptions.detail.autofetch": "جلب تلقائي عند الفتح",

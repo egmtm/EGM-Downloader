@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "Cola de descargas",
     "subscriptions.queue.short": "Cola",
     "subscriptions.queue.active": "{0} activas",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} videos",
     "subscriptions.detail.last_fetched": " · Última obtención: {0}",
     "subscriptions.detail.autofetch": "Obtener automáticamente al abrir",

@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "Fila de download",
     "subscriptions.queue.short": "Fila",
     "subscriptions.queue.active": "{0} ativos",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} vídeos",
     "subscriptions.detail.last_fetched": " · Última obtenção: {0}",
     "subscriptions.detail.autofetch": "Obter automaticamente ao abrir",

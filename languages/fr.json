@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "File de téléchargement",
     "subscriptions.queue.short": "File d'attente",
     "subscriptions.queue.active": "{0} actifs",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} vidéos",
     "subscriptions.detail.last_fetched": " · Dernière récupération : {0}",
     "subscriptions.detail.autofetch": "Récupération automatique à l'ouverture",

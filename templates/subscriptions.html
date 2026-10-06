@@ -256,6 +256,13 @@
     .egm-modal-btn:hover { background:var(--surf3,var(--surf2));filter:brightness(1.1); }
     .egm-modal-btn.danger { background:var(--red,#e04040);color:#fff;border-color:var(--red,#e04040); }
     .egm-modal-btn.danger:hover { filter:brightness(1.15); }
+    /* ── "Quit when done" toggle + countdown ── */
+    .sw-wrap { display:flex;align-items:center;gap:7px;font-size:.72rem;color:var(--text2);cursor:pointer;user-select:none; }
+    input.sw[type=checkbox] { appearance:none;width:32px;height:17px;background:var(--border2);border-radius:999px;cursor:pointer;transition:background .15s ease;position:relative;flex-shrink:0; }
+    input.sw[type=checkbox]::after { content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:var(--btn-primary-text);border-radius:50%;transition:left .15s ease; }
+    input.sw[type=checkbox]:checked { background:var(--acc); }
+    input.sw[type=checkbox]:checked::after { left:17px; }
+    .quit-bar { position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:14px;background:var(--surf);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:.8rem;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.4); }
   </style>
 </head>
 <body class="void">
@@ -412,6 +419,12 @@ function egmPrompt(msg, defaultValue = '') {
 let subs = [];
 let activeSub = null;
 let showQueue = false;
+// "Quit when done": armed from the queue header and held in memory only. It is
+// deliberately never saved, so it resets whenever this window closes.
+let quitWhenDone = false;
+let _quitTimer = null;
+let _quitProbing = false;
+const QUIT_COUNTDOWN_S = 10;
 let globalSettings = {};
 
 // ── HTML escape — prevents stored XSS from user-controlled data ──────────────
@@ -790,6 +803,53 @@ function startPolling() {
 }
 
 let _polling = false;
+// ── Quit when done ──────────────────────────────────────────────────────────
+function setQuitWhenDone(on) {
+  quitWhenDone = !!on;
+  if (!quitWhenDone) stopQuitCountdown();
+}
+
+function stopQuitCountdown() {
+  if (_quitTimer) { clearInterval(_quitTimer); _quitTimer = null; }
+  const bar = document.getElementById('quit-bar');
+  if (bar) bar.remove();
+}
+
+// Called once this queue is empty. The countdown only starts when no other
+// window is still downloading; the main process answers that (probe).
+async function maybeStartQuitCountdown() {
+  if (_quitTimer || _quitProbing) return;
+  _quitProbing = true;
+  try {
+    const r = await window.electronAPI.quit({ whenIdle: true, probe: true });
+    if (r && r.busy === false && quitWhenDone && !_quitTimer && !hasActiveDownloads()) startQuitCountdown();
+  } catch {}
+  _quitProbing = false;
+}
+
+function startQuitCountdown() {
+  let left = QUIT_COUNTDOWN_S;
+  const bar = document.createElement('div');
+  bar.id = 'quit-bar';
+  bar.className = 'quit-bar';
+  bar.innerHTML = `<span></span><button class="egm-modal-btn" onclick="setQuitWhenDone(false)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>`;
+  document.body.appendChild(bar);
+  const label = bar.firstChild;
+  const tick = () => {
+    if (left <= 0) {
+      stopQuitCountdown();
+      // The main process refuses (busy) if the main window started downloading
+      // during the countdown; the toggle stays on and the poll loop re-checks.
+      window.electronAPI.quit({ whenIdle: true });
+      return;
+    }
+    label.textContent = i18nFmt('subscriptions.queue.quitting_in', left) || `Quitting in ${left}s`;
+    left--;
+  };
+  tick();
+  _quitTimer = setInterval(tick, 1000);
+}
+
 async function pollJobs() {
   if (_polling) return;
   _polling = true;
@@ -807,6 +867,9 @@ async function pollJobs() {
         info.data = data;
         updateVideoState(videoId, data.status, data);
         if (TERMINAL_STATES.includes(data.status)) {
+          // A failed or cancelled download means the user should look at the
+          // queue, so "Quit when done" turns itself off instead of closing.
+          if (data.status !== 'done' && quitWhenDone) setQuitWhenDone(false);
           const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
           if (cb) cb.disabled = false;
           if (data.status === 'done' && info.subId) {
@@ -834,6 +897,10 @@ async function pollJobs() {
       if (miniQueueItem) miniQueueItem.remove();
       if (showQueue) { showQueue = false; renderQueue(); }
     }
+    if (quitWhenDone && window.electronAPI?.quit) {
+      if (activeCount === 0) maybeStartQuitCountdown();
+      else stopQuitCountdown();   // more downloads arrived during the countdown; stay armed
+    }
   }
   syncCloseGuard();
   reportActivity();
@@ -856,6 +923,7 @@ function renderQueue() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
     <span style="font-weight:600;font-size:.85rem">${i18nAttr('subscriptions.queue.title', 'Download queue')}</span>
     <span style="font-size:.65rem;color:var(--text2)">${(i18nFmt('subscriptions.queue.active', activeJobs.length) || `${activeJobs.length} active`)}</span>
+    ${window.electronAPI?.quit ? `<label class="sw-wrap" style="margin-left:auto" title="${i18nAttr('tooltip.quit_when_done', 'Automatically close the app when all downloads finish')}"><input type="checkbox" class="sw" ${quitWhenDone ? 'checked' : ''} onchange="setQuitWhenDone(this.checked)"><span>${i18nAttr('advanced.toggle.quit_when_done', 'Quit when done')}</span></label>` : ''}
   </div>`;
 
   html += '<div style="flex:1;overflow-y:auto;padding:0 18px 8px">';

@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "Download-Warteschlange",
     "subscriptions.queue.short": "Warteschlange",
     "subscriptions.queue.active": "{0} aktiv",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} Videos",
     "subscriptions.detail.last_fetched": " · Zuletzt geladen: {0}",
     "subscriptions.detail.autofetch": "Automatisch laden beim Öffnen",

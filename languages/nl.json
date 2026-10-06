@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "Downloadwachtrij",
     "subscriptions.queue.short": "Wachtrij",
     "subscriptions.queue.active": "{0} actief",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} video's",
     "subscriptions.detail.last_fetched": " · Laatst opgehaald: {0}",
     "subscriptions.detail.autofetch": "Automatisch ophalen bij openen",

@@ -228,6 +228,7 @@
     "subscriptions.queue.title": "ダウンロードキュー",
     "subscriptions.queue.short": "キュー",
     "subscriptions.queue.active": "{0} 件アクティブ",
+    "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} 本の動画",
     "subscriptions.detail.last_fetched": " · 最終取得: {0}",
     "subscriptions.detail.autofetch": "開いたときに自動取得",

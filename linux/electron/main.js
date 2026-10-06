@@ -373,8 +373,17 @@ async function createWindow() {
 }
 
 // ── IPC: quit app ─────────────────────────────────────────────────────────────
-ipcMain.handle('quit-app', (event) => {
+ipcMain.handle('quit-app', (event, opts) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
+  // opts.whenIdle: Subscriptions "Quit when done". Refuse while any OTHER
+  // window (the main window) still reports active downloads, so this can
+  // never cut off a download that is running elsewhere. opts.probe reports
+  // that state without quitting.
+  if (opts && opts.whenIdle) {
+    const self = BrowserWindow.fromWebContents(event.sender);
+    const busy = [..._activityBySender.keys()].some(w => w !== self);
+    if (busy || opts.probe) return { busy };
+  }
   app.isQuitting = true;
   app.quit();
   return { success: true };
