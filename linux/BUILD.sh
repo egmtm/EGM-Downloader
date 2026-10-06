@@ -219,16 +219,30 @@ cd "$REPO_ROOT"
 # Guard the commit: under `set -e`, an unconditional `git commit` on a clean
 # tree (e.g. a rebuild with no source changes) exits non-zero and aborts the
 # whole build. Mirror the Windows guard — only commit when something changed.
-if git status --porcelain | grep -q .; then
-    # NOTE: last-released-build.txt is intentionally NOT bumped here -- see
-    # the matching comment in windows/BUILD.sh for why. Bump it as a
-    # deliberate, separate, LAST step of the actual release process instead.
-    git add -A
+# NOTE: last-released-build.txt is intentionally NOT bumped here -- see
+# the matching comment in windows/BUILD.sh for why. Bump it as a
+# deliberate, separate, LAST step of the actual release process instead.
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+UNTRACKED="$(git ls-files --others --exclude-standard)"
+if ! git status --porcelain | grep -q .; then
+    echo "   ✓ No source changes to commit (binaries are gitignored)"
+elif [ "$BRANCH" != "main" ]; then
+    # Only a build run from main may commit and push. On a testing branch (or a
+    # detached HEAD) the changed files are left alone for a human to handle.
+    echo "   ⚠ Skipping the automatic commit and push: this checkout is on '$BRANCH', not 'main'."
+    echo "     Changed files are left as they are:"
+    git status --short | sed 's/^/       /'
+elif [ -n "$UNTRACKED" ]; then
+    # git add would sweep a stray file into a public commit. Tracked changes
+    # alone are committed automatically; anything untracked needs a human look.
+    echo "   ⚠ Skipping the automatic commit and push: untracked files are present."
+    echo "     Review them, then commit and push by hand if they belong:"
+    echo "$UNTRACKED" | sed 's/^/       /'
+else
+    git add -u
     git commit -m "Linux v$VERSION Build $BUILD_NUM"
     git push origin main
     echo "   ✓ Pushed"
-else
-    echo "   ✓ No source changes to commit (binaries are gitignored)"
 fi
 
 echo ""

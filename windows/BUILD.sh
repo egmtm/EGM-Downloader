@@ -521,22 +521,36 @@ echo ""
 # ── Push to GitHub ───────────────────────────────────────────────────────────
 echo "🚀 Pushing to GitHub..."
 cd "$REPO_ROOT"
-if git status --porcelain | grep -q .; then
-    # NOTE: last-released-build.txt is intentionally NOT bumped here. This
-    # script runs for both test builds and the real release build, and there's
-    # no way to distinguish them from inside the script -- bumping the marker
-    # unconditionally on every build+push meant a single test build could mark
-    # that build number as "released," blocking the real release's own feed
-    # validation later (build must be > last-released, and a test build had
-    # already claimed it). Bump the marker as a deliberate, separate, LAST step
-    # of the actual release process, once the release is genuinely confirmed
-    # shipped -- not automatically here.
-    git add -A
+# NOTE: last-released-build.txt is intentionally NOT bumped here. This
+# script runs for both test builds and the real release build, and there's
+# no way to distinguish them from inside the script -- bumping the marker
+# unconditionally on every build+push meant a single test build could mark
+# that build number as "released," blocking the real release's own feed
+# validation later (build must be > last-released, and a test build had
+# already claimed it). Bump the marker as a deliberate, separate, LAST step
+# of the actual release process, once the release is genuinely confirmed
+# shipped -- not automatically here.
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+UNTRACKED="$(git ls-files --others --exclude-standard)"
+if ! git status --porcelain | grep -q .; then
+    echo "   ✓ No source changes to commit (binaries are gitignored)"
+elif [ "$BRANCH" != "main" ]; then
+    # Only a build run from main may commit and push. On a testing branch (or a
+    # detached HEAD) the changed files are left alone for a human to handle.
+    echo "   ⚠ Skipping the automatic commit and push: this checkout is on '$BRANCH', not 'main'."
+    echo "     Changed files are left as they are:"
+    git status --short | sed 's/^/       /'
+elif [ -n "$UNTRACKED" ]; then
+    # git add would sweep a stray file into a public commit. Tracked changes
+    # alone are committed automatically; anything untracked needs a human look.
+    echo "   ⚠ Skipping the automatic commit and push: untracked files are present."
+    echo "     Review them, then commit and push by hand if they belong:"
+    echo "$UNTRACKED" | sed 's/^/       /'
+else
+    git add -u
     git commit -m "Windows v$VERSION Build $BUILD_NUM"
     git push origin main
     echo "   ✓ Pushed"
-else
-    echo "   ✓ No source changes to commit (binaries are gitignored)"
 fi
 
 echo ""
