@@ -530,10 +530,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     }
     // Refresh mini history panel so new entry appears immediately
     if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
-    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
-      const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
-      if (allFinished) setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
-    }
+    quitWhenDoneCheck();
     recheckBulkVisibility();
     return true;
   }

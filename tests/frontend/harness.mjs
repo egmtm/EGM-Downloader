@@ -23,7 +23,7 @@ export const CURRENT_APP_VERSION = (() => {
   return m[1];
 })();
 
-export function bootPage({ settings = {}, onFetch } = {}) {
+export function bootPage({ settings = {}, onFetch, prep } = {}) {
   const html = readFileSync(process.env.EGM_RENDERED_PAGE || "/tmp/egm_rendered_index.html", "utf8");
   const saved = [];
   const dom = new JSDOM(html, {
@@ -39,6 +39,7 @@ export function bootPage({ settings = {}, onFetch } = {}) {
       };
       w.matchMedia = w.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
       w.requestAnimationFrame = (cb) => setTimeout(cb, 0);
+      if (prep) prep(w);   // lets a test add window.electronAPI, fake timers, etc. before the page scripts run
     },
   });
   return new Promise((resolve) => setTimeout(() => resolve({ dom, w: dom.window, d: dom.window.document, saved }), 900));

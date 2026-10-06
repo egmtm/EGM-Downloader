@@ -162,9 +162,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   bar.classList.remove('show');
   if (!bulkStop) {
     toast((i18nGet('toast.done') || 'Done') + ' — ' + done + ' ' + modeLabel, 'ok');
-    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
-      setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
-    }
+    quitWhenDoneCheck();
   }
 }
 

@@ -28,7 +28,7 @@ let _modalOk    = null;
 let chosenPath  = null;    // Absolute path string (Electron only)
 
 // ── Timing constants ──────────────────────────────────────────────────────────
-const QUIT_DELAY_MS  = 1500;  // ms after last download before quitting
+const QUIT_DELAY_MS  = 1500;  // ms before quitting after launching the update installer
 const TOAST_DURATION = 4500;  // ms before toast auto-dismisses
 
 // ── Version comparison — semver-safe ─────────────────────────────────────────
@@ -192,7 +192,59 @@ function toastWithAction(msg, btnLabel, fn, ms = 8000) {
   t.appendChild(span);
   t.appendChild(btn);
   c.appendChild(t);
-  setTimeout(() => t.remove(), ms);
+  if (ms > 0) setTimeout(() => t.remove(), ms);   // ms 0 = stays until removed
+  return t;
+}
+
+// ── Quit when done (the saved checkbox in Advanced) ──────────────────────────
+// Started when a download or a bulk run completes. Waits until every card is
+// done (anything idle, running, failed or cancelled blocks it) and no other
+// window (Subscriptions) is still downloading, then shows a 10 second
+// countdown with Cancel and quits. Cancel only skips this exit; the saved
+// setting is left alone. Same flow as the Subscriptions "Quit when done".
+const QUIT_COUNTDOWN_S = 10;
+let _qodTimer = null, _qodToast = null, _qodLeft = 0, _qodBusy = false;
+
+function _qodArmed() {
+  return !!(window.electronAPI?.quit && document.getElementById('quit-on-done-chk')?.checked
+    && items.every(i => i.status === 'done'));
+}
+
+function _qodStop() {
+  if (_qodTimer) { clearInterval(_qodTimer); _qodTimer = null; }
+  if (_qodToast) { _qodToast.remove(); _qodToast = null; }
+}
+
+function quitWhenDoneCheck() {
+  if (_qodTimer || !_qodArmed()) return;
+  _qodTimer = setInterval(_qodStep, 1000);
+  _qodStep();
+}
+
+async function _qodStep() {
+  if (_qodBusy) return;
+  _qodBusy = true;
+  try {
+    if (!_qodArmed()) { _qodStop(); return; }   // unchecked, or something new started or failed
+    if (!_qodToast) {
+      // Waiting: only count down once the other window is idle too.
+      let r = null;
+      try { r = await window.electronAPI.quit({ whenIdle: true, probe: true }); } catch {}
+      if (!_qodTimer || !r || r.busy !== false || !_qodArmed()) return;
+      _qodLeft = QUIT_COUNTDOWN_S;
+      _qodToast = toastWithAction('', i18nGet('card.btn.cancel') || 'Cancel', _qodStop, 0);
+      // Hidden behind the Subscriptions window? Bring this window back so Cancel is reachable.
+      if (document.hidden) window.electronAPI.closeSubscriptions?.();
+    }
+    if (_qodLeft <= 0) {
+      // The main process refuses (busy) if the other window started downloading meanwhile.
+      const r = await window.electronAPI.quit({ whenIdle: true });
+      if (r && r.busy && _qodToast) { _qodToast.remove(); _qodToast = null; }
+      return;
+    }
+    _qodToast.firstChild.textContent = i18nFmt('subscriptions.queue.quitting_in', _qodLeft) || `Quitting in ${_qodLeft}s`;
+    _qodLeft--;
+  } finally { _qodBusy = false; }
 }
 
 // ── Auto-check for updates on launch (silent — only acts if update found) ─────

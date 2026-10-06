@@ -1,9 +1,10 @@
-"""Guards for the Subscriptions window "Quit when done" toggle.
+"""Guards for "Quit when done" (Subscriptions toggle and the main window checkbox).
 
-The behaviour itself is covered by tests/frontend/subs_quit.test.mjs and
-quit_app_handler.test.mjs (jsdom and the real main.js handlers). This pins the
-things those cannot: the new countdown string exists in every locale, the
-toggle reuses the main UI strings, and the choice is never persisted."""
+The behaviour itself is covered by tests/frontend/subs_quit.test.mjs,
+main_quit.test.mjs and quit_app_handler.test.mjs (jsdom and the real main.js
+handlers). This pins the things those cannot: the countdown string exists in
+every locale, the Subscriptions toggle reuses the main UI strings and is never
+persisted, and the main window no longer quits on its own timer."""
 import glob
 import json
 import os
@@ -58,3 +59,21 @@ def test_countdown_string_exists_with_one_count_placeholder_in_every_locale():
         name = os.path.basename(f)
         assert isinstance(value, str) and value.strip(), f"{name}: missing subscriptions.queue.quitting_in"
         assert value.count("{0}") == 1, f"{name}: needs the {{0}} seconds count exactly once, got {value!r}"
+
+
+MAIN_JS = ("templates/js/_core.html", "templates/js/_download.html", "templates/js/_bulk.html")
+
+
+def test_main_window_scripts_mirror_linux():
+    for p in MAIN_JS:
+        assert read_source(p) == read_source("linux/" + p), p
+
+
+def test_main_window_quits_only_through_the_countdown():
+    for base in ("", "linux/"):
+        for name in ("_download.html", "_bulk.html"):
+            src = read_source(f"{base}templates/js/{name}")
+            assert "quitWhenDoneCheck()" in src, f"{base}{name}: must start the shared countdown"
+            assert "electronAPI.quit(" not in src and "QUIT_DELAY_MS" not in src, (
+                f"{base}{name}: no direct timed quit; it would skip the wait, the failure rule and Cancel"
+            )
