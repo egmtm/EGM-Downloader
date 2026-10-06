@@ -72,6 +72,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     }
     cancelBtn.style.display = '';
     cancelBtn.onclick = () => cancelDownload(item, n);
+    addStopSave(item, n, cancelBtn);
 
     try {
       if (bulkStop || item.status === 'cancelled') { active--; return; }
@@ -85,6 +86,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         title: item.info.title || 'download',
         download_dir: dir,
         thumbnail: item.info?.thumbnail || '',
+        is_live: !!item.info?.is_live,
         audio_quality: audioQuality || document.getElementById('default-audio-fmt-sel')?.value || '320',
         subtitles: !!document.getElementById('subtitles-chk')?.checked,
         embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
@@ -187,6 +189,7 @@ function cancelBulk() {
       if (progEl)    progEl.style.display = 'none';
       if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
+      hideStopSave(item);
     }
   });
   updateQueueArrows();   // whole queue left idle — hide every arrow in one pass

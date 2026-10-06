@@ -188,7 +188,7 @@ function renderCard(el, item) {
     </div>
     <div class="vbody">
       <div class="vtitle" title="${esc(info.title)}">${esc(info.title||item.url)}</div>
-      <div class="vmeta">${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
+      <div class="vmeta">${info.is_live ? `<span class="live-tag">${i18nAttr('card.badge.live', 'LIVE')}</span> ` : ''}${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
       <div class="qual-panel">
         <div class="qual-group">
           <span class="qual-label">${i18nAttr('card.label.format', 'Format')}</span>
@@ -400,6 +400,7 @@ async function startDl(item, n) {
   }
   cancelBtn.style.display = '';
   cancelBtn.onclick = () => cancelDownload(item, n);
+  addStopSave(item, n, cancelBtn);
 
   try {
     const res = await post('/api/download', {
@@ -415,6 +416,7 @@ async function startDl(item, n) {
       concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
       title: chosenName, download_dir: dir,
       thumbnail: item.info?.thumbnail || '',
+      is_live: !!item.info?.is_live,
       subtitles: !!document.getElementById('subtitles-chk')?.checked,
       embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
       sponsorblock_categories: getSponsorblockCategories(),
@@ -437,6 +439,32 @@ async function startDl(item, n) {
   }
 }
 
+// Live streams only: "Stop and save" sits next to Cancel and keeps what has been
+// recorded so far (Cancel discards it).
+function addStopSave(item, n, cancelBtn) {
+  if (!item.info?.is_live) return;
+  let b = document.getElementById(`stop${n}`);
+  if (!b) {
+    b = document.createElement('button');
+    b.id = `stop${n}`;
+    b.className = 'btn btn-green btn-sm';
+    b.textContent = '■ ' + (i18nGet('card.btn.stop_save') || 'Stop and save');
+    cancelBtn.parentNode.insertBefore(b, cancelBtn);
+  }
+  b.style.display = '';
+  b.disabled = false;
+  b.onclick = async () => {
+    if (!item.jobId) return;
+    b.disabled = true;
+    try { const r = await fetch(`/api/stop/${item.jobId}`, { method: 'POST' }); if (!r.ok) b.disabled = false; }
+    catch { b.disabled = false; }
+  };
+}
+function hideStopSave(item) {
+  const b = document.getElementById(`stop${item.id}`);
+  if (b) b.style.display = 'none';
+}
+
 async function cancelDownload(item, n) {
   if (!item.jobId) return;
   try {
@@ -451,6 +479,7 @@ async function cancelDownload(item, n) {
   if (progEl) progEl.style.display = 'none';
   if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
+  hideStopSave(item);
   updateQueueArrows();   // no longer idle — keep the arrow rule true after cancel
   toast(i18nGet('toast.download_cancelled') || 'Download cancelled');
 }
@@ -471,6 +500,12 @@ function applyJobProgress(d, stEl, progEl) {
     // Download complete but backend hasn't emitted a conversion tag yet —
     // show Converting… as a fallback so the UI doesn't appear frozen
     setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : ''));
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.live_time) {
+    // Live recording: no percent exists, show how much has been captured instead
+    setBadge(stEl, 'dl', (i18nGet('card.status.recording') || 'Recording') + ` · ${d.live_time}` + (d.live_size ? ` · ${d.live_size}` : ''));
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';
@@ -504,13 +539,14 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     );
     if (!anyPending && items.length > 1) setDlAllVisible(false);
   };
+  if (d.status === 'done' || d.status === 'error' || d.status === 'cancelled') hideStopSave(item);
   if (d.status === 'done') {
     item.status = 'done';
     reportActivity();
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     if (d.warning) {
-      toast(d.warning, 'warn');
+      toast((d.warning_key && i18nGet(d.warning_key)) || d.warning, 'warn');
     } else {
       toast(i18nFmt('download.saved', d.filename) || ('Saved: ' + d.filename), 'ok');
     }

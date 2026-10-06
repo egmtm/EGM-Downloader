@@ -1483,9 +1483,25 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # and our stdout loop waits forever (process never exits).
         # Cap at 200 lines — only the last line matters for error reporting.
         stderr_lines = deque(maxlen=200)
+        _live_stats_re = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
+        _live_note_re  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity", _re.I)
         def _drain_stderr():
+            recent = deque(maxlen=8)
             for l in proc.stderr:
                 stderr_lines.append(l)
+                if not job.get("live"):
+                    continue
+                # Live only: ffmpeg reports recording time and size here (no percent
+                # exists), and its warnings explain why a recording ended.
+                m = _live_stats_re.search(l)
+                if m:
+                    job["live_size"] = "" if m.group(1) == "N/A" else m.group(1)
+                    job["live_time"] = m.group(2)
+                else:
+                    note = l.strip()
+                    if note and "for reading" not in note and note not in recent and _live_note_re.search(note):   # "Opening <segment url>" lines are noise and carry tokens
+                        recent.append(note)
+                        _yt_log(note)
         stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
         stderr_thread.start()
 
@@ -1532,7 +1548,29 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             job["_finished_at"] = time.time()
             return
 
-        if proc.returncode != 0:
+        # Live recordings: keep what was captured when the user pressed Stop and
+        # save, or when the stream or connection failed partway. A normal end
+        # (exit 0) already left a finished file.
+        rc = proc.returncode
+        if job.get("live") and (job.get("stop_keep") or rc != 0):
+            job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+            job.pop("progress", None)
+            _saved = _salvage_live_part(job_id, out_dir, FFMPEG_DIR / "ffmpeg",
+                                        ".mkv" if output_format == "mkv" else ".mp4",
+                                        format_choice == "audio")
+            if _saved:
+                if not job.get("stop_keep"):
+                    job["warning"] = "The recording ended early. Saved what was captured."
+                    job["warning_key"] = "download.warning.live_partial"
+                rc = 0
+            elif job.get("stop_keep"):
+                _cleanup(job_id, out_dir)   # nothing recorded yet: same as Cancel
+                _egm_log("live recording stopped, nothing to keep")
+                job["status"] = "cancelled"
+                job["_finished_at"] = time.time()
+                return
+
+        if rc != 0:
             # Determine the expected extension before cleanup
             if format_choice == "audio":
                 if audio_quality == "flac":              _want = ".flac"
@@ -1657,6 +1695,34 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["error_code"] = _classify_error(str(e))
         job["_finished_at"] = time.time()
 
+def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
+    """Live recordings only. yt-dlp writes a live stream to a single MPEG-TS
+    {job_id}.<ext>.part file, which stays playable even when the process is killed
+    mid write. Turn it into a normal file with a stream copy so a stopped or
+    failed recording is kept instead of deleted. Returns the new path, or None
+    when there is nothing usable (no single .part, ffmpeg missing, ffmpeg fails).
+    More than one .part means yt-dlp downloaded the formats separately, which a
+    stream copy cannot rejoin, so that case is left alone."""
+    dst = None
+    try:
+        parts = [p for p in glob.glob(str(Path(out_dir) / f"{job_id}.*.part")) if os.path.getsize(p) > 0]
+        if len(parts) != 1 or not Path(ffmpeg).exists():
+            return None
+        dst = str(Path(out_dir) / (f"{job_id}.m4a" if audio_only else f"{job_id}{want_ext}"))
+        cmd = [str(ffmpeg), "-v", "error", "-y", "-i", parts[0]]
+        cmd += ["-vn", "-c:a", "copy"] if audio_only else ["-c", "copy"]
+        if dst.endswith((".mp4", ".m4a")):
+            cmd += ["-movflags", "+faststart"]
+        r = _run(*cmd, dst, timeout=600)
+        if r.returncode == 0 and os.path.exists(dst) and os.path.getsize(dst) > 0:
+            return dst
+    except Exception:
+        pass
+    if dst:
+        try: os.remove(dst)
+        except OSError: pass
+    return None
+
 def _cleanup(job_id, out_dir):
     for f in glob.glob(str(Path(out_dir) / f"{job_id}.*")):
         try: os.remove(f)
@@ -1705,7 +1771,8 @@ def get_info():
                         "duration": info.get("duration"),
                         "uploader": info.get("uploader") or info.get("channel") or "",
                         "formats": _build_formats(info), "audio_formats": _build_audio_formats(info),
-                        "width": info.get("width"), "height": info.get("height")})
+                        "width": info.get("width"), "height": info.get("height"),
+                        "is_live": bool(info.get("is_live"))})
     except subprocess.TimeoutExpired: return jsonify({"error": "Timed out",
                                                       "error_key": "fetch.error.timeout"}), 400
     except Exception as e: return jsonify({"error": str(e),
@@ -1773,7 +1840,8 @@ def start_download():
         jobs[job_id] = {"status": "queued", "url": url,
                         "title": data.get("title",""), "proc": None, "cancelled": False,
                         "download_dir": dl_dir, "format": data.get("format", "video"),
-                        "thumbnail": data.get("thumbnail", "")}
+                        "thumbnail": data.get("thumbnail", ""),
+                        "live": bool(data.get("is_live"))}
     threading.Thread(target=_run_download_slot,
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
@@ -1807,6 +1875,22 @@ def cancel_download(job_id):
     # to remove the card before the file cleanup is complete.
     return jsonify({"success": True})
 
+@app.route("/api/stop/<job_id>", methods=["POST"])
+def stop_and_keep(job_id):
+    """Live recordings only: stop the download but keep what was captured
+    (cancel_download throws it away). The worker thread salvages the partial
+    file after the process is dead, same hand off as cancel."""
+    with _jobs_lock:
+        job = jobs.get(job_id)
+        if not job: return jsonify({"error": "Job not found"}), 404
+        if not job.get("live") or job.get("status") != "downloading":
+            return jsonify({"error": "Not a live recording in progress"}), 400
+        job["stop_keep"] = True
+        proc = job.get("proc")
+    if proc:
+        _kill_proc(proc)
+    return jsonify({"success": True})
+
 @app.route("/api/status/<job_id>")
 def check_status(job_id):
     with _jobs_lock:
@@ -1818,6 +1902,10 @@ def check_status(job_id):
                 "speed": job.get("speed", ""), "eta": job.get("eta", ""),
                 "filesize": job.get("filesize", ""),
                 "encoder": job.get("encoder") if status == "converting" else None}
+        if job.get("live"):
+            resp["live_time"] = job.get("live_time", ""); resp["live_size"] = job.get("live_size", "")
+        if job.get("warning_key"):
+            resp["warning"] = job.get("warning", ""); resp["warning_key"] = job["warning_key"]
         # Remove completed jobs from memory once the UI has consumed the result.
         if status in ("done", "error", "cancelled") and job.get("_ack"):
             jobs.pop(job_id, None)
