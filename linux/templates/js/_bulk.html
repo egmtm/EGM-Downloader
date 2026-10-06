@@ -60,6 +60,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     reportActivity();   // engage the shell state (bar/badge/sleep blocker) immediately, not at the first poll tick
     setBadge(stEl, 'dl', i18nGet('card.status.queued_ellipsis') || 'Queued...');
     dlBtn.disabled = true;
+    dlBtn.style.display = 'none';   // same as a single download: the dimmed button only took space from the status and Cancel
     if (progEl) progEl.style.display = '';
 
     let cancelBtn = document.getElementById('cancel' + n);

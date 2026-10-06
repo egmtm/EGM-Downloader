@@ -9,6 +9,8 @@ v1.5.0 - TBD (Build TBD) (TBD)
   • [ALL] Changed: Subscriptions export and import now carry each subscription's own settings (download folder, format, quality, auto fetch and SponsorBlock), not just the links. Older export files still import.
   • [ALL] Changed: Improved wording in nine languages (Spanish, Arabic, German, French, Italian, Japanese, Dutch, Portuguese and Russian).
   • [ALL] Fixed: The message shown when you stop fetching a playlist is now translated.
+  • [ALL] Fixed: A video card no longer shows a broken image when its thumbnail cannot be loaded. Other thumbnails from the same video are tried, then the usual placeholder is shown.
+  • [ALL] Changed: The status and Cancel buttons of a downloading card now start at the left edge, so a long status such as a live recording does not push Cancel onto a second line. Download all no longer leaves the dimmed Download button on started cards.
 
 v1.4.7 - JUST ANOTHER UPDATE IV (Build 161) (9/30/2026)
 -----------------------------------------

@@ -1004,6 +1004,21 @@ def _safe_thumb_url(url) -> str:
         return ""
     return url
 
+def _thumb_candidates(info, limit=8):
+    """Thumbnail URLs for the page to try in order: the one yt-dlp chose first,
+    then its other entries, best first. Some live streams point at an image
+    that does not exist yet, so the page needs a next one to try. https only
+    (the page's CSP allows https images only) and the same breakout character
+    checks as _safe_thumb_url."""
+    urls = []
+    for cand in [info.get("thumbnail")] + [t.get("url") for t in reversed(info.get("thumbnails") or []) if isinstance(t, dict)]:
+        u = _safe_thumb_url(cand)
+        if u.startswith("https://") and u not in urls:
+            urls.append(u)
+            if len(urls) >= limit:
+                break
+    return urls
+
 _VIDEO_ID_RE = _re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 
 def _safe_video_id(vid) -> str:
@@ -1821,6 +1836,7 @@ def get_info():
                                    "error_key": "fetch.error.no_metadata"}), 400
         info = json.loads(jl)
         return jsonify({"title": info.get("title",""), "thumbnail": info.get("thumbnail",""),
+                        "thumbnails": _thumb_candidates(info),
                         "duration": info.get("duration"),
                         "uploader": info.get("uploader") or info.get("channel") or "",
                         "formats": _build_formats(info), "audio_formats": _build_audio_formats(info),

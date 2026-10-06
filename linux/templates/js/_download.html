@@ -145,6 +145,11 @@ function updateQueueArrows() {
   allCards.forEach(card => {
     if (idleCards.includes(card)) return;
     card.querySelectorAll('.qarrow').forEach(b => { b.style.visibility = 'hidden'; });
+    // Hidden arrows still take their width, which pushed the status badge away
+    // from the left edge and made the controls row wrap early. A card that has
+    // left the idle queue never gets them back, so drop the space as well.
+    const wrap = card.querySelector('[id^="qarrows"]');
+    if (wrap) wrap.style.display = 'none';
   });
   idleCards.forEach((card, pos) => {
     const wrap = card.querySelector('[id^="qarrows"]');
@@ -163,8 +168,26 @@ function renderErr(el, url, msg, i18nKey) {
     <div class="vmeta"><span class="badge b-error">${esc((i18nGet('fetch.error.prefix') || 'Error') + ': ' + shown)}</span></div></div>`;
 }
 
+// Shown when a video has no thumbnail, or when none of its thumbnails will load.
+const THUMB_PLACEHOLDER = `<div class="noimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
+
+// A thumbnail that fails to load (some live streams point at an image that does
+// not exist yet) tries the next candidate, then falls back to the placeholder
+// instead of leaving a broken image icon on the card.
+function wireThumbFallback(img, rest) {
+  const queue = (rest || []).slice();
+  img.addEventListener('error', () => {
+    const next = queue.shift();
+    if (next) { img.src = next; return; }
+    const ph = document.createElement('div');
+    ph.innerHTML = THUMB_PLACEHOLDER;
+    img.replaceWith(ph.firstElementChild);
+  });
+}
+
 function renderCard(el, item) {
   const info = item.info, n = item.id;
+  const thumbs = (info.thumbnails && info.thumbnails.length) ? info.thumbnails : (info.thumbnail ? [info.thumbnail] : []);
   const dur  = info.duration ? fmtDur(info.duration) : '';
   // Add a "may be slower" tooltip on high-resolution options (≥1440p)
   // since CDN throttling on high-res streams is common but legitimate.
@@ -183,7 +206,7 @@ function renderCard(el, item) {
   el.innerHTML = `
     <button class="vcard-remove" title="${i18nAttr('tooltip.card.remove', 'Remove')}" data-id="${n}">✕</button>
     <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
-      ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`}
+      ${thumbs.length ? `<img src="${esc(thumbs[0])}" alt="" loading="lazy">` : THUMB_PLACEHOLDER}
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
     </div>
     <div class="vbody">
@@ -230,6 +253,9 @@ function renderCard(el, item) {
       </div>
       <div class="prog" id="prog${n}" style="display:none"><div class="prog-inner indeterminate"></div></div>
     </div>`;
+
+  const thumbImg = el.querySelector('.thumb img');
+  if (thumbImg) wireThumbFallback(thumbImg, thumbs.slice(1));
 
   // Remove button
   el.querySelector('.vcard-remove').addEventListener('click', () => removeItem(item.id, el));
