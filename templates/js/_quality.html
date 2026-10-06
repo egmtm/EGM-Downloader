@@ -452,7 +452,7 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
         try { localStorage.setItem('egm-theme', settingsToImport.theme); } catch {}
       }
 
-      let subCount = 0;
+      let subCount = 0, folderSkipped = 0;
       if (sel.subscriptions && subEntries.length > 0) {
         try {
           const existing = await fetch('/api/subscriptions').then(r => r.json());
@@ -472,18 +472,20 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
               // fails, the subscription itself was still added successfully above,
               // just with default settings rather than the exported ones.
               if (newId) {
-                await fetch('/api/subscriptions/update', {
+                const update = (fields) => fetch('/api/subscriptions/update', {
                   method: 'POST', headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({
-                    id: newId,
-                    download_folder: entry.download_folder || null,
-                    format: entry.format || 'video',
-                    quality: entry.quality || 'best',
-                    auto_fetch_on_open: !!entry.auto_fetch_on_open,
-                    sponsorblock_enabled: !!entry.sponsorblock_enabled,
-                    sponsorblock_categories: Array.isArray(entry.sponsorblock_categories) ? entry.sponsorblock_categories : [],
-                  })
+                  body: JSON.stringify({ id: newId, ...fields })
+                }).then(r => r.ok).catch(() => false);
+                await update({
+                  format: entry.format || 'video',
+                  quality: entry.quality || 'best',
+                  auto_fetch_on_open: !!entry.auto_fetch_on_open,
+                  sponsorblock_enabled: !!entry.sponsorblock_enabled,
+                  sponsorblock_categories: Array.isArray(entry.sponsorblock_categories) ? entry.sponsorblock_categories : [],
                 });
+                // The folder goes in its own call: a folder from another computer is usually not
+                // valid here, and the server refuses the whole update when it is not.
+                if (entry.download_folder && !(await update({ download_folder: entry.download_folder }))) folderSkipped++;
               }
               subCount++;
             } catch {}
@@ -494,7 +496,8 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
       // Japanese counter words attach directly to the number (e.g. "3件"),
       // unlike the space-separated convention every other locale uses here.
       const subNoteSep = (I18N.code === 'ja') ? '' : ' ';
-      const parts = [msg, subCount>0?`${subCount}${subNoteSep}${i18nGet('toast.quality.reset_subscriptions_note') || 'subscriptions (re-fetch to load videos)'}`:null].filter(Boolean).join(' + ');
+      const parts = [msg, subCount>0?`${subCount}${subNoteSep}${i18nGet('toast.quality.reset_subscriptions_note') || 'subscriptions (re-fetch to load videos)'}`:null,
+                     folderSkipped>0?(i18nFmt('toast.quality.folders_skipped', folderSkipped) || `Download folders not restored (not valid on this computer): ${folderSkipped}`):null].filter(Boolean).join(' + ');
       toast(`${parts || (i18nGet('toast.quality.nothing_selected') || 'Nothing selected')} — reloading…`, parts ? 'ok' : 'err');
       if (parts) setTimeout(() => location.reload(), 800);
     } catch { toast(i18nGet('settings.import.error') || 'Could not import settings — file may not be valid settings JSON', 'err'); }

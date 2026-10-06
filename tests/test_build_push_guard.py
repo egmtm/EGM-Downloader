@@ -122,6 +122,21 @@ def test_untracked_file_blocks_the_commit(repo, rel, osname):
 
 
 @pytest.mark.parametrize("rel,osname", SCRIPTS)
+def test_a_new_file_that_is_already_staged_blocks_the_commit(repo, rel, osname):
+    """`git add -u` does not stage new files, but one a person already staged is in the
+    index and would go out with the commit, so it blocks like an untracked file."""
+    work, remote = repo
+    before = _remote_head(remote)
+    (work / "tracked.txt").write_text("two\n")
+    (work / "added_by_hand.txt").write_text("staged but never reviewed\n")
+    _git(work, "add", "added_by_hand.txt")
+    r = _run(rel, work)
+    assert r.returncode == 0, "the build must still finish"
+    assert "added_by_hand.txt" in r.stdout
+    assert _remote_head(remote) == before
+
+
+@pytest.mark.parametrize("rel,osname", SCRIPTS)
 def test_non_main_branch_is_left_alone(repo, rel, osname):
     work, remote = repo
     _git(work, "checkout", "-b", "testing/v9")

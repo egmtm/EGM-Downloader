@@ -531,7 +531,9 @@ cd "$REPO_ROOT"
 # of the actual release process, once the release is genuinely confirmed
 # shipped -- not automatically here.
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-UNTRACKED="$(git ls-files --others --exclude-standard)"
+# A new file that was already "git add"ed is in the index, not untracked, and would be
+# committed by the step below, so it is listed with the untracked ones.
+UNTRACKED="$(git ls-files --others --exclude-standard; git diff --cached --name-only --diff-filter=A)"
 if ! git status --porcelain | grep -q .; then
     echo "   ✓ No source changes to commit (binaries are gitignored)"
 elif [ "$BRANCH" != "main" ]; then
@@ -543,7 +545,7 @@ elif [ "$BRANCH" != "main" ]; then
 elif [ -n "$UNTRACKED" ]; then
     # git add would sweep a stray file into a public commit. Tracked changes
     # alone are committed automatically; anything untracked needs a human look.
-    echo "   ⚠ Skipping the automatic commit and push: untracked files are present."
+    echo "   ⚠ Skipping the automatic commit and push: untracked files are present (or new files are staged)."
     echo "     Review them, then commit and push by hand if they belong:"
     echo "$UNTRACKED" | sed 's/^/       /'
 else

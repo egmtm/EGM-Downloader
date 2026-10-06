@@ -407,6 +407,19 @@ def test_download_dir_rejects_bad_input(app_mod):
         ok, _, err = app_mod._validate_download_dir(bad)
         assert not ok, f"Should reject bad input: {bad!r}"
 
+def test_download_dir_must_be_a_full_path(app_mod):
+    """A relative path, or a Windows path read on mac or linux (which is just a relative name there),
+    would resolve under the app's working directory and be accepted. Imported settings and
+    subscription exports can carry such values from another computer."""
+    import os
+    # a drive letter path is a full path on Windows itself, so that case only applies elsewhere
+    for bad in ["downloads", "./x", ".."] + ([] if os.name == "nt" else [r"C:\Users\alice\Videos"]):
+        ok, resolved, err = app_mod._validate_download_dir(bad)
+        assert not ok and not resolved, f"relative looking path accepted: {bad!r}"
+        assert "full path" in err
+    for rel in ("app.py", "linux/app.py", "mac/app.py"):
+        assert "must be a full path" in read_source(rel), rel
+
 def test_download_dir_accepts_valid_writable(app_mod):
     """A valid, writable directory must pass and return the resolved path."""
     import tempfile

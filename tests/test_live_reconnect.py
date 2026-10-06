@@ -181,6 +181,39 @@ def test_av_note_logs_each_streams_start_and_length_and_never_raises(app_module,
     assert len(logged) == 1, "nothing logged when there is nothing to report, and no exception"
 
 
+def _make_mp4_sized(path, size, rate=25):
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-f", "lavfi", "-i", f"testsrc=size={size}:rate={rate}",
+                    "-f", "lavfi", "-i", "sine=frequency=440", "-t", "2", "-c:v", "libx264", "-c:a", "aac", str(path)], check=True)
+
+
+@needs_ffmpeg
+def test_join_refuses_pieces_whose_video_size_or_codec_changed(app_module, tmp_path):
+    """A stream copy writes one header for the whole file; the first piece's size would be declared
+    for a later piece that is bigger. (Measured: ffmpeg joins them without complaint.)"""
+    a, b = tmp_path / "j.mp4", tmp_path / "j_r2.mp4"
+    _make_mp4_sized(a, "320x180"); _make_mp4_sized(b, "640x360")
+    before = a.read_bytes()
+    assert app_module._live_join("j", tmp_path, [str(a), str(b)], FFMPEG) is False
+    assert a.read_bytes() == before and not (tmp_path / "j_join.mp4").exists()
+    _make_mp4_sized(b, "320x180")
+    assert app_module._live_join("j", tmp_path, [str(a), str(b)], FFMPEG) is True
+
+
+@needs_ffmpeg
+def test_join_signature_ignores_cover_art_but_sees_audio_changes(app_module, tmp_path):
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-f", "lavfi", "-i", "color=c=red:s=64x64:d=1", "-frames:v", "1", str(tmp_path / "c.png")], check=True)
+    plain, art, stereo = tmp_path / "a.m4a", tmp_path / "b.m4a", tmp_path / "c.m4a"
+    base = [FFMPEG, "-v", "error", "-y", "-f", "lavfi", "-i", "sine=frequency=440:duration=1"]
+    subprocess.run(base + ["-c:a", "aac", str(plain)], check=True)
+    subprocess.run(base + ["-i", str(tmp_path / "c.png"), "-map", "0:a", "-map", "1:v", "-c:a", "aac", "-c:v", "copy",
+                           "-disposition:v:0", "attached_pic", str(art)], check=True)
+    subprocess.run(base + ["-ac", "2", "-c:a", "aac", str(stereo)], check=True)
+    sig = lambda p: app_module._live_signature(FFMPEG, p)
+    assert sig(plain) and sig(plain) == sig(art), "a cover picture is not a stream difference"
+    assert sig(plain) != sig(stereo)
+    assert sig(tmp_path / "missing.m4a") is None
+
+
 # ── the driver loop, with the yt-dlp runs replaced ───────────────────────────
 class _Rig:
     """Stands in for yt-dlp: `lives` answers the probes in order, `captures` says what each
@@ -280,10 +313,33 @@ def test_a_run_that_records_nothing_ends_the_retries(app_module, monkeypatch, tm
     assert rig.job["warning_key"] == "download.warning.live_partial"
 
 
-def test_a_failed_join_still_keeps_the_first_piece_and_says_so(app_module, monkeypatch, tmp_path):
+def test_a_failed_join_keeps_every_piece_and_says_so(app_module, monkeypatch, tmp_path):
+    for n, body in (("j.mp4", b"first"), ("j_r2.mp4", b"second"), ("j_r2.mp4.part", b"")):
+        (tmp_path / n).write_bytes(body)
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, False], captures=["j_r2.mp4"], join_ok=False)
+    rig.job["title"] = "My Stream"
     assert rig.run() == "saved"
-    assert rig.job["warning_key"] == "download.warning.live_partial"
+    assert rig.job["warning_key"] == "download.warning.live_parts"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["My Stream (part 2).mp4", "j.mp4"], \
+        "the second piece survives under a readable name, the empty leftover is cleaned"
+    assert (tmp_path / "My Stream (part 2).mp4").read_bytes() == b"second"
+
+
+def test_kept_parts_never_overwrite_a_file_that_is_already_there(app_module, tmp_path):
+    for n, body in (("j.mp4", b"1"), ("j_r2.mp4", b"2"), ("j_r3.mp4", b"3"), ("Title (part 2).mp4", b"not ours")):
+        (tmp_path / n).write_bytes(body)
+    app_module._live_keep_parts({"title": "Title"}, "j", tmp_path, [str(tmp_path / n) for n in ("j.mp4", "j_r2.mp4", "j_r3.mp4")])
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["Title (part 2) (1).mp4", "Title (part 2).mp4", "Title (part 3).mp4", "j.mp4"]
+    assert (tmp_path / "Title (part 2).mp4").read_bytes() == b"not ours"
+    assert (tmp_path / "Title (part 2) (1).mp4").read_bytes() == b"2"
+
+
+def test_a_retry_that_records_nothing_leaves_nothing_behind_in_the_download_folder(app_module, monkeypatch, tmp_path):
+    (tmp_path / "j.mp4").write_bytes(b"first")
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True], captures=[None], attempt_rc=1)
+    monkeypatch.setattr(app_module, "_run_live_attempt", lambda job, *a: ((tmp_path / "j_r2.mp4.part").write_bytes(b""), 1)[1])
+    assert rig.run() == "saved"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["j.mp4"]
 
 
 def test_stop_and_save_never_asks_or_retries(app_module, monkeypatch, tmp_path):
@@ -327,6 +383,13 @@ def test_status_shows_the_reconnect_counter_only_while_reconnecting(app_module):
     assert "live_reconnecting" not in off and "live_retries_max" not in off
 
 
+def test_cleanup_removes_the_job_files_and_the_extra_pieces_only(app_module, tmp_path):
+    for n in ("j.mp4", "j.mp4.part", "j_r2.mp4", "j_r3.mp4.part", "j_join.txt", "jj.mp4", "other.mp4"):
+        (tmp_path / n).write_bytes(b"x")
+    app_module._cleanup("j", tmp_path)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["jj.mp4", "other.mp4"]
+
+
 def test_cleanup_also_removes_the_extra_pieces():
     for p in PLATFORM_APP_FILES:
         s = read_source(p)
@@ -345,3 +408,4 @@ def test_the_reconnect_and_gap_strings_exist_in_every_locale():
             strings = json.load(fh)["strings"]
         assert "{0}" in strings["card.status.reconnecting"] and "{1}" in strings["card.status.reconnecting"], f
         assert strings["download.warning.live_gap"].strip(), f
+        assert strings["download.warning.live_parts"].strip(), f

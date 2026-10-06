@@ -1054,6 +1054,10 @@ def _validate_download_dir(dl_dir):
     """
     if not dl_dir or not isinstance(dl_dir, str) or not dl_dir.strip():
         return False, "", "No download directory provided."
+    if not Path(os.path.expanduser(dl_dir)).is_absolute():
+        # A relative path (or a Windows path read on mac or linux) would resolve under the
+        # app's own working directory and be accepted.
+        return False, "", "Download directory must be a full path."
     try:
         p = Path(dl_dir).expanduser().resolve()
     except (OSError, RuntimeError, ValueError):
@@ -1702,7 +1706,18 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         else:
             want = ".mkv" if output_format == "mkv" else ".mp4"
         preferred = [f for f in files if f.endswith(want)]
-        chosen    = preferred[0] if preferred else files[0]
+        # A saved live recording is delivered as _live_finish left it. Without this,
+        # a live AUDIO job that was stopped or interrupted had no file matching
+        # `want` (the salvage is .m4a), so files[0] -- directory order -- could be
+        # the thumbnail or the leftover .part, and the loop below deleted every
+        # other file, the recording included. Outside that case, still prefer a
+        # media file over thumbnails and partials when the extension finds nothing.
+        live_file = job.get("_live_file")
+        media     = [f for f in files if Path(f).suffix.lower() in _LIVE_MEDIA_EXTS]
+        if live_file in files:
+            chosen = live_file
+        else:
+            chosen = preferred[0] if preferred else (media[0] if media else files[0])
         for f in files:
             if f != chosen:
                 try: os.remove(f)
@@ -1780,7 +1795,11 @@ def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
         cmd += ["-vn", "-c:a", "copy"] if audio_only else ["-c", "copy"]
         if dst.endswith((".mp4", ".m4a")):
             cmd += ["-movflags", "+faststart"]
-        r = _run(*cmd, dst, timeout=600)
+        # A fixed 10 minutes is not enough for a long recording on a slow drive
+        # (a stream copy reads and writes every byte, +faststart writes it again),
+        # and a timed-out salvage made Stop and save delete the whole recording.
+        # Allow one second per 2 MiB on top.
+        r = _run(*cmd, dst, timeout=600 + os.path.getsize(parts[0]) // (2 * 1024 * 1024))
         if r.returncode == 0 and os.path.exists(dst) and os.path.getsize(dst) > 0:
             return dst
     except Exception:
@@ -1801,7 +1820,7 @@ _LIVE_MAX_RETRIES = 4
 _LIVE_UNKNOWN_WAITS = (2, 4, 8)   # seconds before asking again when the stream state is unclear
 _LIVE_STATS_RE = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
 _LIVE_NOTE_RE  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity", _re.I)
-_LIVE_URL_RE   = _re.compile(r"https?://[^\s'\"<>]+")
+_LIVE_URL_RE   = _re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s\"<>]+", _re.I)   # rtmp:// keys, tcp:// hosts too; a quote inside a link is swallowed
 _LIVE_OVER_RE  = _re.compile(r"not currently live|is offline|\boffline\b|has ended|stream ended|no longer live|not live", _re.I)
 _LIVE_PERMANENT = {"private", "unavailable", "members", "region", "premiere"}
 _LIVE_MEDIA_EXTS = {".mp4", ".mkv", ".m4a", ".mp3", ".flac", ".opus", ".wav", ".aac", ".ogg", ".webm"}
@@ -1920,6 +1939,26 @@ def _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only):
         return max(done, key=os.path.getsize)
     return _salvage_live_part(sid, out_dir, ffmpeg, want_ext, audio_only)
 
+def _live_signature(ffmpeg, path):
+    """What must match between the pieces of a recording for a stream copy join: codec
+    and size of the video, codec, sample rate and channels of the audio (cover art is
+    ignored). None when ffprobe cannot read the file."""
+    try:
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        r = _run(str(probe), "-v", "error", "-show_entries",
+                 "stream=codec_type,codec_name,width,height,sample_rate,channels",
+                 "-of", "compact=p=0", str(path), timeout=30)
+        sig = []
+        for row in (r.stdout or "").splitlines():
+            f = dict(kv.split("=", 1) for kv in row.strip().split("|") if "=" in kv)
+            if f.get("codec_type") == "video" and f.get("codec_name") not in ("mjpeg", "png", "bmp"):
+                sig.append(("v", f.get("codec_name"), f.get("width"), f.get("height")))
+            elif f.get("codec_type") == "audio":
+                sig.append(("a", f.get("codec_name"), f.get("sample_rate"), f.get("channels")))
+        return sorted(sig) or None
+    except Exception:
+        return None
+
 def _live_join(job_id, out_dir, segs, ffmpeg):
     """Join the pieces of an interrupted recording into the first piece's file with a
     stream copy (no re-encode). True when done; on any failure the first piece is left
@@ -1928,6 +1967,9 @@ def _live_join(job_id, out_dir, segs, ffmpeg):
     ext = first.suffix
     if not Path(ffmpeg).exists() or any(Path(s).suffix.lower() != ext.lower() for s in segs):
         return False
+    sigs = [_live_signature(ffmpeg, s) for s in segs]
+    if None in sigs or any(g != sigs[0] for g in sigs[1:]):
+        return False   # a copy join writes one header, so pieces that differ cannot share a file
     lst = Path(out_dir) / f"{job_id}_join.txt"
     tmp = Path(out_dir) / f"{job_id}_join{ext}"
     ok = False
@@ -1963,6 +2005,18 @@ def _live_av_note(ffmpeg, label, path):
             _egm_log(f"live recording A/V ({label}, type|start|duration): " + "; ".join(rows))
     except Exception:
         pass
+
+def _live_keep_parts(job, job_id, out_dir, segs):
+    """The pieces could not be joined: keep every later piece as its own file next to the
+    first one ("<title> (part 2).mp4") instead of deleting recorded video."""
+    title = (job.get("title") or "").strip() or job_id
+    for n, p in enumerate(segs[1:], 2):
+        ext = Path(p).suffix
+        dst, k = Path(out_dir) / _safe_filename(f"{title} (part {n})", ext), 1
+        while dst.exists():
+            dst = Path(out_dir) / _safe_filename(f"{title} (part {n}) ({k})", ext); k += 1
+        try: os.replace(p, dst)
+        except OSError: pass
 
 def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
     """After the first yt-dlp run of a live job has ended (any exit code): keep what was
@@ -2021,14 +2075,20 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
             job["warning"] = "The stream was interrupted and reconnected. A few seconds may be missing or repeated."
             job["warning_key"] = "download.warning.live_gap"
         else:
-            job["warning"] = "The recording ended early. Saved what was captured."
-            job["warning_key"] = "download.warning.live_partial"
-        for p in glob.glob(str(Path(out_dir) / f"{job_id}_*")):
-            try: os.remove(p)
-            except OSError: pass
+            _live_keep_parts(job, job_id, out_dir, segs)
+            job["warning"] = "The recording could not be joined into one file, so it was saved in separate parts."
+            job["warning_key"] = "download.warning.live_parts"
     elif rc != 0 and not job.get("stop_keep"):
         job["warning"] = "The recording ended early. Saved what was captured."
         job["warning_key"] = "download.warning.live_partial"
+    # Whatever is left of the retry runs ({job_id}_r2.mp4.part, the thumbnail an audio
+    # job writes for --embed-thumbnail, the joined pieces) is removed here.
+    for p in glob.glob(str(Path(out_dir) / f"{job_id}_*")):
+        try: os.remove(p)
+        except OSError: pass
+    # run_download delivers exactly this file. Picking by extension alone fails for
+    # audio: the salvage is an .m4a stream copy whatever audio format was chosen.
+    job["_live_file"] = segs[0]
     _live_av_note(ffmpeg, "saved", segs[0])
     return "saved"
 
@@ -2284,8 +2344,19 @@ def save_settings():
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
-            try: Path(folder).mkdir(parents=True, exist_ok=True)
-            except Exception: pass
+            # Same check as every other download folder, and BEFORE anything touches
+            # the disk: this route also receives the whole settings object of an
+            # imported export file, which can come from anyone. The old code created
+            # the directory first, never validated it, and stored the raw value of
+            # any type -- and the startup cleanup deletes files in the stored folder.
+            ok, resolved, _err = (_validate_download_dir(folder) if isinstance(folder, str)
+                                  else (False, "", ""))
+            if ok:
+                try: Path(resolved).mkdir(parents=True, exist_ok=True)
+                except Exception: pass
+                data["last_folder"] = resolved
+            else:
+                data.pop("last_folder", None)
     # Sanitize favorites / random-theme settings — defense-in-depth (the UI already
     # validates, but never trust client input). Keep only valid theme keys, capped.
     if "favorite_themes" in data:
@@ -3528,6 +3599,28 @@ def shutdown():
     threading.Thread(target=_do_shutdown, daemon=True).start()
     return jsonify({"ok": True})
 
+def _cleanup_orphan_partials(last_folder):
+    """Remove this app's own *.part / *.ytdl leftovers from a crashed session.
+    Only job files -- {job_id}.* or {job_id}_r2.*, job_id being 10 hex digits.
+    A bare *.part also matched other programs' in-progress downloads (Firefox
+    writes *.part into the same Downloads folder), and last_folder can arrive
+    from an imported settings file. *.f*.mp4 / *.f*.webm stay excluded as too
+    broad for a user download folder. Never raises."""
+    try:
+        if not last_folder or not isinstance(last_folder, str):
+            return
+        dl_path = Path(last_folder)
+        if not dl_path.is_dir():
+            return
+        for pattern in ("*.part", "*.ytdl"):
+            for f in dl_path.glob(pattern):
+                if not _re.match(r"[0-9a-f]{10}[._]", f.name):
+                    continue
+                try: f.unlink()
+                except Exception: pass
+    except Exception:
+        pass
+
 if __name__ == "__main__":
     # Clean up any leftover update temp files from a previous update
     try:
@@ -3537,17 +3630,7 @@ if __name__ == "__main__":
         pass
 
     # Clean up any orphaned .part and .ytdl files left by a crashed session
-    try:
-        last_folder = _load_settings().get("last_folder", "")
-        if last_folder:
-            dl_path = Path(last_folder)
-            if dl_path.is_dir():
-                for pattern in ("*.part", "*.ytdl"):  # *.f*.mp4 and *.f*.webm removed — too broad for user download folder
-                    for f in dl_path.glob(pattern):
-                        try: f.unlink()
-                        except Exception: pass
-    except Exception:
-        pass
+    _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
 
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
     # Electron launches Flask with PORT in the env and then polls that exact port.

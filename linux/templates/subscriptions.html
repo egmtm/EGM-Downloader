@@ -838,6 +838,9 @@ function startQuitCountdown() {
   const tick = () => {
     if (left <= 0) {
       stopQuitCountdown();
+      // whenIdle only counts OTHER windows, so a download this window started in
+      // the last poll interval (1.5 s) would be cut off; the poll loop re-arms.
+      if (hasActiveDownloads()) return;
       // The main process refuses (busy) if the main window started downloading
       // during the countdown; the toggle stays on and the poll loop re-checks.
       window.electronAPI.quit({ whenIdle: true });

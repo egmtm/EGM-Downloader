@@ -130,3 +130,18 @@ test("the choice is never saved", async () => {
   assert.equal(t.w.localStorage.length, 0);
   assert.equal(t.w.sessionStorage.length, 0);
 });
+
+test("a download queued in the last second of the countdown is not cut off", async () => {
+  // whenIdle only counts OTHER windows, and pollJobs (every 1.5 s) is what
+  // notices a new job here -- so a job added between the last poll and the
+  // final tick reached the quit call while it was still running.
+  const t = await armedQueue();
+  t.status.j1 = "done";
+  await t.poll(); await settle();
+  const id = t.w.eval("_quitTimer");
+  for (let i = 0; i < 9; i++) t.tick(id);
+  t.addJob("v2", "j2");                 // queued, no poll before the final tick
+  t.tick(id);
+  assert.equal(realQuits(t).length, 0, "must not quit while this window has a running job");
+  assert.equal(armed(t), true, "the toggle stays on so the poll loop re-arms");
+});
