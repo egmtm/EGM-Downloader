@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-03",
+  "_last_updated": "2026-10-05",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & 他{0}サイト",
@@ -228,7 +228,7 @@
     "subscriptions.queue.title": "ダウンロードキュー",
     "subscriptions.queue.short": "キュー",
     "subscriptions.queue.active": "{0} 件アクティブ",
-    "subscriptions.queue.quitting_in": "Quitting in {0}s",
+    "subscriptions.queue.quitting_in": "{0}秒後に終了します",
     "subscriptions.detail.videos_count": "{0} 本の動画",
     "subscriptions.detail.last_fetched": " · 最終取得: {0}",
     "subscriptions.detail.autofetch": "開いたときに自動取得",

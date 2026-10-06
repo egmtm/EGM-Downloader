@@ -228,7 +228,7 @@
     "subscriptions.queue.title": "Очередь загрузок",
     "subscriptions.queue.short": "Очередь",
     "subscriptions.queue.active": "{0} активно",
-    "subscriptions.queue.quitting_in": "Quitting in {0}s",
+    "subscriptions.queue.quitting_in": "Закрытие через {0} с",
     "subscriptions.detail.videos_count": "{0} видео",
     "subscriptions.detail.last_fetched": " · Последнее получение: {0}",
     "subscriptions.detail.autofetch": "Автополучение при открытии",

@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-03",
+  "_last_updated": "2026-10-05",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo e mais {0} sites",
@@ -228,7 +228,7 @@
     "subscriptions.queue.title": "Fila de download",
     "subscriptions.queue.short": "Fila",
     "subscriptions.queue.active": "{0} ativos",
-    "subscriptions.queue.quitting_in": "Quitting in {0}s",
+    "subscriptions.queue.quitting_in": "Fechando em {0} s",
     "subscriptions.detail.videos_count": "{0} vídeos",
     "subscriptions.detail.last_fetched": " · Última obtenção: {0}",
     "subscriptions.detail.autofetch": "Obter automaticamente ao abrir",
