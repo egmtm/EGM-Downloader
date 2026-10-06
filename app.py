@@ -1951,6 +1951,19 @@ def _live_join(job_id, out_dir, segs, ffmpeg):
         except OSError: pass
     return ok
 
+def _live_av_note(ffmpeg, label, path):
+    """One debug log line with where each stream of a live recording starts and how long it is,
+    for chasing audio and video sync reports. Never raises."""
+    try:
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        r = _run(str(probe), "-v", "error", "-show_entries", "stream=codec_type,start_time,duration",
+                 "-of", "compact=nk=1:p=0", str(path), timeout=30)
+        rows = [l.strip() for l in (r.stdout or "").splitlines() if l.strip()]
+        if rows:
+            _egm_log(f"live recording A/V ({label}, type|start|duration): " + "; ".join(rows))
+    except Exception:
+        pass
+
 def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
     """After the first yt-dlp run of a live job has ended (any exit code): keep what was
     captured and, when the stream is still live and the user did not stop it, record
@@ -2002,6 +2015,8 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
     if len(segs) > 1:
         job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
         job.pop("progress", None)
+        for n, s in enumerate(segs, 1):
+            _live_av_note(ffmpeg, f"piece {n}", s)
         if _live_join(job_id, out_dir, segs, ffmpeg):
             job["warning"] = "The stream was interrupted and reconnected. A few seconds may be missing or repeated."
             job["warning_key"] = "download.warning.live_gap"
@@ -2014,6 +2029,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
     elif rc != 0 and not job.get("stop_keep"):
         job["warning"] = "The recording ended early. Saved what was captured."
         job["warning_key"] = "download.warning.live_partial"
+    _live_av_note(ffmpeg, "saved", segs[0])
     return "saved"
 
 def _cleanup(job_id, out_dir):

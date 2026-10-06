@@ -169,6 +169,18 @@ def test_join_fails_when_the_result_is_shorter_than_the_pieces(app_module, monke
     assert app_module._live_join("j", tmp_path, [str(a), str(b)], FFMPEG) is True
 
 
+@needs_ffmpeg
+def test_av_note_logs_each_streams_start_and_length_and_never_raises(app_module, monkeypatch, tmp_path):
+    _make_mp4(tmp_path / "a.mp4", 2)
+    logged = []
+    monkeypatch.setattr(app_module, "_egm_log", logged.append)
+    app_module._live_av_note(FFMPEG, "saved", tmp_path / "a.mp4")
+    assert len(logged) == 1 and "(saved," in logged[0] and "video|" in logged[0] and "audio|" in logged[0]
+    app_module._live_av_note(FFMPEG, "x", tmp_path / "missing.mp4")
+    app_module._live_av_note(tmp_path / "no-ffmpeg", "x", tmp_path / "a.mp4")
+    assert len(logged) == 1, "nothing logged when there is nothing to report, and no exception"
+
+
 # ── the driver loop, with the yt-dlp runs replaced ───────────────────────────
 class _Rig:
     """Stands in for yt-dlp: `lives` answers the probes in order, `captures` says what each
@@ -182,6 +194,8 @@ class _Rig:
         monkeypatch.setattr(app_module, "_run_live_attempt", self.attempt)
         monkeypatch.setattr(app_module, "_live_collect", self.collect)
         monkeypatch.setattr(app_module, "_live_join", self.join)
+        self.notes = []
+        monkeypatch.setattr(app_module, "_live_av_note", lambda ff, label, path: self.notes.append(label))
 
     def wait(self, job, secs):
         self.waits.append(secs)
@@ -216,6 +230,7 @@ class _Rig:
 def test_a_clean_end_of_stream_is_not_retried(app_module, monkeypatch, tmp_path):
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[False], captures=[])
     assert rig.run(rc=0) == "saved"
+    assert rig.notes == ["saved"]
     assert rig.attempts == [] and rig.joined == [] and "warning_key" not in rig.job
 
 
@@ -234,6 +249,7 @@ def test_a_cut_stream_is_recorded_again_and_the_pieces_are_joined(app_module, mo
     assert job_then["live_reconnecting"] == 1 and job_then["live_retries_max"] == 4
     assert rig.joined == [[str(tmp_path / "j.mp4"), str(tmp_path / "j_r2.mp4")]]
     assert rig.job["warning_key"] == "download.warning.live_gap"
+    assert rig.notes == ["piece 1", "piece 2", "saved"], "the A/V numbers are logged for each piece and for the result"
     assert "live_reconnecting" not in rig.job and "live_retries_max" not in rig.job, "the card status is cleared"
 
 
