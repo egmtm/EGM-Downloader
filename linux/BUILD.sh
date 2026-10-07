@@ -101,8 +101,10 @@ echo ""
 # ── Install Python deps ───────────────────────────────────────────────────────
 echo "📚 Installing Python dependencies..."
 # Note: do NOT upgrade pip — pip 26 has a resolvelib regression that breaks installs
-"$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$LINUX_DIR/requirements.txt" 2>/dev/null || \
-"$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
+# PYTHONNOUSERSITE=1: pip must only see the bundled Python's own site-packages. Without it
+# a package in the host's user site (~/.local) counts as "already installed" and is left out of the AppImage.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$LINUX_DIR/requirements.txt" 2>/dev/null || \
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
 echo "   ✓ Dependencies installed"
 echo ""
 
