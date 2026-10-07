@@ -1600,7 +1600,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 _want = ".mkv" if output_format == "mkv" else ".mp4"
 
             # Clean temp/intermediate files; look for a usable main file
-            _all = glob.glob(str(out_dir / f"{job_id}.*"))
+            _all = glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*"))
             _temp_exts = {".vtt", ".webp", ".json", ".ytdl", ".part"}
             _main_file = None
             for _f in _all:
@@ -1641,7 +1641,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             job["_finished_at"] = time.time()
             return
 
-        files = glob.glob(str(out_dir / f"{job_id}.*"))
+        files = glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*"))
         if not files:
             job["status"] = "error"; job["error"] = "No output file found."; job["_finished_at"] = time.time(); return
 
@@ -1734,7 +1734,7 @@ def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
     stream copy cannot rejoin, so that case is left alone."""
     dst = None
     try:
-        parts = [p for p in glob.glob(str(Path(out_dir) / f"{job_id}.*.part")) if os.path.getsize(p) > 0]
+        parts = [p for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*.part")) if os.path.getsize(p) > 0]
         if len(parts) != 1 or not Path(ffmpeg).exists():
             return None
         dst = str(Path(out_dir) / (f"{job_id}.m4a" if audio_only else f"{job_id}{want_ext}"))
@@ -1879,7 +1879,7 @@ def _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only):
     """The recording of one yt-dlp run: the finished file when yt-dlp got to make one,
     otherwise the leftover .part turned into a normal file. None when the run captured
     nothing usable."""
-    done = [p for p in glob.glob(str(Path(out_dir) / f"{sid}.*"))
+    done = [p for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{sid}.*"))
             if Path(p).suffix.lower() in _LIVE_MEDIA_EXTS and ".temp." not in Path(p).name
             and not _re.search(r"\.f[\w-]+\.\w+$", Path(p).name) and os.path.getsize(p) > 0]
     if done:
@@ -2030,7 +2030,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         job["warning_key"] = "download.warning.live_partial"
     # Whatever is left of the retry runs ({job_id}_r2.mp4.part, the thumbnail an audio
     # job writes for --embed-thumbnail, the joined pieces) is removed here.
-    for p in glob.glob(str(Path(out_dir) / f"{job_id}_*")):
+    for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}_*")):
         try: os.remove(p)
         except OSError: pass
     # run_download delivers exactly this file. Picking by extension alone fails for
@@ -2041,7 +2041,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
 
 def _cleanup(job_id, out_dir):
     # {job_id}.* plus the extra pieces of an interrupted live recording ({job_id}_r2.*, {job_id}_join.*)
-    for f in glob.glob(str(Path(out_dir) / f"{job_id}.*")) + glob.glob(str(Path(out_dir) / f"{job_id}_*")):
+    for f in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*")) + glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}_*")):
         try: os.remove(f)
         except Exception: pass
 
