@@ -1505,7 +1505,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 _want = ".mkv" if output_format == "mkv" else ".mp4"
 
             # Clean temp/intermediate files; look for a usable main file
-            _all = glob.glob(str(out_dir / f"{job_id}.*"))
+            _all = glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*"))
             _temp_exts = {".vtt", ".webp", ".json", ".ytdl", ".part"}
             _main_file = None
             for _f in _all:
@@ -1547,7 +1547,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             job["_finished_at"] = time.time()
             return
 
-        files = glob.glob(str(out_dir / f"{job_id}.*"))
+        files = glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*"))
         if not files:
             job["status"] = "error"; job["error"] = "No output file found."; job["_finished_at"] = time.time(); return
 
@@ -1620,7 +1620,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["_finished_at"] = time.time()
 
 def _cleanup(job_id, out_dir):
-    for f in glob.glob(str(Path(out_dir) / f"{job_id}.*")):
+    for f in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*")):
         try: os.remove(f)
         except Exception: pass
 
