@@ -217,11 +217,13 @@ def test_join_signature_ignores_cover_art_but_sees_audio_changes(app_module, tmp
 # ── the driver loop, with the yt-dlp runs replaced ───────────────────────────
 class _Rig:
     """Stands in for yt-dlp: `lives` answers the probes in order, `captures` says what each
-    new run records (a file name, or None when it records nothing)."""
-    def __init__(self, app_module, monkeypatch, tmp_path, lives, captures, first="j.mp4", attempt_rc=0, join_ok=True):
+    new run records (a file name, or None when it records nothing). `run_s` is how many
+    seconds each new run records (one number, or one per run, the last one repeating)."""
+    def __init__(self, app_module, monkeypatch, tmp_path, lives, captures, first="j.mp4", attempt_rc=0, join_ok=True, run_s=0):
         self.am, self.tmp, self.lives, self.captures = app_module, tmp_path, list(lives), list(captures)
         self.waits, self.probes, self.attempts, self.joined, self.job = [], 0, [], [], {"live_time": "00:00:15", "live_size": "594KiB"}
         self.first, self.attempt_rc, self.join_ok = first, attempt_rc, join_ok
+        self.run_s = list(run_s) if isinstance(run_s, (list, tuple)) else [run_s]
         monkeypatch.setattr(app_module, "_live_wait", self.wait)
         monkeypatch.setattr(app_module, "_live_is_still_live", self.probe)
         monkeypatch.setattr(app_module, "_run_live_attempt", self.attempt)
@@ -240,6 +242,9 @@ class _Rig:
 
     def attempt(self, job, job_id, cmd, base_s, base_kib):
         self.attempts.append((cmd, base_s, base_kib, dict(job)))
+        secs = self.run_s[min(len(self.attempts), len(self.run_s)) - 1]
+        if secs:
+            job["live_time"] = self.am._live_s_to_hms(base_s + secs)
         return self.attempt_rc
 
     def collect(self, sid, out_dir, ffmpeg, want_ext, audio_only):
@@ -291,6 +296,26 @@ def test_it_gives_up_after_four_more_runs(app_module, monkeypatch, tmp_path):
     assert rig.run() == "saved"
     assert len(rig.attempts) == 4 and len(rig.joined[0]) == 5
     assert [a[0][2].endswith(f"j_r{i}.%(ext)s") for a, i in zip(rig.attempts, range(2, 6))] == [True] * 4, "each run has its own piece name"
+
+
+def test_a_reconnect_that_keeps_recording_starts_the_count_again(app_module, monkeypatch, tmp_path):
+    # Six drops over a long recording, each followed by a run that lasts the full minute:
+    # every one is "1 of 4" again, and no piece name is used twice.
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True] * 6 + [False],
+               captures=[f"j_r{i}.mp4" for i in range(2, 8)], run_s=60)
+    assert rig.run() == "saved"
+    assert [a[3]["live_reconnecting"] for a in rig.attempts] == [1] * 6
+    assert [a[0][2].endswith(f"j_r{i}.%(ext)s") for a, i in zip(rig.attempts, range(2, 8))] == [True] * 6
+    assert len(rig.joined[0]) == 7
+
+
+def test_only_a_run_that_lasted_a_minute_starts_the_count_again(app_module, monkeypatch, tmp_path):
+    # One good run resets the count; then four runs just under a minute (59 s) use it up.
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True] * 20,
+               captures=[f"j_r{i}.mp4" for i in range(2, 12)], run_s=[120, 59])
+    assert rig.run() == "saved"
+    assert [a[3]["live_reconnecting"] for a in rig.attempts] == [1, 1, 2, 3, 4]
+    assert len(rig.joined[0]) == 6
 
 
 def test_an_unclear_answer_is_asked_again_a_few_times_then_the_recording_is_kept(app_module, monkeypatch, tmp_path):

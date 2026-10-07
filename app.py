@@ -1814,9 +1814,10 @@ def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
 # gives up and exits as if the stream had ended (usually with exit code 0), and
 # no ffmpeg option prevents that. So after every live run we ask yt-dlp whether
 # the stream is still live and, if it is, record again (up to _LIVE_MAX_RETRIES
-# more times) and join the pieces. A new run starts a few segments behind the
+# times in a row) and join the pieces. A new run starts a few segments behind the
 # live edge, so a short cut tends to repeat a few seconds rather than lose them.
 _LIVE_MAX_RETRIES = 4
+_LIVE_RECOVERED_S = 60   # a reconnected run that records this long has recovered: the next drop counts from 1 again
 _LIVE_UNKNOWN_WAITS = (2, 4, 8)   # seconds before asking again when the stream state is unclear
 _LIVE_STATS_RE = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
 _LIVE_NOTE_RE  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity", _re.I)
@@ -2021,7 +2022,7 @@ def _live_keep_parts(job, job_id, out_dir, segs):
 def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
     """After the first yt-dlp run of a live job has ended (any exit code): keep what was
     captured and, when the stream is still live and the user did not stop it, record
-    again (up to _LIVE_MAX_RETRIES times) and join the pieces into {job_id}<ext>.
+    again (up to _LIVE_MAX_RETRIES times in a row, see _LIVE_RECOVERED_S) and join the pieces into {job_id}<ext>.
     Returns "saved" (a usable recording sits at {job_id}<ext>), "cancelled", or None
     (nothing was captured)."""
     if job.get("stop_keep") or rc != 0:
@@ -2047,7 +2048,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         attempts += 1
         job["live_reconnecting"] = attempts
         job["live_retries_max"] = _LIVE_MAX_RETRIES
-        sid = f"{job_id}_r{attempts + 1}"
+        sid = f"{job_id}_r{len(segs) + 1}"   # attempts can start over, so it cannot name the piece
         cmd2 = [str(Path(out_dir) / f"{sid}.%(ext)s") if c == out_tmpl else c for c in cmd]
         base_s = _live_hms_to_s(job.get("live_time") or "00:00:00")
         base_kib = _live_size_kib(job.get("live_size")) or 0
@@ -2060,6 +2061,8 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         if not seg:
             break
         segs.append(seg)
+        if _live_hms_to_s(job.get("live_time") or "00:00:00") - base_s >= _LIVE_RECOVERED_S:
+            attempts = 0
     job.pop("live_reconnecting", None)
     job.pop("live_retries_max", None)
     if job.get("cancelled"):
