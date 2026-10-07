@@ -90,8 +90,9 @@ def test_every_glob_glob_call_escapes_the_folder(rel):
     source = read_source(rel)
     calls = [m.start() for m in re.finditer(r"\bglob\.glob\(", source)]
     assert calls, f"{rel}: no glob.glob( call found -- update this guard"
+    ok = "glob.glob(os.path.join(glob.escape("
     for pos in calls:
-        line = source[pos:source.index("\n", pos)]
-        assert "glob.escape(" in line, (
-            f"{rel}: unescaped glob.glob() on a folder path: {line.strip()!r}"
+        assert source.startswith(ok, pos), (
+            f"{rel}: unescaped glob.glob() on a folder path: "
+            f"{source[pos:source.index(chr(10), pos)].strip()!r}"
         )
