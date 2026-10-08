@@ -466,7 +466,7 @@
     "confirm.reinstall_electron": "Reinstalar o Electron?\n\nO Electron será baixado novamente. Isso terá efeito ao reiniciar o aplicativo. Certifique-se de ter conexão com a internet.",
     "confirm.desktop_shortcut": "Criar um atalho na área de trabalho para o EGM Downloader?",
     "confirm.clear_keep_active": "Remover os itens que não estão sendo baixados ({0})?\n\nOs downloads em andamento ({1}) serão mantidos.",
-    "confirm.remove_running": "This download is still running.\n\nCancel it and remove the card?",
+    "confirm.remove_running": "Este download ainda está em andamento.\n\nCancelar e remover o item?",
     "confirm.electron_restart_now": "O Electron será reinstalado.\n\nReiniciar o aplicativo agora para aplicar isso? (Escolha Cancelar para aplicar na próxima vez que abrir o aplicativo.)",
     "status.cookies_active": "Cookies: ativos{0}",
     "status.bulk_progress": "Baixando {0} / {1} {2} concluídos  ({3} ativos)",

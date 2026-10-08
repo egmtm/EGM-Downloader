@@ -466,7 +466,7 @@
     "confirm.reinstall_electron": "Переустановить Electron?\n\nElectron будет загружен заново. Изменения вступят в силу при перезапуске приложения. Убедитесь, что у вас есть подключение к интернету.",
     "confirm.desktop_shortcut": "Создать ярлык EGM Downloader на рабочем столе?",
     "confirm.clear_keep_active": "Удалить элементы, которые не загружаются ({0})?\n\nТекущие загрузки ({1}) останутся.",
-    "confirm.remove_running": "This download is still running.\n\nCancel it and remove the card?",
+    "confirm.remove_running": "Эта загрузка ещё выполняется.\n\nОтменить её и удалить элемент?",
     "confirm.electron_restart_now": "Electron будет переустановлен.\n\nПерезапустить приложение сейчас, чтобы применить изменения? (Выберите «Отмена», чтобы применить при следующем открытии приложения.)",
     "status.cookies_active": "Cookies: активны{0}",
     "status.bulk_progress": "Загрузка {0} / {1} {2} готово  ({3} активны)",

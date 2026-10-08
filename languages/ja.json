@@ -466,7 +466,7 @@
     "confirm.reinstall_electron": "Electron を再インストールしますか？\n\nElectron が再ダウンロードされます。これはアプリの再起動時に適用されます。インターネット接続を確認してください。",
     "confirm.desktop_shortcut": "EGM Downloader のデスクトップショートカットを作成しますか？",
     "confirm.clear_keep_active": "ダウンロード中ではない項目（{0}件）を削除しますか？\n\nダウンロード中の項目（{1}件）はそのまま残ります。",
-    "confirm.remove_running": "This download is still running.\n\nCancel it and remove the card?",
+    "confirm.remove_running": "このダウンロードはまだ進行中です。\n\nキャンセルして項目を削除しますか？",
     "confirm.electron_restart_now": "Electron が再インストールされます。\n\n今すぐアプリを再起動して適用しますか？（次回アプリを開いたときに適用する場合は「キャンセル」を選択してください。）",
     "status.cookies_active": "クッキー: 有効{0}",
     "status.bulk_progress": "{0} / {1} {2}件完了 ({3}件アクティブ)",
