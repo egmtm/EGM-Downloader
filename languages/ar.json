@@ -466,6 +466,7 @@
     "confirm.reinstall_electron": "إعادة تثبيت Electron؟\n\nسيُعاد تنزيل Electron. يسري هذا عند إعادة تشغيل التطبيق. تأكد من وجود اتصال بالإنترنت.",
     "confirm.desktop_shortcut": "إنشاء اختصار على سطح المكتب لتطبيق EGM Downloader؟",
     "confirm.clear_keep_active": "إزالة العناصر التي لا يجري تحميلها ({0})؟\n\nستبقى عمليات التحميل الجارية ({1}).",
+    "confirm.remove_running": "This download is still running.\n\nCancel it and remove the card?",
     "confirm.electron_restart_now": "سيُعاد تثبيت Electron.\n\nهل تريد إعادة تشغيل التطبيق الآن لتطبيق ذلك؟ (اختر إلغاء لتطبيقه في المرة القادمة التي تفتح فيها التطبيق.)",
     "status.cookies_active": "ملفات التعريف: نشطة{0}",
     "status.bulk_progress": "جاري تحميل {0} / {1} {2} مكتمل  ({3} نشط)",

@@ -466,6 +466,7 @@
     "confirm.reinstall_electron": "Electron opnieuw installeren?\n\nElectron wordt opnieuw gedownload. Dit wordt van kracht bij een herstart van de app. Zorg dat je een internetverbinding hebt.",
     "confirm.desktop_shortcut": "Een bureaubladsnelkoppeling voor EGM Downloader maken?",
     "confirm.clear_keep_active": "De items verwijderen die niet worden gedownload ({0})?\n\nDe lopende downloads ({1}) blijven staan.",
+    "confirm.remove_running": "This download is still running.\n\nCancel it and remove the card?",
     "confirm.electron_restart_now": "Electron wordt opnieuw geïnstalleerd.\n\nApp nu herstarten om dit toe te passen? (Kies Annuleren om het toe te passen de volgende keer dat je de app opent.)",
     "status.cookies_active": "Cookies: actief{0}",
     "status.bulk_progress": "Downloaden {0} / {1} {2} klaar  ({3} actief)",

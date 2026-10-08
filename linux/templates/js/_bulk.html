@@ -30,7 +30,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   const pending = items.filter(i => (i.status === 'idle' || i.status === 'error') && !queued.includes(i))
     .map(item => ({ item, forceFormat, audioQuality, videoQuality, dir: chosenPath }));   // each card keeps the choices of the click that queued it
   if (!pending.length) { toast(i18nGet('toast.nothing_to_download') || 'Nothing to download', 'err'); return; }
-  if (_bulkRun && !bulkStop) { _bulkRun.add(pending); return; }
+  if (_bulkRun) { _bulkRun.add(pending); return; }
   bulkStop = false;
   const bar       = document.getElementById('bulk-bar');
   const modeLabel = forceFormat === 'audio' ? 'audio files' : 'videos';
@@ -39,12 +39,14 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   let done = 0, active = 0, idx = 0;
 
   function updateBulkTxt() {
+    if (run.stopped) return;   // cancelled: a later run owns the bar now
     document.getElementById('bulk-txt').textContent =
       `Downloading ${done} / ${pending.length} ${modeLabel} done  (${active} active)`;
   }
   // downloadOne: starts one item's download and resolves when finished
   async function downloadOne({ item, forceFormat, audioQuality, videoQuality, dir }) {
-    if (bulkStop || item.status === 'cancelled') { active--; return; }
+    // Skipped: the run was stopped, or the card was cancelled or started from its own button meanwhile
+    if (run.stopped || (item.status !== 'idle' && item.status !== 'error')) { done++; active--; return; }
     const n       = item.id;
     const stEl    = document.getElementById('st'     + n);
     const dlBtn   = document.getElementById('dl'     + n);
@@ -58,7 +60,8 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         const i2 = await post('/api/info', { url: item.url });
         if (!i2.error) item.info = i2;
       } catch {}
-      if (!items.includes(item)) { done++; active--; return; }   // cleared or removed while its info loaded
+      // cleared, removed or cancelled while its info loaded
+      if (run.stopped || !items.includes(item) || (item.status !== 'idle' && item.status !== 'error')) { done++; active--; return; }
     }
 
     item.status = 'downloading';
@@ -82,7 +85,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     addStopSave(item, n, cancelBtn);
 
     try {
-      if (bulkStop || item.status === 'cancelled') { active--; return; }
+      if (run.stopped || item.status === 'cancelled') { active--; return; }
       setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading...');
       const res = await post('/api/download', {
         url: item.url, format: forceFormat || item.selFmt,
@@ -102,11 +105,15 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       });
       if (res.error) throw new Error(res.error);
       item.jobId = res.job_id;
+      if (run.stopped || item.status === 'cancelled') {   // cancelled while the start request was in flight: the job exists now, stop it
+        bulkCancelledJobs.add(item.jobId);
+        fetch('/api/cancel/' + item.jobId, { method: 'POST' }).catch(() => {});
+      }
 
       await new Promise(resolve => {
         const wiv = setInterval(async () => {
           // Check cancellation before any fetch
-          if (item.status === 'cancelled' || bulkStop) {
+          if (item.status === 'cancelled' || run.stopped) {
             clearInterval(wiv);
             applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
             done++; resolve();
@@ -115,7 +122,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
           try {
             const d = await fetch('/api/status/' + item.jobId).then(r => r.json());
             // Re-check after async fetch
-            if (item.status === 'cancelled' || bulkStop) {
+            if (item.status === 'cancelled' || run.stopped) {
               clearInterval(wiv);
               applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
               done++; resolve();
@@ -158,7 +165,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   let finish;
   const finished = new Promise(resolve => { finish = resolve; });
   function pump() {
-    if (bulkStop) { finish(); return; }
+    if (run.stopped) { finish(); return; }
     while (active < CONCURRENCY && idx < pending.length) {
       active++;
       downloadOne(pending[idx++]).then(pump);
@@ -167,24 +174,25 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     if (idx >= pending.length && active === 0) finish();
   }
   // waiting = queued and not yet downloading (an entry already taken that is still idle is loading its info)
-  const run = { waiting: () => pending.filter((e, k) => k >= idx || e.item.status === 'idle').map(e => e.item),
+  const run = { stopped: false, waiting: () => pending.filter((e, k) => k >= idx || e.item.status === 'idle').map(e => e.item),
                 add(more) { pending.push(...more); pump(); } };
   _bulkRun = run;
   pump();
   await finished;
-  if (_bulkRun === run) _bulkRun = null;
+  if (run.stopped) return;   // Cancel all already hid the bar and said so; a newer run may own it now
+  _bulkRun = null;
 
   bar.classList.remove('show');
-  if (!bulkStop) {
-    toast((i18nGet('toast.done') || 'Done') + ' — ' + done + ' ' + modeLabel, 'ok');
-    quitWhenDoneCheck();
-  }
+  toast((i18nGet('toast.done') || 'Done') + ' — ' + done + ' ' + modeLabel, 'ok');
+  quitWhenDoneCheck();
 }
 
 function cancelBulk() {
   bulkStop = true;
   document.getElementById('bulk-bar').classList.remove('show');
   const queued = _bulkRun ? _bulkRun.waiting() : [];
+  // This run is over: it winds down on its own, and the next Download all starts a fresh one
+  if (_bulkRun) { _bulkRun.stopped = true; _bulkRun = null; }
   items.forEach(item => {
     if (item.status === 'idle' && !queued.includes(item)) return;   // added since, never queued by the run: stays idle
     // Cancel anything in-flight: downloading (has jobId) or queued (jobId assigned but not yet running)

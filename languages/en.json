@@ -466,6 +466,7 @@
     "confirm.reinstall_electron": "Reinstall Electron?\n\nElectron will be re-downloaded. This takes effect on an app restart. Make sure you have an internet connection.",
     "confirm.desktop_shortcut": "Create a desktop shortcut for EGM Downloader?",
     "confirm.clear_keep_active": "Remove the items that are not downloading ({0})?\n\nThe downloads in progress ({1}) will stay.",
+    "confirm.remove_running": "This download is still running.\n\nCancel it and remove the card?",
     "confirm.electron_restart_now": "Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)",
     "status.cookies_active": "Cookies: active{0}",
     "status.bulk_progress": "Downloading {0} / {1} {2} done  ({3} active)",

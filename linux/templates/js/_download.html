@@ -332,10 +332,19 @@ function renderCard(el, item) {
 }
 
 function removeItem(id, el) {
+  const item = items.find(i => i.id === id);
+  // A running download goes with its card, after asking: otherwise its job runs on with nothing left
+  // to show, cancel or count it (Quit when done would quit under it)
+  if (item && (isActiveItem(item) || item.status === 'queued')) {
+    if (!confirm(i18nGet('confirm.remove_running') || 'This download is still running.\n\nCancel it and remove the card?')) return;
+    if (item.jobId) fetch(`/api/cancel/${item.jobId}`, { method: 'POST' }).catch(() => {});
+    item.status = 'cancelled';
+  }
   items = items.filter(i => i.id !== id);
   el.remove();
   if (items.length <= 1) setDlAllVisible(false);
   updateQueueArrows();   // the new first/last cards gain an edge
+  reportActivity();
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
@@ -412,6 +421,8 @@ async function startDl(item, n) {
   }
   const chosenName = await showModal(item.info.title || 'download', ext);
   if (!chosenName) return;   // cancelled
+  // While the dialog was open the card may have been started by Download all, or cleared
+  if (item.status === 'downloading' || !items.includes(item)) return;
 
   const stEl   = document.getElementById(`st${n}`);
   const dlBtn  = document.getElementById(`dl${n}`);
@@ -466,6 +477,7 @@ async function startDl(item, n) {
     });
     if (res.error) throw new Error(res.error);
     item.jobId = res.job_id;
+    if (item.status === 'cancelled') fetch(`/api/cancel/${item.jobId}`, { method: 'POST' }).catch(() => {});   // cancelled while starting
     pollJob(item, stEl, dlBtn, progEl, cancelBtn);
   } catch (e) {
     item.status = 'error';
@@ -503,10 +515,13 @@ function hideStopSave(item) {
 }
 
 async function cancelDownload(item, n) {
-  if (!item.jobId) return;
-  try {
-    await fetch(`/api/cancel/${item.jobId}`, { method:'POST' });
-  } catch {}
+  // No job id yet: the start request is in flight, and its reply cancels the job once it has one
+  if (!item.jobId && item.status !== 'downloading') return;
+  if (item.jobId) {
+    try {
+      await fetch(`/api/cancel/${item.jobId}`, { method:'POST' });
+    } catch {}
+  }
   item.status = 'cancelled';
   const stEl   = document.getElementById(`st${n}`);
   const progEl = document.getElementById(`prog${n}`);
