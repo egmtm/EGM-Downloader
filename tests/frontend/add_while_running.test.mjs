@@ -405,6 +405,72 @@ test("removing a card that is not downloading asks nothing", async () => {
   assert.deepEqual(t.ev("items.map(i => i.url)"), [B]);
 });
 
+// ── Reorder arrows ──────────────────────────────────────────────────────────
+
+const domOrder = (t) => [...t.d.querySelectorAll("#results .vcard")].map((c) => c.querySelector('[id^="qarrows"]')?.id || "(error card)");
+const arrow = (t, n, dir) => t.card(n).querySelector(`.qarrow[data-dir="${dir}"]`);
+
+test("an arrow trades places with the nearest waiting card, jumping over a running one", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();          // B runs on its own, between A and C
+  assert.equal(arrow(t, 0, "down").style.visibility, "visible", "A can go down: C is waiting");
+  assert.equal(arrow(t, 2, "up").style.visibility, "visible", "C can go up: A is waiting");
+  arrow(t, 2, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [C, B, A], "C and A traded places, B kept its own");
+  assert.deepEqual(domOrder(t), ["qarrows2", "qarrows1", "qarrows0"], "the cards in the page follow");
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["idle", "downloading", "idle"]);
+  assert.equal(arrow(t, 2, "up").style.visibility, "hidden", "C is the first waiting card now");
+  assert.equal(arrow(t, 0, "down").style.visibility, "hidden", "A is the last waiting card now");
+  assert.equal(arrow(t, 0, "up").style.visibility, "visible");
+  assert.equal(arrow(t, 2, "down").style.visibility, "visible");
+  arrow(t, 2, "down").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C], "and back again");
+  assert.deepEqual(domOrder(t), ["qarrows0", "qarrows1", "qarrows2"]);
+});
+
+test("a cancelled card between two waiting ones is jumped over too", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();
+  t.d.getElementById("cancel1").click(); await settle();
+  assert.equal(t.ev("items[1].status"), "cancelled");
+  arrow(t, 2, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [C, B, A]);
+  assert.deepEqual(domOrder(t), ["qarrows2", "qarrows1", "qarrows0"]);
+});
+
+test("neighbouring waiting cards still swap as before", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  arrow(t, 1, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [B, A, C]);
+  assert.deepEqual(domOrder(t), ["qarrows1", "qarrows0", "qarrows2"]);
+});
+
+test("an arrow with no waiting card in its direction does nothing", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.w.eval("showModal = async () => 'a name'");
+  t.d.getElementById("dl1").click(); await settle();
+  t.d.getElementById("dl2").click(); await settle();          // B and C run, only A waits
+  arrow(t, 0, "down").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C]);
+  assert.deepEqual(domOrder(t), ["qarrows0", "qarrows1", "qarrows2"]);
+});
+
+test("a card that failed to fetch keeps its place when the cards around it trade", async () => {
+  const t = await boot();
+  t.ctl.fail.add(D);
+  await t.fetchLinks(`${A}\n${D}\n${C}`);
+  assert.deepEqual(domOrder(t), ["qarrows0", "(error card)", "qarrows1"]);
+  arrow(t, 1, "up").click();                                  // C is item 1 (the failed link has no item)
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [C, A]);
+  assert.deepEqual(domOrder(t), ["qarrows1", "(error card)", "qarrows0"]);
+});
+
 test("Download all with a free slot starts the new card at once", async () => {
   const t = await boot();
   await t.fetchLinks(A);

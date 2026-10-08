@@ -307,23 +307,26 @@ function renderCard(el, item) {
       const id  = +btn.dataset.id;
       const idxA = items.findIndex(i => i.id === id);
       if (idxA === -1) return;
-      const idxB = dir === 'up' ? idxA - 1 : idxA + 1;
-      if (idxB < 0 || idxB >= items.length) return;
       const itemA = items[idxA];
+      if (!itemA || itemA.status !== 'idle') return;
+      // The nearest waiting card in that direction: running, finished and failed cards in between
+      // keep their places, so the arrow always has something to trade with
+      const step = dir === 'up' ? -1 : 1;
+      let idxB = idxA + step;
+      while (idxB >= 0 && idxB < items.length && items[idxB].status !== 'idle') idxB += step;
+      if (idxB < 0 || idxB >= items.length) return;
       const itemB = items[idxB];
-      if (!itemA || !itemB || itemA.status !== 'idle' || itemB.status !== 'idle') return;
       // Swap in the items array
       [items[idxA], items[idxB]] = [items[idxB], items[idxA]];
-      // Move el relative to the OTHER item's card (located by id, not DOM
-      // adjacency — an error card may sit between the two queue cards).
+      // The two cards trade places in the page, located by id, not DOM adjacency: an error card
+      // or a running card may sit between them
       const results = document.getElementById('results');
       const otherCard = document.getElementById('st' + itemB.id)?.closest('.vcard');
-      if (otherCard) {
-        if (dir === 'up') {
-          results.insertBefore(el, otherCard);    // el moves above other
-        } else {
-          results.insertBefore(otherCard, el);    // other moves above el (el moves down)
-        }
+      if (otherCard && otherCard !== el) {
+        const mark = document.createComment('');
+        results.replaceChild(mark, el);
+        results.replaceChild(el, otherCard);
+        results.replaceChild(otherCard, mark);
       }
       updateQueueArrows();
     });
