@@ -324,6 +324,7 @@ test("Cancel all, then Download all before the old run has wound down, revives n
   assert.deepEqual(t.log.download, [D]);
   assert.deepEqual(t.ev("items.map(i => i.status)"), ["cancelled", "cancelled", "cancelled", "downloading"]);
   assert.ok(t.d.getElementById("bulk-bar").classList.contains("show"), "the old run does not hide the new run's bar");
+  assert.match(t.d.getElementById("bulk-txt").textContent, /\/ 1 /, "nor does it write its own count over the new run's text");
 });
 
 test("Cancel all while a start request is in flight cancels the job once it exists", async () => {
@@ -356,8 +357,7 @@ test("removing a running card with its own X asks first, then cancels its downlo
   assert.deepEqual(t.ctl.confirms, [en.strings["confirm.remove_running"]]);
   assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
   assert.equal(t.cards(), 1);
-  t.w.eval("_lastActivityKey = ''; reportActivity()");
-  assert.equal(t.log.activity.at(-1).active, 1, "only B is still reported");
+  assert.equal(t.log.activity.at(-1).active, 1, "only B is still reported, by the removal itself");
 });
 
 test("answering No to the question on a running card's X leaves the card and its download alone", async () => {
@@ -365,13 +365,22 @@ test("answering No to the question on a running card's X leaves the card and its
   await t.fetchLinks(`${A}\n${B}`);
   t.all(); await settle();
   t.ctl.answer = false;
+  const reports = t.log.activity.length;
   t.card(0).querySelector(".vcard-remove").click();
   assert.equal(t.ctl.confirms.length, 1);
   assert.deepEqual(t.log.cancel, []);
   assert.equal(t.cards(), 2);
   assert.deepEqual(t.ev("items.map(i => i.status)"), ["downloading", "downloading"]);
-  t.w.eval("_lastActivityKey = ''; reportActivity()");
+  assert.equal(t.log.activity.length, reports, "nothing new is reported");
   assert.equal(t.log.activity.at(-1).active, 2, "both are still reported");
+});
+
+test("Cancel on a card that is not downloading and has no job does nothing", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.w.eval("cancelDownload(items[0], 0)"); await settle();
+  assert.deepEqual(t.log.cancel, []);
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["idle"]);
 });
 
 test("removing a card that is not downloading asks nothing", async () => {
