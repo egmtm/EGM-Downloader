@@ -248,6 +248,19 @@ test("a second Download all while the run's cards are still loading their info d
   assert.deepEqual(t.log.download, [A, B]);
 });
 
+test("a second Download all raises the total shown in the bar", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-txt").textContent;
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all("video"); await settle();
+  assert.match(bar(), /0 \/ 3 .*\(2 active\)/, "first run: three cards, two running");
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}`);
+  t.all("video"); await settle();
+  assert.match(bar(), /0 \/ 5 .*\(2 active\)/, "the two added cards join the run, and the total follows");
+  t.finish("j1"); await t.tick();
+  assert.match(bar(), /1 \/ 5 .*\(2 active\)/, "one done, the next card started");
+});
+
 test("Cancel all stops the run but leaves cards that were added after it started idle", async () => {
   const t = await boot();
   await t.fetchLinks(`${A}\n${B}\n${C}`);
