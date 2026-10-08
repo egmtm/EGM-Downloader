@@ -1,3 +1,11 @@
+v1.4.9 - JUST ANOTHER UPDATE VI (Build 163) (10/7/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.7.0 — backported ANGLE, Chromium, Dawn, fontconfig, Skia, V8 and WebRTC fixes
+  • [ALL] Changed: Improved wording in nine languages (Spanish, Arabic, German, French, Italian, Japanese, Dutch, Portuguese and Russian).
+  • [ALL] Fixed: The message shown when you stop fetching a playlist is now translated.
+  • [ALL] Fixed: Downloads no longer fail with "No output file found" when the download folder name contains [ or ].
+
 v1.4.8 - JUST ANOTHER UPDATE V (Build 162) (10/6/2026)
 -----------------------------------------
 
