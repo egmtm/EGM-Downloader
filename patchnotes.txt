@@ -8,11 +8,17 @@ v1.5.0 - TBD (Build TBD) (TBD)
   • [ALL] New: If a live stream drops for a moment, the recording now reconnects on its own (up to 4 times in a row) and joins the pieces into one file. The card shows "Reconnecting… 1/4" meanwhile, and a notice says when a few seconds may be missing or repeated.
   • [ALL] Fixed: When Universal MP4 could not convert a video to H.264, the video was saved in its original codec and you were never told. A notice now says so.
   • [ALL] Changed: Subscriptions export and import now carry each subscription's own settings (download folder, format, quality, auto fetch and SponsorBlock), not just the links. Older export files still import.
-  • [ALL] Changed: Improved wording in nine languages (Spanish, Arabic, German, French, Italian, Japanese, Dutch, Portuguese and Russian).
-  • [ALL] Fixed: The message shown when you stop fetching a playlist is now translated.
   • [ALL] Fixed: A video card no longer shows a broken image when its thumbnail cannot be loaded. Other thumbnails from the same video are tried, then the usual placeholder is shown.
   • [ALL] Changed: The status and Cancel buttons of a downloading card now start at the left edge, so a long status such as a live recording does not push Cancel onto a second line. Download all no longer leaves the dimmed Download button on started cards.
   • [ALL] Changed: You can now add videos while others are loaded or downloading. Fetch adds the new links to the list instead of starting over (links already in the list are skipped), Download all picks up the cards you added and joins the run that is going, and Clear keeps the downloads in progress and asks first when it would remove other cards. Quit when done waits for the added cards too.
+
+v1.4.9 - JUST ANOTHER UPDATE VI (Build 163) (10/7/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.7.0 — backported ANGLE, Chromium, Dawn, fontconfig, Skia, V8 and WebRTC fixes
+  • [ALL] Changed: Improved wording in nine languages (Spanish, Arabic, German, French, Italian, Japanese, Dutch, Portuguese and Russian).
+  • [ALL] Fixed: The message shown when you stop fetching a playlist is now translated.
+  • [ALL] Fixed: Downloads no longer fail with "No output file found" when the download folder name contains [ or ].
 
 v1.4.8 - JUST ANOTHER UPDATE V (Build 162) (10/6/2026)
 -----------------------------------------
