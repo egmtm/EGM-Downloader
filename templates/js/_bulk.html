@@ -18,6 +18,8 @@ function setDlAllVisible(show) {
 document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
 // dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
 let _bulkRun = null;   // the Download all run in progress: another click hands its new cards to it, so one concurrency limit holds
+// The cards the running Download all has queued: it starts them in the order it was given, so moving them in the list would change nothing
+function runQueuedItems() { return _bulkRun ? _bulkRun.waiting() : []; }
 
 async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
@@ -175,9 +177,10 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   }
   // waiting = queued and not yet downloading (an entry already taken that is still idle is loading its info)
   const run = { stopped: false, waiting: () => pending.filter((e, k) => k >= idx || e.item.status === 'idle').map(e => e.item),
-                add(more) { pending.push(...more); pump(); } };
+                add(more) { pending.push(...more); pump(); updateQueueArrows(); } };
   _bulkRun = run;
   pump();
+  updateQueueArrows();   // the cards this run queued lose their reorder arrows
   await finished;
   if (run.stopped) return;   // Cancel all already hid the bar and said so; a newer run may own it now
   _bulkRun = null;

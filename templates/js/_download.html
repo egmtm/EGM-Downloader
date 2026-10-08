@@ -142,11 +142,12 @@ function updateQueueArrows() {
   if (!results) return;
   // Use DOM order as source of truth — items[] may drift from DOM after swaps
   const allCards = [...results.querySelectorAll('.vcard')];
+  const queued = typeof runQueuedItems === 'function' ? runQueuedItems() : [];
   const idleCards = allCards.filter(card => {
     const id = card.querySelector('.qarrow')?.dataset.id;
     if (!id) return false;
     const item = items.find(i => String(i.id) === String(id));
-    return item && item.status === 'idle';
+    return item && item.status === 'idle' && !queued.includes(item);   // a card a running Download all has queued is not reorderable
   });
   // Non-idle cards (downloading/error/cancelled — or fetch-error placeholders
   // with no items[] entry) never show reorder arrows: the queue is only
@@ -308,12 +309,14 @@ function renderCard(el, item) {
       const idxA = items.findIndex(i => i.id === id);
       if (idxA === -1) return;
       const itemA = items[idxA];
-      if (!itemA || itemA.status !== 'idle') return;
-      // The nearest waiting card in that direction: running, finished and failed cards in between
-      // keep their places, so the arrow always has something to trade with
+      const queued = typeof runQueuedItems === 'function' ? runQueuedItems() : [];
+      const movable = i => i.status === 'idle' && !queued.includes(i);   // not running, finished or failed, and not queued by a running Download all
+      if (!itemA || !movable(itemA)) return;
+      // The nearest movable card in that direction: the cards in between keep their places, so the
+      // arrow always has something to trade with
       const step = dir === 'up' ? -1 : 1;
       let idxB = idxA + step;
-      while (idxB >= 0 && idxB < items.length && items[idxB].status !== 'idle') idxB += step;
+      while (idxB >= 0 && idxB < items.length && !movable(items[idxB])) idxB += step;
       if (idxB < 0 || idxB >= items.length) return;
       const itemB = items[idxB];
       // Swap in the items array

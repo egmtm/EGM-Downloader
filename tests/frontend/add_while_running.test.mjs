@@ -471,6 +471,45 @@ test("a card that failed to fetch keeps its place when the cards around it trade
   assert.deepEqual(domOrder(t), ["qarrows1", "(error card)", "qarrows0"]);
 });
 
+test("cards a running Download all has queued lose their arrows and cannot be moved", async () => {
+  const t = await boot();
+  const F = "https://e.com/f";
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);
+  t.all("video"); await settle();                              // limit 2: A and B run, C and D are queued
+  for (const n of [2, 3]) for (const dir of ["up", "down"]) assert.equal(arrow(t, n, dir).style.visibility, "hidden", `card ${n} ${dir}`);
+  arrow(t, 3, "up").click();                                   // even a click that gets through changes nothing
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D]);
+  // a card added after the run started is not queued: it can still be moved, but never past a queued card
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}\n${F}`);
+  assert.equal(arrow(t, 4, "up").style.visibility, "hidden", "E is the first card that can move");
+  assert.equal(arrow(t, 4, "down").style.visibility, "visible");
+  assert.equal(arrow(t, 5, "up").style.visibility, "visible");
+  assert.equal(arrow(t, 5, "down").style.visibility, "hidden");
+  arrow(t, 4, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D, E, F], "E does not trade with a queued card");
+  arrow(t, 3, "down").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D, E, F], "and a queued card does not trade with E");
+  arrow(t, 5, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D, F, E]);
+  assert.deepEqual(domOrder(t), ["qarrows0", "qarrows1", "qarrows2", "qarrows3", "qarrows5", "qarrows4"]);
+  // the next Download all queues them too, and their arrows go
+  t.all("video"); await settle();
+  for (const n of [4, 5]) for (const dir of ["up", "down"]) assert.equal(arrow(t, n, dir).style.visibility, "hidden", `card ${n} ${dir}`);
+  t.finish("j1"); await t.tick();
+  assert.deepEqual(t.log.download, [A, B, C], "the run still starts its cards in the order it was given");
+});
+
+test("the arrows go the moment a run queues the cards, before any of them has started", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;                                       // the cards the run takes are still loading their info
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);
+  for (const n of [0, 1, 2, 3]) assert.notEqual(arrow(t, n, "down").style.display, "none");
+  t.all("video"); await settle();
+  assert.deepEqual(t.log.download, [], "nothing has started yet");
+  for (const n of [0, 1, 2, 3]) for (const dir of ["up", "down"]) assert.equal(arrow(t, n, dir).style.visibility, "hidden", `card ${n} ${dir}`);
+  t.ctl.held.forEach((release) => release()); await settle();
+});
+
 test("Download all with a free slot starts the new card at once", async () => {
   const t = await boot();
   await t.fetchLinks(A);
