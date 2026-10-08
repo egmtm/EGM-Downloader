@@ -1981,6 +1981,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
     while (segs and not job.get("stop_keep") and not job.get("cancelled")
            and attempts < _LIVE_MAX_RETRIES):
         job["status"] = "downloading"
+        job.pop("progress", None)   # a run that ended cleanly printed 100 %, and the card would read Converting
         if not _live_wait(job, 2 if unknown == 0 else _LIVE_UNKNOWN_WAITS[unknown - 1]):
             break
         state = _live_is_still_live(job, url)
@@ -2008,7 +2009,17 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         if not seg:
             break
         segs.append(seg)
-        if _live_hms_to_s(job.get("live_time") or "00:00:00") - base_s >= _LIVE_RECOVERED_S:
+        recorded = _live_hms_to_s(job.get("live_time") or "00:00:00") - base_s
+        if recorded < _LIVE_RECOVERED_S and ffmpeg:
+            # live_time comes only from ffmpeg's stats lines, and a run can end without one
+            # (time=N/A, a downloader that does not print it): measure the piece itself.
+            probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+            piece = int(_media_duration_s(probe, seg) or 0)
+            if piece > recorded:
+                recorded = piece
+                job["live_time"] = _live_s_to_hms(base_s + piece)   # the next piece counts on from here
+        _egm_log(f"live piece {len(segs)}: {recorded}s recorded after reconnect {attempts}/{_LIVE_MAX_RETRIES}")
+        if recorded >= _LIVE_RECOVERED_S:
             attempts = 0
     job.pop("live_reconnecting", None)
     job.pop("live_retries_max", None)

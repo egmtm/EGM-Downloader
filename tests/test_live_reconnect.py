@@ -434,3 +434,43 @@ def test_the_reconnect_and_gap_strings_exist_in_every_locale():
         assert "{0}" in strings["card.status.reconnecting"] and "{1}" in strings["card.status.reconnecting"], f
         assert strings["download.warning.live_gap"].strip(), f
         assert strings["download.warning.live_parts"].strip(), f
+
+
+@needs_ffmpeg
+def test_a_run_that_printed_no_time_is_measured_by_its_piece(app_module, monkeypatch, tmp_path):
+    # ffmpeg's stats line never arrived (run_s=0), yet each piece holds over a minute:
+    # the count starts again and the time on the card carries on from the pieces.
+    for i in (2, 3, 4):
+        _make_mp4(tmp_path / f"j_r{i}.mp4", secs=61)
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, True, False],
+               captures=[f"j_r{i}.mp4" for i in (2, 3, 4)])
+    assert rig.run() == "saved"
+    assert [a[3]["live_reconnecting"] for a in rig.attempts] == [1, 1, 1]
+    assert [a[1] for a in rig.attempts] == [15, 76, 137], "each run starts where the pieces before it ended"
+
+
+def test_a_run_that_printed_its_time_is_not_probed_again(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, False], captures=["j_r2.mp4", "j_r3.mp4"], run_s=60)
+    probed = []
+    monkeypatch.setattr(app_module, "_media_duration_s", lambda probe, path: probed.append(path) or 0)
+    rig.run()
+    assert probed == []
+
+
+def test_a_first_run_that_ended_cleanly_does_not_leave_the_card_on_converting(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, False], captures=["j_r2.mp4"])
+    rig.job["progress"] = 100.0   # yt-dlp prints 100 % when ffmpeg exits 0, and the card reads Converting at 100
+    rig.run(rc=0)
+    assert "progress" not in rig.attempts[0][3]
+
+
+def test_each_reconnect_piece_leaves_a_log_line_with_its_length_and_the_count(app_module, monkeypatch, tmp_path):
+    # The line support asks for when the counter looks wrong: how long the piece was and where the count stood.
+    lines = []
+    monkeypatch.setattr(app_module, "_egm_log", lines.append)
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, False], captures=["j_r2.mp4", "j_r3.mp4"], run_s=[61, 10])
+    rig.run()
+    assert [l for l in lines if l.startswith("live piece")] == [
+        "live piece 2: 61s recorded after reconnect 1/4",
+        "live piece 3: 10s recorded after reconnect 1/4",
+    ]
