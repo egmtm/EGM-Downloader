@@ -12,8 +12,11 @@ async function fetchSingle(url, ph) {
 
 // Enqueue all playlist entries as stub cards, then fetch full info in parallel
 function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
+  let added = 0;
   for (const e of entries) {
     if (fetchAbort) break;
+    if (items.some(i => i.url === e.url)) continue;   // already in the list: skipped, never a second card
+    added++;
     const el    = makeCardEl();
     document.getElementById('results').appendChild(el);
     const pItem = addItem(e.url, {
@@ -53,16 +56,22 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
   // for a single watch URL (one-entry "playlist"), so fetchSingle — the only
   // path that updated the arrows — almost never runs in practice.
   updateQueueArrows();
+  // Everything this link brought was already in the list: say so instead of doing nothing.
+  if (!added && entries.length && !fetchAbort) toast(i18nGet('toast.already_in_list') || 'Already in the list');
 }
 
 async function fetchAll() {
-  const raw  = document.getElementById('urls').value;
-  const urls = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
-  if (!urls.length) { toast(i18nGet('toast.paste_url_first') || 'Paste at least one URL', 'err'); return; }
-  items = [];
+  const raw   = document.getElementById('urls').value;
+  const typed = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
+  if (!typed.length) { toast(i18nGet('toast.paste_url_first') || 'Paste at least one URL', 'err'); return; }
+  // Fetch only adds to the list (Clear is the way to empty it): a link that is already there is skipped.
+  const have = new Set(items.map(i => i.url));
+  const urls = typed.filter(u => !have.has(u));
+  if (!urls.length) { toast(i18nGet('toast.already_in_list') || 'Already in the list'); return; }
+  const firstId = seq;   // the cards this fetch adds all have an id from here on
   fetchAbort = false;
-  document.getElementById('results').innerHTML = '';
-  setDlAllVisible(false);
+  // A link that failed last time is tried again below (or was deleted from the box): drop its old error card.
+  document.querySelectorAll('#results .vcard.fetch-err').forEach(c => c.remove());
   document.getElementById('fetch-btn').disabled = true;
   document.getElementById('cancel-fetch-btn').style.display = '';
 
@@ -71,9 +80,10 @@ async function fetchAll() {
     document.getElementById('fetch-btn').disabled = false;
     document.getElementById('cancel-fetch-btn').style.display = 'none';
     if (items.length > 1) setDlAllVisible(true);
-    toast(items.length === 1
-      ? (i18nFmt('toast.stopped_keeping_one', items.length) || 'Stopped — keeping 1 loaded video')
-      : (i18nFmt('toast.stopped_keeping_many', items.length) || ('Stopped — keeping ' + items.length + ' loaded videos')));
+    const kept = items.filter(i => i.id >= firstId).length;   // this fetch's own, not the ones already in the list
+    toast(kept === 1
+      ? (i18nFmt('toast.stopped_keeping_one', kept) || 'Stopped — keeping 1 loaded video')
+      : (i18nFmt('toast.stopped_keeping_many', kept) || ('Stopped — keeping ' + kept + ' loaded videos')));
   };
 
   // Use an object so fetchPlaylistEntries can mutate the counter by reference
@@ -162,6 +172,7 @@ function updateQueueArrows() {
 
 
 function renderErr(el, url, msg, i18nKey) {
+  el.classList.add('fetch-err');   // a card with no item behind it: the next Fetch and Clear remove it
   const shown = (i18nKey && i18nGet(i18nKey)) || msg;
   el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
     <div class="vbody"><div class="vtitle">${esc(trunc(url,70))}</div>

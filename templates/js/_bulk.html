@@ -17,19 +17,24 @@ function setDlAllVisible(show) {
 
 document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
 // dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
+let _bulkRun = null;   // the Download all run in progress: another click hands its new cards to it, so one concurrency limit holds
+
 async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
     toast(i18nGet('toast.select_folder_first') || 'Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
     return;
   }
-  const pending = items.filter(i => i.status === 'idle' || i.status === 'error');
+  // Cards the running run has queued but not started are already taken; every other idle or failed card is new work.
+  const queued  = _bulkRun ? _bulkRun.waiting() : [];
+  const pending = items.filter(i => (i.status === 'idle' || i.status === 'error') && !queued.includes(i))
+    .map(item => ({ item, forceFormat, audioQuality, videoQuality, dir: chosenPath }));   // each card keeps the choices of the click that queued it
   if (!pending.length) { toast(i18nGet('toast.nothing_to_download') || 'Nothing to download', 'err'); return; }
+  if (_bulkRun && !bulkStop) { _bulkRun.add(pending); return; }
   bulkStop = false;
   const bar       = document.getElementById('bulk-bar');
   const modeLabel = forceFormat === 'audio' ? 'audio files' : 'videos';
   bar.classList.add('show');
-  const dir = chosenPath;
   const CONCURRENCY = parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
   let done = 0, active = 0, idx = 0;
 
@@ -38,7 +43,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       `Downloading ${done} / ${pending.length} ${modeLabel} done  (${active} active)`;
   }
   // downloadOne: starts one item's download and resolves when finished
-  async function downloadOne(item) {
+  async function downloadOne({ item, forceFormat, audioQuality, videoQuality, dir }) {
     if (bulkStop || item.status === 'cancelled') { active--; return; }
     const n       = item.id;
     const stEl    = document.getElementById('st'     + n);
@@ -53,6 +58,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         const i2 = await post('/api/info', { url: item.url });
         if (!i2.error) item.info = i2;
       } catch {}
+      if (!items.includes(item)) { done++; active--; return; }   // cleared or removed while its info loaded
     }
 
     item.status = 'downloading';
@@ -149,18 +155,24 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   }
 
   // Concurrency pump: keep up to CONCURRENCY downloads running at once
-  await new Promise(resolve => {
-    function pump() {
-      if (bulkStop) { resolve(); return; }
-      while (active < CONCURRENCY && idx < pending.length) {
-        active++;
-        downloadOne(pending[idx++]).then(pump);
-      }
-      updateBulkTxt();  // update AFTER filling slots so count is accurate
-      if (idx >= pending.length && active === 0) resolve();
+  let finish;
+  const finished = new Promise(resolve => { finish = resolve; });
+  function pump() {
+    if (bulkStop) { finish(); return; }
+    while (active < CONCURRENCY && idx < pending.length) {
+      active++;
+      downloadOne(pending[idx++]).then(pump);
     }
-    pump();
-  });
+    updateBulkTxt();  // update AFTER filling slots so count is accurate
+    if (idx >= pending.length && active === 0) finish();
+  }
+  // waiting = queued and not yet downloading (an entry already taken that is still idle is loading its info)
+  const run = { waiting: () => pending.filter((e, k) => k >= idx || e.item.status === 'idle').map(e => e.item),
+                add(more) { pending.push(...more); pump(); } };
+  _bulkRun = run;
+  pump();
+  await finished;
+  if (_bulkRun === run) _bulkRun = null;
 
   bar.classList.remove('show');
   if (!bulkStop) {
@@ -172,7 +184,9 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
 function cancelBulk() {
   bulkStop = true;
   document.getElementById('bulk-bar').classList.remove('show');
+  const queued = _bulkRun ? _bulkRun.waiting() : [];
   items.forEach(item => {
+    if (item.status === 'idle' && !queued.includes(item)) return;   // added since, never queued by the run: stays idle
     // Cancel anything in-flight: downloading (has jobId) or queued (jobId assigned but not yet running)
     if ((item.status === 'downloading' || item.status === 'queued') && item.jobId) {
       bulkCancelledJobs.add(item.jobId);
@@ -197,11 +211,27 @@ function cancelBulk() {
   toast(i18nGet('toast.bulk.all_cancelled') || 'All downloads cancelled');
 }
 
+// A card whose download is running: Clear never removes it (its poller and the shell's activity
+// report both live on the card), whatever the answer to the question.
+const isActiveItem = i => i.status === 'downloading' || i.status === 'converting';
+
 document.getElementById('clear-btn').addEventListener('click', () => {
+  const active  = items.filter(isActiveItem);
+  const removed = items.length - active.length;
+  // Asked only when something would be removed while downloads run; otherwise Clear works silently as always.
+  if (active.length && removed &&
+      !confirm(i18nFmt('confirm.clear_keep_active', removed, active.length)
+        || `Remove the items that are not downloading (${removed})?\n\nThe downloads in progress (${active.length}) will stay.`)) return;
   document.getElementById('urls').value = '';
-  showEmptyState();
+  if (active.length) {
+    const keep = new Set(active.map(i => document.getElementById('st' + i.id)?.closest('.vcard')).filter(Boolean));
+    document.querySelectorAll('#results .vcard').forEach(c => { if (!keep.has(c)) c.remove(); });
+  } else {
+    showEmptyState();
+  }
   setDlAllVisible(false);
-  items = [];
+  items = active;
+  updateQueueArrows();
 });
 
 function showEmptyState() {
