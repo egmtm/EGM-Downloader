@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-06",
+  "_last_updated": "2026-10-08",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -318,7 +318,7 @@
     "toast.select_folder_first": "Сначала выберите папку загрузки",
     "toast.nothing_to_download": "Нечего загружать",
     "toast.paste_url_first": "Вставьте хотя бы один URL",
-    "toast.already_in_list": "Already in the list",
+    "toast.already_in_list": "Уже в списке",
     "toast.stopped_keeping_one": "Остановлено — сохранено {0} загруженное видео",
     "toast.stopped_keeping_many": "Остановлено — сохранено загруженных видео: {0}",
     "toast.download_cancelled": "Загрузка отменена",
@@ -465,7 +465,7 @@
     "confirm.reinstall_ffmpeg": "Удалить текущую установку ffmpeg?\n\nСвежая копия будет загружена при следующем запуске. Убедитесь, что у вас есть соединение с интернетом.",
     "confirm.reinstall_electron": "Переустановить Electron?\n\nElectron будет загружен заново. Изменения вступят в силу при перезапуске приложения. Убедитесь, что у вас есть подключение к интернету.",
     "confirm.desktop_shortcut": "Создать ярлык EGM Downloader на рабочем столе?",
-    "confirm.clear_keep_active": "Remove the items that are not downloading ({0})?\n\nThe downloads in progress ({1}) will stay.",
+    "confirm.clear_keep_active": "Удалить элементы, которые не загружаются ({0})?\n\nТекущие загрузки ({1}) останутся.",
     "confirm.electron_restart_now": "Electron будет переустановлен.\n\nПерезапустить приложение сейчас, чтобы применить изменения? (Выберите «Отмена», чтобы применить при следующем открытии приложения.)",
     "status.cookies_active": "Cookies: активны{0}",
     "status.bulk_progress": "Загрузка {0} / {1} {2} готово  ({3} активны)",

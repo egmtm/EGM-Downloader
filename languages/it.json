@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-06",
+  "_last_updated": "2026-10-08",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} altri siti",
@@ -318,7 +318,7 @@
     "toast.select_folder_first": "Seleziona prima una cartella di download",
     "toast.nothing_to_download": "Niente da scaricare",
     "toast.paste_url_first": "Incolla almeno un URL",
-    "toast.already_in_list": "Already in the list",
+    "toast.already_in_list": "Già nella lista",
     "toast.stopped_keeping_one": "Interrotto — mantenuto {0} video caricato",
     "toast.stopped_keeping_many": "Interrotto — mantenuti {0} video caricati",
     "toast.download_cancelled": "Download annullato",
@@ -465,7 +465,7 @@
     "confirm.reinstall_ffmpeg": "Rimuovere l'installazione attuale di ffmpeg?\n\nUna nuova copia sarà scaricata al prossimo avvio. Assicurati di avere una connessione internet.",
     "confirm.reinstall_electron": "Reinstallare Electron?\n\nElectron verrà scaricato di nuovo. Questo avrà effetto al riavvio dell'app. Assicurati di avere una connessione internet.",
     "confirm.desktop_shortcut": "Creare un collegamento sul desktop per EGM Downloader?",
-    "confirm.clear_keep_active": "Remove the items that are not downloading ({0})?\n\nThe downloads in progress ({1}) will stay.",
+    "confirm.clear_keep_active": "Rimuovere gli elementi che non sono in download ({0})?\n\nI download in corso ({1}) resteranno.",
     "confirm.electron_restart_now": "Electron verrà reinstallato.\n\nRiavviare l'app ora per applicarlo? (Scegli Annulla per applicarlo la prossima volta che apri l'app.)",
     "status.cookies_active": "Cookie: attivi{0}",
     "status.bulk_progress": "Download {0} / {1} {2} completati  ({3} attivi)",

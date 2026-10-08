@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-06",
+  "_last_updated": "2026-10-08",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo y {0} sitios más",
@@ -318,7 +318,7 @@
     "toast.select_folder_first": "Selecciona primero una carpeta de descarga",
     "toast.nothing_to_download": "Nada que descargar",
     "toast.paste_url_first": "Pega al menos una URL",
-    "toast.already_in_list": "Already in the list",
+    "toast.already_in_list": "Ya está en la lista",
     "toast.stopped_keeping_one": "Detenido — conservando {0} video cargado",
     "toast.stopped_keeping_many": "Detenido — conservando {0} videos cargados",
     "toast.download_cancelled": "Descarga cancelada",
@@ -465,7 +465,7 @@
     "confirm.reinstall_ffmpeg": "¿Eliminar la instalación actual de ffmpeg?\n\nSe descargará una copia nueva al próximo inicio. Asegúrate de tener conexión a internet.",
     "confirm.reinstall_electron": "¿Reinstalar Electron?\n\nElectron se volverá a descargar. Esto se aplicará al reiniciar la aplicación. Asegúrate de tener conexión a internet.",
     "confirm.desktop_shortcut": "¿Crear un acceso directo en el escritorio para EGM Downloader?",
-    "confirm.clear_keep_active": "Remove the items that are not downloading ({0})?\n\nThe downloads in progress ({1}) will stay.",
+    "confirm.clear_keep_active": "¿Quitar los elementos que no se están descargando ({0})?\n\nLas descargas en curso ({1}) se conservarán.",
     "confirm.electron_restart_now": "Electron se reinstalará.\n\n¿Reiniciar la aplicación ahora para aplicarlo? (Elige Cancelar para aplicarlo la próxima vez que abras la aplicación.)",
     "status.cookies_active": "Cookies: activas{0}",
     "status.bulk_progress": "Descargando {0} / {1} {2} listos  ({3} activos)",
