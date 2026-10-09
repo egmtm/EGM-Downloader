@@ -1969,6 +1969,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         _egm_log(f"live piece {len(segs)}: {recorded}s recorded after reconnect {attempts}/{_LIVE_MAX_RETRIES}")
         if recorded >= _LIVE_RECOVERED_S:
             attempts = 0
+            job.pop("live_reconnecting", None)   # only a stats line clears it otherwise: a run that printed none kept the old count on the card
     job.pop("live_reconnecting", None)
     job.pop("live_retries_max", None)
     if job.get("cancelled"):

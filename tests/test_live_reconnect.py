@@ -474,3 +474,18 @@ def test_each_reconnect_piece_leaves_a_log_line_with_its_length_and_the_count(ap
         "live piece 2: 61s recorded after reconnect 1/4",
         "live piece 3: 10s recorded after reconnect 1/4",
     ]
+
+
+def test_a_long_run_that_printed_no_time_does_not_leave_the_old_count_on_the_card(app_module, monkeypatch, tmp_path):
+    # The run printed no stats line (nothing popped the label), but its piece was long:
+    # between that run and the next question the card must not read "Reconnecting 2/4".
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, False], captures=["j_r2.mp4", "j_r3.mp4"], run_s=[0, 0])
+    monkeypatch.setattr(app_module, "_media_duration_s", lambda probe, path: 90.0)
+    seen = []
+    real_wait = rig.wait
+    def wait(job, secs):
+        seen.append(job.get("live_reconnecting"))
+        return real_wait(job, secs)
+    monkeypatch.setattr(app_module, "_live_wait", wait)
+    rig.run()
+    assert seen == [None, None, None], seen
