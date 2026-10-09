@@ -436,6 +436,7 @@ async function startDl(item, n) {
   const dir = chosenPath;
 
   item.status = 'downloading';
+  joinBulkRun(item);   // a Download all in progress counts this card too
   updateQueueArrows();   // card left the idle queue — hide its arrows, re-edge the rest
   reportActivity();   // engage the shell state (bar/badge/sleep blocker) immediately, not at the first poll tick
   setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading…');

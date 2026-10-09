@@ -261,6 +261,42 @@ test("a second Download all raises the total shown in the bar", async () => {
   assert.match(bar(), /1 \/ 5 .*\(2 active\)/, "one done, the next card started");
 });
 
+test("a card started from its own button while Download all runs is counted in the bar", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-txt").textContent;
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();                       // A and B run
+  assert.match(bar(), /0 \/ 2 .*\(2 active\)/);
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);   // C and D are added, the run did not queue them
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl2").click(); await settle();
+  assert.match(bar(), /0 \/ 3 .*\(3 active\)/, "C started by its own button joins the count");
+  t.d.getElementById("dl3").click(); await settle();
+  assert.match(bar(), /0 \/ 4 .*\(4 active\)/, "so does D");
+  t.finish("j3"); await t.tick(); await t.tick();
+  assert.match(bar(), /1 \/ 4 .*\(3 active\)/, "C done");
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.match(bar(), /2 \/ 4 .*\(2 active\)/, "A done");
+});
+
+test("the run is not over while a card started from its own button is still running", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-bar");
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl1").click(); await settle();
+  t.clearToasts();
+  t.finish("j1"); await t.tick(); await t.tick();   // the run's own card is done, B still runs
+  assert.ok(bar().classList.contains("show"), "the bar stays while B downloads");
+  assert.match(t.d.getElementById("bulk-txt").textContent, /1 \/ 2 .*\(1 active\)/);
+  assert.deepEqual(t.toasts().filter((x) => /2 videos/.test(x)), [], "no Done toast yet");
+  t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(!bar().classList.contains("show"), "the bar goes once B is done too");
+  assert.ok(t.toasts().some((x) => /2 videos/.test(x)), "and the Done toast counts both");
+});
+
 test("Cancel all stops the run but leaves cards that were added after it started idle", async () => {
   const t = await boot();
   await t.fetchLinks(`${A}\n${B}\n${C}`);
@@ -308,6 +344,7 @@ test("a card queued in Download all and started from its own button is downloade
   t.w.eval("showModal = async () => 'C name'");  // the name dialog answers at once
   t.d.getElementById("dl2").click(); await settle();
   assert.deepEqual(t.log.download, [A, B, C]);
+  assert.match(t.d.getElementById("bulk-txt").textContent, /\/ 3 /, "C is already one of the run's three, not a fourth");
   t.finish("j1"); await t.tick();                // a slot frees: the run must skip C
   assert.deepEqual(t.log.download, [A, B, C]);
 });
