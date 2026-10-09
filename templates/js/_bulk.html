@@ -42,10 +42,20 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   const CONCURRENCY = parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
   let done = 0, active = 0, idx = 0;
 
-  const joined = new Set();   // cards started from their own button while this run is on: counted with the run's own
+  const joined  = new Set();   // cards started from their own button while this run is on: counted with the run's own
+  const loading = new Set();   // the run's cards that hold a slot while their info loads
+  // Every card counts once, by what it is doing now: one the run has not reached yet is waiting,
+  // a running one is active (whoever started it), anything else is finished. A card the run
+  // queued and the user started, or a joined card that failed and was queued again, is one card.
   function counts() {
-    const own = joined.size, ownActive = [...joined].filter(isActiveItem).length;
-    return { done: done + own - ownActive, total: pending.length + own, active: active + ownActive };
+    const waiting = new Set(pending.slice(idx).map(e => e.item));
+    const all = new Set([...pending.map(e => e.item), ...joined]);
+    let fin = 0, act = 0;
+    for (const i of all) {
+      if (isActiveItem(i) || loading.has(i)) act++;
+      else if (!waiting.has(i)) fin++;
+    }
+    return { done: fin, total: all.size, active: act };
   }
   function updateBulkTxt() {
     if (run.stopped) return;   // cancelled: a later run owns the bar now
@@ -66,10 +76,12 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     // Lazy-fetch info if needed
     if (!item.info.formats?.length && !item.info.audio_formats?.length) {
       setBadge(stEl, 'dl', i18nGet('card.status.fetching_short') || 'Fetching...'); dlBtn.disabled = true;
+      loading.add(item);
       try {
         const i2 = await post('/api/info', { url: item.url });
         if (!i2.error) item.info = i2;
       } catch {}
+      loading.delete(item);
       // cleared, removed or cancelled while its info loaded
       if (run.stopped || !items.includes(item) || (item.status !== 'idle' && item.status !== 'error')) { done++; active--; return; }
     }
@@ -138,6 +150,13 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
               done++; resolve();
               return;
             }
+            // Backend evicted the job (cleanup worker / app restart): as in pollJob, or the run never ends
+            if (d && d.error === 'Job not found') {
+              clearInterval(wiv);
+              applyJobDone({ status: 'error', error: i18nGet('card.status.interrupted') || 'Download interrupted' }, item, stEl, dlBtn, progEl, cancelBtn);
+              done++; resolve();
+              return;
+            }
             // Re-fetch live elements in case renderCard replaced the DOM
             // (happens when playlist full info arrives while download is running)
             const liveStEl   = document.getElementById('st'   + n) || stEl;
@@ -181,13 +200,13 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
       downloadOne(pending[idx++]).then(pump);
     }
     updateBulkTxt();  // update AFTER filling slots so count is accurate
-    if (idx >= pending.length && counts().active === 0) finish();
+    if (idx >= pending.length && active === 0 && counts().active === 0) finish();
   }
   // waiting = queued and not yet downloading (an entry already taken that is still idle is loading its info)
   const run = { stopped: false, waiting: () => pending.filter((e, k) => k >= idx || e.item.status === 'idle').map(e => e.item),
                 add(more) { pending.push(...more); pump(); updateQueueArrows(); },
                 join(item) {
-                  if (joined.has(item) || pending.some(e => e.item === item)) return;   // the run's own cards are counted already
+                  if (joined.has(item)) return;   // counts() takes each card once, the run's own included
                   joined.add(item);
                   watch = watch || setInterval(pump, 1000);   // such a card ends on its own poller: look again each second
                   updateBulkTxt();

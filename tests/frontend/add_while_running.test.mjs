@@ -76,6 +76,7 @@ async function boot({ quit = false } = {}) {
     all: (fmt = "video", aq = null, vq = null) => w.eval(`downloadAll(${JSON.stringify(fmt)}, ${JSON.stringify(aq)}, ${JSON.stringify(vq)})`),
     finish: (id) => { jobs[id] = { status: "done", progress: 100, filename: id + ".mp4" }; },
     tick: async () => { for (const fn of [...timers.values()]) await fn(); await settle(300); },
+    timers,   // the pollers and watchers still running
     clear: () => d.getElementById("clear-btn").click(),
   };
 }
@@ -610,4 +611,125 @@ test("a card cleared while its name dialog is open is not downloaded", async () 
   t.w.eval("_answer('A name')"); await settle();
   assert.deepEqual(t.log.download, []);
   assert.deepEqual(errors, []);
+});
+
+// ── The bar counts each card once, by what it is doing now ─────────────────
+
+const barText = (t) => t.d.getElementById("bulk-txt").textContent;
+const barShown = (t) => t.d.getElementById("bulk-bar").classList.contains("show");
+const doneToasts = (t) => t.toasts().filter((x) => x.startsWith(en.strings["toast.done"]));
+
+test("a queued card started from its own button keeps the run going until it ends", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();                       // A and B run, C waits in the run
+  t.w.eval("showModal = async () => 'C name'");
+  t.d.getElementById("dl2").click(); await settle();   // C starts on its own: j3
+  t.finish("j1"); t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(barShown(t), "C is still downloading");
+  assert.deepEqual(doneToasts(t), []);
+  assert.match(barText(t), /2 \/ 3 .*\(1 active\)/);
+  t.finish("j3"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.equal(doneToasts(t).length, 1);
+});
+
+test("a run's own card that failed and is started again from its button keeps the run going", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();
+  t.jobs.j1 = { status: "error", error: "x" }; await t.tick();
+  t.w.eval("showModal = async () => 'A name'");
+  t.d.getElementById("dl0").click(); await settle();   // A again, on its own: j3
+  t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(barShown(t), "A is downloading again");
+  assert.match(barText(t), /1 \/ 2 .*\(1 active\)/);
+});
+
+test("a joined card that failed and is queued again by Download all is counted once", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();                       // a run with A
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();   // B joins: j2
+  t.jobs.j2 = { status: "error", error: "x" }; await t.tick();
+  t.all(); await settle();                       // B queued again into the same run: j3
+  assert.match(barText(t), / \/ 2 .*\(2 active\)/);
+});
+
+test("a run's own card whose job the backend lost ends as failed instead of holding the run open", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  t.jobs.j1 = { error: "Job not found" };
+  await t.tick(); await t.tick();
+  assert.equal(t.ev("items[0].status"), "error");
+  assert.ok(!barShown(t));
+  assert.equal(t.timers.size, 0, "no poller or watcher left running");
+});
+
+test("the watcher stops with the run: after a normal end and after Cancel all", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();   // B joins: the watcher starts
+  t.finish("j1"); t.finish("j2"); await t.tick(); await t.tick();
+  assert.equal(t.timers.size, 0);
+  await t.fetchLinks(`${C}\n${D}`);
+  t.all(); await settle();
+  await t.fetchLinks(`${C}\n${D}\n${E}`);
+  t.w.eval("showModal = async () => 'E name'");
+  t.d.getElementById("dl4").click(); await settle();   // E joins the second run
+  t.w.eval("cancelBulk()");
+  await t.tick(); await t.tick();
+  assert.equal(t.timers.size, 0);
+});
+
+test("arrows keep the list and the page in the same order, and never move a queued card (random clicks)", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);
+  t.all(); await settle();                       // A, B run; C, D queued
+  const more = Array.from({ length: 6 }, (_, i) => `https://e.com/m${i}`);
+  t.ctl.fail.add("https://e.com/bad");
+  await t.fetchLinks([A, B, C, D, ...more, "https://e.com/bad"].join("\n"));
+  t.w.eval("items[6].status = 'cancelled'; items[8].status = 'error'; updateQueueArrows()");
+  let seed = 3; const rnd = (n) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+  const queuedAt = () => t.ev("items.map((i, k) => [i.id, k]).filter(([id]) => runQueuedItems().some((q) => q.id === id))");
+  for (let k = 0; k < 120; k++) {
+    if (k === 60) { t.finish("j1"); await t.tick(); }   // C starts: one queued card left
+    const shown = [...t.d.querySelectorAll("#results .qarrow")]
+      .filter((b) => b.style.visibility !== "hidden" && b.closest("[id^=qarrows]").style.display !== "none");
+    const b = shown[rnd(shown.length)], id = +b.dataset.id;
+    const q0 = queuedAt(), at = t.ev(`items.findIndex((i) => i.id === ${id})`);
+    b.click();
+    assert.notEqual(t.ev(`items.findIndex((i) => i.id === ${id})`), at, `a shown arrow did nothing (click ${k})`);
+    assert.deepEqual(queuedAt(), q0, "a queued card moved");
+    const page = [...t.d.querySelectorAll("#results .vcard")].map((c) => c.querySelector("[id^=st]")?.id.slice(2)).filter(Boolean).map(Number);
+    assert.deepEqual(page, t.ev("items.map((i) => i.id)"), `click ${k}`);
+  }
+});
+
+test("the X on a card whose start request is in flight cancels the job once it exists", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.ctl.holdDownload = true;
+  t.all(); await settle();                       // POST for A and B sent, no job ids yet
+  t.card(0).querySelector(".vcard-remove").click();   // asked, answered yes
+  t.ctl.heldDl.forEach((release) => release()); await settle(); await t.tick();
+  assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
+  assert.equal(t.jobs.j2.status, "downloading", "B goes on");
+});
+
+test("cards the run has taken and is still loading the info of count as active, not as done", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;                         // the cards stay stubs: the run must fetch their info first
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();                       // A and B hold slots while their info loads, C waits
+  assert.match(barText(t), /0 \/ 3 .*\(2 active\)/);
+  t.ctl.holdInfo = false;
+  t.ctl.held.forEach((release) => release()); await settle(200);
+  assert.match(barText(t), /0 \/ 3 .*\(2 active\)/, "and the same once they download");
 });
