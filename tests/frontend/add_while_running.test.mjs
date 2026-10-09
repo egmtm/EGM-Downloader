@@ -297,6 +297,25 @@ test("the run is not over while a card started from its own button is still runn
   assert.ok(t.toasts().some((x) => /2 videos/.test(x)), "and the Done toast counts both");
 });
 
+test("a card already downloading when Download all starts is counted in the bar too", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-bar");
+  const txt = () => t.d.getElementById("bulk-txt").textContent;
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl0").click(); await settle();   // A runs on its own
+  t.all(); await settle();                             // the run takes B only
+  assert.deepEqual(t.log.download, [A, B]);
+  assert.match(txt(), /0 \/ 2 .*\(2 active\)/, "A is counted although the run did not start it");
+  t.clearToasts();
+  t.finish("j2"); await t.tick(); await t.tick();      // the run's own card is done, A still runs
+  assert.ok(bar().classList.contains("show"), "the bar stays while A downloads");
+  assert.match(txt(), /1 \/ 2 .*\(1 active\)/);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(!bar().classList.contains("show"));
+  assert.ok(t.toasts().some((x) => /2 videos/.test(x)), "the Done toast counts both");
+});
+
 test("Cancel all stops the run but leaves cards that were added after it started idle", async () => {
   const t = await boot();
   await t.fetchLinks(`${A}\n${B}\n${C}`);

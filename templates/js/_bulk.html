@@ -193,6 +193,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
                   updateBulkTxt();
                 } };
   _bulkRun = run;
+  items.filter(isActiveItem).forEach(run.join);   // cards already downloading when the run starts are part of what the bar counts
   pump();
   updateQueueArrows();   // the cards this run queued lose their reorder arrows
   await finished;
