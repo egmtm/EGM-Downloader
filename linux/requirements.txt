@@ -33,6 +33,6 @@ cryptography>=50.0.2
 # flagged this bump landed without a verification note; this closes it.)
 curl_cffi>=0.16.3,<0.17.0
 brotli>=1.2.0
-pycryptodomex>=3.23.0
+pycryptodomex>=3.24.0
 websockets>=17.2
 certifi>=2026.7.22
