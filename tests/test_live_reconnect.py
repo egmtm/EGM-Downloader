@@ -554,8 +554,10 @@ def test_only_a_live_recording_from_a_listed_site_gets_the_sync_args(app_module,
     m.jobs[job_id] = {"status": "queued", "url": url, "title": "", "proc": None, "cancelled": False, "live": live}
     try:
         m.run_download(job_id, url, "video", None, str(tmp_path))
+        marked = m.jobs[job_id].get("_live_sync")
     finally:
         m.jobs.pop(job_id, None)
+    assert marked is want, "the job says whether the recording keeps the source timestamps (the finish step cuts a silent opening only then)"
     cmd = cmds[0]
     has = "--downloader-args" in cmd
     assert has == want, cmd
@@ -573,3 +575,128 @@ def test_a_reconnect_run_keeps_the_sync_args(app_module, monkeypatch, tmp_path):
     cmd = ["yt-dlp", *_SYNC_ARGS, "-o", out_tmpl, "https://example.com/live"]
     app_module._live_finish(rig.job, "j", tmp_path, cmd, out_tmpl, "https://example.com/live", FFMPEG, ".mp4", False, 0)
     assert rig.attempts and rig.attempts[0][0][1:3] == _SYNC_ARGS, rig.attempts[0][0]
+
+
+# ── cutting the silent opening (audio that starts a few seconds after the video) ──
+def _make_late_audio_mp4(path, gap=3.3, secs=12, gop=50, audio=True, video=True):
+    """A white flash at 6.0 s and a 1 kHz beep at 6.0 s on the same timeline; the audio track starts `gap` s late."""
+    cmd = [FFMPEG, "-v", "error", "-y"]
+    maps = []
+    if video:
+        cmd += ["-f", "lavfi", "-i", "color=c=black:s=160x90:r=25,drawbox=x=0:y=0:w=160:h=90:color=white:t=fill:enable='between(t,6,6.2)'"]
+    if audio:
+        cmd += ["-itsoffset", str(gap), "-f", "lavfi", "-i", f"aevalsrc=if(between(t\\,{6 - gap}\\,{6.2 - gap})\\,0.8*sin(2*PI*1000*t)\\,0):s=44100"]
+    cmd += ["-t", str(secs), "-c:v", "libx264", "-g", str(gop), "-sc_threshold", "0", "-c:a", "aac", "-movflags", "+faststart", str(path)]
+    subprocess.run(cmd, check=True)
+
+
+def _starts(path):
+    r = subprocess.run([FFPROBE, "-v", "error", "-show_entries", "stream=codec_type,start_time", "-of", "compact=nk=1:p=0", str(path)],
+                       capture_output=True, text=True)
+    return {row.split("|")[0]: float(row.split("|")[1]) for row in r.stdout.split()}
+
+
+def _flash_and_beep(path):
+    """When the flash and the beep happen on the file's own timeline (copyts keeps each stream's real position)."""
+    import re
+    v = subprocess.run([FFMPEG, "-v", "error", "-copyts", "-i", str(path), "-an", "-vf",
+                        "signalstats,metadata=print:key=lavfi.signalstats.YAVG:file=-", "-f", "null", "-"],
+                       capture_output=True, text=True).stdout
+    t = flash = None
+    for line in v.splitlines():
+        m = re.search(r"pts_time:([\d.]+)", line)
+        if m: t = float(m.group(1))
+        m = re.search(r"YAVG=([\d.]+)", line)
+        if m and float(m.group(1)) > 128 and flash is None: flash = t
+    a = subprocess.run([FFMPEG, "-v", "info", "-copyts", "-i", str(path), "-vn", "-af", "silencedetect=n=-30dB:d=0.05", "-f", "null", "-"],
+                       capture_output=True, text=True).stderr
+    beep = float(re.findall(r"silence_end: ([\d.]+)", a)[0])
+    return flash, beep
+
+
+def _video_packet_sizes(path):
+    r = subprocess.run([FFPROBE, "-v", "error", "-select_streams", "v:0", "-show_entries", "packet=size", "-of", "csv=p=0", str(path)],
+                       capture_output=True, text=True)
+    return [int(x) for x in r.stdout.split()]
+
+
+def _first_video_packet_is_a_keyframe(path):
+    r = subprocess.run([FFPROBE, "-v", "error", "-select_streams", "v:0", "-show_entries", "packet=flags", "-of", "csv=p=0",
+                        "-read_intervals", "%+0.5", str(path)], capture_output=True, text=True)
+    return r.stdout.split()[0].startswith("K")
+
+
+@needs_ffmpeg
+def test_trim_cuts_the_silent_opening_at_a_keyframe_and_keeps_the_sync(app_module, monkeypatch, tmp_path):
+    p = tmp_path / "j.mp4"
+    _make_late_audio_mp4(p)
+    s = _starts(p)
+    assert s["audio"] - s["video"] > 3.0, "the test file opens with video and no sound"
+    flash, beep = _flash_and_beep(p)
+    assert abs(flash - beep) < 0.05, "and it is in sync"
+    before = _video_packet_sizes(p)
+    logged, job = [], {}
+    monkeypatch.setattr(app_module, "_egm_log", logged.append)
+    assert app_module._live_trim_silent_start(job, FFMPEG, p) is True
+    after = _video_packet_sizes(p)
+    s = _starts(p)
+    assert s["video"] < 0.1 and s["audio"] < 0.1, "both streams now open together"
+    assert _first_video_packet_is_a_keyframe(p)
+    assert 7.5 < _duration(p) < 8.5, "12 s minus the cut at the keyframe after 3.3 s (4.0 s)"
+    flash, beep = _flash_and_beep(p)
+    assert abs(flash - 2.0) < 0.1 and abs(beep - flash) < 0.05, (flash, beep)
+    assert after == before[-len(after):] and len(after) > 150, "the video packets are the original ones (a stream copy, no re-encode)"
+    assert job["status"] == "converting" and len(logged) == 1 and "cut the first" in logged[0]
+    assert sorted(x.name for x in tmp_path.iterdir()) == ["j.mp4"], "no temp file left"
+
+
+@needs_ffmpeg
+def test_trim_leaves_everything_else_alone(app_module, tmp_path):
+    def untouched(p):
+        before = p.read_bytes()
+        assert app_module._live_trim_silent_start({}, FFMPEG, p) is False
+        assert p.read_bytes() == before and [x.name for x in tmp_path.iterdir()] == [p.name]
+        p.unlink()
+    _make_late_audio_mp4(_p := tmp_path / "short.mp4", gap=0.5); untouched(_p)   # a gap below the minimum
+    _make_late_audio_mp4(_p := tmp_path / "video.mp4", audio=False); untouched(_p)
+    _make_late_audio_mp4(_p := tmp_path / "audio.mp4", video=False); untouched(_p)
+    _make_late_audio_mp4(_p := tmp_path / "longgop.mp4", gop=2000); untouched(_p)           # no keyframe within reach
+    (_p := tmp_path / "broken.mp4").write_bytes(b"not a video" * 50); untouched(_p)
+    _make_late_audio_mp4(_p := tmp_path / "ok.mp4")
+    assert app_module._live_trim_silent_start({}, tmp_path / "no-such-ffmpeg", _p) is False
+
+
+@needs_ffmpeg
+def test_a_failed_cut_keeps_the_file_and_leaves_no_temp_file(app_module, monkeypatch, tmp_path):
+    p = tmp_path / "j.mp4"
+    _make_late_audio_mp4(p)
+    before = p.read_bytes()
+    real = app_module._run
+    def failing(*a, **k):
+        if "-ss" not in a:
+            return real(*a, **k)
+        Path(a[-1]).write_bytes(p.read_bytes())   # a full length output, but ffmpeg says it failed
+        return subprocess.CompletedProcess(a, 1, "", "boom")
+    monkeypatch.setattr(app_module, "_run", failing)
+    assert app_module._live_trim_silent_start({}, FFMPEG, p) is False
+    assert p.read_bytes() == before and [x.name for x in tmp_path.iterdir()] == ["j.mp4"]
+    lengths = iter([12.0, 5.0])   # a cut that came out far too short is not used either
+    monkeypatch.setattr(app_module, "_run", real)
+    monkeypatch.setattr(app_module, "_media_duration_s", lambda probe, path: next(lengths))
+    assert app_module._live_trim_silent_start({}, FFMPEG, p) is False
+    assert p.read_bytes() == before and [x.name for x in tmp_path.iterdir()] == ["j.mp4"]
+
+
+def test_the_cut_runs_once_on_the_final_file_and_only_for_sites_that_keep_the_source_timestamps(app_module, monkeypatch, tmp_path):
+    def finish(sync, audio_only=False, cancelled=False):
+        rig = _Rig(app_module, monkeypatch, tmp_path, lives=[False], captures=[])
+        rig.job["_live_sync"] = sync
+        rig.job["cancelled"] = cancelled
+        monkeypatch.setattr(app_module, "_live_trim_silent_start", lambda job, ff, path: rig.notes.append(("trim", Path(path).name)))
+        out_tmpl = str(tmp_path / "j.%(ext)s")
+        res = app_module._live_finish(rig.job, "j", tmp_path, ["yt-dlp", out_tmpl, "u"], out_tmpl, "u", FFMPEG, ".mp4", audio_only, 0)
+        return res, rig.notes
+    assert finish(True) == ("saved", [("trim", "j.mp4"), "saved"]), "cut first, then the A/V numbers are logged for the result"
+    assert finish(False) == ("saved", ["saved"])
+    assert finish(True, audio_only=True) == ("saved", ["saved"])
+    assert finish(True, cancelled=True) == ("cancelled", [])

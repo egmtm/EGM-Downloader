@@ -1435,6 +1435,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     args.append(url)
 
     _live_sync = _live_sync_args(url) if job.get("live") else []
+    job["_live_sync"] = bool(_live_sync)
     cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + _live_sync + args
     try:
         # Host only, not the full URL -- a private/signed URL can carry an
@@ -1744,6 +1745,60 @@ def _live_sync_args(url):
             return list(_LIVE_SYNC_ARGS)
     return []
 
+# With the source timestamps kept, a recording can open with video and no sound: the audio playlist began a few seconds
+# after the video one, and the file says so (its audio track starts later). The silent opening is cut off at the next
+# video keyframe with a stream copy (nothing is re-encoded), so the file opens with sound. That costs the video up to
+# that keyframe, a couple of seconds more than the gap. Any failure leaves the file as it was.
+_LIVE_TRIM_MIN_S  = 1.0   # a shorter gap is left alone: the cut would cost more than the silence
+_LIVE_TRIM_LOOK_S = 30    # how far past the audio start to look for a video keyframe
+
+def _live_trim_silent_start(job, ffmpeg, path):
+    """True when the file was cut and replaced."""
+    tmp = Path(path).with_name(Path(path).stem + "_trim" + Path(path).suffix)
+    try:
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        if not Path(ffmpeg).exists() or not probe.exists():
+            return False
+        r = _run(str(probe), "-v", "error", "-show_entries", "stream=index,codec_type,start_time",
+                 "-of", "compact=p=0", str(path), timeout=30)
+        video = audio = None   # (stream index, start time)
+        for row in (r.stdout or "").splitlines():
+            f = dict(kv.split("=", 1) for kv in row.strip().split("|") if "=" in kv)
+            kind = f.get("codec_type")
+            if kind == "video" and video is None:
+                video = (f["index"], float(f["start_time"]))
+            elif kind == "audio" and audio is None:
+                audio = (f["index"], float(f["start_time"]))
+        if not video or not audio or audio[1] - video[1] < _LIVE_TRIM_MIN_S:
+            return False
+        r = _run(str(probe), "-v", "error", "-select_streams", video[0], "-show_entries", "packet=pts_time,flags",
+                 "-of", "csv=p=0", "-read_intervals", f"{audio[1]}%+{_LIVE_TRIM_LOOK_S}", str(path), timeout=60)
+        cuts = []
+        for row in (r.stdout or "").splitlines():
+            pts, _, flags = row.strip().partition(",")
+            if "K" in flags and float(pts) >= audio[1] - 0.001:
+                cuts.append(float(pts))
+        if not cuts:
+            return False
+        cut = min(cuts)
+        old = _media_duration_s(probe, path)
+        job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        job.pop("progress", None)
+        cmd = [str(ffmpeg), "-v", "error", "-y", "-ss", f"{cut:.6f}", "-i", str(path), "-c", "copy"]
+        if str(path).endswith((".mp4", ".m4a")):
+            cmd += ["-movflags", "+faststart"]
+        res = _run(*cmd, str(tmp), timeout=600 + os.path.getsize(path) // (2 * 1024 * 1024))
+        new = _media_duration_s(probe, tmp) if tmp.exists() else None
+        if res.returncode == 0 and old and new and new >= old - cut - 1.0:
+            os.replace(tmp, path)
+            _egm_log(f"live recording: cut the first {cut:.1f}s (video without sound) off the start")
+            return True
+    except Exception:
+        pass
+    try: os.remove(tmp)
+    except OSError: pass
+    return False
+
 _LIVE_OVER_RE  = _re.compile(r"not currently live|is offline|\boffline\b|has ended|stream ended|no longer live|not live", _re.I)
 _LIVE_PERMANENT = {"private", "unavailable", "members", "region", "premiere"}
 _LIVE_MEDIA_EXTS = {".mp4", ".mkv", ".m4a", ".mp3", ".flac", ".opus", ".wav", ".aac", ".ogg", ".webm"}
@@ -2025,6 +2080,8 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         except OSError: pass
     # run_download delivers exactly this file. Picking by extension alone fails for
     # audio: the salvage is an .m4a stream copy whatever audio format was chosen.
+    if job.get("_live_sync") and not audio_only:
+        _live_trim_silent_start(job, ffmpeg, segs[0])
     job["_live_file"] = segs[0]
     _live_av_note(ffmpeg, "saved", segs[0])
     return "saved"
