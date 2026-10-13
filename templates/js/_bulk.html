@@ -83,9 +83,9 @@ function createBulkRun(modeLabel, byCard) {
     // Skipped: the run was stopped, or the card was cancelled or started from its own button meanwhile
     if (run.stopped || (item.status !== 'idle' && item.status !== 'error')) { done++; active--; return; }
     const n       = item.id;
-    const stEl    = document.getElementById('st'     + n);
-    const dlBtn   = document.getElementById('dl'     + n);
-    const progEl  = document.getElementById('prog'   + n);
+    let stEl      = document.getElementById('st'     + n);
+    let dlBtn     = document.getElementById('dl'     + n);
+    let progEl    = document.getElementById('prog'   + n);
     if (!stEl || !dlBtn) { done++; active--; updateBulkTxt(); return; }
 
     // Lazy-fetch info if needed
@@ -99,6 +99,8 @@ function createBulkRun(modeLabel, byCard) {
       loading.delete(item);
       // cleared, removed or cancelled while its info loaded
       if (run.stopped || !items.includes(item) || (item.status !== 'idle' && item.status !== 'error')) { done++; active--; return; }
+      // the card's own info load may have rebuilt it meanwhile: the elements from before the wait are gone from the page
+      stEl = document.getElementById('st' + n) || stEl; dlBtn = document.getElementById('dl' + n) || dlBtn; progEl = document.getElementById('prog' + n) || progEl;
     }
 
     item.status = 'downloading';
@@ -149,6 +151,9 @@ function createBulkRun(modeLabel, byCard) {
 
       await new Promise(resolve => {
         const wiv = setInterval(async () => {
+          // The card may have been rebuilt since the last tick (its info arrived late): work on what is on the page now
+          stEl = document.getElementById('st' + n) || stEl;       dlBtn = document.getElementById('dl' + n) || dlBtn;
+          progEl = document.getElementById('prog' + n) || progEl; cancelBtn = document.getElementById('cancel' + n) || cancelBtn;
           // Check cancellation before any fetch
           if (item.status === 'cancelled' || run.stopped) {
             clearInterval(wiv);

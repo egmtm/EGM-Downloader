@@ -335,6 +335,32 @@ function renderCard(el, item) {
     });
   });
 
+  if (isActiveItem(item)) restoreRunningCard(item);   // its info arrived after the download started: the rebuild must not undo that
+}
+
+// renderCard rebuilds a card from scratch. A card whose download is already running (a playlist entry whose
+// info loaded late) gets back what the download had set up: no Download button, the progress bar, Cancel,
+// and Stop and save for a live stream.
+function restoreRunningCard(item) {
+  const n = item.id;
+  const dlBtn = document.getElementById(`dl${n}`);
+  if (!dlBtn) return;
+  const progEl = document.getElementById(`prog${n}`);
+  setBadge(document.getElementById(`st${n}`), 'dl', i18nGet('card.status.downloading') || 'Downloading…');
+  dlBtn.disabled = true;
+  dlBtn.style.display = 'none';
+  if (progEl) progEl.style.display = '';
+  let cancelBtn = document.getElementById(`cancel${n}`);
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.id = `cancel${n}`;
+    cancelBtn.className = 'btn btn-red btn-sm';
+    cancelBtn.textContent = '✕ ' + (i18nGet('card.btn.cancel') || 'Cancel');
+    dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
+  }
+  cancelBtn.style.display = '';
+  cancelBtn.onclick = () => cancelDownload(item, n);
+  addStopSave(item, n, cancelBtn);
 }
 
 function removeItem(id, el) {
@@ -685,7 +711,11 @@ function reportActivity() {
 }
 
 function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
+  const n = item.id;
   const iv = setInterval(async () => {
+    // The card may have been rebuilt since the last tick (its info arrived late): work on what is on the page now
+    stEl = document.getElementById(`st${n}`) || stEl;       dlBtn = document.getElementById(`dl${n}`) || dlBtn;
+    progEl = document.getElementById(`prog${n}`) || progEl; cancelBtn = document.getElementById(`cancel${n}`) || cancelBtn;
     if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
       clearInterval(iv);
       bulkCancelledJobs.delete(item.jobId);

@@ -13,7 +13,7 @@ const A = "https://e.com/a", B = "https://e.com/b", C = "https://e.com/c", D = "
 async function boot({ quit = false } = {}) {
   const log = { playlist: [], download: [], bodies: [], cancel: [], quit: [], activity: [] };
   const jobs = {};   // jobId -> status served by /api/status/<id>
-  const ctl = { fail: new Set(), hang: new Set(), entries: {}, holdInfo: false, held: [], holdDownload: false, heldDl: [], confirms: [], answer: true, maxRunning: 0 };
+  const ctl = { live: false, fail: new Set(), hang: new Set(), entries: {}, holdInfo: false, held: [], holdDownload: false, heldDl: [], confirms: [], answer: true, maxRunning: 0 };
   let jobSeq = 0;
   const json = (o) => ({ ok: true, json: async () => o });
   const t = await bootPage({
@@ -26,7 +26,7 @@ async function boot({ quit = false } = {}) {
         return json({ is_playlist: true, entries: ctl.entries[body.url] || [{ url: body.url, title: "T " + body.url }] });
       }
       if (u === "/api/info") {
-        const info = { title: "T " + body.url, uploader: "U", thumbnail: "", duration: 10, formats: [{ id: "f1", label: "720p", height: 720 }], audio_formats: [] };
+        const info = { title: "T " + body.url, uploader: "U", thumbnail: "", duration: 10, formats: [{ id: "f1", label: "720p", height: 720 }], audio_formats: [], is_live: !!ctl.live };
         return ctl.holdInfo ? new Promise((res) => ctl.held.push(() => res(json(info)))) : json(info);
       }
       if (u === "/api/download") {
@@ -889,4 +889,64 @@ test("removing the only card of a run ends it quietly", async () => {
   assert.ok(!barShown(t));
   assert.deepEqual(doneToasts(t), [], "nothing was done, so no Done toast");
   assert.equal(t.timers.size, 0);
+});
+
+// ── A card whose info arrives while its download starts keeps its Cancel and Stop and save ──
+
+// Three live links; the info of the third is still loading when Download all is clicked (the page asks
+// twice for it: the card's own load and the one the download makes). order says which answer comes first.
+async function liveStubRun(order) {
+  const t = await boot();
+  t.ctl.live = true; t.ctl.holdInfo = true;
+  t.w.eval("document.getElementById('concurrency-sel').value = '10'");
+  await t.fetchLinks(`${A}\n${B}\n${C}`);       // held[0..2]: the cards' own info loads
+  t.ctl.held[0](); t.ctl.held[1](); await settle();   // A and B are complete cards, C is still a stub
+  t.all(); await settle();                          // A, B start; C asks for its info again: held[3]
+  assert.equal(t.ctl.held.length, 4);
+  const first = order === "download-first" ? 3 : 2;
+  t.ctl.held[first](); await settle();
+  t.ctl.held[first === 3 ? 2 : 3](); await settle();
+  return t;
+}
+
+for (const order of ["download-first", "card-first"]) {
+  test(`a live card whose info arrives as its download starts (${order}) keeps Cancel and Stop and save`, async () => {
+    const t = await liveStubRun(order);
+    assert.deepEqual(t.log.download, [A, B, C], "all three are recording");
+    assert.equal(t.ev("items[2].status"), "downloading");
+    const vis = (id) => { const e = t.d.getElementById(id); return !!e && e.style.display !== "none"; };
+    assert.ok(vis("cancel2"), "Cancel is on the visible card");
+    assert.ok(vis("stop2"), "so is Stop and save");
+    assert.ok(!vis("dl2") || t.d.getElementById("dl2").disabled, "no live Download button on a running card");
+    t.d.getElementById("cancel2").click(); await settle();
+    assert.ok(t.log.cancel.includes("/api/cancel/j3"), "Cancel stops the recording");
+  });
+
+  test(`the same card, when its job fails (${order}), shows no leftover Cancel`, async () => {
+    const t = await liveStubRun(order);
+    t.jobs.j3 = { status: "error", error: "x" }; await t.tick(); await t.tick();
+    assert.equal(t.ev("items[2].status"), "error");
+    const shown = (id) => { const e = t.d.getElementById(id); return !!e && e.style.display !== "none"; };
+    assert.ok(!shown("cancel2") && !shown("stop2"), "Cancel and Stop and save are gone");
+    assert.ok(shown("dl2") && !t.d.getElementById("dl2").disabled, "Download is back to try again");
+  });
+}
+
+test("a card started on its own whose info load lands after the download began keeps Cancel and Stop and save, and its poller follows the rebuilt card", async () => {
+  const t = await boot();
+  t.ctl.live = true; t.ctl.holdInfo = true;
+  await t.fetchLinks(A);                                   // held[0]: the card's own info load
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl0").click(); await settle();       // the stub asks for its info again: held[1]
+  assert.equal(t.ctl.held.length, 2);
+  t.ctl.held[1](); await settle();                         // that answer starts the download
+  assert.equal(t.ev("items[0].status"), "downloading");
+  t.ctl.held[0](); await settle();                         // the card's own load lands afterwards and rebuilds the card
+  const shown = (id) => { const e = t.d.getElementById(id); return !!e && e.style.display !== "none"; };
+  assert.ok(shown("cancel0") && shown("stop0"), "Cancel and Stop and save are on the card");
+  assert.ok(!shown("dl0"), "no Download button on a running card");
+  t.jobs.j1 = { status: "error", error: "x" }; await t.tick(); await t.tick();
+  assert.equal(t.ev("items[0].status"), "error");
+  assert.ok(!shown("cancel0") && !shown("stop0"), "the failed card shows no leftover Cancel");
+  assert.ok(shown("dl0") && !t.d.getElementById("dl0").disabled, "Download is back to try again");
 });
