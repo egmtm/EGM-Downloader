@@ -154,7 +154,10 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 - ⚡ Electron runtime updated to v45 — the next major runtime upgrade
 - 🚫 SponsorBlock integration — an optional toggle to automatically skip sponsor segments in downloaded YouTube videos, powered by the community-run [SponsorBlock](https://sponsor.ajay.app/) database
 - 🔴 Live stream controls — a LIVE tag with recording time and size, a "Stop and save" button that keeps what was captured, and recordings that fail partway are saved instead of lost
+- 🔁 Live stream reconnect — if a live stream drops, the recording reconnects on its own (up to 4 times in a row) and joins the pieces into one file
 - ⏱️ Quit when done upgraded — now also in the Subscriptions download queue, waits for every download, and shows a 10 second countdown with a Cancel button
+- ➕ Add while downloading — paste more links while downloads are running; new videos join the list and the current run, with one progress bar and a Cancel All button for everything
+- 💾 Subscriptions export and import — now carry each subscription's own settings (download folder, format, quality, auto fetch and SponsorBlock), not just the links
 
 ---
 
