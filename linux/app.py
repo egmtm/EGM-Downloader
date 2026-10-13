@@ -1460,6 +1460,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # Drain stderr in background to prevent pipe buffer deadlock
         # Cap at 200 lines — only the last line matters for error reporting.
         stderr_lines = deque(maxlen=200)
+        _clock = _live_clock(0)
         def _drain_stderr():
             recent = deque(maxlen=8)
             for l in proc.stderr:
@@ -1471,7 +1472,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 m = _LIVE_STATS_RE.search(l)
                 if m:
                     job["live_size"] = "" if m.group(1) == "N/A" else m.group(1)
-                    job["live_time"] = m.group(2)
+                    job["live_time"] = _live_s_to_hms(_clock(m.group(2)))
                 else:
                     note = _live_note(l)
                     if note and note not in recent:
@@ -1736,7 +1737,7 @@ def _live_sync_args(url):
     """The yt-dlp arguments that keep a listed site's audio and video in sync, or [] for any other link.
     The reconnect runs copy the first run's command, so they get the same arguments."""
     try:
-        host = (urllib.parse.urlparse(url).hostname or "").lower()
+        host = (urllib.parse.urlparse(url).hostname or "").lower().rstrip(".")   # "site.example." is the same host
     except ValueError:
         return []
     labels = host.split(".")
@@ -1754,10 +1755,12 @@ _LIVE_TRIM_LOOK_S = 30    # how far past the audio start to look for a video key
 
 def _live_trim_silent_start(job, ffmpeg, path):
     """True when the file was cut and replaced."""
-    tmp = Path(path).with_name(Path(path).stem + "_trim" + Path(path).suffix)
+    # Named like yt-dlp's own leftovers ({job_id}.*.part), so a crash or shutdown in the middle of the cut is swept at the next start.
+    tmp = Path(path).with_name(Path(path).stem + ".trim.part")
+    muxer = {".mp4": "mp4", ".mkv": "matroska"}.get(Path(path).suffix.lower())   # the .part name says nothing, so ffmpeg is told
     try:
         probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
-        if not Path(ffmpeg).exists() or not probe.exists():
+        if not muxer or not Path(ffmpeg).exists() or not probe.exists():
             return False
         r = _run(str(probe), "-v", "error", "-show_entries", "stream=index,codec_type,start_time",
                  "-of", "compact=p=0", str(path), timeout=30)
@@ -1784,10 +1787,11 @@ def _live_trim_silent_start(job, ffmpeg, path):
         old = _media_duration_s(probe, path)
         job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
         job.pop("progress", None)
-        cmd = [str(ffmpeg), "-v", "error", "-y", "-ss", f"{cut:.6f}", "-i", str(path), "-c", "copy"]
-        if str(path).endswith((".mp4", ".m4a")):
+        # -map 0 keeps every track (a second audio track would be lost for good: the cut replaces the original); data streams stay out
+        cmd = [str(ffmpeg), "-v", "error", "-y", "-ss", f"{cut:.6f}", "-i", str(path), "-map", "0", "-dn", "-c", "copy"]
+        if muxer == "mp4":
             cmd += ["-movflags", "+faststart"]
-        res = _run(*cmd, str(tmp), timeout=600 + os.path.getsize(path) // (2 * 1024 * 1024))
+        res = _run(*cmd, "-f", muxer, str(tmp), timeout=600 + os.path.getsize(path) // (2 * 1024 * 1024))
         new = _media_duration_s(probe, tmp) if tmp.exists() else None
         if res.returncode == 0 and old and new and new >= old - cut - 1.0:
             os.replace(tmp, path)
@@ -1809,6 +1813,24 @@ def _live_hms_to_s(text):
 
 def _live_s_to_hms(n):
     return f"{n // 3600:02d}:{n % 3600 // 60:02d}:{n % 60:02d}"
+
+_LIVE_TIME_JUMP_S = 60   # more than this between two stats lines is a jump in the source timestamps, not recorded time
+
+def _live_clock(base_s):
+    """Turns the time= values of one run into the recording's time, from base_s on. With -copyts
+    (_live_sync_args) ffmpeg's time= follows the source: it jumps when the source restarts its
+    timestamps and falls back to 0 when they wrap (every 26.5 h), so only the steps between two
+    lines that look like recorded time are added up."""
+    st = {"prev": None, "acc": 0}
+    def feed(text):
+        t = _live_hms_to_s(text)
+        if st["prev"] is None:
+            st["acc"] = t
+        elif 0 <= t - st["prev"] <= _LIVE_TIME_JUMP_S:
+            st["acc"] += t - st["prev"]
+        st["prev"] = t
+        return base_s + st["acc"]
+    return feed
 
 def _live_size_kib(text):
     """ffmpeg's size= value ('364544KiB', '512kB', 'N/A') as whole KiB, or None."""
@@ -1881,6 +1903,7 @@ def _run_live_attempt(job, job_id, cmd, base_s, base_kib):
     if job.get("cancelled") or job.get("stop_keep"):
         _kill_proc(proc)   # pressed in the instant before the process existed
 
+    clock = _live_clock(base_s)
     def _drain():
         recent = deque(maxlen=8)
         for l in proc.stderr:
@@ -1889,7 +1912,7 @@ def _run_live_attempt(job, job_id, cmd, base_s, base_kib):
                 job.pop("live_reconnecting", None)
                 kib = _live_size_kib(m.group(1))
                 job["live_size"] = "" if kib is None else f"{base_kib + kib}KiB"
-                job["live_time"] = _live_s_to_hms(base_s + _live_hms_to_s(m.group(2)))
+                job["live_time"] = _live_s_to_hms(clock(m.group(2)))
             else:
                 note = _live_note(l)
                 if note and note not in recent:
@@ -2082,6 +2105,8 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
     # audio: the salvage is an .m4a stream copy whatever audio format was chosen.
     if job.get("_live_sync") and not audio_only:
         _live_trim_silent_start(job, ffmpeg, segs[0])
+    if job.get("cancelled"):
+        return "cancelled"   # Cancel pressed during the join or the cut (neither ffmpeg is registered to be killed): it still discards
     job["_live_file"] = segs[0]
     _live_av_note(ffmpeg, "saved", segs[0])
     return "saved"

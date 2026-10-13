@@ -700,3 +700,132 @@ def test_the_cut_runs_once_on_the_final_file_and_only_for_sites_that_keep_the_so
     assert finish(False) == ("saved", ["saved"])
     assert finish(True, audio_only=True) == ("saved", ["saved"])
     assert finish(True, cancelled=True) == ("cancelled", [])
+
+
+# ── round 3 review ───────────────────────────────────────────────────────────
+def test_cancel_pressed_during_the_join_or_the_cut_still_discards(app_module, monkeypatch, tmp_path):
+    # Neither ffmpeg step is registered to be killed, so Cancel only sets the flag while it runs:
+    # the finish step must look at it again before it reports the recording as saved.
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[False], captures=[])
+    rig.job["_live_sync"] = True
+    monkeypatch.setattr(app_module, "_live_trim_silent_start", lambda job, ff, path: job.__setitem__("cancelled", True))
+    out_tmpl = str(tmp_path / "j.%(ext)s")
+    assert app_module._live_finish(rig.job, "j", tmp_path, ["yt-dlp", out_tmpl, "u"], out_tmpl, "u", FFMPEG, ".mp4", False, 0) == "cancelled"
+
+
+@needs_ffmpeg
+@pytest.mark.parametrize("gap, cut", [(0.8, False), (1.3, True)])
+def test_the_cut_starts_at_a_one_second_gap(app_module, tmp_path, gap, cut):
+    p = tmp_path / "j.mp4"
+    _make_late_audio_mp4(p, gap=gap)
+    assert app_module._live_trim_silent_start({}, FFMPEG, p) is cut
+
+
+@needs_ffmpeg
+def test_the_cut_file_opens_without_reading_to_its_end(app_module, tmp_path):
+    p = tmp_path / "j.mp4"
+    _make_late_audio_mp4(p)
+    assert app_module._live_trim_silent_start({}, FFMPEG, p) is True
+    data = p.read_bytes()
+    assert data.find(b"moov") < data.find(b"mdat"), "the index sits before the media (+faststart), as for every saved mp4"
+
+
+def test_the_card_clock_ignores_jumps_in_the_source_timestamps(app_module, monkeypatch):
+    # With -copyts, time= follows the source: a timestamp restart jumps it a day ahead and a wrap
+    # sends it back to 0. The card shows recorded time, so only plausible steps count.
+    class Jumpy(_Run):
+        stderr = [f"size=  10kB time={t}.00 bitrate=1kbits/s\n" for t in
+                  ("00:00:01", "00:00:05", "23:56:59", "23:57:04", "00:00:02", "00:00:03")]
+    monkeypatch.setattr(app_module, "_popen_yt", lambda *a, **k: Jumpy())
+    job = {}
+    app_module._run_live_attempt(job, "jz", ["yt-dlp", "u"], 100, 0)
+    assert job["live_time"] == "00:01:51", job["live_time"]   # 100 + 1 + 4 + (jump) + 5 + (wrap) + 1
+    clock = app_module._live_clock(0)
+    assert [clock(t) for t in ("00:00:00", "00:00:30", "00:01:20", "00:04:20", "00:04:21")] == [0, 30, 80, 80, 81]
+
+
+def test_sync_args_also_for_a_fully_qualified_host(app_module, monkeypatch):
+    host = _list_one_site(app_module, monkeypatch)
+    assert app_module._live_sync_args(f"https://{host}./room") == _SYNC_ARGS
+    assert app_module._live_sync_args(f"https://user:pw@www.{host}.:443/room") == _SYNC_ARGS
+    assert app_module._live_sync_args("https://./room") == [] and app_module._live_sync_args("https://[::1]/room") == []
+
+
+def _stream_kinds(path):
+    r = subprocess.run([FFPROBE, "-v", "error", "-show_entries", "stream=codec_type", "-of", "csv=p=0", str(path)],
+                       capture_output=True, text=True)
+    return r.stdout.split()
+
+
+@needs_ffmpeg
+def test_the_cut_keeps_a_second_audio_track(app_module, tmp_path):
+    # The cut replaces the original, so a track it dropped would be lost for good.
+    one, p = tmp_path / "one.mp4", tmp_path / "j.mp4"
+    _make_late_audio_mp4(one)
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(one), "-i", str(one), "-map", "0", "-map", "1:a", "-c", "copy", str(p)], check=True)
+    assert _stream_kinds(p) == ["video", "audio", "audio"]
+    assert app_module._live_trim_silent_start({}, FFMPEG, p) is True
+    assert _stream_kinds(p) == ["video", "audio", "audio"]
+
+
+@needs_ffmpeg
+def test_the_cut_works_for_mkv_and_leaves_other_containers_alone(app_module, tmp_path):
+    src = tmp_path / "src.mp4"
+    _make_late_audio_mp4(src)
+    mkv, mov = tmp_path / "j.mkv", tmp_path / "j.mov"
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(src), "-c", "copy", str(mkv)], check=True)
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-i", str(src), "-c", "copy", str(mov)], check=True)
+    before = mov.read_bytes()
+    assert app_module._live_trim_silent_start({}, FFMPEG, mkv) is True
+    # A Matroska file can only be entered at its cluster starts, so the cut may land on an earlier keyframe than in an mp4:
+    # the silent opening gets shorter (3.3 s here, 1.3 s after), and the sync is untouched.
+    s = _starts(mkv)
+    assert s["audio"] - s["video"] < 2.0 and _stream_kinds(mkv) == ["video", "audio"]
+    flash, beep = _flash_and_beep(mkv)
+    assert abs(flash - beep) < 0.05, (flash, beep)
+    r = subprocess.run([FFPROBE, "-v", "error", "-show_entries", "format=format_name", "-of", "csv=p=0", str(mkv)], capture_output=True, text=True)
+    assert "matroska" in r.stdout, "still a Matroska file"
+    assert app_module._live_trim_silent_start({}, FFMPEG, mov) is False and mov.read_bytes() == before, "a container the app never writes"
+
+
+@needs_ffmpeg
+def test_a_crash_in_the_middle_of_the_cut_leaves_only_a_file_the_startup_sweep_removes(app_module, monkeypatch, tmp_path):
+    p = tmp_path / "abcdef1234.mp4"      # a job id, as in the download folder
+    _make_late_audio_mp4(p)
+    before = p.read_bytes()
+    real = app_module._run
+    def dying(*a, **k):
+        if "-ss" in a:
+            Path(a[-1]).write_bytes(b"half a file")
+            raise SystemExit                      # the app is shut down in the middle of the copy
+        return real(*a, **k)
+    monkeypatch.setattr(app_module, "_run", dying)
+    with pytest.raises(SystemExit):
+        app_module._live_trim_silent_start({}, FFMPEG, p)
+    assert sorted(x.name for x in tmp_path.iterdir()) == ["abcdef1234.mp4", "abcdef1234.trim.part"]
+    assert p.read_bytes() == before, "the recording itself is untouched"
+    app_module._cleanup_orphan_partials(str(tmp_path))
+    assert [x.name for x in tmp_path.iterdir()] == ["abcdef1234.mp4"], "the start up sweep collects the half file"
+
+
+def test_the_first_runs_card_clock_ignores_jumps_in_the_source_timestamps_too(app_module, monkeypatch, tmp_path):
+    # The first yt-dlp run has its own stderr reader (the reconnect runs use _run_live_attempt); both feed the card's clock.
+    m = app_module
+    lines = [f"size=  10kB time={t}.00 bitrate=1kbits/s\n" for t in ("00:00:01", "00:00:05", "23:56:59", "23:57:04", "00:00:02")]
+
+    class Proc(_NoOutputProc):
+        def __init__(self):
+            super().__init__()
+            self.stderr = iter(lines)
+    seen = {}
+    monkeypatch.setattr(m, "_egm_log", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_append_history", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_popen_yt", lambda *c, **k: Proc())
+    monkeypatch.setattr(m, "_live_finish", lambda job, *a, **k: seen.update(t=job.get("live_time")))
+    job_id = "clocktest1"
+    m.jobs[job_id] = {"status": "queued", "url": "https://example.org/room", "title": "", "proc": None, "cancelled": False, "live": True}
+    try:
+        m.run_download(job_id, "https://example.org/room", "video", None, str(tmp_path))
+    finally:
+        m.jobs.pop(job_id, None)
+    assert seen["t"] == "00:00:10", seen    # 1 + 4, (jump), + 5, (wrap)
