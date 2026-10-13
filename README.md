@@ -44,7 +44,9 @@
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
 - 📋 **Playlist Support** - Download entire playlists with one click
+- ➕ **Add While Downloading** - Paste more links while downloads are running. New videos join the list and the current run, Clear keeps the downloads in progress, and one progress bar with a Cancel All button covers them all.
 - 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. "Stop and save" ends the recording and keeps what was captured, and a recording that fails partway is saved instead of lost.
+- 🔁 **Live Stream Reconnect** - If a live stream drops, the recording reconnects on its own (up to 4 times in a row) and joins the pieces into one file. A notice tells you when a few seconds may be missing or repeated.
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
 - 🚫 **SponsorBlock** - Optionally cut sponsor reads, self promotion, intros and outros out of downloaded YouTube videos, using the community [SponsorBlock](https://sponsor.ajay.app/) database. Off by default; choose categories globally or per subscription.
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
@@ -55,7 +57,7 @@
 - 🎨 **Theme Creator** - Build your own theme with 10 live-preview color pickers, export as `.json`, save directly to your library, favorite alongside built-in themes
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
-- 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions
+- 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own download folder, format, quality, auto fetch and SponsorBlock settings
 - 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
 - 🛠️ **Plugin Updates** - Update yt-dlp, ffmpeg, and optional libraries without reinstalling
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, includes embedded Python
