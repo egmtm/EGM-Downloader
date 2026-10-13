@@ -950,3 +950,39 @@ test("a card started on its own whose info load lands after the download began k
   assert.ok(!shown("cancel0") && !shown("stop0"), "the failed card shows no leftover Cancel");
   assert.ok(shown("dl0") && !t.d.getElementById("dl0").disabled, "Download is back to try again");
 });
+
+// ── Round 3 review: the run a single card opened ─────────────────────────────
+
+test("removing the only running download with its X does not start Quit when done", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(A);
+  t.w.eval("showModal = async () => 'A'");
+  t.d.getElementById("dl0").click(); await settle();   // the card opens the run
+  t.card(0).querySelector(".vcard-remove").click(); await settle();   // asked, yes: cancelled and removed
+  await t.tick(); await t.tick();
+  assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
+  assert.deepEqual(t.log.quit, [], "nothing was finished: the app must not quit");
+});
+
+test("a run that finished something still starts Quit when done when its last other card is removed", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'x'");
+  t.d.getElementById("dl0").click(); await settle();
+  t.d.getElementById("dl1").click(); await settle();
+  t.finish("j1"); await t.tick(); await t.tick();       // A saved and gone from the list
+  t.log.quit.length = 0;
+  t.card(1).querySelector(".vcard-remove").click(); await settle();
+  await t.tick(); await t.tick();
+  assert.deepEqual(t.log.quit, [{ whenIdle: true, probe: true }]);
+});
+
+test("Download all into a run a single card opened uses the concurrency chosen now", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}`);
+  t.w.eval("showModal = async () => 'x'");
+  t.d.getElementById("dl0").click(); await settle();   // the run opens while the limit is 2
+  t.w.eval("document.getElementById('concurrency-sel').value = '4'");
+  t.all(); await settle();
+  assert.deepEqual(t.log.download, [A, B, C, D, E], "the run's own four start at once under the new limit");
+});

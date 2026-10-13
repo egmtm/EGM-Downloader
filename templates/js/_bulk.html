@@ -49,7 +49,8 @@ function createBulkRun(modeLabel, byCard) {
   bulkStop = false;
   const bar       = document.getElementById('bulk-bar');
   bar.classList.add('show');
-  const CONCURRENCY = parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
+  // Read at each fill, not once: a run a single card opened may be fed by a Download all much later
+  const concurrency = () => parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
   const pending = [];   // the cards the run starts itself, in the order it was given them
   let done = 0, active = 0, idx = 0;
 
@@ -61,7 +62,7 @@ function createBulkRun(modeLabel, byCard) {
   function counts() {
     const waiting = new Set(pending.slice(idx).map(e => e.item));
     const all = new Set([...pending.map(e => e.item), ...joined]);
-    let fin = 0, act = 0, total = 0;
+    let fin = 0, act = 0, total = 0, ok = 0;
     // A finished download leaves the list on its own and still counts; a card the user removed (or Clear took)
     // while it was cancelled, failed or waiting was not finished work, so it leaves the count with its card.
     for (const i of all) {
@@ -69,8 +70,9 @@ function createBulkRun(modeLabel, byCard) {
       total++;
       if (isActiveItem(i) || loading.has(i)) act++;
       else if (!waiting.has(i)) fin++;
+      if (i.status === 'done') ok++;
     }
-    return { done: fin, total, active: act };
+    return { done: fin, total, active: act, ok };
   }
   function updateBulkTxt() {
     if (run.stopped) return;   // cancelled: a later run owns the bar now
@@ -215,7 +217,7 @@ function createBulkRun(modeLabel, byCard) {
   const finished = new Promise(resolve => { finish = () => { clearInterval(watch); resolve(); }; });
   function pump() {
     if (run.stopped) { finish(); return; }
-    while (active < CONCURRENCY && idx < pending.length) {
+    while (active < concurrency() && idx < pending.length) {
       active++;
       downloadOne(pending[idx++]).then(pump);
     }
@@ -242,7 +244,9 @@ function createBulkRun(modeLabel, byCard) {
     // A single card that opened the run said "Saved" itself; a Download all always says Done
     const c = counts();
     if (c.total >= (byCard ? 2 : 1)) toast((i18nGet('toast.done') || 'Done') + ' — ' + c.done + ' ' + modeLabel, 'ok');
-    quitWhenDoneCheck();
+    // Only a run that finished something: one whose last card was cancelled and removed leaves an empty list, which
+    // _qodArmed reads as "all done", and the app would quit on a download the user just stopped
+    if (c.ok) quitWhenDoneCheck();
   });
   return run;
 }
