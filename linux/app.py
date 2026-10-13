@@ -1715,7 +1715,9 @@ _LIVE_MAX_RETRIES = 4
 _LIVE_RECOVERED_S = 60   # a reconnected run that records this long has recovered: the next drop counts from 1 again
 _LIVE_UNKNOWN_WAITS = (2, 4, 8)   # seconds before asking again when the stream state is unclear
 _LIVE_STATS_RE = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
-_LIVE_NOTE_RE  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity", _re.I)
+# Also each input's start time (the "Input #n" line and the "Duration: ..., start: ..." line under it): with a separate
+# video and audio input their difference is the audio/video offset a recording can come out with.
+_LIVE_NOTE_RE  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity|^Input #\d|Duration: .*\bstart:", _re.I)
 _LIVE_URL_RE   = _re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s\"<>]+", _re.I)   # rtmp:// keys, tcp:// hosts too; a quote inside a link is swallowed
 _LIVE_OVER_RE  = _re.compile(r"not currently live|is offline|\boffline\b|has ended|stream ended|no longer live|not live", _re.I)
 _LIVE_PERMANENT = {"private", "unavailable", "members", "region", "premiere"}

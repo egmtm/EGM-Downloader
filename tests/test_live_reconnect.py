@@ -38,6 +38,16 @@ def test_console_notes_never_carry_a_stream_link(app_module):
     assert app_module._live_note("   ") == ""
 
 
+def test_console_notes_keep_each_input_start_time_without_the_link(app_module):
+    # with a separate video and audio input, the difference of the two start values is the A/V offset
+    a = app_module._live_note("Input #0, hls, from 'https://cdn.example/v/index.m3u8?token=SECRET':")
+    assert a.startswith("Input #0") and "SECRET" not in a and "https://" not in a and "<url>" in a
+    b = app_module._live_note("  Duration: N/A, start: 5273.250000, bitrate: N/A")
+    assert b == "Duration: N/A, start: 5273.250000, bitrate: N/A"
+    assert app_module._live_note("  Stream #0:0: Video: h264 (High), yuv420p(tv), 1280x720, 30 fps") == "", "stream lines stay out"
+    assert app_module._live_note("Output #0, mpegts, to 'D:\\x.part':") == "", "only the inputs"
+
+
 # ── is the stream still live ─────────────────────────────────────────────────
 class _Proc:
     def __init__(self, out="", err="", rc=0, hang=False):
