@@ -1531,7 +1531,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         args += ["--sponsorblock-remove", ",".join(_sb_categories)]
     args.append(url)
 
-    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
+    _live_sync = _live_sync_args(url) if job.get("live") else []
+    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + _live_sync + args
     try:
         # Host only, not the full URL -- a private/signed URL can carry an
         # access token in its query string, and this line lands in
@@ -1540,6 +1541,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # own stdout below, which is memory-only and console-only.
         _log_host = urllib.parse.urlparse(url).hostname or "unknown-host"
         _egm_log(f"download started ({format_choice}): {_log_host}")
+        if _live_sync:
+            _egm_log("live recording keeps the source timestamps (audio and video start times)")
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace")
         job["proc"]    = proc
@@ -1824,6 +1827,28 @@ _LIVE_STATS_RE = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
 # video and audio input their difference is the audio/video offset a recording can come out with.
 _LIVE_NOTE_RE  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity|^Input #\d|Duration: .*\bstart:", _re.I)
 _LIVE_URL_RE   = _re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s\"<>]+", _re.I)   # rtmp:// keys, tcp:// hosts too; a quote inside a link is swallowed
+# Sites whose live streams come as a separate video and a separate audio playlist that start at different times. By
+# default ffmpeg moves each input to its own zero, which turns that gap into a constant audio/video offset (measured
+# on one such site: the audio started 3.3 s later and the recording played it 3.3 s early). These flags keep the
+# source timestamps, so the gap stays where it belongs. Only the sites listed here get them; add one when its Console
+# log shows a gap between the "Input #0" and "Input #1" start values (see _LIVE_NOTE_RE). The list holds the SHA-256 of
+# each site's domain (lowercase; it covers the subdomains too), so the source does not spell the sites out.
+_LIVE_SYNC_HOSTS = ("574cbb327570be709950a11ca67d412785ffa64724397f1d3d2ecca24ebf2685",)
+_LIVE_SYNC_ARGS  = ["--downloader-args", "ffmpeg:-copyts -avoid_negative_ts make_zero"]
+
+def _live_sync_args(url):
+    """The yt-dlp arguments that keep a listed site's audio and video in sync, or [] for any other link.
+    The reconnect runs copy the first run's command, so they get the same arguments."""
+    try:
+        host = (urllib.parse.urlparse(url).hostname or "").lower()
+    except ValueError:
+        return []
+    labels = host.split(".")
+    for i in range(len(labels) - 1):   # the host itself, then each parent domain with at least two labels
+        if hashlib.sha256(".".join(labels[i:]).encode("utf-8")).hexdigest() in _LIVE_SYNC_HOSTS:
+            return list(_LIVE_SYNC_ARGS)
+    return []
+
 _LIVE_OVER_RE  = _re.compile(r"not currently live|is offline|\boffline\b|has ended|stream ended|no longer live|not live", _re.I)
 _LIVE_PERMANENT = {"private", "unavailable", "members", "region", "premiere"}
 _LIVE_MEDIA_EXTS = {".mp4", ".mkv", ".m4a", ".mp3", ".flac", ".opus", ".wav", ".aac", ".ogg", ".webm"}

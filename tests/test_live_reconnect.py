@@ -6,6 +6,7 @@ used to stop early. After every live run the app now asks yt-dlp whether the
 stream is still live and, if so, records again (up to 4 more times) and joins
 the pieces into one file. These tests pin the helpers, the driver loop (with
 the yt-dlp runs replaced by stand ins), and the join against real ffmpeg."""
+import hashlib
 import json
 import shutil
 import subprocess
@@ -499,3 +500,76 @@ def test_a_long_run_that_printed_no_time_does_not_leave_the_old_count_on_the_car
     monkeypatch.setattr(app_module, "_live_wait", wait)
     rig.run()
     assert seen == [None, None, None], seen
+
+
+# ── audio and video start times of live recordings (sites that need the timestamps kept) ──
+_SYNC_ARGS = ["--downloader-args", "ffmpeg:-copyts -avoid_negative_ts make_zero"]
+
+
+def _list_one_site(app_module, monkeypatch, host="listed.example"):
+    """The shipped list holds fingerprints, not names, so the tests list a made up site."""
+    monkeypatch.setattr(app_module, "_LIVE_SYNC_HOSTS", (hashlib.sha256(host.encode()).hexdigest(),))
+    return host
+
+
+def test_the_shipped_list_holds_fingerprints_only(app_module):
+    assert app_module._LIVE_SYNC_HOSTS, "at least one site is listed"
+    for h in app_module._LIVE_SYNC_HOSTS:
+        assert len(h) == 64 and set(h) <= set("0123456789abcdef"), "a SHA-256 in lowercase hex, never a site name"
+
+
+def test_sync_args_go_only_to_listed_sites(app_module, monkeypatch):
+    host = _list_one_site(app_module, monkeypatch)
+    for url in (f"https://{host}/room", f"https://www.{host}/room", f"https://a.b.{host}/room",
+                f"https://XX.{host.upper()}:8443/a?b=c"):
+        assert app_module._live_sync_args(url) == _SYNC_ARGS, url
+    for url in (f"https://not{host}/room", f"https://{host}.example.org/room", f"https://example.org/{host}",
+                "https://example", "https://example.com/live", "not a link", "", "https://[bad/room"):
+        assert app_module._live_sync_args(url) == [], url
+
+
+def test_sync_args_are_a_new_list_each_time(app_module, monkeypatch):
+    url = f"https://{_list_one_site(app_module, monkeypatch)}/room"
+    first = app_module._live_sync_args(url)
+    first.append("x")
+    assert app_module._live_sync_args(url) == _SYNC_ARGS
+
+
+class _NoOutputProc:
+    returncode = 0
+    def __init__(self): self.stdout, self.stderr = iter(()), iter(())
+    def wait(self): return 0
+
+
+@pytest.mark.parametrize("live, listed, want", [(True, True, True), (False, True, False), (True, False, False)])
+def test_only_a_live_recording_from_a_listed_site_gets_the_sync_args(app_module, monkeypatch, tmp_path, live, listed, want):
+    m = app_module
+    url = f"https://{_list_one_site(m, monkeypatch)}/room" if listed else "https://example.org/room"
+    logs, cmds = [], []
+    monkeypatch.setattr(m, "_egm_log", lambda msg, *a, **k: logs.append(msg))
+    monkeypatch.setattr(m, "_append_history", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_live_finish", lambda *a, **k: None)
+    monkeypatch.setattr(m, "_popen_yt", lambda *c, **k: (cmds.append(list(c)), _NoOutputProc())[1])
+    job_id = "synctest01"
+    m.jobs[job_id] = {"status": "queued", "url": url, "title": "", "proc": None, "cancelled": False, "live": live}
+    try:
+        m.run_download(job_id, url, "video", None, str(tmp_path))
+    finally:
+        m.jobs.pop(job_id, None)
+    cmd = cmds[0]
+    has = "--downloader-args" in cmd
+    assert has == want, cmd
+    if want:
+        i = cmd.index("--downloader-args")
+        assert cmd[i:i + 2] == _SYNC_ARGS and i < len(cmd) - 1 and cmd[-1] == url, "the flags sit before the link"
+        assert any("keeps the source timestamps" in l for l in logs)
+    else:
+        assert not any("keeps the source timestamps" in l for l in logs)
+
+
+def test_a_reconnect_run_keeps_the_sync_args(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, False], captures=["j_r2.mp4"])
+    out_tmpl = str(tmp_path / "j.%(ext)s")
+    cmd = ["yt-dlp", *_SYNC_ARGS, "-o", out_tmpl, "https://example.com/live"]
+    app_module._live_finish(rig.job, "j", tmp_path, cmd, out_tmpl, "https://example.com/live", FFMPEG, ".mp4", False, 0)
+    assert rig.attempts and rig.attempts[0][0][1:3] == _SYNC_ARGS, rig.attempts[0][0]
