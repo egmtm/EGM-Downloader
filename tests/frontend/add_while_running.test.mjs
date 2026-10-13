@@ -314,7 +314,7 @@ test("a card already downloading when Download all starts is counted in the bar 
   assert.match(txt(), /1 \/ 2 .*\(1 active\)/);
   t.finish("j1"); await t.tick(); await t.tick();
   assert.ok(!bar().classList.contains("show"));
-  assert.ok(t.toasts().some((x) => /2 videos/.test(x)), "the Done toast counts both");
+  assert.ok(t.toasts().some((x) => /2 downloads/.test(x)), "the Done toast counts both (A opened the run, so the word is the neutral one)");
 });
 
 test("Cancel all stops the run but leaves cards that were added after it started idle", async () => {
@@ -732,4 +732,161 @@ test("cards the run has taken and is still loading the info of count as active, 
   t.ctl.holdInfo = false;
   t.ctl.held.forEach((release) => release()); await settle(200);
   assert.match(barText(t), /0 \/ 3 .*\(2 active\)/, "and the same once they download");
+});
+
+// ── The bar from the first download, Download all or one by one ────────────
+
+const hand = async (t, n) => { t.w.eval("showModal = async () => 'name'"); t.d.getElementById("dl" + n).click(); await settle(); };
+const removeCard = (t, n) => t.card(n).querySelector(".vcard-remove").click();
+
+test("a download started from its own button shows the bar from the first one", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  assert.ok(!barShown(t), "nothing is downloading yet");
+  await hand(t, 0);
+  assert.ok(barShown(t));
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+});
+
+test("cards started one by one all go into the same count, and the bar ends with the last one", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  assert.match(barText(t), /0 \/ 2 downloads .*\(2 active\)/);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(barShown(t), "B is still downloading");
+  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/, "A left the list and still counts as done");
+  t.clearToasts();
+  t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.equal(doneToasts(t).length, 1);
+  assert.match(doneToasts(t)[0], /2 downloads/);
+  assert.equal(t.timers.size, 0, "no poller or watcher left running");
+});
+
+test("a lone download shows the bar but no Done toast of its own (its Saved toast says it)", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  await hand(t, 0);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.deepEqual(doneToasts(t), []);
+  assert.ok(t.toasts().some((x) => x.includes("j1.mp4")), "the card's own Saved toast");
+});
+
+test("a lone download that fails takes the bar away", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  await hand(t, 0);
+  t.jobs.j1 = { status: "error", error: "x" }; await t.tick(); await t.tick();
+  assert.equal(t.ev("items[0].status"), "error");
+  assert.ok(!barShown(t));
+  assert.deepEqual(doneToasts(t), []);
+});
+
+test("a new download after the bar ended starts a fresh count from zero", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  await hand(t, 0);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  await t.fetchLinks(B);
+  await hand(t, t.ev("items[0].id"));            // B is a new card with a new id
+  assert.ok(barShown(t));
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+});
+
+test("Download all while single downloads run goes into the same bar and the same count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  await hand(t, 0);                              // A on its own: j1
+  t.all(); await settle();                       // the run takes B and C
+  assert.deepEqual(t.log.download, [A, B, C]);
+  assert.match(barText(t), /0 \/ 3 downloads .*\(3 active\)/);
+  t.clearToasts();
+  for (const id of ["j1", "j2", "j3"]) t.finish(id);
+  await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.equal(doneToasts(t).length, 1);
+  assert.match(doneToasts(t)[0], /3 downloads/);
+});
+
+test("Cancel all reaches single downloads, hides the bar, and the next download starts a new count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  t.w.eval("cancelBulk()");
+  assert.ok(!barShown(t));
+  assert.deepEqual(t.log.cancel.sort(), ["/api/cancel/j1", "/api/cancel/j2"]);
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["cancelled", "cancelled", "idle"]);
+  await t.tick(); await t.tick();
+  assert.equal(t.timers.size, 0, "the old run's watcher is gone");
+  await hand(t, 2);
+  assert.ok(barShown(t));
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/, "the cancelled cards are not part of the new count");
+});
+
+// ── A card that was removed before it finished leaves the count ────────────
+
+test("a cancelled card stays in the count until it is removed, then it leaves total and done", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  t.d.getElementById("cancel0").click(); await settle();
+  await t.tick();
+  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/, "cancelled but still on the list");
+  removeCard(t, 0);
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/, "removed: gone from the total and from done");
+});
+
+test("the same inside a Download all run, with no watcher: the bar changes at the removal itself", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();
+  t.d.getElementById("cancel0").click(); await settle();
+  removeCard(t, 0);
+  assert.match(barText(t), /0 \/ 1 videos .*\(1 active\)/);
+});
+
+test("a running card removed with the red X leaves the count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  removeCard(t, 0); await settle();
+  assert.equal(t.ctl.confirms.length, 1);
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+});
+
+test("a download that finished and left the list on its own still counts as done", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.equal(t.ev("items.length"), 1, "A's card is gone");
+  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/);
+});
+
+test("Clear takes the cards that were only waiting out of the count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();                       // A and B run, C waits in the run
+  assert.match(barText(t), /0 \/ 3 videos/);
+  t.clear();
+  assert.match(barText(t), /0 \/ 2 videos .*\(2 active\)/);
+});
+
+test("removing the only card of a run ends it quietly", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  removeCard(t, 0); await settle();
+  await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.deepEqual(doneToasts(t), [], "nothing was done, so no Done toast");
+  assert.equal(t.timers.size, 0);
 });

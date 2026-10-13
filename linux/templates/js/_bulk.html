@@ -17,11 +17,14 @@ function setDlAllVisible(show) {
 
 document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
 // dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
-let _bulkRun = null;   // the Download all run in progress: another click hands its new cards to it, so one concurrency limit holds
+let _bulkRun = null;   // the run in progress (the bar is its face): Download all and cards started from their own button all go into it, so the bar counts every download and one concurrency limit holds
 // The cards the running Download all has queued: it starts them in the order it was given, so moving them in the list would change nothing
 function runQueuedItems() { return _bulkRun ? _bulkRun.waiting() : []; }
-// A card started from its own button while a Download all is on joins that run's count in the bar
-function joinBulkRun(item) { if (_bulkRun) _bulkRun.join(item); }
+// A card started from its own button joins the run in progress, or opens one: the bar is up from the first download
+function joinBulkRun(item) {
+  if (!_bulkRun) createBulkRun('downloads', true);   // neutral word: the cards can be videos, audio or a mix (final wording still open)
+  _bulkRun.join(item);
+}
 
 async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
@@ -35,11 +38,19 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     .map(item => ({ item, forceFormat, audioQuality, videoQuality, dir: chosenPath }));   // each card keeps the choices of the click that queued it
   if (!pending.length) { toast(i18nGet('toast.nothing_to_download') || 'Nothing to download', 'err'); return; }
   if (_bulkRun) { _bulkRun.add(pending); return; }
+  const run = createBulkRun(forceFormat === 'audio' ? 'audio files' : 'videos', false);
+  run.add(pending);
+  await run.ended;
+}
+
+// One run: the bar, the concurrency pump and the count. modeLabel is the word the bar uses; byCard says
+// a download started from its own button opened it (Download all opens it otherwise).
+function createBulkRun(modeLabel, byCard) {
   bulkStop = false;
   const bar       = document.getElementById('bulk-bar');
-  const modeLabel = forceFormat === 'audio' ? 'audio files' : 'videos';
   bar.classList.add('show');
   const CONCURRENCY = parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
+  const pending = [];   // the cards the run starts itself, in the order it was given them
   let done = 0, active = 0, idx = 0;
 
   const joined  = new Set();   // cards started from their own button while this run is on: counted with the run's own
@@ -50,12 +61,16 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   function counts() {
     const waiting = new Set(pending.slice(idx).map(e => e.item));
     const all = new Set([...pending.map(e => e.item), ...joined]);
-    let fin = 0, act = 0;
+    let fin = 0, act = 0, total = 0;
+    // A finished download leaves the list on its own and still counts; a card the user removed (or Clear took)
+    // while it was cancelled, failed or waiting was not finished work, so it leaves the count with its card.
     for (const i of all) {
+      if (i.status !== 'done' && !items.includes(i)) continue;
+      total++;
       if (isActiveItem(i) || loading.has(i)) act++;
       else if (!waiting.has(i)) fin++;
     }
-    return { done: fin, total: all.size, active: act };
+    return { done: fin, total, active: act };
   }
   function updateBulkTxt() {
     if (run.stopped) return;   // cancelled: a later run owns the bar now
@@ -205,6 +220,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   // waiting = queued and not yet downloading (an entry already taken that is still idle is loading its info)
   const run = { stopped: false, waiting: () => pending.filter((e, k) => k >= idx || e.item.status === 'idle').map(e => e.item),
                 add(more) { pending.push(...more); pump(); updateQueueArrows(); },
+                refresh: () => pump(),   // a card left the list: the count and the end of the run are looked at again at once
                 join(item) {
                   if (joined.has(item)) return;   // counts() takes each card once, the run's own included
                   joined.add(item);
@@ -213,15 +229,17 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
                 } };
   _bulkRun = run;
   items.filter(isActiveItem).forEach(run.join);   // cards already downloading when the run starts are part of what the bar counts
-  pump();
-  updateQueueArrows();   // the cards this run queued lose their reorder arrows
-  await finished;
-  if (run.stopped) return;   // Cancel all already hid the bar and said so; a newer run may own it now
-  _bulkRun = null;
-
-  bar.classList.remove('show');
-  toast((i18nGet('toast.done') || 'Done') + ' — ' + counts().done + ' ' + modeLabel, 'ok');
-  quitWhenDoneCheck();
+  // Resolves when the run is over. A stopped run says nothing: Cancel all already hid the bar and said so, and a newer run may own it now.
+  run.ended = finished.then(() => {
+    if (run.stopped) return;
+    _bulkRun = null;
+    bar.classList.remove('show');
+    // A single card that opened the run said "Saved" itself; a Download all always says Done
+    const c = counts();
+    if (c.total >= (byCard ? 2 : 1)) toast((i18nGet('toast.done') || 'Done') + ' — ' + c.done + ' ' + modeLabel, 'ok');
+    quitWhenDoneCheck();
+  });
+  return run;
 }
 
 function cancelBulk() {
@@ -277,6 +295,7 @@ document.getElementById('clear-btn').addEventListener('click', () => {
   setDlAllVisible(false);
   items = active;
   updateQueueArrows();
+  if (_bulkRun) _bulkRun.refresh();   // the cards Clear took no longer count in the bar
 });
 
 function showEmptyState() {

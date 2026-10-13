@@ -10,7 +10,7 @@ v1.5.0 - TBD (Build TBD) (TBD)
   • [ALL] Changed: Subscriptions export and import now carry each subscription's own settings (download folder, format, quality, auto fetch and SponsorBlock), not just the links. Older export files still import.
   • [ALL] Fixed: A video card no longer shows a broken image when its thumbnail cannot be loaded. Other thumbnails from the same video are tried, then the usual placeholder is shown.
   • [ALL] Changed: The status and Cancel buttons of a downloading card now start at the left edge, so a long status such as a live recording does not push Cancel onto a second line. Download all no longer leaves the dimmed Download button on started cards.
-  • [ALL] Changed: You can now add videos while others are loaded or downloading. Fetch adds the new links to the list instead of starting over (links already in the list are skipped), Download all picks up the cards you added and joins the run that is going, and Clear keeps the downloads in progress and asks first when it would remove other cards. Quit when done waits for the added cards too.
+  • [ALL] Changed: You can now add videos while others are loaded or downloading. Fetch adds the new links to the list instead of starting over (links already in the list are skipped), Download all picks up the cards you added and joins the run that is going, and Clear keeps the downloads in progress and asks first when it would remove other cards. Quit when done waits for the added cards too. The bar that shows how many downloads are done and active, with Cancel All, now appears from the first download, also when you start downloads one by one, and counts them all together.
 
 v1.4.9 - JUST ANOTHER UPDATE VI (Build 163) (10/7/2026)
 -----------------------------------------
