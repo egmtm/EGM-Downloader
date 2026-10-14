@@ -144,7 +144,7 @@ A side by side look at one well known alternative, using details you can check y
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
-**Windows only — first launch:** The installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle these dependencies inside the package — no first-launch download required (which is why their file sizes are larger).
+**First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download only ffmpeg in the background on first launch.
 
 ---
 
@@ -154,9 +154,9 @@ A side by side look at one well known alternative, using details you can check y
 
 **Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
 
-**macOS:** macOS 13.0+ (Ventura) · Apple Silicon (M1–M5) · ~300 MB disk space
+**macOS:** macOS 13.0+ (Ventura) · Apple Silicon (M1–M5) · ~300 MB disk space · Internet on first launch (ffmpeg download)
 
-**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support
+**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support · Internet on first launch (ffmpeg download)
 Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
 > Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
 
@@ -194,7 +194,7 @@ ReClip is the starting point, and it is intentionally small. Here is what this p
 
 | | [ReClip](https://github.com/averygan/reclip), where it started | EGM Downloader today |
 |---|---|---|
-| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. Windows needs Python 3.10+ first; macOS and Linux bundle what they need |
+| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. Windows needs Python 3.10+ first; macOS and Linux bundle the app's runtimes and fetch ffmpeg on first launch |
 | **How you use it** | A local web server you start yourself, then open `localhost:8899` in a browser ([Quick Start](https://github.com/averygan/reclip#quick-start)) | A native desktop app window, nothing to start |
 | **Platforms** | Install commands for Homebrew or apt, or a Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Windows 10/11, macOS 13+ (Apple Silicon), Linux AppImage |
 | **Formats and quality** | MP4 video or MP3 audio, resolution picker ([Features](https://github.com/averygan/reclip#features)) | MP4, MKV or H.264 MP4 video; MP3, M4A, OPUS or FLAC audio; up to 8K, HDR kept as MKV |
