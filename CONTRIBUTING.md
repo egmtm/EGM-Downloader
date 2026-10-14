@@ -419,7 +419,7 @@ EGM-Downloader/
 - `linux/templates/` - Slightly different UI
 - `linux/requirements.txt` - Linux-specific dependencies
 
-> **Why does Linux have its own `app.py` and `templates/`?** The AppImage distribution model requires self-contained runtime bootstrapping (downloading Node.js, Electron, and ffmpeg on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations.
+> **Why does Linux have its own `app.py` and `templates/`?** The AppImage distribution model requires a self-contained package (Electron and Python are bundled inside it, and ffmpeg is downloaded on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations.
 
 **Platform Directories:**
 - `windows/electron/` - Windows Electron configuration
