@@ -47,7 +47,7 @@ Paste any error messages here
 ```
 
 **Log Files:**  
-*(If available, check the logs/ directory)*
+*(If available, attach `egm_debug.log` from the app's data folder: the install folder on Windows (the `data` folder inside the portable folder), `~/Library/Application Support/EGM Downloader` on macOS, `~/.local/share/egm-downloader` on Linux. You can also use Export in Diagnostics, from the footer.)*
 
 ## Checklist
 
