@@ -460,7 +460,8 @@ TROUBLESHOOTING
       → Right-click "EGM Downloader.exe" → Run as administrator
 
   Need more detail about a problem
-      → Log files are saved in the data\logs folder inside this folder
+      → The log file is egm_debug.log, saved in the data folder inside
+        this folder (egm_debug.log.old is the previous one)
       → For a detailed startup error, open a command prompt in this
         folder and run these two commands:
             set EGM_SILENT=1

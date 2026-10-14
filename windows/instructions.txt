@@ -68,8 +68,8 @@ TROUBLESHOOTING
         directory, then relaunch — it will reinstall automatically
 
   Need more detail about a problem
-      → Log files are saved in the logs folder inside your install
-        directory
+      → The log file is egm_debug.log, saved in your install directory
+        (egm_debug.log.old is the previous one)
       → For a detailed startup error, open a command prompt in your
         install directory and run these two commands:
             set EGM_SILENT=1
