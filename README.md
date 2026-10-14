@@ -186,7 +186,24 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 EGM Downloader started with [ReClip](https://github.com/averygan/reclip) by [@averygan](https://github.com/averygan), which showed what's possible with yt-dlp and a clean web interface. ReClip is a web app you host yourself, which suits developers, but I wanted something friends and family could use without a terminal. Setting up Python, yt-dlp, ffmpeg and Flask isn't everyone's cup of tea.
 
-So I asked: what if you could just download an app and go? No terminal, no dependencies, no setup. That's EGM Downloader: native desktop apps for Windows, macOS, and Linux that need zero technical knowledge.
+So I asked: what if you could just download an app and go? No terminal, no command line setup. That's EGM Downloader: native desktop apps for Windows, macOS, and Linux that need zero technical knowledge.
+
+**What changed since ReClip**
+
+ReClip is the starting point, and it is intentionally small. Here is what this project added on top, using details you can check in both repos. Last checked October 13, 2026.
+
+| | [ReClip](https://github.com/averygan/reclip), where it started | EGM Downloader today |
+|---|---|---|
+| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. Windows needs Python 3.10+ first; macOS and Linux bundle what they need |
+| **How you use it** | A local web server you start yourself, then open `localhost:8899` in a browser ([Quick Start](https://github.com/averygan/reclip#quick-start)) | A native desktop app window, nothing to start |
+| **Platforms** | Install commands for Homebrew or apt, or a Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Windows 10/11, macOS 13+ (Apple Silicon), Linux AppImage |
+| **Formats and quality** | MP4 video or MP3 audio, resolution picker ([Features](https://github.com/averygan/reclip#features)) | MP4, MKV or H.264 MP4 video; MP3, M4A, OPUS or FLAC audio; up to 8K, HDR kept as MKV |
+| **Login required content** | Not built in ([source](https://github.com/averygan/reclip/blob/main/app.py)) | Import cookies from Chrome, Edge, Brave or Firefox, kept on your machine |
+| **Subtitles and metadata** | Not built in ([source](https://github.com/averygan/reclip/blob/main/app.py)) | Embed subtitles, thumbnail, chapters and metadata |
+| **Beyond single downloads** | Bulk paste of URLs, files saved to a downloads folder ([Features](https://github.com/averygan/reclip#features)) | Subscriptions with a live download queue, searchable history, GPU conversion, 10 languages, 500 themes (30 seasonal) |
+| **Staying current** | `reclip.sh` updates yt-dlp on every start ([script](https://github.com/averygan/reclip/blob/main/reclip.sh)) | In app updates for yt-dlp and ffmpeg, plus an app update checker |
+
+ReClip stays deliberately small: a [single Python file backend](https://github.com/averygan/reclip#features), [two dependencies](https://github.com/averygan/reclip#stack) and an [MIT license](https://github.com/averygan/reclip/blob/main/LICENSE). EGM Downloader trades that simplicity for more features and a bigger download (141 MB on macOS, 169 MB on Linux).
 
 Big thanks to [@averygan](https://github.com/averygan) for ReClip, you sparked the idea that became this project. 🙏 This is my first major project, and I'm excited to keep learning and building tools that make technology accessible to everyone. 🚀
 
