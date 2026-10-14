@@ -129,8 +129,9 @@ We monitor security advisories for these dependencies and release updates prompt
 EGM Downloader makes network requests to:
 
 - **Video hosting sites** - To download requested content
-- **egerena.com** - To check for updates (Windows/Mac only)
+- **egerena.com** - To check for updates (all platforms)
 - **Package managers** - To download yt-dlp and FFmpeg updates
+- **Runtime downloads on Windows first run** - nodejs.org (Node.js), the npm registry (Electron) and, for the portable edition, python.org and bootstrap.pypa.io (embedded Python and pip)
 - **Video thumbnail CDNs** - To cache thumbnails for the download history view (HTTPS-only, 500 KB cap per image)
 
 All network activity is related to core functionality. We do not send telemetry or analytics.
