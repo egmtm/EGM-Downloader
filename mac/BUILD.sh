@@ -187,10 +187,10 @@ MINIMUM MACOS: 13.0 (Ventura) or later
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 On first launch, the app will:
-• Install required components (yt-dlp, ffmpeg, Deno)
-• This takes ~30 seconds
-• Progress shown in the app
-• After completion, app is ready to use
+• Download required components (ffmpeg, Deno) in the background
+• The time depends on your connection
+• If you start a download before ffmpeg is ready, the app asks you to try again in a moment
+• After that, the app is ready to use
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   USAGE
