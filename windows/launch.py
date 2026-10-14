@@ -484,69 +484,149 @@ def _clear_npm_cache(npm, env):
                        capture_output=True, timeout=60, creationflags=NO_WIN)
     except Exception: pass
 
-def _electron_needs_reinstall():
-    """Return True if installed Electron major version doesn't match the major declared in package.json.
-    Used to trigger a fresh install when we ship a new Electron major (e.g. 29 -> 41)."""
+def _ver_key(v):
+    """Sortable key for an Electron version such as 44.7.2 or 45.0.0-beta.3;
+    None when it is not that shape."""
+    m = re.fullmatch(r"(\d+)\.(\d+)\.(\d+)(?:-(alpha|beta|rc)\.(\d+))?", str(v).strip())
+    if not m:
+        return None
+    stage = {"alpha": 0, "beta": 1, "rc": 2}.get(m.group(4), 3)
+    return (int(m.group(1)), int(m.group(2)), int(m.group(3)), stage, int(m.group(5) or 0))
+
+def _electron_update_kind():
+    """What the installed Electron needs: None (nothing), "missing" (not installed),
+    "major" (its major differs from package.json: the app needs the new one) or
+    "update" (same major but older than the version the shipped package-lock.json
+    pins, e.g. 44.7.1 against 44.7.2). Never "update" for a newer one, so a
+    fallback `npm install` that landed on a newer release cannot cause a loop."""
     installed_pkg = ELECTRON_DIR / "node_modules" / "electron" / "package.json"
-    declared_pkg  = ELECTRON_DIR / "package.json"
     if not installed_pkg.exists():
-        return True
+        return "missing"
     try:
-        installed = json.loads(installed_pkg.read_text(encoding="utf-8"))
-        declared  = json.loads(declared_pkg.read_text(encoding="utf-8"))
-        installed_major = int(installed["version"].split(".")[0])
+        installed = json.loads(installed_pkg.read_text(encoding="utf-8"))["version"]
+        declared  = json.loads((ELECTRON_DIR / "package.json").read_text(encoding="utf-8"))
         spec = (declared.get("dependencies", {}).get("electron")
                 or declared.get("devDependencies", {}).get("electron")
                 or "")
-        declared_major = int(spec.lstrip("^~ ").split(".")[0])
-        return installed_major != declared_major
+        if int(installed.split(".")[0]) != int(spec.lstrip("^~ ").split(".")[0]):
+            return "major"
+        lock = json.loads((ELECTRON_DIR / "package-lock.json").read_text(encoding="utf-8"))
+        have = _ver_key(installed)
+        want = _ver_key(lock["packages"]["node_modules/electron"]["version"])
+        if have and want and have < want:
+            return "update"
     except Exception:
-        # On any parse error, don't force reinstall — let existing install proceed normally
-        return False
+        pass   # on any parse error, don't force a reinstall: let the install proceed
+    return None
 
-def ensure_npm(node_exe):
-    if (ELECTRON_DIR / "node_modules" / "electron").exists() and not _electron_needs_reinstall():
-        return
-    # Either fresh install, or Electron major version changed — wipe node_modules and reinstall
-    nm = ELECTRON_DIR / "node_modules"
-    if nm.exists():
-        _gui_msg("Updating Electron to new major version…")
-        shutil.rmtree(nm, ignore_errors=True)
-    else:
-        _gui_msg("Installing Electron (first run, ~250 MB)…")
-    npm = _find_npm(node_exe)
-    env = {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
+def _npm_env(node_exe):
+    return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
+
+def _npm_install_electron(node_exe, where):
+    """Install Electron (and fetch its binary) into where/node_modules, using the
+    package.json and package-lock.json in `where`. True iff the binary is there."""
+    npm, env = _npm_env(node_exe)
     # Prefer `npm ci` for deterministic installs straight from package-lock.json
     # (we now ship the lockfile). `ci` requires a lockfile that is present and in
     # sync; if it's missing/out-of-sync it errors, so fall back to `install`.
-    lockfile = ELECTRON_DIR / "package-lock.json"
-    if lockfile.exists():
-        r = subprocess.run(npm + ["ci", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
+    if (where / "package-lock.json").exists():
+        r = subprocess.run(npm + ["ci", "--omit=dev"], cwd=str(where), env=env,
                            capture_output=True, timeout=600, creationflags=NO_WIN)
         if r.returncode != 0:
             _gui_msg("Lockfile out of sync — falling back to npm install…")
-            r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
+            r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(where), env=env,
                                capture_output=True, timeout=600, creationflags=NO_WIN)
     else:
-        r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(ELECTRON_DIR), env=env,
+        r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(where), env=env,
                            capture_output=True, timeout=600, creationflags=NO_WIN)
     if r.returncode != 0:
-        _gui_msg("npm install failed"); time.sleep(4); sys.exit(1)
+        return False
     # Electron 42+ removed the postinstall auto-download of the binary.
     # Explicitly run install.js to download it if missing. Idempotent —
     # install.js exits immediately if the binary already exists (Electron 41).
-    electron_exe = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "electron.exe"
-    electron_renamed = ELECTRON_DIR / "node_modules" / "electron" / "dist" / "EGM Downloader.exe"
-    install_js   = ELECTRON_DIR / "node_modules" / "electron" / "install.js"
+    mod = where / "node_modules" / "electron"
+    electron_exe = mod / "dist" / "electron.exe"
+    electron_renamed = mod / "dist" / "EGM Downloader.exe"
+    install_js = mod / "install.js"
     if not electron_exe.exists() and not electron_renamed.exists() and install_js.exists():
         _gui_msg("Downloading Electron runtime…")
-        subprocess.run([node_exe, str(install_js)],
-                       cwd=str(ELECTRON_DIR / "node_modules" / "electron"),
+        subprocess.run([node_exe, str(install_js)], cwd=str(mod),
                        env=env, capture_output=True, timeout=300, creationflags=NO_WIN)
-    # First-time cleanup: remove non-English Electron locales (~15 MB saved)
+    return electron_exe.exists() or electron_renamed.exists()
+
+def _swap_electron(new_nm):
+    """Put new_nm in place of the live node_modules. The old one is kept as
+    node_modules.old until the new one is in place, and put back if the swap fails."""
+    nm = ELECTRON_DIR / "node_modules"
+    old = ELECTRON_DIR / "node_modules.old"
+    try:
+        os.replace(nm, old)
+    except Exception:
+        return False
+    try:
+        os.replace(new_nm, nm)
+    except Exception:
+        try: os.replace(old, nm)
+        except Exception: pass
+        return False
+    shutil.rmtree(old, ignore_errors=True)
+    return True
+
+def ensure_npm(node_exe, force=False):
+    """Make sure Electron is installed and current. A first install goes straight into
+    electron\\node_modules. An existing install (new major, an older version than the
+    shipped lockfile, or force=True from Advanced > Reinstall Electron) is rebuilt
+    NEXT TO the live one and swapped in only when it works, so a failed or offline
+    download never leaves the app without Electron."""
+    nm  = ELECTRON_DIR / "node_modules"
+    old = ELECTRON_DIR / "node_modules.old"
+    if old.exists():
+        # An earlier run stopped in the middle of a swap: put the previous Electron
+        # back, or drop the leftover when the live one is intact.
+        if (nm / "electron").exists():
+            shutil.rmtree(old, ignore_errors=True)
+        else:
+            shutil.rmtree(nm, ignore_errors=True)
+            try: os.replace(old, nm)
+            except Exception: pass
+    kind = _electron_update_kind()
+    if kind is None and force:
+        kind = "update"
+    if kind is None:
+        return
+    if kind == "missing":
+        # Fresh install (or a damaged node_modules): nothing to keep.
+        shutil.rmtree(nm, ignore_errors=True)
+        _gui_msg("Installing Electron (first run, ~250 MB)…")
+        if not _npm_install_electron(node_exe, ELECTRON_DIR):
+            _gui_msg("Electron install failed"); time.sleep(4); sys.exit(1)
+    else:
+        _gui_msg("Updating Electron to new major version…" if kind == "major"
+                 else "Updating Electron…")
+        stage = ELECTRON_DIR / ".electron-stage"
+        shutil.rmtree(stage, ignore_errors=True)
+        ok = False
+        try:
+            stage.mkdir()
+            for name in ("package.json", "package-lock.json"):
+                if (ELECTRON_DIR / name).exists():
+                    shutil.copy2(ELECTRON_DIR / name, stage / name)
+            ok = _npm_install_electron(node_exe, stage) and _swap_electron(stage / "node_modules")
+        except Exception:
+            ok = False
+        shutil.rmtree(stage, ignore_errors=True)
+        if not ok:
+            if kind == "major":
+                # The new app needs the new Electron. The old one is still in place,
+                # so the next launch (online) simply tries again.
+                _gui_msg("Electron update failed"); time.sleep(4); sys.exit(1)
+            _gui_msg("Could not update Electron, keeping the current version")
+            time.sleep(3)
+            return
+    # Cleanup: remove non-English Electron locales (~15 MB saved)
     _clean_electron_locales()
     # Clear npm's global download cache (~50-200 MB) — not needed after install
-    _clear_npm_cache(npm, env)
+    _clear_npm_cache(*_npm_env(node_exe))
 
 def _find_npm(node_exe):
     for p in [NODE_DIR/"npm.cmd", NODE_DIR/"npm"]:
@@ -737,15 +817,15 @@ if __name__ == "__main__":
         ensure_python_deps()
     node_exe = ensure_node()
 
-    # Process the Electron reinstall marker (set by Advanced → Reinstall Electron)
+    # Process the Electron reinstall marker (set by Advanced → Reinstall Electron).
+    # ensure_npm builds the new Electron next to the live one and swaps it in only
+    # when it works, so a failed download keeps the current one.
     if _reinstalling_electron:
         _gui_msg("Reinstalling Electron…")
-        try: shutil.rmtree(ELECTRON_DIR / "node_modules", ignore_errors=True)
-        except Exception: pass
         try: _electron_marker.unlink(missing_ok=True)
         except Exception: pass
 
-    ensure_npm(node_exe)
+    ensure_npm(node_exe, force=_reinstalling_electron)
 
     # In portable mode, hide internal files so users only see the launcher + instructions.
     # Done AFTER all installs complete so npm can access electron/ without any risk.
