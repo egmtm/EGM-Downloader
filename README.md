@@ -140,7 +140,7 @@ A side by side look at one well known alternative, using details you can check y
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
-**First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
+**First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory. Electron alone is about 250 MB, so the whole Windows first launch download is several hundred MB. macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
 
 ---
 

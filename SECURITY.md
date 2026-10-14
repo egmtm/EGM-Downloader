@@ -133,7 +133,7 @@ EGM Downloader makes network requests to:
 - **egerena.com** - To check for updates (all platforms)
 - **Package managers** - To download yt-dlp and FFmpeg updates
 - **Runtime downloads on Windows first run** - nodejs.org (Node.js), the npm registry (Electron) and, for the portable edition, python.org and bootstrap.pypa.io (embedded Python and pip)
-- **First launch downloads on all platforms** - Deno from GitHub and, on macOS and Linux, ffmpeg (ffmpeg.martin-riedl.de on macOS, GitHub on Linux). Each download is checked against the publisher's SHA-256 checksum
+- **First launch downloads on all platforms** - Deno from GitHub on every platform. ffmpeg from GitHub on Windows and Linux, and ffmpeg and ffprobe from ffmpeg.martin-riedl.de on macOS. Each download is checked against the publisher's SHA-256 checksum
 - **Video thumbnail CDNs** - To cache thumbnails for the download history view (HTTPS-only, 500 KB cap per image)
 
 All network activity is related to core functionality. We do not send telemetry or analytics.
