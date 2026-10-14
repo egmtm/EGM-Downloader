@@ -922,6 +922,10 @@ def _validate_download_dir(dl_dir):
     """
     if not dl_dir or not isinstance(dl_dir, str) or not dl_dir.strip():
         return False, "", "No download directory provided."
+    if not Path(os.path.expanduser(dl_dir)).is_absolute():
+        # A relative path (or a Windows path read on mac or linux) would resolve under the
+        # app's own working directory and be accepted.
+        return False, "", "Download directory must be a full path."
     try:
         p = Path(dl_dir).expanduser().resolve()
     except (OSError, RuntimeError, ValueError):
@@ -1789,8 +1793,19 @@ def save_settings():
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
-            try: Path(folder).mkdir(parents=True, exist_ok=True)
-            except Exception: pass
+            # Same check as every other download folder, and BEFORE anything touches
+            # the disk: this route also receives the whole settings object of an
+            # imported export file, which can come from anyone. The old code created
+            # the directory first, never validated it, and stored the raw value of
+            # any type -- and the startup cleanup deletes files in the stored folder.
+            ok, resolved, _err = (_validate_download_dir(folder) if isinstance(folder, str)
+                                  else (False, "", ""))
+            if ok:
+                try: Path(resolved).mkdir(parents=True, exist_ok=True)
+                except Exception: pass
+                data["last_folder"] = resolved
+            else:
+                data.pop("last_folder", None)
     # Sanitize favorites / random-theme settings — defense-in-depth (the UI already
     # validates, but never trust client input). Keep only valid theme keys, capped.
     if "favorite_themes" in data:
@@ -2938,19 +2953,31 @@ def shutdown():
     threading.Thread(target=_do_shutdown, daemon=True).start()
     return jsonify({"ok": True})
 
-if __name__ == "__main__":
-    # Clean up any orphaned .part and .ytdl files left by a crashed session
+def _cleanup_orphan_partials(last_folder):
+    """Remove this app's own *.part / *.ytdl leftovers from a crashed session.
+    Only job files -- {job_id}.* or {job_id}_r2.*, job_id being 10 hex digits.
+    A bare *.part also matched other programs' in-progress downloads (Firefox
+    writes *.part into the same Downloads folder), and last_folder can arrive
+    from an imported settings file. *.f*.mp4 / *.f*.webm stay excluded as too
+    broad for a user download folder. Never raises."""
     try:
-        last_folder = _load_settings().get("last_folder", "")
-        if last_folder:
-            dl_path = Path(last_folder)
-            if dl_path.is_dir():
-                for pattern in ("*.part", "*.ytdl"):  # *.f*.mp4 and *.f*.webm removed — too broad for user download folder
-                    for f in dl_path.glob(pattern):
-                        try: f.unlink()
-                        except Exception: pass
+        if not last_folder or not isinstance(last_folder, str):
+            return
+        dl_path = Path(last_folder)
+        if not dl_path.is_dir():
+            return
+        for pattern in ("*.part", "*.ytdl"):
+            for f in dl_path.glob(pattern):
+                if not _re.match(r"[0-9a-f]{10}[._]", f.name):
+                    continue
+                try: f.unlink()
+                except Exception: pass
     except Exception:
         pass
+
+if __name__ == "__main__":
+    # Clean up any orphaned .part and .ytdl files left by a crashed session
+    _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
 
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
     def _resolve_port():
