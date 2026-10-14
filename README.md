@@ -116,7 +116,7 @@ A side by side look at one well known alternative, using details you can check y
 **SHA256:** `dca3f3882eb67d1626e121e4c119d2f26569e8dbf273e591bff4bd8e8d6869ae`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
-**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron & ffmpeg are fetched on first run)  
+**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
@@ -140,7 +140,7 @@ A side by side look at one well known alternative, using details you can check y
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
-**First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download only ffmpeg in the background on first launch.
+**First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory (~250 MB). macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
 
 ---
 
@@ -150,9 +150,9 @@ A side by side look at one well known alternative, using details you can check y
 
 **Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
 
-**macOS:** macOS 13.0+ (Ventura) · Apple Silicon (M1–M5) · ~300 MB disk space · Internet on first launch (ffmpeg download)
+**macOS:** macOS 13.0+ (Ventura) · Apple Silicon (M1–M5) · ~300 MB disk space · Internet on first launch (ffmpeg and Deno download)
 
-**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support · Internet on first launch (ffmpeg download)
+**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support · Internet on first launch (ffmpeg and Deno download)
 Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
 > Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
 
@@ -205,7 +205,7 @@ ReClip is the starting point, and it is intentionally small. Here is what this p
 
 | | [ReClip](https://github.com/averygan/reclip), where it started | EGM Downloader today |
 |---|---|---|
-| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. Windows needs Python 3.10+ first; macOS and Linux bundle the app's runtimes and fetch ffmpeg on first launch |
+| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. Windows needs Python 3.10+ first; macOS and Linux bundle Electron and Python and fetch ffmpeg and Deno on first launch |
 | **How you use it** | A local web server you start yourself, then open `localhost:8899` in a browser ([Quick Start](https://github.com/averygan/reclip#quick-start)) | A native desktop app window, nothing to start |
 | **Platforms** | Install commands for Homebrew or apt, or a Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Windows 10/11, macOS 13+ (Apple Silicon), Linux AppImage |
 | **Formats and quality** | MP4 video or MP3 audio, resolution picker ([Features](https://github.com/averygan/reclip#features)) | MP4, MKV or H.264 MP4 video; MP3, M4A, OPUS or FLAC audio; up to 8K, HDR kept as MKV |
