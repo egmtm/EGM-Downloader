@@ -12,7 +12,7 @@ INSTALLATION
 
 That's it. No install step, no root required.
 
-On first launch, ffmpeg downloads automatically (~90 MB).
+On first launch, ffmpeg (~90 MB) and Deno download automatically in the background.
 This only happens once.
 
 
