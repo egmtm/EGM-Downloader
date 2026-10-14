@@ -62,11 +62,14 @@ PY_ZIP_URL    = f"https://www.python.org/ftp/python/{PY_VERSION}/{PY_ZIP_NAME}"
 #   certutil -hash python-3.12.10-embed-amd64.zip SHA256   (Windows)
 #   sha256sum  python-3.12.10-embed-amd64.zip              (Linux/Mac)
 PY_SHA256     = "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3"
-# Unversioned get-pip supports every currently-supported Python (3.8+), including
-# 3.12. (The versioned /pip/3.12/get-pip.py path does NOT exist — only EOL minors
-# like /pip/3.6/ are published there — so the old versioned URL 404'd and broke
-# pip bootstrap with the opaque "could not enable pip" error. Do not re-version it.)
-GETPIP_URL    = "https://bootstrap.pypa.io/get-pip.py"
+# pip is set up from a PINNED wheel, so no downloaded script is ever run unverified
+# (same fail-closed model as PY_SHA256). To bump: take the newest pip that supports
+# PY_VERSION, and copy the py3-none-any.whl URL and sha256 from
+# https://pypi.org/pypi/pip/<version>/json. Bump it together with PY_VERSION/PY_SHA256.
+PIP_VERSION    = "26.2.1"
+PIP_WHEEL_NAME = f"pip-{PIP_VERSION}-py3-none-any.whl"   # pip rejects a non-wheel file name
+PIP_WHEEL_URL  = "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl"
+PIP_SHA256     = "71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e"
 # Setup diagnostics land here (next to the launcher) so a failed first-run pip
 # bootstrap is debuggable instead of silent. Survives a PY_DIR wipe/retry.
 PY_SETUP_LOG  = ROOT / "embedded-python-setup.log"
@@ -181,26 +184,31 @@ def ensure_python_deps():
                    check=True, timeout=300, creationflags=NO_WIN)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
-def _verify_py_zip(zip_path):
-    """Return True iff zip_path's SHA-256 matches the pinned PY_SHA256.
-    Fail-closed: an unset/invalid pin or any mismatch returns False, so we never
-    run an unverified interpreter."""
-    expected = (PY_SHA256 or "").strip().lower()
+def _verify_sha256(path, pin, label):
+    """Return True iff path's SHA-256 matches the pinned hex digest `pin`.
+    Fail-closed: an unset/invalid pin, an unreadable file or any mismatch returns
+    False, so we never run anything unverified."""
+    expected = (pin or "").strip().lower()
     if not re.fullmatch(r"[0-9a-f]{64}", expected):
-        _py_log("PY_SHA256 is unset/invalid — refusing to use the download (fail-closed)")
+        _py_log(f"{label}: pinned SHA-256 is unset/invalid — refusing to use the download (fail-closed)")
         return False
     try:
         h = hashlib.sha256()
-        with open(zip_path, "rb") as fh:
+        with open(path, "rb") as fh:
             for chunk in iter(lambda: fh.read(1024 * 1024), b""):
                 h.update(chunk)
         if h.hexdigest().lower() == expected:
             return True
-        _py_log("Python zip checksum mismatch")
+        _py_log(f"{label}: checksum mismatch")
         return False
     except Exception as e:
-        _py_log(f"checksum read failed: {e}")
+        _py_log(f"{label}: checksum read failed: {e}")
         return False
+
+
+def _verify_py_zip(zip_path):
+    """Return True iff zip_path matches the pinned PY_SHA256 (fail-closed)."""
+    return _verify_sha256(zip_path, PY_SHA256, "Python zip")
 
 
 def _py_version(exe):
@@ -217,8 +225,9 @@ def _py_version(exe):
 def _setup_embedded_pip():
     """Make pip usable in the embedded Python: (1) enable `import site` and add
     Lib\\site-packages in the pythonNNN._pth so installed packages are importable,
-    (2) bootstrap pip via get-pip.py. Returns True on success; logs the real
-    error to PY_SETUP_LOG on any failure (so "could not enable pip" is debuggable)."""
+    (2) set up pip from the pinned wheel (downloaded, SHA-256 verified, then run
+    to install itself). Returns True on success; logs the real error to
+    PY_SETUP_LOG on any failure (so "could not enable pip" is debuggable)."""
     try:
         # (1) ._pth: uncomment `import site`, ensure Lib\site-packages is present.
         pths = list(PY_DIR.glob("python*._pth"))
@@ -242,18 +251,25 @@ def _setup_embedded_pip():
         pth.write_text("\n".join(out) + "\n", encoding="utf-8")
         (PY_DIR / "Lib" / "site-packages").mkdir(parents=True, exist_ok=True)
 
-        # (2) get-pip.py over TLS, then run it with the embedded interpreter.
+        # (2) Pinned pip wheel: download, verify (fail-closed), then run the wheel
+        # (a zipapp) with the embedded interpreter to install itself. Nothing is
+        # executed before the SHA-256 check passes.
         _gui_msg("Setting up pip…")
-        getpip = PY_DIR / "get-pip.py"
+        wheel = PY_DIR / PIP_WHEEL_NAME
         try:
-            urllib.request.urlretrieve(GETPIP_URL, getpip)
+            urllib.request.urlretrieve(PIP_WHEEL_URL, wheel)
         except Exception as e:
-            _py_log(f"get-pip.py download failed from {GETPIP_URL}: {e}")
+            _py_log(f"pip wheel download failed from {PIP_WHEEL_URL}: {e}")
             return False
-        r = subprocess.run([str(PY_EXE), str(getpip), "--no-warn-script-location"],
+        if not _verify_sha256(wheel, PIP_SHA256, "pip wheel"):
+            try: wheel.unlink(missing_ok=True)
+            except Exception: pass
+            return False
+        r = subprocess.run([str(PY_EXE), str(wheel / "pip"), "install", "--no-index",
+                            "--no-warn-script-location", str(wheel)],
                            capture_output=True, text=True, timeout=300, creationflags=NO_WIN)
         if r.returncode != 0:
-            _py_log("get-pip.py failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"
+            _py_log("pip wheel install failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"
                     % (r.returncode, (r.stdout or "")[-2000:], (r.stderr or "")[-2000:]))
             return False
         chk = subprocess.run([str(PY_EXE), "-m", "pip", "--version"],
@@ -262,7 +278,7 @@ def _setup_embedded_pip():
             _py_log("pip --version failed after bootstrap (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"
                     % (chk.returncode, (chk.stdout or ""), (chk.stderr or "")))
             return False
-        try: getpip.unlink(missing_ok=True)
+        try: wheel.unlink(missing_ok=True)
         except Exception: pass
         return True
     except Exception as e:
