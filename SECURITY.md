@@ -120,6 +120,7 @@ EGM Downloader relies on several third-party components:
 
 - **yt-dlp** - Download engine (updated via plugin system)
 - **FFmpeg** - Media processing (updated via plugin system)
+- **Deno** - JavaScript runtime used for YouTube (installed on first launch, updated via plugin system)
 - **Electron** - Desktop framework (updated with app releases)
 
 We monitor security advisories for these dependencies and release updates promptly when vulnerabilities are discovered.
@@ -132,6 +133,7 @@ EGM Downloader makes network requests to:
 - **egerena.com** - To check for updates (all platforms)
 - **Package managers** - To download yt-dlp and FFmpeg updates
 - **Runtime downloads on Windows first run** - nodejs.org (Node.js), the npm registry (Electron) and, for the portable edition, python.org (embedded Python) and files.pythonhosted.org (pip, checked against a pinned checksum)
+- **First launch downloads on all platforms** - Deno from GitHub and, on macOS and Linux, ffmpeg (ffmpeg.martin-riedl.de on macOS, GitHub on Linux). Each download is checked against the publisher's SHA-256 checksum
 - **Video thumbnail CDNs** - To cache thumbnails for the download history view (HTTPS-only, 500 KB cap per image)
 - **sponsor.ajay.app** - Only when the optional SponsorBlock feature is turned on (off by default). yt-dlp looks up community submitted segment data using the first 4 characters of a hash (SHA256) of the video ID. The video ID itself is not sent, and the app makes no SponsorBlock requests of its own.
 
