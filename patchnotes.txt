@@ -1,3 +1,9 @@
+v1.4.10 - LAST CALL (Build 164) (10/13/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.7.1 — Linux crash fixes (no display server, menu bar, folders with non-ASCII names), a renderer crash fix and updated Chromium
+  • [ALL] Fixed: The startup cleanup of leftover partial files now only removes files the app created, and a download folder from an imported settings file is checked before it is used.
+
 v1.4.9 - JUST ANOTHER UPDATE VI (Build 163) (10/7/2026)
 -----------------------------------------
 
