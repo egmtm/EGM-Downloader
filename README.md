@@ -79,7 +79,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots captured on v1.4.2 — FRONT AND CENTER: RELOADED. The UI is identical across Windows, macOS, and Linux. More screenshots coming soon.*
+> 📸 *Screenshots of v1.4.11, LAST CALL: THE RETURN OF ELECTRON. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -88,12 +88,25 @@ A side by side look at one well known alternative, using details you can check y
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI"/></a>
-      <br/><sub><b>Main UI</b></sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Bauhaus theme"/></a>
+      <br/><sub><b>Main UI</b> (Bauhaus theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-whats-new-modal.png"><img src="screenshots/03-whats-new-modal.png" width="260" alt="What's New Modal"/></a>
-      <br/><sub><b>What's New Modal</b></sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, La Parguera theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (La Parguera theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="400" alt="All Themes, N64 theme"/></a>
+      <br/><sub><b>All Themes</b> (N64 theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="400" alt="Subscriptions, Windows 11 theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Windows 11 theme)</sub>
     </td>
   </tr>
 </table>
