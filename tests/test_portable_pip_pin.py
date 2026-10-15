@@ -123,10 +123,79 @@ def test_a_verified_wheel_installs_itself_offline_and_is_cleaned_up(launch, monk
     install, check = calls
     wheel = str(launch.PY_DIR / launch.PIP_WHEEL_NAME)
     assert install[0] == str(launch.PY_EXE)
-    assert install[1] == str(Path(wheel) / "pip")        # run pip FROM the wheel
-    assert install[2:3] == ["install"] and "--no-index" in install and install[-1] == wheel
+    # pip is run FROM the wheel (argument 1 of the -c code), never as "<wheel>\pip"
+    assert install[1:4] == ["-c", launch.PIP_BOOTSTRAP_CODE, wheel]
+    assert install[4:5] == ["install"] and "--no-index" in install and install[-1] == wheel
     assert check[1:] == ["-m", "pip", "--version"]
     assert not (launch.PY_DIR / launch.PIP_WHEEL_NAME).exists()
+
+
+# ── pip refuses to modify itself on Windows when started as "pip" ────────────
+# pip/_internal/utils/misc.py (pip 26.2.1, the pinned wheel):
+#     modifying_pip and WINDOWS and os.path.basename(sys.argv[0]) in pip_names
+# with pip_names = pip, pip3, pip3.X. "python <wheel>\pip install <wheel>" gives
+# argv[0] = "<wheel>\pip", so the first Windows portable run failed with "To modify
+# pip, please run the following command". A Linux run never sees it, so the rule is
+# reproduced here by a stand in wheel that applies the same check unconditionally.
+
+_FAKE_PIP_MAIN = '''
+import os, sys
+def main(args=None):
+    if args is None:
+        args = sys.argv[1:]
+    names = ["pip", "pip%d" % sys.version_info.major,
+             "pip%d.%d" % (sys.version_info.major, sys.version_info.minor)]
+    if os.path.basename(sys.argv[0]) in names:      # pip's own rule, minus the WINDOWS test
+        sys.stderr.write("To modify pip, please run the following command:\\n")
+        return 1
+    open(os.environ["FAKE_PIP_OUT"], "w").write(repr(list(args)))
+    return 0
+'''
+_FAKE_PIP_DUNDER_MAIN = '''
+import os, sys
+if sys.path[0] in ("", os.getcwd()):
+    sys.path.pop(0)
+if not __spec__ or __spec__.parent == "":
+    sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+if __name__ == "__main__":
+    from pip._internal.cli.main import main as _main
+    sys.exit(_main())
+'''
+
+
+def _fake_pip_wheel(tmp_path):
+    import zipfile
+    whl = tmp_path / "pip-99.0-py3-none-any.whl"
+    with zipfile.ZipFile(whl, "w") as z:
+        z.writestr("pip/__init__.py", "")
+        z.writestr("pip/__main__.py", _FAKE_PIP_DUNDER_MAIN)
+        z.writestr("pip/_internal/__init__.py", "")
+        z.writestr("pip/_internal/cli/__init__.py", "")
+        z.writestr("pip/_internal/cli/main.py", _FAKE_PIP_MAIN)
+    return whl
+
+
+def _run_python(args, tmp_path):
+    import os, subprocess, sys
+    env = {**os.environ, "FAKE_PIP_OUT": str(tmp_path / "out.txt")}
+    return subprocess.run([sys.executable, *args], cwd=tmp_path, env=env,
+                          capture_output=True, text=True, timeout=60)
+
+
+def test_the_old_way_of_starting_pip_is_refused_by_its_own_guard(tmp_path):
+    """Teeth: the stand in reproduces the failure seen on Windows with the old command."""
+    whl = _fake_pip_wheel(tmp_path)
+    r = _run_python([str(whl / "pip"), "install", "--no-index", str(whl)], tmp_path)
+    assert r.returncode != 0 and "To modify pip" in r.stderr
+
+
+def test_the_bootstrap_code_gets_past_the_guard_and_hands_pip_its_arguments(launch, tmp_path):
+    whl = _fake_pip_wheel(tmp_path)
+    r = _run_python(["-c", launch.PIP_BOOTSTRAP_CODE, str(whl),
+                     "install", "--no-index", "--no-warn-script-location", str(whl)], tmp_path)
+    assert r.returncode == 0, r.stderr
+    assert (tmp_path / "out.txt").read_text() == repr(
+        ["install", "--no-index", "--no-warn-script-location", str(whl)])
 
 
 def test_no_unverified_script_is_fetched_or_run(launch):

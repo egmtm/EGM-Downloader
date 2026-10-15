@@ -70,6 +70,12 @@ PIP_VERSION    = "26.2.1"
 PIP_WHEEL_NAME = f"pip-{PIP_VERSION}-py3-none-any.whl"   # pip rejects a non-wheel file name
 PIP_WHEEL_URL  = "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl"
 PIP_SHA256     = "71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e"
+# How the wheel installs itself. On Windows pip refuses to modify pip when its
+# sys.argv[0] is named "pip" ("To modify pip, please run python -m pip ..."), which is
+# what `python <wheel>\pip install` gives it. `python -c` makes argv[0] "-c", so the
+# guard stays quiet; argv[1] is the wheel, which goes on sys.path so pip imports from it.
+PIP_BOOTSTRAP_CODE = ("import sys; sys.path.insert(0, sys.argv[1]); "
+                      "from pip._internal.cli.main import main; sys.exit(main(sys.argv[2:]))")
 # Setup diagnostics land here (next to the launcher) so a failed first-run pip
 # bootstrap is debuggable instead of silent. Survives a PY_DIR wipe/retry.
 PY_SETUP_LOG  = ROOT / "embedded-python-setup.log"
@@ -251,9 +257,9 @@ def _setup_embedded_pip():
         pth.write_text("\n".join(out) + "\n", encoding="utf-8")
         (PY_DIR / "Lib" / "site-packages").mkdir(parents=True, exist_ok=True)
 
-        # (2) Pinned pip wheel: download, verify (fail-closed), then run the wheel
-        # (a zipapp) with the embedded interpreter to install itself. Nothing is
-        # executed before the SHA-256 check passes.
+        # (2) Pinned pip wheel: download, verify (fail-closed), then run pip from
+        # inside the wheel with the embedded interpreter to install itself (see
+        # PIP_BOOTSTRAP_CODE). Nothing is executed before the SHA-256 check passes.
         _gui_msg("Setting up pip…")
         wheel = PY_DIR / PIP_WHEEL_NAME
         try:
@@ -265,8 +271,8 @@ def _setup_embedded_pip():
             try: wheel.unlink(missing_ok=True)
             except Exception: pass
             return False
-        r = subprocess.run([str(PY_EXE), str(wheel / "pip"), "install", "--no-index",
-                            "--no-warn-script-location", str(wheel)],
+        r = subprocess.run([str(PY_EXE), "-c", PIP_BOOTSTRAP_CODE, str(wheel), "install",
+                            "--no-index", "--no-warn-script-location", str(wheel)],
                            capture_output=True, text=True, timeout=300, creationflags=NO_WIN)
         if r.returncode != 0:
             _py_log("pip wheel install failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"
