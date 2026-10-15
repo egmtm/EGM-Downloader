@@ -57,6 +57,9 @@ def env(tmp_path, monkeypatch):
 
     e = Env()
     e.mod, e.dir, e.calls = mod, edir, []
+    e.reachable, e.probes = True, []   # the registry check never touches the real network
+    monkeypatch.setattr(mod, "_registry_reachable",
+                        lambda *a, **k: (e.probes.append(1), e.reachable)[1])
     e.npm_ok = True          # False: npm exits 1 (offline)
     e.make_exe = True        # False: npm works but the Electron binary never arrives
     e.seen_live = []         # content of the LIVE install at the moment npm runs
@@ -225,6 +228,89 @@ def test_first_install_goes_straight_in_and_a_failure_exits(env):
     env.npm_ok = False
     with pytest.raises(SystemExit):
         env.mod.ensure_npm("node.exe")
+
+
+# ── offline: no npm at all, so no minutes long stall ──────────────────────────
+# With no connection npm can look stuck for minutes (name lookups), then falls back
+# to a second try. An optional point update therefore checks the registry first.
+
+def test_offline_point_update_keeps_the_current_electron_without_starting_npm(env, monkeypatch):
+    msgs = []
+    monkeypatch.setattr(env.mod, "_gui_msg", lambda m, *a, **k: msgs.append(m))
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    _write_install(env.dir, "44.7.1")
+    env.reachable = False
+    env.mod.ensure_npm("node.exe")
+    assert env.calls == [] and msgs == []                  # npm never started, nothing shown
+    live = env.dir / "node_modules" / "electron"
+    assert json.loads((live / "package.json").read_text())["version"] == "44.7.1"
+    assert (live / "marker.txt").read_text() == "old"
+    assert not (env.dir / ".electron-stage").exists() and not (env.dir / "node_modules.old").exists()
+    assert env.mod._electron_update_kind() == "update"      # the next online launch tries again
+    env.reachable = True
+    env.mod.ensure_npm("node.exe")
+    assert json.loads((live / "package.json").read_text())["version"] == "44.7.2"
+
+
+@pytest.mark.parametrize("case", ["force", "major", "first install"])
+def test_the_registry_check_only_guards_the_optional_point_update(env, case):
+    """Explicit reinstall, a needed major and a first install keep their own handling."""
+    env.reachable = False
+    if case == "force":
+        _write_pins(env.dir, "^44.7.0", "44.7.2")
+        _write_install(env.dir, "44.7.2")
+        env.mod.ensure_npm("node.exe", force=True)
+    elif case == "major":
+        _write_pins(env.dir, "^45.0.0", "45.0.0")
+        _write_install(env.dir, "44.7.2")
+        env.mod.ensure_npm("node.exe")
+    else:
+        _write_pins(env.dir, "^44.7.0", "44.7.2")
+        env.mod.ensure_npm("node.exe")
+    assert env.probes == [] and env.calls                  # the check was not consulted; npm ran
+    assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "new"
+
+
+def _load_launch():
+    spec = importlib.util.spec_from_file_location("egm_launch_registry_check_test", LAUNCH)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_registry_check_connects_to_the_npm_registry_and_closes(monkeypatch):
+    mod, seen = _load_launch(), []
+
+    class Sock:
+        def close(self):
+            seen.append("closed")
+
+    monkeypatch.setattr(mod.socket, "create_connection",
+                        lambda addr, timeout=None: (seen.append((addr, timeout)), Sock())[1])
+    assert mod._registry_reachable(timeout=2) is True
+    assert seen == [(("registry.npmjs.org", 443), 2), "closed"]
+
+
+def test_registry_check_is_false_when_the_connection_fails(monkeypatch):
+    mod = _load_launch()
+
+    def offline(*a, **k):
+        raise OSError("no network")
+
+    monkeypatch.setattr(mod.socket, "create_connection", offline)
+    assert mod._registry_reachable(timeout=1) is False
+
+
+def test_registry_check_returns_in_time_when_the_name_lookup_hangs(monkeypatch):
+    import threading
+    import time
+    mod, release = _load_launch(), threading.Event()
+    monkeypatch.setattr(mod.socket, "create_connection", lambda *a, **k: release.wait(10))
+    t0 = time.monotonic()
+    result = mod._registry_reachable(timeout=0.3)
+    elapsed = time.monotonic() - t0
+    release.set()
+    assert result is False and elapsed < 3
 
 
 # ── a run that died in the middle of a swap ───────────────────────────────────
