@@ -28,7 +28,7 @@ assignees: ''
 ## System Information (if relevant)
 
 **Platform:** (Windows / macOS / Linux)  
-**EGM Downloader Version:** (e.g., v0.98 Build 101)
+**EGM Downloader Version:** (e.g., v1.4.11)
 
 ## Additional Context
 

@@ -48,7 +48,7 @@ An attacker could craft a malicious URL that, when downloaded, executes
 arbitrary JavaScript in the application context.
 
 Affected Versions:
-v0.91 Build 92 and earlier
+v0.91 and earlier
 
 Suggested Fix:
 Sanitize filenames using DOMPurify or similar before displaying in UI.
