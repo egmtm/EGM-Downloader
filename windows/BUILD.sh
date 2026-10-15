@@ -374,7 +374,7 @@ echo "$VERSION-portable-build-$BUILD_NUM" > "$PORTABLE_STAGE/.portable"
 # Portable-specific instructions.txt — overwrites the installer version copied above
 # Portable users must see the correct steps, not "run egm-setup.exe"
 cat > "$PORTABLE_STAGE/instructions.txt" << PORTINS
-EGM Downloader v$VERSION (Build $BUILD_NUM) — Portable Edition
+EGM Downloader v$VERSION — Portable Edition
 ================================================================
 https://egerena.com/apps/egm.html
 

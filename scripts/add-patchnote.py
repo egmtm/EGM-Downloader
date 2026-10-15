@@ -84,7 +84,7 @@ def main():
         data = json.load(f)
     v, b, d, t = data["version"], data["build"], data["date"], data["time"]
 
-    header    = f"v{v} - Build {b} ({d} {t})"
+    header    = f"v{v} - ({d} {t})"
     separator = "-" * len(header)
     bullets   = "\n".join(_tag_bullet(x) for x in args.bullets)
     section   = f"{header}\n{separator}\n{bullets}\n"
@@ -96,7 +96,7 @@ def main():
         print(f"\n  [DRY] Would prepend to patchnotes.txt:\n\n{section}")
     else:
         PATCHNOTES.write_text(new_content, encoding="utf-8")
-        print(f"\n  ✅  patchnotes.txt updated — Build {b}, {len(args.bullets)} bullet(s)\n")
+        print(f"\n  ✅  patchnotes.txt updated — v{v}, {len(args.bullets)} bullet(s)\n")
 
 
 if __name__ == "__main__":
