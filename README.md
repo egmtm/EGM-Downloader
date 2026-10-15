@@ -46,7 +46,7 @@
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ➕ **Add While Downloading** - Paste more links while downloads are running. New videos join the list and the current run, Clear keeps the downloads in progress, and one progress bar with a Cancel All button covers them all.
 - 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. "Stop and save" ends the recording and keeps what was captured, and a recording that fails partway is saved instead of lost.
-- 🔁 **Live Stream Reconnect** - If a live stream drops, the recording reconnects on its own (up to 4 times in a row) and joins the pieces into one file. A notice tells you when a few seconds may be missing or repeated.
+- 🔁 **Live Stream Reconnect** - If a live stream drops, the recording reconnects on its own (up to 5 times in a row) and joins the pieces into one file. A notice tells you when a few seconds may be missing or repeated.
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
 - 🚫 **SponsorBlock** - Optionally cut sponsor reads, self promotion, intros and outros out of downloaded YouTube videos, using the community [SponsorBlock](https://sponsor.ajay.app/) database. Off by default; choose categories globally or per subscription.
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
