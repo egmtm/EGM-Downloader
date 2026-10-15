@@ -631,6 +631,41 @@ def test_patchnotes_current_version_is_not_truncated():
         )
 
 
+def test_current_patchnotes_pass_the_feed_purity_rule_before_any_build(tmp_path):
+    """The current entry's bullets, as each platform's feed would carry them, must
+    pass validate-version-sync.py's cross-platform purity check.
+
+    Regression (v1.4.11): an [ALL] Electron bullet said "macOS fixes ...". The check
+    bans that word in the Windows and Linux feeds, but it only runs on built feeds,
+    so it surfaced mid build (the Linux commit hook) and only after the Windows feed
+    had been built. A platform specific sentence needs its own [MAC] / [WINDOWS] /
+    [LINUX] bullet. This runs the real rule on the bullets before any build starts."""
+    import importlib.util
+    import json
+    import os
+    import sys
+
+    root = os.path.dirname(os.path.dirname(__file__))
+    spec = importlib.util.spec_from_file_location(
+        "egm_validate_purity", os.path.join(root, "scripts", "validate-version-sync.py"))
+    val = importlib.util.module_from_spec(spec)
+    _argv, sys.argv = sys.argv, ["validate-version-sync.py"]
+    try:
+        spec.loader.exec_module(val)
+    finally:
+        sys.argv = _argv
+
+    pn = read_source("patchnotes.txt")
+    (tmp_path / "dist").mkdir()
+    for feed, tag in (("egm-version.json", "WINDOWS"),
+                      ("egmac-update.json", "MAC"),
+                      ("egmlinux-update.json", "LINUX")):
+        (tmp_path / "dist" / feed).write_text(
+            json.dumps({"_version_notes": _extract_patchnote_bullets(pn, tag)}), encoding="utf-8")
+    val.ROOT = tmp_path
+    assert val.check_json_feeds_purity() == []
+
+
 # ── Shared theme validator (theme_validator.html) ──────────────────────────────
 
 def test_all_patchnote_bullet_extractions_agree_with_the_generator():
