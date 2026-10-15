@@ -295,9 +295,9 @@ def update_readme(v, b, dry_run):
     path = ROOT / "README.md"
     # Three "Latest: v0.xx Build NN" lines -- one per platform.
     # Replace all so each platform's line gets updated.
-    patch(path, "README.md -> Latest: version + build (x3)",
-          r'(\*\*Latest:\*\*\s+)v[\d.]+ Build \d+',
-          rf'\g<1>v{v} Build {b}', dry_run, count=0)
+    patch(path, "README.md -> Latest: version (x4)",
+          r'(\*\*Latest:\*\*\s+)v[\d.]+(?: Build \d+)?',
+          rf'\g<1>v{v}', dry_run, count=0)
 
 
 # --------------------------------------------------------------------------
