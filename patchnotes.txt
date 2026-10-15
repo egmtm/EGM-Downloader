@@ -1,3 +1,10 @@
+v1.4.11 - LAST CALL: THE RETURN OF ELECTRON (Build 165) (10/14/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.7.2 — macOS fixes for clicks sent to a background app being dropped and for interrupted updates leaving a broken app behind, plus backported ANGLE, Chromium, PDFium and V8 fixes
+  • [WINDOWS] Changed: Electron now updates by itself after an app update. The new version is downloaded first and only replaces the current one once it is ready, so a failed or offline download no longer leaves the app without Electron.
+  • [WINDOWS] Changed: The portable edition now checks the file it uses to set up pip with a pinned checksum on first run, like it already does for Python and Node.js.
+
 v1.4.10 - LAST CALL (Build 164) (10/13/2026)
 -----------------------------------------
 
