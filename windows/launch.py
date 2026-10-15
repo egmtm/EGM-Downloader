@@ -1,5 +1,6 @@
 """EGM Downloader — launcher (no console window)"""
 import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib, re
+import socket, threading
 from pathlib import Path
 
 # ── Python version gate ───────────────────────────────────────────────────────
@@ -525,6 +526,22 @@ def _electron_update_kind():
         pass   # on any parse error, don't force a reinstall: let the install proceed
     return None
 
+def _registry_reachable(timeout=6):
+    """True when registry.npmjs.org accepts a connection within `timeout` seconds.
+    Run in a helper thread because a name lookup can't be time limited directly, and
+    a PC that is offline can sit in it for minutes (npm then looks stuck)."""
+    ok = []
+    def probe():
+        try:
+            socket.create_connection(("registry.npmjs.org", 443), timeout=timeout).close()
+            ok.append(True)
+        except Exception:
+            pass
+    t = threading.Thread(target=probe, daemon=True)
+    t.start()
+    t.join(timeout + 1)
+    return bool(ok)
+
 def _npm_env(node_exe):
     return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
 
@@ -607,6 +624,10 @@ def ensure_npm(node_exe, force=False):
         if not _npm_install_electron(node_exe, ELECTRON_DIR):
             _gui_msg("Electron install failed"); time.sleep(4); sys.exit(1)
     else:
+        if kind == "update" and not force and not _registry_reachable():
+            # Offline: keep the current Electron without starting npm (which can look
+            # stuck for minutes). Nothing is shown; the next online launch tries again.
+            return
         _gui_msg("Updating Electron to new major version…" if kind == "major"
                  else "Updating Electron…")
         stage = ELECTRON_DIR / ".electron-stage"
