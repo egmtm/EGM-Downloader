@@ -70,7 +70,7 @@ A side by side look at one well known alternative, using details you can check y
 | **Price** | Free. No paid tier, no license key | Free plan "with quantity limitations". Paid plans from $15/year ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
 | **Source code** | Public under AGPL-3.0 ([LICENSE](LICENSE)) | Proprietary. Terms: "We reserve all our rights over our Proprietary Materials." These include "software, scripts, source code" ([terms, section 3](https://www.4kdownload.com/agreement/videodownloader)) |
 | **Videos behind a login** | Included. Import cookies from your browser, they stay on your machine | Premium: "private content download is a premium feature" ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
-| **What the app sends out** | No analytics or tracking code. It connects to the sites you download from, plus a short list of hosts for updates and its tools (GitHub, PyPI, egerena.com and an ffmpeg mirror), listed in the [source](app.py). On Windows, first run also installs its runtimes: Node.js (nodejs.org), Electron (npm registry) and, for the portable, Python (python.org, bootstrap.pypa.io), listed in [windows/launch.py](windows/launch.py). | Terms: "we may collect and use anonymous technical data and related information … that is gathered periodically to facilitate the provision of updates to the Application." ([terms, section 9](https://www.4kdownload.com/agreement/videodownloader)) |
+| **What the app sends out** | No analytics or tracking code. It connects to the sites you download from, plus a short list of hosts for updates and its tools (GitHub, PyPI, egerena.com and an ffmpeg mirror), listed in the [source](app.py). On Windows, first run also installs its runtimes: Node.js (nodejs.org), Electron (npm registry and GitHub, fetched again when an app update needs a newer one) and, for the portable, Python (python.org) and pip (files.pythonhosted.org), listed in [windows/launch.py](windows/launch.py). | Terms: "we may collect and use anonymous technical data and related information … that is gathered periodically to facilitate the provision of updates to the Application." ([terms, section 9](https://www.4kdownload.com/agreement/videodownloader)) |
 | **Platforms** | Windows 10/11 (needs Python 3.10+), macOS 13+ (Apple Silicon only), Linux AppImage | Windows 11, macOS 12+, Ubuntu 22.04+ (GNOME only) ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
 
 ---
@@ -125,11 +125,11 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Windows Portable
 **Latest:** v1.4.11 Build 165  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (619 KB · ~800 MB after first run)  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (619 KB · ~1 GB after first run)  
 **SHA256:** `dca3f3882eb67d1626e121e4c119d2f26569e8dbf273e591bff4bd8e8d6869ae`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
-**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run)  
+**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
@@ -153,7 +153,7 @@ A side by side look at one well known alternative, using details you can check y
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
-**First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) once into your user data directory. Electron alone is about 250 MB, so the whole Windows first launch download is several hundred MB. macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
+**First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) into your user data directory. Electron alone is about 250 MB, so the whole Windows first launch download is several hundred MB. After an app update that needs a newer Electron, the new one is downloaded next to the current one and only switched in once it works. If the download fails or you are offline, a point update keeps the current Electron and tries again at the next launch. macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
 
 ---
 
@@ -161,7 +161,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ### ⚙️ System Requirements
 
-**Windows:** Windows 10/11 (64-bit) · ~800 MB disk space · Internet on first launch
+**Windows:** Windows 10/11 (64-bit) · ~1 GB disk space · Internet on first launch
 
 **macOS:** macOS 13.0+ (Ventura) · Apple Silicon (M1–M5) · ~300 MB disk space · Internet on first launch (ffmpeg and Deno download)
 
