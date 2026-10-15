@@ -3,7 +3,7 @@
 When a stream's server errors for even a few seconds, ffmpeg's HLS reader gives
 up and exits as if the stream had ended (usually exit code 0), so the recording
 used to stop early. After every live run the app now asks yt-dlp whether the
-stream is still live and, if so, records again (up to 4 more times) and joins
+stream is still live and, if so, records again (up to 5 more times) and joins
 the pieces into one file. These tests pin the helpers, the driver loop (with
 the yt-dlp runs replaced by stand ins), and the join against real ffmpeg."""
 import hashlib
@@ -295,23 +295,23 @@ def test_a_cut_stream_is_recorded_again_and_the_pieces_are_joined(app_module, mo
     cmd, base_s, base_kib, job_then = rig.attempts[0]
     assert str(tmp_path / "j_r2.%(ext)s") in cmd and str(tmp_path / "j.%(ext)s") not in cmd, "the new run writes its own piece"
     assert (base_s, base_kib) == (15, 594), "time and size carry on from the first piece"
-    assert job_then["live_reconnecting"] == 1 and job_then["live_retries_max"] == 4
+    assert job_then["live_reconnecting"] == 1 and job_then["live_retries_max"] == 5
     assert rig.joined == [[str(tmp_path / "j.mp4"), str(tmp_path / "j_r2.mp4")]]
     assert rig.job["warning_key"] == "download.warning.live_gap"
     assert rig.notes == ["piece 1", "piece 2", "saved"], "the A/V numbers are logged for each piece and for the result"
     assert "live_reconnecting" not in rig.job and "live_retries_max" not in rig.job, "the card status is cleared"
 
 
-def test_it_gives_up_after_four_more_runs(app_module, monkeypatch, tmp_path):
+def test_it_gives_up_after_five_more_runs(app_module, monkeypatch, tmp_path):
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True] * 20, captures=[f"j_r{i}.mp4" for i in range(2, 9)])
     assert rig.run() == "saved"
-    assert len(rig.attempts) == 4 and len(rig.joined[0]) == 5
-    assert [a[0][2].endswith(f"j_r{i}.%(ext)s") for a, i in zip(rig.attempts, range(2, 6))] == [True] * 4, "each run has its own piece name"
+    assert len(rig.attempts) == 5 and len(rig.joined[0]) == 6
+    assert [a[0][2].endswith(f"j_r{i}.%(ext)s") for a, i in zip(rig.attempts, range(2, 7))] == [True] * 5, "each run has its own piece name"
 
 
 def test_a_reconnect_that_keeps_recording_starts_the_count_again(app_module, monkeypatch, tmp_path):
     # Six drops over a long recording, each followed by a run that lasts the full minute:
-    # every one is "1 of 4" again, and no piece name is used twice.
+    # every one is "1 of 5" again, and no piece name is used twice.
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True] * 6 + [False],
                captures=[f"j_r{i}.mp4" for i in range(2, 8)], run_s=60)
     assert rig.run() == "saved"
@@ -321,12 +321,12 @@ def test_a_reconnect_that_keeps_recording_starts_the_count_again(app_module, mon
 
 
 def test_only_a_run_that_lasted_a_minute_starts_the_count_again(app_module, monkeypatch, tmp_path):
-    # One good run resets the count; then four runs just under a minute (59 s) use it up.
+    # One good run resets the count; then five runs just under a minute (59 s) use it up.
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True] * 20,
                captures=[f"j_r{i}.mp4" for i in range(2, 12)], run_s=[120, 59])
     assert rig.run() == "saved"
-    assert [a[3]["live_reconnecting"] for a in rig.attempts] == [1, 1, 2, 3, 4]
-    assert len(rig.joined[0]) == 6
+    assert [a[3]["live_reconnecting"] for a in rig.attempts] == [1, 1, 2, 3, 4, 5]
+    assert len(rig.joined[0]) == 7
 
 
 def test_an_unclear_answer_is_asked_again_a_few_times_then_the_recording_is_kept(app_module, monkeypatch, tmp_path):
@@ -482,14 +482,14 @@ def test_each_reconnect_piece_leaves_a_log_line_with_its_length_and_the_count(ap
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, False], captures=["j_r2.mp4", "j_r3.mp4"], run_s=[61, 10])
     rig.run()
     assert [l for l in lines if l.startswith("live piece")] == [
-        "live piece 2: 61s recorded after reconnect 1/4",
-        "live piece 3: 10s recorded after reconnect 1/4",
+        "live piece 2: 61s recorded after reconnect 1/5",
+        "live piece 3: 10s recorded after reconnect 1/5",
     ]
 
 
 def test_a_long_run_that_printed_no_time_does_not_leave_the_old_count_on_the_card(app_module, monkeypatch, tmp_path):
     # The run printed no stats line (nothing popped the label), but its piece was long:
-    # between that run and the next question the card must not read "Reconnecting 2/4".
+    # between that run and the next question the card must not read "Reconnecting 2/5".
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, False], captures=["j_r2.mp4", "j_r3.mp4"], run_s=[0, 0])
     monkeypatch.setattr(app_module, "_media_duration_s", lambda probe, path: 90.0)
     seen = []

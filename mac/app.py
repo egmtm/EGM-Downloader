@@ -1768,7 +1768,7 @@ def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
 # the stream is still live and, if it is, record again (up to _LIVE_MAX_RETRIES
 # times in a row) and join the pieces. A new run starts a few segments behind the
 # live edge, so a short cut tends to repeat a few seconds rather than lose them.
-_LIVE_MAX_RETRIES = 4
+_LIVE_MAX_RETRIES = 5
 _LIVE_RECOVERED_S = 60   # a reconnected run that records this long has recovered: the next drop counts from 1 again
 _LIVE_UNKNOWN_WAITS = (2, 4, 8)   # seconds before asking again when the stream state is unclear
 _LIVE_STATS_RE = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
