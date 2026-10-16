@@ -612,6 +612,9 @@ def ensure_npm(node_exe, force=False):
             shutil.rmtree(nm, ignore_errors=True)
             try: os.replace(old, nm)
             except Exception: pass
+    # A launcher stopped while npm was filling the stage leaves up to ~250 MB there.
+    # Clear it on every start, before any early return (offline, nothing to update).
+    shutil.rmtree(ELECTRON_DIR / ".electron-stage", ignore_errors=True)
     kind = _electron_update_kind()
     if kind is None and force:
         kind = "update"

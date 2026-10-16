@@ -333,6 +333,28 @@ def test_leftover_old_copy_is_dropped_when_the_live_one_is_fine(env):
     assert not (env.dir / "node_modules.old").exists()
 
 
+# ── a stage left behind by a killed update ────────────────────────────────────
+# A launcher killed (or a PC shut down) while npm fills .electron-stage leaves up to
+# ~250 MB there. Only the next ONLINE update used to clear it; ensure_npm now clears
+# it at the top, before any early return.
+
+@pytest.mark.parametrize("state", ["up to date", "offline with an update pending"])
+def test_a_leftover_stage_is_removed_at_startup_even_when_nothing_else_runs(env, state):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    if state == "up to date":
+        _write_install(env.dir, "44.7.2")
+    else:
+        _write_install(env.dir, "44.7.1")
+        env.reachable = False
+    stage = env.dir / ".electron-stage"
+    (stage / "node_modules" / "electron").mkdir(parents=True)
+    (stage / "node_modules" / "electron" / "big.bin").write_text("x", encoding="utf-8")
+    env.mod.ensure_npm("node.exe")
+    assert not stage.exists()
+    assert env.calls == []                                   # npm never started
+    assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "old"
+
+
 # ── the launcher flow ─────────────────────────────────────────────────────────
 
 def test_the_reinstall_marker_no_longer_deletes_node_modules_first():
