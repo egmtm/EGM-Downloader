@@ -27,8 +27,9 @@ FIRST LAUNCH
 ─────────────
   The first time you run the app, it will download required components:
 
-    • Node.js + Electron  ~250 MB  (one time only)
-    • Deno                ~35 MB   (one time only, background)
+    • Node.js + Electron  ~190 MB  (one time only)
+    • ffmpeg              ~185 MB  (one time only, background)
+    • Deno                ~40 MB   (one time only, background)
 
   This may take a few minutes depending on your connection speed.
   Subsequent launches are near-instant.

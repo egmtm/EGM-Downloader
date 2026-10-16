@@ -14,6 +14,7 @@ v1.5.0 - TBD (TBD)
   • [ALL] Fixed: Importing settings no longer says "Nothing selected" when every subscription in the file is already in your list, and no longer reports success when some subscriptions could not be added. The message now says how many were not added.
   • [WINDOWS] Fixed: If the first setup was cut off while Electron was installing (the app was closed or the power was lost), the next start now repairs it by itself instead of ending with "electron.exe not found".
   • [WINDOWS] Fixed: Starting the app without internet no longer shows a confusing "lockfile" message, and an Electron update is skipped when the update servers cannot be reached.
+  • [WINDOWS] Changed: The Node.js that sets up Electron is updated to Node 24 LTS, because Node 20 has reached end of life and Electron 45 needs a newer one. The first start after the update downloads it once (about 36 MB). The installer welcome text now also shows the real size of the first launch download (about 400 MB, it said 250 MB).
 
 v1.4.11 - LAST CALL: THE RETURN OF ELECTRON (Build 165) (10/14/2026)
 -----------------------------------------

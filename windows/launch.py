@@ -28,8 +28,8 @@ if sys.version_info < _PY_MIN:
 ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
 ELECTRON_DIR = ROOT / "electron"
-NODE_MIN     = (18, 0, 0)   # minimum Node.js version
-NODE_VERSION = "20.19.1"    # version to download if not found / outdated
+NODE_MIN     = (22, 12, 0)  # minimum Node.js version (Electron's installer, @electron/get 5, needs 22.12+)
+NODE_VERSION = "24.22.0"    # version to download if not found / outdated (Node 24 LTS)
 NODE_ZIP_NAME = f"node-v{NODE_VERSION}-win-x64.zip"
 NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
 # Official per-release checksum manifest. We download this over TLS and match the

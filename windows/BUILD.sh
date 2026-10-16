@@ -405,8 +405,9 @@ HOW TO RUN
   3. On first launch, the app downloads required components:
 
        Private Python      ~35 MB   (one time only)
-       Node.js + Electron  ~280 MB  (one time only)
-       Deno                ~35 MB   (one time only, background)
+       Node.js + Electron  ~190 MB  (one time only)
+       ffmpeg              ~185 MB  (one time only, background)
+       Deno                ~40 MB   (one time only, background)
 
      This may take a few minutes. An internet connection is required.
   4. Subsequent launches are near-instant.
