@@ -1604,6 +1604,30 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
     )
 
 
+# Version floors stated as "macOS <maj>.<min>" or "MINIMUM MACOS: <maj>.<min>".
+_MACOS_FLOOR = re.compile(r'(?:MINIMUM MACOS:|macOS)\s*(\d+\.\d+)', re.IGNORECASE)
+# Named releases carry the same claim in prose and drift independently.
+_MACOS_NAMES = {"big sur": "11.0", "monterey": "12.0", "ventura": "13.0",
+                "sonoma": "14.0", "sequoia": "15.0"}
+
+
+def _macos_floor_claims(line):
+    """The macOS versions one README or BUILD.sh line states as a requirement."""
+    # shields.io badge URLs spell release names with underscores
+    # ("macOS-Big_Sur+"), so normalise separators before matching --
+    # the badge is one of the six copies and would otherwise be the
+    # one this guard silently skipped.
+    low = line.lower().replace("_", " ").replace("-", " ")
+    # Only consider lines that are actually stating a requirement --
+    # patchnotes-style prose and theme names mention releases too.
+    if not any(w in low for w in ("requirement", "minimum macos", "macos-", "macos ")):
+        return []
+    # A theme named after a release ("Big Sur theme") is a name, not a floor: it only
+    # drops the release names, so a number such as "macOS 13.0" on the same line still counts.
+    names = [] if re.search(r"\btheme", low) else [v for name, v in _MACOS_NAMES.items() if name in low]
+    return _MACOS_FLOOR.findall(line) + names
+
+
 def test_macos_minimum_version_is_stated_consistently_everywhere():
     """The macOS floor is written out in SIX hand-edited places -- three in
     README.md (badge, Mac download section, System Requirements), two inside
@@ -1634,30 +1658,12 @@ def test_macos_minimum_version_is_stated_consistently_everywhere():
 
     root = _os.path.dirname(_os.path.dirname(__file__))
 
-    # Version floors stated as "macOS <maj>.<min>" or "MINIMUM MACOS: <maj>.<min>".
-    _FLOOR = _re.compile(r'(?:MINIMUM MACOS:|macOS)\s*(\d+\.\d+)', _re.IGNORECASE)
-    # Named releases carry the same claim in prose and drift independently.
-    _NAMES = {"big sur": "11.0", "monterey": "12.0", "ventura": "13.0",
-              "sonoma": "14.0", "sequoia": "15.0"}
-
     found = {}   # version string -> list of "file:line" citations
     for rel in ("README.md", "mac/BUILD.sh"):
         path = _os.path.join(root, rel)
         for n, line in enumerate(open(path, encoding="utf-8"), 1):
-            # shields.io badge URLs spell release names with underscores
-            # ("macOS-Big_Sur+"), so normalise separators before matching --
-            # the badge is one of the six copies and would otherwise be the
-            # one this guard silently skipped.
-            low = line.lower().replace("_", " ").replace("-", " ")
-            # Only consider lines that are actually stating a requirement --
-            # patchnotes-style prose and theme names mention releases too.
-            if not any(w in low for w in ("requirement", "minimum macos", "macos-", "macos ")):
-                continue
-            for v in _FLOOR.findall(line):
+            for v in _macos_floor_claims(line):
                 found.setdefault(v, []).append(f"{rel}:{n}")
-            for name, v in _NAMES.items():
-                if name in low:
-                    found.setdefault(v, []).append(f"{rel}:{n}")
 
     pkg_path = _os.path.join(root, "mac/electron/package.json")
     pkg = _json.load(open(pkg_path, encoding="utf-8"))
@@ -1691,6 +1697,26 @@ def test_macos_minimum_version_is_stated_consistently_everywhere():
         + " -- every copy must state the same floor, including the one that "
           "ships inside the DMG and the one electron-builder actually reads."
     )
+
+
+@pytest.mark.parametrize("line, expected", [
+    # real floor statements, in the four shapes the repo uses
+    ('<img src="https://img.shields.io/badge/macOS-Ventura+-000000?logo=apple" alt="macOS"/>', {"13.0"}),
+    ("**Requirements:** macOS 13.0 (Ventura) or later \u00b7 Apple Silicon (M1\u2013M5) only", {"13.0"}),
+    ("MINIMUM MACOS: 13.0 (Ventura) or later", {"13.0"}),
+    ("\u2022 macOS 13.0 (Ventura) or later", {"13.0"}),
+    # a theme named after a macOS release is not a requirement
+    ("<sub><b>Subscriptions</b> (macOS Big Sur theme)</sub>", set()),
+    ('<img src="screenshots/05-subscriptions.png" alt="Subscriptions, macOS Big Sur theme"/>', set()),
+    ("All themes, including the macOS Sonoma theme", set()),
+    # ...but a real floor on a line that also mentions a theme still counts
+    ("**Requirements:** macOS 13.0 (Ventura) or later; the Big Sur theme works everywhere", {"13.0"}),
+])
+def test_macos_floor_claims_read_real_floors_and_ignore_theme_names(line, expected):
+    """The macOS floor guard once read the README label "macOS Big Sur theme" as a
+    requirement (11.0 against 13.0) and blocked a commit. A theme named after a
+    macOS release says nothing about the floor, a real floor statement still does."""
+    assert set(_macos_floor_claims(line)) == expected
 
 
 def test_dmg_build_uses_apfs_not_the_hfs_plus_default():
