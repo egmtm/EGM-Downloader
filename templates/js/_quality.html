@@ -452,7 +452,7 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
         try { localStorage.setItem('egm-theme', settingsToImport.theme); } catch {}
       }
 
-      let subCount = 0, folderSkipped = 0;
+      let subCount = 0, subExisting = 0, subFailed = 0, folderSkipped = 0;
       if (sel.subscriptions && subEntries.length > 0) {
         try {
           const existing = await fetch('/api/subscriptions').then(r => r.json());
@@ -460,13 +460,14 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
           const existingUrls = new Set(existingList.map(s => s.url));
           for (const entry of subEntries) {
             const url = entry.url.trim();
-            if (existingUrls.has(url)) continue;
+            if (existingUrls.has(url)) { subExisting++; continue; }
             try {
               const r = await fetch('/api/subscriptions/add', {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ url, name: entry.name || '' })
               }).then(r => r.json());
               const newId = r && r.subscription && r.subscription.id;
+              if (!newId) { subFailed++; continue; }   // the server refused it (limit reached, bad URL)
               // Per-channel settings beyond url/name -- applied as a second call since
               // /api/subscriptions/add only accepts url+name. Best-effort: if this
               // fails, the subscription itself was still added successfully above,
@@ -488,9 +489,9 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
                 if (entry.download_folder && !(await update({ download_folder: entry.download_folder }))) folderSkipped++;
               }
               subCount++;
-            } catch {}
+            } catch { subFailed++; }
           }
-        } catch {}
+        } catch { subFailed = subEntries.length; }   // the current list could not be read: nothing was added
       }
 
       // Japanese counter words attach directly to the number (e.g. "3件"),
@@ -498,8 +499,13 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
       const subNoteSep = (I18N.code === 'ja') ? '' : ' ';
       const parts = [msg, subCount>0?`${subCount}${subNoteSep}${i18nGet('toast.quality.reset_subscriptions_note') || 'subscriptions (re-fetch to load videos)'}`:null,
                      folderSkipped>0?(i18nFmt('toast.quality.folders_skipped', folderSkipped) || `Download folders not restored (not valid on this computer): ${folderSkipped}`):null].filter(Boolean).join(' + ');
-      toast(`${parts || (i18nGet('toast.quality.nothing_selected') || 'Nothing selected')} — reloading…`, parts ? 'ok' : 'err');
-      if (parts) setTimeout(() => location.reload(), 800);
+      const notAdded = subFailed>0 ? (i18nFmt('toast.quality.subs_not_added', subFailed) || `Subscriptions not added: ${subFailed}`) : '';
+      if (parts) {
+        toast(`${parts}${notAdded ? ' + ' + notAdded : ''} — ${i18nGet('toast.quality.reloading') || 'reloading…'}`, 'ok');
+        setTimeout(() => location.reload(), 800);
+      } else if (notAdded) toast(notAdded, 'err');   // nothing changed, so no reload
+      else if (subExisting>0) toast(i18nGet('toast.already_in_list') || 'Already in the list');
+      else toast(i18nGet('toast.quality.nothing_selected') || 'Nothing selected', 'err');
     } catch { toast(i18nGet('settings.import.error') || 'Could not import settings — file may not be valid settings JSON', 'err'); }
   });
 })();
