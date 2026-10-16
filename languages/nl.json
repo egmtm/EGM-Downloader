@@ -94,7 +94,7 @@
     "card.btn.download": "Downloaden",
     "card.btn.cancel": "Annuleren",
     "card.badge.live": "LIVE",
-    "card.status.recording": "Opnemen",
+    "card.status.recording": "Bezig met opnemen",
     "card.status.reconnecting": "Opnieuw verbinden… {0}/{1}",
     "card.btn.stop_save": "Stoppen en opslaan",
     "download.warning.live_gap": "De stream is onderbroken en opnieuw verbonden. Er kunnen enkele seconden ontbreken of dubbel voorkomen.",
