@@ -556,17 +556,24 @@ def _registry_reachable(timeout=6):
 def _npm_env(node_exe):
     return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
 
+def _npm_output(r):
+    """What a finished npm run printed, as text (bytes on a real run)."""
+    return "\n".join(x.decode("utf-8", "replace") if isinstance(x, bytes) else (x or "")
+                     for x in (r.stdout, r.stderr))
+
 def _npm_install_electron(node_exe, where):
     """Install Electron (and fetch its binary) into where/node_modules, using the
     package.json and package-lock.json in `where`. True iff the binary is there."""
     npm, env = _npm_env(node_exe)
     # Prefer `npm ci` for deterministic installs straight from package-lock.json
-    # (we now ship the lockfile). `ci` requires a lockfile that is present and in
-    # sync; if it's missing/out-of-sync it errors, so fall back to `install`.
+    # (we now ship the lockfile). `ci` requires a lockfile that is in sync with
+    # package.json; when it is not, npm reports EUSAGE and `install` is the way out.
+    # Any other failure (offline, a bad download) would fail the same way again after
+    # the same wait, so it is not retried and the lockfile message is not shown.
     if (where / "package-lock.json").exists():
         r = subprocess.run(npm + ["ci", "--omit=dev"], cwd=str(where), env=env,
                            capture_output=True, timeout=600, creationflags=NO_WIN)
-        if r.returncode != 0:
+        if r.returncode != 0 and "EUSAGE" in _npm_output(r):
             _gui_msg("Lockfile out of sync — falling back to npm install…")
             r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(where), env=env,
                                capture_output=True, timeout=600, creationflags=NO_WIN)

@@ -19,8 +19,8 @@ LAUNCH = Path(__file__).resolve().parent.parent / "windows" / "launch.py"
 
 
 class _Done:
-    def __init__(self, rc=0):
-        self.returncode, self.stdout, self.stderr = rc, "", ""
+    def __init__(self, rc=0, err=b""):
+        self.returncode, self.stdout, self.stderr = rc, b"", err   # bytes, like the real captured output
 
 
 def _write_install(root: Path, version: str, with_exe=True, marker="old"):
@@ -48,7 +48,8 @@ def env(tmp_path, monkeypatch):
     edir = tmp_path / "electron"
     edir.mkdir()
     monkeypatch.setattr(mod, "ELECTRON_DIR", edir)
-    monkeypatch.setattr(mod, "_gui_msg", lambda *a, **k: None)
+    msgs = []
+    monkeypatch.setattr(mod, "_gui_msg", lambda m="", *a, **k: msgs.append(m))
     monkeypatch.setattr(mod.time, "sleep", lambda *a, **k: None)
     monkeypatch.setattr(mod, "_find_npm", lambda node_exe: ["npm"])
     monkeypatch.setattr(mod, "_clean_electron_locales", lambda: None)
@@ -64,6 +65,9 @@ def env(tmp_path, monkeypatch):
     e.npm_ok = True          # False: npm exits 1 (offline)
     e.make_exe = True        # False: npm works but the Electron binary never arrives
     e.make_path = True       # False: the binary is there but the unpack never finished (no path.txt)
+    e.npm_error = b"npm error code ECONNREFUSED\nnpm error network request failed"   # what a failing npm prints
+    e.ci_error = None        # bytes: only `npm ci` fails with this (npm install still works)
+    e.msgs = msgs            # every message the launcher shows
     e.seen_live = []         # content of the LIVE install at the moment npm runs
 
     def fake_run(cmd, *a, **k):
@@ -72,8 +76,10 @@ def env(tmp_path, monkeypatch):
         if cmd[:2] == ["npm", "ci"] or cmd[:2] == ["npm", "install"]:
             live = edir / "node_modules" / "electron" / "marker.txt"
             e.seen_live.append(live.read_text(encoding="utf-8") if live.exists() else None)
+            if cmd[1] == "ci" and e.ci_error is not None:
+                return _Done(1, e.ci_error)
             if not e.npm_ok:
-                return _Done(1)
+                return _Done(1, e.npm_error)
             ver = json.loads((cwd / "package-lock.json").read_text(encoding="utf-8"))[
                 "packages"]["node_modules/electron"]["version"]
             _write_install(cwd, ver, with_exe=e.make_exe, marker="new")
@@ -403,6 +409,50 @@ def test_an_update_whose_unpack_did_not_finish_is_not_swapped_in(env):
     assert json.loads((live / "package.json").read_text())["version"] == "44.7.1"
     assert (live / "marker.txt").read_text() == "old" and (live / "path.txt").exists()
     assert not (env.dir / ".electron-stage").exists() and not (env.dir / "node_modules.old").exists()
+
+
+# ── npm ci failed: when is npm install a sensible second try? ─────────────────
+# Only when the lockfile does not match package.json (npm reports EUSAGE). Offline,
+# or on any other failure, the second try fails the same way after the same wait and
+# the message "Lockfile out of sync" is simply wrong.
+
+_EUSAGE = (b"npm error code EUSAGE\nnpm error `npm ci` can only install packages when your "
+           b"package.json and package-lock.json are in sync.")
+
+
+def _npm_commands(env):
+    return [c[1] for c, _ in env.calls if c[0] == "npm" and c[1] in ("ci", "install")]
+
+
+def test_a_lockfile_out_of_sync_falls_back_to_npm_install_and_says_so(env):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    env.ci_error = _EUSAGE
+    env.mod.ensure_npm("node.exe")
+    assert _npm_commands(env) == ["ci", "install"]
+    assert sum("Lockfile out of sync" in m for m in env.msgs) == 1
+    assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "new"
+
+
+@pytest.mark.parametrize("what", ["first install", "update"])
+def test_any_other_npm_ci_failure_does_not_start_a_second_try(env, what):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    if what == "update":
+        _write_install(env.dir, "44.7.1")
+    env.npm_ok = False                                         # offline: ECONNREFUSED text
+    if what == "first install":
+        with pytest.raises(SystemExit):
+            env.mod.ensure_npm("node.exe")
+    else:
+        env.mod.ensure_npm("node.exe")                         # keeps the current Electron
+    assert _npm_commands(env) == ["ci"]
+    assert not any("Lockfile" in m for m in env.msgs)
+
+
+def test_the_fallback_reads_text_output_too(env):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    env.ci_error = _EUSAGE.decode("utf-8")                     # a str, not bytes
+    env.mod.ensure_npm("node.exe")
+    assert _npm_commands(env) == ["ci", "install"]
 
 
 # ── the launcher flow ─────────────────────────────────────────────────────────
