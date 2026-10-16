@@ -79,7 +79,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.4.11, LAST CALL: THE RETURN OF ELECTRON. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.4.12, ELECTRON STRIKES BACK. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -88,12 +88,12 @@ A side by side look at one well known alternative, using details you can check y
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Bauhaus theme"/></a>
-      <br/><sub><b>Main UI</b> (Bauhaus theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Coral Reef Light theme"/></a>
+      <br/><sub><b>Main UI</b> (Coral Reef Light theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, La Parguera theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (La Parguera theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Vaporwave theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Vaporwave theme)</sub>
     </td>
   </tr>
 </table>
@@ -101,12 +101,12 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="400" alt="All Themes, N64 theme"/></a>
-      <br/><sub><b>All Themes</b> (N64 theme)</sub>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="400" alt="All Themes, Amiga theme"/></a>
+      <br/><sub><b>All Themes</b> (Amiga theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="400" alt="Subscriptions, Windows 11 theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Windows 11 theme)</sub>
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="400" alt="Subscriptions, Big Sur theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Big Sur theme)</sub>
     </td>
   </tr>
 </table>
@@ -114,12 +114,12 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="324" alt="Advanced Panel with the plugins list, Midnight theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Midnight theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="324" alt="Advanced Panel with the plugins list, Aurora theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Aurora theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="400" alt="Download History, Kali Linux theme"/></a>
-      <br/><sub><b>Download History</b> (Kali Linux theme)</sub>
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="400" alt="Download History, Merlot theme"/></a>
+      <br/><sub><b>Download History</b> (Merlot theme)</sub>
     </td>
   </tr>
 </table>
