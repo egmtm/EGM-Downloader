@@ -32,10 +32,15 @@ NODE_MIN     = (22, 12, 0)  # minimum Node.js version (Electron's installer, @el
 NODE_VERSION = "24.22.0"    # version to download if not found / outdated (Node 24 LTS)
 NODE_ZIP_NAME = f"node-v{NODE_VERSION}-win-x64.zip"
 NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
-# Official per-release checksum manifest. We download this over TLS and match the
-# zip's SHA-256 before extracting, so a tampered/corrupted mirror response can
-# never produce the node.exe that ends up running Electron (and our whole app).
-NODE_SHASUMS_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/SHASUMS256.txt"
+# PINNED SHA-256 of the exact zip above, keyed by the Node version it was taken from
+# (same fail-closed model as PY_SHA256 and PIP_SHA256). The pin ships inside the signed
+# installer, so the node.exe that ends up running Electron (and our whole app) is checked
+# against a hash nobody can swap on the way, and no manifest is fetched at run time.
+# To bump NODE_VERSION: copy the win-x64.zip line of
+# https://nodejs.org/dist/v<version>/SHASUMS256.txt into this table, in the same commit.
+NODE_ZIP_SHA256 = {
+    "24.22.0": "f9683a19877e12a9b167305c8db71040d812876359de21f0d2e97c3f321f80c3",
+}
 NODE_ZIP_DIR = f"node-v{NODE_VERSION}-win-x64"
 NODE_EXE     = NODE_DIR / "node.exe"
 NO_WIN       = 0x08000000 if sys.platform == "win32" else 0
@@ -97,24 +102,14 @@ def _py_log(msg):
 
 
 def _verify_node_zip(zip_path):
-    """Return True if zip_path's SHA-256 matches the official SHASUMS256.txt entry.
-    Fail-closed: any network/parse error or mismatch returns False."""
+    """Return True iff zip_path's SHA-256 equals the pinned NODE_ZIP_SHA256 for NODE_VERSION.
+    Fail-closed: no pin for this version, a malformed pin, an unreadable file or any
+    mismatch returns False. Nothing is fetched."""
+    expected = (NODE_ZIP_SHA256.get(NODE_VERSION) or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        return False
     try:
-        with urllib.request.urlopen(NODE_SHASUMS_URL, timeout=30) as r:
-            sums = r.read().decode("utf-8", "replace")
-        expected = None
-        for line in sums.splitlines():
-            parts = line.split()
-            if len(parts) >= 2 and parts[-1].lstrip("*") == NODE_ZIP_NAME:
-                expected = parts[0].lower()
-                break
-        if not expected:
-            return False
-        h = hashlib.sha256()
-        with open(zip_path, "rb") as f:
-            for chunk in iter(lambda: f.read(1024 * 1024), b""):
-                h.update(chunk)
-        return h.hexdigest().lower() == expected
+        return _sha256_file(zip_path) == expected
     except Exception:
         return False
 

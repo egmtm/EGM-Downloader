@@ -6,7 +6,11 @@ end of life. The launcher therefore refuses anything older (a system Node, a cac
 detection, or the portable node_bin from an earlier release) and downloads the pinned
 version instead. windows/launch.py is import safe, so these tests drive the real
 ensure_node() with a fake node version probe and a fake download. Nothing is downloaded.
+
+The zip it does download is checked against a SHA-256 pinned in the launcher (the pin ships
+inside the signed installer), not against a manifest fetched at run time.
 """
+import hashlib
 import importlib.util
 import json
 import re
@@ -22,6 +26,10 @@ LOCK = ROOT / "windows" / "electron" / "package-lock.json"
 
 def _tuple(version: str):
     return tuple(int(x) for x in version.split(".")[:3])
+
+
+def _sha(data: bytes) -> str:
+    return hashlib.sha256(data).hexdigest()
 
 
 @pytest.fixture
@@ -43,6 +51,7 @@ def env(tmp_path, monkeypatch):
     e = Env()
     e.mod, e.dir, e.msgs, e.downloads = mod, node_dir, msgs, []
     e.versions = {}          # exe name or path -> version tuple; missing = not installed
+    e.real_verify = mod._verify_node_zip    # the fixture patches it out below; the pin tests use the real one
 
     monkeypatch.setattr(mod, "_node_version", lambda exe: e.versions.get(str(exe), (0, 0, 0)))
     monkeypatch.setattr(mod, "_verify_node_zip", lambda p: True)
@@ -123,3 +132,67 @@ def test_current_portable_node_is_kept(env):
     assert env.mod.ensure_node() == str(env.mod.NODE_EXE)
     assert env.downloads == []
     assert (env.dir / "node.exe").read_text() == "current node"
+
+
+# ── the downloaded zip is checked against a hash built into the launcher ──────────────
+
+def test_node_zip_is_pinned_for_the_version_it_downloads(env):
+    """Bumping NODE_VERSION without adding its hash would make every fresh install fail closed."""
+    pin = env.mod.NODE_ZIP_SHA256.get(env.mod.NODE_VERSION)
+    assert pin and re.fullmatch(r"[0-9a-f]{64}", pin), (env.mod.NODE_VERSION, pin)
+
+
+def test_pinned_zip_is_accepted_and_nothing_is_fetched(env, tmp_path, monkeypatch):
+    zip_file = tmp_path / "node.zip"
+    zip_file.write_bytes(b"the real zip")
+    monkeypatch.setattr(env.mod, "NODE_ZIP_SHA256", {env.mod.NODE_VERSION: _sha(b"the real zip")})
+
+    def no_network(*a, **k):
+        raise AssertionError("verifying the Node zip must not touch the network")
+
+    monkeypatch.setattr(env.mod.urllib.request, "urlopen", no_network)
+    assert env.real_verify(zip_file) is True
+
+
+@pytest.mark.parametrize("pin", [None, "", "f" * 63, "g" * 64], ids=["no entry", "empty", "too short", "not hex"])
+def test_a_missing_or_malformed_pin_refuses_the_zip(env, tmp_path, monkeypatch, pin):
+    zip_file = tmp_path / "node.zip"
+    zip_file.write_bytes(b"anything")
+    table = {} if pin is None else {env.mod.NODE_VERSION: pin}
+    monkeypatch.setattr(env.mod, "NODE_ZIP_SHA256", table)
+    assert env.real_verify(zip_file) is False
+
+
+def test_a_zip_that_differs_by_one_byte_is_refused(env, tmp_path, monkeypatch):
+    monkeypatch.setattr(env.mod, "NODE_ZIP_SHA256", {env.mod.NODE_VERSION: _sha(b"the real zip")})
+    zip_file = tmp_path / "node.zip"
+    zip_file.write_bytes(b"the real zip!")
+    assert env.real_verify(zip_file) is False
+
+
+def test_an_unreadable_zip_is_refused(env, tmp_path):
+    assert env.real_verify(tmp_path / "missing.zip") is False
+
+
+def test_a_tampered_download_is_not_extracted(env, monkeypatch):
+    """ensure_node() uses the real check: a zip that is not the pinned one stops the install."""
+    monkeypatch.setattr(env.mod, "_verify_node_zip", env.real_verify)
+    with pytest.raises(SystemExit):
+        env.mod.ensure_node()
+    assert any("checksum verification failed" in m for m in env.msgs)
+    assert not (env.dir / "node.exe").exists()
+    assert not (env.dir / "node_tmp.zip").exists()
+
+
+def test_the_pinned_download_is_extracted(env, monkeypatch):
+    monkeypatch.setattr(env.mod, "_verify_node_zip", env.real_verify)
+    plain_download = env.mod.urllib.request.urlretrieve      # the fixture's fake download
+
+    def download_then_pin(url, dest, reporthook=None):
+        plain_download(url, dest, reporthook)
+        monkeypatch.setattr(env.mod, "NODE_ZIP_SHA256",
+                            {env.mod.NODE_VERSION: _sha(Path(dest).read_bytes())})
+
+    monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", download_then_pin)
+    assert env.mod.ensure_node() == str(env.mod.NODE_EXE)
+    assert (env.dir / "node.exe").read_text() == "new node"
