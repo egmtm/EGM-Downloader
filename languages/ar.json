@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-08",
+  "_last_updated": "2026-10-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo و {0} موقع آخر",
@@ -134,6 +134,8 @@
     "toast.quality.reset_complete": "اكتملت إعادة الضبط — جارٍ إعادة التحميل…",
     "toast.quality.reset_subscriptions_note": "اشتراكات (أعد الجلب لتحميل الفيديوهات)",
     "toast.quality.folders_skipped": "لم تتم استعادة مجلدات التحميل (غير صالحة على هذا الكمبيوتر): {0}",
+    "toast.quality.subs_not_added": "لم تتم إضافة الاشتراكات: {0}",
+    "toast.quality.reloading": "جارٍ إعادة التحميل…",
     "toast.quality.reset_failed": "فشلت إعادة الضبط",
     "toast.quality.failed_generic": "فشل",
     "toast.quality.channel_setting_failed": "فشل حفظ إعداد القناة",

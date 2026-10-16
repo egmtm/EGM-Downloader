@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-08",
+  "_last_updated": "2026-10-16",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo et {0} sites supplémentaires",
@@ -134,6 +134,8 @@
     "toast.quality.reset_complete": "Réinitialisation terminée — rechargement…",
     "toast.quality.reset_subscriptions_note": "abonnements (récupérez à nouveau pour charger les vidéos)",
     "toast.quality.folders_skipped": "Dossiers de téléchargement non restaurés (non valides sur cet ordinateur) : {0}",
+    "toast.quality.subs_not_added": "Abonnements non ajoutés : {0}",
+    "toast.quality.reloading": "rechargement…",
     "toast.quality.reset_failed": "Échec de la réinitialisation",
     "toast.quality.failed_generic": "Échec",
     "toast.quality.channel_setting_failed": "Échec de l'enregistrement du paramètre de la chaîne",
