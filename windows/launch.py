@@ -1,5 +1,5 @@
 """EGM Downloader — launcher (no console window)"""
-import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib, re
+import os, sys, shutil, zipfile, subprocess, urllib.request, urllib.parse, json, time, hashlib, re
 import socket, threading
 from pathlib import Path
 
@@ -510,6 +510,33 @@ def _electron_install_complete(mod):
     return ((dist / "electron.exe").exists() or (dist / "EGM Downloader.exe").exists()) \
         and (mod / "path.txt").exists()
 
+_LAUNCH_LOCK = None   # held for the life of this launcher (the OS drops it on exit, also on a crash)
+
+def _take_launcher_lock():
+    """False when another launcher is already setting up. _signal_running_instance()
+    only sees a running app (Flask answers once Electron is up), not a launcher that is
+    still installing or updating Electron: a second double click would then delete the
+    install or the update folder the first one is filling."""
+    global _LAUNCH_LOCK
+    try:
+        ELECTRON_DIR.mkdir(parents=True, exist_ok=True)
+        fh = open(ELECTRON_DIR / ".launcher.lock", "a+b")
+    except OSError:
+        return True   # no lock file at all: never block the start over it
+    try:
+        if sys.platform == "win32":
+            import msvcrt
+            fh.seek(0)
+            msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError:
+        fh.close()
+        return False
+    _LAUNCH_LOCK = fh
+    return True
+
 def _electron_update_kind():
     """What the installed Electron needs: None (nothing), "missing" (not installed,
     or its install never finished: no binary or no path.txt),
@@ -542,31 +569,58 @@ def _electron_update_kind():
 # the plain "blocked" case, which is the one worth skipping an optional update for.
 _UPDATE_HOSTS = ("registry.npmjs.org", "github.com")
 
-def _update_hosts_reachable(timeout=6):
-    """True when every host an Electron update needs accepts a connection within
-    `timeout` seconds. Each is tried in its own thread (all together, one shared wait)
-    because a name lookup can't be time limited directly, and a PC that is offline can
-    sit in it for minutes (npm then looks stuck)."""
+def _update_hosts_reachable(timeout=6, targets=None):
+    """True when every (host, port) an Electron install needs accepts a connection within
+    `timeout` seconds (default: _update_targets()). Each is tried in its own thread (all
+    together, one shared wait) because a name lookup can't be time limited directly, and
+    a PC that is offline can sit in it for minutes (npm then looks stuck)."""
+    targets = list(_update_targets() if targets is None else targets)
     ok = set()
-    def probe(host):
+    def probe(target):
         try:
-            socket.create_connection((host, 443), timeout=timeout).close()
-            ok.add(host)
+            socket.create_connection(target, timeout=timeout).close()
+            ok.add(target)
         except Exception:
             pass
-    threads = [threading.Thread(target=probe, args=(h,), daemon=True) for h in _UPDATE_HOSTS]
+    threads = [threading.Thread(target=probe, args=(t,), daemon=True) for t in targets]
     for t in threads:
         t.start()
     deadline = time.monotonic() + timeout + 1
     for t in threads:
         t.join(max(0.0, deadline - time.monotonic()))
-    return all(h in ok for h in _UPDATE_HOSTS)
+    return all(t in ok for t in targets)
+
+_PROXY_VARS = ("npm_config_https_proxy", "npm_config_proxy", "HTTPS_PROXY", "https_proxy")   # npm's order
 
 def _proxy_configured():
-    """True when the environment names a proxy. Direct sockets say nothing then (npm
-    goes through the proxy), so the host check is skipped and npm decides."""
-    return any(os.environ.get(n) for n in
-               ("HTTPS_PROXY", "https_proxy", "npm_config_proxy", "npm_config_https_proxy"))
+    """True when the environment names a proxy (npm then goes through it)."""
+    return any(os.environ.get(n) for n in _PROXY_VARS)
+
+def _proxy_endpoint():
+    """(host, port) of the proxy npm will use, or None when none is set or it cannot be read."""
+    for n in _PROXY_VARS:
+        v = (os.environ.get(n) or "").strip()
+        if v:
+            u = urllib.parse.urlparse(v if "://" in v else "http://" + v)
+            try:
+                port = u.port
+            except ValueError:
+                return None
+            return (u.hostname, port or (443 if u.scheme == "https" else 80)) if u.hostname else None
+    return None
+
+def _update_targets():
+    """Where an Electron install connects. npm fetches the package from the registry, or
+    through the proxy when one is set. Electron's install.js fetches the binary from
+    GitHub DIRECTLY even then: @electron/get only uses a proxy when ELECTRON_GET_USE_PROXY
+    is set, and Node's own fetch ignores HTTPS_PROXY. So behind a proxy the proxy itself is
+    checked (a dead one stalled every start), and GitHub stays in the list either way."""
+    github = ("github.com", 443)
+    if not _proxy_configured():
+        return [("registry.npmjs.org", 443), github]
+    proxy = _proxy_endpoint()
+    hops = [proxy] if proxy else []
+    return hops if os.environ.get("ELECTRON_GET_USE_PROXY") else hops + [github]
 
 def _npm_env(node_exe):
     return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
@@ -654,17 +708,21 @@ def ensure_npm(node_exe, force=False):
     if kind is None:
         return
     if kind == "missing":
-        # Fresh install (or a damaged node_modules): nothing to keep.
+        # Fresh install (or a damaged node_modules): nothing to keep. Offline, npm would
+        # sit in name lookups for minutes and then fail: say so at once instead.
+        if not _update_hosts_reachable():
+            _gui_msg("Electron is not installed yet and its download servers cannot be reached. "
+                     "Connect to the internet and start EGM Downloader again.")
+            time.sleep(8); sys.exit(1)
         shutil.rmtree(nm, ignore_errors=True)
         _gui_msg("Installing Electron (first run, ~250 MB)…")
         if not _npm_install_electron(node_exe, ELECTRON_DIR):
             _gui_msg("Electron install failed"); time.sleep(4); sys.exit(1)
     else:
-        if kind == "update" and not force and not _proxy_configured() \
-                and not _update_hosts_reachable():
-            # Offline (or GitHub blocked): keep the current Electron without starting
-            # npm (which can look stuck for minutes). Nothing is shown; the next
-            # online launch tries again.
+        if kind == "update" and not force and not _update_hosts_reachable():
+            # Offline, GitHub blocked or the proxy down: keep the current Electron without
+            # starting npm (which can look stuck for minutes). Nothing is shown; the next
+            # launch that can reach them tries again.
             return
         _gui_msg("Updating Electron to new major version…" if kind == "major"
                  else "Updating Electron…")
@@ -866,6 +924,10 @@ if __name__ == "__main__":
     # Check if the app is already running — if so, signal it to show and exit.
     # Must happen before _gui_init() so no Tkinter window ever flashes.
     if not _reinstalling_electron and _signal_running_instance():
+        sys.exit(0)
+    # Another launcher is still installing or updating Electron (the app is not up yet, so
+    # the check above cannot see it): leave it alone, it opens the app when it is done.
+    if not _take_launcher_lock():
         sys.exit(0)
 
     # No _gui_init() here — the progress window is created lazily by _gui_msg()

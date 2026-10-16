@@ -497,6 +497,7 @@ Section "Uninstall"
   Delete "$INSTDIR\electron\splash.html"
   Delete "$INSTDIR\electron\package.json"
   Delete "$INSTDIR\electron\package-lock.json"
+  Delete "$INSTDIR\electron\.launcher.lock"
 
   ; Python __pycache__ (created at runtime)
   RMDir /r "$INSTDIR\__pycache__"

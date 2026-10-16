@@ -11,6 +11,7 @@ functions with a fake npm in a temp folder. Nothing is downloaded or run.
 """
 import importlib.util
 import json
+import re
 from pathlib import Path
 
 import pytest
@@ -264,9 +265,9 @@ def test_offline_point_update_keeps_the_current_electron_without_starting_npm(en
     assert json.loads((live / "package.json").read_text())["version"] == "44.7.2"
 
 
-@pytest.mark.parametrize("case", ["force", "major", "first install"])
+@pytest.mark.parametrize("case", ["force", "major"])
 def test_the_registry_check_only_guards_the_optional_point_update(env, case):
-    """Explicit reinstall, a needed major and a first install keep their own handling."""
+    """Explicit reinstall and a needed major keep their own handling."""
     env.reachable = False
     if case == "force":
         _write_pins(env.dir, "^44.7.0", "44.7.2")
@@ -276,22 +277,22 @@ def test_the_registry_check_only_guards_the_optional_point_update(env, case):
         _write_pins(env.dir, "^45.0.0", "45.0.0")
         _write_install(env.dir, "44.7.2")
         env.mod.ensure_npm("node.exe")
-    else:
-        _write_pins(env.dir, "^44.7.0", "44.7.2")
-        env.mod.ensure_npm("node.exe")
     assert env.probes == [] and env.calls                  # the check was not consulted; npm ran
     assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "new"
 
 
-def _load_launch():
+def _load_launch(monkeypatch=None):
     spec = importlib.util.spec_from_file_location("egm_launch_registry_check_test", LAUNCH)
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    if monkeypatch is not None:   # the machine running the tests may have a proxy: these hosts are the direct ones
+        for name in (*mod._PROXY_VARS, "ELECTRON_GET_USE_PROXY"):
+            monkeypatch.delenv(name, raising=False)
     return mod
 
 
 def test_host_check_connects_to_the_registry_and_to_github_and_closes(monkeypatch):
-    mod, seen = _load_launch(), []
+    mod, seen = _load_launch(monkeypatch), []
 
     class Sock:
         def close(self):
@@ -308,7 +309,7 @@ def test_host_check_connects_to_the_registry_and_to_github_and_closes(monkeypatc
 def test_host_check_is_false_when_any_needed_host_does_not_answer(monkeypatch, blocked):
     """The package comes from the registry and the Electron binary from GitHub: both
     must answer, or the update would start and then fail halfway."""
-    mod = _load_launch()
+    mod = _load_launch(monkeypatch)
 
     class Sock:
         def close(self):
@@ -324,7 +325,7 @@ def test_host_check_is_false_when_any_needed_host_does_not_answer(monkeypatch, b
 
 
 def test_host_check_is_false_when_the_connection_fails(monkeypatch):
-    mod = _load_launch()
+    mod = _load_launch(monkeypatch)
 
     def offline(*a, **k):
         raise OSError("no network")
@@ -336,7 +337,7 @@ def test_host_check_is_false_when_the_connection_fails(monkeypatch):
 def test_host_check_returns_in_time_when_the_name_lookup_hangs(monkeypatch):
     import threading
     import time
-    mod, release = _load_launch(), threading.Event()
+    mod, release = _load_launch(monkeypatch), threading.Event()
     monkeypatch.setattr(mod.socket, "create_connection", lambda *a, **k: release.wait(10))
     t0 = time.monotonic()
     result = mod._update_hosts_reachable(timeout=0.3)
@@ -346,17 +347,78 @@ def test_host_check_returns_in_time_when_the_name_lookup_hangs(monkeypatch):
 
 
 @pytest.mark.parametrize("var", ["HTTPS_PROXY", "https_proxy", "npm_config_proxy", "npm_config_https_proxy"])
-def test_behind_a_proxy_the_direct_connection_check_is_skipped_and_npm_decides(env, monkeypatch, var):
-    """Direct sockets say nothing about a proxy only network: npm uses the proxy, so
-    let it try instead of skipping the update because nothing answers directly."""
+def test_behind_a_proxy_the_proxy_and_github_are_checked(monkeypatch, var):
+    """npm goes through the proxy, so the proxy is what must answer (a dead one stalled every
+    start); Electron's binary download goes to GitHub directly unless ELECTRON_GET_USE_PROXY is set."""
+    mod = _load_launch(monkeypatch)
     monkeypatch.setenv(var, "http://proxy.example:8080")
+    assert mod._update_targets() == [("proxy.example", 8080), ("github.com", 443)]
+    monkeypatch.setenv("ELECTRON_GET_USE_PROXY", "1")
+    assert mod._update_targets() == [("proxy.example", 8080)]
+
+
+@pytest.mark.parametrize("value, want", [
+    ("proxy.example:3128", [("proxy.example", 3128), ("github.com", 443)]),            # no scheme
+    ("http://user:pw@proxy.example", [("proxy.example", 80), ("github.com", 443)]),     # default ports
+    ("https://proxy.example", [("proxy.example", 443), ("github.com", 443)]),
+    ("http://proxy.example:99999", [("github.com", 443)]),                              # unreadable: npm decides
+])
+def test_the_proxy_address_is_read_like_npm_reads_it(monkeypatch, value, want):
+    mod = _load_launch(monkeypatch)
+    monkeypatch.setenv("HTTPS_PROXY", value)
+    assert mod._update_targets() == want
+
+
+def test_a_dead_proxy_skips_the_optional_update_instead_of_stalling(env, monkeypatch):
+    monkeypatch.setenv("HTTPS_PROXY", "http://proxy.example:8080")
     _write_pins(env.dir, "^44.7.0", "44.7.2")
     _write_install(env.dir, "44.7.1")
-    env.reachable = False                                   # direct connections would fail
+    env.reachable = False                                   # the proxy does not answer
     env.mod.ensure_npm("node.exe")
-    assert env.probes == []                                 # the check was not consulted
-    assert env.calls                                        # npm was started
-    assert json.loads((env.dir / "node_modules" / "electron" / "package.json").read_text())["version"] == "44.7.2"
+    assert env.probes == [1] and env.calls == []            # checked, npm never started
+
+
+def test_an_offline_first_install_says_so_at_once_and_keeps_what_is_there(env):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    mod = env.dir / "node_modules" / "electron"
+    (mod / "dist").mkdir(parents=True)
+    (mod / "package.json").write_text(json.dumps({"version": "44.7.2"}), encoding="utf-8")
+    (mod / "dist" / "partial.bin").write_text("x", encoding="utf-8")
+    env.reachable = False
+    with pytest.raises(SystemExit):
+        env.mod.ensure_npm("node.exe")
+    assert env.calls == [] and env.probes == [1]            # no npm wait
+    assert "cannot be reached" in env.msgs[-1]
+    assert (mod / "dist" / "partial.bin").exists()          # nothing deleted on the way out
+
+
+# ── one launcher at a time ────────────────────────────────────────────────────
+def test_a_second_launcher_does_not_get_the_setup_lock(env):
+    """_signal_running_instance() only sees a running app. A second launcher started while the
+    first one installs or updates Electron would delete what the first one is building."""
+    assert env.mod._take_launcher_lock() is True
+    first = env.mod._LAUNCH_LOCK
+    assert env.mod._take_launcher_lock() is False           # a second start while the first holds it
+    first.close()                                           # the first launcher exits
+    assert env.mod._take_launcher_lock() is True
+    env.mod._LAUNCH_LOCK.close()
+
+
+def test_the_uninstaller_removes_the_launcher_lock_file():
+    """The lock file lives in the electron folder and stays after the launcher exits: left behind, it would
+    stop the uninstaller's last RMDir of that folder and of the install folder."""
+    src = LAUNCH.read_text(encoding="utf-8")
+    name = re.search(r'ELECTRON_DIR / "(\.launcher\.lock)"', src).group(1)
+    nsi = (LAUNCH.parent / "setup.nsi").read_text(encoding="utf-8")
+    delete = 'Delete "$INSTDIR\\electron\\' + name + '"'
+    assert delete in nsi
+    assert nsi.index(delete) < nsi.index('RMDir "$INSTDIR\\electron"\n')
+
+
+def test_the_launcher_takes_the_lock_before_any_setup_and_after_the_running_app_check():
+    src = LAUNCH.read_text(encoding="utf-8")
+    main = src[src.index('if __name__ == "__main__":'):]
+    assert main.index("_signal_running_instance()") < main.index("_take_launcher_lock()") < main.index("ensure_python()")
 
 
 def test_without_a_proxy_the_check_still_guards_the_point_update(env):
