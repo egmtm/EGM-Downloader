@@ -16,6 +16,12 @@ v1.5.0 - TBD (TBD)
   • [WINDOWS] Fixed: Starting the app without internet no longer shows a confusing "lockfile" message, and an Electron update is skipped when the update servers cannot be reached.
   • [WINDOWS] Changed: The Node.js that sets up Electron is updated to Node 24 LTS, because Node 20 has reached end of life and Electron 45 needs a newer one. The first start after the update downloads it once (about 36 MB). The installer welcome text now also shows the real size of the first launch download (about 400 MB, it said 250 MB).
 
+v1.4.12 - ELECTRON STRIKES BACK (Build 166) (10/15/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.8.0 — Chromium 152.0.7977.167 and backported Chromium and V8 fixes
+  • [WINDOWS] Electron runtime updated to v44.8.0 — fixes the mouse cursor going missing over native dialogs in certain cases
+
 v1.4.11 - LAST CALL: THE RETURN OF ELECTRON (Build 165) (10/14/2026)
 -----------------------------------------
 
