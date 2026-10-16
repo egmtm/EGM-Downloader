@@ -111,6 +111,19 @@ A side by side look at one well known alternative, using details you can check y
   </tr>
 </table>
 
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="324" alt="Advanced Panel with the plugins list, Midnight theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Midnight theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="400" alt="Download History, Kali Linux theme"/></a>
+      <br/><sub><b>Download History</b> (Kali Linux theme)</sub>
+    </td>
+  </tr>
+</table>
+
 ## 📥 Download
 
 ### Windows
