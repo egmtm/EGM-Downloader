@@ -829,3 +829,20 @@ def test_the_first_runs_card_clock_ignores_jumps_in_the_source_timestamps_too(ap
     finally:
         m.jobs.pop(job_id, None)
     assert seen["t"] == "00:00:10", seen    # 1 + 4, (jump), + 5, (wrap)
+
+
+def test_cancel_during_the_finish_step_also_removes_the_parts_of_a_failed_join(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, False], captures=["j_r2.mp4"], join_ok=False)
+    for name in ("j.mp4", "j_r2.mp4"):
+        (tmp_path / name).write_bytes(b"x")
+    rig.job["title"] = "Show"
+    rig.job["_live_sync"] = True
+    monkeypatch.setattr(app_module, "_live_trim_silent_start", lambda job, ff, path: job.__setitem__("cancelled", True))
+    assert rig.run() == "cancelled"
+    assert not any("part 2" in p.name for p in tmp_path.iterdir()), sorted(p.name for p in tmp_path.iterdir())
+
+
+def test_the_card_clock_never_counts_a_step_backwards(app_module):
+    # A small step back in the source timestamps (a restart a second behind) is skipped, not added.
+    clock = app_module._live_clock(0)
+    assert [clock(t) for t in ("00:10:05", "00:10:04", "00:10:06")] == [605, 605, 607]

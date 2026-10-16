@@ -71,3 +71,20 @@ def test_all_three_backends_carry_the_same_function_and_use_it():
     assert len({_func_source(rel) for rel in PLATFORM_APP_FILES}) == 1, "the three backends must stay identical"
     for rel in PLATFORM_APP_FILES:
         assert '"vkey": _video_key(e)' in read_source(rel), rel
+
+
+def test_an_odd_site_value_does_not_drop_the_entry(app_module):
+    # The key comes from site data: an extractor name that is not a string must not raise,
+    # or /api/playlist's per-entry try/except would silently leave the entry out.
+    assert app_module._video_key({"ie_key": 5, "id": "x"}) == "5:x"
+    assert app_module._video_key({"ie_key": ["A"], "id": "x"}) == "['a']:x"
+
+
+def test_a_flat_entry_keys_on_its_own_site_not_the_list_it_came_from(app_module, monkeypatch):
+    # yt-dlp copies the LIST's extractor_key onto every flat entry (its _playlist_infodict);
+    # the entry's own extractor is in ie_key. Preferring extractor_key would key every channel
+    # entry on the list extractor, and the same video pasted as a link would never match.
+    e = _playlist(app_module, monkeypatch,
+                  {"id": "v1", "ie_key": "Example", "extractor_key": "ExampleTab", "url": "https://example.com/s/v1"},
+                  {"id": "v1", "extractor_key": "Example", "webpage_url": "https://example.com/watch/v1"})
+    assert e[0]["vkey"] == e[1]["vkey"] == "example:v1"

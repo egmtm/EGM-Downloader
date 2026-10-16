@@ -2016,7 +2016,9 @@ def _live_keep_parts(job, job_id, out_dir, segs):
         dst, k = Path(out_dir) / _safe_filename(f"{title} (part {n})", ext), 1
         while dst.exists():
             dst = Path(out_dir) / _safe_filename(f"{title} (part {n}) ({k})", ext); k += 1
-        try: os.replace(p, dst)
+        try:
+            os.replace(p, dst)
+            job.setdefault("_live_parts", []).append(str(dst))   # Cancel during the finish step removes them too
         except OSError: pass
 
 def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
@@ -2106,7 +2108,12 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
     if job.get("_live_sync") and not audio_only:
         _live_trim_silent_start(job, ffmpeg, segs[0])
     if job.get("cancelled"):
-        return "cancelled"   # Cancel pressed during the join or the cut (neither ffmpeg is registered to be killed): it still discards
+        # Cancel pressed during the join or the cut (neither ffmpeg is registered to be killed): it still
+        # discards, the "(part n)" files of a join that failed included (they no longer carry the job id)
+        for p in job.pop("_live_parts", []):
+            try: os.remove(p)
+            except OSError: pass
+        return "cancelled"
     job["_live_file"] = segs[0]
     _live_av_note(ffmpeg, "saved", segs[0])
     return "saved"
@@ -2171,7 +2178,7 @@ def get_info():
 def _video_key(e):
     """Site plus video id of a yt-dlp entry, so one video reached through two link forms is one entry.
     Empty when either is unknown, and for the Generic extractor, whose ids are not stable."""
-    site = (e.get("ie_key") or e.get("extractor_key") or "").lower()
+    site = str(e.get("ie_key") or e.get("extractor_key") or "").lower()   # site data: a non-string must not drop the entry
     vid = str(e.get("id") or "")
     return f"{site}:{vid}" if site and site != "generic" and vid else ""
 
