@@ -38,6 +38,8 @@ NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
 # against a hash nobody can swap on the way, and no manifest is fetched at run time.
 # To bump NODE_VERSION: copy the win-x64.zip line of
 # https://nodejs.org/dist/v<version>/SHASUMS256.txt into this table, in the same commit.
+# Then check it against nodejs.org (a mistyped pin is not caught by the tests):
+#   python3 scripts/check-node-pin.py --download
 NODE_ZIP_SHA256 = {
     "24.22.0": "f9683a19877e12a9b167305c8db71040d812876359de21f0d2e97c3f321f80c3",
 }
