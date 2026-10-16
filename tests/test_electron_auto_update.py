@@ -189,6 +189,7 @@ def test_failed_major_update_exits_but_keeps_the_old_install_for_the_retry(env):
         env.mod.ensure_npm("node.exe")
     assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "old"
     assert env.mod._electron_update_kind() == "major"      # the next launch tries again
+    assert "internet connection" in env.msgs[-1]           # says what to do, not just "failed"
 
 
 def test_swap_failure_puts_the_old_electron_back(env, monkeypatch):

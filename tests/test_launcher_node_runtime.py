@@ -14,6 +14,7 @@ import hashlib
 import importlib.util
 import json
 import re
+import urllib.error
 import zipfile
 from pathlib import Path
 
@@ -196,3 +197,40 @@ def test_the_pinned_download_is_extracted(env, monkeypatch):
     monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", download_then_pin)
     assert env.mod.ensure_node() == str(env.mod.NODE_EXE)
     assert (env.dir / "node.exe").read_text() == "new node"
+
+
+# ---- offline and dropped connections ---------------------------------------------------
+
+@pytest.mark.parametrize("error", [
+    urllib.error.URLError("[Errno 11001] getaddrinfo failed"),     # offline: the name lookup fails
+    urllib.error.HTTPError("https://nodejs.org/dist/x.zip", 503, "Service Unavailable", {}, None),
+    ConnectionResetError("connection reset"),                      # dropped in the middle
+    TimeoutError("timed out"),
+])
+def test_a_network_failure_says_what_to_do_and_leaves_nothing_behind(env, monkeypatch, error):
+    online = env.mod.urllib.request.urlretrieve
+
+    def failing(url, dest, reporthook=None):
+        Path(dest).write_bytes(b"half a zip")        # what a transfer that dropped leaves on disk
+        raise error
+
+    monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", failing)
+    with pytest.raises(SystemExit) as stop:
+        env.mod.ensure_node()
+    assert stop.value.code == 1
+    assert "internet connection" in env.msgs[-1] and "could not be downloaded" in env.msgs[-1]
+    assert not any(m.startswith("ERROR") for m in env.msgs)         # not the raw network error
+    assert not (env.dir / "node_tmp.zip").exists() and not env.mod.NODE_EXE.exists()
+    # back online, the next start simply downloads it
+    monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", online)
+    assert env.mod.ensure_node() == str(env.mod.NODE_EXE)
+
+
+def test_a_local_failure_is_not_blamed_on_the_connection(env, monkeypatch):
+    def failing(url, dest, reporthook=None):
+        raise PermissionError("Access is denied")           # disk or antivirus, not the network
+
+    monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", failing)
+    with pytest.raises(SystemExit):
+        env.mod.ensure_node()
+    assert env.msgs[-1].startswith("ERROR") and "internet" not in env.msgs[-1]

@@ -1,5 +1,5 @@
 """EGM Downloader — launcher (no console window)"""
-import os, sys, shutil, zipfile, subprocess, urllib.request, urllib.parse, json, time, hashlib, re
+import os, sys, shutil, zipfile, subprocess, urllib.request, urllib.parse, urllib.error, json, time, hashlib, re
 import socket, threading
 from pathlib import Path
 
@@ -464,6 +464,15 @@ def ensure_node():
                         shutil.copyfileobj(src, dst)
         tmp.unlink(missing_ok=True)
         return str(NODE_EXE)
+    except (urllib.error.URLError, ConnectionError, TimeoutError):
+        # Offline, a failed name lookup, a timeout or a connection that dropped in the middle
+        # of the download. Nothing is kept (no node.exe, no partial zip), so the next start
+        # simply tries again. Say what to do instead of showing the raw network error.
+        try: tmp.unlink(missing_ok=True)
+        except Exception: pass
+        _gui_msg("Node.js could not be downloaded. Check your internet connection "
+                 "and start EGM Downloader again.")
+        time.sleep(8); sys.exit(1)
     except Exception as e:
         _gui_msg(f"ERROR: {e}")
         try: tmp.unlink(missing_ok=True)
@@ -739,7 +748,9 @@ def ensure_npm(node_exe, force=False):
             if kind == "major":
                 # The new app needs the new Electron. The old one is still in place,
                 # so the next launch (online) simply tries again.
-                _gui_msg("Electron update failed"); time.sleep(4); sys.exit(1)
+                _gui_msg("Electron update failed. Check your internet connection and "
+                         "start EGM Downloader again.")
+                time.sleep(8); sys.exit(1)
             _gui_msg("Could not update Electron, keeping the current version")
             time.sleep(3)
             return
