@@ -208,7 +208,8 @@ let _qodTimer = null, _qodCard = null, _qodLeft = 0, _qodBusy = false;
 
 function _qodArmed() {
   return !!(window.electronAPI?.quit && document.getElementById('quit-on-done-chk')?.checked
-    && items.every(i => i.status === 'done'));
+    && items.every(i => i.status === 'done')
+    && !document.getElementById('fetch-btn')?.disabled);   // a link being fetched is not in items yet: the user is adding work
 }
 
 function _qodStop() {
@@ -223,7 +224,7 @@ function _qodShowCard() {
   card.setAttribute('role', 'alert');
   const label = document.createElement('span');
   const cancel = document.createElement('button');
-  cancel.className = 'btn';
+  cancel.className = 'btn btn-ghost btn-sm';   // a themed button, like the Subscriptions card
   cancel.textContent = i18nGet('card.btn.cancel') || 'Cancel';
   cancel.addEventListener('click', _qodStop);
   card.append(label, cancel);
@@ -255,7 +256,8 @@ async function _qodStep() {
     if (_qodLeft <= 0) {
       // The main process refuses (busy) if the other window started downloading meanwhile.
       const r = await window.electronAPI.quit({ whenIdle: true });
-      if (r && r.busy && _qodCard) { _qodCard.remove(); _qodCard = null; }
+      if (r && r.busy) { if (_qodCard) { _qodCard.remove(); _qodCard = null; } }   // refused: wait, a new card comes once idle
+      else _qodStop();   // quitting, or the call failed: no frozen card asking to quit again every second
       return;
     }
     _qodCard.firstChild.textContent = i18nFmt('subscriptions.queue.quitting_in', _qodLeft) || `Quitting in ${_qodLeft}s`;

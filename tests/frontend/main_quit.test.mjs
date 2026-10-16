@@ -173,3 +173,49 @@ test("the card goes away with the countdown and is never shown twice", async () 
   await t.tick(t.id());
   assert.equal(t.d.querySelectorAll("#quit-card").length, 0);
 });
+
+
+// ── Round 4 review ──────────────────────────────────────────────────────────
+test("Cancel stops the countdown's timer, not only the card", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  const id = t.id();
+  t.d.querySelector("#quit-card button").click();
+  assert.equal(t.cardText(), null);
+  assert.equal(t.w.eval("_qodTimer"), null);
+  await t.tick(id);                                  // a leaked interval would probe again
+  assert.equal(t.calls.quit.length, 1);
+});
+
+test("a link being fetched during the countdown stops it: the user is adding work", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  const id = t.id();
+  t.d.getElementById("fetch-btn").disabled = true;   // fetchAll disables it until the link is in the list
+  await t.tick(id);
+  assert.equal(t.cardText(), null);
+  for (let i = 0; i < COUNTDOWN + 1; i++) await t.tick(id);
+  assert.deepEqual(t.calls.quit.filter((o) => !o.probe), [], "no quit while the fetch runs");
+});
+
+test("after the final quit call the countdown stops, even when the call failed", async () => {
+  const t = await boot();
+  t.w.electronAPI.quit = async (opts) => { t.calls.quit.push({ ...opts }); return opts && opts.probe ? { busy: false } : { error: "x" }; };
+  t.finish(); await settle();
+  const id = t.id();
+  for (let i = 0; i < COUNTDOWN; i++) await t.tick(id);
+  assert.equal(t.calls.quit.filter((o) => !o.probe).length, 1);
+  for (let i = 0; i < 3; i++) await t.tick(id);
+  assert.equal(t.calls.quit.filter((o) => !o.probe).length, 1, "not asked again every second");
+  assert.equal(t.cardText(), null, "no frozen 'Quitting in 1s' card");
+});
+
+test("the countdown label is set as text, and Cancel is a themed button", async () => {
+  const t = await boot();
+  t.w.eval("I18N.strings['subscriptions.queue.quitting_in'] = '<b>{0}</b>'");
+  t.finish(); await settle();
+  assert.equal(t.d.querySelector("#quit-card span").textContent, "<b>30</b>");
+  assert.equal(t.d.querySelector("#quit-card b"), null);
+  assert.equal(t.d.querySelector("#quit-card").getAttribute("role"), "alert");
+  assert.ok(t.d.querySelector("#quit-card button").classList.contains("btn-ghost"));
+});

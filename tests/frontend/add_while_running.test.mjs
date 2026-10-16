@@ -1009,3 +1009,13 @@ test("Download all into a run a single card opened uses the concurrency chosen n
   t.all(); await settle();
   assert.deepEqual(t.log.download, [A, B, C, D, E], "the run's own four start at once under the new limit");
 });
+
+test("a limit raised while a Download all runs applies at the next free slot", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}`);
+  t.all(); await settle();                               // limit 2: A and B
+  assert.deepEqual(t.log.download, [A, B]);
+  t.w.eval("document.getElementById('concurrency-sel').value = '4'");
+  t.finish("j1"); await t.tick();                        // one slot frees: the new limit fills up to 4
+  assert.deepEqual(t.log.download, [A, B, C, D, E]);
+});
