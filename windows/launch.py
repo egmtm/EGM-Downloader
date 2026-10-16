@@ -537,21 +537,36 @@ def _electron_update_kind():
         pass   # on any parse error, don't force a reinstall: let the install proceed
     return None
 
-def _registry_reachable(timeout=6):
-    """True when registry.npmjs.org accepts a connection within `timeout` seconds.
-    Run in a helper thread because a name lookup can't be time limited directly, and
-    a PC that is offline can sit in it for minutes (npm then looks stuck)."""
-    ok = []
-    def probe():
+# An Electron update needs two hosts: the npm registry (the package) and GitHub (the
+# binary). A TCP connect does not prove GitHub's download servers work; it only catches
+# the plain "blocked" case, which is the one worth skipping an optional update for.
+_UPDATE_HOSTS = ("registry.npmjs.org", "github.com")
+
+def _update_hosts_reachable(timeout=6):
+    """True when every host an Electron update needs accepts a connection within
+    `timeout` seconds. Each is tried in its own thread (all together, one shared wait)
+    because a name lookup can't be time limited directly, and a PC that is offline can
+    sit in it for minutes (npm then looks stuck)."""
+    ok = set()
+    def probe(host):
         try:
-            socket.create_connection(("registry.npmjs.org", 443), timeout=timeout).close()
-            ok.append(True)
+            socket.create_connection((host, 443), timeout=timeout).close()
+            ok.add(host)
         except Exception:
             pass
-    t = threading.Thread(target=probe, daemon=True)
-    t.start()
-    t.join(timeout + 1)
-    return bool(ok)
+    threads = [threading.Thread(target=probe, args=(h,), daemon=True) for h in _UPDATE_HOSTS]
+    for t in threads:
+        t.start()
+    deadline = time.monotonic() + timeout + 1
+    for t in threads:
+        t.join(max(0.0, deadline - time.monotonic()))
+    return all(h in ok for h in _UPDATE_HOSTS)
+
+def _proxy_configured():
+    """True when the environment names a proxy. Direct sockets say nothing then (npm
+    goes through the proxy), so the host check is skipped and npm decides."""
+    return any(os.environ.get(n) for n in
+               ("HTTPS_PROXY", "https_proxy", "npm_config_proxy", "npm_config_https_proxy"))
 
 def _npm_env(node_exe):
     return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
@@ -645,9 +660,11 @@ def ensure_npm(node_exe, force=False):
         if not _npm_install_electron(node_exe, ELECTRON_DIR):
             _gui_msg("Electron install failed"); time.sleep(4); sys.exit(1)
     else:
-        if kind == "update" and not force and not _registry_reachable():
-            # Offline: keep the current Electron without starting npm (which can look
-            # stuck for minutes). Nothing is shown; the next online launch tries again.
+        if kind == "update" and not force and not _proxy_configured() \
+                and not _update_hosts_reachable():
+            # Offline (or GitHub blocked): keep the current Electron without starting
+            # npm (which can look stuck for minutes). Nothing is shown; the next
+            # online launch tries again.
             return
         _gui_msg("Updating Electron to new major version…" if kind == "major"
                  else "Updating Electron…")

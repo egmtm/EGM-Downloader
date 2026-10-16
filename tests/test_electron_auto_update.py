@@ -59,8 +59,10 @@ def env(tmp_path, monkeypatch):
 
     e = Env()
     e.mod, e.dir, e.calls = mod, edir, []
-    e.reachable, e.probes = True, []   # the registry check never touches the real network
-    monkeypatch.setattr(mod, "_registry_reachable",
+    for name in ("HTTPS_PROXY", "https_proxy", "npm_config_proxy", "npm_config_https_proxy"):
+        monkeypatch.delenv(name, raising=False)        # the machine running the tests may have a proxy
+    e.reachable, e.probes = True, []   # the host check never touches the real network
+    monkeypatch.setattr(mod, "_update_hosts_reachable",
                         lambda *a, **k: (e.probes.append(1), e.reachable)[1])
     e.npm_ok = True          # False: npm exits 1 (offline)
     e.make_exe = True        # False: npm works but the Electron binary never arrives
@@ -242,7 +244,7 @@ def test_first_install_goes_straight_in_and_a_failure_exits(env):
 
 # ── offline: no npm at all, so no minutes long stall ──────────────────────────
 # With no connection npm can look stuck for minutes (name lookups), then falls back
-# to a second try. An optional point update therefore checks the registry first.
+# to a second try. An optional point update therefore checks the hosts it needs first.
 
 def test_offline_point_update_keeps_the_current_electron_without_starting_npm(env, monkeypatch):
     msgs = []
@@ -288,7 +290,7 @@ def _load_launch():
     return mod
 
 
-def test_registry_check_connects_to_the_npm_registry_and_closes(monkeypatch):
+def test_host_check_connects_to_the_registry_and_to_github_and_closes(monkeypatch):
     mod, seen = _load_launch(), []
 
     class Sock:
@@ -297,30 +299,72 @@ def test_registry_check_connects_to_the_npm_registry_and_closes(monkeypatch):
 
     monkeypatch.setattr(mod.socket, "create_connection",
                         lambda addr, timeout=None: (seen.append((addr, timeout)), Sock())[1])
-    assert mod._registry_reachable(timeout=2) is True
-    assert seen == [(("registry.npmjs.org", 443), 2), "closed"]
+    assert mod._update_hosts_reachable(timeout=2) is True
+    assert sorted(x for x in seen if x != "closed") == [(("github.com", 443), 2), (("registry.npmjs.org", 443), 2)]
+    assert seen.count("closed") == 2
 
 
-def test_registry_check_is_false_when_the_connection_fails(monkeypatch):
+@pytest.mark.parametrize("blocked", ["registry.npmjs.org", "github.com", "both"])
+def test_host_check_is_false_when_any_needed_host_does_not_answer(monkeypatch, blocked):
+    """The package comes from the registry and the Electron binary from GitHub: both
+    must answer, or the update would start and then fail halfway."""
+    mod = _load_launch()
+
+    class Sock:
+        def close(self):
+            pass
+
+    def connect(addr, timeout=None):
+        if blocked == "both" or addr[0] == blocked:
+            raise OSError("blocked")
+        return Sock()
+
+    monkeypatch.setattr(mod.socket, "create_connection", connect)
+    assert mod._update_hosts_reachable(timeout=1) is False
+
+
+def test_host_check_is_false_when_the_connection_fails(monkeypatch):
     mod = _load_launch()
 
     def offline(*a, **k):
         raise OSError("no network")
 
     monkeypatch.setattr(mod.socket, "create_connection", offline)
-    assert mod._registry_reachable(timeout=1) is False
+    assert mod._update_hosts_reachable(timeout=1) is False
 
 
-def test_registry_check_returns_in_time_when_the_name_lookup_hangs(monkeypatch):
+def test_host_check_returns_in_time_when_the_name_lookup_hangs(monkeypatch):
     import threading
     import time
     mod, release = _load_launch(), threading.Event()
     monkeypatch.setattr(mod.socket, "create_connection", lambda *a, **k: release.wait(10))
     t0 = time.monotonic()
-    result = mod._registry_reachable(timeout=0.3)
+    result = mod._update_hosts_reachable(timeout=0.3)
     elapsed = time.monotonic() - t0
     release.set()
-    assert result is False and elapsed < 3
+    assert result is False and elapsed < 2          # both hosts hang: one shared wait (about 1.3 s), not two
+
+
+@pytest.mark.parametrize("var", ["HTTPS_PROXY", "https_proxy", "npm_config_proxy", "npm_config_https_proxy"])
+def test_behind_a_proxy_the_direct_connection_check_is_skipped_and_npm_decides(env, monkeypatch, var):
+    """Direct sockets say nothing about a proxy only network: npm uses the proxy, so
+    let it try instead of skipping the update because nothing answers directly."""
+    monkeypatch.setenv(var, "http://proxy.example:8080")
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    _write_install(env.dir, "44.7.1")
+    env.reachable = False                                   # direct connections would fail
+    env.mod.ensure_npm("node.exe")
+    assert env.probes == []                                 # the check was not consulted
+    assert env.calls                                        # npm was started
+    assert json.loads((env.dir / "node_modules" / "electron" / "package.json").read_text())["version"] == "44.7.2"
+
+
+def test_without_a_proxy_the_check_still_guards_the_point_update(env):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    _write_install(env.dir, "44.7.1")
+    env.reachable = False
+    env.mod.ensure_npm("node.exe")
+    assert env.probes == [1] and env.calls == []
 
 
 # ── a run that died in the middle of a swap ───────────────────────────────────
