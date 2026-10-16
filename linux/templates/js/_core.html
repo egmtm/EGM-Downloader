@@ -199,11 +199,12 @@ function toastWithAction(msg, btnLabel, fn, ms = 8000) {
 // ── Quit when done (the saved checkbox in Advanced) ──────────────────────────
 // Started when a download or a bulk run completes. Waits until every card is
 // done (anything idle, running, failed or cancelled blocks it) and no other
-// window (Subscriptions) is still downloading, then shows a 10 second
-// countdown with Cancel and quits. Cancel only skips this exit; the saved
-// setting is left alone. Same flow as the Subscriptions "Quit when done".
-const QUIT_COUNTDOWN_S = 10;
-let _qodTimer = null, _qodToast = null, _qodLeft = 0, _qodBusy = false;
+// window (Subscriptions) is still downloading, then shows a 30 second
+// countdown with Cancel (a card in the middle of the window, `.quit-card`) and
+// quits. Cancel only skips this exit; the saved setting is left alone. Same flow
+// and look as the Subscriptions "Quit when done".
+const QUIT_COUNTDOWN_S = 30;
+let _qodTimer = null, _qodCard = null, _qodLeft = 0, _qodBusy = false;
 
 function _qodArmed() {
   return !!(window.electronAPI?.quit && document.getElementById('quit-on-done-chk')?.checked
@@ -212,7 +213,22 @@ function _qodArmed() {
 
 function _qodStop() {
   if (_qodTimer) { clearInterval(_qodTimer); _qodTimer = null; }
-  if (_qodToast) { _qodToast.remove(); _qodToast = null; }
+  if (_qodCard) { _qodCard.remove(); _qodCard = null; }
+}
+
+function _qodShowCard() {
+  const card = document.createElement('div');
+  card.id = 'quit-card';
+  card.className = 'quit-card';
+  card.setAttribute('role', 'alert');
+  const label = document.createElement('span');
+  const cancel = document.createElement('button');
+  cancel.className = 'btn';
+  cancel.textContent = i18nGet('card.btn.cancel') || 'Cancel';
+  cancel.addEventListener('click', _qodStop);
+  card.append(label, cancel);
+  document.body.appendChild(card);
+  return card;
 }
 
 function quitWhenDoneCheck() {
@@ -226,23 +242,23 @@ async function _qodStep() {
   _qodBusy = true;
   try {
     if (!_qodArmed()) { _qodStop(); return; }   // unchecked, or something new started or failed
-    if (!_qodToast) {
+    if (!_qodCard) {
       // Waiting: only count down once the other window is idle too.
       let r = null;
       try { r = await window.electronAPI.quit({ whenIdle: true, probe: true }); } catch {}
       if (!_qodTimer || !r || r.busy !== false || !_qodArmed()) return;
       _qodLeft = QUIT_COUNTDOWN_S;
-      _qodToast = toastWithAction('', i18nGet('card.btn.cancel') || 'Cancel', _qodStop, 0);
+      _qodCard = _qodShowCard();
       // Hidden behind the Subscriptions window? Bring this window back so Cancel is reachable.
       if (document.hidden) window.electronAPI.closeSubscriptions?.();
     }
     if (_qodLeft <= 0) {
       // The main process refuses (busy) if the other window started downloading meanwhile.
       const r = await window.electronAPI.quit({ whenIdle: true });
-      if (r && r.busy && _qodToast) { _qodToast.remove(); _qodToast = null; }
+      if (r && r.busy && _qodCard) { _qodCard.remove(); _qodCard = null; }
       return;
     }
-    _qodToast.firstChild.textContent = i18nFmt('subscriptions.queue.quitting_in', _qodLeft) || `Quitting in ${_qodLeft}s`;
+    _qodCard.firstChild.textContent = i18nFmt('subscriptions.queue.quitting_in', _qodLeft) || `Quitting in ${_qodLeft}s`;
     _qodLeft--;
   } finally { _qodBusy = false; }
 }

@@ -262,7 +262,10 @@
     input.sw[type=checkbox]::after { content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:var(--btn-primary-text);border-radius:50%;transition:left .15s ease; }
     input.sw[type=checkbox]:checked { background:var(--acc); }
     input.sw[type=checkbox]:checked::after { left:17px; }
-    .quit-bar { position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:9000;display:flex;align-items:center;gap:14px;background:var(--surf);border:1px solid var(--border2);border-radius:8px;padding:10px 14px;font-size:.8rem;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,.4); }
+    /* "Quit when done" countdown: a plain card in the middle of the window, no dimmed backdrop.
+       The Subscriptions window uses the same rule (keep the two identical). */
+    .quit-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9000; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: min(300px, 86vw); padding: 22px 28px; background: var(--surf); border: 1px solid var(--border2); border-radius: 12px; box-shadow: var(--modal-shadow); color: var(--text); font-size: .95rem; font-weight: 600; text-align: center; animation: quit-card-in .18s ease; }
+    @keyframes quit-card-in { from { opacity: 0; transform: translate(-50%, -46%) scale(.95); } }
   </style>
 </head>
 <body class="void">
@@ -424,7 +427,7 @@ let showQueue = false;
 let quitWhenDone = false;
 let _quitTimer = null;
 let _quitProbing = false;
-const QUIT_COUNTDOWN_S = 10;
+const QUIT_COUNTDOWN_S = 30;
 let globalSettings = {};
 
 // ── HTML escape — prevents stored XSS from user-controlled data ──────────────
@@ -811,7 +814,7 @@ function setQuitWhenDone(on) {
 
 function stopQuitCountdown() {
   if (_quitTimer) { clearInterval(_quitTimer); _quitTimer = null; }
-  const bar = document.getElementById('quit-bar');
+  const bar = document.getElementById('quit-card');
   if (bar) bar.remove();
 }
 
@@ -830,8 +833,9 @@ async function maybeStartQuitCountdown() {
 function startQuitCountdown() {
   let left = QUIT_COUNTDOWN_S;
   const bar = document.createElement('div');
-  bar.id = 'quit-bar';
-  bar.className = 'quit-bar';
+  bar.id = 'quit-card';
+  bar.className = 'quit-card';
+  bar.setAttribute('role', 'alert');
   bar.innerHTML = `<span></span><button class="egm-modal-btn" onclick="setQuitWhenDone(false)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>`;
   document.body.appendChild(bar);
   const label = bar.firstChild;

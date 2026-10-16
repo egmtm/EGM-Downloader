@@ -77,3 +77,27 @@ def test_main_window_quits_only_through_the_countdown():
             assert "electronAPI.quit(" not in src and "QUIT_DELAY_MS" not in src, (
                 f"{base}{name}: no direct timed quit; it would skip the wait, the failure rule and Cancel"
             )
+
+
+def test_both_windows_show_the_same_30_second_centered_card():
+    """The main window and the Subscriptions window are separate pages, so each has
+    its own few lines; this keeps the number and the look from drifting apart."""
+    main_js = read_source("templates/js/_core.html")
+    styles = read_source("templates/index_styles.html")
+    for subs_path in SUBS:
+        subs = read_source(subs_path)
+        for name, src in (("main window", main_js), (subs_path, subs)):
+            assert re.search(r"const QUIT_COUNTDOWN_S = 30;", src), f"{name}: the countdown must be 30 seconds"
+            assert "quit-bar" not in src and "_qodToast" not in src, f"{name}: the corner bar/toast is gone"
+
+        def rule(src, selector):
+            m = re.search(re.escape(selector) + r"\s*\{[^}]*\}", src)
+            assert m, selector
+            return re.sub(r"\s+", " ", m.group(0))
+
+        assert rule(styles, ".quit-card") == rule(subs, ".quit-card"), "same card look in both windows"
+        assert rule(styles, "@keyframes quit-card-in") == rule(subs, "@keyframes quit-card-in")
+        card = rule(styles, ".quit-card")
+        assert "left: 50%" in card and "top: 50%" in card, "centered, like the What's New dialog"
+        assert "var(--modal-overlay)" not in card and "backdrop-filter" not in card, "no dimming"
+
