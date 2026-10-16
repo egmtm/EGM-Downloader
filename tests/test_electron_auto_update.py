@@ -30,6 +30,7 @@ def _write_install(root: Path, version: str, with_exe=True, marker="old"):
     (mod / "marker.txt").write_text(marker, encoding="utf-8")
     if with_exe:
         (mod / "dist" / "electron.exe").write_text("exe", encoding="utf-8")
+        (mod / "path.txt").write_text("electron.exe", encoding="utf-8")   # Electron's installer writes it last
 
 
 def _write_pins(root: Path, spec: str, locked: str):
@@ -62,6 +63,7 @@ def env(tmp_path, monkeypatch):
                         lambda *a, **k: (e.probes.append(1), e.reachable)[1])
     e.npm_ok = True          # False: npm exits 1 (offline)
     e.make_exe = True        # False: npm works but the Electron binary never arrives
+    e.make_path = True       # False: the binary is there but the unpack never finished (no path.txt)
     e.seen_live = []         # content of the LIVE install at the moment npm runs
 
     def fake_run(cmd, *a, **k):
@@ -75,6 +77,8 @@ def env(tmp_path, monkeypatch):
             ver = json.loads((cwd / "package-lock.json").read_text(encoding="utf-8"))[
                 "packages"]["node_modules/electron"]["version"]
             _write_install(cwd, ver, with_exe=e.make_exe, marker="new")
+            if not e.make_path:
+                (cwd / "node_modules" / "electron" / "path.txt").unlink(missing_ok=True)
         return _Done(0)
 
     monkeypatch.setattr(mod.subprocess, "run", fake_run)
@@ -353,6 +357,52 @@ def test_a_leftover_stage_is_removed_at_startup_even_when_nothing_else_runs(env,
     assert not stage.exists()
     assert env.calls == []                                   # npm never started
     assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "old"
+
+
+# ── an install that never finished ────────────────────────────────────────────
+# A first install killed (or cut off by the 300 s limit on a slow link) after npm ci
+# and before the binary arrived left a package.json and no binary. The launcher
+# counted that as installed and ended every launch on "electron.exe not found".
+# Electron's own installer writes path.txt LAST, after unpacking the zip, so a
+# binary plus path.txt is a complete install (the renamed binary counts too).
+
+@pytest.mark.parametrize("state", ["no binary", "binary but unpack not finished", "path.txt but no binary"])
+def test_an_install_that_never_finished_is_missing_and_gets_repaired(env, state):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    mod = env.dir / "node_modules" / "electron"
+    (mod / "dist").mkdir(parents=True)
+    (mod / "package.json").write_text(json.dumps({"version": "44.7.2"}), encoding="utf-8")
+    if state == "binary but unpack not finished":
+        (mod / "dist" / "electron.exe").write_text("half", encoding="utf-8")
+    elif state == "path.txt but no binary":
+        (mod / "path.txt").write_text("electron.exe", encoding="utf-8")
+    assert env.mod._electron_update_kind() == "missing"
+    env.mod.ensure_npm("node.exe")                          # offline would exit; npm works here
+    assert env.calls and env.calls[0][1] == env.dir          # rebuilt in place, as any first install
+    assert (mod / "marker.txt").read_text() == "new"
+    assert env.mod._electron_update_kind() is None           # and it is complete now
+
+
+def test_the_renamed_binary_with_path_txt_is_a_complete_install(env):
+    """Every healthy install looks like this after its first launch."""
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    _write_install(env.dir, "44.7.2")
+    (env.dir / "node_modules" / "electron" / "dist" / "electron.exe").rename(
+        env.dir / "node_modules" / "electron" / "dist" / "EGM Downloader.exe")
+    assert env.mod._electron_update_kind() is None
+    env.mod.ensure_npm("node.exe")
+    assert env.calls == []
+
+
+def test_an_update_whose_unpack_did_not_finish_is_not_swapped_in(env):
+    _write_pins(env.dir, "^44.7.0", "44.7.2")
+    _write_install(env.dir, "44.7.1")
+    env.make_path = False
+    env.mod.ensure_npm("node.exe")                           # must return, not exit
+    live = env.dir / "node_modules" / "electron"
+    assert json.loads((live / "package.json").read_text())["version"] == "44.7.1"
+    assert (live / "marker.txt").read_text() == "old" and (live / "path.txt").exists()
+    assert not (env.dir / ".electron-stage").exists() and not (env.dir / "node_modules.old").exists()
 
 
 # ── the launcher flow ─────────────────────────────────────────────────────────

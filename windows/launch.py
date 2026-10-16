@@ -500,14 +500,25 @@ def _ver_key(v):
     stage = {"alpha": 0, "beta": 1, "rc": 2}.get(m.group(4), 3)
     return (int(m.group(1)), int(m.group(2)), int(m.group(3)), stage, int(m.group(5) or 0))
 
+def _electron_install_complete(mod):
+    """True when `mod` (node_modules\\electron) holds a runnable binary AND the
+    path.txt that Electron's own installer writes LAST, after unpacking the zip. A
+    first install that was killed, or cut off on a slow link, leaves a package.json
+    without these. The launcher renames electron.exe after its first launch, so
+    either name counts."""
+    dist = mod / "dist"
+    return ((dist / "electron.exe").exists() or (dist / "EGM Downloader.exe").exists()) \
+        and (mod / "path.txt").exists()
+
 def _electron_update_kind():
-    """What the installed Electron needs: None (nothing), "missing" (not installed),
+    """What the installed Electron needs: None (nothing), "missing" (not installed,
+    or its install never finished: no binary or no path.txt),
     "major" (its major differs from package.json: the app needs the new one) or
     "update" (same major but older than the version the shipped package-lock.json
     pins, e.g. 44.7.1 against 44.7.2). Never "update" for a newer one, so a
     fallback `npm install` that landed on a newer release cannot cause a loop."""
     installed_pkg = ELECTRON_DIR / "node_modules" / "electron" / "package.json"
-    if not installed_pkg.exists():
+    if not installed_pkg.exists() or not _electron_install_complete(installed_pkg.parent):
         return "missing"
     try:
         installed = json.loads(installed_pkg.read_text(encoding="utf-8"))["version"]
@@ -575,7 +586,7 @@ def _npm_install_electron(node_exe, where):
         _gui_msg("Downloading Electron runtime…")
         subprocess.run([node_exe, str(install_js)], cwd=str(mod),
                        env=env, capture_output=True, timeout=300, creationflags=NO_WIN)
-    return electron_exe.exists() or electron_renamed.exists()
+    return _electron_install_complete(mod)
 
 def _swap_electron(new_nm):
     """Put new_nm in place of the live node_modules. The old one is kept as
