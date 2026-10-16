@@ -15,7 +15,7 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
   let added = 0;
   for (const e of entries) {
     if (fetchAbort) break;
-    if (items.some(i => i.url === e.url)) continue;   // already in the list: skipped, never a second card
+    if (items.some(i => i.url === e.url || (e.vkey && i.vkey === e.vkey))) continue;   // already in the list (same link, or same site and video id): skipped, never a second card
     added++;
     const el    = makeCardEl();
     document.getElementById('results').appendChild(el);
@@ -24,6 +24,7 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
       duration: e.duration, uploader: e.uploader || '',
       formats: [], audio_formats: [],
     });
+    pItem.vkey = e.vkey || '';
     renderCard(el, pItem);
     pendingInfo.count++;
     (async () => {

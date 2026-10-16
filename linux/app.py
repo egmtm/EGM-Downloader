@@ -2168,6 +2168,13 @@ def get_info():
     except Exception as e: return jsonify({"error": str(e),
                                            "error_key": (lambda c: f"download.error.{c}" if c else None)(_classify_error(str(e)))}), 400
 
+def _video_key(e):
+    """Site plus video id of a yt-dlp entry, so one video reached through two link forms is one entry.
+    Empty when either is unknown, and for the Generic extractor, whose ids are not stable."""
+    site = (e.get("ie_key") or e.get("extractor_key") or "").lower()
+    vid = str(e.get("id") or "")
+    return f"{site}:{vid}" if site and site != "generic" and vid else ""
+
 @app.route("/api/playlist", methods=["POST"])
 def get_playlist():
     data = request.get_json(silent=True) or {}
@@ -2187,7 +2194,8 @@ def get_playlist():
                 th = (e.get("thumbnails") or [{}])[-1].get("url","") if e.get("thumbnails") else e.get("thumbnail","")
                 entries.append({"url": eu, "title": e.get("title") or e.get("id") or "Unknown",
                                  "thumbnail": th, "duration": e.get("duration"),
-                                 "uploader": e.get("uploader") or e.get("channel") or ""})
+                                 "uploader": e.get("uploader") or e.get("channel") or "",
+                                 "vkey": _video_key(e)})
             except Exception: continue
         if not entries: return jsonify({"is_playlist": False}), 200
         pl = ""

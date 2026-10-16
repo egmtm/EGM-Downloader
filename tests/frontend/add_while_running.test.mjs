@@ -120,6 +120,29 @@ test("a link that resolves to a video already in the list adds no second card", 
   assert.ok(t.toasts().includes(en.strings["toast.already_in_list"]));
 });
 
+test("the same video under another link form adds no second card", async () => {
+  const t = await boot();
+  t.ctl.entries[A] = [{ url: "https://e.com/watch?v=1", title: "one", vkey: "site:1" }];
+  await t.fetchLinks(A);
+  t.clearToasts();
+  t.ctl.entries[B] = [{ url: "https://e.com/shorts/1", title: "one again", vkey: "site:1" }];
+  await t.fetchLinks(B);
+  assert.equal(t.ev("items.length"), 1);
+  assert.equal(t.cards(), 1, "the loading card of the typed link is gone too");
+  assert.ok(t.toasts().includes(en.strings["toast.already_in_list"]));
+});
+
+test("one list that repeats a video adds it once, and entries without a key or with another key are all kept", async () => {
+  const t = await boot();
+  t.ctl.entries[A] = [
+    { url: "https://e.com/1a", title: "1", vkey: "site:1" }, { url: "https://e.com/1b", title: "1 again", vkey: "site:1" },
+    { url: "https://e.com/2", title: "2", vkey: "site:2" },
+    { url: "https://e.com/3", title: "3", vkey: "" }, { url: "https://e.com/4", title: "4", vkey: "" }, { url: "https://e.com/5", title: "5" },
+  ];
+  await t.fetchLinks(A);
+  assert.deepEqual(t.ev("items.map(i => i.url)"), ["https://e.com/1a", "https://e.com/2", "https://e.com/3", "https://e.com/4", "https://e.com/5"]);
+});
+
 test("a link that failed gets one error card, replaced when it is tried again", async () => {
   const t = await boot();
   t.ctl.fail.add(C);
