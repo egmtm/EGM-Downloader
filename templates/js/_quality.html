@@ -442,11 +442,14 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
         if (r && r.ok) msg += `${msg?` + `:''}${r.count} history entries`;
       }
       if (sel.themes && lsData) {
+        let themesApplied = false;
         try {
           Object.entries(lsData).forEach(([k, v]) => {
-            if (typeof v === 'string' && (k.startsWith('egm-') || k.startsWith('egm_'))) localStorage.setItem(k, v);
+            if (typeof v === 'string' && (k.startsWith('egm-') || k.startsWith('egm_'))) { localStorage.setItem(k, v); themesApplied = true; }
           });
         } catch {}
+        // Themes alone changed something too: they need the reload to show, and must not read "Nothing selected"
+        if (themesApplied && !msg) msg = i18nGet('settings.import.success') || 'Settings imported';
       }
       if (sel.settings && settingsToImport && typeof settingsToImport.theme === 'string') {
         try { localStorage.setItem('egm-theme', settingsToImport.theme); } catch {}
@@ -489,6 +492,7 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
                 if (entry.download_folder && !(await update({ download_folder: entry.download_folder }))) folderSkipped++;
               }
               subCount++;
+              existingUrls.add(url);   // the same channel twice in the file: the second one is already there, not a failure
             } catch { subFailed++; }
           }
         } catch { subFailed = subEntries.length; }   // the current list could not be read: nothing was added
@@ -501,8 +505,10 @@ document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
                      folderSkipped>0?(i18nFmt('toast.quality.folders_skipped', folderSkipped) || `Download folders not restored (not valid on this computer): ${folderSkipped}`):null].filter(Boolean).join(' + ');
       const notAdded = subFailed>0 ? (i18nFmt('toast.quality.subs_not_added', subFailed) || `Subscriptions not added: ${subFailed}`) : '';
       if (parts) {
-        toast(`${parts}${notAdded ? ' + ' + notAdded : ''} — ${i18nGet('toast.quality.reloading') || 'reloading…'}`, 'ok');
-        setTimeout(() => location.reload(), 800);
+        // Something did not come across: say it in a warning that stays up long enough to read before the reload
+        const partial = !!notAdded || folderSkipped > 0;
+        toast(`${parts}${notAdded ? ' + ' + notAdded : ''} — ${i18nGet('toast.quality.reloading') || 'reloading…'}`, partial ? 'warn' : 'ok');
+        setTimeout(() => location.reload(), partial ? TOAST_DURATION : 800);
       } else if (notAdded) toast(notAdded, 'err');   // nothing changed, so no reload
       else if (subExisting>0) toast(i18nGet('toast.already_in_list') || 'Already in the list');
       else toast(i18nGet('toast.quality.nothing_selected') || 'Nothing selected', 'err');
