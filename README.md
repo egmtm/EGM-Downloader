@@ -128,7 +128,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
-**Latest:** v1.4.12  
+**Latest:** v1.4.13  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (615 KB · ~800 MB after install)  
 **SHA256:** `76a629b4d6da0175cfdc68fd1f3ea33ef781230fa863a28c78decc0f912eecb6`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
@@ -137,7 +137,7 @@ A side by side look at one well known alternative, using details you can check y
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
-**Latest:** v1.4.12  
+**Latest:** v1.4.13  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (622 KB · ~1 GB after first run)  
 **SHA256:** `387ec68afb49b17077a7a5d23643da83e570f5e0e0115e2a8ae0699558391cf2`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
@@ -148,7 +148,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ### macOS
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
-**Latest:** v1.4.12  
+**Latest:** v1.4.13  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (141 MB · ~300 MB after install)  
 **SHA256:** `2dcefa78c39031afb019e0d7cfb1964e5c68ccec53ecb92ea9c41c73ca467e28`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
@@ -158,7 +158,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
-**Latest:** v1.4.12  
+**Latest:** v1.4.13  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (170 MB · ~300 MB after install)  
 **SHA256:** `1e23766c25e5beab89ef493a9b0b84df2e068a4c63636ca8474f2618bff824f7`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  

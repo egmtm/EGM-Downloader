@@ -1,3 +1,8 @@
+v1.4.13 - ENCORE (Build 167) (10/17/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.9.0 — maintenance update with Electron fixes
+
 v1.4.12 - ELECTRON STRIKES BACK (Build 166) (10/15/2026)
 -----------------------------------------
 
