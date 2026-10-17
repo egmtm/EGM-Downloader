@@ -63,7 +63,7 @@
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, downloads its own embedded Python on first run
 - 📋 **Diagnostics** - Live diagnostic log viewer, available from the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
-- ⏱️ **Quit When Done** - Close the app automatically after the last download finishes, with a 10 second countdown and a Cancel button. Works from the main window and the Subscriptions queue, and won't close if a download failed or was cancelled.
+- ⏱️ **Quit When Done** - Close the app automatically once every download has finished. A 30 second countdown appears in the middle of the window, and you can stop it with the Cancel button or the Esc key. Works from the main window and the Subscriptions queue, and won't close if a download failed or was cancelled.
 
 ## 🔍 How EGM Downloader compares
 
