@@ -5,7 +5,7 @@
   
   <p>
     <img src="https://img.shields.io/badge/dynamic/json?url=https://egerena.com/version.json&query=version&label=version&style=flat-square&color=0078b0" alt="Version"/>
-    <img src="https://img.shields.io/badge/Electron-44.8.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-44.9.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg" alt="Version Sync"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg" alt="Python Lint"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
@@ -130,7 +130,7 @@ A side by side look at one well known alternative, using details you can check y
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.4.13  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (615 KB · ~800 MB after install)  
-**SHA256:** `76a629b4d6da0175cfdc68fd1f3ea33ef781230fa863a28c78decc0f912eecb6`  
+**SHA256:** `268f52b967edd8c369c736247ae68638fb2dc4ae48fba73656e07db745d0b6ee`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -139,7 +139,7 @@ A side by side look at one well known alternative, using details you can check y
 ### Windows Portable
 **Latest:** v1.4.13  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (622 KB · ~1 GB after first run)  
-**SHA256:** `387ec68afb49b17077a7a5d23643da83e570f5e0e0115e2a8ae0699558391cf2`  
+**SHA256:** `a9d577ed8f02aafdba87a9dd1b4ab2999a9babf6f54e10f8c10ef360011d031c`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -150,7 +150,7 @@ A side by side look at one well known alternative, using details you can check y
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.4.13  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (141 MB · ~300 MB after install)  
-**SHA256:** `2dcefa78c39031afb019e0d7cfb1964e5c68ccec53ecb92ea9c41c73ca467e28`  
+**SHA256:** `8508d92e2624ff829875c89d875e38366a5ebaf31824151710e93a43fef1aecd`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -160,7 +160,7 @@ A side by side look at one well known alternative, using details you can check y
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.4.13  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (170 MB · ~300 MB after install)  
-**SHA256:** `1e23766c25e5beab89ef493a9b0b84df2e068a4c63636ca8474f2618bff824f7`  
+**SHA256:** `30e2359f25a6f2a5a30020dcb288d56fba79a7b258b27420897c5af6217709c7`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
