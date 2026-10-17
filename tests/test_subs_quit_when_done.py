@@ -99,5 +99,43 @@ def test_both_windows_show_the_same_30_second_centered_card():
         assert rule(styles, "@keyframes quit-card-in") == rule(subs, "@keyframes quit-card-in")
         card = rule(styles, ".quit-card")
         assert "left: 50%" in card and "top: 50%" in card, "centered, like the What's New dialog"
-        assert "var(--modal-overlay)" not in card and "backdrop-filter" not in card, "no dimming"
+        # The page behind the card is dimmed and locked (the script makes it inert): one dim layer, the same in both windows.
+        assert rule(styles, ".quit-lock") == rule(subs, ".quit-lock"), "same dim layer in both windows"
+        assert rule(styles, "@keyframes quit-lock-in") == rule(subs, "@keyframes quit-lock-in")
+        lock = rule(styles, ".quit-lock")
+        assert "position: fixed" in lock and "inset: 0" in lock, "covers the whole window"
+        assert "color-mix(in srgb, var(--modal-overlay) 70%, transparent)" in lock, (
+            "the theme's own dialog overlay, a little lighter than What's New"
+        )
 
+
+def _z(rule_text):
+    return int(re.search(r"z-index:\s*(\d+)", rule_text).group(1))
+
+
+def test_quit_lock_sits_above_every_other_layer_and_under_its_card():
+    styles = read_source("templates/index_styles.html")
+    lock = re.search(r"\.quit-lock\s*\{[^}]*\}", styles).group(0)
+    card = re.search(r"\.quit-card\s*\{[^}]*\}", styles).group(0)
+    assert _z(lock) < _z(card), "the card is above its own dim layer"
+    others = []
+    for path in glob.glob(os.path.join(ROOT, "templates", "**", "*.html"), recursive=True):
+        with open(path, encoding="utf-8") as fh:
+            for line in fh:
+                if "quit-lock" in line or "quit-card" in line or "z-index:99999" in line.replace(" ", ""):
+                    continue   # the countdown itself, and the Konami easter egg screen
+                others += [int(n) for n in re.findall(r"z-index\s*:\s*(\d+)", line)]
+    assert others and max(others) < _z(lock), (
+        f"something is layered at {max(others)}, which would paint over the dim layer of the countdown"
+    )
+
+
+def test_inert_is_only_used_by_the_quit_countdown():
+    """The countdown unlocks the page by clearing `inert` from every top level element,
+    which is only safe while nothing else in the app sets it."""
+    users = set()
+    for path in glob.glob(os.path.join(ROOT, "templates", "**", "*.html"), recursive=True):
+        with open(path, encoding="utf-8") as fh:
+            if re.search(r"(?:set|remove|toggle)Attribute\(\s*['\"]inert|\.inert\s*=|\[inert\]|<[^>]*\binert\b", fh.read()):
+                users.add(os.path.relpath(path, os.path.join(ROOT, "templates")))
+    assert users == {os.path.join("js", "_core.html"), "subscriptions.html"}, users

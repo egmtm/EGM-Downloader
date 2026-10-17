@@ -262,9 +262,14 @@
     input.sw[type=checkbox]::after { content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:var(--btn-primary-text);border-radius:50%;transition:left .15s ease; }
     input.sw[type=checkbox]:checked { background:var(--acc); }
     input.sw[type=checkbox]:checked::after { left:17px; }
-    /* "Quit when done" countdown: a plain card in the middle of the window, no dimmed backdrop.
-       The Subscriptions window uses the same rule (keep the two identical). */
-    .quit-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 9000; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: min(300px, 86vw); padding: 22px 28px; background: var(--surf); border: 1px solid var(--border2); border-radius: 12px; box-shadow: var(--modal-shadow); color: var(--text); font-size: .95rem; font-weight: 600; text-align: center; animation: quit-card-in .18s ease; }
+    /* "Quit when done" countdown: a card in the middle of the window over a dimmed page that is
+       locked while it shows (the script marks the rest of the page `inert`). The dim is this theme's
+       dialog overlay at 70%, a little lighter than What's New, so the finished downloads stay readable.
+       Both sit above every other layer (the update prompt is at 10000).
+       The Subscriptions window uses the same rules (keep the two identical). */
+    .quit-lock { position: fixed; inset: 0; z-index: 20000; background: color-mix(in srgb, var(--modal-overlay) 70%, transparent); animation: quit-lock-in .16s ease; }
+    @keyframes quit-lock-in { from { opacity: 0; } }
+    .quit-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20001; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: min(300px, 86vw); padding: 22px 28px; background: var(--surf); border: 1px solid var(--border2); border-radius: 12px; box-shadow: var(--modal-shadow); color: var(--text); font-size: .95rem; font-weight: 600; text-align: center; animation: quit-card-in .18s ease; }
     @keyframes quit-card-in { from { opacity: 0; transform: translate(-50%, -46%) scale(.95); } }
   </style>
 </head>
@@ -812,10 +817,21 @@ function setQuitWhenDone(on) {
   if (!quitWhenDone) stopQuitCountdown();
 }
 
+// While the card shows the page is locked: a dim layer (#quit-lock) under it, every other
+// top level element `inert` (no clicks, no Tab, hidden from screen readers), and Esc works
+// like Cancel. Nothing is downloading at that moment, so the lock interrupts no work.
+function _quitEsc(e) {
+  if (e.key !== 'Escape') return;
+  e.preventDefault(); e.stopPropagation();   // not also closing something behind the card
+  setQuitWhenDone(false);
+}
+
 function stopQuitCountdown() {
   if (_quitTimer) { clearInterval(_quitTimer); _quitTimer = null; }
-  const bar = document.getElementById('quit-card');
-  if (bar) bar.remove();
+  document.getElementById('quit-card')?.remove();
+  document.getElementById('quit-lock')?.remove();
+  for (const el of document.body.children) el.removeAttribute('inert');
+  document.removeEventListener('keydown', _quitEsc, true);
 }
 
 // Called once this queue is empty. The countdown only starts when no other
@@ -837,7 +853,13 @@ function startQuitCountdown() {
   bar.className = 'quit-card';
   bar.setAttribute('role', 'alert');
   bar.innerHTML = `<span></span><button class="egm-modal-btn" onclick="setQuitWhenDone(false)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>`;
-  document.body.appendChild(bar);
+  const lock = document.createElement('div');
+  lock.id = 'quit-lock';
+  lock.className = 'quit-lock';
+  document.body.append(lock, bar);
+  for (const el of document.body.children) if (el !== lock && el !== bar) el.setAttribute('inert', '');
+  document.addEventListener('keydown', _quitEsc, true);
+  bar.querySelector('button').focus();
   const label = bar.firstChild;
   const tick = () => {
     if (left <= 0) {

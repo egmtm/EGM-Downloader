@@ -1,10 +1,10 @@
 // Subscriptions window: "Quit when done" (queue header toggle + 30 s countdown in a
-// centered card).
+// centered card over a dimmed page that is locked while it shows; Esc works like Cancel).
 // Boots the real rendered Subscriptions page; intervals are captured so each
 // test drives pollJobs() and the countdown by hand.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bootSubsPage, en } from "./harness.mjs";
+import { bootSubsPage, en, trackKeydown } from "./harness.mjs";
 
 const settle = () => new Promise((r) => setTimeout(r, 20));
 const COUNTDOWN = 30;
@@ -148,17 +148,146 @@ test("a download queued in the last second of the countdown is not cut off", asy
   assert.equal(armed(t), true, "the toggle stays on so the poll loop re-arms");
 });
 
-test("the countdown is a card in the middle of the page and nothing dims the page", async () => {
+test("the countdown is a card in the middle of the page", async () => {
   const t = await armedQueue();
   t.status.j1 = "done";
   await t.poll(); await settle();
   const card = bar(t);
   assert.ok(card, "the card is there");
   assert.equal(card.parentElement, t.d.body);
-  assert.equal(card.closest(".egm-modal-backdrop, .modal-backdrop"), null, "no dimmed backdrop around it");
   const st = t.w.getComputedStyle(card);
   assert.equal(st.position, "fixed");
   assert.equal(st.top, "50%");
   assert.equal(st.left, "50%");
   assert.equal(card.querySelector("button").textContent, "Cancel", "the existing Cancel text is reused");
+});
+
+
+// ── The page is locked and dimmed while the card shows ─────────────────────
+const lockOf = (t) => t.d.getElementById("quit-lock");
+const rest = (t) => [...t.d.body.children].filter((el) => el.id !== "quit-lock" && el.id !== "quit-card");
+const escape = (t) => {
+  const ev = new t.w.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+  t.d.body.dispatchEvent(ev);
+  return ev;
+};
+const assertUnlocked = (t, why) => {
+  assert.equal(lockOf(t), null, `${why}: the dim layer is gone`);
+  assert.equal(bar(t), null, `${why}: the card is gone`);
+  assert.equal(t.d.querySelectorAll("[inert]").length, 0, `${why}: nothing is inert any more`);
+};
+// The countdown is showing (queue empty, other window idle).
+async function counting(opts) {
+  const t = await armedQueue(opts);
+  t.status.j1 = "done";
+  await t.poll(); await settle();
+  assert.ok(bar(t), "the countdown is showing");
+  return t;
+}
+
+test("the page is dimmed and locked while the card shows: a dim layer under the card, the rest inert", async () => {
+  const t = await counting();
+  const lock = lockOf(t), card = bar(t);
+  assert.ok(lock, "the dim layer is there");
+  assert.equal(lock.parentElement, t.d.body);
+  const others = rest(t);
+  assert.ok(others.length >= 2, "the page has several top level parts");
+  assert.ok(others.every((el) => el.hasAttribute("inert")), "everything else is inert: no clicks, no Tab, hidden from screen readers");
+  assert.ok(!lock.hasAttribute("inert") && !card.hasAttribute("inert"), "the card and its layer stay live");
+  const ls = t.w.getComputedStyle(lock), cs = t.w.getComputedStyle(card);
+  assert.equal(ls.position, "fixed");
+  assert.ok(Number(ls.zIndex) > 10000, "above the other dialogs");
+  assert.ok(Number(cs.zIndex) > Number(ls.zIndex), "the card sits above its own dim layer");
+});
+
+test("clicking the dim layer does nothing: the countdown and the card stay", async () => {
+  const t = await counting();
+  lockOf(t).click();
+  assert.ok(bar(t));
+  assert.ok(t.w.eval("_quitTimer"));
+  assert.equal(armed(t), true);
+  assert.equal(realQuits(t).length, 0);
+});
+
+test("Cancel has the focus when the card opens", async () => {
+  const t = await counting();
+  assert.equal(t.d.activeElement, bar(t).querySelector("button"));
+});
+
+test("Cancel unlocks the page", async () => {
+  const t = await counting();
+  bar(t).querySelector("button").click();
+  assertUnlocked(t, "Cancel");
+});
+
+test("the page is unlocked again when new downloads arrive during the countdown", async () => {
+  const t = await counting();
+  t.addJob("v2", "j2");
+  await t.poll(); await settle();
+  assertUnlocked(t, "new download");
+  assert.equal(armed(t), true, "still armed, as before");
+});
+
+test("the page is unlocked again when the countdown ends and the app quits", async () => {
+  const t = await counting();
+  runCountdown(t);
+  assert.equal(realQuits(t).length, 1);
+  assertUnlocked(t, "quit");
+});
+
+test("the page is unlocked again when the final quit is refused (main window got busy)", async () => {
+  const t = await counting();
+  t.ctl.probeBusy = true;
+  runCountdown(t);
+  assertUnlocked(t, "refused");
+});
+
+test("Esc works like Cancel: unlocks, turns the toggle off and does not quit", async () => {
+  const t = await counting();
+  const ev = escape(t);
+  assert.equal(ev.defaultPrevented, true);
+  assertUnlocked(t, "Esc");
+  assert.equal(armed(t), false);
+  assert.equal(t.w.eval("_quitTimer"), null);
+  for (let i = 0; i < COUNTDOWN + 2; i++) t.tick(1000);
+  assert.equal(realQuits(t).length, 0);
+});
+
+test("other keys leave the countdown running", async () => {
+  const t = await counting();
+  for (const key of ["Enter", "Tab", " ", "a"]) t.d.body.dispatchEvent(new t.w.KeyboardEvent("keydown", { key, bubbles: true }));
+  assert.ok(bar(t));
+  assert.ok(lockOf(t));
+  assert.equal(armed(t), true);
+});
+
+test("Esc is taken by the card: nothing behind it also reacts, and it is free again afterwards", async () => {
+  const t = await armedQueue();
+  let seen = 0;
+  t.w.addEventListener("keydown", (e) => { if (e.key === "Escape") seen++; });
+  t.status.j1 = "done";
+  await t.poll(); await settle();
+  escape(t);
+  assert.equal(seen, 0, "the page's own Esc handlers do not see the key that cancelled the countdown");
+  escape(t);
+  assert.equal(seen, 1, "with the card gone, Esc reaches the page as before");
+});
+
+test("the Esc listener is added with the card and removed with it, whichever way it ends", async () => {
+  const endings = [
+    (t) => bar(t).querySelector("button").click(),                       // Cancel
+    (t) => escape(t),                                                    // Esc
+    async (t) => { t.addJob("v2", "j2"); await t.poll(); await settle(); },   // new downloads
+    (t) => runCountdown(t),                                              // the quit
+  ];
+  for (const end of endings) {
+    const t = await armedQueue();
+    const keys = trackKeydown(t.d);
+    const base = keys.live;
+    t.status.j1 = "done";
+    await t.poll(); await settle();
+    assert.equal(keys.live, base + 1, "one listener while the card shows");
+    await end(t);
+    assert.equal(keys.live, base, "none left behind");
+  }
 });

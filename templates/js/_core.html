@@ -203,6 +203,10 @@ function toastWithAction(msg, btnLabel, fn, ms = 8000) {
 // countdown with Cancel (a card in the middle of the window, `.quit-card`) and
 // quits. Cancel only skips this exit; the saved setting is left alone. Same flow
 // and look as the Subscriptions "Quit when done".
+// While the card shows, the page is locked: a dim layer (`#quit-lock`) under it, every
+// other top level element `inert` (no clicks, no Tab, hidden from screen readers) and
+// Esc works like Cancel. Nothing is downloading at that moment, so the lock interrupts
+// no work; Cancel (or Esc) unlocks and the user carries on.
 const QUIT_COUNTDOWN_S = 30;
 let _qodTimer = null, _qodCard = null, _qodLeft = 0, _qodBusy = false;
 
@@ -212,9 +216,23 @@ function _qodArmed() {
     && !document.getElementById('fetch-btn')?.disabled);   // a link being fetched is not in items yet: the user is adding work
 }
 
+function _qodEsc(e) {
+  if (e.key !== 'Escape') return;
+  e.preventDefault(); e.stopPropagation();   // not also closing something behind the card
+  _qodStop();
+}
+
+// Takes the card and the lock away (every way the card can end goes through here).
+function _qodHide() {
+  if (_qodCard) { _qodCard.remove(); _qodCard = null; }
+  document.getElementById('quit-lock')?.remove();
+  for (const el of document.body.children) el.removeAttribute('inert');
+  document.removeEventListener('keydown', _qodEsc, true);
+}
+
 function _qodStop() {
   if (_qodTimer) { clearInterval(_qodTimer); _qodTimer = null; }
-  if (_qodCard) { _qodCard.remove(); _qodCard = null; }
+  _qodHide();
 }
 
 function _qodShowCard() {
@@ -228,7 +246,13 @@ function _qodShowCard() {
   cancel.textContent = i18nGet('card.btn.cancel') || 'Cancel';
   cancel.addEventListener('click', _qodStop);
   card.append(label, cancel);
-  document.body.appendChild(card);
+  const lock = document.createElement('div');
+  lock.id = 'quit-lock';
+  lock.className = 'quit-lock';
+  document.body.append(lock, card);
+  for (const el of document.body.children) if (el !== lock && el !== card) el.setAttribute('inert', '');
+  document.addEventListener('keydown', _qodEsc, true);
+  cancel.focus();
   return card;
 }
 
@@ -256,7 +280,7 @@ async function _qodStep() {
     if (_qodLeft <= 0) {
       // The main process refuses (busy) if the other window started downloading meanwhile.
       const r = await window.electronAPI.quit({ whenIdle: true });
-      if (r && r.busy) { if (_qodCard) { _qodCard.remove(); _qodCard = null; } }   // refused: wait, a new card comes once idle
+      if (r && r.busy) _qodHide();   // refused: unlock and wait, a new card comes once idle
       else _qodStop();   // quitting, or the call failed: no frozen card asking to quit again every second
       return;
     }

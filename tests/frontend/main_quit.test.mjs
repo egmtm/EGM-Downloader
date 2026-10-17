@@ -1,10 +1,10 @@
 // Main window: the saved "Quit when done" checkbox. After a download or bulk run
 // completes it waits for every card to be done and for the Subscriptions window
-// to be idle, then shows a 30 second countdown with Cancel in a centered card
-// (no dimmed backdrop) before quitting.
+// to be idle, then shows a 30 second countdown with Cancel in a centered card over a
+// dimmed page that is locked while it shows (Esc works like Cancel) before quitting.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bootPage } from "./harness.mjs";
+import { bootPage, trackKeydown } from "./harness.mjs";
 
 const settle = () => new Promise((r) => setTimeout(r, 20));
 const COUNTDOWN = 30;
@@ -148,13 +148,12 @@ test("a visible main window is left alone (Subscriptions is not closed)", async 
   assert.equal(t.calls.closeSubs, 0);
 });
 
-test("the countdown is a card in the middle of the page, not a corner toast, and nothing dims the page", async () => {
+test("the countdown is a card in the middle of the page, not a corner toast", async () => {
   const t = await boot();
   t.finish(); await settle();
   const card = t.d.getElementById("quit-card");
   assert.ok(card, "the card is there");
   assert.equal(card.parentElement, t.d.body, "on the page itself, not inside the toast corner");
-  assert.equal(card.closest(".modal-backdrop"), null, "no dimmed backdrop around it");
   assert.ok([...t.d.querySelectorAll("#toasts .toast")].every((el) => !/Quitting/.test(el.textContent)),
     "the countdown is not a corner toast any more (other toasts, such as Done, are unaffected)");
   const st = t.w.getComputedStyle(card);
@@ -218,4 +217,127 @@ test("the countdown label is set as text, and Cancel is a themed button", async 
   assert.equal(t.d.querySelector("#quit-card b"), null);
   assert.equal(t.d.querySelector("#quit-card").getAttribute("role"), "alert");
   assert.ok(t.d.querySelector("#quit-card button").classList.contains("btn-ghost"));
+});
+
+
+// ── The page is locked and dimmed while the card shows ─────────────────────
+const lockOf = (t) => t.d.getElementById("quit-lock");
+const rest = (t) => [...t.d.body.children].filter((el) => el.id !== "quit-lock" && el.id !== "quit-card");
+const escape = (t) => {
+  const ev = new t.w.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true });
+  t.d.body.dispatchEvent(ev);
+  return ev;
+};
+const assertUnlocked = (t, why) => {
+  assert.equal(lockOf(t), null, `${why}: the dim layer is gone`);
+  assert.equal(t.d.getElementById("quit-card"), null, `${why}: the card is gone`);
+  assert.equal(t.d.querySelectorAll("[inert]").length, 0, `${why}: nothing is inert any more`);
+};
+
+test("the page is dimmed and locked while the card shows: a dim layer under the card, the rest inert", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  const lock = lockOf(t), card = t.d.getElementById("quit-card");
+  assert.ok(lock, "the dim layer is there");
+  assert.equal(lock.parentElement, t.d.body);
+  const others = rest(t);
+  assert.ok(others.length > 3, "the page has several top level parts");
+  assert.ok(others.every((el) => el.hasAttribute("inert")), "everything else is inert: no clicks, no Tab, hidden from screen readers");
+  assert.ok(!lock.hasAttribute("inert") && !card.hasAttribute("inert"), "the card and its layer stay live");
+  const ls = t.w.getComputedStyle(lock), cs = t.w.getComputedStyle(card);
+  assert.equal(ls.position, "fixed");
+  assert.ok(Number(ls.zIndex) > 10000, "above the update prompt (10000) and every other dialog");
+  assert.ok(Number(cs.zIndex) > Number(ls.zIndex), "the card sits above its own dim layer");
+});
+
+test("clicking the dim layer does nothing: the countdown and the card stay", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  lockOf(t).click();
+  assert.ok(t.d.getElementById("quit-card"));
+  assert.ok(t.w.eval("_qodTimer"));
+  assert.equal(t.calls.quit.filter((o) => !o.probe).length, 0);
+});
+
+test("Cancel has the focus when the card opens", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  assert.equal(t.d.activeElement, t.d.querySelector("#quit-card button"));
+});
+
+test("Cancel unlocks the page", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  t.d.querySelector("#quit-card button").click();
+  assertUnlocked(t, "Cancel");
+});
+
+const endings = {
+  "a new download starts": async (t, id) => { t.w.eval("items.push({ id: 50, status: 'downloading' })"); await t.tick(id); },
+  "the box is unticked": async (t, id) => { t.d.getElementById("quit-on-done-chk").checked = false; await t.tick(id); },
+  "a link starts being fetched": async (t, id) => { t.d.getElementById("fetch-btn").disabled = true; await t.tick(id); },
+  "the countdown ends and the app quits": async (t, id) => { for (let i = 0; i < COUNTDOWN; i++) await t.tick(id); },
+  "the final quit is refused (Subscriptions got busy)": async (t, id) => {
+    t.w.electronAPI.quit = async (o) => (o && o.probe ? { busy: true } : { busy: true });
+    for (let i = 0; i < COUNTDOWN; i++) await t.tick(id);
+  },
+};
+for (const [name, end] of Object.entries(endings)) {
+  test(`the page is unlocked again when ${name}`, async () => {
+    const t = await boot();
+    t.finish(); await settle();
+    const id = t.id();
+    await t.tick(id);
+    assert.ok(lockOf(t), "locked first");
+    await end(t, id);
+    assertUnlocked(t, name);
+  });
+}
+
+test("Esc works like Cancel: unlocks, stops the timer, touches no setting and does not quit", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  const savedBefore = t.saved.length;
+  const ev = escape(t);
+  assert.equal(ev.defaultPrevented, true);
+  assertUnlocked(t, "Esc");
+  assert.equal(t.w.eval("_qodTimer"), null);
+  assert.equal(t.calls.quit.filter((o) => !o.probe).length, 0);
+  assert.equal(t.d.getElementById("quit-on-done-chk").checked, true, "the saved checkbox stays on");
+  assert.equal(t.saved.length, savedBefore, "nothing is saved");
+});
+
+test("other keys leave the countdown running", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  for (const key of ["Enter", "Tab", " ", "a"]) t.d.body.dispatchEvent(new t.w.KeyboardEvent("keydown", { key, bubbles: true }));
+  assert.ok(t.d.getElementById("quit-card"));
+  assert.ok(lockOf(t));
+});
+
+test("Esc is taken by the card: nothing behind it also reacts, and it is free again afterwards", async () => {
+  const t = await boot();
+  let seen = 0;
+  t.w.addEventListener("keydown", (e) => { if (e.key === "Escape") seen++; });
+  t.finish(); await settle();
+  escape(t);
+  assert.equal(seen, 0, "the page's own Esc handlers do not see the key that cancelled the countdown");
+  escape(t);
+  assert.equal(seen, 1, "with the card gone, Esc reaches the page as before");
+});
+
+test("the Esc listener is added with the card and removed with it, whichever way it ends", async () => {
+  const t = await boot();
+  const keys = trackKeydown(t.d);
+  const base = keys.live;
+  for (let round = 0; round < 3; round++) {
+    t.finish(); await settle();
+    assert.equal(keys.live, base + 1, "one listener while the card shows");
+    const id = t.id();
+    if (round === 0) t.d.querySelector("#quit-card button").click();
+    else if (round === 1) escape(t);
+    else { t.w.eval("items.push({ id: 70, status: 'downloading' })"); await t.tick(id); }
+    assert.equal(keys.live, base, "none left behind");
+    t.w.eval("items.length = 0");
+  }
 });

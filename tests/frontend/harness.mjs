@@ -91,3 +91,13 @@ export function bootSubsPage({ probeBusy = false } = {}) {
     poll: () => w.eval("pollJobs()"),
   }), 900));
 }
+
+// Counts the capture phase keydown listeners a page adds to and removes from its document, so a test can
+// prove the "Quit when done" Esc handler is not left behind. Call it after boot; read `.live` later.
+export function trackKeydown(d) {
+  const n = { live: 0 };
+  const add = d.addEventListener.bind(d), rem = d.removeEventListener.bind(d);
+  d.addEventListener = (type, fn, o) => { if (type === "keydown" && o === true) n.live++; return add(type, fn, o); };
+  d.removeEventListener = (type, fn, o) => { if (type === "keydown" && o === true) n.live--; return rem(type, fn, o); };
+  return n;
+}
