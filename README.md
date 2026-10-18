@@ -106,12 +106,12 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="400" alt="All Themes, Dialup theme"/></a>
-      <br/><sub><b>All Themes</b> (Dialup theme)</sub>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Abyssal theme"/></a>
+      <br/><sub><b>Live Streams</b> (Abyssal theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="400" alt="Subscriptions, Matcha theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Matcha theme)</sub>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Cobalt Rush theme"/></a>
+      <br/><sub><b>Live Stream Reconnecting</b> (Cobalt Rush theme)</sub>
     </td>
   </tr>
 </table>
@@ -119,11 +119,37 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Mint theme"/></a>
+      <br/><sub><b>Quit When Done</b> (Mint theme)</sub>
+    </td>
+    <td align="center" width="50%">
       <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Arch Linux theme"/></a>
       <br/><sub><b>Advanced Panel, Plugins</b> (Arch Linux theme)</sub>
     </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="400" alt="Download History, Velvet Rose theme"/></a>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Dialup theme"/></a>
+      <br/><sub><b>All Themes</b> (Dialup theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Toxic Orchid"/></a>
+      <br/><sub><b>Theme Creator</b> (custom Toxic Orchid theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Matcha theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Matcha theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Velvet Rose theme"/></a>
       <br/><sub><b>Download History</b> (Velvet Rose theme)</sub>
     </td>
   </tr>
