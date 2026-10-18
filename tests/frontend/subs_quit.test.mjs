@@ -291,3 +291,26 @@ test("the Esc listener is added with the card and removed with it, whichever way
     assert.equal(keys.live, base, "none left behind");
   }
 });
+
+// ── Round 5 review ───────────────────────────────────────────────────────────
+test("no other key handler runs while the card shows", async () => {
+  const t = await counting();
+  let seen = 0;
+  t.w.addEventListener("keydown", () => seen++);
+  bar(t).querySelector("button").dispatchEvent(new t.w.KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true }));
+  assert.equal(seen, 0);
+  assert.ok(bar(t));
+});
+
+test("an element that was inert before the card keeps it, also through the poll loop", async () => {
+  const t = await armedQueue();
+  const own = t.d.createElement("div");
+  own.setAttribute("inert", "");
+  t.d.body.appendChild(own);
+  await t.poll(); await settle();            // downloads still running: the loop calls stopQuitCountdown()
+  assert.ok(own.hasAttribute("inert"), "a poll with no card does not strip it");
+  t.status.j1 = "done";
+  await t.poll(); await settle();
+  bar(t).querySelector("button").click();
+  assert.ok(own.hasAttribute("inert"), "Cancel does not strip it either");
+});

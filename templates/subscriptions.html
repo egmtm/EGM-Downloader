@@ -820,9 +820,12 @@ function setQuitWhenDone(on) {
 // While the card shows the page is locked: a dim layer (#quit-lock) under it, every other
 // top level element `inert` (no clicks, no Tab, hidden from screen readers), and Esc works
 // like Cancel. Nothing is downloading at that moment, so the lock interrupts no work.
+let _quitInert = [];   // the elements this card made inert (one that was inert before keeps it)
+
 function _quitEsc(e) {
+  e.stopPropagation();   // no other key handler runs while the card shows (as in the main window)
   if (e.key !== 'Escape') return;
-  e.preventDefault(); e.stopPropagation();   // not also closing something behind the card
+  e.preventDefault();   // not also closing something behind the card
   setQuitWhenDone(false);
 }
 
@@ -830,7 +833,8 @@ function stopQuitCountdown() {
   if (_quitTimer) { clearInterval(_quitTimer); _quitTimer = null; }
   document.getElementById('quit-card')?.remove();
   document.getElementById('quit-lock')?.remove();
-  for (const el of document.body.children) el.removeAttribute('inert');
+  for (const el of _quitInert) el.removeAttribute('inert');   // the poll loop calls this often: only what the card set
+  _quitInert = [];
   document.removeEventListener('keydown', _quitEsc, true);
 }
 
@@ -857,7 +861,8 @@ function startQuitCountdown() {
   lock.id = 'quit-lock';
   lock.className = 'quit-lock';
   document.body.append(lock, bar);
-  for (const el of document.body.children) if (el !== lock && el !== bar) el.setAttribute('inert', '');
+  _quitInert = [...document.body.children].filter(el => el !== lock && el !== bar && !el.hasAttribute('inert'));
+  for (const el of _quitInert) el.setAttribute('inert', '');
   document.addEventListener('keydown', _quitEsc, true);
   bar.querySelector('button').focus();
   const label = bar.firstChild;

@@ -341,3 +341,30 @@ test("the Esc listener is added with the card and removed with it, whichever way
     t.w.eval("items.length = 0");
   }
 });
+
+// ── Round 5 review: keys behind the lock, and inert the card did not set ─────
+test("the page's keyboard shortcuts do nothing while the card shows (Ctrl+S would hide this window)", async () => {
+  const t = await boot();
+  t.finish(); await settle();
+  let subs = 0;
+  t.d.getElementById("subs-btn").addEventListener("click", () => subs++);
+  const cancel = t.d.querySelector("#quit-card button");
+  for (const key of ["s", "v", "h", "t", ","]) cancel.dispatchEvent(new t.w.KeyboardEvent("keydown", { key, ctrlKey: true, bubbles: true, cancelable: true }));
+  assert.equal(subs, 0, "Ctrl+S did not open Subscriptions behind the lock");
+  assert.ok(!t.d.getElementById("hamburger-panel")?.classList.contains("open"), "no panel opened behind the lock");
+  assert.ok(t.d.getElementById("quit-card"), "the countdown goes on");
+  t.d.querySelector("#quit-card button").click();
+  t.d.body.dispatchEvent(new t.w.KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true, cancelable: true }));
+  assert.equal(subs, 1, "after the card, the shortcut works again");
+});
+
+test("an element that was inert before the card stays inert after it", async () => {
+  const t = await boot();
+  const own = t.d.createElement("div");
+  own.setAttribute("inert", "");
+  t.d.body.appendChild(own);
+  t.finish(); await settle();
+  t.d.querySelector("#quit-card button").click();
+  assert.ok(own.hasAttribute("inert"), "the card only clears the inert it set");
+  assert.equal([...t.d.body.children].filter((el) => el !== own && el.hasAttribute("inert")).length, 0);
+});

@@ -216,9 +216,15 @@ function _qodArmed() {
     && !document.getElementById('fetch-btn')?.disabled);   // a link being fetched is not in items yet: the user is adding work
 }
 
+let _qodInert = [];   // the elements this card made inert (one that was inert before keeps it)
+
 function _qodEsc(e) {
+  // No other key handler runs while the card shows: the page's shortcuts act by click() on their
+  // buttons, which still fires on an inert one (Ctrl+S would open Subscriptions and hide this window
+  // with the countdown running). Tab, Enter and Space keep their default action on Cancel.
+  e.stopPropagation();
   if (e.key !== 'Escape') return;
-  e.preventDefault(); e.stopPropagation();   // not also closing something behind the card
+  e.preventDefault();   // not also closing something behind the card
   _qodStop();
 }
 
@@ -226,7 +232,8 @@ function _qodEsc(e) {
 function _qodHide() {
   if (_qodCard) { _qodCard.remove(); _qodCard = null; }
   document.getElementById('quit-lock')?.remove();
-  for (const el of document.body.children) el.removeAttribute('inert');
+  for (const el of _qodInert) el.removeAttribute('inert');
+  _qodInert = [];
   document.removeEventListener('keydown', _qodEsc, true);
 }
 
@@ -250,7 +257,8 @@ function _qodShowCard() {
   lock.id = 'quit-lock';
   lock.className = 'quit-lock';
   document.body.append(lock, card);
-  for (const el of document.body.children) if (el !== lock && el !== card) el.setAttribute('inert', '');
+  _qodInert = [...document.body.children].filter(el => el !== lock && el !== card && !el.hasAttribute('inert'));
+  for (const el of _qodInert) el.setAttribute('inert', '');
   document.addEventListener('keydown', _qodEsc, true);
   cancel.focus();
   return card;
