@@ -33,6 +33,7 @@
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
   <a href="#roadmap">🗺️ Roadmap</a> ·
+  <a href="https://egerena.com/apps/egm-downloader.html">🌐 Website</a> ·
   <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
 </p>
 
