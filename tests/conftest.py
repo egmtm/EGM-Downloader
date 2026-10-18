@@ -7,6 +7,9 @@ import pytest
 # ── Safe app import ────────────────────────────────────────────────────────────
 # Set env vars before importing Flask app so it starts in test mode.
 os.environ.setdefault("EGM_API_TOKEN", "ci-test-token-not-secret")
+# Several tests load windows/launch.py; on Windows its top level would otherwise re-run it under
+# pythonw.exe (starting the real launcher) and exit the test process.
+os.environ.setdefault("EGM_SILENT", "1")
 sys.argv = ["app.py"]
 
 

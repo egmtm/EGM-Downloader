@@ -79,6 +79,10 @@ def check(launch, fetch=fetch, download=False, out=print):
 
 
 def main():
+    # Loading launch.py runs its top level. On Windows that re-executes the launcher under
+    # pythonw.exe and exits 0 unless EGM_SILENT is set: it would start the app and this check
+    # would report success without having checked anything.
+    os.environ["EGM_SILENT"] = "1"
     spec = importlib.util.spec_from_file_location("egm_launch_pin_check", LAUNCH)
     launch = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(launch)

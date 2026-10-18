@@ -206,6 +206,7 @@ def test_the_pinned_download_is_extracted(env, monkeypatch):
     urllib.error.HTTPError("https://nodejs.org/dist/x.zip", 503, "Service Unavailable", {}, None),
     ConnectionResetError("connection reset"),                      # dropped in the middle
     TimeoutError("timed out"),
+    __import__("http.client").client.IncompleteRead(b"half"),      # the server closed a chunked reply early
 ])
 def test_a_network_failure_says_what_to_do_and_leaves_nothing_behind(env, monkeypatch, error):
     online = env.mod.urllib.request.urlretrieve

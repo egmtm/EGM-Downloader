@@ -1,5 +1,6 @@
 """EGM Downloader — launcher (no console window)"""
 import os, sys, shutil, zipfile, subprocess, urllib.request, urllib.parse, urllib.error, json, time, hashlib, re
+import errno, http.client
 import socket, threading
 from pathlib import Path
 
@@ -464,7 +465,7 @@ def ensure_node():
                         shutil.copyfileobj(src, dst)
         tmp.unlink(missing_ok=True)
         return str(NODE_EXE)
-    except (urllib.error.URLError, ConnectionError, TimeoutError):
+    except (urllib.error.URLError, ConnectionError, TimeoutError, http.client.HTTPException):
         # Offline, a failed name lookup, a timeout or a connection that dropped in the middle
         # of the download. Nothing is kept (no node.exe, no partial zip), so the next start
         # simply tries again. Say what to do instead of showing the raw network error.
@@ -537,9 +538,11 @@ def _take_launcher_lock():
         else:
             import fcntl
             fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except OSError:
+    except OSError as e:
         fh.close()
-        return False
+        # Only "someone else holds it" means another launcher. Any other failure (a share or a
+        # redirected folder that cannot lock files) must not keep the app from ever starting.
+        return e.errno not in (errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK)
     _LAUNCH_LOCK = fh
     return True
 
@@ -607,8 +610,8 @@ def _proxy_endpoint():
     for n in _PROXY_VARS:
         v = (os.environ.get(n) or "").strip()
         if v:
-            u = urllib.parse.urlparse(v if "://" in v else "http://" + v)
-            try:
+            try:   # urlparse itself raises on a broken IPv6 literal ("http://[::1"), .port on a bad port
+                u = urllib.parse.urlparse(v if "://" in v else "http://" + v)
                 port = u.port
             except ValueError:
                 return None
@@ -747,9 +750,16 @@ def ensure_npm(node_exe, force=False):
         if not ok:
             if kind == "major":
                 # The new app needs the new Electron. The old one is still in place,
-                # so the next launch (online) simply tries again.
-                _gui_msg("Electron update failed. Check your internet connection and "
-                         "start EGM Downloader again.")
+                # so the next launch simply tries again. Blame the connection only when
+                # the download servers really cannot be reached now: a full disk or an
+                # antivirus holding the files fails the same way with the network fine.
+                if not _update_hosts_reachable():
+                    _gui_msg("Electron update failed. Check your internet connection and "
+                             "start EGM Downloader again.")
+                else:
+                    _gui_msg("Electron update failed. Make sure there is enough free disk space "
+                             "and that no other program (such as an antivirus) is blocking the "
+                             "EGM Downloader folder, then start EGM Downloader again.")
                 time.sleep(8); sys.exit(1)
             _gui_msg("Could not update Electron, keeping the current version")
             time.sleep(3)

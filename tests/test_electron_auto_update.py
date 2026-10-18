@@ -185,11 +185,40 @@ def test_failed_major_update_exits_but_keeps_the_old_install_for_the_retry(env):
     _write_pins(env.dir, "^45.0.0", "45.0.0")
     _write_install(env.dir, "44.7.2")
     env.npm_ok = False
+    env.reachable = False                                   # offline: the servers cannot be reached
     with pytest.raises(SystemExit):
         env.mod.ensure_npm("node.exe")
     assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "old"
     assert env.mod._electron_update_kind() == "major"      # the next launch tries again
     assert "internet connection" in env.msgs[-1]           # says what to do, not just "failed"
+
+
+@pytest.mark.parametrize("failure", ["npm", "swap"])
+def test_a_failed_major_update_with_the_network_up_is_not_blamed_on_the_connection(env, monkeypatch, failure):
+    """A full disk (npm ENOSPC) or an antivirus holding the files (the swap) fails the same way
+    while the servers answer: the message must not send the user to check the connection."""
+    _write_pins(env.dir, "^45.0.0", "45.0.0")
+    _write_install(env.dir, "44.7.2")
+    if failure == "npm":
+        env.npm_ok, env.npm_error = False, b"npm error code ENOSPC\nnpm error nospc no space left on device"
+    else:
+        monkeypatch.setattr(env.mod, "_swap_electron", lambda new_nm: False)
+    with pytest.raises(SystemExit):
+        env.mod.ensure_npm("node.exe")
+    assert "internet" not in env.msgs[-1] and "disk space" in env.msgs[-1]
+    assert (env.dir / "node_modules" / "electron" / "marker.txt").read_text() == "old"
+
+
+def test_a_folder_that_cannot_lock_files_does_not_keep_the_app_from_starting(env, monkeypatch):
+    """Only "another launcher holds it" may stop the start; a share or folder without lock
+    support must not make every start exit silently."""
+    import errno
+    fcntl = pytest.importorskip("fcntl")                  # the Windows branch (msvcrt) maps to the same errno rule
+    def no_locks(*a, **k):
+        raise OSError(errno.ENOLCK, "No locks available")
+    monkeypatch.setattr(fcntl, "flock", no_locks)
+    assert env.mod._take_launcher_lock() is True
+    env.mod._LAUNCH_LOCK = None
 
 
 def test_swap_failure_puts_the_old_electron_back(env, monkeypatch):
@@ -363,6 +392,8 @@ def test_behind_a_proxy_the_proxy_and_github_are_checked(monkeypatch, var):
     ("http://user:pw@proxy.example", [("proxy.example", 80), ("github.com", 443)]),     # default ports
     ("https://proxy.example", [("proxy.example", 443), ("github.com", 443)]),
     ("http://proxy.example:99999", [("github.com", 443)]),                              # unreadable: npm decides
+    ("http://[::1", [("github.com", 443)]),                                             # broken IPv6: no crash
+    ("[::1]:3128", [("::1", 3128), ("github.com", 443)]),                               # IPv6 proxy
 ])
 def test_the_proxy_address_is_read_like_npm_reads_it(monkeypatch, value, want):
     mod = _load_launch(monkeypatch)
@@ -569,3 +600,22 @@ def test_the_reinstall_marker_no_longer_deletes_node_modules_first():
     assert 'shutil.rmtree(ELECTRON_DIR / "node_modules"' not in src
     assert "ensure_npm(node_exe, force=_reinstalling_electron)" in src
     assert "def _electron_needs_reinstall" not in src
+
+
+def test_a_read_only_install_folder_still_starts_the_app(env, monkeypatch):
+    """No lock file at all (a read-only folder, a policy that blocks the create) must not stop the start."""
+    real_open = open
+    def deny(path, *a, **k):
+        if str(path).endswith(".launcher.lock"):
+            raise PermissionError(13, "Access is denied")
+        return real_open(path, *a, **k)
+    monkeypatch.setattr("builtins.open", deny)
+    assert env.mod._take_launcher_lock() is True
+
+
+def test_two_proxy_settings_follow_npms_order(monkeypatch):
+    """npm prefers its own https-proxy setting over the environment's HTTPS_PROXY: check the one npm uses."""
+    mod = _load_launch(monkeypatch)
+    monkeypatch.setenv("HTTPS_PROXY", "http://env-proxy.example:1111")
+    monkeypatch.setenv("npm_config_https_proxy", "http://npm-proxy.example:2222")
+    assert mod._update_targets()[0] == ("npm-proxy.example", 2222)

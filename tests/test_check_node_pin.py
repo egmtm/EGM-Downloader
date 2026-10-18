@@ -215,3 +215,20 @@ def test_the_real_launcher_accepts_bytes_whose_hash_is_pinned_and_refuses_others
     assert code == 0
     code, _, _ = _run(real, _real_routes(real, _sha(zip_bytes), zip_bytes + b"!"), download=True)
     assert code == 1
+
+
+def test_running_the_script_on_windows_does_not_start_the_launcher(monkeypatch, tmp_path):
+    """launch.py re-executes itself under pythonw.exe at import on Windows unless EGM_SILENT is
+    set: the check would start the app and exit 0 ("the pin is right") without checking."""
+    import subprocess
+    import sys
+    (tmp_path / "pythonw.exe").write_text("")
+    started = []
+    monkeypatch.delenv("EGM_SILENT", raising=False)
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "executable", str(tmp_path / "python.exe"))
+    monkeypatch.setattr(subprocess, "Popen", lambda *a, **k: started.append(a))
+    script = _load("egm_check_node_pin_main", SCRIPT)
+    monkeypatch.setattr(script, "check", lambda launch, **k: 7)
+    assert script.main() == 7, "main ran the check"
+    assert started == [], "the launcher was started"
