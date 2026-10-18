@@ -549,3 +549,62 @@ const THEME_DATA = {
     goldengancar:     {label:'Golden Gun Car',    bg:'#060604', surf:'#0e0e0a', acc:'#d4a828', cat:'eras'},
 
 };
+
+// ── Seasonal windows ─────────────────────────────────────────────────────────
+// ONE table behind both seasonal pickers: the main window (js/_theme.html) and
+// the Themes window (themes.html). Every theme in the seasonal category needs an
+// entry in SEASONAL_FIXED or SEASONAL_VARIABLE (tests/test_seasonal_windows.py).
+// Fixed: [[startMonth,startDay],[endMonth,endDay]]; a window may wrap the new year.
+const SEASONAL_FIXED = {
+    valentines:    [[1,15],[3,15]],
+    velvetrose:    [[1,15],[3,15]],
+    stpatricks:    [[2,15],[4,16]],
+    fourthofjuly:  [[6,4],[8,3]],
+    halloween:     [[10,1],[11,30]],
+    thanksgiving:  [[11,1],[12,25]],
+    christmas:     [[11,25],[1,24]],
+    newyear:       [[12,2],[1,31]],
+    lunarnewyear:  [[1,15],[3,15]],
+    carnival:      [[1,15],[3,15]],
+    nowruz:        [[3,1],[4,20]],
+    pride:         [[6,1],[6,30]],
+    midsummer:     [[6,10],[7,10]],
+    dayofthedead:  [[10,15],[11,15]],
+    midautumn:     [[8,25],[10,15]],
+    oktoberfest:   [[9,1],[10,20]],
+    kwanzaa:       [[12,20],[1,10]],
+    threekingsday: [[12,7],[2,5]],
+    songkran:      [[3,14],[5,15]],
+    juneteenth:    [[5,20],[7,19]],
+    bastilleday:   [[6,14],[8,13]],
+    vaisakhi:      [[3,14],[5,14]],
+    obon:          [[7,14],[9,15]],
+    hanami:        [[3,20],[5,5]],
+};
+// Variable: the holiday date per year; shown from 30 days before to 30 days after.
+const SEASONAL_VARIABLE = {
+    easter:   {2025:[4,20],2026:[4,5],2027:[3,28],2028:[4,16],2029:[4,1],2030:[4,21]},
+    diwali:   {2025:[10,20],2026:[11,8],2027:[10,29],2028:[10,17],2029:[11,5],2030:[10,26]},
+    hanukkah: {2025:[12,14],2026:[12,4],2027:[12,24],2028:[12,12],2029:[12,1],2030:[12,20]},
+    eid:      {2025:[3,30],2026:[3,20],2027:[3,9],2028:[2,27],2029:[2,15],2030:[2,4]},
+    vesak:    {2025:[5,12],2026:[5,1],2027:[5,20],2028:[5,8],2029:[5,27],2030:[5,17]},
+    qingming: {2025:[4,4],2026:[4,5],2027:[4,5],2028:[4,4],2029:[4,4],2030:[4,5]},
+};
+// The set of seasonal theme keys whose window contains `now`.
+function seasonalVisibleKeys(now = new Date()) {
+  const y = now.getFullYear();
+  const doy = (mm,dd) => mm*100+dd;
+  const cur = doy(now.getMonth()+1, now.getDate());
+  const inRange = (s,e) => doy(s[0],s[1]) <= doy(e[0],e[1])
+    ? cur >= doy(s[0],s[1]) && cur <= doy(e[0],e[1])
+    : cur >= doy(s[0],s[1]) || cur <= doy(e[0],e[1]);
+  const addDays = (mm,dd,days) => { const dt = new Date(y,mm-1,dd+days); return [dt.getMonth()+1, dt.getDate()]; };
+  const windows = Object.assign({}, SEASONAL_FIXED);
+  Object.entries(SEASONAL_VARIABLE).forEach(([key,dates]) => {
+    const base = dates[y] || dates[y-1];
+    if (base) windows[key] = [addDays(base[0],base[1],-30), addDays(base[0],base[1],30)];
+  });
+  const visible = new Set();
+  Object.entries(windows).forEach(([key,win]) => { if (inRange(win[0],win[1])) visible.add(key); });
+  return visible;
+}
