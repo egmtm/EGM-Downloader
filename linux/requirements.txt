@@ -35,4 +35,4 @@ curl_cffi>=0.16.3,<0.17.0
 brotli>=1.2.0
 pycryptodomex>=3.24.1
 websockets>=17.2
-certifi>=2026.7.22
+certifi>=2026.10.18
