@@ -16,6 +16,7 @@ v1.5.0 - TBD (TBD)
   • [WINDOWS] Fixed: Starting the app without internet no longer shows a confusing "lockfile" message, and an Electron update is skipped when the update servers cannot be reached.
   • [WINDOWS] Changed: The Node.js that sets up Electron is updated to Node 24 LTS, because Node 20 has reached end of life and Electron 45 needs a newer one. The first start after the update downloads it once (about 36 MB). The installer welcome text now also shows the real size of the first launch download (about 400 MB, it said 250 MB).
   • [WINDOWS] Security: The Node.js download is now checked against a checksum built into the launcher, instead of one fetched at the same moment as the download, like the Python and pip downloads in the portable edition.
+  • [WINDOWS] Changed: Improved localization of the tray menu.
 
 v1.4.13 - ENCORE (Build 167) (10/17/2026)
 -----------------------------------------

@@ -51,7 +51,7 @@ function hardenWindow(win) {
   // on a different port; origin equality pins it to our own backend.
   win.webContents.on('will-navigate', (event, url) => {
     try {
-      const u = new URL(url);
+      const u = new URL(event.url ?? url);   // Electron 45 deprecates the positional url (event.url carries it)
       if (u.origin !== APP_URL) {
         event.preventDefault();
       }

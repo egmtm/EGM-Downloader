@@ -37,7 +37,7 @@ function hardenWindow(win) {
   // Block in-window navigation away from the exact Flask origin (scheme+host+port).
   win.webContents.on('will-navigate', (event, url) => {
     try {
-      const u = new URL(url);
+      const u = new URL(event.url ?? url);   // Electron 45 deprecates the positional url (event.url carries it)
       if (u.origin !== APP_URL) {
         event.preventDefault();
       }

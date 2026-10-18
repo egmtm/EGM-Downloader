@@ -14,3 +14,9 @@ def test_every_settings_helper_called_in_main_js_is_defined():
         defined = set(re.findall(r"function\s+(\w+)\s*\(", src)) | set(re.findall(r"(?:const|let)\s+(\w+)\s*=", src))
         called = set(_CALL.findall(src))
         assert called <= defined, (platform, sorted(called - defined))
+
+
+def test_will_navigate_reads_the_url_from_the_event():
+    for platform in ("windows", "mac", "linux"):
+        src = read_source(f"{platform}/electron/main.js")
+        assert "new URL(event.url ?? url)" in src, platform
