@@ -724,7 +724,7 @@ def ensure_npm(node_exe, force=False):
                      "Connect to the internet and start EGM Downloader again.")
             time.sleep(8); sys.exit(1)
         shutil.rmtree(nm, ignore_errors=True)
-        _gui_msg("Installing Electron (first run, ~250 MB)…")
+        _gui_msg("Installing Electron (first run, ~150 MB)…")
         if not _npm_install_electron(node_exe, ELECTRON_DIR):
             _gui_msg("Electron install failed"); time.sleep(4); sys.exit(1)
     else:

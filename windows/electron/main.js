@@ -302,7 +302,7 @@ const SHELL_FALLBACK = {
 function shellStrings() {
   const KEYS = { trayOpen: 'tray.open', trayQuit: 'tray.quit' };
   try {
-    const lang = _shellLang || (readSettings().language || 'en');
+    const lang = _shellLang || (loadSettings().language || 'en');   // this used to call a helper that does not exist, so the tray was always English
     if (!/^[a-z]{2}$/.test(lang)) return { ...SHELL_FALLBACK };
     const raw = JSON.parse(fs.readFileSync(
       path.join(__dirname, '..', 'languages', `${lang}.json`), 'utf8')).strings || {};
