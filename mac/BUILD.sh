@@ -253,8 +253,9 @@ full terms: https://github.com/egmtm/EGM-Downloader/blob/main/LICENSE
 EOF
 
 # ── Create zip with DMG + INSTRUCTIONS ────────────────────────────────────────
-zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt
-echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
+cp "$REPO_ROOT/LICENSE" LICENSE
+zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt LICENSE
+echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt and LICENSE)"
 echo ""
 
 # ── Compute SHA256 checksum ───────────────────────────────────────────────────

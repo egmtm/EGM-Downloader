@@ -105,7 +105,7 @@ echo ""
 echo "📋 Verifying source files..."
 MISSING=0
 for f in windows/launcher.c windows/launcher.rc windows/launch.py \
-         windows/instructions.txt app.py requirements.txt patchnotes.txt README.md \
+         windows/instructions.txt app.py requirements.txt patchnotes.txt README.md LICENSE \
          templates/index.html templates/history.html static/icon.ico static/icon-512.png \
          windows/electron/main.js windows/electron/preload.js windows/electron/package.json; do
     if [ ! -e "$REPO_ROOT/$f" ]; then
@@ -214,10 +214,12 @@ repo_root = Path("$REPO_ROOT")
 zip_path  = repo_root / "dist" / "EGMd.zip"
 exe_path  = repo_root / "dist" / "egm-setup.exe"
 ins_path  = repo_root / "windows" / "instructions.txt"
+lic_path  = repo_root / "LICENSE"
 
 with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
     zf.write(exe_path, "egm-setup.exe")
     zf.write(ins_path, "instructions.txt")
+    zf.write(lic_path, "LICENSE")
 
 print(f"   ✓ EGMd.zip created ({zip_path.stat().st_size / 1024 / 1024:.2f} MB)")
 PYZIP
@@ -233,7 +235,7 @@ zip_path = Path("$REPO_ROOT/dist/EGMd.zip")
 with zipfile.ZipFile(zip_path, "r") as zf:
     names = zf.namelist()
     print(f"   Files: {names}")
-    expected = {"egm-setup.exe", "instructions.txt"}
+    expected = {"egm-setup.exe", "instructions.txt", "LICENSE"}
     actual   = set(names)
     if expected != actual:
         raise SystemExit(f"❌ Unexpected zip contents. Expected {expected}, got {actual}")
@@ -306,6 +308,7 @@ cp "$REPO_ROOT/windows/launch.py"             "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/instructions.txt"      "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/app.py"                        "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/patchnotes.txt"                "$PORTABLE_STAGE/"
+cp "$REPO_ROOT/LICENSE"                        "$PORTABLE_STAGE/"
 
 # Templates
 cp "$REPO_ROOT/templates/index.html"           "$PORTABLE_STAGE/templates/"

@@ -161,12 +161,12 @@ if [ -z "$APPIMAGE" ]; then
 fi
 
 # Linux zip — no password (per EGM build rules)
-# Must contain: AppImage + INSTRUCTIONS.txt
+# Must contain: AppImage + INSTRUCTIONS.txt + LICENSE
 cd "$ELECTRON_DIR/dist"
 zip -r "$REPO_ROOT/dist/EGMdL.zip" "$(basename "$APPIMAGE")"
 cd "$LINUX_DIR"
-zip -j "$REPO_ROOT/dist/EGMdL.zip" "$LINUX_DIR/INSTRUCTIONS.txt"
-echo "   ✓ dist/EGMdL.zip created (AppImage + INSTRUCTIONS.txt)"
+zip -j "$REPO_ROOT/dist/EGMdL.zip" "$LINUX_DIR/INSTRUCTIONS.txt" "$REPO_ROOT/LICENSE"
+echo "   ✓ dist/EGMdL.zip created (AppImage + INSTRUCTIONS.txt + LICENSE)"
 echo ""
 
 # ── Compute SHA256 checksum ───────────────────────────────────────────────────

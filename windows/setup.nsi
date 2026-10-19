@@ -347,6 +347,7 @@ Section "Install"
   File "${REPO_ROOT}/windows/instructions.txt"
   File "${REPO_ROOT}/app.py"
   File "${REPO_ROOT}/patchnotes.txt"
+  File "${REPO_ROOT}/LICENSE"
 
   ; ── templates\ ──
   SetOutPath "$INSTDIR\templates"
@@ -485,6 +486,7 @@ Section "Uninstall"
   Delete "$INSTDIR\app.py"
   Delete "$INSTDIR\rcedit-x64.exe"
   Delete "$INSTDIR\patchnotes.txt"
+  Delete "$INSTDIR\LICENSE"
   Delete "$INSTDIR\first-run-language.txt"
 
   RMDir /r "$INSTDIR\templates"
