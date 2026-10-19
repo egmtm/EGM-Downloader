@@ -1,7 +1,9 @@
 <div align="center">
-  <img src=".github/images/logo-512.png" alt="EGM Downloader Logo" width="180"/>
-  
-  <h1>EGM Downloader</h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset=".github/images/banner-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset=".github/images/banner-light.png">
+    <img src=".github/images/banner-light.png" alt="EGM Downloader: a downloader with a wardrobe. Free, open source, no account. Windows, macOS and Linux. egm.egerena.com">
+  </picture>
   
   <p>
     <img src="https://img.shields.io/badge/dynamic/json?url=https://egerena.com/version.json&query=version&label=version&style=flat-square&color=0078b0" alt="Version"/>
