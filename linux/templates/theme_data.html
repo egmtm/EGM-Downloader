@@ -598,13 +598,14 @@ function seasonalVisibleKeys(now = new Date()) {
   const inRange = (s,e) => doy(s[0],s[1]) <= doy(e[0],e[1])
     ? cur >= doy(s[0],s[1]) && cur <= doy(e[0],e[1])
     : cur >= doy(s[0],s[1]) || cur <= doy(e[0],e[1]);
-  const addDays = (mm,dd,days) => { const dt = new Date(y,mm-1,dd+days); return [dt.getMonth()+1, dt.getDate()]; };
-  const windows = Object.assign({}, SEASONAL_FIXED);
-  Object.entries(SEASONAL_VARIABLE).forEach(([key,dates]) => {
-    const base = dates[y] || dates[y-1];
-    if (base) windows[key] = [addDays(base[0],base[1],-30), addDays(base[0],base[1],30)];
-  });
   const visible = new Set();
-  Object.entries(windows).forEach(([key,win]) => { if (inRange(win[0],win[1])) visible.add(key); });
+  Object.entries(SEASONAL_FIXED).forEach(([key,win]) => { if (inRange(win[0],win[1])) visible.add(key); });
+  // Variable holidays use real dates: this year's (the last known date once the table runs out) and last
+  // year's, so a window that runs past New Year (Hanukkah) is not cut short or borrowed from the wrong year.
+  const today = new Date(y, now.getMonth(), now.getDate());
+  const daysFrom = (Y,mm,dd) => Math.round((today - new Date(Y,mm-1,dd)) / 86400000);
+  Object.entries(SEASONAL_VARIABLE).forEach(([key,dates]) => {
+    if ([[y-1, dates[y-1]], [y, dates[y] || dates[y-1]]].some(([Y,b]) => b && Math.abs(daysFrom(Y,b[0],b[1])) <= 30)) visible.add(key);
+  });
   return visible;
 }
