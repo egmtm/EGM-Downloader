@@ -35,7 +35,7 @@ const TOAST_DURATION = 4500;  // ms before toast auto-dismisses
 function compareVersions(current, latest) {
   const c = current.replace(/^v/, '').split('.').map(Number);
   const l = latest.replace(/^v/, '').split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < Math.max(c.length, l.length); i++) {
     if ((l[i] || 0) > (c[i] || 0)) return 1;   // latest is newer
     if ((l[i] || 0) < (c[i] || 0)) return -1;  // current is newer (dev build)
   }

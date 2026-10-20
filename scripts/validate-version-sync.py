@@ -15,7 +15,7 @@ consistent across the codebase. It checks that version.json matches:
   Linux:
     - linux/app.py (APP_VERSION, APP_BUILD)
     - linux/templates/index.html (title, header + footer tooltips, visible spans)
-    - linux/electron/package.json (version == "X.Y.Z" where Z=0)
+    - linux/electron/package.json (version == the first three numbers of the app version)
     - linux/INSTRUCTIONS.txt (header)
 
   Mac:
@@ -122,6 +122,12 @@ def check_root_index_html(v, b, date, time):
     return errors
 
 
+def semver3(v):
+    """Same rule as bump-version.py: Linux and Mac package.json carry the first
+    three numbers of the app version (electron-builder needs strict X.Y.Z)."""
+    return ".".join(v.split(".")[:3])
+
+
 def check_windows_package_json(v):
     errors = []
     rel = "windows/electron/package.json"
@@ -202,7 +208,7 @@ def check_linux_package_json(v):
     data = _read_json_or_miss(ROOT / rel, rel, errors)
     if data is None:
         return errors
-    expected = v
+    expected = semver3(v)
     if data.get("version") != expected:
         errors.append(f"{rel}: version is '{data.get('version')}', expected '{expected}'")
     return errors
@@ -234,7 +240,7 @@ def check_mac_package_json(v):
     if data is None:
         return errors
 
-    expected = v
+    expected = semver3(v)
     if data.get("version") != expected:
         errors.append(f"{rel}: version is '{data.get('version')}', expected '{expected}'")
 
