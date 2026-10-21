@@ -23,6 +23,12 @@ jobs:
         run: |
           pip install flask mutagen cryptography pytest
 
+      - name: Install ffmpeg
+        # The ffmpeg tests skip silently when ffmpeg or ffprobe is missing.
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends ffmpeg
+
       - name: Lint CSS — --muted discipline
         run: bash scripts/lint-css-muted.sh
 
@@ -44,3 +50,10 @@ jobs:
           python -m pytest -v --tb=short
         env:
           EGM_API_TOKEN: ci-test-token-not-secret
+
+      - name: Frontend tests (jsdom)
+        working-directory: tests/frontend
+        run: |
+          npm ci
+          EGM_DEV_MODE=1 python render_page.py "$RUNNER_TEMP/egm_rendered_index.html"
+          EGM_RENDERED_PAGE="$RUNNER_TEMP/egm_rendered_index.html" node --test

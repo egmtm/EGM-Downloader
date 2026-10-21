@@ -41,12 +41,12 @@ function i18nFmt(key, ...args) {
   return v.replace(/\{(\d+)\}/g, (_, i) => (args[i] !== undefined ? String(args[i]) : ''));
 }
 
-// For translated values interpolated into HTML-attribute positions of
-// template literals (tooltips on rebuilt cards): escape for attribute context.
-// Escapes &, ", < — sufficient ONLY for double-quoted attributes (every call
-// site in this codebase uses title="${i18nAttr(...)}"). Does not escape ' —
-// if a future call site ever uses a single-quoted attribute, add that escape
-// or this function stops being safe there.
+// For translated values interpolated into template literals that become HTML:
+// a double-quoted attribute value (tooltips on rebuilt cards) or element content.
+// Escapes &, ", < — that is all either of those two places needs. It does NOT
+// escape ', so it is NOT safe inside a single-quoted attribute: no call site may
+// use one (tests/test_i18n_attr_contexts.py fails if one appears). If one is ever
+// needed, add the ' escape here first.
 function i18nAttr(key, fallback) {
   const v = i18nGet(key);
   return String(v === null ? fallback : v)

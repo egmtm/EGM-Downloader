@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v1.4.14</title>
+  <title>EGM Downloader v1.5.0</title>
   <style>
 {% include 'index_styles.html' %}  </style>
 </head>
@@ -2308,6 +2308,28 @@
         </div>
       </div>
     </div>
+    <div class="set-toggles" id="sponsorblock-row" style="background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);padding:8px 12px;margin-top:8px">
+      <div class="sw-wrap">
+      <input type="checkbox" class="sw" id="sponsorblock-enabled-chk">
+      <span style="font-size:.76rem;color:var(--text);font-weight:600" data-i18n-attr="title:tooltip.sponsorblock" title="Automatically remove selected segment types from downloaded YouTube videos, using the community-run SponsorBlock database" data-i18n="settings.toggle.sponsorblock">SponsorBlock</span>
+      </div>
+      <div class="sw-wrap sb-category" data-sb-cat="sponsor">
+      <input type="checkbox" class="sw" id="sb-cat-sponsor-chk">
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.sponsorblock_sponsor" title="Paid sponsor reads and advertisements" data-i18n="settings.toggle.sponsorblock_sponsor">Sponsor</span>
+      </div>
+      <div class="sw-wrap sb-category" data-sb-cat="selfpromo">
+      <input type="checkbox" class="sw" id="sb-cat-selfpromo-chk">
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.sponsorblock_selfpromo" title="Unpaid self-promotion for the creator's own channel or content" data-i18n="settings.toggle.sponsorblock_selfpromo">Self Promo</span>
+      </div>
+      <div class="sw-wrap sb-category" data-sb-cat="intro">
+      <input type="checkbox" class="sw" id="sb-cat-intro-chk">
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.sponsorblock_intro" title="Intermission or intro animation" data-i18n="settings.toggle.sponsorblock_intro">Intro</span>
+      </div>
+      <div class="sw-wrap sb-category" data-sb-cat="outro">
+      <input type="checkbox" class="sw" id="sb-cat-outro-chk">
+      <span style="font-size:.76rem;color:var(--text2)" data-i18n-attr="title:tooltip.sponsorblock_outro" title="Endcards and credits at the end of the video" data-i18n="settings.toggle.sponsorblock_outro">Outro</span>
+      </div>
+    </div>
     <div class="set-toggles">
       <div class="sw-wrap">
       <input type="checkbox" class="sw" id="check-updates-on-launch-chk">
@@ -2346,7 +2368,7 @@
   </div>
   <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
     <button id="footer-whatsnew-btn" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit" data-i18n="footer.btn.whatsnew">What's New</button>
-    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.4.14</span>
+    <span id="footer-version-pill" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">v1.5.0</span>
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.website">egerena.com</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.github">GitHub</a>
     <a href="https://x.com/EGMDownloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">@EGMDownloader</a>
@@ -2527,7 +2549,7 @@
 
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3 id="whats-new-heading"><span id="whats-new-title-before"></span><span id="whats-new-version">v1.4.14</span><span id="whats-new-title-after"></span></h3>
+    <h3 id="whats-new-heading"><span id="whats-new-title-before"></span><span id="whats-new-version">v1.5.0</span><span id="whats-new-title-after"></span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <!-- lint-allow-muted: loading-state -->
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>

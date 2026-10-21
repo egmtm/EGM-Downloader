@@ -1588,20 +1588,81 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
     # The range must actually admit the pin. Asserting the range SHAPE first
     # keeps this an invariant rather than a whitelist: a range form this parser
     # cannot reason about fails loudly instead of silently passing.
+    #
+    # Two forms are understood:
+    #   ^X.Y.Z       -- the normal stable-release case. The pin must be >= the
+    #                   floor and share the same major (a caret range's own
+    #                   contract), same as before.
+    #   X.Y.Z-TAG.N  -- an exact pre-release pin (e.g. testing an Electron
+    #                   alpha/beta ahead of its stable release). npm's own
+    #                   semver treats a caret range as NOT matching a
+    #                   pre-release of a different line, so pinning an alpha
+    #                   means declaring the exact version with no caret at
+    #                   all -- there is no "floor" to check here, the
+    #                   declared string simply must equal what actually
+    #                   resolved into the lockfile.
+    #   X.Y.Z        -- an exact stable pin (the 1.5 line pins the Electron it
+    #                   ships exactly); same rule, the declared string must
+    #                   equal what resolved into the lockfile.
     rng = next(iter(set(ranges.values())))
     pinned = pins[platforms[0]][0]
-    assert re.fullmatch(r'\^\d+\.\d+\.\d+', rng), (
-        f"Electron range {rng!r} is not the ^X.Y.Z form this guard understands; "
-        "widen the check deliberately rather than leaving the pin unverified."
-    )
-    floor = tuple(int(n) for n in rng.lstrip("^").split("."))
-    got = tuple(int(n) for n in pinned.split("."))
-    assert got[0] == floor[0] and got >= floor, (
-        f"Electron lockfile pins {pinned} which does not satisfy {rng} -- "
-        "package.json was bumped without regenerating package-lock.json, so "
-        "`npm ci` would reject the lockfile and the build would fall back to "
-        "a non-deterministic `npm install`."
-    )
+    if re.fullmatch(r'\^\d+\.\d+\.\d+', rng):
+        # A caret range can never be satisfied by a pre-release (npm semver
+        # excludes them), so reject that pairing explicitly. Without this,
+        # int() on the "0-alpha" component raised ValueError instead of the
+        # assertion below -- the test still failed, but with a parse error
+        # rather than the message explaining what to do about it.
+        assert re.fullmatch(r'\d+\.\d+\.\d+', pinned), (
+            f"Electron package.json declares the caret range {rng!r} but the "
+            f"lockfile pins the pre-release {pinned!r} -- a caret range never "
+            "matches a pre-release, so `npm ci` would reject this lockfile. "
+            "Either pin the pre-release exactly in package.json, or regenerate "
+            "the lockfile against a stable release."
+        )
+        floor = tuple(int(n) for n in rng.lstrip("^").split("."))
+        got = tuple(int(n) for n in pinned.split("."))
+        assert got[0] == floor[0] and got >= floor, (
+            f"Electron lockfile pins {pinned} which does not satisfy {rng} -- "
+            "package.json was bumped without regenerating package-lock.json, so "
+            "`npm ci` would reject the lockfile and the build would fall back to "
+            "a non-deterministic `npm install`."
+        )
+    elif re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?', rng):
+        assert rng == pinned, (
+            f"Electron package.json declares the exact pin {rng!r} but "
+            f"the lockfile pins {pinned!r} -- these must be identical for an "
+            "exact (non-caret) pin; regenerate the lockfile."
+        )
+    else:
+        raise AssertionError(
+            f"Electron range {rng!r} is neither the ^X.Y.Z form nor an exact "
+            "X.Y.Z or X.Y.Z-TAG.N pin this guard understands; widen the "
+            "check deliberately rather than leaving the pin unverified."
+        )
+
+
+# Version floors stated as "macOS <maj>.<min>" or "MINIMUM MACOS: <maj>.<min>".
+_MACOS_FLOOR = re.compile(r'(?:MINIMUM MACOS:|macOS)\s*(\d+\.\d+)', re.IGNORECASE)
+# Named releases carry the same claim in prose and drift independently.
+_MACOS_NAMES = {"big sur": "11.0", "monterey": "12.0", "ventura": "13.0",
+                "sonoma": "14.0", "sequoia": "15.0"}
+
+
+def _macos_floor_claims(line):
+    """The macOS versions one README or BUILD.sh line states as a requirement."""
+    # shields.io badge URLs spell release names with underscores
+    # ("macOS-Big_Sur+"), so normalise separators before matching --
+    # the badge is one of the six copies and would otherwise be the
+    # one this guard silently skipped.
+    low = line.lower().replace("_", " ").replace("-", " ")
+    # Only consider lines that are actually stating a requirement --
+    # patchnotes-style prose and theme names mention releases too.
+    if not any(w in low for w in ("requirement", "minimum macos", "macos-", "macos ")):
+        return []
+    # A theme named after a release ("Big Sur theme") is a name, not a floor: it only
+    # drops the release names, so a number such as "macOS 13.0" on the same line still counts.
+    names = [] if re.search(r"\btheme", low) else [v for name, v in _MACOS_NAMES.items() if name in low]
+    return _MACOS_FLOOR.findall(line) + names
 
 
 # Version floors stated as "macOS <maj>.<min>" or "MINIMUM MACOS: <maj>.<min>".
@@ -1875,3 +1936,40 @@ def test_response_csp_is_locked_and_identical_across_platforms():
         "Content-Security-Policy differs across platforms: "
         + "; ".join(f"{p}={v!r}" for p, v in seen.items())
     )
+
+
+def test_sponsorblock_allowlist_is_identical_across_platforms():
+    """SPONSORBLOCK_CATEGORIES is the allowlist every category list is filtered
+    against before it can reach a `--sponsorblock-remove` argument, and it is
+    hand-maintained in all three app.py files.
+
+    ALLOWED settings keys already have a parity guard
+    (test_allowed_keys_identical_across_platforms); this tuple did not.
+    Verified by mutation: adding "filler" to mac/app.py's tuple alone left the
+    whole suite green, so one platform could silently offer -- and pass through
+    -- a category the other two reject.
+    """
+    found = {}
+    for name, f in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
+        src = read_source(f)
+        m = re.search(r'^SPONSORBLOCK_CATEGORIES\s*=\s*\(([^)]*)\)', src, re.MULTILINE)
+        assert m, f"{f}: SPONSORBLOCK_CATEGORIES tuple not found (guard anchor lost)"
+        cats = tuple(re.findall(r'"([^"]+)"', m.group(1)))
+        assert cats, f"{f}: SPONSORBLOCK_CATEGORIES parsed as empty"
+        found[name] = cats
+
+    assert len(set(found.values())) == 1, (
+        "SPONSORBLOCK_CATEGORIES differs across platforms: "
+        + "; ".join(f"{n}={list(c)}" for n, c in sorted(found.items()))
+        + " -- all three must offer exactly the same category set."
+    )
+
+    # Mark-only categories are not removable via --sponsorblock-remove, so they
+    # must never enter the allowlist on any platform (the dedicated behavioural
+    # test in test_security.py covers the filter; this covers the data).
+    for name, cats in found.items():
+        for mark_only in ("poi_highlight", "chapter"):
+            assert mark_only not in cats, (
+                f"{name}: {mark_only!r} is mark-only and cannot be removed; "
+                "it must not appear in SPONSORBLOCK_CATEGORIES"
+            )

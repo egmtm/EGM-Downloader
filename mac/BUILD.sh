@@ -88,7 +88,8 @@ SITE="$PYTHON_DIR/lib/python3.11/site-packages"
 # Package managers — kept for runtime yt-dlp updates via Update Plugins
 # rm -rf "$SITE/pip" "$SITE/pip-"*.dist-info  # DO NOT STRIP — needed at runtime
 rm -rf "$SITE/setuptools" "$SITE/setuptools-"*.dist-info
-rm -rf "$SITE/pkg_resources" "$SITE/_distutils_hack"
+# distutils-precedence.pth imports _distutils_hack, so it goes with the module (left behind, Python prints an error at every start)
+rm -rf "$SITE/pkg_resources" "$SITE/_distutils_hack" "$SITE/distutils-precedence.pth"
 
 # Stdlib modules unused at runtime
 # rm -rf "$PYTHON_DIR/lib/python3.11/ensurepip"  # DO NOT STRIP — needed for pip
@@ -168,7 +169,7 @@ cat > INSTRUCTIONS.txt << 'EOF'
   EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-VERSION: v1.4.14
+VERSION: v1.5.0
 PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
 MINIMUM MACOS: 13.0 (Ventura) or later
 
@@ -253,8 +254,9 @@ full terms: https://github.com/egmtm/EGM-Downloader/blob/main/LICENSE
 EOF
 
 # ── Create zip with DMG + INSTRUCTIONS ────────────────────────────────────────
-zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt
-echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt)"
+cp "$REPO_ROOT/LICENSE" LICENSE
+zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt LICENSE
+echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt and LICENSE)"
 echo ""
 
 # ── Compute SHA256 checksum ───────────────────────────────────────────────────

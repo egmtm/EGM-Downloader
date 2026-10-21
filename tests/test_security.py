@@ -78,6 +78,120 @@ def test_thumbnail_https_url_is_attempted(app_mod):
     )
 
 
+# ── _clean_sponsorblock_categories — subprocess-arg allowlist ──────────────────
+# This is the single gate every SponsorBlock category list passes through before
+# it can reach a yt-dlp subprocess argument (settings save, subscription update,
+# and the download route itself all call it). If this regresses, unvalidated
+# client input could reach --sponsorblock-remove directly.
+
+def test_sponsorblock_categories_rejects_unknown_values(app_mod):
+    result = app_mod._clean_sponsorblock_categories(
+        ["sponsor", "not_a_real_category", "intro", "; rm -rf /"]
+    )
+    assert result == ["sponsor", "intro"], (
+        "unknown/malicious category strings must be dropped, not passed through"
+    )
+
+
+def test_sponsorblock_categories_rejects_non_list_input(app_mod):
+    for bad in ("sponsor", {"sponsor": True}, None, 42, True):
+        assert app_mod._clean_sponsorblock_categories(bad) == [], (
+            f"non-list input {bad!r} must return [], not raise or coerce"
+        )
+
+
+def test_sponsorblock_categories_dedupes_preserving_order(app_mod):
+    result = app_mod._clean_sponsorblock_categories(
+        ["outro", "sponsor", "outro", "sponsor", "intro"]
+    )
+    assert result == ["outro", "sponsor", "intro"], (
+        "duplicates must collapse to first occurrence, original order preserved"
+    )
+
+
+def test_sponsorblock_categories_excludes_mark_only_categories(app_mod):
+    """poi_highlight and chapter exist in SponsorBlock's data but are mark-only,
+    not removable via --sponsorblock-remove (verified directly against this app's
+    pinned yt-dlp binary) -- must never be offered, even if requested."""
+    result = app_mod._clean_sponsorblock_categories(["poi_highlight", "chapter", "sponsor"])
+    assert result == ["sponsor"], (
+        "poi_highlight/chapter are mark-only and must not pass this filter"
+    )
+    assert "poi_highlight" not in app_mod.SPONSORBLOCK_CATEGORIES
+    assert "chapter" not in app_mod.SPONSORBLOCK_CATEGORIES
+
+
+def test_no_unvalidated_sponsorblock_category_can_reach_the_yt_dlp_argv(app_mod, tmp_path, monkeypatch):
+    """Behavioural companion to the four unit tests above, which all call
+    _clean_sponsorblock_categories() directly.
+
+    Those tests prove the gate is CORRECT; none of them proves it is INSTALLED.
+    Verified by mutation: deleting the _clean_sponsorblock_categories() call from
+    start_download AND the defensive re-sanitize inside run_download -- so raw
+    client input is joined straight into the --sponsorblock-remove argument --
+    left the whole suite green. This drives the real argv instead: whatever ends
+    up after --sponsorblock-remove must be a subset of SPONSORBLOCK_CATEGORIES,
+    no matter which layer did the filtering.
+
+    (Severity bound, so this is read for what it is: the yt-dlp command is
+    spawned via subprocess.Popen(list(cmd)) with no shell, so an unfiltered
+    value lands as one argv element -- a malformed yt-dlp argument or a
+    TypeError, not command injection. This guards the allowlist boundary, not
+    an RCE.)
+    """
+    captured = {}
+
+    class _StopBeforeSpawn(Exception):
+        pass
+
+    def _fake_popen_yt(*cmd, **kw):
+        captured["cmd"] = list(cmd)
+        raise _StopBeforeSpawn()
+
+    monkeypatch.setattr(app_mod, "_popen_yt", _fake_popen_yt)
+
+    # All-string poison: a non-string member would make ",".join() raise before
+    # the argv is ever built, so the test would fail for the wrong reason.
+    poison = ["sponsor", "chapter", "poi_highlight", "filler",
+              "; rm -rf /", "--exec=curl http://example.invalid"]
+    url = "https://example.invalid/watch?v=1"
+    job_id = "pytest-sponsorblock-argv"
+    app_mod.jobs[job_id] = {
+        "status": "queued", "url": url, "title": "", "proc": None,
+        "cancelled": False, "download_dir": str(tmp_path), "format": "video",
+        "thumbnail": "",
+    }
+    try:
+        try:
+            app_mod.run_download(job_id, url, "video", None, str(tmp_path),
+                                 sponsorblock_categories=poison)
+        except _StopBeforeSpawn:
+            pass
+    finally:
+        app_mod.jobs.pop(job_id, None)
+
+    assert "cmd" in captured, (
+        "run_download never reached the yt-dlp spawn, so this guard proved "
+        "nothing -- the argv could not be inspected (an earlier exception, or "
+        "the spawn helper was renamed and this monkeypatch no longer applies)"
+    )
+    cmd = captured["cmd"]
+    assert "--sponsorblock-remove" in cmd, (
+        "expected --sponsorblock-remove in the argv when categories were "
+        f"requested; vacuity check for this guard. argv: {cmd}"
+    )
+    value = cmd[cmd.index("--sponsorblock-remove") + 1]
+    passed = value.split(",")
+    assert set(passed) <= set(app_mod.SPONSORBLOCK_CATEGORIES), (
+        f"unvalidated categories reached the yt-dlp argv: {passed!r} -- only "
+        f"{list(app_mod.SPONSORBLOCK_CATEGORIES)} may pass. The allowlist gate "
+        "is missing from at least one layer of this path."
+    )
+    assert passed == ["sponsor"], (
+        f"expected only the one legitimate category to survive, got {passed!r}"
+    )
+
+
 # ── serve_thumbnail — path traversal protection ────────────────────────────────
 
 def test_thumbnail_regex_blocks_path_traversal():

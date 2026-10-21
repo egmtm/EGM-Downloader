@@ -28,14 +28,14 @@ let _modalOk    = null;
 let chosenPath  = null;    // Absolute path string (Electron only)
 
 // ── Timing constants ──────────────────────────────────────────────────────────
-const QUIT_DELAY_MS  = 1500;  // ms after last download before quitting
+const QUIT_DELAY_MS  = 1500;  // ms before quitting after launching the update installer
 const TOAST_DURATION = 4500;  // ms before toast auto-dismisses
 
 // ── Version comparison — semver-safe ─────────────────────────────────────────
 function compareVersions(current, latest) {
   const c = current.replace(/^v/, '').split('.').map(Number);
   const l = latest.replace(/^v/, '').split('.').map(Number);
-  for (let i = 0; i < 3; i++) {
+  for (let i = 0; i < Math.max(c.length, l.length); i++) {
     if ((l[i] || 0) > (c[i] || 0)) return 1;   // latest is newer
     if ((l[i] || 0) < (c[i] || 0)) return -1;  // current is newer (dev build)
   }
@@ -192,7 +192,109 @@ function toastWithAction(msg, btnLabel, fn, ms = 8000) {
   t.appendChild(span);
   t.appendChild(btn);
   c.appendChild(t);
-  setTimeout(() => t.remove(), ms);
+  if (ms > 0) setTimeout(() => t.remove(), ms);   // ms 0 = stays until removed
+  return t;
+}
+
+// ── Quit when done (the saved checkbox in Advanced) ──────────────────────────
+// Started when a download or a bulk run completes. Waits until every card is
+// done (anything idle, running, failed or cancelled blocks it) and no other
+// window (Subscriptions) is still downloading, then shows a 30 second
+// countdown with Cancel (a card in the middle of the window, `.quit-card`) and
+// quits. Cancel only skips this exit; the saved setting is left alone. Same flow
+// and look as the Subscriptions "Quit when done".
+// While the card shows, the page is locked: a dim layer (`#quit-lock`) under it, every
+// other top level element `inert` (no clicks, no Tab, hidden from screen readers) and
+// Esc works like Cancel. Nothing is downloading at that moment, so the lock interrupts
+// no work; Cancel (or Esc) unlocks and the user carries on.
+const QUIT_COUNTDOWN_S = 30;
+let _qodTimer = null, _qodCard = null, _qodLeft = 0, _qodBusy = false;
+
+function _qodArmed() {
+  return !!(window.electronAPI?.quit && document.getElementById('quit-on-done-chk')?.checked
+    && items.every(i => i.status === 'done')
+    && !document.getElementById('fetch-btn')?.disabled);   // a link being fetched is not in items yet: the user is adding work
+}
+
+let _qodInert = [];   // the elements this card made inert (one that was inert before keeps it)
+
+function _qodEsc(e) {
+  // No other key handler runs while the card shows: the page's shortcuts act by click() on their
+  // buttons, which still fires on an inert one (Ctrl+S would open Subscriptions and hide this window
+  // with the countdown running). Tab, Enter and Space keep their default action on Cancel.
+  e.stopPropagation();
+  if (e.key !== 'Escape') return;
+  e.preventDefault();   // not also closing something behind the card
+  _qodStop();
+}
+
+// Takes the card and the lock away (every way the card can end goes through here).
+function _qodHide() {
+  if (_qodCard) { _qodCard.remove(); _qodCard = null; }
+  document.getElementById('quit-lock')?.remove();
+  for (const el of _qodInert) el.removeAttribute('inert');
+  _qodInert = [];
+  document.removeEventListener('keydown', _qodEsc, true);
+}
+
+function _qodStop() {
+  if (_qodTimer) { clearInterval(_qodTimer); _qodTimer = null; }
+  _qodHide();
+}
+
+function _qodShowCard() {
+  const card = document.createElement('div');
+  card.id = 'quit-card';
+  card.className = 'quit-card';
+  card.setAttribute('role', 'alert');
+  const label = document.createElement('span');
+  const cancel = document.createElement('button');
+  cancel.className = 'btn btn-ghost btn-sm';   // a themed button, like the Subscriptions card
+  cancel.textContent = i18nGet('card.btn.cancel') || 'Cancel';
+  cancel.addEventListener('click', _qodStop);
+  card.append(label, cancel);
+  const lock = document.createElement('div');
+  lock.id = 'quit-lock';
+  lock.className = 'quit-lock';
+  document.body.append(lock, card);
+  _qodInert = [...document.body.children].filter(el => el !== lock && el !== card && !el.hasAttribute('inert'));
+  for (const el of _qodInert) el.setAttribute('inert', '');
+  document.addEventListener('keydown', _qodEsc, true);
+  cancel.focus();
+  return card;
+}
+
+function quitWhenDoneCheck() {
+  if (_qodTimer || !_qodArmed()) return;
+  _qodTimer = setInterval(_qodStep, 1000);
+  _qodStep();
+}
+
+async function _qodStep() {
+  if (_qodBusy) return;
+  _qodBusy = true;
+  try {
+    if (!_qodArmed()) { _qodStop(); return; }   // unchecked, or something new started or failed
+    if (!_qodCard) {
+      // Waiting: only count down once the other window is idle too.
+      let r = null;
+      try { r = await window.electronAPI.quit({ whenIdle: true, probe: true }); } catch {}
+      if (!_qodTimer || !r || r.busy !== false || !_qodArmed()) return;
+      _qodLeft = QUIT_COUNTDOWN_S;
+      _qodCard = _qodShowCard();
+      // Hidden behind the Subscriptions window? Bring this window back so Cancel is reachable.
+      if (document.hidden) window.electronAPI.closeSubscriptions?.();
+    }
+    if (_qodLeft <= 0) {
+      // The main process refuses (busy) if the other window started downloading meanwhile.
+      const r = await window.electronAPI.quit({ whenIdle: true });
+      if (r && r.busy) _qodHide();   // refused: unlock and wait, a new card comes once idle
+      else _qodStop();   // quitting, or the call failed: no frozen card asking to quit again every second
+      return;
+    }
+    _qodCard.firstChild.textContent = i18nFmt('subscriptions.queue.quitting_in', _qodLeft) || `Quitting in ${_qodLeft}s`;
+    _qodLeft--;
+  } finally { _qodBusy = false; }
 }
 
 // ── Auto-check for updates on launch (silent — only acts if update found) ─────

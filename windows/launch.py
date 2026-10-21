@@ -1,5 +1,6 @@
 """EGM Downloader — launcher (no console window)"""
-import os, sys, shutil, zipfile, subprocess, urllib.request, json, time, hashlib, re
+import os, sys, shutil, zipfile, subprocess, urllib.request, urllib.parse, urllib.error, json, time, hashlib, re
+import errno, http.client
 import socket, threading
 from pathlib import Path
 
@@ -28,14 +29,21 @@ if sys.version_info < _PY_MIN:
 ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
 ELECTRON_DIR = ROOT / "electron"
-NODE_MIN     = (18, 0, 0)   # minimum Node.js version
-NODE_VERSION = "20.19.1"    # version to download if not found / outdated
+NODE_MIN     = (22, 12, 0)  # minimum Node.js version (Electron's installer, @electron/get 5, needs 22.12+)
+NODE_VERSION = "24.22.0"    # version to download if not found / outdated (Node 24 LTS)
 NODE_ZIP_NAME = f"node-v{NODE_VERSION}-win-x64.zip"
 NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
-# Official per-release checksum manifest. We download this over TLS and match the
-# zip's SHA-256 before extracting, so a tampered/corrupted mirror response can
-# never produce the node.exe that ends up running Electron (and our whole app).
-NODE_SHASUMS_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/SHASUMS256.txt"
+# PINNED SHA-256 of the exact zip above, keyed by the Node version it was taken from
+# (same fail-closed model as PY_SHA256 and PIP_SHA256). The pin ships inside the signed
+# installer, so the node.exe that ends up running Electron (and our whole app) is checked
+# against a hash nobody can swap on the way, and no manifest is fetched at run time.
+# To bump NODE_VERSION: copy the win-x64.zip line of
+# https://nodejs.org/dist/v<version>/SHASUMS256.txt into this table, in the same commit.
+# Then check it against nodejs.org (a mistyped pin is not caught by the tests):
+#   python3 scripts/check-node-pin.py --download
+NODE_ZIP_SHA256 = {
+    "24.22.0": "f9683a19877e12a9b167305c8db71040d812876359de21f0d2e97c3f321f80c3",
+}
 NODE_ZIP_DIR = f"node-v{NODE_VERSION}-win-x64"
 NODE_EXE     = NODE_DIR / "node.exe"
 NO_WIN       = 0x08000000 if sys.platform == "win32" else 0
@@ -97,24 +105,14 @@ def _py_log(msg):
 
 
 def _verify_node_zip(zip_path):
-    """Return True if zip_path's SHA-256 matches the official SHASUMS256.txt entry.
-    Fail-closed: any network/parse error or mismatch returns False."""
+    """Return True iff zip_path's SHA-256 equals the pinned NODE_ZIP_SHA256 for NODE_VERSION.
+    Fail-closed: no pin for this version, a malformed pin, an unreadable file or any
+    mismatch returns False. Nothing is fetched."""
+    expected = (NODE_ZIP_SHA256.get(NODE_VERSION) or "").strip().lower()
+    if not re.fullmatch(r"[0-9a-f]{64}", expected):
+        return False
     try:
-        with urllib.request.urlopen(NODE_SHASUMS_URL, timeout=30) as r:
-            sums = r.read().decode("utf-8", "replace")
-        expected = None
-        for line in sums.splitlines():
-            parts = line.split()
-            if len(parts) >= 2 and parts[-1].lstrip("*") == NODE_ZIP_NAME:
-                expected = parts[0].lower()
-                break
-        if not expected:
-            return False
-        h = hashlib.sha256()
-        with open(zip_path, "rb") as f:
-            for chunk in iter(lambda: f.read(1024 * 1024), b""):
-                h.update(chunk)
-        return h.hexdigest().lower() == expected
+        return _sha256_file(zip_path) == expected
     except Exception:
         return False
 
@@ -467,6 +465,15 @@ def ensure_node():
                         shutil.copyfileobj(src, dst)
         tmp.unlink(missing_ok=True)
         return str(NODE_EXE)
+    except (urllib.error.URLError, ConnectionError, TimeoutError, http.client.HTTPException):
+        # Offline, a failed name lookup, a timeout or a connection that dropped in the middle
+        # of the download. Nothing is kept (no node.exe, no partial zip), so the next start
+        # simply tries again. Say what to do instead of showing the raw network error.
+        try: tmp.unlink(missing_ok=True)
+        except Exception: pass
+        _gui_msg("Node.js could not be downloaded. Check your internet connection "
+                 "and start EGM Downloader again.")
+        time.sleep(8); sys.exit(1)
     except Exception as e:
         _gui_msg(f"ERROR: {e}")
         try: tmp.unlink(missing_ok=True)
@@ -500,14 +507,54 @@ def _ver_key(v):
     stage = {"alpha": 0, "beta": 1, "rc": 2}.get(m.group(4), 3)
     return (int(m.group(1)), int(m.group(2)), int(m.group(3)), stage, int(m.group(5) or 0))
 
+def _electron_install_complete(mod):
+    """True when `mod` (node_modules\\electron) holds a runnable binary AND the
+    path.txt that Electron's own installer writes LAST, after unpacking the zip. A
+    first install that was killed, or cut off on a slow link, leaves a package.json
+    without these. The launcher renames electron.exe after its first launch, so
+    either name counts."""
+    dist = mod / "dist"
+    return ((dist / "electron.exe").exists() or (dist / "EGM Downloader.exe").exists()) \
+        and (mod / "path.txt").exists()
+
+_LAUNCH_LOCK = None   # held for the life of this launcher (the OS drops it on exit, also on a crash)
+
+def _take_launcher_lock():
+    """False when another launcher is already setting up. _signal_running_instance()
+    only sees a running app (Flask answers once Electron is up), not a launcher that is
+    still installing or updating Electron: a second double click would then delete the
+    install or the update folder the first one is filling."""
+    global _LAUNCH_LOCK
+    try:
+        ELECTRON_DIR.mkdir(parents=True, exist_ok=True)
+        fh = open(ELECTRON_DIR / ".launcher.lock", "a+b")
+    except OSError:
+        return True   # no lock file at all: never block the start over it
+    try:
+        if sys.platform == "win32":
+            import msvcrt
+            fh.seek(0)
+            msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except OSError as e:
+        fh.close()
+        # Only "someone else holds it" means another launcher. Any other failure (a share or a
+        # redirected folder that cannot lock files) must not keep the app from ever starting.
+        return e.errno not in (errno.EACCES, errno.EAGAIN, errno.EWOULDBLOCK, errno.EDEADLK)
+    _LAUNCH_LOCK = fh
+    return True
+
 def _electron_update_kind():
-    """What the installed Electron needs: None (nothing), "missing" (not installed),
+    """What the installed Electron needs: None (nothing), "missing" (not installed,
+    or its install never finished: no binary or no path.txt),
     "major" (its major differs from package.json: the app needs the new one) or
     "update" (same major but older than the version the shipped package-lock.json
     pins, e.g. 44.7.1 against 44.7.2). Never "update" for a newer one, so a
     fallback `npm install` that landed on a newer release cannot cause a loop."""
     installed_pkg = ELECTRON_DIR / "node_modules" / "electron" / "package.json"
-    if not installed_pkg.exists():
+    if not installed_pkg.exists() or not _electron_install_complete(installed_pkg.parent):
         return "missing"
     try:
         installed = json.loads(installed_pkg.read_text(encoding="utf-8"))["version"]
@@ -526,36 +573,85 @@ def _electron_update_kind():
         pass   # on any parse error, don't force a reinstall: let the install proceed
     return None
 
-def _registry_reachable(timeout=6):
-    """True when registry.npmjs.org accepts a connection within `timeout` seconds.
-    Run in a helper thread because a name lookup can't be time limited directly, and
+# An Electron update needs two hosts: the npm registry (the package) and GitHub (the
+# binary). A TCP connect does not prove GitHub's download servers work; it only catches
+# the plain "blocked" case, which is the one worth skipping an optional update for.
+_UPDATE_HOSTS = ("registry.npmjs.org", "github.com")
+
+def _update_hosts_reachable(timeout=6, targets=None):
+    """True when every (host, port) an Electron install needs accepts a connection within
+    `timeout` seconds (default: _update_targets()). Each is tried in its own thread (all
+    together, one shared wait) because a name lookup can't be time limited directly, and
     a PC that is offline can sit in it for minutes (npm then looks stuck)."""
-    ok = []
-    def probe():
+    targets = list(_update_targets() if targets is None else targets)
+    ok = set()
+    def probe(target):
         try:
-            socket.create_connection(("registry.npmjs.org", 443), timeout=timeout).close()
-            ok.append(True)
+            socket.create_connection(target, timeout=timeout).close()
+            ok.add(target)
         except Exception:
             pass
-    t = threading.Thread(target=probe, daemon=True)
-    t.start()
-    t.join(timeout + 1)
-    return bool(ok)
+    threads = [threading.Thread(target=probe, args=(t,), daemon=True) for t in targets]
+    for t in threads:
+        t.start()
+    deadline = time.monotonic() + timeout + 1
+    for t in threads:
+        t.join(max(0.0, deadline - time.monotonic()))
+    return all(t in ok for t in targets)
+
+_PROXY_VARS = ("npm_config_https_proxy", "npm_config_proxy", "HTTPS_PROXY", "https_proxy")   # npm's order
+
+def _proxy_configured():
+    """True when the environment names a proxy (npm then goes through it)."""
+    return any(os.environ.get(n) for n in _PROXY_VARS)
+
+def _proxy_endpoint():
+    """(host, port) of the proxy npm will use, or None when none is set or it cannot be read."""
+    for n in _PROXY_VARS:
+        v = (os.environ.get(n) or "").strip()
+        if v:
+            try:   # urlparse itself raises on a broken IPv6 literal ("http://[::1"), .port on a bad port
+                u = urllib.parse.urlparse(v if "://" in v else "http://" + v)
+                port = u.port
+            except ValueError:
+                return None
+            return (u.hostname, port or (443 if u.scheme == "https" else 80)) if u.hostname else None
+    return None
+
+def _update_targets():
+    """Where an Electron install connects. npm fetches the package from the registry, or
+    through the proxy when one is set. Electron's install.js fetches the binary from
+    GitHub DIRECTLY even then: @electron/get only uses a proxy when ELECTRON_GET_USE_PROXY
+    is set, and Node's own fetch ignores HTTPS_PROXY. So behind a proxy the proxy itself is
+    checked (a dead one stalled every start), and GitHub stays in the list either way."""
+    github = ("github.com", 443)
+    if not _proxy_configured():
+        return [("registry.npmjs.org", 443), github]
+    proxy = _proxy_endpoint()
+    hops = [proxy] if proxy else []
+    return hops if os.environ.get("ELECTRON_GET_USE_PROXY") else hops + [github]
 
 def _npm_env(node_exe):
     return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
+
+def _npm_output(r):
+    """What a finished npm run printed, as text (bytes on a real run)."""
+    return "\n".join(x.decode("utf-8", "replace") if isinstance(x, bytes) else (x or "")
+                     for x in (r.stdout, r.stderr))
 
 def _npm_install_electron(node_exe, where):
     """Install Electron (and fetch its binary) into where/node_modules, using the
     package.json and package-lock.json in `where`. True iff the binary is there."""
     npm, env = _npm_env(node_exe)
     # Prefer `npm ci` for deterministic installs straight from package-lock.json
-    # (we now ship the lockfile). `ci` requires a lockfile that is present and in
-    # sync; if it's missing/out-of-sync it errors, so fall back to `install`.
+    # (we now ship the lockfile). `ci` requires a lockfile that is in sync with
+    # package.json; when it is not, npm reports EUSAGE and `install` is the way out.
+    # Any other failure (offline, a bad download) would fail the same way again after
+    # the same wait, so it is not retried and the lockfile message is not shown.
     if (where / "package-lock.json").exists():
         r = subprocess.run(npm + ["ci", "--omit=dev"], cwd=str(where), env=env,
                            capture_output=True, timeout=600, creationflags=NO_WIN)
-        if r.returncode != 0:
+        if r.returncode != 0 and "EUSAGE" in _npm_output(r):
             _gui_msg("Lockfile out of sync — falling back to npm install…")
             r = subprocess.run(npm + ["install", "--omit=dev"], cwd=str(where), env=env,
                                capture_output=True, timeout=600, creationflags=NO_WIN)
@@ -575,7 +671,7 @@ def _npm_install_electron(node_exe, where):
         _gui_msg("Downloading Electron runtime…")
         subprocess.run([node_exe, str(install_js)], cwd=str(mod),
                        env=env, capture_output=True, timeout=300, creationflags=NO_WIN)
-    return electron_exe.exists() or electron_renamed.exists()
+    return _electron_install_complete(mod)
 
 def _swap_electron(new_nm):
     """Put new_nm in place of the live node_modules. The old one is kept as
@@ -612,21 +708,30 @@ def ensure_npm(node_exe, force=False):
             shutil.rmtree(nm, ignore_errors=True)
             try: os.replace(old, nm)
             except Exception: pass
+    # A launcher stopped while npm was filling the stage leaves up to ~250 MB there.
+    # Clear it on every start, before any early return (offline, nothing to update).
+    shutil.rmtree(ELECTRON_DIR / ".electron-stage", ignore_errors=True)
     kind = _electron_update_kind()
     if kind is None and force:
         kind = "update"
     if kind is None:
         return
     if kind == "missing":
-        # Fresh install (or a damaged node_modules): nothing to keep.
+        # Fresh install (or a damaged node_modules): nothing to keep. Offline, npm would
+        # sit in name lookups for minutes and then fail: say so at once instead.
+        if not _update_hosts_reachable():
+            _gui_msg("Electron is not installed yet and its download servers cannot be reached. "
+                     "Connect to the internet and start EGM Downloader again.")
+            time.sleep(8); sys.exit(1)
         shutil.rmtree(nm, ignore_errors=True)
-        _gui_msg("Installing Electron (first run, ~250 MB)…")
+        _gui_msg("Installing Electron (first run, ~150 MB)…")
         if not _npm_install_electron(node_exe, ELECTRON_DIR):
             _gui_msg("Electron install failed"); time.sleep(4); sys.exit(1)
     else:
-        if kind == "update" and not force and not _registry_reachable():
-            # Offline: keep the current Electron without starting npm (which can look
-            # stuck for minutes). Nothing is shown; the next online launch tries again.
+        if kind == "update" and not force and not _update_hosts_reachable():
+            # Offline, GitHub blocked or the proxy down: keep the current Electron without
+            # starting npm (which can look stuck for minutes). Nothing is shown; the next
+            # launch that can reach them tries again.
             return
         _gui_msg("Updating Electron to new major version…" if kind == "major"
                  else "Updating Electron…")
@@ -645,8 +750,17 @@ def ensure_npm(node_exe, force=False):
         if not ok:
             if kind == "major":
                 # The new app needs the new Electron. The old one is still in place,
-                # so the next launch (online) simply tries again.
-                _gui_msg("Electron update failed"); time.sleep(4); sys.exit(1)
+                # so the next launch simply tries again. Blame the connection only when
+                # the download servers really cannot be reached now: a full disk or an
+                # antivirus holding the files fails the same way with the network fine.
+                if not _update_hosts_reachable():
+                    _gui_msg("Electron update failed. Check your internet connection and "
+                             "start EGM Downloader again.")
+                else:
+                    _gui_msg("Electron update failed. Make sure there is enough free disk space "
+                             "and that no other program (such as an antivirus) is blocking the "
+                             "EGM Downloader folder, then start EGM Downloader again.")
+                time.sleep(8); sys.exit(1)
             _gui_msg("Could not update Electron, keeping the current version")
             time.sleep(3)
             return
@@ -828,6 +942,10 @@ if __name__ == "__main__":
     # Check if the app is already running — if so, signal it to show and exit.
     # Must happen before _gui_init() so no Tkinter window ever flashes.
     if not _reinstalling_electron and _signal_running_instance():
+        sys.exit(0)
+    # Another launcher is still installing or updating Electron (the app is not up yet, so
+    # the check above cannot see it): leave it alone, it opens the app when it is done.
+    if not _take_launcher_lock():
         sys.exit(0)
 
     # No _gui_init() here — the progress window is created lazily by _gui_msg()

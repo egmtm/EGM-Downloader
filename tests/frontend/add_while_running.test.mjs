@@ -1,0 +1,1021 @@
+// Main window: adding videos while others are fetched or downloading.
+// Fetch only adds (a link already in the list is skipped), Clear never removes a running
+// download, and a second Download all hands its new cards to the run that is going.
+import { test, after } from "node:test";
+import assert from "node:assert/strict";
+import { bootPage, en } from "./harness.mjs";
+
+const settle = (ms = 80) => new Promise((r) => setTimeout(r, ms));
+const windows = [];
+after(() => windows.forEach((w) => w.close()));   // stops the page timers, or the test process never exits
+const A = "https://e.com/a", B = "https://e.com/b", C = "https://e.com/c", D = "https://e.com/d", E = "https://e.com/e";
+
+async function boot({ quit = false } = {}) {
+  const log = { playlist: [], download: [], bodies: [], cancel: [], quit: [], activity: [] };
+  const jobs = {};   // jobId -> status served by /api/status/<id>
+  const ctl = { live: false, fail: new Set(), hang: new Set(), entries: {}, holdInfo: false, held: [], holdDownload: false, heldDl: [], confirms: [], answer: true, maxRunning: 0 };
+  let jobSeq = 0;
+  const json = (o) => ({ ok: true, json: async () => o });
+  const t = await bootPage({
+    onFetch: (u, o) => {
+      const body = o && o.body ? JSON.parse(o.body) : {};
+      if (u === "/api/playlist") {
+        log.playlist.push(body.url);
+        if (ctl.hang.has(body.url)) return new Promise(() => {});
+        if (ctl.fail.has(body.url)) return json({ error: "boom" });
+        return json({ is_playlist: true, entries: ctl.entries[body.url] || [{ url: body.url, title: "T " + body.url }] });
+      }
+      if (u === "/api/info") {
+        const info = { title: "T " + body.url, uploader: "U", thumbnail: "", duration: 10, formats: [{ id: "f1", label: "720p", height: 720 }], audio_formats: [], is_live: !!ctl.live };
+        return ctl.holdInfo ? new Promise((res) => ctl.held.push(() => res(json(info)))) : json(info);
+      }
+      if (u === "/api/download") {
+        const id = "j" + ++jobSeq;
+        log.download.push(body.url); log.bodies.push(body);
+        const start = () => {
+          jobs[id] = { status: "downloading", progress: 10 };
+          ctl.maxRunning = Math.max(ctl.maxRunning, Object.values(jobs).filter((j) => j.status === "downloading").length);
+          return json({ job_id: id });
+        };
+        return ctl.holdDownload ? new Promise((res) => ctl.heldDl.push(() => res(start()))) : start();
+      }
+      if (typeof u === "string" && u.startsWith("/api/status/")) return json(jobs[u.slice(12)] || { status: "downloading", progress: 10 });
+      if (typeof u === "string" && u.startsWith("/api/cancel/")) { log.cancel.push(u); return json({ success: true }); }
+    },
+    prep(w) {
+      w.confirm = (msg) => { ctl.confirms.push(msg); return ctl.answer; };
+      if (quit) {
+        w.electronAPI = {
+          platform: "win",
+          quit: async (opts) => { log.quit.push({ ...opts }); return opts && opts.probe ? { busy: false } : { success: true }; },
+          closeSubscriptions: async () => {},
+          setActivity: (a) => log.activity.push({ ...a }),
+          setLanguage() {}, setTheme() {},
+        };
+      }
+    },
+  });
+  const { w, d } = t;
+  windows.push(w);
+  // The pollers the test starts are driven by hand, not by the clock.
+  const timers = new Map(); let nextTimer = 9000;
+  w.setInterval = (fn) => { const id = nextTimer++; timers.set(id, fn); return id; };
+  const realClear = w.clearInterval.bind(w);
+  w.clearInterval = (id) => { if (!timers.delete(id)) realClear(id); };
+  w.eval("chosenPath = '/tmp/dl'");
+  w.eval("document.getElementById('concurrency-sel').value = '2'");
+  if (quit) d.getElementById("quit-on-done-chk").checked = true;
+  const ev = (code) => JSON.parse(w.eval(`JSON.stringify(${code})`));
+  return {
+    ...t, log, ctl, jobs, ev,
+    fetchLinks: async (text) => { d.getElementById("urls").value = text; d.getElementById("fetch-btn").click(); await settle(); },
+    card: (n) => d.getElementById("st" + n)?.closest(".vcard") || null,
+    cards: () => d.querySelectorAll("#results .vcard").length,
+    toasts: () => [...d.querySelectorAll("#toasts .toast")].map((x) => x.textContent),
+    clearToasts: () => { d.getElementById("toasts").innerHTML = ""; },
+    all: (fmt = "video", aq = null, vq = null) => w.eval(`downloadAll(${JSON.stringify(fmt)}, ${JSON.stringify(aq)}, ${JSON.stringify(vq)})`),
+    finish: (id) => { jobs[id] = { status: "done", progress: 100, filename: id + ".mp4" }; },
+    tick: async () => { for (const fn of [...timers.values()]) await fn(); await settle(300); },
+    timers,   // the pollers and watchers still running
+    clear: () => d.getElementById("clear-btn").click(),
+  };
+}
+
+// ── Fetch only adds ─────────────────────────────────────────────────────────
+
+test("Fetch adds to the list: earlier cards and a running download stay, only the new link is fetched", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  const cardA = t.card(0);
+  assert.ok(cardA);
+  t.all(); await settle();
+  assert.equal(t.ev("items[0].status"), "downloading");
+  await t.fetchLinks(`${A}\n${B}`);
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B]);
+  assert.equal(t.card(0), cardA, "the first card is the same element, not rebuilt");
+  assert.equal(t.ev("items[0].status"), "downloading");
+  assert.ok(t.d.getElementById("cancel0"), "its Cancel button is still there");
+  assert.deepEqual(t.log.playlist, [A, B], "the link already in the list is not fetched again");
+});
+
+test("a link that is already in the list is skipped, and the user is told when nothing new came", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.clearToasts();
+  await t.fetchLinks(A);
+  assert.equal(t.ev("items.length"), 1);
+  assert.equal(t.cards(), 1);
+  assert.deepEqual(t.log.playlist, [A]);
+  assert.ok(t.toasts().includes(en.strings["toast.already_in_list"]));
+});
+
+test("a link that resolves to a video already in the list adds no second card", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.clearToasts();
+  t.ctl.entries["https://short.example/x"] = [{ url: A, title: "same video" }];
+  await t.fetchLinks("https://short.example/x");
+  assert.equal(t.ev("items.length"), 1);
+  assert.equal(t.cards(), 1, "the loading card of the typed link is gone too");
+  assert.ok(t.toasts().includes(en.strings["toast.already_in_list"]));
+});
+
+test("the same video under another link form adds no second card", async () => {
+  const t = await boot();
+  t.ctl.entries[A] = [{ url: "https://e.com/watch?v=1", title: "one", vkey: "site:1" }];
+  await t.fetchLinks(A);
+  t.clearToasts();
+  t.ctl.entries[B] = [{ url: "https://e.com/shorts/1", title: "one again", vkey: "site:1" }];
+  await t.fetchLinks(B);
+  assert.equal(t.ev("items.length"), 1);
+  assert.equal(t.cards(), 1, "the loading card of the typed link is gone too");
+  assert.ok(t.toasts().includes(en.strings["toast.already_in_list"]));
+});
+
+test("one list that repeats a video adds it once, and entries without a key or with another key are all kept", async () => {
+  const t = await boot();
+  t.ctl.entries[A] = [
+    { url: "https://e.com/1a", title: "1", vkey: "site:1" }, { url: "https://e.com/1b", title: "1 again", vkey: "site:1" },
+    { url: "https://e.com/2", title: "2", vkey: "site:2" },
+    { url: "https://e.com/3", title: "3", vkey: "" }, { url: "https://e.com/4", title: "4", vkey: "" }, { url: "https://e.com/5", title: "5" },
+  ];
+  await t.fetchLinks(A);
+  assert.deepEqual(t.ev("items.map(i => i.url)"), ["https://e.com/1a", "https://e.com/2", "https://e.com/3", "https://e.com/4", "https://e.com/5"]);
+});
+
+test("a link that failed gets one error card, replaced when it is tried again", async () => {
+  const t = await boot();
+  t.ctl.fail.add(C);
+  await t.fetchLinks(C);
+  assert.equal(t.d.querySelectorAll("#results .vcard.fetch-err").length, 1);
+  await t.fetchLinks(C);
+  assert.equal(t.d.querySelectorAll("#results .vcard.fetch-err").length, 1, "not two");
+  t.ctl.fail.delete(C);
+  await t.fetchLinks(C);
+  assert.equal(t.d.querySelectorAll("#results .vcard.fetch-err").length, 0);
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [C]);
+});
+
+test("Cancel fetch counts only what this fetch loaded, not the cards already in the list", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.ctl.hang.add(C);
+  await t.fetchLinks(`${A}\n${B}\n${C}`);   // B loads, C never answers
+  assert.equal(t.ev("items.length"), 2);
+  t.clearToasts();
+  t.d.getElementById("cancel-fetch-btn").click();
+  assert.deepEqual(t.toasts(), [en.strings["toast.stopped_keeping_one"].replace("{0}", "1")]);
+});
+
+// ── Clear ───────────────────────────────────────────────────────────────────
+
+async function threeCards(t) {
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.w.eval("items[0].status = 'downloading'; items[1].status = 'error'");   // C stays idle
+  t.ctl.fail.add(D);
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);   // an error card as well
+}
+
+test("Clear with a download running asks first, then removes only the cards that are not downloading", async () => {
+  const t = await boot();
+  await threeCards(t);
+  const running = t.card(0);
+  assert.equal(t.cards(), 4);
+  t.clear();
+  assert.equal(t.ctl.confirms.length, 1);
+  assert.equal(t.ctl.confirms[0], en.strings["confirm.clear_keep_active"].replace("{0}", "2").replace("{1}", "1"));
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A]);
+  assert.equal(t.cards(), 1);
+  assert.equal(t.card(0), running, "the running card is untouched");
+  assert.equal(t.d.getElementById("urls").value, "");
+});
+
+test("answering No to the Clear question changes nothing", async () => {
+  const t = await boot();
+  await threeCards(t);
+  t.ctl.answer = false;
+  t.clear();
+  assert.equal(t.ctl.confirms.length, 1);
+  assert.equal(t.ev("items.length"), 3);
+  assert.equal(t.cards(), 4);
+  assert.notEqual(t.d.getElementById("urls").value, "");
+});
+
+test("Clear with nothing running works as before: no question, everything goes", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.clear();
+  assert.equal(t.ctl.confirms.length, 0);
+  assert.equal(t.ev("items.length"), 0);
+  assert.equal(t.cards(), 0);
+  assert.equal(t.d.getElementById("urls").value, "");
+});
+
+test("Clear when every card is running has nothing to remove: no question, the downloads stay", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  t.clear();
+  assert.equal(t.ctl.confirms.length, 0);
+  assert.equal(t.ev("items.length"), 1);
+  assert.equal(t.cards(), 1);
+  assert.equal(t.d.getElementById("urls").value, "");
+});
+
+test("after Clear a running download still counts: Quit when done stays disarmed and the activity report keeps it", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all("video"); await settle();   // both start
+  await t.fetchLinks(`${A}\n${B}\n${C}`);   // C is new and idle
+  t.clear();
+  assert.equal(t.ev("items.length"), 2);
+  assert.equal(t.w.eval("_qodArmed()"), false, "a download is still running");
+  t.w.eval("_lastActivityKey = ''; reportActivity()");
+  assert.equal(t.log.activity.at(-1).active, 2);
+});
+
+// ── Download all joins the run that is going ────────────────────────────────
+
+test("a second Download all feeds the running run: one concurrency limit, each card keeps its own choices", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all("video"); await settle();
+  assert.deepEqual(t.log.download, [A, B], "limit 2: C waits");
+  t.clearToasts();
+  t.all("video"); await settle();
+  assert.deepEqual(t.toasts(), [en.strings["toast.nothing_to_download"]], "C is already queued, nothing new");
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}`);
+  t.all("audio", "192", null); await settle();
+  assert.deepEqual(t.log.download, [A, B], "joined the run, no extra downloads started");
+  for (const [i, id] of ["j1", "j2", "j3", "j4", "j5"].entries()) {
+    t.finish(id); await t.tick();
+    assert.equal(t.log.download.length, Math.min(i + 3, 5), `one slot freed, one card started (after ${id})`);
+  }
+  assert.deepEqual(t.log.download, [A, B, C, D, E]);
+  assert.equal(t.ctl.maxRunning, 2, "never more than the limit");
+  assert.deepEqual(t.log.bodies.map((b) => b.format), ["video", "video", "video", "audio", "audio"]);
+  assert.equal(t.log.bodies[3].audio_quality, "192");
+  assert.equal(t.toasts().filter((x) => x.startsWith(en.strings["toast.done"])).length, 1, "one run, one Done");
+});
+
+test("a second Download all while the run's cards are still loading their info does not start them twice", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;   // stub cards: the run fetches their info before it starts them
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();   // both are taken by the run and waiting for their info
+  t.clearToasts();
+  t.all(); await settle();
+  assert.deepEqual(t.toasts(), [en.strings["toast.nothing_to_download"]]);
+  t.ctl.holdInfo = false;
+  t.ctl.held.forEach((release) => release());
+  await settle(200);
+  assert.deepEqual(t.log.download, [A, B]);
+});
+
+test("a second Download all raises the total shown in the bar", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-txt").textContent;
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all("video"); await settle();
+  assert.match(bar(), /0 \/ 3 .*\(2 active\)/, "first run: three cards, two running");
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}`);
+  t.all("video"); await settle();
+  assert.match(bar(), /0 \/ 5 .*\(2 active\)/, "the two added cards join the run, and the total follows");
+  t.finish("j1"); await t.tick();
+  assert.match(bar(), /1 \/ 5 .*\(2 active\)/, "one done, the next card started");
+});
+
+test("a card started from its own button while Download all runs is counted in the bar", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-txt").textContent;
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();                       // A and B run
+  assert.match(bar(), /0 \/ 2 .*\(2 active\)/);
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);   // C and D are added, the run did not queue them
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl2").click(); await settle();
+  assert.match(bar(), /0 \/ 3 .*\(3 active\)/, "C started by its own button joins the count");
+  t.d.getElementById("dl3").click(); await settle();
+  assert.match(bar(), /0 \/ 4 .*\(4 active\)/, "so does D");
+  t.finish("j3"); await t.tick(); await t.tick();
+  assert.match(bar(), /1 \/ 4 .*\(3 active\)/, "C done");
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.match(bar(), /2 \/ 4 .*\(2 active\)/, "A done");
+});
+
+test("the run is not over while a card started from its own button is still running", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-bar");
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl1").click(); await settle();
+  t.clearToasts();
+  t.finish("j1"); await t.tick(); await t.tick();   // the run's own card is done, B still runs
+  assert.ok(bar().classList.contains("show"), "the bar stays while B downloads");
+  assert.match(t.d.getElementById("bulk-txt").textContent, /1 \/ 2 .*\(1 active\)/);
+  assert.deepEqual(t.toasts().filter((x) => /2 videos/.test(x)), [], "no Done toast yet");
+  t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(!bar().classList.contains("show"), "the bar goes once B is done too");
+  assert.ok(t.toasts().some((x) => /2 videos/.test(x)), "and the Done toast counts both");
+});
+
+test("a card already downloading when Download all starts is counted in the bar too", async () => {
+  const t = await boot();
+  const bar = () => t.d.getElementById("bulk-bar");
+  const txt = () => t.d.getElementById("bulk-txt").textContent;
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl0").click(); await settle();   // A runs on its own
+  t.all(); await settle();                             // the run takes B only
+  assert.deepEqual(t.log.download, [A, B]);
+  assert.match(txt(), /0 \/ 2 .*\(2 active\)/, "A is counted although the run did not start it");
+  t.clearToasts();
+  t.finish("j2"); await t.tick(); await t.tick();      // the run's own card is done, A still runs
+  assert.ok(bar().classList.contains("show"), "the bar stays while A downloads");
+  assert.match(txt(), /1 \/ 2 .*\(1 active\)/);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(!bar().classList.contains("show"));
+  assert.ok(t.toasts().some((x) => /2 downloads/.test(x)), "the Done toast counts both (A opened the run, so the word is the neutral one)");
+});
+
+test("Cancel all stops the run but leaves cards that were added after it started idle", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();   // A, B running, C queued
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);   // D added later
+  t.w.eval("cancelBulk()");
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["cancelled", "cancelled", "cancelled", "idle"]);
+  assert.equal(t.log.cancel.length, 2);
+});
+
+test("a card cleared while its info loads for Download all is not downloaded", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;   // the cards stay stubs: Download all must fetch their info first
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  t.clear();
+  assert.equal(t.ev("items.length"), 0);
+  t.ctl.holdInfo = false;
+  t.ctl.held.forEach((release) => release());
+  await settle();
+  assert.deepEqual(t.log.download, []);
+});
+
+// ── Quit when done ──────────────────────────────────────────────────────────
+
+test("Quit when done waits for a card added mid run, and goes ahead once that one is done too", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.finish("j1"); await t.tick();
+  assert.deepEqual(t.log.quit, [], "B is still waiting to be downloaded");
+  t.all(); await settle();
+  assert.deepEqual(t.log.download, [A, B]);
+  t.finish("j2"); await t.tick();
+  assert.deepEqual(t.log.quit, [{ whenIdle: true, probe: true }]);
+});
+
+// ── One download per card, and nothing left running behind the list ───────
+
+test("a card queued in Download all and started from its own button is downloaded once", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();                       // limit 2: A and B run, C waits in the run
+  t.w.eval("showModal = async () => 'C name'");  // the name dialog answers at once
+  t.d.getElementById("dl2").click(); await settle();
+  assert.deepEqual(t.log.download, [A, B, C]);
+  assert.match(t.d.getElementById("bulk-txt").textContent, /\/ 3 /, "C is already one of the run's three, not a fourth");
+  t.finish("j1"); await t.tick();                // a slot frees: the run must skip C
+  assert.deepEqual(t.log.download, [A, B, C]);
+});
+
+test("a card the run starts while its own name dialog is open is not started a second time", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();
+  t.w.eval("showModal = () => new Promise((r) => { window._answer = r; })");
+  t.d.getElementById("dl2").click(); await settle();   // dialog open for C
+  t.finish("j1"); await t.tick();                // meanwhile the run starts C
+  assert.deepEqual(t.log.download, [A, B, C]);
+  t.w.eval("_answer('C name')"); await settle();
+  assert.deepEqual(t.log.download, [A, B, C]);
+});
+
+test("Cancel all, then Download all before the old run has wound down, revives nothing and keeps the limit", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;                         // A and B are taken by the run, loading their info
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();
+  t.w.eval("cancelBulk()");
+  t.ctl.holdInfo = false;
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);
+  t.all(); await settle();                       // a new run, for D only
+  t.ctl.held.forEach((release) => release()); await settle(300);
+  assert.deepEqual(t.log.download, [D]);
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["cancelled", "cancelled", "cancelled", "downloading"]);
+  assert.ok(t.d.getElementById("bulk-bar").classList.contains("show"), "the old run does not hide the new run's bar");
+  assert.match(t.d.getElementById("bulk-txt").textContent, /\/ 1 /, "nor does it write its own count over the new run's text");
+});
+
+test("Cancel all while a start request is in flight cancels the job once it exists", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.ctl.holdDownload = true;
+  t.all(); await settle();                       // POST /api/download sent, no job id yet
+  t.w.eval("cancelBulk()");
+  t.ctl.heldDl.forEach((release) => release()); await settle();
+  assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
+});
+
+test("a card's own Cancel while its start request is in flight cancels the job once it exists", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.w.eval("showModal = async () => 'A name'");
+  t.ctl.holdDownload = true;
+  t.d.getElementById("dl0").click(); await settle();
+  t.d.getElementById("cancel0").click(); await settle();
+  t.ctl.heldDl.forEach((release) => release()); await settle();
+  assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
+  assert.equal(t.ev("items[0].status"), "cancelled");
+});
+
+test("removing a running card with its own X asks first, then cancels its download instead of leaving it running unseen", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();
+  t.card(0).querySelector(".vcard-remove").click();
+  assert.deepEqual(t.ctl.confirms, [en.strings["confirm.remove_running"]]);
+  assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
+  assert.equal(t.cards(), 1);
+  assert.equal(t.log.activity.at(-1).active, 1, "only B is still reported, by the removal itself");
+});
+
+test("answering No to the question on a running card's X leaves the card and its download alone", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();
+  t.ctl.answer = false;
+  const reports = t.log.activity.length;
+  t.card(0).querySelector(".vcard-remove").click();
+  assert.equal(t.ctl.confirms.length, 1);
+  assert.deepEqual(t.log.cancel, []);
+  assert.equal(t.cards(), 2);
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["downloading", "downloading"]);
+  assert.equal(t.log.activity.length, reports, "nothing new is reported");
+  assert.equal(t.log.activity.at(-1).active, 2, "both are still reported");
+});
+
+test("Cancel on a card that is not downloading and has no job does nothing", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.w.eval("cancelDownload(items[0], 0)"); await settle();
+  assert.deepEqual(t.log.cancel, []);
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["idle"]);
+});
+
+test("removing a card that is not downloading asks nothing", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.card(0).querySelector(".vcard-remove").click();
+  assert.deepEqual(t.ctl.confirms, []);
+  assert.deepEqual(t.log.cancel, []);
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [B]);
+});
+
+// ── Reorder arrows ──────────────────────────────────────────────────────────
+
+const domOrder = (t) => [...t.d.querySelectorAll("#results .vcard")].map((c) => c.querySelector('[id^="qarrows"]')?.id || "(error card)");
+const arrow = (t, n, dir) => t.card(n).querySelector(`.qarrow[data-dir="${dir}"]`);
+
+test("an arrow trades places with the nearest waiting card, jumping over a running one", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();          // B runs on its own, between A and C
+  assert.equal(arrow(t, 0, "down").style.visibility, "visible", "A can go down: C is waiting");
+  assert.equal(arrow(t, 2, "up").style.visibility, "visible", "C can go up: A is waiting");
+  arrow(t, 2, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [C, B, A], "C and A traded places, B kept its own");
+  assert.deepEqual(domOrder(t), ["qarrows2", "qarrows1", "qarrows0"], "the cards in the page follow");
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["idle", "downloading", "idle"]);
+  assert.equal(arrow(t, 2, "up").style.visibility, "hidden", "C is the first waiting card now");
+  assert.equal(arrow(t, 0, "down").style.visibility, "hidden", "A is the last waiting card now");
+  assert.equal(arrow(t, 0, "up").style.visibility, "visible");
+  assert.equal(arrow(t, 2, "down").style.visibility, "visible");
+  arrow(t, 2, "down").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C], "and back again");
+  assert.deepEqual(domOrder(t), ["qarrows0", "qarrows1", "qarrows2"]);
+});
+
+test("a cancelled card between two waiting ones is jumped over too", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();
+  t.d.getElementById("cancel1").click(); await settle();
+  assert.equal(t.ev("items[1].status"), "cancelled");
+  arrow(t, 2, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [C, B, A]);
+  assert.deepEqual(domOrder(t), ["qarrows2", "qarrows1", "qarrows0"]);
+});
+
+test("neighbouring waiting cards still swap as before", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  arrow(t, 1, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [B, A, C]);
+  assert.deepEqual(domOrder(t), ["qarrows1", "qarrows0", "qarrows2"]);
+});
+
+test("an arrow with no waiting card in its direction does nothing", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.w.eval("showModal = async () => 'a name'");
+  t.d.getElementById("dl1").click(); await settle();
+  t.d.getElementById("dl2").click(); await settle();          // B and C run, only A waits
+  arrow(t, 0, "down").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C]);
+  assert.deepEqual(domOrder(t), ["qarrows0", "qarrows1", "qarrows2"]);
+});
+
+test("a card that failed to fetch keeps its place when the cards around it trade", async () => {
+  const t = await boot();
+  t.ctl.fail.add(D);
+  await t.fetchLinks(`${A}\n${D}\n${C}`);
+  assert.deepEqual(domOrder(t), ["qarrows0", "(error card)", "qarrows1"]);
+  arrow(t, 1, "up").click();                                  // C is item 1 (the failed link has no item)
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [C, A]);
+  assert.deepEqual(domOrder(t), ["qarrows1", "(error card)", "qarrows0"]);
+});
+
+test("cards a running Download all has queued lose their arrows and cannot be moved", async () => {
+  const t = await boot();
+  const F = "https://e.com/f";
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);
+  t.all("video"); await settle();                              // limit 2: A and B run, C and D are queued
+  for (const n of [2, 3]) for (const dir of ["up", "down"]) assert.equal(arrow(t, n, dir).style.visibility, "hidden", `card ${n} ${dir}`);
+  arrow(t, 3, "up").click();                                   // even a click that gets through changes nothing
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D]);
+  // a card added after the run started is not queued: it can still be moved, but never past a queued card
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}\n${F}`);
+  assert.equal(arrow(t, 4, "up").style.visibility, "hidden", "E is the first card that can move");
+  assert.equal(arrow(t, 4, "down").style.visibility, "visible");
+  assert.equal(arrow(t, 5, "up").style.visibility, "visible");
+  assert.equal(arrow(t, 5, "down").style.visibility, "hidden");
+  arrow(t, 4, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D, E, F], "E does not trade with a queued card");
+  arrow(t, 3, "down").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D, E, F], "and a queued card does not trade with E");
+  arrow(t, 5, "up").click();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A, B, C, D, F, E]);
+  assert.deepEqual(domOrder(t), ["qarrows0", "qarrows1", "qarrows2", "qarrows3", "qarrows5", "qarrows4"]);
+  // the next Download all queues them too, and their arrows go
+  t.all("video"); await settle();
+  for (const n of [4, 5]) for (const dir of ["up", "down"]) assert.equal(arrow(t, n, dir).style.visibility, "hidden", `card ${n} ${dir}`);
+  t.finish("j1"); await t.tick();
+  assert.deepEqual(t.log.download, [A, B, C], "the run still starts its cards in the order it was given");
+});
+
+test("the arrows go the moment a run queues the cards, before any of them has started", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;                                       // the cards the run takes are still loading their info
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);
+  for (const n of [0, 1, 2, 3]) assert.notEqual(arrow(t, n, "down").style.display, "none");
+  t.all("video"); await settle();
+  assert.deepEqual(t.log.download, [], "nothing has started yet");
+  for (const n of [0, 1, 2, 3]) for (const dir of ["up", "down"]) assert.equal(arrow(t, n, dir).style.visibility, "hidden", `card ${n} ${dir}`);
+  t.ctl.held.forEach((release) => release()); await settle();
+});
+
+test("Download all with a free slot starts the new card at once", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();                       // A runs, one slot of two free
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();
+  assert.deepEqual(t.log.download, [A, B]);
+});
+
+test("Download all after a run ended starts a new run with its own bar and Done", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  t.finish("j1"); await t.tick();
+  assert.ok(!t.d.getElementById("bulk-bar").classList.contains("show"));
+  await t.fetchLinks(B);                         // A's card went away when it was done
+  t.clearToasts();
+  t.all(); await settle();
+  assert.ok(t.d.getElementById("bulk-bar").classList.contains("show"));
+  t.finish("j2"); await t.tick();
+  assert.equal(t.toasts().filter((x) => x.startsWith(en.strings["toast.done"])).length, 1, "the second run says Done too");
+});
+
+test("Clear keeps a card that is converting", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'A name'");
+  t.d.getElementById("dl0").click(); await settle();
+  t.w.eval("items[0].status = 'converting'");
+  t.clear();
+  assert.deepEqual(t.ev("items.map(i => i.url)"), [A]);
+});
+
+test("a card cleared while its name dialog is open is not downloaded", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.w.eval("showModal = () => new Promise((r) => { window._answer = r; })");
+  t.d.getElementById("dl0").click(); await settle();
+  t.clear();
+  const errors = [];
+  t.w.addEventListener("error", (e) => errors.push(e.message));
+  t.w.eval("_answer('A name')"); await settle();
+  assert.deepEqual(t.log.download, []);
+  assert.deepEqual(errors, []);
+});
+
+// ── The bar counts each card once, by what it is doing now ─────────────────
+
+const barText = (t) => t.d.getElementById("bulk-txt").textContent;
+const barShown = (t) => t.d.getElementById("bulk-bar").classList.contains("show");
+const doneToasts = (t) => t.toasts().filter((x) => x.startsWith(en.strings["toast.done"]));
+
+test("a queued card started from its own button keeps the run going until it ends", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();                       // A and B run, C waits in the run
+  t.w.eval("showModal = async () => 'C name'");
+  t.d.getElementById("dl2").click(); await settle();   // C starts on its own: j3
+  t.finish("j1"); t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(barShown(t), "C is still downloading");
+  assert.deepEqual(doneToasts(t), []);
+  assert.match(barText(t), /2 \/ 3 .*\(1 active\)/);
+  t.finish("j3"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.equal(doneToasts(t).length, 1);
+});
+
+test("a run's own card that failed and is started again from its button keeps the run going", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();
+  t.jobs.j1 = { status: "error", error: "x" }; await t.tick();
+  t.w.eval("showModal = async () => 'A name'");
+  t.d.getElementById("dl0").click(); await settle();   // A again, on its own: j3
+  t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(barShown(t), "A is downloading again");
+  assert.match(barText(t), /1 \/ 2 .*\(1 active\)/);
+});
+
+test("a joined card that failed and is queued again by Download all is counted once", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();                       // a run with A
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();   // B joins: j2
+  t.jobs.j2 = { status: "error", error: "x" }; await t.tick();
+  t.all(); await settle();                       // B queued again into the same run: j3
+  assert.match(barText(t), / \/ 2 .*\(2 active\)/);
+});
+
+test("a run's own card whose job the backend lost ends as failed instead of holding the run open", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  t.jobs.j1 = { error: "Job not found" };
+  await t.tick(); await t.tick();
+  assert.equal(t.ev("items[0].status"), "error");
+  assert.ok(!barShown(t));
+  assert.equal(t.timers.size, 0, "no poller or watcher left running");
+});
+
+test("the watcher stops with the run: after a normal end and after Cancel all", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'B name'");
+  t.d.getElementById("dl1").click(); await settle();   // B joins: the watcher starts
+  t.finish("j1"); t.finish("j2"); await t.tick(); await t.tick();
+  assert.equal(t.timers.size, 0);
+  await t.fetchLinks(`${C}\n${D}`);
+  t.all(); await settle();
+  await t.fetchLinks(`${C}\n${D}\n${E}`);
+  t.w.eval("showModal = async () => 'E name'");
+  t.d.getElementById("dl4").click(); await settle();   // E joins the second run
+  t.w.eval("cancelBulk()");
+  await t.tick(); await t.tick();
+  assert.equal(t.timers.size, 0);
+});
+
+test("arrows keep the list and the page in the same order, and never move a queued card (random clicks)", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}`);
+  t.all(); await settle();                       // A, B run; C, D queued
+  const more = Array.from({ length: 6 }, (_, i) => `https://e.com/m${i}`);
+  t.ctl.fail.add("https://e.com/bad");
+  await t.fetchLinks([A, B, C, D, ...more, "https://e.com/bad"].join("\n"));
+  t.w.eval("items[6].status = 'cancelled'; items[8].status = 'error'; updateQueueArrows()");
+  let seed = 3; const rnd = (n) => { seed = (seed * 1103515245 + 12345) % 2147483648; return seed % n; };
+  const queuedAt = () => t.ev("items.map((i, k) => [i.id, k]).filter(([id]) => runQueuedItems().some((q) => q.id === id))");
+  for (let k = 0; k < 120; k++) {
+    if (k === 60) { t.finish("j1"); await t.tick(); }   // C starts: one queued card left
+    const shown = [...t.d.querySelectorAll("#results .qarrow")]
+      .filter((b) => b.style.visibility !== "hidden" && b.closest("[id^=qarrows]").style.display !== "none");
+    const b = shown[rnd(shown.length)], id = +b.dataset.id;
+    const q0 = queuedAt(), at = t.ev(`items.findIndex((i) => i.id === ${id})`);
+    b.click();
+    assert.notEqual(t.ev(`items.findIndex((i) => i.id === ${id})`), at, `a shown arrow did nothing (click ${k})`);
+    assert.deepEqual(queuedAt(), q0, "a queued card moved");
+    const page = [...t.d.querySelectorAll("#results .vcard")].map((c) => c.querySelector("[id^=st]")?.id.slice(2)).filter(Boolean).map(Number);
+    assert.deepEqual(page, t.ev("items.map((i) => i.id)"), `click ${k}`);
+  }
+});
+
+test("the X on a card whose start request is in flight cancels the job once it exists", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.ctl.holdDownload = true;
+  t.all(); await settle();                       // POST for A and B sent, no job ids yet
+  t.card(0).querySelector(".vcard-remove").click();   // asked, answered yes
+  t.ctl.heldDl.forEach((release) => release()); await settle(); await t.tick();
+  assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
+  assert.equal(t.jobs.j2.status, "downloading", "B goes on");
+});
+
+test("cards the run has taken and is still loading the info of count as active, not as done", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;                         // the cards stay stubs: the run must fetch their info first
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();                       // A and B hold slots while their info loads, C waits
+  assert.match(barText(t), /0 \/ 3 .*\(2 active\)/);
+  t.ctl.holdInfo = false;
+  t.ctl.held.forEach((release) => release()); await settle(200);
+  assert.match(barText(t), /0 \/ 3 .*\(2 active\)/, "and the same once they download");
+});
+
+// ── The bar from the first download, Download all or one by one ────────────
+
+const hand = async (t, n) => { t.w.eval("showModal = async () => 'name'"); t.d.getElementById("dl" + n).click(); await settle(); };
+const removeCard = (t, n) => t.card(n).querySelector(".vcard-remove").click();
+
+test("a download started from its own button shows the bar from the first one", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  assert.ok(!barShown(t), "nothing is downloading yet");
+  await hand(t, 0);
+  assert.ok(barShown(t));
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+});
+
+test("cards started one by one all go into the same count, and the bar ends with the last one", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  assert.match(barText(t), /0 \/ 2 downloads .*\(2 active\)/);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(barShown(t), "B is still downloading");
+  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/, "A left the list and still counts as done");
+  t.clearToasts();
+  t.finish("j2"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.equal(doneToasts(t).length, 1);
+  assert.match(doneToasts(t)[0], /2 downloads/);
+  assert.equal(t.timers.size, 0, "no poller or watcher left running");
+});
+
+test("a lone download shows the bar but no Done toast of its own (its Saved toast says it)", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  await hand(t, 0);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.deepEqual(doneToasts(t), []);
+  assert.ok(t.toasts().some((x) => x.includes("j1.mp4")), "the card's own Saved toast");
+});
+
+test("a lone download that fails takes the bar away", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  await hand(t, 0);
+  t.jobs.j1 = { status: "error", error: "x" }; await t.tick(); await t.tick();
+  assert.equal(t.ev("items[0].status"), "error");
+  assert.ok(!barShown(t));
+  assert.deepEqual(doneToasts(t), []);
+});
+
+test("a new download after the bar ended starts a fresh count from zero", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  await hand(t, 0);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  await t.fetchLinks(B);
+  await hand(t, t.ev("items[0].id"));            // B is a new card with a new id
+  assert.ok(barShown(t));
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+});
+
+test("Download all while single downloads run goes into the same bar and the same count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  await hand(t, 0);                              // A on its own: j1
+  t.all(); await settle();                       // the run takes B and C
+  assert.deepEqual(t.log.download, [A, B, C]);
+  assert.match(barText(t), /0 \/ 3 downloads .*\(3 active\)/);
+  t.clearToasts();
+  for (const id of ["j1", "j2", "j3"]) t.finish(id);
+  await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.equal(doneToasts(t).length, 1);
+  assert.match(doneToasts(t)[0], /3 downloads/);
+});
+
+test("Cancel all reaches single downloads, hides the bar, and the next download starts a new count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  t.w.eval("cancelBulk()");
+  assert.ok(!barShown(t));
+  assert.deepEqual(t.log.cancel.sort(), ["/api/cancel/j1", "/api/cancel/j2"]);
+  assert.deepEqual(t.ev("items.map(i => i.status)"), ["cancelled", "cancelled", "idle"]);
+  await t.tick(); await t.tick();
+  assert.equal(t.timers.size, 0, "the old run's watcher is gone");
+  await hand(t, 2);
+  assert.ok(barShown(t));
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/, "the cancelled cards are not part of the new count");
+});
+
+// ── A card that was removed before it finished leaves the count ────────────
+
+test("a cancelled card stays in the count until it is removed, then it leaves total and done", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  t.d.getElementById("cancel0").click(); await settle();
+  await t.tick();
+  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/, "cancelled but still on the list");
+  removeCard(t, 0);
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/, "removed: gone from the total and from done");
+});
+
+test("the same inside a Download all run, with no watcher: the bar changes at the removal itself", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  t.all(); await settle();
+  t.d.getElementById("cancel0").click(); await settle();
+  removeCard(t, 0);
+  assert.match(barText(t), /0 \/ 1 videos .*\(1 active\)/);
+});
+
+test("a running card removed with the red X leaves the count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  removeCard(t, 0); await settle();
+  assert.equal(t.ctl.confirms.length, 1);
+  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+});
+
+test("a download that finished and left the list on its own still counts as done", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}`);
+  await hand(t, 0);
+  await hand(t, 1);
+  t.finish("j1"); await t.tick(); await t.tick();
+  assert.equal(t.ev("items.length"), 1, "A's card is gone");
+  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/);
+});
+
+test("Clear takes the cards that were only waiting out of the count", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}`);
+  t.all(); await settle();                       // A and B run, C waits in the run
+  assert.match(barText(t), /0 \/ 3 videos/);
+  t.clear();
+  assert.match(barText(t), /0 \/ 2 videos .*\(2 active\)/);
+});
+
+test("removing the only card of a run ends it quietly", async () => {
+  const t = await boot();
+  await t.fetchLinks(A);
+  t.all(); await settle();
+  removeCard(t, 0); await settle();
+  await t.tick(); await t.tick();
+  assert.ok(!barShown(t));
+  assert.deepEqual(doneToasts(t), [], "nothing was done, so no Done toast");
+  assert.equal(t.timers.size, 0);
+});
+
+// ── A card whose info arrives while its download starts keeps its Cancel and Stop and save ──
+
+// Three live links; the info of the third is still loading when Download all is clicked (the page asks
+// twice for it: the card's own load and the one the download makes). order says which answer comes first.
+async function liveStubRun(order) {
+  const t = await boot();
+  t.ctl.live = true; t.ctl.holdInfo = true;
+  t.w.eval("document.getElementById('concurrency-sel').value = '10'");
+  await t.fetchLinks(`${A}\n${B}\n${C}`);       // held[0..2]: the cards' own info loads
+  t.ctl.held[0](); t.ctl.held[1](); await settle();   // A and B are complete cards, C is still a stub
+  t.all(); await settle();                          // A, B start; C asks for its info again: held[3]
+  assert.equal(t.ctl.held.length, 4);
+  const first = order === "download-first" ? 3 : 2;
+  t.ctl.held[first](); await settle();
+  t.ctl.held[first === 3 ? 2 : 3](); await settle();
+  return t;
+}
+
+for (const order of ["download-first", "card-first"]) {
+  test(`a live card whose info arrives as its download starts (${order}) keeps Cancel and Stop and save`, async () => {
+    const t = await liveStubRun(order);
+    assert.deepEqual(t.log.download, [A, B, C], "all three are recording");
+    assert.equal(t.ev("items[2].status"), "downloading");
+    const vis = (id) => { const e = t.d.getElementById(id); return !!e && e.style.display !== "none"; };
+    assert.ok(vis("cancel2"), "Cancel is on the visible card");
+    assert.ok(vis("stop2"), "so is Stop and save");
+    assert.ok(!vis("dl2") || t.d.getElementById("dl2").disabled, "no live Download button on a running card");
+    t.d.getElementById("cancel2").click(); await settle();
+    assert.ok(t.log.cancel.includes("/api/cancel/j3"), "Cancel stops the recording");
+  });
+
+  test(`the same card, when its job fails (${order}), shows no leftover Cancel`, async () => {
+    const t = await liveStubRun(order);
+    t.jobs.j3 = { status: "error", error: "x" }; await t.tick(); await t.tick();
+    assert.equal(t.ev("items[2].status"), "error");
+    const shown = (id) => { const e = t.d.getElementById(id); return !!e && e.style.display !== "none"; };
+    assert.ok(!shown("cancel2") && !shown("stop2"), "Cancel and Stop and save are gone");
+    assert.ok(shown("dl2") && !t.d.getElementById("dl2").disabled, "Download is back to try again");
+  });
+}
+
+test("a card started on its own whose info load lands after the download began keeps Cancel and Stop and save, and its poller follows the rebuilt card", async () => {
+  const t = await boot();
+  t.ctl.live = true; t.ctl.holdInfo = true;
+  await t.fetchLinks(A);                                   // held[0]: the card's own info load
+  t.w.eval("showModal = async () => 'name'");
+  t.d.getElementById("dl0").click(); await settle();       // the stub asks for its info again: held[1]
+  assert.equal(t.ctl.held.length, 2);
+  t.ctl.held[1](); await settle();                         // that answer starts the download
+  assert.equal(t.ev("items[0].status"), "downloading");
+  t.ctl.held[0](); await settle();                         // the card's own load lands afterwards and rebuilds the card
+  const shown = (id) => { const e = t.d.getElementById(id); return !!e && e.style.display !== "none"; };
+  assert.ok(shown("cancel0") && shown("stop0"), "Cancel and Stop and save are on the card");
+  assert.ok(!shown("dl0"), "no Download button on a running card");
+  t.jobs.j1 = { status: "error", error: "x" }; await t.tick(); await t.tick();
+  assert.equal(t.ev("items[0].status"), "error");
+  assert.ok(!shown("cancel0") && !shown("stop0"), "the failed card shows no leftover Cancel");
+  assert.ok(shown("dl0") && !t.d.getElementById("dl0").disabled, "Download is back to try again");
+});
+
+// ── Round 3 review: the run a single card opened ─────────────────────────────
+
+test("removing the only running download with its X does not start Quit when done", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(A);
+  t.w.eval("showModal = async () => 'A'");
+  t.d.getElementById("dl0").click(); await settle();   // the card opens the run
+  t.card(0).querySelector(".vcard-remove").click(); await settle();   // asked, yes: cancelled and removed
+  await t.tick(); await t.tick();
+  assert.deepEqual(t.log.cancel, ["/api/cancel/j1"]);
+  assert.deepEqual(t.log.quit, [], "nothing was finished: the app must not quit");
+});
+
+test("a run that finished something still starts Quit when done when its last other card is removed", async () => {
+  const t = await boot({ quit: true });
+  await t.fetchLinks(`${A}\n${B}`);
+  t.w.eval("showModal = async () => 'x'");
+  t.d.getElementById("dl0").click(); await settle();
+  t.d.getElementById("dl1").click(); await settle();
+  t.finish("j1"); await t.tick(); await t.tick();       // A saved and gone from the list
+  t.log.quit.length = 0;
+  t.card(1).querySelector(".vcard-remove").click(); await settle();
+  await t.tick(); await t.tick();
+  assert.deepEqual(t.log.quit, [{ whenIdle: true, probe: true }]);
+});
+
+test("Download all into a run a single card opened uses the concurrency chosen now", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}`);
+  t.w.eval("showModal = async () => 'x'");
+  t.d.getElementById("dl0").click(); await settle();   // the run opens while the limit is 2
+  t.w.eval("document.getElementById('concurrency-sel').value = '4'");
+  t.all(); await settle();
+  assert.deepEqual(t.log.download, [A, B, C, D, E], "the run's own four start at once under the new limit");
+});
+
+test("a limit raised while a Download all runs applies at the next free slot", async () => {
+  const t = await boot();
+  await t.fetchLinks(`${A}\n${B}\n${C}\n${D}\n${E}`);
+  t.all(); await settle();                               // limit 2: A and B
+  assert.deepEqual(t.log.download, [A, B]);
+  t.w.eval("document.getElementById('concurrency-sel').value = '4'");
+  t.finish("j1"); await t.tick();                        // one slot frees: the new limit fills up to 4
+  assert.deepEqual(t.log.download, [A, B, C, D, E]);
+});

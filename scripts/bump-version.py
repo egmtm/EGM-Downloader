@@ -10,16 +10,16 @@ This script is the single source of truth for version management. It updates:
     - version.json                       (master record)
     - app.py                             (APP_VERSION, APP_BUILD)
     - templates/index.html               (title, version badge, footer)
-    - windows/electron/package.json      (version field)
+    - windows/electron/package.json      (version field, the full app version)
 
   Linux:
     - linux/app.py                       (APP_VERSION, APP_BUILD)
     - linux/templates/index.html         (title, header + footer spans)
-    - linux/electron/package.json        (version, with ".0" suffix)
+    - linux/electron/package.json        (version, first three numbers of the app version)
     - linux/INSTRUCTIONS.txt             (header line)
 
   Mac:
-    - mac/electron/package.json          (version + buildVersion, ".0" suffix)
+    - mac/electron/package.json          (version + buildVersion, first three numbers)
     - mac/BUILD.sh                       (VERSION banner)
 
   README.md:
@@ -92,6 +92,15 @@ def save_version(data, dry_run=False):
     else:
         (ROOT / "version.json").write_text(content)
         print(f"  [OK]  version.json -> build {data['build']}")
+
+
+def semver3(v):
+    """electron-builder (Linux AppImage, Mac dmg) only accepts strict X.Y.Z in
+    package.json, and Apple expects three integers in the bundle version. The
+    app version can have more numbers (it follows Electron's), so those two
+    platforms get its first three. Windows and everything users read keep the
+    full string."""
+    return ".".join(v.split(".")[:3])
 
 
 def now_est():
@@ -240,8 +249,8 @@ def update_linux_index_html(v, b, date, time_str, dry_run):
 def update_linux_package_json(v, dry_run):
     # Mac & Linux electron package.json use "X.Y.Z" semver (extra ".0" suffix).
     path = ROOT / "linux" / "electron" / "package.json"
-    patch_json(path, f"linux/electron/package.json -> version {v}",
-               lambda d: d.__setitem__("version", v), dry_run)
+    patch_json(path, f"linux/electron/package.json -> version {semver3(v)}",
+               lambda d: d.__setitem__("version", semver3(v)), dry_run)
 
 
 def update_linux_instructions(v, dry_run):
@@ -271,11 +280,11 @@ def update_mac_package_json(v, dry_run):    # Mac package.json has TWO version f
     path = ROOT / "mac" / "electron" / "package.json"
 
     def mutate(d):
-        d["version"] = v
+        d["version"] = semver3(v)
         if "build" in d and isinstance(d["build"], dict):
-            d["build"]["buildVersion"] = v
+            d["build"]["buildVersion"] = semver3(v)
 
-    patch_json(path, f"mac/electron/package.json -> version + buildVersion {v}",
+    patch_json(path, f"mac/electron/package.json -> version + buildVersion {semver3(v)}",
                mutate, dry_run)
 
 

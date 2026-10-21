@@ -196,3 +196,41 @@ def test_support_link_label_is_not_hardcoded_english():
             f"{p}: the PayPal/Support anchor must bind footer.btn.support to "
             f"its text, got: {anchor[:220]}"
         )
+
+
+# ── SponsorBlock: the per-channel selection must actually reach a download ─────
+
+SUBSCRIPTION_FILES = ("templates/subscriptions.html", "linux/templates/subscriptions.html")
+
+
+def test_per_subscription_sponsorblock_reaches_the_download_request():
+    """The per-channel SponsorBlock toggle and category checkboxes were saved to
+    the subscription record, exported, imported and re-rendered correctly -- and
+    never sent to /api/download, so the whole per-channel surface had no effect
+    on any download. The backend only ever reads categories from the request
+    body (it never looks up the stored subscription), so omitting them here
+    silently disabled the feature.
+
+    Pinned structurally rather than behaviourally because subscriptions.html is
+    a separate page from the jsdom-harnessed index (it does not include
+    index_scripts.html), so there is no booted-DOM fixture for it yet. Scoped to
+    the one /api/download call site in the file, and asserts the gating
+    expression is present too -- sending the categories unconditionally would
+    apply them while the global toggle is off, which is what hides the UI.
+    """
+    for p in SUBSCRIPTION_FILES:
+        src = read_source(p)
+        i = src.index("'/api/download'")
+        # The request body ends at the closing of the fetch() options object.
+        body = src[i:src.index("});", i)]
+        assert "sponsorblock_categories" in body, (
+            f"{p}: the /api/download request body omits sponsorblock_categories, "
+            "so each channel's SponsorBlock selection never reaches a download"
+        )
+        # Gated on BOTH toggles -- the same pair that controls the UI's visibility.
+        window = src[:i]
+        gate = window[window.rindex("const sbCategories"):]
+        assert "globalSettings.sponsorblock_enabled" in gate and "activeSub.sponsorblock_enabled" in gate, (
+            f"{p}: the categories sent to /api/download must be gated on both the "
+            f"global and the per-channel toggle, got: {gate[:200]!r}"
+        )

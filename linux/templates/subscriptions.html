@@ -256,6 +256,21 @@
     .egm-modal-btn:hover { background:var(--surf3,var(--surf2));filter:brightness(1.1); }
     .egm-modal-btn.danger { background:var(--red,#e04040);color:#fff;border-color:var(--red,#e04040); }
     .egm-modal-btn.danger:hover { filter:brightness(1.15); }
+    /* ── "Quit when done" toggle + countdown ── */
+    .sw-wrap { display:flex;align-items:center;gap:7px;font-size:.72rem;color:var(--text2);cursor:pointer;user-select:none; }
+    input.sw[type=checkbox] { appearance:none;width:32px;height:17px;background:var(--border2);border-radius:999px;cursor:pointer;transition:background .15s ease;position:relative;flex-shrink:0; }
+    input.sw[type=checkbox]::after { content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:var(--btn-primary-text);border-radius:50%;transition:left .15s ease; }
+    input.sw[type=checkbox]:checked { background:var(--acc); }
+    input.sw[type=checkbox]:checked::after { left:17px; }
+    /* "Quit when done" countdown: a card in the middle of the window over a dimmed page that is
+       locked while it shows (the script marks the rest of the page `inert`). The dim is this theme's
+       dialog overlay at 70%, a little lighter than What's New, so the finished downloads stay readable.
+       Both sit above every other layer (the update prompt is at 10000).
+       The Subscriptions window uses the same rules (keep the two identical). */
+    .quit-lock { position: fixed; inset: 0; z-index: 20000; background: color-mix(in srgb, var(--modal-overlay) 70%, transparent); animation: quit-lock-in .16s ease; }
+    @keyframes quit-lock-in { from { opacity: 0; } }
+    .quit-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20001; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: min(300px, 86vw); padding: 22px 28px; background: var(--surf); border: 1px solid var(--border2); border-radius: 12px; box-shadow: var(--modal-shadow); color: var(--text); font-size: .95rem; font-weight: 600; text-align: center; animation: quit-card-in .18s ease; }
+    @keyframes quit-card-in { from { opacity: 0; transform: translate(-50%, -46%) scale(.95); } }
   </style>
 </head>
 <body class="void">
@@ -412,6 +427,13 @@ function egmPrompt(msg, defaultValue = '') {
 let subs = [];
 let activeSub = null;
 let showQueue = false;
+// "Quit when done": armed from the queue header and held in memory only. It is
+// deliberately never saved, so it resets whenever this window closes.
+let quitWhenDone = false;
+let _quitTimer = null;
+let _quitProbing = false;
+const QUIT_COUNTDOWN_S = 30;
+let globalSettings = {};
 
 // ── HTML escape — prevents stored XSS from user-controlled data ──────────────
 function esc(s) {
@@ -789,6 +811,79 @@ function startPolling() {
 }
 
 let _polling = false;
+// ── Quit when done ──────────────────────────────────────────────────────────
+function setQuitWhenDone(on) {
+  quitWhenDone = !!on;
+  if (!quitWhenDone) stopQuitCountdown();
+}
+
+// While the card shows the page is locked: a dim layer (#quit-lock) under it, every other
+// top level element `inert` (no clicks, no Tab, hidden from screen readers), and Esc works
+// like Cancel. Nothing is downloading at that moment, so the lock interrupts no work.
+let _quitInert = [];   // the elements this card made inert (one that was inert before keeps it)
+
+function _quitEsc(e) {
+  e.stopPropagation();   // no other key handler runs while the card shows (as in the main window)
+  if (e.key !== 'Escape') return;
+  e.preventDefault();   // not also closing something behind the card
+  setQuitWhenDone(false);
+}
+
+function stopQuitCountdown() {
+  if (_quitTimer) { clearInterval(_quitTimer); _quitTimer = null; }
+  document.getElementById('quit-card')?.remove();
+  document.getElementById('quit-lock')?.remove();
+  for (const el of _quitInert) el.removeAttribute('inert');   // the poll loop calls this often: only what the card set
+  _quitInert = [];
+  document.removeEventListener('keydown', _quitEsc, true);
+}
+
+// Called once this queue is empty. The countdown only starts when no other
+// window is still downloading; the main process answers that (probe).
+async function maybeStartQuitCountdown() {
+  if (_quitTimer || _quitProbing) return;
+  _quitProbing = true;
+  try {
+    const r = await window.electronAPI.quit({ whenIdle: true, probe: true });
+    if (r && r.busy === false && quitWhenDone && !_quitTimer && !hasActiveDownloads()) startQuitCountdown();
+  } catch {}
+  _quitProbing = false;
+}
+
+function startQuitCountdown() {
+  let left = QUIT_COUNTDOWN_S;
+  const bar = document.createElement('div');
+  bar.id = 'quit-card';
+  bar.className = 'quit-card';
+  bar.setAttribute('role', 'alert');
+  bar.innerHTML = `<span></span><button class="egm-modal-btn" onclick="setQuitWhenDone(false)">${i18nAttr('card.btn.cancel', 'Cancel')}</button>`;
+  const lock = document.createElement('div');
+  lock.id = 'quit-lock';
+  lock.className = 'quit-lock';
+  document.body.append(lock, bar);
+  _quitInert = [...document.body.children].filter(el => el !== lock && el !== bar && !el.hasAttribute('inert'));
+  for (const el of _quitInert) el.setAttribute('inert', '');
+  document.addEventListener('keydown', _quitEsc, true);
+  bar.querySelector('button').focus();
+  const label = bar.firstChild;
+  const tick = () => {
+    if (left <= 0) {
+      stopQuitCountdown();
+      // whenIdle only counts OTHER windows, so a download this window started in
+      // the last poll interval (1.5 s) would be cut off; the poll loop re-arms.
+      if (hasActiveDownloads()) return;
+      // The main process refuses (busy) if the main window started downloading
+      // during the countdown; the toggle stays on and the poll loop re-checks.
+      window.electronAPI.quit({ whenIdle: true });
+      return;
+    }
+    label.textContent = i18nFmt('subscriptions.queue.quitting_in', left) || `Quitting in ${left}s`;
+    left--;
+  };
+  tick();
+  _quitTimer = setInterval(tick, 1000);
+}
+
 async function pollJobs() {
   if (_polling) return;
   _polling = true;
@@ -806,6 +901,9 @@ async function pollJobs() {
         info.data = data;
         updateVideoState(videoId, data.status, data);
         if (TERMINAL_STATES.includes(data.status)) {
+          // A failed or cancelled download means the user should look at the
+          // queue, so "Quit when done" turns itself off instead of closing.
+          if (data.status !== 'done' && quitWhenDone) setQuitWhenDone(false);
           const cb = document.querySelector(`.video-check[data-video-id="${CSS.escape(videoId)}"]`);
           if (cb) cb.disabled = false;
           if (data.status === 'done' && info.subId) {
@@ -833,6 +931,10 @@ async function pollJobs() {
       if (miniQueueItem) miniQueueItem.remove();
       if (showQueue) { showQueue = false; renderQueue(); }
     }
+    if (quitWhenDone && window.electronAPI?.quit) {
+      if (activeCount === 0) maybeStartQuitCountdown();
+      else stopQuitCountdown();   // more downloads arrived during the countdown; stay armed
+    }
   }
   syncCloseGuard();
   reportActivity();
@@ -855,6 +957,7 @@ function renderQueue() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
     <span style="font-weight:600;font-size:.85rem">${i18nAttr('subscriptions.queue.title', 'Download queue')}</span>
     <span style="font-size:.65rem;color:var(--text2)">${(i18nFmt('subscriptions.queue.active', activeJobs.length) || `${activeJobs.length} active`)}</span>
+    ${window.electronAPI?.quit ? `<label class="sw-wrap" style="margin-left:auto" title="${i18nAttr('tooltip.quit_when_done', 'Automatically close the app when all downloads finish')}"><input type="checkbox" class="sw" ${quitWhenDone ? 'checked' : ''} onchange="setQuitWhenDone(this.checked)"><span>${i18nAttr('advanced.toggle.quit_when_done', 'Quit when done')}</span></label>` : ''}
   </div>`;
 
   html += '<div style="flex:1;overflow-y:auto;padding:0 18px 8px">';
@@ -932,6 +1035,25 @@ function renderDetail() {
               <input type="checkbox" id="auto-fetch-toggle" ${activeSub.auto_fetch_on_open ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
               ${i18nAttr('subscriptions.detail.autofetch', 'Auto-fetch on open')}
             </label>
+            ${globalSettings.sponsorblock_enabled ? `
+            <div style="display:flex;align-items:center;gap:14px;margin-top:5px;flex-wrap:wrap">
+              <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);cursor:pointer" title="${attrEsc(i18nGet('tooltip.sponsorblock') || 'Automatically remove selected segment types from downloaded YouTube videos, using the community-run SponsorBlock database')}">
+                <input type="checkbox" id="sub-sponsorblock-toggle" ${activeSub.sponsorblock_enabled ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+                ${i18nAttr('settings.toggle.sponsorblock', 'SponsorBlock')}
+              </label>
+              <div id="sub-sponsorblock-categories" style="display:${activeSub.sponsorblock_enabled ? 'flex' : 'none'};align-items:center;gap:14px;flex-wrap:wrap">
+                ${[
+                  { cat: 'sponsor',   labelKey: 'settings.toggle.sponsorblock_sponsor',   label: 'Sponsor',    tipKey: 'tooltip.sponsorblock_sponsor',   tip: 'Paid sponsor reads and advertisements' },
+                  { cat: 'selfpromo', labelKey: 'settings.toggle.sponsorblock_selfpromo', label: 'Self Promo', tipKey: 'tooltip.sponsorblock_selfpromo', tip: "Unpaid self-promotion for the creator's own channel or content" },
+                  { cat: 'intro',     labelKey: 'settings.toggle.sponsorblock_intro',     label: 'Intro',      tipKey: 'tooltip.sponsorblock_intro',     tip: 'Intermission or intro animation' },
+                  { cat: 'outro',     labelKey: 'settings.toggle.sponsorblock_outro',     label: 'Outro',      tipKey: 'tooltip.sponsorblock_outro',     tip: 'Endcards and credits at the end of the video' },
+                ].map(c => `
+                <label style="display:flex;align-items:center;gap:4px;font-size:.6rem;color:var(--text2);cursor:pointer" title="${attrEsc(i18nGet(c.tipKey) || c.tip)}">
+                  <input type="checkbox" class="sub-sb-cat" data-cat="${c.cat}" ${(activeSub.sponsorblock_categories || []).includes(c.cat) ? 'checked' : ''} style="accent-color:var(--acc);cursor:pointer">
+                  ${i18nAttr(c.labelKey, c.label)}
+                </label>`).join('')}
+              </div>
+            </div>` : ''}
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;margin-left:16px">
             <div style="display:flex;gap:8px;align-items:center">
@@ -1030,6 +1152,37 @@ function renderDetail() {
         body: JSON.stringify({ id: activeSub.id, auto_fetch_on_open: e.target.checked })
       });
       activeSub.auto_fetch_on_open = e.target.checked;
+    });
+  }
+
+  // SponsorBlock — per subscription. Only present in the DOM at all when
+  // globalSettings.sponsorblock_enabled is true (see renderDetail() above); when the
+  // global toggle is off this section renders empty, same as EGM's "hidden entirely,
+  // not greyed out" decision.
+  const subSponsorblock = document.getElementById('sub-sponsorblock-toggle');
+  if (subSponsorblock) {
+    subSponsorblock.addEventListener('change', async (e) => {
+      const catsBox = document.getElementById('sub-sponsorblock-categories');
+      if (catsBox) catsBox.style.display = e.target.checked ? 'flex' : 'none';
+      await fetch('/api/subscriptions/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: activeSub.id, sponsorblock_enabled: e.target.checked })
+      });
+      activeSub.sponsorblock_enabled = e.target.checked;
+    });
+    document.querySelectorAll('.sub-sb-cat').forEach((chk) => {
+      chk.addEventListener('change', async () => {
+        const cats = Array.from(document.querySelectorAll('.sub-sb-cat'))
+          .filter((c) => c.checked)
+          .map((c) => c.dataset.cat);
+        await fetch('/api/subscriptions/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: activeSub.id, sponsorblock_categories: cats })
+        });
+        activeSub.sponsorblock_categories = cats;
+      });
     });
   }
 
@@ -1217,6 +1370,15 @@ function renderDetail() {
           const qualityFields = subFormat === 'audio'
             ? { audio_quality: aq }
             : (q && q !== 'best' ? { video_height: q } : {});
+          // SponsorBlock: the per-channel selection only applies when BOTH the
+          // global toggle and this channel's own toggle are on -- the same two
+          // conditions that make the category checkboxes visible in renderDetail().
+          // Without this the per-channel UI saved and restored correctly but was
+          // never sent to /api/download, so it had no effect on any download.
+          // The backend re-validates against SPONSORBLOCK_CATEGORIES regardless.
+          const sbCategories = (globalSettings.sponsorblock_enabled && activeSub.sponsorblock_enabled)
+            ? (Array.isArray(activeSub.sponsorblock_categories) ? activeSub.sponsorblock_categories : [])
+            : [];
           const resp = await fetch('/api/download', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -1228,6 +1390,7 @@ function renderDetail() {
               thumbnail: video?.thumbnail_url || '',
               embed_metadata: true,
               subtitles: false,
+              sponsorblock_categories: sbCategories,
               ...qualityFields
             })
           });
@@ -1578,7 +1741,10 @@ document.getElementById('back-btn').addEventListener('click', () => {
 });
 
 // ── Init ─────────────────────────────────────────────────────────────────────
-loadSubs().then(() => {
+async function loadGlobalSettings() {
+  try { globalSettings = await fetch('/api/settings').then(r => r.json()); } catch { globalSettings = {}; }
+}
+Promise.all([loadSubs(), loadGlobalSettings()]).then(() => {
   const autoFetchSubs = subs.filter(s => s.auto_fetch_on_open);
   if (autoFetchSubs.length > 0) {
     // Select first auto-fetch channel so user sees it loading

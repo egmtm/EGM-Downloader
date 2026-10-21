@@ -7,7 +7,7 @@
   
   <p>
     <img src="https://img.shields.io/badge/dynamic/json?url=https://egerena.com/version.json&query=version&label=version&style=flat-square&color=0078b0" alt="Version"/>
-    <img src="https://img.shields.io/badge/Electron-44.9.2-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-45.0.0-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg" alt="Version Sync"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg" alt="Python Lint"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
@@ -33,7 +33,6 @@
   <a href="#-download">⬇ Downloads</a> ·
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
-  <a href="#roadmap">🗺️ Roadmap</a> ·
   <a href="https://egerena.com/apps/egm-downloader.html">🌐 Website</a> ·
   <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
 </p>
@@ -47,7 +46,11 @@
 - 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
 - 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
 - 📋 **Playlist Support** - Download entire playlists with one click
+- ➕ **Add While Downloading** - Paste more links while downloads are running. New videos join the list and the current run, Clear keeps the downloads in progress, and one progress bar with a Cancel All button covers them all.
+- 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. "Stop and save" ends the recording and keeps what was captured, and a recording that fails partway is saved instead of lost.
+- 🔁 **Live Stream Reconnect** - If a live stream drops, the recording reconnects on its own (up to 5 times in a row) and joins the pieces into one file. A notice tells you when a few seconds may be missing or repeated.
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
+- 🚫 **SponsorBlock** - Optionally cut sponsor reads, self promotion, intros and outros out of downloaded YouTube videos, using the community [SponsorBlock](https://sponsor.ajay.app/) database. Off by default; choose categories globally or per subscription.
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
 - ⚡ **GPU-Accelerated Conversion** - Video conversion and Upscale use your GPU when available, cutting CPU load and heat dramatically; falls back to software encoding automatically
 - 📐 **Upscale to Quality** - Opt-in upscaling proportionally scales videos smaller than your chosen quality preset after download; off by default, adds pixels not detail
@@ -56,12 +59,13 @@
 - 🎨 **Theme Creator** - Build your own theme with 10 live-preview color pickers, export as `.json`, save directly to your library, favorite alongside built-in themes
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
-- 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions
+- 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own download folder, format, quality, auto fetch and SponsorBlock settings
 - 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
 - 🛠️ **Plugin Updates** - Update yt-dlp, ffmpeg, and optional libraries without reinstalling
 - 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, downloads its own embedded Python on first run
 - 📋 **Diagnostics** - Live diagnostic log viewer, available from the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
+- ⏱️ **Quit When Done** - Close the app automatically once every download has finished. A 30 second countdown appears in the middle of the window, and you can stop it with the Cancel button or the Esc key. Works from the main window and the Subscriptions queue, and won't close if a download failed or was cancelled.
 
 ## 🔍 How EGM Downloader compares
 
@@ -81,7 +85,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.4.14, GRAND FINALE. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.0. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -90,12 +94,12 @@ A side by side look at one well known alternative, using details you can check y
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Canopy theme"/></a>
-      <br/><sub><b>Main UI</b> (Canopy theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Halloween theme"/></a>
+      <br/><sub><b>Main UI</b> (Halloween theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Magma theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Magma theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Ubuntu theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Ubuntu theme)</sub>
     </td>
   </tr>
 </table>
@@ -103,12 +107,12 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="400" alt="All Themes, Sundrop theme"/></a>
-      <br/><sub><b>All Themes</b> (Sundrop theme)</sub>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Abyssal theme"/></a>
+      <br/><sub><b>Live Streams</b> (Abyssal theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="400" alt="Subscriptions, Ghost theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Ghost theme)</sub>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Cobalt Rush theme"/></a>
+      <br/><sub><b>Live Stream Reconnecting</b> (Cobalt Rush theme)</sub>
     </td>
   </tr>
 </table>
@@ -116,12 +120,38 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="324" alt="Advanced Panel with the plugins list, Porcelain theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Porcelain theme)</sub>
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Mint theme"/></a>
+      <br/><sub><b>Quit When Done</b> (Mint theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="400" alt="Download History, Tokyo Neon theme"/></a>
-      <br/><sub><b>Download History</b> (Tokyo Neon theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Arch Linux theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Arch Linux theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Dialup theme"/></a>
+      <br/><sub><b>All Themes</b> (Dialup theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Toxic Orchid"/></a>
+      <br/><sub><b>Theme Creator</b> (custom Toxic Orchid theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Matcha theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Matcha theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Velvet Rose theme"/></a>
+      <br/><sub><b>Download History</b> (Velvet Rose theme)</sub>
     </td>
   </tr>
 </table>
@@ -130,18 +160,18 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
-**Latest:** v1.4.14  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (627 KB · ~800 MB after install)  
-**SHA256:** `c694d91bfb92889ee984a24c6398c849482844485f84164eac43f17018d8de47`  
+**Latest:** v1.5.0  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (613 KB · ~800 MB after install)  
+**SHA256:** `63c187f6efccc2f20c3d2c424e25820735e28f1879f4ab275831cafdab88b0c1`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
-**Latest:** v1.4.14  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (633 KB · ~1 GB after first run)  
-**SHA256:** `4cb6c896963517fb410f07c1d4b3a3d7bbc2b929d05897ef37596b93b9351506`  
+**Latest:** v1.5.0  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (618 KB · ~1 GB after first run)  
+**SHA256:** `0a64bfa60169b76459accbfa6ea2104af16b35b49bf2daea76dbb7d63db30c69`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -150,9 +180,9 @@ A side by side look at one well known alternative, using details you can check y
 
 ### macOS
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
-**Latest:** v1.4.14  
+**Latest:** v1.5.0  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (141 MB · ~300 MB after install)  
-**SHA256:** `efd09a6cee6eb38362abada5b2f1658668f3138159aaccaa960eccb1ca056733`  
+**SHA256:** `1e3834e8bf985d552ce25d13120ca270c364cf8c38eef9f26ac1899fd87aff32`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -160,9 +190,9 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
-**Latest:** v1.4.14  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (170 MB · ~300 MB after install)  
-**SHA256:** `ae5a109ba5bacfdc71686e6c67b7f66f1d777769ae11f646bee92b3cf1275207`  
+**Latest:** v1.5.0  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (169 MB · ~300 MB after install)  
+**SHA256:** `43bb5b3511ea44604314406449a3762974414715ba7cf8e5b667ad7a01f398c5`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
@@ -183,21 +213,6 @@ A side by side look at one well known alternative, using details you can check y
 **Linux:** 64-bit distribution · ~300 MB disk space · FUSE support · Internet on first launch (ffmpeg and Deno download)
 Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
 > Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
-
----
-
-<a id="roadmap"></a>
-
-## 🗺️ Roadmap
-
-**v1.5:**
-- ⚡ Electron runtime updated to v45 — the next major runtime upgrade
-- 🚫 SponsorBlock integration — an optional toggle to automatically skip sponsor segments in downloaded YouTube videos, powered by the community-run [SponsorBlock](https://sponsor.ajay.app/) database
-- 🔴 Live stream controls — a LIVE tag with recording time and size, a "Stop and save" button that keeps what was captured, and recordings that fail partway are saved instead of lost
-- 🔁 Live stream reconnect — if a live stream drops, the recording reconnects on its own (up to 5 times in a row) and joins the pieces into one file
-- ⏱️ Quit when done upgraded — now also in the Subscriptions queue, and it waits for every download to finish. A 30 second countdown then appears in the middle of the window, and you can stop it with the Cancel button or the Esc key
-- ➕ Add while downloading — paste more links while downloads are running; new videos join the list and the current run, with one progress bar and a Cancel All button for everything
-- 💾 Subscriptions export and import — now carry each subscription's own settings (download folder, format, quality, auto fetch and SponsorBlock), not just the links
 
 ---
 
@@ -242,7 +257,7 @@ ReClip is the starting point, and it is intentionally small. Here is what this p
 | **Beyond single downloads** | Bulk paste of URLs, files saved to a downloads folder ([Features](https://github.com/averygan/reclip#features)) | Subscriptions with a live download queue, searchable history, GPU conversion, 10 languages, 500 themes (30 seasonal) |
 | **Staying current** | `reclip.sh` updates yt-dlp on every start ([script](https://github.com/averygan/reclip/blob/main/reclip.sh)) | In app updates for yt-dlp and ffmpeg, plus an app update checker |
 
-ReClip stays deliberately small: a [single Python file backend](https://github.com/averygan/reclip#features), [two dependencies](https://github.com/averygan/reclip#stack) and an [MIT license](https://github.com/averygan/reclip/blob/main/LICENSE). EGM Downloader trades that simplicity for more features and a bigger download (141 MB on macOS, 170 MB on Linux).
+ReClip stays deliberately small: a [single Python file backend](https://github.com/averygan/reclip#features), [two dependencies](https://github.com/averygan/reclip#stack) and an [MIT license](https://github.com/averygan/reclip/blob/main/LICENSE). EGM Downloader trades that simplicity for more features and a bigger download (141 MB on macOS, 169 MB on Linux).
 
 Big thanks to [@averygan](https://github.com/averygan) for ReClip, you sparked the idea that became this project. 🙏 This is my first major project, and I'm excited to keep learning and building tools that make technology accessible to everyone. 🚀
 

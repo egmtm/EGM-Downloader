@@ -93,3 +93,6 @@ egmac-update.json
 egmlinux-update.json
 _DELETED_FILES.txt
 egm_subscriptions.json
+
+# ── Local logs (written by the app and by the test suite) ─────
+egm_debug.log*

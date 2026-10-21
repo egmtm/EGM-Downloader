@@ -12,8 +12,11 @@ async function fetchSingle(url, ph) {
 
 // Enqueue all playlist entries as stub cards, then fetch full info in parallel
 function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
+  let added = 0;
   for (const e of entries) {
     if (fetchAbort) break;
+    if (items.some(i => i.url === e.url || (e.vkey && i.vkey === e.vkey))) continue;   // already in the list (same link, or same site and video id): skipped, never a second card
+    added++;
     const el    = makeCardEl();
     document.getElementById('results').appendChild(el);
     const pItem = addItem(e.url, {
@@ -21,6 +24,7 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
       duration: e.duration, uploader: e.uploader || '',
       formats: [], audio_formats: [],
     });
+    pItem.vkey = e.vkey || '';
     renderCard(el, pItem);
     pendingInfo.count++;
     (async () => {
@@ -53,16 +57,22 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
   // for a single watch URL (one-entry "playlist"), so fetchSingle — the only
   // path that updated the arrows — almost never runs in practice.
   updateQueueArrows();
+  // Everything this link brought was already in the list: say so instead of doing nothing.
+  if (!added && entries.length && !fetchAbort) toast(i18nGet('toast.already_in_list') || 'Already in the list');
 }
 
 async function fetchAll() {
-  const raw  = document.getElementById('urls').value;
-  const urls = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
-  if (!urls.length) { toast(i18nGet('toast.paste_url_first') || 'Paste at least one URL', 'err'); return; }
-  items = [];
+  const raw   = document.getElementById('urls').value;
+  const typed = [...new Set(raw.split('\n').map(u => u.trim()).filter(Boolean))];
+  if (!typed.length) { toast(i18nGet('toast.paste_url_first') || 'Paste at least one URL', 'err'); return; }
+  // Fetch only adds to the list (Clear is the way to empty it): a link that is already there is skipped.
+  const have = new Set(items.map(i => i.url));
+  const urls = typed.filter(u => !have.has(u));
+  if (!urls.length) { toast(i18nGet('toast.already_in_list') || 'Already in the list'); return; }
+  const firstId = seq;   // the cards this fetch adds all have an id from here on
   fetchAbort = false;
-  document.getElementById('results').innerHTML = '';
-  setDlAllVisible(false);
+  // A link that failed last time is tried again below (or was deleted from the box): drop its old error card.
+  document.querySelectorAll('#results .vcard.fetch-err').forEach(c => c.remove());
   document.getElementById('fetch-btn').disabled = true;
   document.getElementById('cancel-fetch-btn').style.display = '';
 
@@ -71,9 +81,10 @@ async function fetchAll() {
     document.getElementById('fetch-btn').disabled = false;
     document.getElementById('cancel-fetch-btn').style.display = 'none';
     if (items.length > 1) setDlAllVisible(true);
-    toast(items.length === 1
-      ? (i18nFmt('toast.stopped_keeping_one', items.length) || 'Stopped — keeping 1 loaded video')
-      : (i18nFmt('toast.stopped_keeping_many', items.length) || ('Stopped — keeping ' + items.length + ' loaded videos')));
+    const kept = items.filter(i => i.id >= firstId).length;   // this fetch's own, not the ones already in the list
+    toast(kept === 1
+      ? (i18nFmt('toast.stopped_keeping_one', kept) || 'Stopped — keeping 1 loaded video')
+      : (i18nFmt('toast.stopped_keeping_many', kept) || ('Stopped — keeping ' + kept + ' loaded videos')));
   };
 
   // Use an object so fetchPlaylistEntries can mutate the counter by reference
@@ -132,11 +143,12 @@ function updateQueueArrows() {
   if (!results) return;
   // Use DOM order as source of truth — items[] may drift from DOM after swaps
   const allCards = [...results.querySelectorAll('.vcard')];
+  const queued = typeof runQueuedItems === 'function' ? runQueuedItems() : [];
   const idleCards = allCards.filter(card => {
     const id = card.querySelector('.qarrow')?.dataset.id;
     if (!id) return false;
     const item = items.find(i => String(i.id) === String(id));
-    return item && item.status === 'idle';
+    return item && item.status === 'idle' && !queued.includes(item);   // a card a running Download all has queued is not reorderable
   });
   // Non-idle cards (downloading/error/cancelled — or fetch-error placeholders
   // with no items[] entry) never show reorder arrows: the queue is only
@@ -145,6 +157,11 @@ function updateQueueArrows() {
   allCards.forEach(card => {
     if (idleCards.includes(card)) return;
     card.querySelectorAll('.qarrow').forEach(b => { b.style.visibility = 'hidden'; });
+    // Hidden arrows still take their width, which pushed the status badge away
+    // from the left edge and made the controls row wrap early. A card that has
+    // left the idle queue never gets them back, so drop the space as well.
+    const wrap = card.querySelector('[id^="qarrows"]');
+    if (wrap) wrap.style.display = 'none';
   });
   idleCards.forEach((card, pos) => {
     const wrap = card.querySelector('[id^="qarrows"]');
@@ -157,14 +174,33 @@ function updateQueueArrows() {
 
 
 function renderErr(el, url, msg, i18nKey) {
+  el.classList.add('fetch-err');   // a card with no item behind it: the next Fetch and Clear remove it
   const shown = (i18nKey && i18nGet(i18nKey)) || msg;
   el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
     <div class="vbody"><div class="vtitle">${esc(trunc(url,70))}</div>
     <div class="vmeta"><span class="badge b-error">${esc((i18nGet('fetch.error.prefix') || 'Error') + ': ' + shown)}</span></div></div>`;
 }
 
+// Shown when a video has no thumbnail, or when none of its thumbnails will load.
+const THUMB_PLACEHOLDER = `<div class="noimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`;
+
+// A thumbnail that fails to load (some live streams point at an image that does
+// not exist yet) tries the next candidate, then falls back to the placeholder
+// instead of leaving a broken image icon on the card.
+function wireThumbFallback(img, rest) {
+  const queue = (rest || []).slice();
+  img.addEventListener('error', () => {
+    const next = queue.shift();
+    if (next) { img.src = next; return; }
+    const ph = document.createElement('div');
+    ph.innerHTML = THUMB_PLACEHOLDER;
+    img.replaceWith(ph.firstElementChild);
+  });
+}
+
 function renderCard(el, item) {
   const info = item.info, n = item.id;
+  const thumbs = (info.thumbnails && info.thumbnails.length) ? info.thumbnails : (info.thumbnail ? [info.thumbnail] : []);
   const dur  = info.duration ? fmtDur(info.duration) : '';
   // Add a "may be slower" tooltip on high-resolution options (≥1440p)
   // since CDN throttling on high-res streams is common but legitimate.
@@ -183,12 +219,12 @@ function renderCard(el, item) {
   el.innerHTML = `
     <button class="vcard-remove" title="${i18nAttr('tooltip.card.remove', 'Remove')}" data-id="${n}">✕</button>
     <div class="thumb${info.width && info.height && info.height > info.width ? ' portrait' : '' }">
-      ${info.thumbnail ? `<img src="${esc(info.thumbnail)}" alt="" loading="lazy">` : `<div class="noimg"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg></div>`}
+      ${thumbs.length ? `<img src="${esc(thumbs[0])}" alt="" loading="lazy">` : THUMB_PLACEHOLDER}
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
     </div>
     <div class="vbody">
       <div class="vtitle" title="${esc(info.title)}">${esc(info.title||item.url)}</div>
-      <div class="vmeta">${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
+      <div class="vmeta">${info.is_live ? `<span class="live-tag">${i18nAttr('card.badge.live', 'LIVE')}</span> ` : ''}${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
       <div class="qual-panel">
         <div class="qual-group">
           <span class="qual-label">${i18nAttr('card.label.format', 'Format')}</span>
@@ -231,6 +267,9 @@ function renderCard(el, item) {
       <div class="prog" id="prog${n}" style="display:none"><div class="prog-inner indeterminate"></div></div>
     </div>`;
 
+  const thumbImg = el.querySelector('.thumb img');
+  if (thumbImg) wireThumbFallback(thumbImg, thumbs.slice(1));
+
   // Remove button
   el.querySelector('.vcard-remove').addEventListener('click', () => removeItem(item.id, el));
 
@@ -270,35 +309,76 @@ function renderCard(el, item) {
       const id  = +btn.dataset.id;
       const idxA = items.findIndex(i => i.id === id);
       if (idxA === -1) return;
-      const idxB = dir === 'up' ? idxA - 1 : idxA + 1;
-      if (idxB < 0 || idxB >= items.length) return;
       const itemA = items[idxA];
+      const queued = typeof runQueuedItems === 'function' ? runQueuedItems() : [];
+      const movable = i => i.status === 'idle' && !queued.includes(i);   // not running, finished or failed, and not queued by a running Download all
+      if (!itemA || !movable(itemA)) return;
+      // The nearest movable card in that direction: the cards in between keep their places, so the
+      // arrow always has something to trade with
+      const step = dir === 'up' ? -1 : 1;
+      let idxB = idxA + step;
+      while (idxB >= 0 && idxB < items.length && !movable(items[idxB])) idxB += step;
+      if (idxB < 0 || idxB >= items.length) return;
       const itemB = items[idxB];
-      if (!itemA || !itemB || itemA.status !== 'idle' || itemB.status !== 'idle') return;
       // Swap in the items array
       [items[idxA], items[idxB]] = [items[idxB], items[idxA]];
-      // Move el relative to the OTHER item's card (located by id, not DOM
-      // adjacency — an error card may sit between the two queue cards).
+      // The two cards trade places in the page, located by id, not DOM adjacency: an error card
+      // or a running card may sit between them
       const results = document.getElementById('results');
       const otherCard = document.getElementById('st' + itemB.id)?.closest('.vcard');
-      if (otherCard) {
-        if (dir === 'up') {
-          results.insertBefore(el, otherCard);    // el moves above other
-        } else {
-          results.insertBefore(otherCard, el);    // other moves above el (el moves down)
-        }
+      if (otherCard && otherCard !== el) {
+        const mark = document.createComment('');
+        results.replaceChild(mark, el);
+        results.replaceChild(el, otherCard);
+        results.replaceChild(otherCard, mark);
       }
       updateQueueArrows();
     });
   });
 
+  if (isActiveItem(item)) restoreRunningCard(item);   // its info arrived after the download started: the rebuild must not undo that
+}
+
+// renderCard rebuilds a card from scratch. A card whose download is already running (a playlist entry whose
+// info loaded late) gets back what the download had set up: no Download button, the progress bar, Cancel,
+// and Stop and save for a live stream.
+function restoreRunningCard(item) {
+  const n = item.id;
+  const dlBtn = document.getElementById(`dl${n}`);
+  if (!dlBtn) return;
+  const progEl = document.getElementById(`prog${n}`);
+  setBadge(document.getElementById(`st${n}`), 'dl', i18nGet('card.status.downloading') || 'Downloading…');
+  dlBtn.disabled = true;
+  dlBtn.style.display = 'none';
+  if (progEl) progEl.style.display = '';
+  let cancelBtn = document.getElementById(`cancel${n}`);
+  if (!cancelBtn) {
+    cancelBtn = document.createElement('button');
+    cancelBtn.id = `cancel${n}`;
+    cancelBtn.className = 'btn btn-red btn-sm';
+    cancelBtn.textContent = '✕ ' + (i18nGet('card.btn.cancel') || 'Cancel');
+    dlBtn.parentNode.insertBefore(cancelBtn, dlBtn.nextSibling);
+  }
+  cancelBtn.style.display = '';
+  cancelBtn.onclick = () => cancelDownload(item, n);
+  addStopSave(item, n, cancelBtn);
 }
 
 function removeItem(id, el) {
+  const item = items.find(i => i.id === id);
+  // A running download goes with its card, after asking: otherwise its job runs on with nothing left
+  // to show, cancel or count it (Quit when done would quit under it)
+  if (item && (isActiveItem(item) || item.status === 'queued')) {
+    if (!confirm(i18nGet('confirm.remove_running') || 'This download is still running.\n\nCancel it and remove the card?')) return;
+    if (item.jobId) fetch(`/api/cancel/${item.jobId}`, { method: 'POST' }).catch(() => {});
+    item.status = 'cancelled';
+  }
   items = items.filter(i => i.id !== id);
   el.remove();
   if (items.length <= 1) setDlAllVisible(false);
   updateQueueArrows();   // the new first/last cards gain an edge
+  reportActivity();
+  if (_bulkRun) _bulkRun.refresh();   // a removed card that did not finish no longer counts in the bar
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
@@ -375,6 +455,8 @@ async function startDl(item, n) {
   }
   const chosenName = await showModal(item.info.title || 'download', ext);
   if (!chosenName) return;   // cancelled
+  // While the dialog was open the card may have been started by Download all, or cleared
+  if (item.status === 'downloading' || !items.includes(item)) return;
 
   const stEl   = document.getElementById(`st${n}`);
   const dlBtn  = document.getElementById(`dl${n}`);
@@ -382,6 +464,7 @@ async function startDl(item, n) {
   const dir = chosenPath;
 
   item.status = 'downloading';
+  joinBulkRun(item);   // the bar counts this card: it joins the run in progress, or opens one
   updateQueueArrows();   // card left the idle queue — hide its arrows, re-edge the rest
   reportActivity();   // engage the shell state (bar/badge/sleep blocker) immediately, not at the first poll tick
   setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading…');
@@ -400,6 +483,7 @@ async function startDl(item, n) {
   }
   cancelBtn.style.display = '';
   cancelBtn.onclick = () => cancelDownload(item, n);
+  addStopSave(item, n, cancelBtn);
 
   try {
     const res = await post('/api/download', {
@@ -415,8 +499,10 @@ async function startDl(item, n) {
       concurrent_fragments: parseInt(document.getElementById('fragments-sel').value, 10) || 1,
       title: chosenName, download_dir: dir,
       thumbnail: item.info?.thumbnail || '',
+      is_live: !!item.info?.is_live,
       subtitles: !!document.getElementById('subtitles-chk')?.checked,
       embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
+      sponsorblock_categories: getSponsorblockCategories(),
       // HDR selections override the global format: HDR ships as MKV (server enforces too)
       output_format: (() => {
         const sel = (item.info.formats || []).find(f => f.id === item.selFmtId);
@@ -426,6 +512,7 @@ async function startDl(item, n) {
     });
     if (res.error) throw new Error(res.error);
     item.jobId = res.job_id;
+    if (item.status === 'cancelled') fetch(`/api/cancel/${item.jobId}`, { method: 'POST' }).catch(() => {});   // cancelled while starting
     pollJob(item, stEl, dlBtn, progEl, cancelBtn);
   } catch (e) {
     item.status = 'error';
@@ -436,11 +523,40 @@ async function startDl(item, n) {
   }
 }
 
+// Live streams only: "Stop and save" sits next to Cancel and keeps what has been
+// recorded so far (Cancel discards it).
+function addStopSave(item, n, cancelBtn) {
+  if (!item.info?.is_live) return;
+  let b = document.getElementById(`stop${n}`);
+  if (!b) {
+    b = document.createElement('button');
+    b.id = `stop${n}`;
+    b.className = 'btn btn-green btn-sm';
+    b.textContent = '■ ' + (i18nGet('card.btn.stop_save') || 'Stop and save');
+    cancelBtn.parentNode.insertBefore(b, cancelBtn);
+  }
+  b.style.display = '';
+  b.disabled = false;
+  b.onclick = async () => {
+    if (!item.jobId) return;
+    b.disabled = true;
+    try { const r = await fetch(`/api/stop/${item.jobId}`, { method: 'POST' }); if (!r.ok) b.disabled = false; }
+    catch { b.disabled = false; }
+  };
+}
+function hideStopSave(item) {
+  const b = document.getElementById(`stop${item.id}`);
+  if (b) b.style.display = 'none';
+}
+
 async function cancelDownload(item, n) {
-  if (!item.jobId) return;
-  try {
-    await fetch(`/api/cancel/${item.jobId}`, { method:'POST' });
-  } catch {}
+  // No job id yet: the start request is in flight, and its reply cancels the job once it has one
+  if (!item.jobId && item.status !== 'downloading') return;
+  if (item.jobId) {
+    try {
+      await fetch(`/api/cancel/${item.jobId}`, { method:'POST' });
+    } catch {}
+  }
   item.status = 'cancelled';
   const stEl   = document.getElementById(`st${n}`);
   const progEl = document.getElementById(`prog${n}`);
@@ -450,6 +566,7 @@ async function cancelDownload(item, n) {
   if (progEl) progEl.style.display = 'none';
   if (dlBtn) { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
   if (cancelBtn) cancelBtn.style.display = 'none';
+  hideStopSave(item);
   updateQueueArrows();   // no longer idle — keep the arrow rule true after cancel
   toast(i18nGet('toast.download_cancelled') || 'Download cancelled');
 }
@@ -470,6 +587,18 @@ function applyJobProgress(d, stEl, progEl) {
     // Download complete but backend hasn't emitted a conversion tag yet —
     // show Converting… as a fallback so the UI doesn't appear frozen
     setBadge(stEl, 'dl', (i18nGet('card.status.converting') || 'Converting…') + (d.encoder ? ' · ' + d.encoder : ''));
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.live_reconnecting) {
+    // Live stream dropped and is being recorded again (the pieces are joined at the end)
+    setBadge(stEl, 'dl', i18nFmt('card.status.reconnecting', d.live_reconnecting, d.live_retries_max) || `Reconnecting… ${d.live_reconnecting}/${d.live_retries_max}`);
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
+    if (progEl) progEl.style.display = '';
+  } else if (d.status === 'downloading' && d.live_time) {
+    // Live recording: no percent exists, show how much has been captured instead
+    setBadge(stEl, 'dl', (i18nGet('card.status.recording') || 'Recording') + ` · ${d.live_time}` + (d.live_size ? ` · ${d.live_size}` : ''));
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';
@@ -503,13 +632,14 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     );
     if (!anyPending && items.length > 1) setDlAllVisible(false);
   };
+  if (d.status === 'done' || d.status === 'error' || d.status === 'cancelled') hideStopSave(item);
   if (d.status === 'done') {
     item.status = 'done';
     reportActivity();
     if (progEl) progEl.style.display = 'none';
     if (cancelBtn) cancelBtn.style.display = 'none';
     if (d.warning) {
-      toast(d.warning, 'warn');
+      toast((d.warning_key && i18nGet(d.warning_key)) || d.warning, 'warn');
     } else {
       toast(i18nFmt('download.saved', d.filename) || ('Saved: ' + d.filename), 'ok');
     }
@@ -529,10 +659,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     }
     // Refresh mini history panel so new entry appears immediately
     if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
-    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
-      const allFinished = items.every(i => i.status === 'done' || i.status === 'error' || i.status === 'cancelled');
-      if (allFinished) setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
-    }
+    quitWhenDoneCheck();
     recheckBulkVisibility();
     return true;
   }
@@ -585,7 +712,11 @@ function reportActivity() {
 }
 
 function pollJob(item, stEl, dlBtn, progEl, cancelBtn) {
+  const n = item.id;
   const iv = setInterval(async () => {
+    // The card may have been rebuilt since the last tick (its info arrived late): work on what is on the page now
+    stEl = document.getElementById(`st${n}`) || stEl;       dlBtn = document.getElementById(`dl${n}`) || dlBtn;
+    progEl = document.getElementById(`prog${n}`) || progEl; cancelBtn = document.getElementById(`cancel${n}`) || cancelBtn;
     if (item.status === 'cancelled' || bulkCancelledJobs.has(item.jobId)) {
       clearInterval(iv);
       bulkCancelledJobs.delete(item.jobId);

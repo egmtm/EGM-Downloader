@@ -17,42 +17,92 @@ function setDlAllVisible(show) {
 
 document.getElementById('dl-all-btn').addEventListener('click', () => showVideoQualityModal());
 // dl-all-audio-btn is handled by the audio quality popup — it shows the modal first
+let _bulkRun = null;   // the run in progress (the bar is its face): Download all and cards started from their own button all go into it, so the bar counts every download and one concurrency limit holds
+// The cards the running Download all has queued: it starts them in the order it was given, so moving them in the list would change nothing
+function runQueuedItems() { return _bulkRun ? _bulkRun.waiting() : []; }
+// A card started from its own button joins the run in progress, or opens one: the bar is up from the first download
+function joinBulkRun(item) {
+  if (!_bulkRun) createBulkRun('downloads', true);   // neutral word: the cards can be videos, audio or a mix (final wording still open)
+  _bulkRun.join(item);
+}
+
 async function downloadAll(forceFormat, audioQuality, videoQuality) {
   if (!chosenPath) {
     toast(i18nGet('toast.select_folder_first') || 'Please select a download folder first', 'err');
     document.getElementById('browse-btn').focus();
     return;
   }
-  const pending = items.filter(i => i.status === 'idle' || i.status === 'error');
+  // Cards the running run has queued but not started are already taken; every other idle or failed card is new work.
+  const queued  = _bulkRun ? _bulkRun.waiting() : [];
+  const pending = items.filter(i => (i.status === 'idle' || i.status === 'error') && !queued.includes(i))
+    .map(item => ({ item, forceFormat, audioQuality, videoQuality, dir: chosenPath }));   // each card keeps the choices of the click that queued it
   if (!pending.length) { toast(i18nGet('toast.nothing_to_download') || 'Nothing to download', 'err'); return; }
+  if (_bulkRun) { _bulkRun.add(pending); return; }
+  const run = createBulkRun(forceFormat === 'audio' ? 'audio files' : 'videos', false);
+  run.add(pending);
+  await run.ended;
+}
+
+// One run: the bar, the concurrency pump and the count. modeLabel is the word the bar uses; byCard says
+// a download started from its own button opened it (Download all opens it otherwise).
+function createBulkRun(modeLabel, byCard) {
   bulkStop = false;
   const bar       = document.getElementById('bulk-bar');
-  const modeLabel = forceFormat === 'audio' ? 'audio files' : 'videos';
   bar.classList.add('show');
-  const dir = chosenPath;
-  const CONCURRENCY = parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
+  // Read at each fill, not once: a run a single card opened may be fed by a Download all much later
+  const concurrency = () => parseInt(document.getElementById('concurrency-sel').value, 10) || 10;
+  const pending = [];   // the cards the run starts itself, in the order it was given them
   let done = 0, active = 0, idx = 0;
 
+  const joined  = new Set();   // cards started from their own button while this run is on: counted with the run's own
+  const loading = new Set();   // the run's cards that hold a slot while their info loads
+  // Every card counts once, by what it is doing now: one the run has not reached yet is waiting,
+  // a running one is active (whoever started it), anything else is finished. A card the run
+  // queued and the user started, or a joined card that failed and was queued again, is one card.
+  function counts() {
+    const waiting = new Set(pending.slice(idx).map(e => e.item));
+    const all = new Set([...pending.map(e => e.item), ...joined]);
+    let fin = 0, act = 0, total = 0, ok = 0;
+    // A finished download leaves the list on its own and still counts; a card the user removed (or Clear took)
+    // while it was cancelled, failed or waiting was not finished work, so it leaves the count with its card.
+    for (const i of all) {
+      if (i.status !== 'done' && !items.includes(i)) continue;
+      total++;
+      if (isActiveItem(i) || loading.has(i)) act++;
+      else if (!waiting.has(i)) fin++;
+      if (i.status === 'done') ok++;
+    }
+    return { done: fin, total, active: act, ok };
+  }
   function updateBulkTxt() {
+    if (run.stopped) return;   // cancelled: a later run owns the bar now
+    const c = counts();
     document.getElementById('bulk-txt').textContent =
-      `Downloading ${done} / ${pending.length} ${modeLabel} done  (${active} active)`;
+      `Downloading ${c.done} / ${c.total} ${modeLabel} done  (${c.active} active)`;
   }
   // downloadOne: starts one item's download and resolves when finished
-  async function downloadOne(item) {
-    if (bulkStop || item.status === 'cancelled') { active--; return; }
+  async function downloadOne({ item, forceFormat, audioQuality, videoQuality, dir }) {
+    // Skipped: the run was stopped, or the card was cancelled or started from its own button meanwhile
+    if (run.stopped || (item.status !== 'idle' && item.status !== 'error')) { done++; active--; return; }
     const n       = item.id;
-    const stEl    = document.getElementById('st'     + n);
-    const dlBtn   = document.getElementById('dl'     + n);
-    const progEl  = document.getElementById('prog'   + n);
+    let stEl      = document.getElementById('st'     + n);
+    let dlBtn     = document.getElementById('dl'     + n);
+    let progEl    = document.getElementById('prog'   + n);
     if (!stEl || !dlBtn) { done++; active--; updateBulkTxt(); return; }
 
     // Lazy-fetch info if needed
     if (!item.info.formats?.length && !item.info.audio_formats?.length) {
       setBadge(stEl, 'dl', i18nGet('card.status.fetching_short') || 'Fetching...'); dlBtn.disabled = true;
+      loading.add(item);
       try {
         const i2 = await post('/api/info', { url: item.url });
         if (!i2.error) item.info = i2;
       } catch {}
+      loading.delete(item);
+      // cleared, removed or cancelled while its info loaded
+      if (run.stopped || !items.includes(item) || (item.status !== 'idle' && item.status !== 'error')) { done++; active--; return; }
+      // the card's own info load may have rebuilt it meanwhile: the elements from before the wait are gone from the page
+      stEl = document.getElementById('st' + n) || stEl; dlBtn = document.getElementById('dl' + n) || dlBtn; progEl = document.getElementById('prog' + n) || progEl;
     }
 
     item.status = 'downloading';
@@ -60,6 +110,7 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     reportActivity();   // engage the shell state (bar/badge/sleep blocker) immediately, not at the first poll tick
     setBadge(stEl, 'dl', i18nGet('card.status.queued_ellipsis') || 'Queued...');
     dlBtn.disabled = true;
+    dlBtn.style.display = 'none';   // same as a single download: the dimmed button only took space from the status and Cancel
     if (progEl) progEl.style.display = '';
 
     let cancelBtn = document.getElementById('cancel' + n);
@@ -72,9 +123,10 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     }
     cancelBtn.style.display = '';
     cancelBtn.onclick = () => cancelDownload(item, n);
+    addStopSave(item, n, cancelBtn);
 
     try {
-      if (bulkStop || item.status === 'cancelled') { active--; return; }
+      if (run.stopped || item.status === 'cancelled') { active--; return; }
       setBadge(stEl, 'dl', i18nGet('card.status.downloading') || 'Downloading...');
       const res = await post('/api/download', {
         url: item.url, format: forceFormat || item.selFmt,
@@ -85,18 +137,27 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
         title: item.info.title || 'download',
         download_dir: dir,
         thumbnail: item.info?.thumbnail || '',
+        is_live: !!item.info?.is_live,
         audio_quality: audioQuality || document.getElementById('default-audio-fmt-sel')?.value || '320',
         subtitles: !!document.getElementById('subtitles-chk')?.checked,
         embed_metadata: document.getElementById('embed-metadata-chk')?.checked !== false,
+        sponsorblock_categories: getSponsorblockCategories(),
         output_format: document.getElementById('output-format-sel')?.value || 'mp4_h264',
       });
       if (res.error) throw new Error(res.error);
       item.jobId = res.job_id;
+      if (run.stopped || item.status === 'cancelled') {   // cancelled while the start request was in flight: the job exists now, stop it
+        bulkCancelledJobs.add(item.jobId);
+        fetch('/api/cancel/' + item.jobId, { method: 'POST' }).catch(() => {});
+      }
 
       await new Promise(resolve => {
         const wiv = setInterval(async () => {
+          // The card may have been rebuilt since the last tick (its info arrived late): work on what is on the page now
+          stEl = document.getElementById('st' + n) || stEl;       dlBtn = document.getElementById('dl' + n) || dlBtn;
+          progEl = document.getElementById('prog' + n) || progEl; cancelBtn = document.getElementById('cancel' + n) || cancelBtn;
           // Check cancellation before any fetch
-          if (item.status === 'cancelled' || bulkStop) {
+          if (item.status === 'cancelled' || run.stopped) {
             clearInterval(wiv);
             applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
             done++; resolve();
@@ -105,9 +166,16 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
           try {
             const d = await fetch('/api/status/' + item.jobId).then(r => r.json());
             // Re-check after async fetch
-            if (item.status === 'cancelled' || bulkStop) {
+            if (item.status === 'cancelled' || run.stopped) {
               clearInterval(wiv);
               applyJobDone({ status: 'cancelled' }, item, stEl, dlBtn, progEl, cancelBtn);
+              done++; resolve();
+              return;
+            }
+            // Backend evicted the job (cleanup worker / app restart): as in pollJob, or the run never ends
+            if (d && d.error === 'Job not found') {
+              clearInterval(wiv);
+              applyJobDone({ status: 'error', error: i18nGet('card.status.interrupted') || 'Download interrupted' }, item, stEl, dlBtn, progEl, cancelBtn);
               done++; resolve();
               return;
             }
@@ -145,32 +213,52 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
   }
 
   // Concurrency pump: keep up to CONCURRENCY downloads running at once
-  await new Promise(resolve => {
-    function pump() {
-      if (bulkStop) { resolve(); return; }
-      while (active < CONCURRENCY && idx < pending.length) {
-        active++;
-        downloadOne(pending[idx++]).then(pump);
-      }
-      updateBulkTxt();  // update AFTER filling slots so count is accurate
-      if (idx >= pending.length && active === 0) resolve();
+  let finish, watch = null;
+  const finished = new Promise(resolve => { finish = () => { clearInterval(watch); resolve(); }; });
+  function pump() {
+    if (run.stopped) { finish(); return; }
+    while (active < concurrency() && idx < pending.length) {
+      active++;
+      downloadOne(pending[idx++]).then(pump);
     }
-    pump();
-  });
-
-  bar.classList.remove('show');
-  if (!bulkStop) {
-    toast((i18nGet('toast.done') || 'Done') + ' — ' + done + ' ' + modeLabel, 'ok');
-    if (document.getElementById('quit-on-done-chk')?.checked && window.electronAPI) {
-      setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
-    }
+    updateBulkTxt();  // update AFTER filling slots so count is accurate
+    if (idx >= pending.length && active === 0 && counts().active === 0) finish();
   }
+  // waiting = queued and not yet downloading (an entry already taken that is still idle is loading its info)
+  const run = { stopped: false, waiting: () => pending.filter((e, k) => k >= idx || e.item.status === 'idle').map(e => e.item),
+                add(more) { pending.push(...more); pump(); updateQueueArrows(); },
+                refresh: () => pump(),   // a card left the list: the count and the end of the run are looked at again at once
+                join(item) {
+                  if (joined.has(item)) return;   // counts() takes each card once, the run's own included
+                  joined.add(item);
+                  watch = watch || setInterval(pump, 1000);   // such a card ends on its own poller: look again each second
+                  updateBulkTxt();
+                } };
+  _bulkRun = run;
+  items.filter(isActiveItem).forEach(run.join);   // cards already downloading when the run starts are part of what the bar counts
+  // Resolves when the run is over. A stopped run says nothing: Cancel all already hid the bar and said so, and a newer run may own it now.
+  run.ended = finished.then(() => {
+    if (run.stopped) return;
+    _bulkRun = null;
+    bar.classList.remove('show');
+    // A single card that opened the run said "Saved" itself; a Download all always says Done
+    const c = counts();
+    if (c.total >= (byCard ? 2 : 1)) toast((i18nGet('toast.done') || 'Done') + ' — ' + c.done + ' ' + modeLabel, 'ok');
+    // Only a run that finished something: one whose last card was cancelled and removed leaves an empty list, which
+    // _qodArmed reads as "all done", and the app would quit on a download the user just stopped
+    if (c.ok) quitWhenDoneCheck();
+  });
+  return run;
 }
 
 function cancelBulk() {
   bulkStop = true;
   document.getElementById('bulk-bar').classList.remove('show');
+  const queued = _bulkRun ? _bulkRun.waiting() : [];
+  // This run is over: it winds down on its own, and the next Download all starts a fresh one
+  if (_bulkRun) { _bulkRun.stopped = true; _bulkRun = null; }
   items.forEach(item => {
+    if (item.status === 'idle' && !queued.includes(item)) return;   // added since, never queued by the run: stays idle
     // Cancel anything in-flight: downloading (has jobId) or queued (jobId assigned but not yet running)
     if ((item.status === 'downloading' || item.status === 'queued') && item.jobId) {
       bulkCancelledJobs.add(item.jobId);
@@ -188,17 +276,35 @@ function cancelBulk() {
       if (progEl)    progEl.style.display = 'none';
       if (dlBtn)     { dlBtn.disabled = false; dlBtn.style.display = ''; dlBtn.textContent = i18nGet('filename.modal.btn.download') || '⬇ Download'; }
       if (cancelBtn) cancelBtn.style.display = 'none';
+      hideStopSave(item);
     }
   });
   updateQueueArrows();   // whole queue left idle — hide every arrow in one pass
   toast(i18nGet('toast.bulk.all_cancelled') || 'All downloads cancelled');
 }
 
+// A card whose download is running: Clear never removes it (its poller and the shell's activity
+// report both live on the card), whatever the answer to the question.
+const isActiveItem = i => i.status === 'downloading' || i.status === 'converting';
+
 document.getElementById('clear-btn').addEventListener('click', () => {
+  const active  = items.filter(isActiveItem);
+  const removed = items.length - active.length;
+  // Asked only when something would be removed while downloads run; otherwise Clear works silently as always.
+  if (active.length && removed &&
+      !confirm(i18nFmt('confirm.clear_keep_active', removed, active.length)
+        || `Remove the items that are not downloading (${removed})?\n\nThe downloads in progress (${active.length}) will stay.`)) return;
   document.getElementById('urls').value = '';
-  showEmptyState();
+  if (active.length) {
+    const keep = new Set(active.map(i => document.getElementById('st' + i.id)?.closest('.vcard')).filter(Boolean));
+    document.querySelectorAll('#results .vcard').forEach(c => { if (!keep.has(c)) c.remove(); });
+  } else {
+    showEmptyState();
+  }
   setDlAllVisible(false);
-  items = [];
+  items = active;
+  updateQueueArrows();
+  if (_bulkRun) _bulkRun.refresh();   // the cards Clear took no longer count in the bar
 });
 
 function showEmptyState() {

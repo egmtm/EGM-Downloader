@@ -302,8 +302,8 @@ def get_data_dir() -> Path:
     return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "1.4.14"
-APP_BUILD             = 168
+APP_VERSION           = "1.5.0"
+APP_BUILD             = 169
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
@@ -479,6 +479,29 @@ _settings_lock  = threading.Lock()
 # A code is validated against this tuple BEFORE it ever builds a file path.
 SUPPORTED_LANGUAGES = ("en", "ar", "de", "es", "fr", "it", "ja", "nl", "pt", "ru")
 LANGUAGES_DIR = Path(__file__).parent / "languages"
+
+# ── SponsorBlock: category allowlist ──────────────────────────────────────────────────────
+# Single allowlist for every path a category can enter: /api/settings/save (the global
+# default), /api/subscriptions/update (per-channel override), and /api/download itself
+# (whatever a request actually asks for gets validated against this before it's ever
+# joined into a yt-dlp --sponsorblock-remove argument). Deliberately narrower than every
+# category SponsorBlock/yt-dlp support -- poi_highlight and chapter are mark-only, not
+# removable, so they're not offered at all; filler/interaction/music_offtopic/hook exist
+# upstream but aren't exposed in this app's first pass.
+SPONSORBLOCK_CATEGORIES = ("sponsor", "intro", "outro", "selfpromo")
+
+def _clean_sponsorblock_categories(value) -> list:
+    """Filter to only the allowed category strings, preserving order, deduping.
+    Never trust client input directly into a subprocess argument list."""
+    if not isinstance(value, list):
+        return []
+    seen = set()
+    out = []
+    for c in value:
+        if isinstance(c, str) and c in SPONSORBLOCK_CATEGORIES and c not in seen:
+            seen.add(c)
+            out.append(c)
+    return out
 
 def _detect_os_language() -> str:
     """Map the OS locale to a supported language code; default to English."""
@@ -699,6 +722,13 @@ def _load_subscriptions_unlocked() -> list:
             _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
         except Exception:
             _subs_cache = []
+        # Backfill defaults for records written before a field existed -- .get(key,
+        # default) at read time, same spirit as _load_settings()'s per-key defaults,
+        # just applied per-record since subscriptions are a list of independent objects.
+        # Non-destructive: the file on disk is untouched until something else saves it.
+        for _s in _subs_cache:
+            _s.setdefault("sponsorblock_enabled", False)
+            _s.setdefault("sponsorblock_categories", [])
     return list(_subs_cache)
 
 def _save_subscriptions_unlocked(subs: list):
@@ -973,6 +1003,21 @@ def _safe_thumb_url(url) -> str:
     if not url.startswith(("https://", "http://")) or any(c in url for c in ('"', "'", ' ', '<', '>', '(', ')')):
         return ""
     return url
+
+def _thumb_candidates(info, limit=8):
+    """Thumbnail URLs for the page to try in order: the one yt-dlp chose first,
+    then its other entries, best first. Some live streams point at an image
+    that does not exist yet, so the page needs a next one to try. https only
+    (the page's CSP allows https images only) and the same breakout character
+    checks as _safe_thumb_url."""
+    urls = []
+    for cand in [info.get("thumbnail")] + [t.get("url") for t in reversed(info.get("thumbnails") or []) if isinstance(t, dict)]:
+        u = _safe_thumb_url(cand)
+        if u.startswith("https://") and u not in urls:
+            urls.append(u)
+            if len(urls) >= limit:
+                break
+    return urls
 
 _VIDEO_ID_RE = _re.compile(r"^[A-Za-z0-9_.:-]{1,128}$")
 
@@ -1305,7 +1350,8 @@ def _ensure_h264(job_id, path, job):
             return path
         try: os.remove(tmp)
         except OSError: pass
-        job["warning"] = "Saved in the source codec - H.264 conversion was unavailable."
+        job["warning"] = "The H.264 conversion failed, so the video was saved in its original codec."
+        job["warning_key"] = "download.warning.source_codec"
         return path
     except Exception:
         return path
@@ -1342,7 +1388,7 @@ def _upscale_to_preset(job_id, path, job, target):
         return path
 
 
-def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264", hdr=False):
+def run_download(job_id, url, format_choice, format_id, download_dir, audio_codec="", concurrent_fragments=1, audio_quality="320", video_height=None, subtitles=False, embed_metadata=True, output_format="mp4_h264", hdr=False, sponsorblock_categories=None):
     job     = jobs.get(job_id)
     if not job:
         return  # Job was removed before worker started
@@ -1475,9 +1521,19 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             _lang = _load_settings().get("language", "en")
             _sub_langs = "en" if _lang not in SUPPORTED_LANGUAGES or _lang == "en" else f"{_lang}.*,en"
             args += ["--write-subs", "--write-auto-subs", "--sub-langs", _sub_langs, "--embed-subs"]
+    # SponsorBlock — re-sanitize defensively even though every caller (the main
+    # /api/download route and each subscription's stored setting) already validates
+    # against SPONSORBLOCK_CATEGORIES before this function is ever called. This is a
+    # subprocess argument list; never trust that an earlier layer's validation was
+    # actually exercised on every path that can reach here.
+    _sb_categories = _clean_sponsorblock_categories(sponsorblock_categories) if sponsorblock_categories else []
+    if _sb_categories:
+        args += ["--sponsorblock-remove", ",".join(_sb_categories)]
     args.append(url)
 
-    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + args
+    _live_sync = _live_sync_args(url) if job.get("live") else []
+    job["_live_sync"] = bool(_live_sync)
+    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + _live_sync + args
     try:
         # Host only, not the full URL -- a private/signed URL can carry an
         # access token in its query string, and this line lands in
@@ -1486,6 +1542,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # own stdout below, which is memory-only and console-only.
         _log_host = urllib.parse.urlparse(url).hostname or "unknown-host"
         _egm_log(f"download started ({format_choice}): {_log_host}")
+        if _live_sync:
+            _egm_log("live recording keeps the source timestamps (audio and video start times)")
         proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                          text=True, encoding="utf-8", errors="replace")
         job["proc"]    = proc
@@ -1502,9 +1560,24 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # and our stdout loop waits forever (process never exits).
         # Cap at 200 lines — only the last line matters for error reporting.
         stderr_lines = deque(maxlen=200)
+        _clock = _live_clock(0)
         def _drain_stderr():
+            recent = deque(maxlen=8)
             for l in proc.stderr:
                 stderr_lines.append(l)
+                if not job.get("live"):
+                    continue
+                # Live only: ffmpeg reports recording time and size here (no percent
+                # exists), and its warnings explain why a recording ended.
+                m = _LIVE_STATS_RE.search(l)
+                if m:
+                    job["live_size"] = "" if m.group(1) == "N/A" else m.group(1)
+                    job["live_time"] = _live_s_to_hms(_clock(m.group(2)))
+                else:
+                    note = _live_note(l)
+                    if note and note not in recent:
+                        recent.append(note)
+                        _yt_log(note)
         stderr_thread = threading.Thread(target=_drain_stderr, daemon=True)
         stderr_thread.start()
 
@@ -1551,7 +1624,30 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             job["_finished_at"] = time.time()
             return
 
-        if proc.returncode != 0:
+        # Live recordings: keep what was captured when the user pressed Stop and
+        # save, or when the stream or connection failed partway. A normal end
+        # (exit 0) already left a finished file.
+        rc = proc.returncode
+        if job.get("live"):
+            _live = _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, FFMPEG_DIR / "ffmpeg.exe",
+                                 ".mkv" if output_format == "mkv" else ".mp4",
+                                 format_choice == "audio", rc)
+            if _live == "cancelled":
+                _cleanup(job_id, out_dir)
+                _egm_log("download cancelled")
+                job["status"] = "cancelled"
+                job["_finished_at"] = time.time()
+                return
+            if _live == "saved":
+                rc = 0
+            elif job.get("stop_keep"):
+                _cleanup(job_id, out_dir)   # nothing recorded yet: same as Cancel
+                _egm_log("live recording stopped, nothing to keep")
+                job["status"] = "cancelled"
+                job["_finished_at"] = time.time()
+                return
+
+        if rc != 0:
             # Determine the expected extension before cleanup
             if format_choice == "audio":
                 if audio_quality == "flac":              _want = ".flac"
@@ -1575,7 +1671,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
             if _main_file and os.path.getsize(_main_file) > 0:
                 # Download succeeded — only postprocessing (thumbnail/metadata) failed
-                # Rename and deliver with a warning instead of hard error
+                # Rename and deliver the file instead of a hard error
                 _ext   = os.path.splitext(_main_file)[1]
                 _title = job.get("title", "").strip()
                 _fname = _safe_filename(_title, _ext) if _title else os.path.basename(_main_file)
@@ -1587,7 +1683,6 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 except OSError: _fpath = Path(_main_file)
                 job["file"]        = str(_fpath)
                 job["filename"]    = _fpath.name
-                job["warning"]     = "Download complete — metadata embedding skipped."
                 job["_finished_at"] = time.time()
                 _append_history(job, _fpath)
                 job["status"]      = "done"
@@ -1616,7 +1711,18 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         else:
             want = ".mkv" if output_format == "mkv" else ".mp4"
         preferred = [f for f in files if f.endswith(want)]
-        chosen    = preferred[0] if preferred else files[0]
+        # A saved live recording is delivered as _live_finish left it. Without this,
+        # a live AUDIO job that was stopped or interrupted had no file matching
+        # `want` (the salvage is .m4a), so files[0] -- directory order -- could be
+        # the thumbnail or the leftover .part, and the loop below deleted every
+        # other file, the recording included. Outside that case, still prefer a
+        # media file over thumbnails and partials when the extension finds nothing.
+        live_file = job.get("_live_file")
+        media     = [f for f in files if Path(f).suffix.lower() in _LIVE_MEDIA_EXTS]
+        if live_file in files:
+            chosen = live_file
+        else:
+            chosen = preferred[0] if preferred else (media[0] if media else files[0])
         for f in files:
             if f != chosen:
                 try: os.remove(f)
@@ -1676,8 +1782,450 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["error_code"] = _classify_error(str(e))
         job["_finished_at"] = time.time()
 
+def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
+    """Live recordings only. yt-dlp writes a live stream to a single MPEG-TS
+    {job_id}.<ext>.part file, which stays playable even when the process is killed
+    mid write. Turn it into a normal file with a stream copy so a stopped or
+    failed recording is kept instead of deleted. Returns the new path, or None
+    when there is nothing usable (no single .part, ffmpeg missing, ffmpeg fails).
+    More than one .part means yt-dlp downloaded the formats separately, which a
+    stream copy cannot rejoin, so that case is left alone."""
+    dst = None
+    try:
+        parts = [p for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*.part")) if os.path.getsize(p) > 0]
+        if len(parts) != 1 or not Path(ffmpeg).exists():
+            return None
+        dst = str(Path(out_dir) / (f"{job_id}.m4a" if audio_only else f"{job_id}{want_ext}"))
+        cmd = [str(ffmpeg), "-v", "error", "-y", "-i", parts[0]]
+        cmd += ["-vn", "-c:a", "copy"] if audio_only else ["-c", "copy"]
+        if dst.endswith((".mp4", ".m4a")):
+            cmd += ["-movflags", "+faststart"]
+        # A fixed 10 minutes is not enough for a long recording on a slow drive
+        # (a stream copy reads and writes every byte, +faststart writes it again),
+        # and a timed-out salvage made Stop and save delete the whole recording.
+        # Allow one second per 2 MiB on top.
+        r = _run(*cmd, dst, timeout=600 + os.path.getsize(parts[0]) // (2 * 1024 * 1024))
+        if r.returncode == 0 and os.path.exists(dst) and os.path.getsize(dst) > 0:
+            return dst
+    except Exception:
+        pass
+    if dst:
+        try: os.remove(dst)
+        except OSError: pass
+    return None
+
+# ── Live recordings: carry on after the stream drops ───────────────────────────
+# When the stream's server errors for even a few seconds, ffmpeg's HLS reader
+# gives up and exits as if the stream had ended (usually with exit code 0), and
+# no ffmpeg option prevents that. So after every live run we ask yt-dlp whether
+# the stream is still live and, if it is, record again (up to _LIVE_MAX_RETRIES
+# times in a row) and join the pieces. A new run starts a few segments behind the
+# live edge, so a short cut tends to repeat a few seconds rather than lose them.
+_LIVE_MAX_RETRIES = 5
+_LIVE_RECOVERED_S = 60   # a reconnected run that records this long has recovered: the next drop counts from 1 again
+_LIVE_UNKNOWN_WAITS = (2, 4, 8)   # seconds before asking again when the stream state is unclear
+_LIVE_STATS_RE = _re.compile(r"size=\s*(\S+)\s+time=(\d+:\d\d:\d\d)")
+# Also each input's start time (the "Input #n" line and the "Duration: ..., start: ..." line under it): with a separate
+# video and audio input their difference is the audio/video offset a recording can come out with.
+_LIVE_NOTE_RE  = _re.compile(r"error|fail|timed out|reconnect|reload|\b40[34]\b|discontinuity|^Input #\d|Duration: .*\bstart:", _re.I)
+_LIVE_URL_RE   = _re.compile(r"\b[a-z][a-z0-9+.-]*://[^\s\"<>]+", _re.I)   # rtmp:// keys, tcp:// hosts too; a quote inside a link is swallowed
+# Sites whose live streams come as a separate video and a separate audio playlist that start at different times. By
+# default ffmpeg moves each input to its own zero, which turns that gap into a constant audio/video offset (measured
+# on one such site: the audio started 3.3 s later and the recording played it 3.3 s early). These flags keep the
+# source timestamps, so the gap stays where it belongs. Only the sites listed here get them; add one when its Console
+# log shows a gap between the "Input #0" and "Input #1" start values (see _LIVE_NOTE_RE). The list holds the SHA-256 of
+# each site's domain (lowercase; it covers the subdomains too), so the source does not spell the sites out.
+_LIVE_SYNC_HOSTS = ("574cbb327570be709950a11ca67d412785ffa64724397f1d3d2ecca24ebf2685",)
+_LIVE_SYNC_ARGS  = ["--downloader-args", "ffmpeg:-copyts -avoid_negative_ts make_zero"]
+
+def _live_sync_args(url):
+    """The yt-dlp arguments that keep a listed site's audio and video in sync, or [] for any other link.
+    The reconnect runs copy the first run's command, so they get the same arguments."""
+    try:
+        host = (urllib.parse.urlparse(url).hostname or "").lower().rstrip(".")   # "site.example." is the same host
+    except ValueError:
+        return []
+    labels = host.split(".")
+    for i in range(len(labels) - 1):   # the host itself, then each parent domain with at least two labels
+        if hashlib.sha256(".".join(labels[i:]).encode("utf-8")).hexdigest() in _LIVE_SYNC_HOSTS:
+            return list(_LIVE_SYNC_ARGS)
+    return []
+
+# With the source timestamps kept, a recording can open with video and no sound: the audio playlist began a few seconds
+# after the video one, and the file says so (its audio track starts later). The silent opening is cut off at the next
+# video keyframe with a stream copy (nothing is re-encoded), so the file opens with sound. That costs the video up to
+# that keyframe, a couple of seconds more than the gap. Any failure leaves the file as it was.
+_LIVE_TRIM_MIN_S  = 1.0   # a shorter gap is left alone: the cut would cost more than the silence
+_LIVE_TRIM_LOOK_S = 30    # how far past the audio start to look for a video keyframe
+
+def _live_trim_silent_start(job, ffmpeg, path):
+    """True when the file was cut and replaced."""
+    # Named like yt-dlp's own leftovers ({job_id}.*.part), so a crash or shutdown in the middle of the cut is swept at the next start.
+    tmp = Path(path).with_name(Path(path).stem + ".trim.part")
+    muxer = {".mp4": "mp4", ".mkv": "matroska"}.get(Path(path).suffix.lower())   # the .part name says nothing, so ffmpeg is told
+    try:
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        if not muxer or not Path(ffmpeg).exists() or not probe.exists():
+            return False
+        r = _run(str(probe), "-v", "error", "-show_entries", "stream=index,codec_type,start_time",
+                 "-of", "compact=p=0", str(path), timeout=30)
+        video = audio = None   # (stream index, start time)
+        for row in (r.stdout or "").splitlines():
+            f = dict(kv.split("=", 1) for kv in row.strip().split("|") if "=" in kv)
+            kind = f.get("codec_type")
+            if kind == "video" and video is None:
+                video = (f["index"], float(f["start_time"]))
+            elif kind == "audio" and audio is None:
+                audio = (f["index"], float(f["start_time"]))
+        if not video or not audio or audio[1] - video[1] < _LIVE_TRIM_MIN_S:
+            return False
+        r = _run(str(probe), "-v", "error", "-select_streams", video[0], "-show_entries", "packet=pts_time,flags",
+                 "-of", "csv=p=0", "-read_intervals", f"{audio[1]}%+{_LIVE_TRIM_LOOK_S}", str(path), timeout=60)
+        cuts = []
+        for row in (r.stdout or "").splitlines():
+            pts, _, flags = row.strip().partition(",")
+            if "K" in flags and float(pts) >= audio[1] - 0.001:
+                cuts.append(float(pts))
+        if not cuts:
+            return False
+        cut = min(cuts)
+        old = _media_duration_s(probe, path)
+        job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        job.pop("progress", None)
+        # -map 0 keeps every track (a second audio track would be lost for good: the cut replaces the original); data streams stay out
+        cmd = [str(ffmpeg), "-v", "error", "-y", "-ss", f"{cut:.6f}", "-i", str(path), "-map", "0", "-dn", "-c", "copy"]
+        if muxer == "mp4":
+            cmd += ["-movflags", "+faststart"]
+        res = _run(*cmd, "-f", muxer, str(tmp), timeout=600 + os.path.getsize(path) // (2 * 1024 * 1024))
+        new = _media_duration_s(probe, tmp) if tmp.exists() else None
+        if res.returncode == 0 and old and new and new >= old - cut - 1.0:
+            os.replace(tmp, path)
+            _egm_log(f"live recording: cut the first {cut:.1f}s (video without sound) off the start")
+            return True
+    except Exception:
+        pass
+    try: os.remove(tmp)
+    except OSError: pass
+    return False
+
+_LIVE_OVER_RE  = _re.compile(r"not currently live|is offline|\boffline\b|has ended|stream ended|no longer live|not live", _re.I)
+_LIVE_PERMANENT = {"private", "unavailable", "members", "region", "premiere"}
+_LIVE_MEDIA_EXTS = {".mp4", ".mkv", ".m4a", ".mp3", ".flac", ".opus", ".wav", ".aac", ".ogg", ".webm"}
+
+def _live_hms_to_s(text):
+    h, m, s = (int(x) for x in text.split(":"))
+    return h * 3600 + m * 60 + s
+
+def _live_s_to_hms(n):
+    return f"{n // 3600:02d}:{n % 3600 // 60:02d}:{n % 60:02d}"
+
+_LIVE_TIME_JUMP_S = 60   # more than this between two stats lines is a jump in the source timestamps, not recorded time
+
+def _live_clock(base_s):
+    """Turns the time= values of one run into the recording's time, from base_s on. With -copyts
+    (_live_sync_args) ffmpeg's time= follows the source: it jumps when the source restarts its
+    timestamps and falls back to 0 when they wrap (every 26.5 h), so only the steps between two
+    lines that look like recorded time are added up."""
+    st = {"prev": None, "acc": 0}
+    def feed(text):
+        t = _live_hms_to_s(text)
+        if st["prev"] is None:
+            st["acc"] = t
+        elif 0 <= t - st["prev"] <= _LIVE_TIME_JUMP_S:
+            st["acc"] += t - st["prev"]
+        st["prev"] = t
+        return base_s + st["acc"]
+    return feed
+
+def _live_size_kib(text):
+    """ffmpeg's size= value ('364544KiB', '512kB', 'N/A') as whole KiB, or None."""
+    m = _re.fullmatch(r"([\d.]+)\s*([kKmMgG])i?B", (text or "").strip())
+    if not m:
+        return None
+    return int(float(m.group(1)) * {"k": 1, "m": 1024, "g": 1024 * 1024}[m.group(2).lower()])
+
+def _live_note(line):
+    """A log worthy ffmpeg line for the Console with any stream link removed, or ''.
+    ("Opening <segment url>" lines are noise and carry tokens.)"""
+    note = line.strip()
+    if not note or "for reading" in note or not _LIVE_NOTE_RE.search(note):
+        return ""
+    return _LIVE_URL_RE.sub("<url>", note)
+
+def _live_wait(job, seconds):
+    """Sleep in short steps. False as soon as the user cancelled or pressed Stop and save."""
+    end = time.time() + seconds
+    while time.time() < end:
+        if job.get("cancelled") or job.get("stop_keep"):
+            return False
+        time.sleep(0.25)
+    return not (job.get("cancelled") or job.get("stop_keep"))
+
+def _live_is_still_live(job, url):
+    """Ask yt-dlp whether the stream is still live. True: yes. False: it is over or
+    cannot be recorded (private, members only, region...). None: could not tell
+    (site or network trouble). The check runs as the job's process, so Cancel and
+    Stop and save end it at once."""
+    proc = _popen_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github",
+                     *_ffmpeg_args(), *_deno_args(), *_cookies_args(), *_bgutil_args(),
+                     "--no-playlist", "-j", url,
+                     stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                     text=True, encoding="utf-8", errors="replace",
+                     start_new_session=True)   # own group: Cancel's killpg must not reach the app
+    job["proc"] = proc
+    deadline = time.time() + 45
+    out = err = None
+    try:
+        while out is None:
+            try:
+                out, err = proc.communicate(timeout=0.5)
+            except subprocess.TimeoutExpired:
+                if job.get("cancelled") or job.get("stop_keep") or time.time() > deadline:
+                    _kill_proc(proc)
+                    proc.communicate()
+                    return None
+    finally:
+        job["proc"] = None
+    if proc.returncode:
+        raw = err or ""
+        return False if (_LIVE_OVER_RE.search(raw) or _classify_error(raw) in _LIVE_PERMANENT) else None
+    line = next((l for l in (out or "").splitlines() if l.strip().startswith("{")), None)
+    try:
+        return bool(json.loads(line).get("is_live")) if line else None
+    except ValueError:
+        return None
+
+def _run_live_attempt(job, job_id, cmd, base_s, base_kib):
+    """One more yt-dlp run of a live recording, with the same pipes, process registry
+    and live progress as the first run. Time and size carry on from where the earlier
+    runs stopped. Returns the exit code."""
+    proc = _popen_yt(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                     text=True, encoding="utf-8", errors="replace",
+                     start_new_session=True)   # own group: Cancel's killpg must not reach the app
+    job["proc"] = proc
+    with _active_procs_lock:
+        _active_procs[job_id] = proc
+    if job.get("cancelled") or job.get("stop_keep"):
+        _kill_proc(proc)   # pressed in the instant before the process existed
+
+    clock = _live_clock(base_s)
+    def _drain():
+        recent = deque(maxlen=8)
+        for l in proc.stderr:
+            m = _LIVE_STATS_RE.search(l)
+            if m:
+                job.pop("live_reconnecting", None)
+                kib = _live_size_kib(m.group(1))
+                job["live_size"] = "" if kib is None else f"{base_kib + kib}KiB"
+                job["live_time"] = _live_s_to_hms(clock(m.group(2)))
+            else:
+                note = _live_note(l)
+                if note and note not in recent:
+                    recent.append(note)
+                    _yt_log(note)
+    t = threading.Thread(target=_drain, daemon=True)
+    t.start()
+    for line in proc.stdout:
+        _yt_log(line.rstrip())
+    proc.wait()
+    t.join()
+    job["proc"] = None
+    with _active_procs_lock:
+        _active_procs.pop(job_id, None)
+    return proc.returncode
+
+def _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only):
+    """The recording of one yt-dlp run: the finished file when yt-dlp got to make one,
+    otherwise the leftover .part turned into a normal file. None when the run captured
+    nothing usable."""
+    done = [p for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{sid}.*"))
+            if Path(p).suffix.lower() in _LIVE_MEDIA_EXTS and ".temp." not in Path(p).name
+            and not _re.search(r"\.f[\w-]+\.\w+$", Path(p).name) and os.path.getsize(p) > 0]
+    if done:
+        return max(done, key=os.path.getsize)
+    return _salvage_live_part(sid, out_dir, ffmpeg, want_ext, audio_only)
+
+def _live_signature(ffmpeg, path):
+    """What must match between the pieces of a recording for a stream copy join: codec
+    and size of the video, codec, sample rate and channels of the audio (cover art is
+    ignored). None when ffprobe cannot read the file."""
+    try:
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        r = _run(str(probe), "-v", "error", "-show_entries",
+                 "stream=codec_type,codec_name,width,height,sample_rate,channels",
+                 "-of", "compact=p=0", str(path), timeout=30)
+        sig = []
+        for row in (r.stdout or "").splitlines():
+            f = dict(kv.split("=", 1) for kv in row.strip().split("|") if "=" in kv)
+            if f.get("codec_type") == "video" and f.get("codec_name") not in ("mjpeg", "png", "bmp"):
+                sig.append(("v", f.get("codec_name"), f.get("width"), f.get("height")))
+            elif f.get("codec_type") == "audio":
+                sig.append(("a", f.get("codec_name"), f.get("sample_rate"), f.get("channels")))
+        return sorted(sig) or None
+    except Exception:
+        return None
+
+def _live_join(job_id, out_dir, segs, ffmpeg):
+    """Join the pieces of an interrupted recording into the first piece's file with a
+    stream copy (no re-encode). True when done; on any failure the first piece is left
+    as it was."""
+    first = Path(segs[0])
+    ext = first.suffix
+    if not Path(ffmpeg).exists() or any(Path(s).suffix.lower() != ext.lower() for s in segs):
+        return False
+    sigs = [_live_signature(ffmpeg, s) for s in segs]
+    if None in sigs or any(g != sigs[0] for g in sigs[1:]):
+        return False   # a copy join writes one header, so pieces that differ cannot share a file
+    lst = Path(out_dir) / f"{job_id}_join.txt"
+    tmp = Path(out_dir) / f"{job_id}_join{ext}"
+    ok = False
+    try:
+        lst.write_text("".join(f"file '{Path(s).name}'\n" for s in segs), encoding="utf-8")
+        cmd = [str(ffmpeg), "-v", "error", "-y", "-f", "concat", "-safe", "0", "-i", str(lst), "-c", "copy"]
+        if ext.lower() in (".mp4", ".m4a"):
+            cmd += ["-movflags", "+faststart"]
+        r = _run(*cmd, str(tmp), timeout=3600)
+        # The concat reader exits 0 even when it skips an unreadable piece, so check the length too.
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        want = [_media_duration_s(probe, s) for s in segs]
+        got = _media_duration_s(probe, tmp) if tmp.exists() else None
+        if r.returncode == 0 and got and None not in want and got >= sum(want) - 1.0:
+            os.replace(tmp, first)
+            ok = True
+    except Exception:
+        pass
+    for p in (lst, tmp):
+        try: os.remove(p)
+        except OSError: pass
+    return ok
+
+def _live_av_note(ffmpeg, label, path):
+    """One debug log line with where each stream of a live recording starts and how long it is,
+    for chasing audio and video sync reports. Never raises."""
+    try:
+        probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+        r = _run(str(probe), "-v", "error", "-show_entries", "stream=codec_type,start_time,duration",
+                 "-of", "compact=nk=1:p=0", str(path), timeout=30)
+        rows = [l.strip() for l in (r.stdout or "").splitlines() if l.strip()]
+        if rows:
+            _egm_log(f"live recording A/V ({label}, type|start|duration): " + "; ".join(rows))
+    except Exception:
+        pass
+
+def _live_keep_parts(job, job_id, out_dir, segs):
+    """The pieces could not be joined: keep every later piece as its own file next to the
+    first one ("<title> (part 2).mp4") instead of deleting recorded video."""
+    title = (job.get("title") or "").strip() or job_id
+    for n, p in enumerate(segs[1:], 2):
+        ext = Path(p).suffix
+        dst, k = Path(out_dir) / _safe_filename(f"{title} (part {n})", ext), 1
+        while dst.exists():
+            dst = Path(out_dir) / _safe_filename(f"{title} (part {n}) ({k})", ext); k += 1
+        try:
+            os.replace(p, dst)
+            job.setdefault("_live_parts", []).append(str(dst))   # Cancel during the finish step removes them too
+        except OSError: pass
+
+def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
+    """After the first yt-dlp run of a live job has ended (any exit code): keep what was
+    captured and, when the stream is still live and the user did not stop it, record
+    again (up to _LIVE_MAX_RETRIES times in a row, see _LIVE_RECOVERED_S) and join the pieces into {job_id}<ext>.
+    Returns "saved" (a usable recording sits at {job_id}<ext>), "cancelled", or None
+    (nothing was captured)."""
+    if job.get("stop_keep") or rc != 0:
+        job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        job.pop("progress", None)
+    first = _live_collect(job_id, out_dir, ffmpeg, want_ext, audio_only)
+    segs = [first] if first else []
+    attempts = unknown = 0
+    while (segs and not job.get("stop_keep") and not job.get("cancelled")
+           and attempts < _LIVE_MAX_RETRIES):
+        job["status"] = "downloading"
+        job.pop("progress", None)   # a run that ended cleanly printed 100 %, and the card would read Converting
+        if not _live_wait(job, 2 if unknown == 0 else _LIVE_UNKNOWN_WAITS[unknown - 1]):
+            break
+        state = _live_is_still_live(job, url)
+        if job.get("cancelled") or job.get("stop_keep") or state is False:
+            break
+        if state is None:
+            unknown += 1
+            if unknown > len(_LIVE_UNKNOWN_WAITS):
+                break
+            continue
+        unknown = 0
+        attempts += 1
+        job["live_reconnecting"] = attempts
+        job["live_retries_max"] = _LIVE_MAX_RETRIES
+        sid = f"{job_id}_r{len(segs) + 1}"   # attempts can start over, so it cannot name the piece
+        cmd2 = [str(Path(out_dir) / f"{sid}.%(ext)s") if c == out_tmpl else c for c in cmd]
+        base_s = _live_hms_to_s(job.get("live_time") or "00:00:00")
+        base_kib = _live_size_kib(job.get("live_size")) or 0
+        rc = _run_live_attempt(job, job_id, cmd2, base_s, base_kib)
+        if job.get("cancelled"):
+            break
+        if job.get("stop_keep") or rc != 0:
+            job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        seg = _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only)
+        if not seg:
+            break
+        segs.append(seg)
+        recorded = _live_hms_to_s(job.get("live_time") or "00:00:00") - base_s
+        if recorded < _LIVE_RECOVERED_S and ffmpeg:
+            # live_time comes only from ffmpeg's stats lines, and a run can end without one
+            # (time=N/A, a downloader that does not print it): measure the piece itself.
+            probe = Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+            piece = int(_media_duration_s(probe, seg) or 0)
+            if piece > recorded:
+                recorded = piece
+                job["live_time"] = _live_s_to_hms(base_s + piece)   # the next piece counts on from here
+        _egm_log(f"live piece {len(segs)}: {recorded}s recorded after reconnect {attempts}/{_LIVE_MAX_RETRIES}")
+        if recorded >= _LIVE_RECOVERED_S:
+            attempts = 0
+            job.pop("live_reconnecting", None)   # only a stats line clears it otherwise: a run that printed none kept the old count on the card
+    job.pop("live_reconnecting", None)
+    job.pop("live_retries_max", None)
+    if job.get("cancelled"):
+        return "cancelled"
+    if not segs:
+        return None
+    if len(segs) > 1:
+        job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        job.pop("progress", None)
+        for n, s in enumerate(segs, 1):
+            _live_av_note(ffmpeg, f"piece {n}", s)
+        if _live_join(job_id, out_dir, segs, ffmpeg):
+            job["warning"] = "The stream was interrupted and reconnected. A few seconds may be missing or repeated."
+            job["warning_key"] = "download.warning.live_gap"
+        else:
+            _live_keep_parts(job, job_id, out_dir, segs)
+            job["warning"] = "The recording could not be joined into one file, so it was saved in separate parts."
+            job["warning_key"] = "download.warning.live_parts"
+    elif rc != 0 and not job.get("stop_keep"):
+        job["warning"] = "The recording ended early. Saved what was captured."
+        job["warning_key"] = "download.warning.live_partial"
+    # Whatever is left of the retry runs ({job_id}_r2.mp4.part, the thumbnail an audio
+    # job writes for --embed-thumbnail, the joined pieces) is removed here.
+    for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}_*")):
+        try: os.remove(p)
+        except OSError: pass
+    # run_download delivers exactly this file. Picking by extension alone fails for
+    # audio: the salvage is an .m4a stream copy whatever audio format was chosen.
+    if job.get("_live_sync") and not audio_only:
+        _live_trim_silent_start(job, ffmpeg, segs[0])
+    if job.get("cancelled"):
+        # Cancel pressed during the join or the cut (neither ffmpeg is registered to be killed): it still
+        # discards, the "(part n)" files of a join that failed included (they no longer carry the job id)
+        for p in job.pop("_live_parts", []):
+            try: os.remove(p)
+            except OSError: pass
+        return "cancelled"
+    job["_live_file"] = segs[0]
+    _live_av_note(ffmpeg, "saved", segs[0])
+    return "saved"
+
 def _cleanup(job_id, out_dir):
-    for f in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*")):
+    # {job_id}.* plus the extra pieces of an interrupted live recording ({job_id}_r2.*, {job_id}_join.*)
+    for f in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}.*")) + glob.glob(os.path.join(glob.escape(str(out_dir)), f"{job_id}_*")):
         try: os.remove(f)
         except Exception: pass
 
@@ -1721,14 +2269,23 @@ def get_info():
                                    "error_key": "fetch.error.no_metadata"}), 400
         info = json.loads(jl)
         return jsonify({"title": info.get("title",""), "thumbnail": info.get("thumbnail",""),
+                        "thumbnails": _thumb_candidates(info),
                         "duration": info.get("duration"),
                         "uploader": info.get("uploader") or info.get("channel") or "",
                         "formats": _build_formats(info), "audio_formats": _build_audio_formats(info),
-                        "width": info.get("width"), "height": info.get("height")})
+                        "width": info.get("width"), "height": info.get("height"),
+                        "is_live": bool(info.get("is_live"))})
     except subprocess.TimeoutExpired: return jsonify({"error": "Timed out",
                                                       "error_key": "fetch.error.timeout"}), 400
     except Exception as e: return jsonify({"error": str(e),
                                            "error_key": (lambda c: f"download.error.{c}" if c else None)(_classify_error(str(e)))}), 400
+
+def _video_key(e):
+    """Site plus video id of a yt-dlp entry, so one video reached through two link forms is one entry.
+    Empty when either is unknown, and for the Generic extractor, whose ids are not stable."""
+    site = str(e.get("ie_key") or e.get("extractor_key") or "").lower()   # site data: a non-string must not drop the entry
+    vid = str(e.get("id") or "")
+    return f"{site}:{vid}" if site and site != "generic" and vid else ""
 
 @app.route("/api/playlist", methods=["POST"])
 def get_playlist():
@@ -1749,7 +2306,8 @@ def get_playlist():
                 th = (e.get("thumbnails") or [{}])[-1].get("url","") if e.get("thumbnails") else e.get("thumbnail","")
                 entries.append({"url": eu, "title": e.get("title") or e.get("id") or "Unknown",
                                  "thumbnail": th, "duration": e.get("duration"),
-                                 "uploader": e.get("uploader") or e.get("channel") or ""})
+                                 "uploader": e.get("uploader") or e.get("channel") or "",
+                                 "vkey": _video_key(e)})
             except Exception: continue
         if not entries: return jsonify({"is_playlist": False}), 200
         pl = ""
@@ -1792,7 +2350,8 @@ def start_download():
         jobs[job_id] = {"status": "queued", "url": url,
                         "title": data.get("title",""), "proc": None, "cancelled": False,
                         "download_dir": dl_dir, "format": data.get("format", "video"),
-                        "thumbnail": data.get("thumbnail", "")}
+                        "thumbnail": data.get("thumbnail", ""),
+                        "live": bool(data.get("is_live"))}
     threading.Thread(target=_run_download_slot,
                      args=(job_id, url, data.get("format","video"),
                            data.get("format_id") or None, dl_dir,
@@ -1803,7 +2362,8 @@ def start_download():
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
                            data.get("output_format", "mp4_h264"),
-                           bool(data.get("hdr", False))),
+                           bool(data.get("hdr", False)),
+                           _clean_sponsorblock_categories(data.get("sponsorblock_categories"))),
                      daemon=True).start()
     return jsonify({"job_id": job_id})
 
@@ -1825,6 +2385,22 @@ def cancel_download(job_id):
     # to remove the card before the file cleanup is complete.
     return jsonify({"success": True})
 
+@app.route("/api/stop/<job_id>", methods=["POST"])
+def stop_and_keep(job_id):
+    """Live recordings only: stop the download but keep what was captured
+    (cancel_download throws it away). The worker thread salvages the partial
+    file after the process is dead, same hand off as cancel."""
+    with _jobs_lock:
+        job = jobs.get(job_id)
+        if not job: return jsonify({"error": "Job not found"}), 404
+        if not job.get("live") or job.get("status") != "downloading":
+            return jsonify({"error": "Not a live recording in progress"}), 400
+        job["stop_keep"] = True
+        proc = job.get("proc")
+    if proc:
+        _kill_proc(proc)
+    return jsonify({"success": True})
+
 @app.route("/api/status/<job_id>")
 def check_status(job_id):
     with _jobs_lock:
@@ -1836,6 +2412,12 @@ def check_status(job_id):
                 "speed": job.get("speed", ""), "eta": job.get("eta", ""),
                 "filesize": job.get("filesize", ""),
                 "encoder": job.get("encoder") if status == "converting" else None}
+        if job.get("live"):
+            resp["live_time"] = job.get("live_time", ""); resp["live_size"] = job.get("live_size", "")
+            if job.get("live_reconnecting"):
+                resp["live_reconnecting"] = job["live_reconnecting"]; resp["live_retries_max"] = job.get("live_retries_max", 0)
+        if job.get("warning_key"):
+            resp["warning"] = job.get("warning", ""); resp["warning_key"] = job["warning_key"]
         # Remove completed jobs from memory once the UI has consumed the result.
         if status in ("done", "error", "cancelled") and job.get("_ack"):
             jobs.pop(job_id, None)
@@ -1872,6 +2454,8 @@ def get_settings():
         "show_language_selector":  s.get("show_language_selector", True),
         "show_settings_panel":     s.get("show_settings_panel", True),
         "upscale_to_quality":      s.get("upscale_to_quality", False),
+        "sponsorblock_enabled":    s.get("sponsorblock_enabled", False),
+        "sponsorblock_categories": s.get("sponsorblock_categories", list(SPONSORBLOCK_CATEGORIES)),
     })
 
 @app.route("/api/language/<code>")
@@ -1894,7 +2478,8 @@ def save_settings():
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
                "favorite_themes", "random_theme_on_launch", "random_theme_scope",
-               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality"}
+               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality",
+               "sponsorblock_enabled", "sponsorblock_categories"}
     if "last_folder" in data:
         folder = data["last_folder"]
         if folder:
@@ -1937,6 +2522,10 @@ def save_settings():
         data["show_settings_panel"] = bool(data["show_settings_panel"])
     if "upscale_to_quality" in data:
         data["upscale_to_quality"] = bool(data["upscale_to_quality"])
+    if "sponsorblock_enabled" in data:
+        data["sponsorblock_enabled"] = bool(data["sponsorblock_enabled"])
+    if "sponsorblock_categories" in data:
+        data["sponsorblock_categories"] = _clean_sponsorblock_categories(data["sponsorblock_categories"])
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
 
@@ -2765,6 +3354,8 @@ def add_subscription():
         "auto_fetch_on_open": False,
         "download_folder": None,
         "format": "video",
+        "sponsorblock_enabled": False,
+        "sponsorblock_categories": [],
         "videos": []
     }
 
@@ -2807,7 +3398,8 @@ def update_subscription():
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
-    allowed = {"name", "download_folder", "format", "quality", "auto_fetch_on_open"}
+    allowed = {"name", "download_folder", "format", "quality", "auto_fetch_on_open",
+               "sponsorblock_enabled", "sponsorblock_categories"}
 
     _VALID_QUALITY = {"best", "2160", "1440", "1080", "720", "480",
                       "mp3_320", "mp3_128", "flac", "wav", "opus_128", "opus_192"}
@@ -2834,6 +3426,10 @@ def update_subscription():
                         v = v if v in _VALID_QUALITY else "best"
                     elif k == "auto_fetch_on_open":
                         v = bool(v)
+                    elif k == "sponsorblock_enabled":
+                        v = bool(v)
+                    elif k == "sponsorblock_categories":
+                        v = _clean_sponsorblock_categories(v)
                     s[k] = v
                 return ("ok", s)
         return ("notfound", None)

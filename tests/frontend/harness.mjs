@@ -23,7 +23,7 @@ export const CURRENT_APP_VERSION = (() => {
   return m[1];
 })();
 
-export function bootPage({ settings = {}, onFetch } = {}) {
+export function bootPage({ settings = {}, onFetch, prep } = {}) {
   const html = readFileSync(process.env.EGM_RENDERED_PAGE || "/tmp/egm_rendered_index.html", "utf8");
   const saved = [];
   const dom = new JSDOM(html, {
@@ -39,7 +39,65 @@ export function bootPage({ settings = {}, onFetch } = {}) {
       };
       w.matchMedia = w.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
       w.requestAnimationFrame = (cb) => setTimeout(cb, 0);
+      if (prep) prep(w);   // lets a test add window.electronAPI, fake timers, etc. before the page scripts run
     },
   });
   return new Promise((resolve) => setTimeout(() => resolve({ dom, w: dom.window, d: dom.window.document, saved }), 900));
+}
+
+// ── Subscriptions window ────────────────────────────────────────────────────
+// Boots the rendered Subscriptions page (render_page.py writes it next to the
+// main page as <name>_subs.html). Intervals are captured instead of run so a
+// test drives pollJobs() and the "Quit when done" countdown tick by tick, and
+// window.electronAPI is a recorder.
+export function bootSubsPage({ probeBusy = false } = {}) {
+  const main = process.env.EGM_RENDERED_PAGE || "/tmp/egm_rendered_index.html";
+  const html = readFileSync(main.replace(/(\.[^./]+)?$/, "_subs$1"), "utf8");
+  const calls = { quit: [], fetch: [] };
+  const timers = new Map();
+  const status = {};          // jobId -> status string served by /api/status/<id>
+  const ctl = { probeBusy };
+  let nextTimer = 1000;
+  const dom = new JSDOM(html, {
+    runScripts: "dangerously",
+    url: "http://localhost/",
+    beforeParse(w) {
+      w.setInterval = (fn) => { const id = nextTimer++; timers.set(id, fn); return id; };
+      w.clearInterval = (id) => { timers.delete(id); };
+      // quit() records a copy of its argument so the Node side compares same-realm objects
+      w.electronAPI = {
+        quit: async (opts) => { calls.quit.push({ ...opts }); return opts && opts.probe ? { busy: ctl.probeBusy } : { success: true }; },
+        setActivity() {}, notifySubsDownloads() {}, closeSubscriptions() {},
+      };
+      w.fetch = async (u, o) => {
+        calls.fetch.push(u);
+        let m;
+        if ((m = /^\/api\/status\/(.+)$/.exec(u))) return { ok: true, json: async () => ({ status: status[m[1]] || "downloading", progress: 10 }) };
+        if (u === "/api/settings") return { ok: true, json: async () => ({ language: "en" }) };
+        if (u === "/api/language/en") return { ok: true, json: async () => en };
+        return { ok: true, json: async () => ({}), text: async () => "" };
+      };
+      w.matchMedia = w.matchMedia || (() => ({ matches: false, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }));
+      w.requestAnimationFrame = (cb) => setTimeout(cb, 0);
+    },
+  });
+  const w = dom.window;
+  return new Promise((resolve) => setTimeout(() => resolve({
+    dom, w, d: w.document, calls, status, ctl,
+    // Fire the interval the page registered under this id (e.g. w.eval("_quitTimer")).
+    tick: (id) => timers.get(id)?.(),
+    // Add a download to the queue the way the page does, then open the queue view.
+    addJob: (videoId, jobId) => w.eval(`allJobs.set(${JSON.stringify(videoId)}, { jobId: ${JSON.stringify(jobId)}, status: 'downloading', subId: 's1', data: {} }); showQueue = true; renderQueue();`),
+    poll: () => w.eval("pollJobs()"),
+  }), 900));
+}
+
+// Counts the capture phase keydown listeners a page adds to and removes from its document, so a test can
+// prove the "Quit when done" Esc handler is not left behind. Call it after boot; read `.live` later.
+export function trackKeydown(d) {
+  const n = { live: 0 };
+  const add = d.addEventListener.bind(d), rem = d.removeEventListener.bind(d);
+  d.addEventListener = (type, fn, o) => { if (type === "keydown" && o === true) n.live++; return add(type, fn, o); };
+  d.removeEventListener = (type, fn, o) => { if (type === "keydown" && o === true) n.live--; return rem(type, fn, o); };
+  return n;
 }

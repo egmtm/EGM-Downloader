@@ -51,7 +51,7 @@ function hardenWindow(win) {
   // on a different port; origin equality pins it to our own backend.
   win.webContents.on('will-navigate', (event, url) => {
     try {
-      const u = new URL(url);
+      const u = new URL(event.url ?? url);   // Electron 45 deprecates the positional url (event.url carries it)
       if (u.origin !== APP_URL) {
         event.preventDefault();
       }
@@ -302,7 +302,7 @@ const SHELL_FALLBACK = {
 function shellStrings() {
   const KEYS = { trayOpen: 'tray.open', trayQuit: 'tray.quit' };
   try {
-    const lang = _shellLang || (readSettings().language || 'en');
+    const lang = _shellLang || (loadSettings().language || 'en');   // this used to call a helper that does not exist, so the tray was always English
     if (!/^[a-z]{2}$/.test(lang)) return { ...SHELL_FALLBACK };
     const raw = JSON.parse(fs.readFileSync(
       path.join(__dirname, '..', 'languages', `${lang}.json`), 'utf8')).strings || {};
@@ -451,6 +451,15 @@ ipcMain.handle('launch-installer', async (event, installerPath) => {
 // ── IPC: quit app ─────────────────────────────────────────────────────────────
 ipcMain.handle('quit-app', (event, opts) => {
   if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
+  // opts.whenIdle: Subscriptions "Quit when done". Refuse while any OTHER
+  // window (the main window) still reports active downloads, so this can
+  // never cut off a download that is running elsewhere. opts.probe reports
+  // that state without quitting.
+  if (opts && opts.whenIdle) {
+    const self = BrowserWindow.fromWebContents(event.sender);
+    const busy = [..._activityBySender.keys()].some(w => w !== self);
+    if (busy || opts.probe) return { busy };
+  }
   // opts.relaunch: reopen the app after it exits (Advanced -> Reinstall Electron
   // -> "Restart now"). Relaunch the TOP-LEVEL launcher (which runs launch.py and
   // processes the .electron-update marker), NOT Electron directly — a plain
