@@ -1601,6 +1601,9 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
     #                   all -- there is no "floor" to check here, the
     #                   declared string simply must equal what actually
     #                   resolved into the lockfile.
+    #   X.Y.Z        -- an exact stable pin (the 1.5 line pins the Electron it
+    #                   ships exactly); same rule, the declared string must
+    #                   equal what resolved into the lockfile.
     rng = next(iter(set(ranges.values())))
     pinned = pins[platforms[0]][0]
     if re.fullmatch(r'\^\d+\.\d+\.\d+', rng):
@@ -1624,16 +1627,16 @@ def test_electron_runtime_version_is_identical_across_all_three_platforms():
             "`npm ci` would reject the lockfile and the build would fall back to "
             "a non-deterministic `npm install`."
         )
-    elif re.fullmatch(r'\d+\.\d+\.\d+-[0-9A-Za-z.]+', rng):
+    elif re.fullmatch(r'\d+\.\d+\.\d+(?:-[0-9A-Za-z.]+)?', rng):
         assert rng == pinned, (
-            f"Electron package.json declares the exact pre-release {rng!r} but "
+            f"Electron package.json declares the exact pin {rng!r} but "
             f"the lockfile pins {pinned!r} -- these must be identical for an "
             "exact (non-caret) pin; regenerate the lockfile."
         )
     else:
         raise AssertionError(
             f"Electron range {rng!r} is neither the ^X.Y.Z form nor an exact "
-            "X.Y.Z-TAG.N pre-release pin this guard understands; widen the "
+            "X.Y.Z or X.Y.Z-TAG.N pin this guard understands; widen the "
             "check deliberately rather than leaving the pin unverified."
         )
 
