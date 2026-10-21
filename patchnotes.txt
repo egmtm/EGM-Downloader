@@ -1,3 +1,8 @@
+v1.4.14 - GRAND FINALE (Build 168) (10/20/2026)
+-----------------------------------------
+
+  • [ALL] Electron runtime updated to v44.9.2 — maintenance update with Electron fixes, including blocking the compromised eMudhra certificate authority keys
+
 v1.4.13 - ENCORE (Build 167) (10/17/2026)
 -----------------------------------------
 
