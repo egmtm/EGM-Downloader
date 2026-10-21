@@ -132,7 +132,7 @@ EGM Downloader makes network requests to:
 - **Video hosting sites** - To download requested content
 - **egerena.com** - To check for updates (all platforms)
 - **Package managers** - To download yt-dlp and FFmpeg updates
-- **Runtime downloads on Windows first run** - nodejs.org (Node.js), the npm registry and GitHub (Electron) and, for the portable edition, python.org (embedded Python) and files.pythonhosted.org (pip, checked against a pinned checksum). When an app update needs a newer Electron, it is fetched again from the npm registry and GitHub
+- **Runtime downloads on Windows first run** - nodejs.org (Node.js, checked against a SHA-256 checksum built into the launcher), the npm registry and GitHub (Electron) and, for the portable edition, python.org (embedded Python) and files.pythonhosted.org (pip, checked against a pinned checksum). When an app update needs a newer Electron, it is fetched again from the npm registry and GitHub
 - **First launch downloads on all platforms** - Deno from GitHub on every platform. ffmpeg from GitHub on Windows and Linux, and ffmpeg and ffprobe from ffmpeg.martin-riedl.de on macOS. Each download is checked against the publisher's SHA-256 checksum
 - **Video thumbnail CDNs** - To cache thumbnails for the download history view (HTTPS-only, 500 KB cap per image)
 - **sponsor.ajay.app** - Only when the optional SponsorBlock feature is turned on (off by default). yt-dlp looks up community submitted segment data using the first 4 characters of a hash (SHA256) of the video ID. The video ID itself is not sent, and the app makes no SponsorBlock requests of its own.

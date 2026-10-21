@@ -92,7 +92,7 @@ Have an idea? Open an issue with:
 
 **All Platforms:**
 - Python 3.11+
-- Node.js 18+
+- Node.js 22.12+
 - Git
 
 **Platform-Specific:**
