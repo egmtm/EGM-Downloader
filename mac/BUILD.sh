@@ -88,7 +88,8 @@ SITE="$PYTHON_DIR/lib/python3.11/site-packages"
 # Package managers — kept for runtime yt-dlp updates via Update Plugins
 # rm -rf "$SITE/pip" "$SITE/pip-"*.dist-info  # DO NOT STRIP — needed at runtime
 rm -rf "$SITE/setuptools" "$SITE/setuptools-"*.dist-info
-rm -rf "$SITE/pkg_resources" "$SITE/_distutils_hack"
+# distutils-precedence.pth imports _distutils_hack, so it goes with the module (left behind, Python prints an error at every start)
+rm -rf "$SITE/pkg_resources" "$SITE/_distutils_hack" "$SITE/distutils-precedence.pth"
 
 # Stdlib modules unused at runtime
 # rm -rf "$PYTHON_DIR/lib/python3.11/ensurepip"  # DO NOT STRIP — needed for pip
