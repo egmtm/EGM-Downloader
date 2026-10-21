@@ -3,7 +3,7 @@
   "build": 169,
   "channel": "stable",
   "date": "10/21/2026",
-  "time": "5:56 AM EST",
+  "time": "6:24 AM EST",
   "platforms": {
     "windows": {
       "installer": "egm-setup.exe",
@@ -27,5 +27,5 @@
       "updateJson": "egmlinux-update.json"
     }
   },
-  "buildDate": "10/21/2026 5:56 AM EST"
+  "buildDate": "10/21/2026 6:24 AM EST"
 }
