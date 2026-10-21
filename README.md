@@ -38,9 +38,6 @@
   <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
 </p>
 
-> [!NOTE]
-> **Advisory, October 2026:** eMudhra, a certificate authority, had private keys for eight intermediate certificates compromised. Browsers and operating systems already block them. To keep EGM Downloader current too, open **Advanced**, then **Plugins**, then **Check for Updates**, switch on **Optional libraries** (certifi is in there), and choose **Install Updates**. If it already says Up to date, there is nothing to do. No reinstall needed. v1.5 will include the update. Details: https://emudhra.we-have-a-problem.com/
-
 ## ✨ Features
 
 - 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
