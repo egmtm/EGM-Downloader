@@ -85,7 +85,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.5.0. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.0, RAW FEED. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
