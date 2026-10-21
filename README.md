@@ -84,7 +84,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.4.13, ENCORE. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.4.14, GRAND FINALE. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -93,12 +93,12 @@ A side by side look at one well known alternative, using details you can check y
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Bone theme"/></a>
-      <br/><sub><b>Main UI</b> (Bone theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Canopy theme"/></a>
+      <br/><sub><b>Main UI</b> (Canopy theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Night Market theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Night Market theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Magma theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Magma theme)</sub>
     </td>
   </tr>
 </table>
@@ -106,12 +106,12 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="400" alt="All Themes, Art Deco theme"/></a>
-      <br/><sub><b>All Themes</b> (Art Deco theme)</sub>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="400" alt="All Themes, Sundrop theme"/></a>
+      <br/><sub><b>All Themes</b> (Sundrop theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="400" alt="Subscriptions, Europa theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Europa theme)</sub>
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="400" alt="Subscriptions, Ghost theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Ghost theme)</sub>
     </td>
   </tr>
 </table>
@@ -119,12 +119,12 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="324" alt="Advanced Panel with the plugins list, Frost theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Frost theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="324" alt="Advanced Panel with the plugins list, Porcelain theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Porcelain theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="400" alt="Download History, Golden Hour theme"/></a>
-      <br/><sub><b>Download History</b> (Golden Hour theme)</sub>
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="400" alt="Download History, Tokyo Neon theme"/></a>
+      <br/><sub><b>Download History</b> (Tokyo Neon theme)</sub>
     </td>
   </tr>
 </table>
