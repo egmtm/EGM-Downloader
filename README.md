@@ -161,8 +161,8 @@ A side by side look at one well known alternative, using details you can check y
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.5.0  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (613 KB · ~800 MB after install)  
-**SHA256:** `63c187f6efccc2f20c3d2c424e25820735e28f1879f4ab275831cafdab88b0c1`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (661 KB · ~800 MB after install)  
+**SHA256:** `e021c5e4dfa7105d1fbc4112035ffb7d64b4f2671e77762b315daf5063044713`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -170,8 +170,8 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Windows Portable
 **Latest:** v1.5.0  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (618 KB · ~1 GB after first run)  
-**SHA256:** `0a64bfa60169b76459accbfa6ea2104af16b35b49bf2daea76dbb7d63db30c69`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (665 KB · ~1 GB after first run)  
+**SHA256:** `3bc04e8727785b00355f59d9d2ef6fedfa09a625c886b386ba620f611d75b864`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -181,8 +181,8 @@ A side by side look at one well known alternative, using details you can check y
 ### macOS
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.5.0  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (141 MB · ~300 MB after install)  
-**SHA256:** `1e3834e8bf985d552ce25d13120ca270c364cf8c38eef9f26ac1899fd87aff32`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (143 MB · ~300 MB after install)  
+**SHA256:** `242812ecbe8916ade1dbe664bbdb654c3cad922df8ebf5b1c66119483e62c504`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -191,8 +191,8 @@ A side by side look at one well known alternative, using details you can check y
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.5.0  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (169 MB · ~300 MB after install)  
-**SHA256:** `43bb5b3511ea44604314406449a3762974414715ba7cf8e5b667ad7a01f398c5`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (171 MB · ~300 MB after install)  
+**SHA256:** `3a097b5c9e3cf2887338d63d4bbfad1d1cd5a54220523f84fff3535890fa89f3`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
@@ -257,7 +257,7 @@ ReClip is the starting point, and it is intentionally small. Here is what this p
 | **Beyond single downloads** | Bulk paste of URLs, files saved to a downloads folder ([Features](https://github.com/averygan/reclip#features)) | Subscriptions with a live download queue, searchable history, GPU conversion, 10 languages, 500 themes (30 seasonal) |
 | **Staying current** | `reclip.sh` updates yt-dlp on every start ([script](https://github.com/averygan/reclip/blob/main/reclip.sh)) | In app updates for yt-dlp and ffmpeg, plus an app update checker |
 
-ReClip stays deliberately small: a [single Python file backend](https://github.com/averygan/reclip#features), [two dependencies](https://github.com/averygan/reclip#stack) and an [MIT license](https://github.com/averygan/reclip/blob/main/LICENSE). EGM Downloader trades that simplicity for more features and a bigger download (141 MB on macOS, 169 MB on Linux).
+ReClip stays deliberately small: a [single Python file backend](https://github.com/averygan/reclip#features), [two dependencies](https://github.com/averygan/reclip#stack) and an [MIT license](https://github.com/averygan/reclip/blob/main/LICENSE). EGM Downloader trades that simplicity for more features and a bigger download (143 MB on macOS, 171 MB on Linux).
 
 Big thanks to [@averygan](https://github.com/averygan) for ReClip, you sparked the idea that became this project. 🙏 This is my first major project, and I'm excited to keep learning and building tools that make technology accessible to everyone. 🚀
 
