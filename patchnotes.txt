@@ -1,4 +1,4 @@
-v1.5.0 - TBD (TBD)
+v1.5.0 - RAW FEED (10/21/2026)
 -----------------------------------------
 
   • [ALL] New: SponsorBlock integration — automatically remove sponsor reads, intros, outros, and self-promotion segments from downloaded YouTube videos, powered by the community-run SponsorBlock database. Off by default, choose exactly which segment types to remove, adjustable per subscription
@@ -12,6 +12,7 @@ v1.5.0 - TBD (TBD)
   • [ALL] Changed: The status and Cancel buttons of a downloading card now start at the left edge, so a long status such as a live recording does not push Cancel onto a second line. Download all no longer leaves the dimmed Download button on started cards.
   • [ALL] Changed: You can now add videos while others are loaded or downloading. Fetch adds the new links to the list instead of starting over (links already in the list are skipped, also when the same video comes back under a different link), Download all picks up the cards you added and joins the run that is going, and Clear keeps the downloads in progress and asks first when it would remove other cards. Quit when done waits for the added cards too. The bar that shows how many downloads are done and active, with Cancel All, now appears from the first download, also when you start downloads one by one, and counts them all together.
   • [ALL] Fixed: Importing settings no longer says "Nothing selected" when every subscription in the file is already in your list, and no longer reports success when some subscriptions could not be added. The message now says how many were not added.
+  • [ALL] Electron runtime updated to v45.0.0 — includes upstream Chromium 156 and Node.js 24.22.0 stability and security updates
   • [WINDOWS] Fixed: If the first setup was cut off while Electron was installing (the app was closed or the power was lost), the next start now repairs it by itself instead of ending with "electron.exe not found".
   • [WINDOWS] Fixed: Starting the app without internet no longer shows a confusing "lockfile" message, and an Electron update is skipped when the update servers cannot be reached.
   • [WINDOWS] Changed: The Node.js that sets up Electron is updated to Node 24 LTS, because Node 20 has reached end of life and Electron 45 needs a newer one. The first start after the update downloads it once (about 36 MB). The installer welcome text now also shows the real size of the first launch download (about 400 MB, it said 250 MB).
