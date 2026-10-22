@@ -1,3 +1,9 @@
+vTBD - TBD (TBD)
+-----------------------------------------
+
+  • [ALL] Fixed: The update check compares build numbers, so an older release is never offered as an update.
+  • [LINUX] Fixed: An older yt-dlp or brotli left over from Update Plugins is removed at start, so the newer one that comes with the app is used.
+
 v1.5.0.0.1 - THE ONE ABOUT BROTLI (10/22/2026)
 -----------------------------------------
 
