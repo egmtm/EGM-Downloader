@@ -1561,7 +1561,8 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 if _p.suffix in _temp_exts or ".temp." in _p.name:
                     try: os.remove(_f)
                     except Exception: pass
-                elif _p.suffix == _want and not _main_file:
+                # A per format file ({id}.f137.mp4) is one stream of a download that never merged, not the finished file
+                elif _p.suffix == _want and not _main_file and not _re.search(r"\.f[\w-]+\.\w+$", _p.name):
                     _main_file = _f
 
             if _main_file and os.path.getsize(_main_file) > 0:
