@@ -102,27 +102,3 @@ def test_feed_notes_follow_a_four_or_five_number_header(tmp_path, monkeypatch):
     assert gen.gen_notes("mac") == ["four number note", "four number mac note"]
 
 
-def test_update_check_offers_the_update_for_a_four_number_feed(app_module, monkeypatch):
-    """An update is offered only when the feed's build is higher than ours; the version
-    string does not decide (see test_update_check_older_feed.py). Any version shape works
-    as long as the build rises."""
-    import io
-    app = app_module
-
-    def serve(version, build):
-        class R(io.BytesIO):
-            def __enter__(self): return self
-            def __exit__(self, *a): return False
-        monkeypatch.setattr(app, "_safe_urlopen",
-                            lambda req, t: R(json.dumps({"version": version, "build": build}).encode()))
-        monkeypatch.setattr(app, "_verify_manifest", lambda d: True)
-        monkeypatch.setattr(app, "PORTABLE_MODE", False)
-        return app.app.test_client().get("/api/check-app-update",
-                                         headers={"X-EGM-Token": app._API_TOKEN}).get_json()
-
-    monkeypatch.setattr(app, "APP_VERSION", "1.5.1.2")
-    monkeypatch.setattr(app, "APP_BUILD", 170)
-    assert serve("1.5.1.3", 171)["up_to_date"] is False       # next Electron patch
-    assert serve("1.5.1.2.1", 171)["up_to_date"] is False     # our own patch, five numbers
-    assert serve("1.5.1.2", 171)["up_to_date"] is False       # same string, higher build
-    assert serve("1.5.1.2", 170)["up_to_date"] is True

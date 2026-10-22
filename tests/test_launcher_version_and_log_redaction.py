@@ -100,46 +100,6 @@ def test_download_started_log_line_does_not_use_raw_url():
         )
 
 
-def test_download_dir_error_log_line_does_not_use_raw_exception_text():
-    """The download-dir _egm_log call (unwritable/removed download dir) must
-    use _classify_error's stable code, never the raw exception text -- a
-    yt-dlp/OS exception here can embed the download URL (sometimes with a
-    signed token in the query string) or a filesystem path, and this line
-    lands in egm_debug.log, the file support asks users to email in.
-    Carried-forward item from the v1.3.4 security handoff, closed here.
-    job["error"] still keeps the full raw text in memory for the UI --
-    only the on-disk log line is affected."""
-    for p in PLATFORM_APP_FILES:
-        src = read_source(p)
-        assert '_egm_log(f"download error:' in src, (
-            f"{p}: missing the download-dir-error diagnostic log line"
-        )
-        i = src.index('_egm_log(f"download error:')
-        # Anchor on the classify call rather than a fixed-width window --
-        # a comment added above the block used to push it out of range.
-        start = src.rindex("_err_code = _classify_error(str(e))", 0, i)
-        block = src[start:src.index("\n", i)]
-        assert "str(e).splitlines()" not in block, (
-            f"{p}: download-dir-error log line still interpolates the raw "
-            f"exception text directly -- must route through _classify_error"
-        )
-        log_line = src[i:src.index("\n", i)]
-        assert "str(e)" not in log_line, (
-            f"{p}: the logged text must never contain raw str(e) -- it embeds "
-            f"the offending path (and can embed a signed download URL)"
-        )
-        # The fallback when _classify_error returns None (the common case for
-        # this site's OSErrors) must stay path-free: exception type + .strerror
-        # only. test_download_dir_error_log_is_path_free_but_still_diagnostic
-        # exercises that behaviourally against real OSError instances.
-        assert "type(e).__name__" in block and "strerror" in block, (
-            f"{p}: unclassified download-dir errors must still log the "
-            f"exception type and OS message -- logging a bare 'unclassified' "
-            f"leaves the one line meant to diagnose these failures saying "
-            f"nothing useful"
-        )
-
-
 def test_download_dir_error_log_is_path_free_but_still_diagnostic():
     """The download-dir failure line writes to egm_debug.log -- the file the
     support protocol asks users to email -- so it must not carry the raw

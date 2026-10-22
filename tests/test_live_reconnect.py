@@ -371,11 +371,22 @@ def test_kept_parts_never_overwrite_a_file_that_is_already_there(app_module, tmp
 
 
 def test_a_retry_that_records_nothing_leaves_nothing_behind_in_the_download_folder(app_module, monkeypatch, tmp_path):
-    (tmp_path / "j.mp4").write_bytes(b"first")
-    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True], captures=[None], attempt_rc=1)
-    monkeypatch.setattr(app_module, "_run_live_attempt", lambda job, *a: ((tmp_path / "j_r2.mp4.part").write_bytes(b""), 1)[1])
-    assert rig.run() == "saved"
-    assert sorted(p.name for p in tmp_path.iterdir()) == ["j.mp4"]
+    (tmp_path / "j.m4a").write_bytes(b"x" * 100)
+
+    def attempt(job, job_id, cmd, base_s, base_kib):
+        (tmp_path / "j_r2.webp").write_bytes(b"thumb")       # audio jobs write this first
+        (tmp_path / "j_r2.mp4.part").write_bytes(b"")
+        return 1
+    monkeypatch.setattr(app_module, "_live_wait", lambda job, s: True)
+    monkeypatch.setattr(app_module, "_live_is_still_live", lambda job, url: True)
+    monkeypatch.setattr(app_module, "_run_live_attempt", attempt)
+    monkeypatch.setattr(app_module, "_live_av_note", lambda *a: None)
+    job = {"live_time": "00:00:10", "live_size": "10KiB"}
+    out_tmpl = str(tmp_path / "j.%(ext)s")
+    assert app_module._live_finish(job, "j", tmp_path, ["yt-dlp", "-o", out_tmpl, "u"], out_tmpl, "u",
+                                   "/nonexistent/ffmpeg", ".mp4", True, 0) == "saved"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["j.m4a"]
+    assert job["_live_file"] == str(tmp_path / "j.m4a")
 
 
 def test_stop_and_save_never_asks_or_retries(app_module, monkeypatch, tmp_path):

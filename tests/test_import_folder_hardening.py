@@ -56,7 +56,8 @@ def test_a_relative_last_folder_is_not_created_or_stored(app_module, monkeypatch
 
 
 def test_startup_cleanup_removes_only_this_apps_own_partials(app_module, tmp_path):
-    ours = ["0123456789.mp4.part", "abcdef0123.f137.mp4.part", "abcdef0123.mp4.ytdl"]
+    # both separators a job id can be followed by: "." (format pieces, .ytdl) and "_" (live reconnect pieces)
+    ours = ["0123456789.mp4.part", "abcdef0123.f137.mp4.part", "abcdef0123_r2.mp4.part", "abcdef0123.mp4.ytdl"]
     theirs = ["Firefox Setup.exe.part", "holiday.mp4.part", "notes.ytdl", "ABCDEF0123.mp4.part",
               "012345678.mp4.part", "keep.txt"]
     for n in ours + theirs:
@@ -100,3 +101,25 @@ def test_the_full_path_rule_is_in_every_platform_validator():
         body = _between(src, "def _validate_download_dir", "\ndef ")
         assert "if not Path(os.path.expanduser(dl_dir)).is_absolute():" in body, rel
         assert 'return False, "", "Download directory must be a full path."' in body, rel
+
+
+def test_the_stored_last_folder_is_the_resolved_path_not_the_raw_text(app_module, monkeypatch, tmp_path):
+    """The startup cleanup deletes files in the stored folder, so the stored value must be the
+    checked, resolved path: a raw value with "..", a trailing slash or a user-home shortcut must
+    not be written as it came in (the earlier test only sent already-resolved paths)."""
+    target = tmp_path / "real"
+    raw = str(tmp_path / "elsewhere" / ".." / "real") + "/"
+    saved = _save(app_module, monkeypatch, {"last_folder": raw})
+    assert saved["last_folder"] == str(target.resolve()), saved
+    assert target.is_dir()
+
+
+def test_startup_cleanup_spares_files_whose_hex_run_is_not_a_whole_job_id(app_module, tmp_path):
+    """Job ids are exactly 10 hex digits followed by "." or "_": a foreign file that happens to
+    start with 11 or more hex digits, or 10 hex digits and a letter, is somebody else's."""
+    theirs = ["abcdef01234.mp4.part", "0123456789a.ytdl", "0123456789x.mp4.part", "0123456789-x.part"]
+    ours = ["0123456789.mp4.part", "abcdef0123_r2.webm.part"]
+    for n in ours + theirs:
+        (tmp_path / n).write_bytes(b"x")
+    app_module._cleanup_orphan_partials(str(tmp_path))
+    assert sorted(p.name for p in tmp_path.iterdir()) == sorted(theirs)

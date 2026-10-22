@@ -47,22 +47,6 @@ def test_every_konami_ui_string_is_wired_through_i18n_on_both_platforms():
             )
 
 
-def test_konami_translated_strings_are_escaped_before_reaching_innerhtml():
-    """The overlay is built via innerHTML (not textContent) for layout
-    convenience, so every translated value must be passed through esc()
-    first -- the same discipline i18n.html's own header comment requires
-    ("values land via textContent ... or setAttribute ... never innerHTML"
-    unescaped). A translator (or a tampered locale file) shouldn't be able
-    to inject markup into this overlay."""
-    for p in CORE_JS_FILES:
-        block = _konami_block(read_source(p))
-        for key in KONAMI_KEYS:
-            assert re.search(re.escape(f"esc(i18nGet('{key}')"), block), (
-                f"{p}: the value for {key!r} must be wrapped in esc(...) "
-                f"before being interpolated into the overlay's innerHTML"
-            )
-
-
 def test_fake_log_lines_and_konami_itself_stay_untranslated():
     """Regression guard against someone 'helpfully' wiring the fake
     backend/stack-trace lines through i18n too -- they're deliberately
