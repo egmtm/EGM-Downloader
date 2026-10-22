@@ -2666,6 +2666,42 @@ def _parse_simple_version(v):
     except (ValueError, AttributeError):
         return None
 
+# The two packages whose minimum versions protect users (yt-dlp: current extractors,
+# brotli: the CVE-2026-111497 fix). The same table as PY_DEP_FLOORS in windows/launch.py;
+# test_linux_overlay_prune.py holds it equal to that table and to requirements.txt.
+PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}
+
+def _prune_overlay_below_floors():
+    """Update Plugins installs into PACKAGES_DIR, which _yt_env() puts first on PYTHONPATH,
+    so an older copy there hides the newer one the app ships. Remove a floor package from
+    the overlay when its highest version there is older than its floor: the bundle meets
+    the floors, so the next job uses it. Files are taken from pip's own RECORD, only plain
+    names directly inside the overlay. Runs once at start and never raises."""
+    import csv
+    try:
+        for name, floor in PY_DEP_FLOORS.items():
+            norm = name.replace("-", "_")
+            infos = [d for d in PACKAGES_DIR.glob("*.dist-info")
+                     if d.name.lower().startswith(norm + "-")]
+            found = [_parse_simple_version(d.name[len(norm) + 1:-len(".dist-info")]) for d in infos]
+            found = [v for v in found if v]
+            if not found or max(found) >= floor:
+                continue                      # nothing there, current, or unreadable: leave it
+            for d in infos:
+                try:
+                    with open(d / "RECORD", newline="", encoding="utf-8") as f:
+                        tops = {row[0].split("/")[0] for row in csv.reader(f) if row}
+                except OSError:
+                    continue                  # no record, no safe way to know its files
+                for top in tops - {"", ".", "..", "__pycache__"}:
+                    p = PACKAGES_DIR / top
+                    if p.is_dir() and not p.is_symlink():
+                        shutil.rmtree(p, ignore_errors=True)
+                    else:
+                        p.unlink(missing_ok=True)
+    except Exception:
+        pass
+
 # yt-dlp's curl_cffi support has a hard version ceiling (see requirements.txt's
 # curl_cffi pin and the comment there). Kept in sync manually across four
 # places -- requirements.txt (both), this constant, the do_optlibs pip spec
@@ -3575,6 +3611,8 @@ def _cleanup_orphan_partials(last_folder):
         pass
 
 if __name__ == "__main__":
+    # An older yt-dlp or brotli left in the plugin overlay would hide the bundled one
+    _prune_overlay_below_floors()
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
 
