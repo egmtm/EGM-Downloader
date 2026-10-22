@@ -1,4 +1,10 @@
 flask>=3.1.3
+# yt-dlp floor raised to 2026.10.21 for Kick.com: VOD downloads 404'd on
+# 2026.08.19 after a site side URL scheme change on Kick's end (yt-dlp
+# issue #17284). The reworked Kick extractor (PR #17322) first shipped in
+# yt-dlp stable 2026.10.21, and Kick downloads are confirmed working on it
+# (stable and nightly). That was a Kick extractor bug, not a
+# curl_cffi/networking issue, so the curl_cffi pin is unrelated to it.
 yt-dlp>=2026.10.21
 bgutil-ytdlp-pot-provider
 mutagen>=1.48.1
@@ -21,17 +27,17 @@ cryptography>=50.0.2
 # Plugins" pull at least this fix rather than an older 0.10.x-0.15.x
 # version still technically inside the ceiling.
 #
-# yt-dlp floor raised to 2026.10.21 for Kick.com: VOD downloads 404'd on
-# 2026.08.19 after a site side URL scheme change on Kick's end (yt-dlp
-# issue #17284). The reworked Kick extractor (PR #17322) first shipped in
-# yt-dlp stable 2026.10.21. That was a Kick extractor bug, not a
-# curl_cffi/networking issue, so the curl_cffi pin is unrelated to it.
-#
 # Floor raised to 0.16.3 -- confirmed the same way, curl_cffi==0.16.3
 # against yt-dlp 2026.08.19 stable: real impersonate targets (Chrome-136,
 # Safari-18.4, etc.), not "(unavailable)". (v1.3.10 security review §4
 # flagged this bump landed without a verification note; this closes it.)
+#
+# Re-confirmed against the current yt-dlp floor: curl_cffi 0.16.3 with
+# yt-dlp 2026.10.21 stable lists 38 real impersonate targets, none
+# "(unavailable)".
 curl_cffi>=0.16.3,<0.17.0
+# brotli floor raised to 1.2.1 for CVE-2026-111497, a decoder bug fixed upstream
+# in 1.2.1. yt-dlp decodes br (brotli) web responses with this module.
 brotli>=1.2.1
 pycryptodomex>=3.24.1
 websockets>=17.3

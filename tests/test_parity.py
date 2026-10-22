@@ -1178,10 +1178,15 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
     decision, and the 0.16.3 bump updated only one of them -- keep both
     moving together on the next raise.
 
-    Separately, NOT covered by this test: Kick.com VOD downloads still
-    404 due to an unrelated site-side URL scheme change (yt-dlp issue
-    #17284 / PR #17322, both open as of yt-dlp 2026.08.19) -- a Kick
-    extractor bug, not a curl_cffi/networking issue.
+    Reconfirmed against the current yt-dlp floor: curl_cffi 0.16.3 with
+    yt-dlp 2026.10.21 stable lists 38 real impersonate targets and zero
+    "(unavailable)" (requirements.txt carries the same note).
+
+    Separately, NOT covered by this test: Kick.com. VOD downloads 404'd on
+    yt-dlp 2026.08.19 after a site-side URL scheme change (yt-dlp issue
+    #17284); the reworked Kick extractor (PR #17322) first shipped in
+    stable 2026.10.21, which is why that is the yt-dlp floor -- a Kick
+    extractor matter, not a curl_cffi/networking one.
 
     This upper bound remains a moving target -- raising it further should
     come with the same live confirmation every bump so far has: real targets
