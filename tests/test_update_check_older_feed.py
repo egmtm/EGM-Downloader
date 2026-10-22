@@ -94,3 +94,11 @@ def test_all_three_backends_use_the_same_rule():
         src = (ROOT / rel).read_text(encoding="utf-8")
         assert "up_to_date   = latest_build <= APP_BUILD" in src, f"{rel} lost the build number rule"
         assert "latest_ver == APP_VERSION and latest_build" not in src, f"{rel} has the old rule again"
+
+
+@pytest.mark.parametrize("build, offered", [("171", True), (170.9, False), (True, False), (-5, False)])
+def test_other_build_shapes_are_read_as_whole_numbers(app, monkeypatch, build, offered):
+    """A build written as a string still counts (int() reads it); a float is truncated, a bool
+    is 0/1 and a negative number is below ours: none of them is an update by accident."""
+    r = _check(app, monkeypatch, ("1.5.0.0.1", 170), {"version": "1.5.0.1", "build": build})
+    assert r.get("error") is None and r["up_to_date"] is (not offered)

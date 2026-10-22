@@ -194,3 +194,37 @@ def test_the_prune_runs_at_start_before_anything_uses_the_overlay():
     assert call < main.index("app.run(")
     # and never at import time (tests and tools load this module without starting the app)
     assert not re.search(r"^_prune_overlay_below_floors\(\)", src, flags=re.M)
+
+
+# ── review gaps ─────────────────────────────────────────────────────────────────
+
+def test_a_record_row_for_the_overlay_itself_removes_nothing_else(mod, overlay):
+    """"./x", "" or "." rows name the overlay folder itself: the whole overlay (other packages
+    included) must never go, whichever guard catches it."""
+    _brotli(overlay, "1.2.0")
+    _install(overlay, ["yt_dlp/__init__.py"], "yt_dlp-2026.10.21.dist-info")
+    (overlay / "brotli-1.2.0.dist-info" / "RECORD").write_text("./brotli.py,,\n,,\n.,,\n./,,\nbrotli.py,,\n")
+    mod._prune_overlay_below_floors()
+    assert not (overlay / "brotli.py").exists()
+    assert (overlay / "yt_dlp" / "__init__.py").exists() and (overlay / "yt_dlp-2026.10.21.dist-info").exists()
+    assert overlay.exists()
+
+
+def test_a_symlinked_entry_is_unlinked_not_followed(mod, overlay, tmp_path):
+    target = tmp_path / "elsewhere"
+    target.mkdir()
+    (target / "keep.txt").write_text("keep")
+    _install(overlay, ["brotli.py"], "brotli-1.2.0.dist-info", extra_record=["_brotli"])
+    (overlay / "_brotli").symlink_to(target, target_is_directory=True)
+    _ytdlp(overlay, "2026.8.19")
+    mod._prune_overlay_below_floors()
+    assert (target / "keep.txt").exists(), "the link's target was emptied"
+    assert not (overlay / "_brotli").exists() and not (overlay / "brotli.py").exists()
+    assert not (overlay / "yt_dlp").exists(), "an error on the link must not stop the rest of the prune"
+
+
+def test_a_capitalised_dist_info_name_is_matched_too(mod, overlay):
+    """Older pips write the dist-info with the project's own spelling (Brotli-…)."""
+    _install(overlay, ["brotli.py"], "Brotli-1.2.0.dist-info")
+    mod._prune_overlay_below_floors()
+    assert not (overlay / "brotli.py").exists() and not (overlay / "Brotli-1.2.0.dist-info").exists()
