@@ -32,7 +32,7 @@ cryptography>=50.0.2
 # Safari-18.4, etc.), not "(unavailable)". (v1.3.10 security review §4
 # flagged this bump landed without a verification note; this closes it.)
 curl_cffi>=0.16.3,<0.17.0
-brotli>=1.2.0
+brotli>=1.2.1
 pycryptodomex>=3.24.1
 websockets>=17.3
 certifi>=2026.10.19
