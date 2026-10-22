@@ -3020,7 +3020,10 @@ def check_app_update():
         if isinstance(notes, list): notes = "\n".join(notes)
         else: notes = str(notes).strip()
         download_url = str(data.get("downloadUrl", "https://egerena.com/apps/egml.html")).strip()
-        up_to_date   = (latest_ver == APP_VERSION and latest_build <= APP_BUILD)
+        # Decided by build number alone: builds rise with every release, so an older signed
+        # feed served again (lower build) is never an update, and a rebuild of the same
+        # version (higher build) still is. A missing build reads as 0: not an update.
+        up_to_date   = latest_build <= APP_BUILD
         return jsonify({
             "up_to_date":      up_to_date,
             "current_version": APP_VERSION,

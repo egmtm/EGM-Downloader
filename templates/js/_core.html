@@ -304,7 +304,7 @@ async function checkForUpdatesOnLaunch() {
   _autoUpdateCheckRan = true;
   try {
     const d = await fetch('/api/check-app-update').then(r => r.json());
-    // Trust backend fully — it compares both version string AND build number
+    // Trust backend fully — it decides by build number, so an older signed feed is never an update
     if (d.error || d.up_to_date) return;
 
     // Update available — route by platform

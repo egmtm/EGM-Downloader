@@ -103,8 +103,9 @@ def test_feed_notes_follow_a_four_or_five_number_header(tmp_path, monkeypatch):
 
 
 def test_update_check_offers_the_update_for_a_four_number_feed(app_module, monkeypatch):
-    """The 1.4.x style rule: up to date only when the version string is equal and the
-    feed's build is not higher. Any version shape works as long as the build rises."""
+    """An update is offered only when the feed's build is higher than ours; the version
+    string does not decide (see test_update_check_older_feed.py). Any version shape works
+    as long as the build rises."""
     import io
     app = app_module
 

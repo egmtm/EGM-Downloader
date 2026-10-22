@@ -3046,7 +3046,10 @@ def check_app_update():
         download     = str(data.get("download", "")).strip()
         # "downloadUrl" in new format; "zip_url" in old format; fallback to hardcoded constant
         zip_url      = str(data.get("downloadUrl", data.get("zip_url", APP_UPDATE_ZIP_URL))).strip()
-        up_to_date   = (latest_ver == APP_VERSION and latest_build <= APP_BUILD)
+        # Decided by build number alone: builds rise with every release, so an older signed
+        # feed served again (lower build) is never an update, and a rebuild of the same
+        # version (higher build) still is. A missing build reads as 0: not an update.
+        up_to_date   = latest_build <= APP_BUILD
         return jsonify({
             "up_to_date":      up_to_date,
             "current_version": APP_VERSION,
