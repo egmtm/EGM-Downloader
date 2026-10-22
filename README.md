@@ -85,7 +85,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.5.0, RAW FEED. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.0.0.1, THE ONE ABOUT BROTLI. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -94,11 +94,11 @@ A side by side look at one well known alternative, using details you can check y
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Halloween theme"/></a>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Jazz Club theme"/></a>
       <br/><sub><b>Main UI</b> (Halloween theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Ubuntu theme"/></a>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Blueprint theme"/></a>
       <br/><sub><b>Advanced Panel</b> (Ubuntu theme)</sub>
     </td>
   </tr>
@@ -107,11 +107,11 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Abyssal theme"/></a>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Northern Lights theme"/></a>
       <br/><sub><b>Live Streams</b> (Abyssal theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Cobalt Rush theme"/></a>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Holographic theme"/></a>
       <br/><sub><b>Live Stream Reconnecting</b> (Cobalt Rush theme)</sub>
     </td>
   </tr>
@@ -120,11 +120,11 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Mint theme"/></a>
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Polaroid theme"/></a>
       <br/><sub><b>Quit When Done</b> (Mint theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Arch Linux theme"/></a>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Lilac Mist theme"/></a>
       <br/><sub><b>Advanced Panel, Plugins</b> (Arch Linux theme)</sub>
     </td>
   </tr>
@@ -133,11 +133,11 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Dialup theme"/></a>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Monsoon theme"/></a>
       <br/><sub><b>All Themes</b> (Dialup theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Toxic Orchid"/></a>
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Copper Tide"/></a>
       <br/><sub><b>Theme Creator</b> (custom Toxic Orchid theme)</sub>
     </td>
   </tr>
@@ -146,11 +146,11 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Matcha theme"/></a>
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Wanderlust theme"/></a>
       <br/><sub><b>Subscriptions</b> (Matcha theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Velvet Rose theme"/></a>
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Permafrost theme"/></a>
       <br/><sub><b>Download History</b> (Velvet Rose theme)</sub>
     </td>
   </tr>
@@ -161,8 +161,8 @@ A side by side look at one well known alternative, using details you can check y
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.5.0.0.1  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (661 KB · ~800 MB after install)  
-**SHA256:** `e021c5e4dfa7105d1fbc4112035ffb7d64b4f2671e77762b315daf5063044713`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (662 KB · ~800 MB after install)  
+**SHA256:** `b462c08181cc31d34e7e0e773502ccabf639ba4ef507414a35d0aea16951f1c9`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -170,8 +170,8 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Windows Portable
 **Latest:** v1.5.0.0.1  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (665 KB · ~1 GB after first run)  
-**SHA256:** `3bc04e8727785b00355f59d9d2ef6fedfa09a625c886b386ba620f611d75b864`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (667 KB · ~1 GB after first run)  
+**SHA256:** `ff9251c013cbf91818a9f3be550633ac4bdca54f96d1e556d9ec98522c609c2c`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -182,7 +182,7 @@ A side by side look at one well known alternative, using details you can check y
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.5.0.0.1  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (143 MB · ~300 MB after install)  
-**SHA256:** `242812ecbe8916ade1dbe664bbdb654c3cad922df8ebf5b1c66119483e62c504`  
+**SHA256:** `921594eec74fd786ad1607551107123dfb79b0f39dc4b6ff857d81dcf70c1423`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -192,7 +192,7 @@ A side by side look at one well known alternative, using details you can check y
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.5.0.0.1  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (171 MB · ~300 MB after install)  
-**SHA256:** `3a097b5c9e3cf2887338d63d4bbfad1d1cd5a54220523f84fff3535890fa89f3`  
+**SHA256:** `a3e28f3eadf9d0bbfe4b1fc539b4419c95af554c818860c0ac41925da4a70b6e`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
