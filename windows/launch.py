@@ -197,6 +197,15 @@ def _meta_version(name):
         return _version_tuple(importlib.metadata.version(name))
     except Exception: return None
 
+_DEP_MODULES = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi", "brotli", "Cryptodome", "websockets", "certifi")
+
+def _modules_present(names):
+    """True when every module can be found on disk. find_spec looks, it does not import."""
+    try:
+        import importlib.util
+        return all(importlib.util.find_spec(n) for n in names)
+    except (ImportError, ValueError): return False
+
 def _pip_install(cmd, upgrading, timeout):
     """Run pip. A missing package is fatal, but a failed floor upgrade (offline, say) must not
     stop the start: the app runs on the old copy and the next launch tries again."""
@@ -213,8 +222,9 @@ def ensure_python_deps():
     # missing one triggers (re)install. (pyzipper was unused and is dropped.)
     # Floors first, from package metadata, before anything is imported: importing brotli or
     # curl_cffi maps their .pyd/.dll files into this process, and Windows will not let pip
-    # replace a file that is in use.
-    upgrading = _deps_below_floor(_meta_version)
+    # replace a file that is in use. Only when every package is there: a missing one must
+    # stay fatal, which is the sentinel route below (same rule as the portable path).
+    upgrading = _deps_below_floor(_meta_version) and _modules_present(_DEP_MODULES)
     if not upgrading:
         try:
             import flask, yt_dlp, cryptography, mutagen, curl_cffi, brotli, Cryptodome, websockets, certifi; return

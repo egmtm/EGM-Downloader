@@ -88,6 +88,7 @@ def test_deps_below_floor(mod, versions, below):
 
 def test_installer_upgrades_an_old_brotli_without_importing_first(mod, pip, monkeypatch):
     monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 0)}[n])
+    monkeypatch.setattr(mod, "_modules_present", lambda names: True)      # everything is installed
     # if the sentinel imports ran first they would map brotli's files into this process
     monkeypatch.setitem(sys.modules, "flask", None)
     mod.ensure_python_deps()
@@ -98,6 +99,7 @@ def test_installer_upgrades_an_old_brotli_without_importing_first(mod, pip, monk
 
 def test_installer_failed_upgrade_does_not_stop_the_start(mod, pip, monkeypatch):
     monkeypatch.setattr(mod, "_meta_version", lambda n: (1, 0, 0) if n == "brotli" else (2026, 10, 21))
+    monkeypatch.setattr(mod, "_modules_present", lambda names: True)
     pip.fail = True
     mod.ensure_python_deps()            # offline: no exception
     assert len(pip.calls) == 1
@@ -119,6 +121,32 @@ def test_installer_missing_package_is_still_fatal(mod, pip, monkeypatch):
         mod.ensure_python_deps()
     (cmd, kw), = pip.calls
     assert kw["check"] is True and "--retries" not in cmd
+
+
+def test_installer_old_brotli_and_a_missing_package_stays_fatal(mod, pip, monkeypatch):
+    """The floor upgrade must not hide a missing package: with brotli old AND flask missing,
+    pip runs as a real install (fatal on failure), like the portable path."""
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 0)}[n])
+    monkeypatch.setitem(sys.modules, "flask", None)          # find_spec says missing, import fails
+    pip.fail = True
+    with pytest.raises(subprocess.CalledProcessError):
+        mod.ensure_python_deps()
+    (cmd, kw), = pip.calls
+    assert kw["check"] is True and "--retries" not in cmd
+
+
+def test_modules_present(mod, monkeypatch):
+    assert mod._modules_present(("os", "sys")) is True
+    assert mod._modules_present(("os", "no_such_module_for_egm_test")) is False
+    monkeypatch.setitem(sys.modules, "egm_half_loaded", type(sys)("egm_half_loaded"))   # __spec__ is None
+    assert mod._modules_present(("egm_half_loaded",)) is False         # no exception
+
+
+def test_dep_modules_match_the_sentinel_import_line(mod):
+    """_DEP_MODULES (the presence check) and the installer's sentinel import are two copies of one list."""
+    m = re.search(r"import (flask, [\w, ]+?); return", LAUNCH.read_text(encoding="utf-8"))
+    assert m, "sentinel import line not found"
+    assert tuple(x.strip() for x in m.group(1).split(",")) == mod._DEP_MODULES
 
 
 def _site_packages(tmp_path, brotli, ytdlp):
