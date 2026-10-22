@@ -1006,12 +1006,12 @@ def test_saved_themes_favoritable():
 def test_optlibs_update_panel_cross_platform():
     """The 'Optional libraries' update-panel feature must be coherent on every platform.
 
-    Windows (root app.py) can upgrade them in-app, so it reports full
-    current/latest/updates_available. Linux + Mac bundle them with no in-app pip
-    upgrade (same model as mutagen), so their check_updates returns optlibs as
-    informational-only (current versions, no latest/up_to_date) — the UI then renders
-    a neutral badge instead of a dead/actionable toggle. The template that hosts the
-    optlibs card must also stay root<->linux byte-identical (Mac serves root templates).
+    All three backends can upgrade them in-app (Update plugins: Windows and Mac pip into
+    the app's own Python, Linux into the plugin overlay), so every check_updates reports
+    the full current/latest/updates_available shape. The current-only shape belongs to the
+    other route, installed-versions, which only lists what is installed on Linux and Mac.
+    The template that hosts the optlibs card must also stay root<->linux byte-identical
+    (Mac serves root templates).
     """
     # All three backends expose the optlibs list + version helper and an optlibs key.
     for app_file in PLATFORM_APP_FILES:
@@ -1020,11 +1020,16 @@ def test_optlibs_update_panel_cross_platform():
             f"{app_file} missing the optlibs helper"
         assert '"optlibs"' in src, f"{app_file} check_updates does not return an optlibs key"
 
-    # Linux/Mac are informational-only: optlibs key carries current but no latest.
+    # check_updates is actionable on all three: current, latest and updates_available.
+    for app_file in PLATFORM_APP_FILES:
+        assert '"updates_available": optlibs_updates' in read_source(app_file), \
+            f"{app_file} check_updates optlibs is not the actionable shape"
+
+    # Linux/Mac installed-versions only lists what is installed: current, no latest.
     for app_file in ("linux/app.py", "mac/app.py"):
         src = read_source(app_file)
         assert '"optlibs": {"current": _get_optlibs_versions()}' in src, \
-            f"{app_file} optlibs is not the informational-only shape (current-only)"
+            f"{app_file} installed-versions optlibs is not the current-only shape"
 
     # Root keeps the actionable shape (updates_available drives the toggle/badge).
     root = read_source("app.py")
