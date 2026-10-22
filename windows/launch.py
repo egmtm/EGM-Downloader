@@ -175,18 +175,54 @@ def _progress(count, block, total):
     if total > 0: _gui_progress(min(100, count*block*100//total))
 
 # ── Python deps ───────────────────────────────────────────────────────────────
+# Minimum versions of the packages whose old copies matter. An install whose imports already
+# work is never touched by the sentinels below, so without these floors it would keep an old
+# copy for good. Keep in sync with requirements.txt and the two pip lists (a test compares
+# them): yt-dlp 2026.10.21 has the reworked Kick extractor, brotli 1.2.1 fixes CVE-2026-111497.
+PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}
+
+def _version_tuple(s):
+    try: return tuple(int(p) for p in str(s).split(".")[:3])
+    except ValueError: return None
+
+def _deps_below_floor(read):
+    """True when an installed floor package is older than its floor. read(name) returns the
+    installed version tuple, or None when unknown (unknown is not 'below': the sentinels
+    already cover a missing package)."""
+    return any((read(n) or f) < f for n, f in PY_DEP_FLOORS.items())
+
+def _meta_version(name):
+    try:
+        import importlib.metadata
+        return _version_tuple(importlib.metadata.version(name))
+    except Exception: return None
+
+def _pip_install(cmd, upgrading, timeout):
+    """Run pip. A missing package is fatal, but a failed floor upgrade (offline, say) must not
+    stop the start: the app runs on the old copy and the next launch tries again."""
+    if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
+    try:
+        subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)
+    except (subprocess.SubprocessError, OSError):
+        if not upgrading: raise
+
 def ensure_python_deps():
     # Keep this list in sync with requirements.txt. cryptography is REQUIRED for
     # signed-manifest verification (Windows auto-update); mutagen for audio
     # metadata/thumbnail embedding. The sentinel imports must include them so a
     # missing one triggers (re)install. (pyzipper was unused and is dropped.)
-    try:
-        import flask, yt_dlp, cryptography, mutagen, curl_cffi, brotli, Cryptodome, websockets, certifi; return
-    except ImportError: pass
+    # Floors first, from package metadata, before anything is imported: importing brotli or
+    # curl_cffi maps their .pyd/.dll files into this process, and Windows will not let pip
+    # replace a file that is in use.
+    upgrading = _deps_below_floor(_meta_version)
+    if not upgrading:
+        try:
+            import flask, yt_dlp, cryptography, mutagen, curl_cffi, brotli, Cryptodome, websockets, certifi; return
+        except ImportError: pass
     _gui_msg("Installing Python packages…")
-    subprocess.run([sys.executable, "-m", "pip", "install", "-q",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.17.0", "brotli", "pycryptodomex", "websockets", "certifi"],
-                   check=True, timeout=300, creationflags=NO_WIN)
+    _pip_install([sys.executable, "-m", "pip", "install", "-q",
+                  "flask", "yt-dlp>=2026.10.21", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.17.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                 upgrading, 300)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
 def _verify_sha256(path, pin, label):
@@ -376,12 +412,20 @@ def ensure_python_deps_embedded(py_exe):
                 or (site_packages / f"{pkg}.py").is_file()
                 or bool(list(site_packages.glob(f"{pkg}.*.pyd")))
                 or bool(list(site_packages.glob(f"{pkg}.*.so"))))
+    def _dist_version(name):
+        # Same on-disk logic as _present: read the dist-info folder names, never import.
+        norm = name.replace("-", "_").lower()
+        found = [_version_tuple(d.name[len(norm) + 1:-len(".dist-info")]) for d in site_packages.iterdir()
+                 if d.name.lower().startswith(norm + "-") and d.name.endswith(".dist-info")]
+        return max([v for v in found if v], default=None)
+    upgrading = False
     if site_packages.is_dir() and all(_present(pkg) for pkg in required):
-        return
+        if not _deps_below_floor(_dist_version): return
+        upgrading = True   # everything is there, but a floor package is old
     _gui_msg("Installing Python packages…")
-    subprocess.run([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                    "flask", "yt-dlp", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.17.0", "brotli", "pycryptodomex", "websockets", "certifi"],
-                   check=True, timeout=600, creationflags=NO_WIN)
+    _pip_install([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
+                  "flask", "yt-dlp>=2026.10.21", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.17.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                 upgrading, 600)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
 VERSION_CACHE = NODE_DIR / ".node_version"   # persists detected node path across runs
