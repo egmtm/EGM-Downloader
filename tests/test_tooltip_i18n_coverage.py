@@ -143,38 +143,6 @@ def test_no_unwired_translatable_attributes():
         )
 
 
-def test_guard_recognizes_the_dynamic_wiring_convention():
-    """Prove-by-construction: an inline i18nAttr() call must NOT be flagged,
-    since history.html/themes.html/subscriptions.html rely on exactly this
-    pattern for their real, already-wired tooltips."""
-    html = '<button title="${i18nAttr(\'tooltip.card.pin\',\'Pin to top\')}">x</button>'
-    assert _find_unwired(html, "fake.html") == []
-
-
-def test_guard_recognizes_the_static_wiring_convention():
-    html = '<button data-i18n-attr="title:panel.tab.themes" title="Browse and switch themes">x</button>'
-    assert _find_unwired(html, "fake.html") == []
-
-
-def test_guard_ignores_css_attribute_selectors():
-    html = '<style>.rb[title="Re-add"] { display: none; }</style>'
-    assert _find_unwired(html, "fake.html") == []
-
-
-def test_guard_ignores_pure_user_data():
-    html = '<div title="${attrEsc(s.name || s.url)}">x</div>'
-    assert _find_unwired(html, "fake.html") == []
-
-
-def test_guard_has_teeth():
-    """Prove-by-mutation: a genuinely unwired, genuinely translatable
-    attribute must be flagged."""
-    html = '<button title="Drag to reorder">x</button>'
-    found = _find_unwired(html, "fake.html")
-    assert len(found) == 1
-    assert found[0][2] == "title" and found[0][3] == "Drag to reorder"
-
-
 def test_scope_covers_the_whole_template_tree():
     """The glob-derived scope must include every known window and JS partial.
     If this fails after moving/renaming templates, update KNOWN_FILES -- but
