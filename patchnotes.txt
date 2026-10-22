@@ -1,3 +1,10 @@
+v1.5.0.0.1 - THE ONE ABOUT BROTLI (10/22/2026)
+-----------------------------------------
+
+  • [ALL] Security: The minimum brotli version is now 1.2.1, which fixes a flaw in the Brotli decompression library (CVE-2026-111497) that a specially crafted web response could trigger.
+  • [ALL] Updated: The minimum yt-dlp version is now 2026.10.21, which includes the reworked Kick extractor for Kick VOD downloads.
+  • [WINDOWS] Fixed: An install that was already set up kept its old brotli and yt-dlp, because the launcher only installed packages that were missing. It now upgrades them at start when they are below the minimum, and carries on with what it has if it cannot reach the internet.
+
 v1.5.0 - RAW FEED (10/21/2026)
 -----------------------------------------
 
