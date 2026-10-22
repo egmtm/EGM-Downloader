@@ -2,7 +2,6 @@
 the existing "shown once per version" modal) and two bugs fixed while wiring
 it up. Scoped narrowly to what's genuinely fragile here -- the broader
 i18n/element-id/parity guards elsewhere already cover the general cases."""
-import json
 import re
 
 from conftest import read_source
@@ -113,26 +112,6 @@ def test_footer_whatsnew_button_click_handler_calls_show_function():
         assert "showWhatsNewModal(" in handler_src, (
             f"{p}: footer-whatsnew-btn's click handler must call "
             f"showWhatsNewModal(), not a separate implementation"
-        )
-
-
-def test_footer_whatsnew_key_present_in_every_locale():
-    """The new footer.btn.whatsnew key must exist in all 10 locales (English
-    placeholder is fine pending translation -- this only guards
-    against the key being missing entirely, which would silently fall back
-    to the raw key name in the UI)."""
-    import os
-    root = os.path.dirname(os.path.dirname(__file__))
-    lang_dir = os.path.join(root, "languages")
-    locales = sorted(f for f in os.listdir(lang_dir) if f.endswith(".json"))
-    assert len(locales) == 10, f"expected 10 locale files, found {len(locales)}"
-    for fname in locales:
-        d = json.load(open(os.path.join(lang_dir, fname), encoding="utf-8"))
-        assert "footer.btn.whatsnew" in d["strings"], (
-            f"{fname}: missing footer.btn.whatsnew"
-        )
-        assert d["strings"]["footer.btn.whatsnew"].strip(), (
-            f"{fname}: footer.btn.whatsnew is present but empty"
         )
 
 

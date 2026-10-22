@@ -6,16 +6,13 @@ yt-dlp writes a single MPEG-TS .part file that stays playable even when the
 process is killed, so the app now turns it into a normal file instead.
 These tests pin the backend pieces in all three platform copies, the helper
 against a real ffmpeg-made recording, and the strings."""
-import glob
-import json
-import os
 import re
 import shutil
 import subprocess
 
 import pytest
 
-from conftest import PLATFORM_APP_FILES, ROOT, read_source
+from conftest import PLATFORM_APP_FILES, read_source
 
 FFMPEG = shutil.which("ffmpeg")
 KEYS = ("card.badge.live", "card.status.recording", "card.btn.stop_save", "download.warning.live_partial")
@@ -54,16 +51,6 @@ def test_frontend_sends_the_live_flag_and_has_the_button():
         assert "/api/stop/${item.jobId}" in dl, base
     for f in ("js/_download.html", "js/_bulk.html", "index_styles.html"):
         assert read_source(f"templates/{f}") == read_source(f"linux/templates/{f}"), f
-
-
-def test_new_strings_exist_in_every_locale():
-    files = sorted(glob.glob(os.path.join(ROOT, "languages", "*.json")))
-    assert len(files) >= 10
-    for f in files:
-        with open(f, encoding="utf-8") as fh:
-            strings = json.load(fh)["strings"]
-        for k in KEYS:
-            assert isinstance(strings.get(k), str) and strings[k].strip(), f"{os.path.basename(f)}: missing {k}"
 
 
 # ── routes ──────────────────────────────────────────────────────────────────

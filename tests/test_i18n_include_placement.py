@@ -60,11 +60,6 @@ def test_i18n_include_lands_inside_a_script_tag():
         )
 
 
-def test_root_and_linux_console_mirrors_match():
-    """Byte-identical, matching every other template's parity discipline."""
-    assert read_source("templates/console.html") == read_source("linux/templates/console.html")
-
-
 # ── Generalized guard: the whole bug class, tree-derived and transitive ────────
 #
 # The targeted test above pins the exact i18n.html mistake in the four known

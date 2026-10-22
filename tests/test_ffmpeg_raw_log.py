@@ -170,27 +170,9 @@ def test_ffmpeg_drain_thread_actually_captures_real_subprocess_output():
     assert "second line" in messages
 
 
-def test_ffmpeg_toggle_i18n_key_translated_across_all_locales():
-    import json
-    import os
-
-    lang_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "languages")
-    en = json.load(open(os.path.join(lang_dir, "en.json")))["strings"]
-    assert "console.toggle.ffmpeg" in en
-    locales = ["ar", "de", "es", "fr", "it", "ja", "nl", "pt", "ru"]
-    for loc in locales:
-        d = json.load(open(os.path.join(lang_dir, f"{loc}.json")))["strings"]
-        assert "console.toggle.ffmpeg" in d, f"{loc}: missing console.toggle.ffmpeg"
-        # Genuine translation, not an English copy left behind.
-        assert d["console.toggle.ffmpeg"] != en["console.toggle.ffmpeg"], (
-            f"{loc}: console.toggle.ffmpeg still reads as the English placeholder"
-        )
-
-
-def test_ffmpeg_toggle_present_in_console_html_and_mirrored_on_linux():
+def test_ffmpeg_toggle_present_in_console_html():
+    # the Linux copy is held identical by test_template_mirrors.py
     root = read_source("templates/console.html")
-    linux = read_source("linux/templates/console.html")
-    assert root == linux, "templates/console.html and its Linux mirror have diverged"
     for marker in ("ffmpeg-toggle", "console.toggle.ffmpeg", "ffmpeg_lines",
                    "egm-console-ffmpeg", "log-line.ffmpeg"):
         assert marker in root, f"console.html missing expected ffmpeg marker: {marker}"
@@ -482,8 +464,6 @@ def test_ffmpeg_log_defined_before_detect_hw_encoder_on_all_platforms():
 
 def test_toggle_labels_shortened_with_full_text_as_tooltip():
     root = read_source("templates/console.html")
-    linux = read_source("linux/templates/console.html")
-    assert root == linux, "templates/console.html and its Linux mirror have diverged"
 
     for tool, label_key, sentence_key in (
         ("yt-dlp", "console.toggle.ytdlp.label", "console.toggle.ytdlp"),

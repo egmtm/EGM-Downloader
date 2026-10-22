@@ -2,11 +2,11 @@
 
 The behaviour itself is covered by tests/frontend/subs_quit.test.mjs,
 main_quit.test.mjs and quit_app_handler.test.mjs (jsdom and the real main.js
-handlers). This pins the things those cannot: the countdown string exists in
-every locale, the Subscriptions toggle reuses the main UI strings and is never
-persisted, and the main window no longer quits on its own timer."""
+handlers). This pins the things those cannot: the Subscriptions toggle reuses
+the main UI strings and is never persisted, and the main window no longer quits
+on its own timer. The countdown string in every language is checked by
+test_locale_keys_table.py."""
 import glob
-import json
 import os
 import re
 
@@ -14,10 +14,6 @@ from conftest import ROOT, read_source
 
 SUBS = ("templates/subscriptions.html", "linux/templates/subscriptions.html")
 MAINS = ("windows/electron/main.js", "mac/electron/main.js", "linux/electron/main.js")
-
-
-def test_subscriptions_template_mirrors_are_identical():
-    assert read_source(SUBS[0]) == read_source(SUBS[1])
 
 
 def test_toggle_reuses_the_main_ui_strings():
@@ -50,23 +46,7 @@ def test_main_handlers_support_when_idle_and_stay_gated():
         )
 
 
-def test_countdown_string_exists_with_one_count_placeholder_in_every_locale():
-    files = sorted(glob.glob(os.path.join(ROOT, "languages", "*.json")))
-    assert len(files) >= 10
-    for f in files:
-        with open(f, encoding="utf-8") as fh:
-            value = json.load(fh)["strings"].get("subscriptions.queue.quitting_in")
-        name = os.path.basename(f)
-        assert isinstance(value, str) and value.strip(), f"{name}: missing subscriptions.queue.quitting_in"
-        assert value.count("{0}") == 1, f"{name}: needs the {{0}} seconds count exactly once, got {value!r}"
-
-
 MAIN_JS = ("templates/js/_core.html", "templates/js/_download.html", "templates/js/_bulk.html")
-
-
-def test_main_window_scripts_mirror_linux():
-    for p in MAIN_JS:
-        assert read_source(p) == read_source("linux/" + p), p
 
 
 def test_main_window_quits_only_through_the_countdown():

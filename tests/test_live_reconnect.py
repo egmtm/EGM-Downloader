@@ -445,19 +445,6 @@ def test_cleanup_also_removes_the_extra_pieces():
         assert '{job_id}_*' in body, f"{p}: Cancel must remove the _r2, _r3 pieces too"
 
 
-def test_the_reconnect_and_gap_strings_exist_in_every_locale():
-    import glob, os
-    from conftest import ROOT
-    files = sorted(glob.glob(os.path.join(ROOT, "languages", "*.json")))
-    assert len(files) >= 10
-    for f in files:
-        with open(f, encoding="utf-8") as fh:
-            strings = json.load(fh)["strings"]
-        assert "{0}" in strings["card.status.reconnecting"] and "{1}" in strings["card.status.reconnecting"], f
-        assert strings["download.warning.live_gap"].strip(), f
-        assert strings["download.warning.live_parts"].strip(), f
-
-
 @needs_ffmpeg
 def test_a_run_that_printed_no_time_is_measured_by_its_piece(app_module, monkeypatch, tmp_path):
     # ffmpeg's stats line never arrived (run_s=0), yet each piece holds over a minute:

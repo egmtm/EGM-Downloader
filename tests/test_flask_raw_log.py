@@ -104,19 +104,6 @@ def test_stdtee_reassembles_partial_writes_and_is_thread_safe():
     )
 
 
-def test_flask_toggle_i18n_key_translated_across_all_locales():
-    import json
-    import os
-
-    lang_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "languages")
-    en = json.load(open(os.path.join(lang_dir, "en.json")))["strings"]
-    assert "console.toggle.flask" in en
-    locales = ["ar", "de", "es", "fr", "it", "ja", "nl", "pt", "ru"]
-    for loc in locales:
-        d = json.load(open(os.path.join(lang_dir, f"{loc}.json")))["strings"]
-        assert "console.toggle.flask" in d, f"{loc}: missing console.toggle.flask"
-
-
 def _load_real_stdtee(captured):
     """The REAL class from source, same extraction technique as above."""
     import threading

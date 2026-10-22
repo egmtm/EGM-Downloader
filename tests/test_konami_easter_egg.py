@@ -69,12 +69,6 @@ def test_fake_log_lines_and_konami_itself_stay_untranslated():
             )
 
 
-def test_core_js_mirrors_are_byte_identical():
-    root = read_source("templates/js/_core.html")
-    linux = read_source("linux/templates/js/_core.html")
-    assert root == linux, "templates/js/_core.html and its Linux mirror have diverged"
-
-
 def test_konami_i18n_keys_present_and_genuinely_translated_across_locales():
     import json
     import os
