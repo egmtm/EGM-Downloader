@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 # EGM Downloader — commit-msg hook
-# Blocks commit messages that mention internal agent or tool names.
-# The public repo must stay free of those. The list is stored as SHA-256
-# hashes so this file does not itself name anything.
+# 1. Blocks commit messages that mention internal agent or tool names, and
+#    any Co-Authored-By trailer. The public repo must stay free of those.
+#    The list is stored as SHA-256 hashes so this file does not itself name
+#    anything.
+# 2. Blocks commits whose author or committer is not egmtm <enrique@egerena.com>.
 #
 # Install once per clone:
 #   git config core.hooksPath .githooks
 
 python3 - "$1" <<'PY'
-import hashlib, re, sys
+import hashlib, re, subprocess, sys
 
 BLOCKED = {
     "8f36fa180f96592a562cce0876be408c412aa002148f7cce1db1d98e95a312ae",
@@ -29,6 +31,17 @@ BLOCKED = {
     "b5cf43ae07a7364e0c0ca9e838f01f278fc6a71c207a6f8c3de8d908608b2db1",
     "65872389ee6b3b5032637e412acdded56cafc1f71f39abc5e68f93e31da0cd86",
 }
+
+IDENTITY = ("egmtm", "enrique@egerena.com")
+
+for var in ("GIT_AUTHOR_IDENT", "GIT_COMMITTER_IDENT"):
+    r = subprocess.run(["git", "var", var], capture_output=True, text=True)
+    m = re.match(r"(.*) <(.*)> \d+ [+-]\d{4}$", r.stdout.strip())
+    if not m or (m.group(1), m.group(2)) != IDENTITY:
+        who = f"{m.group(1)} <{m.group(2)}>" if m else "unknown"
+        print(f"❌ Commit {var.split('_')[1].lower()} is {who}. Commits in this repo must use egmtm <enrique@egerena.com>.")
+        print("   Fix with: git config user.name egmtm && git config user.email enrique@egerena.com")
+        sys.exit(1)
 
 with open(sys.argv[1], encoding="utf-8", errors="replace") as f:
     raw = f.read().splitlines()

@@ -22,6 +22,9 @@ on:
       - 'linux/templates/**.html'
       - '**/electron/*.js'
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
