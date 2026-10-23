@@ -171,18 +171,13 @@ def test_a_failing_delete_never_raises(mod, overlay, monkeypatch):
     mod._prune_overlay_below_floors()                       # swallowed: the app must still start
 
 
-def test_the_floors_equal_the_launcher_and_requirements(mod):
-    """windows/launch.py PY_DEP_FLOORS, this table and both requirements files are copies
-    of one decision; they move together."""
+def test_the_floors_equal_the_launcher(mod):
+    """windows/launch.py PY_DEP_FLOORS and this table are copies of one decision; they move together.
+    (The launcher table against both requirements files: test_launcher_dep_floors.py.)"""
     spec = importlib.util.spec_from_file_location("egm_launch_for_overlay_test", LAUNCH)
     launch = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(launch)
     assert mod.PY_DEP_FLOORS == launch.PY_DEP_FLOORS
-    for name, floor in mod.PY_DEP_FLOORS.items():
-        spec_str = ".".join(map(str, floor))
-        for req in ("requirements.txt", "linux/requirements.txt"):
-            lines = (ROOT / req).read_text(encoding="utf-8").splitlines()
-            assert f"{name}>={spec_str}" in [l.strip() for l in lines], f"{req}: {name} floor differs"
 
 
 def test_the_prune_runs_at_start_before_anything_uses_the_overlay():
