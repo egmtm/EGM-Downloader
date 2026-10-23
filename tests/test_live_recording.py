@@ -18,7 +18,9 @@ FFMPEG = shutil.which("ffmpeg")
 KEYS = ("card.badge.live", "card.status.recording", "card.btn.stop_save", "download.warning.live_partial")
 
 
-def _helper_source(path):
+def _live_region(path):
+    """The whole live recording code: from _salvage_live_part through the end of _live_finish (the
+    code between it and _cleanup)."""
     s = read_source(path)
     a = s.index("def _salvage_live_part(")
     return s[a:s.index("def _cleanup(", a)]
@@ -36,10 +38,15 @@ def test_each_platform_backend_has_the_live_pieces():
         assert "if proc.returncode != 0:" not in s, p
 
 
-def test_salvage_helper_is_identical_on_all_platforms():
-    base = _helper_source("app.py")
+def test_the_live_recording_code_is_identical_on_all_platforms():
+    """About 440 lines (salvage, reconnect, join, finish) that are the same in all three backends today.
+    Keep them that way: a fix made in one copy must be made in the other two. If this fails because the
+    copies have to differ on purpose, that is the sign to move this code out of the three app.py files."""
+    base = _live_region("app.py")
+    # The slice ends at the next function, so a moved or renamed neighbour could shrink it unnoticed.
+    assert len(base.splitlines()) >= 400, "the live region got much smaller; check the slice in _live_region"
     for p in PLATFORM_APP_FILES[1:]:
-        assert _helper_source(p) == base, p
+        assert _live_region(p) == base, p
 
 
 def test_frontend_sends_the_live_flag_and_has_the_button():
