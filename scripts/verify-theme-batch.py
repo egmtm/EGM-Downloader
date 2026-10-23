@@ -139,10 +139,17 @@ def malformed_values(body: str):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if a != "--polish"]
-    polish = "--polish" in sys.argv[1:]
-    if len(args) != 1:
+    argv = sys.argv[1:]
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        sys.exit(0)
+    polish = "--polish" in argv
+    args = [a for a in argv if a != "--polish"]
+    if len(args) != 1 or args[0].startswith("-"):
         print("Usage: python3 scripts/verify-theme-batch.py [--polish] path/to/themes_batch.md")
+        sys.exit(1)
+    if not Path(args[0]).is_file():
+        print(f"File not found: {args[0]}")
         sys.exit(1)
 
     doc = Path(args[0]).read_text(encoding="utf-8")

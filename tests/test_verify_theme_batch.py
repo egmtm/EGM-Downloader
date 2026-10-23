@@ -133,3 +133,12 @@ def test_the_older_delivery_headings_still_parse(tmp_path):
            "## THEME_DATA entries\n\n```js\n" + entry(CLEAN).replace(f"{CLEAN}:", "brandnewtheme:") + "\n```\n")
     code, out = run(tmp_path, old, polish=False)
     assert code == 0, out
+
+
+def test_help_and_bad_arguments_print_a_message_not_a_traceback(tmp_path):
+    for args, code, text in ((["--polish", "--help"], 0, "--polish checks replacements"),
+                             (["--nope"], 1, "Usage:"),
+                             ([], 1, "Usage:"),
+                             ([str(tmp_path / "missing.md")], 1, "File not found")):
+        r = subprocess.run([sys.executable, SCRIPT] + args, capture_output=True, text=True, encoding="utf-8")
+        assert r.returncode == code and text in r.stdout and "Traceback" not in r.stderr, (args, r.stdout, r.stderr)
