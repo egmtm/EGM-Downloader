@@ -55,8 +55,9 @@ UNINSTALLING
 ────────────────────────────────────────
 Delete the AppImage file. Nothing else is installed system-wide.
 
-Settings and cached data are stored in the same folder as the AppImage.
-Delete those too if you want a clean removal.
+Settings, history and other app data are stored in ~/.local/share/egm-downloader.
+The app window keeps its own browser data (cache and saved themes) in ~/.config/egm-downloader.
+Delete both folders if you want a clean removal.
 
 
 SUPPORT
