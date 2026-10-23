@@ -269,23 +269,27 @@ async function startFlask() {
 }
 
 // ── Fix 4: Single waitForFlask, no double retry ───────────────────────────────
-function waitForFlask(retries = 180, delay = 1000) {
+// Polls the backend every 250 ms for up to 3 minutes. The budget is a time, not a count: a refused
+// connection takes about 2 s to fail on Windows (each probe is also cut off after 900 ms), so a
+// count of attempts would not add up to 3 minutes there.
+function waitForFlask(budgetMs = 180000, delay = 250) {
   return new Promise((resolve, reject) => {
     let attemptCount = 0;
-    const try_ = (n) => {
+    const deadline = Date.now() + budgetMs;
+    const try_ = () => {
       attemptCount++;
       // Exponential curve: visible movement early, slows as it approaches 90%
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
-        if (n <= 0) {
+        if (Date.now() >= deadline) {
           reject(new Error('The backend did not start within 3 minutes.\n\nTry launching the app again.'));
           return;
         }
-        setTimeout(() => try_(n - 1), delay);
+        setTimeout(try_, delay);
       });
       req.setTimeout(900, () => { req.destroy(); });
     };
-    try_(retries);
+    try_();
   });
 }
 
