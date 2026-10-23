@@ -2193,8 +2193,42 @@ def _internal_error(e):
         pass
     return jsonify({"error": "internal server error"}), 500
 
+# ── Template warm-up ──────────────────────────────────────────────────────────
+# Jinja compiles a template the first time it is rendered, and index.html's includes
+# (the theme CSS alone is 680 KB) are compiled during that first render: about 150 ms
+# on a fast machine, paid today by the Electron shell's first successful poll of GET /.
+# The __main__ block renders index.html once in a background thread as soon as the
+# server accepts connections, while the shell is still polling (the output is discarded;
+# what matters is that the templates are now in Jinja's cache). index() and the warm-up
+# take the same lock around their render, so a request that arrives mid-warm-up waits
+# for the compile instead of repeating it in parallel, and a request that arrives before
+# the warm-up has started compiles the templates itself exactly as today (the warm-up
+# then finds them cached). Outside __main__ (tests, imports) the lock is never contended.
+_TEMPLATES_LOCK = threading.Lock()
+
+def _warm_templates(host=None, port=None):
+    """Compile index.html and everything it includes into app.jinja_env's cache, after
+    the server is listening when host and port are given. Never raises; a template that
+    does not compile fails in its own request exactly as before."""
+    try:
+        if port is not None:
+            import socket
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                try:
+                    socket.create_connection((host, port), timeout=0.05).close()
+                    break
+                except OSError:
+                    time.sleep(0.005)
+        with _TEMPLATES_LOCK:
+            app.jinja_env.get_template("index.html").render(egm_token="", platform_url="")
+    except Exception:
+        pass
+
 @app.route("/")
-def index(): return render_template("index.html", egm_token=_API_TOKEN, platform_url="https://egerena.com/apps/egmac.html")
+def index():
+    with _TEMPLATES_LOCK:
+        return render_template("index.html", egm_token=_API_TOKEN, platform_url="https://egerena.com/apps/egmac.html")
 
 @app.route("/api/info", methods=["POST"])
 def get_info():
@@ -3756,6 +3790,7 @@ if __name__ == "__main__":
     host = "127.0.0.1"  # always localhost — never exposed to network
     threading.Thread(target=lambda: app.run(host=host,port=port,threaded=True,use_reloader=False),
                      daemon=True, name="flask").start()
+    threading.Thread(target=_warm_templates, args=(host, port), daemon=True, name="template-warmup").start()
 
     # Under Electron: keep Flask alive; Electron manages the window and lifecycle.
     print(f"[EGM Downloader] running on http://{host}:{port}")
