@@ -13,7 +13,6 @@ pass with no tone-mapping: the classic washed-out/green output.
 Found and fixed via external review (round 10), verified by manual
 reproduction at the time but never given a permanent guard until now.
 """
-from conftest import read_source
 
 
 def _formats(*, sdr_tbr=5000, hdr10_tbr=None, dv_tbr=None, hlg_tbr=None, height=1080):
@@ -77,12 +76,4 @@ def test_hdr10_and_dv_coexisting_never_loses_the_sdr_row(app_module):
     assert len(hdr_rows) == 1 and hdr_rows[0]["id"] == "dv"
 
 
-def test_bucketing_fix_present_on_all_platforms():
-    """The startswith('HDR') regression must not silently return -- checked
-    directly on mac/linux source, not just root (which app_module covers)."""
-    for platform_file in ("mac/app.py", "linux/app.py"):
-        source = read_source(platform_file)
-        assert 'dr and dr != "SDR"' in source, (
-            f"{platform_file}: HDR bucketing fix (dr and dr != 'SDR') not found -- "
-            "may have regressed to the DV/HLG-displacement bug"
-        )
+# The Mac and Linux copies of this fix are checked by behaviour in test_backend_behaviour_all_platforms.py.

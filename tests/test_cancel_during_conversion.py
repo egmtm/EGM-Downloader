@@ -73,10 +73,4 @@ def test_run_download_checks_cancelled_after_conversion(app_module):
     )
 
 
-def test_cancel_fix_present_on_all_platforms():
-    for platform_file in ("app.py", "mac/app.py", "linux/app.py"):
-        source = read_source(platform_file)
-        assert '"downloading", "queued", "converting"' in source, (
-            f"{platform_file}: /api/cancel no longer accepts the converting "
-            "status -- cancel-during-conversion may be silently broken again"
-        )
+# /api/cancel on the Mac and Linux copies is checked by behaviour in test_backend_behaviour_all_platforms.py.
