@@ -149,13 +149,10 @@ def test_theme_data_matches_themes_array():
     in_arr_not_data = themes_arr - theme_data_keys
     in_data_not_arr = theme_data_keys - themes_arr
 
-    # Themes without THEME_DATA entries are flagged (they silently get no swatch data)
     assert not in_data_not_arr, f"THEME_DATA has keys not in THEMES array: {in_data_not_arr}"
-    # Note: some themes may intentionally lack THEME_DATA (handled gracefully by app)
-    # so in_arr_not_data is informational only — assert count hasn't grown unexpectedly
-    assert len(in_arr_not_data) <= 20, (
-        f"More themes than expected lack THEME_DATA entries ({len(in_arr_not_data)}): {in_arr_not_data}"
-    )
+    # A theme without a THEME_DATA entry silently gets no swatch data. Today every theme has one
+    # (test_theme_counts_consistent already requires equal counts), so none is allowed.
+    assert not in_arr_not_data, f"themes in the THEMES array with no THEME_DATA entry: {in_arr_not_data}"
 
 
 def test_no_duplicate_theme_labels():
