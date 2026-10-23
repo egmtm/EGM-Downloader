@@ -1,7 +1,5 @@
 """EGM Downloader — launcher (no console window)"""
-import os, sys, shutil, zipfile, subprocess, urllib.request, urllib.parse, urllib.error, json, time, hashlib, re
-import errno, http.client
-import socket, threading
+import os, sys, subprocess
 from pathlib import Path
 
 # ── Python version gate ───────────────────────────────────────────────────────
@@ -25,6 +23,20 @@ if sys.version_info < _PY_MIN:
     except Exception:
         sys.stderr.write(_msg + "\n")
     sys.exit(1)
+
+# Re-exec under pythonw.exe (no console) if not already silent. This sits above the
+# heavier imports below on purpose: the first interpreter only hands over to pythonw.exe,
+# which imports everything again, so it should not load them first.
+if sys.platform == "win32" and not os.environ.get("EGM_SILENT"):
+    pw = Path(sys.executable).with_name("pythonw.exe")
+    if pw.exists():
+        subprocess.Popen([str(pw), str(__file__)] + sys.argv[1:],
+                         env={**os.environ, "EGM_SILENT":"1"})
+        sys.exit(0)
+
+import shutil, zipfile, urllib.request, urllib.parse, urllib.error, json, time, hashlib, re
+import errno, http.client
+import socket, threading
 
 ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
@@ -115,14 +127,6 @@ def _verify_node_zip(zip_path):
         return _sha256_file(zip_path) == expected
     except Exception:
         return False
-
-# Re-exec under pythonw.exe (no console) if not already silent
-if sys.platform == "win32" and not os.environ.get("EGM_SILENT"):
-    pw = Path(sys.executable).with_name("pythonw.exe")
-    if pw.exists():
-        subprocess.Popen([str(pw), str(__file__)] + sys.argv[1:],
-                         env={**os.environ, "EGM_SILENT":"1"})
-        sys.exit(0)
 
 # ── Tkinter GUI helpers ───────────────────────────────────────────────────────
 _root = None
