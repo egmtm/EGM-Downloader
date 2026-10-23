@@ -989,6 +989,13 @@ def _signal_running_instance():
     This check runs BEFORE any Tkinter GUI or Electron spawn — if the app is
     already running, we exit silently in milliseconds with no visible flash."""
     try:
+        # A listening port completes the connect at once, while a closed one takes about 2 s to be
+        # refused on Windows (the TCP stack retries the SYN), which would use up the whole 1 s limit
+        # below on every cold start. Nothing listening within 250 ms means the app is not running.
+        socket.create_connection(("127.0.0.1", 8899), timeout=0.25).close()
+    except OSError:
+        return False
+    try:
         req = urllib.request.Request(
             f"http://127.0.0.1:8899/api/show-window",
             data=b"{}",
