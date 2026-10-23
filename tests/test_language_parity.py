@@ -128,7 +128,6 @@ EXTRA = {
         "settings.toggle.sponsorblock_intro",
         "settings.toggle.sponsorblock_outro",
         "settings.toggle.sponsorblock_sponsor",
-        "settings.toggle.upscale",
     },
     "nl": {
         "advanced.section.interface",
