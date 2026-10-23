@@ -1028,6 +1028,11 @@ if __name__ == "__main__":
     # the first time setup work needs reporting. Warm starts show no window.
     if _is_portable():
         # Portable: run the app on a private, fully-isolated embedded Python.
+        # The Python that starts the first run can hand the embedded one its own user packages folder
+        # (seen with the Microsoft Store Python 3.12). pip would then count the app's packages there as
+        # installed and leave this folder empty, and the app would run on the user's copies. The pip
+        # steps, Electron and the backend all inherit this setting.
+        os.environ["PYTHONNOUSERSITE"] = "1"
         py_exe = ensure_python()
         if not py_exe:
             _gui_msg("ERROR: could not set up the bundled Python runtime")
