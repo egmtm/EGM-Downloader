@@ -107,6 +107,17 @@ def _is_portable():
     return (ROOT / ".portable").exists()
 
 
+def _hidden(path):
+    """True when `path` already carries the Windows hidden attribute, so `attrib +h` would
+    change nothing. False on any doubt (no attribute support, unreadable path), so the
+    caller runs attrib exactly as before."""
+    try:
+        import stat
+        return bool(os.stat(path).st_file_attributes & stat.FILE_ATTRIBUTE_HIDDEN)
+    except (AttributeError, OSError):
+        return False
+
+
 def _py_log(msg):
     """Append a timestamped diagnostic line; best-effort, never raises."""
     try:
@@ -1042,6 +1053,8 @@ if __name__ == "__main__":
         for _name in _to_hide:
             _p = Path(__file__).parent / _name
             if _p.exists():
+                if _hidden(_p):
+                    continue   # already hidden (every start after the first): attrib would change nothing
                 try:
                     subprocess.run(
                         ["attrib", "+h", str(_p)],
