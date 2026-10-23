@@ -16,6 +16,9 @@ on:
       - "app.py"
       - "tests/frontend/**"
 
+permissions:
+  contents: read
+
 jobs:
   frontend:
     runs-on: ubuntu-latest

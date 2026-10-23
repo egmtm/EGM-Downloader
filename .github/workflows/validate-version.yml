@@ -35,6 +35,9 @@ on:
       - 'windows/setup.nsi'
       - 'scripts/validate-version-sync.py'
 
+permissions:
+  contents: read
+
 jobs:
   check-version-sync:
     runs-on: ubuntu-latest

@@ -14,6 +14,9 @@ on:
       - 'requirements.txt'
       - 'linux/requirements.txt'
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
