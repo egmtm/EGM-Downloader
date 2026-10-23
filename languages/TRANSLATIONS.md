@@ -16,6 +16,8 @@ Each file covers one language and contains the same set of string keys as `en.js
 
 Rules: keep every key present, preserve `{0}` / `{1}` / `{2}` placeholders exactly, leave brand and tool names untouched (yt-dlp, ffmpeg, Deno, YouTube, etc.).
 
+The test suite enforces this. Every language file must have exactly the keys of `en.json` with the same placeholders, and a value identical to the English text fails unless it is on the allowlist in `tests/test_language_parity.py` (brand and tool names, and words that are the same in the language, such as Audio or Video). A key added to `en.json` has to be translated in all ten files in the same change.
+
 ---
 
 ## Changelog
