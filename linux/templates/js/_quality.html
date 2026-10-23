@@ -138,7 +138,7 @@ document.getElementById('whats-new-dismiss-btn').addEventListener('click', async
   if (currentVersion) await post('/api/settings/save', { last_seen_version: currentVersion });
 });
 
-document.getElementById('footer-whatsnew-btn').addEventListener('click', () => {
+document.getElementById('footer-version-pill').addEventListener('click', () => {
   const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
   if (currentVersion) showWhatsNewModal(currentVersion);
 });

@@ -172,7 +172,7 @@ def update_root_index_html(v, b, date, time_str, dry_run):
 
     # footer-version-pill text
     patch(path, "templates/index.html -> footer-version-pill text",
-          r'(id="footer-version-pill"[^>]*>)v[\d.]+(</span>)',
+          r'(id="footer-version-pill"[^>]*>)v[\d.]+(</button>)',
           rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
     # whats-new-version text
@@ -237,7 +237,7 @@ def update_linux_index_html(v, b, date, time_str, dry_run):
 
     # footer-version-pill text
     patch(path, "linux/templates/index.html -> footer-version-pill text",
-          r'(id="footer-version-pill"[^>]*>)v[\d.]+(</span>)',
+          r'(id="footer-version-pill"[^>]*>)v[\d.]+(</button>)',
           rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
 
     # whats-new-version text

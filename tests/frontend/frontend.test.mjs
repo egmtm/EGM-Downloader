@@ -263,7 +263,7 @@ test("whats-new dismiss stays live across repeated manual opens", async () => {
     settings: { last_seen_version: CURRENT_APP_VERSION },
   });
   const modal = d.getElementById("whats-new-modal");
-  const openBtn = d.getElementById("footer-whatsnew-btn");
+  const openBtn = d.getElementById("footer-version-pill");
   const dismissBtn = d.getElementById("whats-new-dismiss-btn");
   assert.equal(modal.style.display, "none", "modal starts hidden (version already seen)");
 

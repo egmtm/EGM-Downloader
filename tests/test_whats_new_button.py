@@ -2,32 +2,62 @@
 the existing "shown once per version" modal) and two bugs fixed while wiring
 it up. Scoped narrowly to what's genuinely fragile here -- the broader
 i18n/element-id/parity guards elsewhere already cover the general cases."""
+import json
 import re
+import subprocess
+import sys
 
-from conftest import read_source
+from conftest import ROOT, read_source
 
 INDEX_FILES = ("templates/index.html", "linux/templates/index.html")
 QUALITY_FILES = ("templates/js/_quality.html", "linux/templates/js/_quality.html")
 
 
-def test_footer_whatsnew_button_present_and_correctly_ordered():
-    """What's New is first, the version pill is second (EGM moved the pill
-    here ahead of v1.4.2 -- previously it sat after the website/GitHub/X
-    links), then the website link, then Diagnostics, on both platform
-    copies."""
+def test_footer_version_pill_is_the_whatsnew_button_and_correctly_ordered():
+    """The version pill is the What's New trigger (EGM: the separate footer
+    button was redundant -- every other footer control does something, and
+    clicking the version is the natural way to see what's new). It is a real
+    <button> so it is keyboard reachable, it carries the translated
+    "What's New" string as its tooltip, and it sits first, before the website
+    link and Diagnostics, on both platform copies. The old button must not
+    come back."""
     for p in INDEX_FILES:
         src = read_source(p)
-        btn_at = src.index('id="footer-whatsnew-btn"')
-        pill_at = src.index('id="footer-version-pill"')
+        assert 'id="footer-whatsnew-btn"' not in src, (
+            f"{p}: the separate What's New button was merged into the version pill"
+        )
+        pill_at = src.index('<button id="footer-version-pill"')
         website_at = src.index('data-i18n="footer.link.website"')
         diag_at = src.index('id="footer-diagnostics-btn"')
-        assert btn_at < pill_at < website_at < diag_at, (
-            f"{p}: expected order What's New -> version pill -> website "
-            f"link -> Diagnostics, found at btn={btn_at} pill={pill_at} "
-            f"website={website_at} diag={diag_at}"
+        assert pill_at < website_at < diag_at, (
+            f"{p}: expected order version pill -> website link -> Diagnostics, "
+            f"found at pill={pill_at} website={website_at} diag={diag_at}"
         )
-        assert 'data-i18n="footer.btn.whatsnew"' in src, (
-            f"{p}: footer-whatsnew-btn is missing its data-i18n wiring"
+        pill = src[pill_at:src.index("</button>", pill_at)]
+        assert 'data-i18n-attr="title:footer.btn.whatsnew"' in pill, (
+            f"{p}: the version pill lost its translated What's New tooltip"
+        )
+        assert "data-i18n=" not in pill, (
+            f"{p}: data-i18n would overwrite the version text with a label"
+        )
+
+
+def test_bump_version_still_matches_the_version_pill_markup():
+    """scripts/bump-version.py updates the pill's text with a pattern that
+    names its closing tag. When that pattern stops matching it only prints a
+    warning and the pill keeps the old version, and nothing else in the
+    version sync check reads the pill. A dry run on the current version must
+    therefore report exactly one match in each template tree."""
+    with open(f"{ROOT}/version.json", encoding="utf-8") as fh:
+        current = json.load(fh)["version"]
+    out = subprocess.run(
+        [sys.executable, "scripts/bump-version.py", "--version", current, "--dry-run"],
+        cwd=ROOT, capture_output=True, text=True, timeout=60,
+    ).stdout
+    for p in INDEX_FILES:
+        assert f"{p} -> footer-version-pill text (1 replacement)" in out, (
+            f"bump-version.py no longer matches the version pill in {p}; "
+            f"a bump would leave the footer showing the old version. Output:\n{out}"
         )
 
 
@@ -105,12 +135,12 @@ def test_footer_whatsnew_button_click_handler_calls_show_function():
             f"{p}: expected a single shared showWhatsNewModal(version) "
             f"function used by both the automatic and manual paths"
         )
-        i = src.index("footer-whatsnew-btn").__index__()
+        i = src.index("getElementById('footer-version-pill').addEventListener")
         j = src.index("addEventListener", i)
         k = src.index("});", j)
         handler_src = src[j:k]
         assert "showWhatsNewModal(" in handler_src, (
-            f"{p}: footer-whatsnew-btn's click handler must call "
+            f"{p}: the footer version pill's click handler must call "
             f"showWhatsNewModal(), not a separate implementation"
         )
 
@@ -118,7 +148,8 @@ def test_footer_whatsnew_button_click_handler_calls_show_function():
 # ── Same bug class as whatsnew.title, found by asking "where else?" ───────────
 
 FOOTER_I18N_KEYS = (
-    "footer.btn.whatsnew",
+    # footer.btn.whatsnew is no longer a visible label: it is the version
+    # pill's tooltip, pinned by the test above.
     "footer.btn.diagnostics",
     "footer.btn.help",
     "footer.btn.support",
