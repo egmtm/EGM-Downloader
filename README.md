@@ -173,7 +173,7 @@ A side by side look at one well known alternative, using details you can check y
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (667 KB · ~1 GB after first run)  
 **SHA256:** `ff9251c013cbf91818a9f3be550633ac4bdca54f96d1e556d9ec98522c609c2c`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
-**Requirements:** Windows 10/11 (64-bit) · **Python 3.11+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
+**Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
