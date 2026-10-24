@@ -205,7 +205,7 @@ A side by side look at one well known alternative, using details you can check y
 | Download | Contents | Start with |
 |---|---|---|
 | `EGMd.zip` (Windows installer) | `egm-setup.exe`, `instructions.txt`, `LICENSE` | `egm-setup.exe` |
-| `EGMd-portable.zip` (Windows portable) | `EGM Downloader.exe`, `instructions.txt`, `LICENSE`, `patchnotes.txt`, the `languages` folder, and the app's own files (`app.py`, `launch.py`, `.portable`, and the `electron`, `static` and `templates` folders), which are hidden after the first run | `EGM Downloader.exe` |
+| `EGMd-portable.zip` (Windows portable) | `EGM Downloader.exe`, `instructions.txt`, `LICENSE`, `patchnotes.txt`, the `languages` folder, and the app's own files (`app.py`, `launch.py`, `.portable`, and the `electron`, `static` and `templates` folders), which are hidden after the first run to keep the folder tidy | `EGM Downloader.exe` |
 | `EGMdM.zip` (macOS) | `EGM Downloader.dmg`, `INSTRUCTIONS.txt`, `LICENSE` | `EGM Downloader.dmg` |
 | `EGMdL.zip` (Linux) | `EGM Downloader.AppImage`, `INSTRUCTIONS.txt`, `LICENSE` | `EGM Downloader.AppImage` |
 
