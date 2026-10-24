@@ -280,7 +280,7 @@ function closeSplash() {
     splashProgress(100, 0.15);          // fill the bar, then fade the card out
     setTimeout(splashFadeOut, 150);
     setTimeout(() => {
-      if (splashWindow) {
+      if (splashWindow && !splashWindow.isDestroyed()) {
         splashWindow.close();
         splashWindow = null;
       }

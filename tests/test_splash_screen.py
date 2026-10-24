@@ -23,6 +23,7 @@ def test_splash_page_is_self_contained_and_offline():
     """The splash loads before the backend starts and runs sandboxed: no images, stylesheets, scripts or
     network references. The only URL allowed is the SVG namespace."""
     src = read_source(SPLASH["windows"]).replace("http://www.w3.org/2000/svg", "")
+    src = src.replace('http-equiv="Content-Security-Policy"', "")
     assert "http" not in src, "the splash must not reference any URL"
     for needle in ("<img", "<link", "@import", "src=", "href="):
         assert needle not in src, f"splash.html must not use {needle!r}"
@@ -35,7 +36,26 @@ def test_splash_page_exposes_the_hooks_main_js_calls():
     assert "window.setSplashProgress = function" in src
     assert "window.splashOut = function" in src
     assert "if (!reported) setBar(45, 14)" in src, "the bar needs its own slow move as a fallback"
-    assert "prefers-reduced-motion" in src
+
+
+def test_splash_page_stops_every_animation_for_reduced_motion():
+    """A reduced-motion setting must stop all of it (the spinning ring, the bobbing arrow, the sweeps, the
+    pulsing dots, the entry rises), not just the two background glows: one rule over every element with
+    !important, so the inline transition the script sets on the bar is covered too."""
+    src = read_source(SPLASH["windows"])
+    m = re.search(r"@media \(prefers-reduced-motion: reduce\) \{(.*?)\}\s*\n", src, re.S)
+    assert m, "the splash needs a prefers-reduced-motion rule"
+    assert "*, *::before, *::after { animation: none !important; transition: none !important; }" in m.group(1)
+
+
+def test_splash_page_carries_a_content_security_policy():
+    """The page runs sandboxed with no preload; the policy is belt and braces: nothing may be fetched, framed
+    or submitted. Inline style and script are the page itself."""
+    src = read_source(SPLASH["windows"])
+    m = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">', src)
+    assert m, "splash.html lost its CSP meta tag"
+    assert m.group(1).startswith("default-src \'none\'"), m.group(1)
+    assert m.start() < src.index("<style>"), "the policy must come before the first style or script"
 
 
 def test_splash_words_cover_every_app_language():
@@ -70,4 +90,6 @@ def test_main_js_reports_real_start_up_steps_and_fades_the_splash_out():
         fade_at = close.index("setTimeout(splashFadeOut, 150)")
         shut_at = close.index("splashWindow.close()")
         assert fade_at < shut_at, f"{p}: the fade must start before the window closes"
+        # once at the top of closeSplash, once inside the close timer
+        assert close.count("if (splashWindow && !splashWindow.isDestroyed()) {") == 2, f"{p}: the close timer must not touch a destroyed window"
         assert "}, 450);" in close, f"{p}: the window closes after the fade (150 ms + the page's 280 ms fade)"

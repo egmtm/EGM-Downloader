@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
 <style>
 /* Splash window: 500x350, frameless and transparent (see createSplash in main.js).
    The card is inset so its shadow fits inside the window. Only transforms and opacity move. */
@@ -59,7 +60,9 @@ body.out .card { opacity: 0; transform: scale(.975); }
 @keyframes pulse { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
 
-@media (prefers-reduced-motion: reduce) { .glow, .halo { animation: none; } }
+/* Reduced motion: nothing moves. The bar still jumps to each reported step (inline transition
+   included, hence !important) and the card simply disappears instead of fading. */
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
