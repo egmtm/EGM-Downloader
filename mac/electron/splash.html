@@ -1,77 +1,106 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            background: #0b1120;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            height: 100vh;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #e2e8f6; overflow: hidden;
-        }
-        .logo {
-            width: 120px; height: 120px; margin-bottom: 30px; border-radius: 20px;
-            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
-            object-fit: cover;
-        }
-        .title { margin-bottom: 36px; text-align: center; }
-        .spinner {
-            width: 36px; height: 36px;
-            border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: #3b82f6;
-            border-radius: 50%;
-            animation: spin 1.2s linear infinite;
-            margin-bottom: 20px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+<meta charset="UTF-8">
+<style>
+/* Splash window: 500x350, frameless and transparent (see createSplash in main.js).
+   The card is inset so its shadow fits inside the window. Only transforms and opacity move. */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body { height: 100%; overflow: hidden; background: transparent; }
+body {
+    display: flex; align-items: center; justify-content: center;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: #e2e8f6;
+}
+.card {
+    position: relative; width: 468px; height: 318px; border-radius: 24px; overflow: hidden;
+    background: #0b1120;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 1px rgba(148,163,184,.16) inset, 0 4px 14px rgba(0,0,0,.5);
+    transition: opacity .28s ease, transform .28s ease;
+}
+body.out .card { opacity: 0; transform: scale(.975); }
+.card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,.045), transparent 38%); }
+.glow { position: absolute; pointer-events: none; }
+.glow.g1 { width: 380px; height: 380px; left: -100px; top: -160px; background: radial-gradient(circle, rgba(59,130,246,.34), transparent 62%); animation: drift1 12s ease-in-out infinite alternate; }
+.glow.g2 { width: 340px; height: 340px; right: -120px; bottom: -180px; background: radial-gradient(circle, rgba(184,119,25,.24), transparent 62%); animation: drift2 15s ease-in-out infinite alternate; }
+@keyframes drift1 { to { transform: translate(80px, 54px) scale(1.15); } }
+@keyframes drift2 { to { transform: translate(-90px, -44px) scale(1.1); } }
 
-        .status {
-            font-size: 13px; color: #94a3b8;
-            display: inline-flex; align-items: baseline; gap: 1px;
-        }
-        .status .dot {
-            display: inline-block;
-            opacity: 0.3;
-            animation: pulse 1.4s infinite ease-in-out;
-        }
-        .status .dot:nth-child(2) { animation-delay: 0s; }
-        .status .dot:nth-child(3) { animation-delay: 0.2s; }
-        .status .dot:nth-child(4) { animation-delay: 0.4s; }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; }
-            50%      { opacity: 1; }
-        }
-    </style>
+/* mark: the app icon redrawn as vector, sharp on any screen */
+.mark { position: relative; width: 128px; height: 124px; }
+.halo { position: absolute; inset: -26px; border-radius: 50%; background: radial-gradient(circle, rgba(59,130,246,.42) 0, rgba(59,130,246,.12) 45%, transparent 68%); animation: breathe 3.4s ease-in-out infinite; }
+.mark .hv { position: relative; display: block; width: 128px; height: 124px; animation: rise .6s cubic-bezier(.2,.8,.2,1) both; }
+.hv .ray { animation: ray 2.8s ease-in-out infinite; }
+.hv .ring { transform-origin: 256px 230px; transform-box: view-box; animation: spin 40s linear infinite; }
+.hv .arrow { animation: nudge 2.2s ease-in-out infinite; }
+@keyframes breathe { 0%,100% { opacity: .6; transform: scale(.95); } 50% { opacity: 1; transform: scale(1.06); } }
+@keyframes ray { 0%,100% { opacity: var(--o); } 50% { opacity: calc(var(--o) * 2.1); } }
+@keyframes nudge { 0%,100% { transform: translateY(0); opacity: 1; } 50% { transform: translateY(11px); opacity: .7; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* wordmark: drawn as outlines, so it looks the same on every platform */
+.title { position: relative; margin-top: 18px; animation: rise .6s .15s cubic-bezier(.2,.8,.2,1) both; }
+.title svg { display: block; }
+.shine { transform-box: fill-box; animation: shinemove 3.4s ease-in-out infinite; }
+@keyframes shinemove { 0%,25% { transform: translateX(0) skewX(-18deg); } 100% { transform: translateX(470px) skewX(-18deg); } }
+
+/* progress bar: the fill eases toward the last reported target, so it never looks frozen */
+.bar { position: relative; width: 240px; height: 4px; border-radius: 2px; margin: 26px 0 14px; overflow: hidden; background: rgba(255,255,255,.08); animation: rise .6s .3s cubic-bezier(.2,.8,.2,1) both; }
+.bar i { position: absolute; inset: 0; border-radius: 2px; background: linear-gradient(90deg, #3b82f6, #7fb0ff); transform: scaleX(0); transform-origin: 0 50%; transition: transform 4s cubic-bezier(.1,.7,.2,1); }
+.bar i::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent); animation: shine 1.6s ease-in-out infinite; }
+@keyframes shine { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+
+.status { position: relative; font-size: 12.5px; letter-spacing: .02em; color: #94a3b8; display: inline-flex; align-items: baseline; gap: 1px; animation: rise .6s .3s cubic-bezier(.2,.8,.2,1) both; }
+.status .dot { display: inline-block; opacity: .3; animation: pulse 1.4s infinite ease-in-out; }
+.status .dot:nth-child(2) { animation-delay: 0s; }
+.status .dot:nth-child(3) { animation-delay: .2s; }
+.status .dot:nth-child(4) { animation-delay: .4s; }
+@keyframes pulse { 0%,100% { opacity: .3; } 50% { opacity: 1; } }
+@keyframes rise { from { opacity: 0; transform: translateY(8px) scale(.96); } to { opacity: 1; transform: none; } }
+
+@media (prefers-reduced-motion: reduce) { .glow, .halo { animation: none; } }
+</style>
 </head>
 <body>
-    <img class="logo" src="../app/static/icon-128.png" alt="EGM">
-    <div class="title">
-      <svg viewBox="0 0 320 30" xmlns="http://www.w3.org/2000/svg" width="320" height="30" role="img" aria-label="EGM Downloader">
-        <text x="0" y="18" fill="#3b82f6" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="600" letter-spacing="8">EGM</text>
-        <text x="105" y="18" fill="#e2e8f6" font-family="'Segoe UI','Helvetica Neue',Arial,sans-serif" font-size="22" font-weight="200" letter-spacing="3">DOWNLOADER</text>
-        <line x1="0" y1="26" x2="320" y2="26" stroke="#94a3b8" stroke-width=".5" stroke-opacity=".4"/>
-      </svg>
-    </div>
-    <div class="spinner"></div>
-    <div class="status" id="status-text">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
-    <script>
-      // Standalone splash window — loads before Flask starts, so the app's
-      // normal i18n system (which depends on Flask serving pages) isn't
-      // available here. main.js reads the persisted language setting
-      // directly (no Flask needed) and passes it via ?lang= query param.
-      // These 9 translations are not translator-reviewed — just the common,
-      // low-ambiguity word "Loading" as used in most localized software.
-      var LOADING_WORD = {
-        en: 'Loading', ar: 'جارٍ التحميل', de: 'Wird geladen', es: 'Cargando',
-        fr: 'Chargement', it: 'Caricamento', ja: '読み込み中', nl: 'Laden',
-        pt: 'Carregando', ru: 'Загрузка'
-      };
-      var _lang = new URLSearchParams(location.search).get('lang') || 'en';
-      var _word = LOADING_WORD[_lang] || LOADING_WORD.en;
-      var _el = document.getElementById('status-text');
-      _el.innerHTML = _word + '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
-    </script>
+<div class="card">
+  <div class="glow g1"></div><div class="glow g2"></div>
+  <div class="mark"><div class="halo"></div><svg class="hv" viewBox="30 20 452 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EGM"><g stroke="#3b82f6" stroke-linecap="round" fill="none"><line class="ray" style="--o:0.5;animation-delay:0.0s" x1="256" y1="154" x2="256" y2="37" stroke-width="9" stroke-dasharray="15 18" opacity="0.5"/><line class="ray" style="--o:0.32;animation-delay:0.25s" x1="318" y1="172" x2="424" y2="66" stroke-width="7" stroke-dasharray="11 22" opacity="0.32"/><line class="ray" style="--o:0.32;animation-delay:0.5s" x1="194" y1="172" x2="88" y2="66" stroke-width="7" stroke-dasharray="11 22" opacity="0.32"/><line class="ray" style="--o:0.18;animation-delay:0.75s" x1="358" y1="216" x2="475" y2="168" stroke-width="5.5" stroke-dasharray="11 22" opacity="0.18"/><line class="ray" style="--o:0.18;animation-delay:1.0s" x1="154" y1="216" x2="37" y2="168" stroke-width="5.5" stroke-dasharray="11 22" opacity="0.18"/><line class="ray" style="--o:0.1;animation-delay:1.25s" x1="373" y1="186" x2="461" y2="110" stroke-width="3.5" stroke-dasharray="7 26" opacity="0.1"/><line class="ray" style="--o:0.1;animation-delay:1.5s" x1="139" y1="186" x2="51" y2="110" stroke-width="3.5" stroke-dasharray="7 26" opacity="0.1"/></g><g class="ring"><circle cx="256" cy="230" r="146" fill="none" stroke="#c98a1e" stroke-width="5.5" stroke-dasharray="15 15" opacity=".5"/></g><circle cx="256" cy="230" r="117" fill="#0c1826"/><circle cx="256" cy="230" r="117" fill="none" stroke="#3b82f6" stroke-width="9"/><path d="M173.97 252V199.2H182.73V252H173.97ZM179.23 252V244.59H211.45V252H179.23ZM179.23 228.64V221.77H207.64V228.64H179.23ZM179.23 206.58V199.2H211.38V206.58H179.23ZM242.71 253.06Q236.23 253.06 231.18 249.98Q226.13 246.91 223.25 240.87Q220.38 234.84 220.38 225.98Q220.38 219.59 221.97 214.48Q223.57 209.37 226.69 205.71Q229.82 202.05 234.4 200.09Q238.98 198.14 245.01 198.14Q249.54 198.14 253.21 199.3Q256.87 200.46 259.56 202.66Q262.25 204.86 263.76 208.03Q265.28 211.2 265.48 215.26L257.13 217.17Q256.97 213.17 255.28 210.63Q253.59 208.08 250.85 206.85Q248.1 205.61 244.71 205.61Q240.27 205.61 236.83 207.73Q233.39 209.86 231.44 214.3Q229.5 218.74 229.5 225.68Q229.5 231 230.67 234.8Q231.83 238.61 233.92 241Q236.01 243.39 238.84 244.52Q241.67 245.64 244.97 245.64Q248.99 245.64 251.81 244.15Q254.63 242.66 256.29 239.7Q257.95 236.75 258.26 232.39H247.57V225.66H266.67V234.29L266.7 252H259.99L260.91 237.58H259.87Q258.94 242.67 256.77 246.11Q254.59 249.56 251.11 251.31Q247.62 253.06 242.71 253.06ZM280.37 252V199.2H293.78L309.38 242.4H309.67L325.15 199.2H338V252H329.7L330.04 208.04H329.56L313.26 252H304.97L288.81 208H288.33L288.65 252H280.37Z" fill="#e2e8f6"/><g class="arrow" stroke="#c98a1e" stroke-width="7.5" stroke-linecap="round" stroke-linejoin="round" fill="none"><line x1="256" y1="355" x2="256" y2="432"/><path d="M216 410 L256 443 L296 410"/></g></svg></div>
+  <div class="title"><svg viewBox="0 -38 320.0 70" width="290" height="63" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="EGM Downloader"><defs><linearGradient id="g5" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#3b82f6"/><stop offset=".55" stop-color="#6ea8ff"/><stop offset="1" stop-color="#8ec0ff"/></linearGradient><linearGradient id="sh" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".75"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="wc"><path d="M104.29 0V-30.36H111.74V0H104.29ZM109.74 0V-6.07H127.45V0H109.74ZM109.74 -12.57V-18.02H125.2V-12.57H109.74ZM109.74 -24.31V-30.36H127.37V-24.31H109.74ZM151.14 0.64Q147.32 0.64 144.4 -1.17Q141.47 -2.98 139.83 -6.45Q138.18 -9.91 138.18 -14.87Q138.18 -18.52 139.13 -21.48Q140.08 -24.44 141.98 -26.57Q143.88 -28.7 146.71 -29.85Q149.54 -31 153.33 -31Q156.33 -31 158.66 -30.27Q160.98 -29.53 162.59 -28.2Q164.2 -26.87 165 -25.05Q165.8 -23.24 165.74 -21.06L158.76 -19.41Q158.77 -21.26 158.04 -22.47Q157.3 -23.69 156.01 -24.32Q154.71 -24.95 153.03 -24.95Q150.8 -24.95 149.22 -23.88Q147.64 -22.81 146.81 -20.64Q145.98 -18.46 145.98 -15.21Q145.98 -12.78 146.45 -10.92Q146.92 -9.05 147.87 -7.8Q148.82 -6.55 150.22 -5.91Q151.61 -5.27 153.47 -5.27Q155.33 -5.27 156.67 -5.88Q158 -6.49 158.77 -7.66Q159.53 -8.84 159.56 -10.57H154.42V-15.81H166.62V-10V0H161.57L161.49 -7.83H160.77Q160.21 -5.09 159.02 -3.19Q157.82 -1.3 155.88 -0.33Q153.94 0.64 151.14 0.64ZM179.5 0V-30.36H190.62L197.87 -8.62H198.05L205.13 -30.36H215.71V0H208.73L209 -22.83H208.64L200.6 0H194.37L186.49 -22.83H186.12L186.4 0H179.5Z"/></clipPath></defs><path d="M104.29 0V-30.36H111.74V0H104.29ZM109.74 0V-6.07H127.45V0H109.74ZM109.74 -12.57V-18.02H125.2V-12.57H109.74ZM109.74 -24.31V-30.36H127.37V-24.31H109.74ZM151.14 0.64Q147.32 0.64 144.4 -1.17Q141.47 -2.98 139.83 -6.45Q138.18 -9.91 138.18 -14.87Q138.18 -18.52 139.13 -21.48Q140.08 -24.44 141.98 -26.57Q143.88 -28.7 146.71 -29.85Q149.54 -31 153.33 -31Q156.33 -31 158.66 -30.27Q160.98 -29.53 162.59 -28.2Q164.2 -26.87 165 -25.05Q165.8 -23.24 165.74 -21.06L158.76 -19.41Q158.77 -21.26 158.04 -22.47Q157.3 -23.69 156.01 -24.32Q154.71 -24.95 153.03 -24.95Q150.8 -24.95 149.22 -23.88Q147.64 -22.81 146.81 -20.64Q145.98 -18.46 145.98 -15.21Q145.98 -12.78 146.45 -10.92Q146.92 -9.05 147.87 -7.8Q148.82 -6.55 150.22 -5.91Q151.61 -5.27 153.47 -5.27Q155.33 -5.27 156.67 -5.88Q158 -6.49 158.77 -7.66Q159.53 -8.84 159.56 -10.57H154.42V-15.81H166.62V-10V0H161.57L161.49 -7.83H160.77Q160.21 -5.09 159.02 -3.19Q157.82 -1.3 155.88 -0.33Q153.94 0.64 151.14 0.64ZM179.5 0V-30.36H190.62L197.87 -8.62H198.05L205.13 -30.36H215.71V0H208.73L209 -22.83H208.64L200.6 0H194.37L186.49 -22.83H186.12L186.4 0H179.5Z" fill="url(#g5)"/><g clip-path="url(#wc)"><rect class="shine" x="-70" y="-44" width="60" height="52" fill="url(#sh)"/></g><path d="M89.82 28V26.95H92.06Q92.79 26.95 93.27 26.61Q93.75 26.28 93.99 25.67Q94.22 25.06 94.22 24.23Q94.22 23.51 94.07 22.99Q93.92 22.47 93.62 22.13Q93.32 21.8 92.85 21.63Q92.39 21.46 91.76 21.46H89.82V20.41H91.73Q93.05 20.41 93.88 20.86Q94.72 21.31 95.12 22.14Q95.52 22.98 95.52 24.15Q95.52 24.95 95.34 25.58Q95.16 26.2 94.84 26.66Q94.52 27.12 94.09 27.42Q93.66 27.71 93.15 27.86Q92.64 28 92.09 28H89.82ZM89.19 28V20.41H90.44V28H89.19ZM107.45 28.15Q106.63 28.15 105.99 27.88Q105.35 27.61 104.91 27.1Q104.47 26.59 104.24 25.87Q104.01 25.15 104.01 24.23Q104.01 22.91 104.46 22.03Q104.91 21.15 105.69 20.7Q106.48 20.26 107.48 20.26Q108.26 20.26 108.89 20.52Q109.52 20.78 109.97 21.29Q110.43 21.8 110.67 22.54Q110.91 23.28 110.91 24.23Q110.91 25.15 110.68 25.88Q110.45 26.6 110 27.11Q109.56 27.62 108.92 27.88Q108.28 28.15 107.45 28.15ZM107.47 27.11Q108.17 27.11 108.65 26.77Q109.13 26.44 109.38 25.81Q109.63 25.18 109.63 24.28Q109.63 23.35 109.37 22.69Q109.11 22.03 108.63 21.68Q108.14 21.34 107.45 21.34Q106.78 21.34 106.3 21.67Q105.81 22.01 105.55 22.65Q105.29 23.3 105.29 24.24Q105.29 24.93 105.44 25.46Q105.59 26 105.86 26.36Q106.14 26.73 106.55 26.92Q106.95 27.11 107.47 27.11ZM120.75 28 118.91 20.41H120.27L121.66 26.89H121.77L123.26 20.41H124.91L126.38 26.89H126.49L127.91 20.41H129.21L127.34 28H125.56L124.12 21.53H124.02L122.56 28H120.75ZM137.63 28V20.41H139.29L143.1 26.33H143.2L143.12 20.41H144.34V28H142.84L138.88 21.9H138.78L138.86 28H137.63ZM153.34 28V20.41H154.6V28H153.34ZM153.68 28V26.92H158.03V28H153.68ZM169.28 28.15Q168.45 28.15 167.81 27.88Q167.17 27.61 166.73 27.1Q166.29 26.59 166.06 25.87Q165.84 25.15 165.84 24.23Q165.84 22.91 166.28 22.03Q166.73 21.15 167.52 20.7Q168.3 20.26 169.3 20.26Q170.08 20.26 170.72 20.52Q171.35 20.78 171.8 21.29Q172.25 21.8 172.49 22.54Q172.74 23.28 172.74 24.23Q172.74 25.15 172.51 25.88Q172.27 26.6 171.83 27.11Q171.38 27.62 170.74 27.88Q170.1 28.15 169.28 28.15ZM169.3 27.11Q169.99 27.11 170.47 26.77Q170.95 26.44 171.2 25.81Q171.46 25.18 171.46 24.28Q171.46 23.35 171.2 22.69Q170.94 22.03 170.45 21.68Q169.96 21.34 169.27 21.34Q168.61 21.34 168.12 21.67Q167.63 22.01 167.38 22.65Q167.12 23.3 167.12 24.24Q167.12 24.93 167.26 25.46Q167.41 26 167.69 26.36Q167.96 26.73 168.37 26.92Q168.78 27.11 169.3 27.11ZM180.53 28 183.17 20.41H185.01L187.65 28H186.3L184.17 21.43H184.02L181.89 28H180.53ZM181.86 26.37V25.45H186.49V26.37H181.86ZM196.66 28V26.95H198.89Q199.63 26.95 200.11 26.61Q200.59 26.28 200.82 25.67Q201.06 25.06 201.06 24.23Q201.06 23.51 200.91 22.99Q200.76 22.47 200.46 22.13Q200.15 21.8 199.69 21.63Q199.23 21.46 198.6 21.46H196.66V20.41H198.56Q199.88 20.41 200.72 20.86Q201.56 21.31 201.96 22.14Q202.36 22.98 202.36 24.15Q202.36 24.95 202.18 25.58Q201.99 26.2 201.67 26.66Q201.35 27.12 200.92 27.42Q200.49 27.71 199.98 27.86Q199.48 28 198.93 28H196.66ZM196.02 28V20.41H197.27V28H196.02ZM211.09 28V20.41H212.34V28H211.09ZM211.83 28V26.95H216.59V28H211.83ZM211.83 24.63V23.65H216.03V24.63H211.83ZM211.83 21.46V20.41H216.57V21.46H211.83ZM225.1 28V20.41H227.89Q228.48 20.41 228.97 20.5Q229.46 20.6 229.84 20.78Q230.22 20.97 230.48 21.23Q230.74 21.5 230.88 21.85Q231.01 22.2 231.01 22.63Q231.01 23.03 230.89 23.36Q230.76 23.69 230.52 23.94Q230.28 24.19 229.91 24.34Q229.55 24.5 229.07 24.56V24.71Q229.54 24.77 229.86 24.95Q230.18 25.13 230.4 25.47Q230.61 25.81 230.77 26.35L231.24 28H229.87L229.5 26.49Q229.39 26.02 229.16 25.74Q228.93 25.46 228.58 25.33Q228.24 25.21 227.77 25.21H226.36V28H225.1ZM226.36 24.22H227.8Q228.74 24.22 229.23 23.87Q229.72 23.53 229.72 22.81Q229.72 22.1 229.25 21.76Q228.79 21.42 227.82 21.42H226.36V24.22Z" fill="#94a3b8"/></svg></div>
+  <div class="bar"><i></i></div>
+  <div class="status" id="status-text">Loading<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span></div>
+</div>
+<script>
+  // Standalone splash window: it loads before Flask starts, so the app's normal i18n
+  // (which depends on Flask serving pages) is not available here. main.js reads the saved
+  // language setting directly and passes it as ?lang=. These translations are not
+  // translator reviewed, just the common, low ambiguity word "Loading".
+  (function () {
+    var LOADING_WORD = {
+      en: 'Loading', ar: 'جارٍ التحميل', de: 'Wird geladen', es: 'Cargando',
+      fr: 'Chargement', it: 'Caricamento', ja: '読み込み中', nl: 'Laden',
+      pt: 'Carregando', ru: 'Загрузка'
+    };
+    var lang = new URLSearchParams(location.search).get('lang') || 'en';
+    var word = Object.prototype.hasOwnProperty.call(LOADING_WORD, lang) ? LOADING_WORD[lang] : LOADING_WORD.en;
+    document.getElementById('status-text').innerHTML = word + '<span class="dot">.</span><span class="dot">.</span><span class="dot">.</span>';
+
+    var fill = document.querySelector('.bar i');
+    var reported = false;
+    function setBar(percent, seconds) {
+      fill.style.transition = 'transform ' + (seconds || 4) + 's cubic-bezier(.1,.7,.2,1)';
+      fill.style.transform = 'scaleX(' + Math.max(0, Math.min(1, percent / 100)) + ')';
+    }
+    // Called by main.js as real start up steps finish: a target percent and how many seconds the bar may take to reach it.
+    window.setSplashProgress = function (percent, seconds) { reported = true; setBar(percent, seconds); };
+    // Called by main.js just before the window closes.
+    window.splashOut = function () { document.body.classList.add('out'); };
+
+    void fill.offsetWidth;   // commit the empty state so the first move animates
+    setBar(8, 0.5);
+    // If the app reports nothing, the bar still moves: a slow ease toward the middle.
+    setTimeout(function () { if (!reported) setBar(45, 14); }, 900);
+  })();
+</script>
 </body>
 </html>

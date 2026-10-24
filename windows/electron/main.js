@@ -212,19 +212,42 @@ function createSplash() {
     },
   });
   const _lang = (loadSettings().language || 'en');
+  _splashReady = false;
+  splashWindow.webContents.once('did-finish-load', () => {
+    _splashReady = true;
+    if (_splashPending) { const p = _splashPending; _splashPending = null; splashProgress(p[0], p[1]); }
+  });
   splashWindow.loadFile(path.join(__dirname, 'splash.html'), { query: { lang: _lang } });
   splashWindow.center();
   splashWindow.show();
 }
 
+// ── Splash progress ──────────────────────────────────────────────────────────
+// Real start up steps move the splash bar. Only numbers go into the page. A call made
+// before the page has loaded is held (the last one wins) and sent once it is ready.
+let _splashReady = false;
+let _splashPending = null;
+function splashProgress(pct, secs) {
+  if (!splashWindow || splashWindow.isDestroyed()) return;
+  if (!_splashReady) { _splashPending = [pct, secs]; return; }
+  const js = `window.setSplashProgress && window.setSplashProgress(${Number(pct) || 0}, ${Number(secs) || 0})`;
+  splashWindow.webContents.executeJavaScript(js).catch(() => {});
+}
+function splashFadeOut() {
+  if (!splashWindow || splashWindow.isDestroyed() || !_splashReady) return;
+  splashWindow.webContents.executeJavaScript('window.splashOut && window.splashOut()').catch(() => {});
+}
+
 function closeSplash() {
   if (splashWindow && !splashWindow.isDestroyed()) {
+    splashProgress(100, 0.15);          // fill the bar, then fade the card out
+    setTimeout(splashFadeOut, 150);
     setTimeout(() => {
       if (splashWindow) {
         splashWindow.close();
         splashWindow = null;
       }
-    }, 300);
+    }, 450);
   }
 }
 
@@ -247,6 +270,8 @@ async function startFlask() {
     stdio: 'ignore',
     detached: false,
   });
+
+  splashProgress(55, 9);   // backend process started
 
   flaskProc.on('exit', (code) => {
     if (code !== 0 && code !== null && !app.isQuitting) {
@@ -415,6 +440,7 @@ async function createWindow() {
   // Wait for Flask to be ready, then load the page
   try {
     await waitForFlask();
+    splashProgress(85, 6);   // backend answers
     // Clear Chromium's HTTP cache before loading — guarantees fresh templates
     // after an app update. Without this, stale index.html may persist across
     // upgrades. Cheap on every launch (templates re-fetch from local Flask).
