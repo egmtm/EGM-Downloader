@@ -182,7 +182,7 @@ function toastWithAction(msg, btnLabel, fn, ms = 8000) {
   const c = document.getElementById('toasts');
   const t = document.createElement('div');
   t.className = 'toast ok';
-  t.style.cssText = 'display:flex;align-items:center;gap:10px;padding-right:8px';
+  t.style.cssText = 'display:flex;align-items:center;gap:10px;padding-inline-end:8px';
   const span = document.createElement('span');
   span.textContent = msg;
   const btn = document.createElement('button');
@@ -409,7 +409,7 @@ document.getElementById('footer-diagnostics-btn')?.addEventListener('click', () 
         '<div style="font-size:52px;margin-bottom:14px">😜</div>' +
         `<div style="color:var(--text, #e8eef6);font-size:20px;font-weight:700;margin-bottom:8px">${gotcha}</div>` +
         `<div style="color:var(--text2, #9aa4b0);font-size:13px">${found}</div>` +
-        `<div style="color:var(--text2, #9aa4b0);font-size:12px;margin-top:16px;opacity:.7">↑ ↑ ↓ ↓ ← → ← → B A&nbsp;&nbsp;·&nbsp;&nbsp;${closeHint}</div>`;
+        `<div style="color:var(--text2, #9aa4b0);font-size:12px;margin-top:16px;opacity:.7"><span dir="ltr">↑ ↑ ↓ ↓ ← → ← → B A</span>&nbsp;&nbsp;·&nbsp;&nbsp;${closeHint}</div>`;
       ov.addEventListener('click', () => { ov.remove(); fired = false; });
     }, 2500);
   });

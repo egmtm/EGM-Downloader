@@ -599,7 +599,7 @@
             </div>
             <div class="theme-row" data-theme="custom" id="custom-theme-row" style="display:none">
               <div class="theme-swatches"><div class="theme-sw" id="csw1"></div><div class="theme-sw" id="csw2"></div><div class="theme-sw" id="csw3"></div></div>
-              <span class="theme-name" id="custom-theme-name">Custom</span><div class="theme-check"></div>
+              <span class="theme-name" id="custom-theme-name" dir="auto">Custom</span><div class="theme-check"></div>
             </div>
             <div class="theme-row" data-theme="espresso">
               <div class="theme-swatches"><div class="theme-sw" style="background:#0e0a07"></div><div class="theme-sw" style="background:#1a1209"></div><div class="theme-sw" style="background:#c87820"></div></div>
@@ -2127,18 +2127,18 @@
           <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.interface">Interface</span></div>
           <div class="adv-chan-grid"><div class="adv-port-wrap" data-i18n-attr="title:lang.toggle.subtitle" title="Hides the selector from the footer — can be re-enabled here">
             <span class="adv-port-label" data-i18n="lang.toggle.label">Show language selector</span>
-            <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-left:auto" checked>
+            <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-inline-start:auto" checked>
           </div>
           <div class="adv-port-wrap" data-i18n-attr="title:settings.toggle.subtitle" title="Hides the whole settings panel, including Site Cookies — can be re-enabled here">
             <span class="adv-port-label" data-i18n="settings.toggle.label">Show settings panel</span>
-            <input type="checkbox" class="sw" id="show-settings-panel-chk" style="margin-left:auto" checked>
+            <input type="checkbox" class="sw" id="show-settings-panel-chk" style="margin-inline-start:auto" checked>
           </div></div>
           <!-- Channels -->
           <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.channels">Channels</span></div>
           <div class="adv-chan-grid"><div class="adv-port-wrap" data-i18n-attr="title:tooltip.ytdlp_channel" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
             <span class="adv-port-label" data-i18n="advanced.label.ytdlp_channel">yt-dlp channel</span>
-            <select id="adv-ytdlp-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-left:auto;outline:none;cursor:pointer">
+            <select id="adv-ytdlp-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-inline-start:auto;outline:none;cursor:pointer">
               <option value="stable" data-i18n="advanced.channel.stable">Stable</option>
               <option value="nightly" data-i18n="advanced.channel.nightly">Nightly</option>
             </select>
@@ -2146,7 +2146,7 @@
           <div class="adv-port-wrap" id="adv-ffmpeg-channel-wrap" data-i18n-attr="title:tooltip.ffmpeg_channel" title="ffmpeg update channel — Nightly uses git master, Stable uses the latest release branch">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
             <span class="adv-port-label" data-i18n="advanced.label.ffmpeg_channel">ffmpeg channel</span>
-            <select id="adv-ffmpeg-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-left:auto;outline:none;cursor:pointer">
+            <select id="adv-ffmpeg-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-inline-start:auto;outline:none;cursor:pointer">
               <option value="stable" data-i18n="advanced.channel.stable">Stable</option>
               <option value="nightly" data-i18n="advanced.channel.nightly">Nightly</option>
             </select>
@@ -2204,7 +2204,7 @@
       
       </button><button class="btn btn-ghost btn-sm" id="cancel-fetch-btn" style="display:none"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M5 7a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2l0 -10"/></svg> <span data-i18n="url.btn.stop_fetch">Stop Fetching</span>
       </button><button class="paste-btn" id="clear-btn" style="height:28px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M10 10l4 4m0 -4l-4 4"/></svg> <span data-i18n="url.btn.clear">Clear</span>
-      </button><div style="margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
+      </button><div style="margin-inline-start:auto;display:flex;align-items:center;gap:14px;flex-shrink:0">
         <label style="display:flex;align-items:center;gap:6px;font-size:.7rem;font-weight:500;color:var(--text2);white-space:nowrap" data-i18n-attr="title:tooltip.videos_selector" title="Max simultaneous video downloads">
           <span data-i18n="url.label.videos">Max videos</span>
           <select id="concurrency-sel" class="qsel" style="height:28px;padding:0 8px;font-size:.7rem;font-weight:500">
@@ -2255,7 +2255,7 @@
       <div class="set-box">
         <span class="opt-label" data-i18n="settings.folder.label">Download folder</span>
         <div class="path-row">
-          <input type="text" id="dl-dir" data-i18n-attr="placeholder:settings.folder.placeholder" placeholder="Click Browse to select a folder…" readonly/>
+          <input type="text" id="dl-dir" dir="ltr" data-i18n-attr="placeholder:settings.folder.placeholder" placeholder="Click Browse to select a folder…" readonly/>
           <button class="btn btn-ghost btn-sm" id="browse-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg> <span data-i18n="settings.folder.btn.browse">Browse</span></button>
           <button class="btn btn-ghost btn-sm" id="open-folder-btn" disabled><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-2px"><path d="M5 19l2.757 -7.351a1 1 0 0 1 .936 -.649h12.307a1 1 0 0 1 .986 1.164l-.996 5.211a2 2 0 0 1 -1.964 1.625h-14.026a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2h4l3 3h7a2 2 0 0 1 2 2v2"/></svg> <span data-i18n="settings.folder.btn.open">Open</span>
         </button></div>
@@ -2491,14 +2491,14 @@
       <div style="flex:1">
         <p style="font-size:.7rem;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:8px" data-i18n="help.section.shortcuts">Keyboard shortcuts</p>
         <table style="width:100%;border-collapse:collapse">
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="url.btn.fetch">Fetch Info</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>↵</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Paste &amp; Fetch</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>V</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="help.shortcut.clear">Clear input</td><td style="text-align:right;white-space:nowrap"><kbd>Esc</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.history">History</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>H</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.themes">Themes</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>T</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="creator.title">Theme Creator</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>K</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="advanced.title">Advanced</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>,</kbd></td></tr>
-          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="subscriptions.title">Subscriptions</td><td style="text-align:right;white-space:nowrap"><kbd>Ctrl</kbd><kbd>S</kbd></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="url.btn.fetch">Fetch Info</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Ctrl</kbd><kbd>↵</kbd></span></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0">Paste &amp; Fetch</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Ctrl</kbd><kbd>V</kbd></span></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="help.shortcut.clear">Clear input</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Esc</kbd></span></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.history">History</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Ctrl</kbd><kbd>H</kbd></span></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="panel.tab.themes">Themes</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Ctrl</kbd><kbd>T</kbd></span></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="creator.title">Theme Creator</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Ctrl</kbd><kbd>K</kbd></span></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="advanced.title">Advanced</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Ctrl</kbd><kbd>,</kbd></span></td></tr>
+          <tr><td style="font-size:.78rem;color:var(--text);padding:2px 0" data-i18n="subscriptions.title">Subscriptions</td><td style="text-align:end;white-space:nowrap"><span dir="ltr"><kbd>Ctrl</kbd><kbd>S</kbd></span></td></tr>
         </table>
       </div>
       <div style="width:0.5px;background:var(--border);flex-shrink:0"></div>
@@ -2548,7 +2548,7 @@
 
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3 id="whats-new-heading"><span id="whats-new-title-before"></span><span id="whats-new-version">v1.5.0.0.1</span><span id="whats-new-title-after"></span></h3>
+    <h3 id="whats-new-heading"><span id="whats-new-title-before"></span><span dir="ltr" id="whats-new-version">v1.5.0.0.1</span><span id="whats-new-title-after"></span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <!-- lint-allow-muted: loading-state -->
       <li id="whats-new-loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>
@@ -2565,8 +2565,8 @@
     <h3 data-i18n="filename.modal.title">✏️ Name your file</h3>
     <p data-i18n="filename.modal.desc">Edit the filename before downloading. The extension is added automatically.</p>
     <div class="modal-input-row">
-      <input type="text" id="modal-input" autocomplete="off" spellcheck="false"/>
-      <span class="modal-ext" id="modal-ext">.mp4</span>
+      <input type="text" id="modal-input" dir="auto" autocomplete="off" spellcheck="false"/>
+      <span class="modal-ext" id="modal-ext" dir="ltr">.mp4</span>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal()" data-i18n="quality.btn.cancel">Cancel</button>
@@ -2587,7 +2587,7 @@
   </div>
   <div class="cvp-body">
     <label class="cvp-flabel" for="cvp-name" data-i18n="creator.label.theme_name">Theme name</label>
-    <input id="cvp-name" type="text" maxlength="60" autocomplete="off" spellcheck="false"/>
+    <input id="cvp-name" type="text" dir="auto" maxlength="60" autocomplete="off" spellcheck="false"/>
     <div class="cvp-picks">
       <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.bg">App background</b><span data-i18n="creator.picker.bg.desc">The canvas</span></div><input class="cvp-pick" type="color" data-var="--bg" data-i18n-attr="aria-label:creator.picker.bg" aria-label="App background"/></div>
       <div class="cvp-row"><div class="cvp-lab"><b data-i18n="creator.picker.surf">Surface</b><span data-i18n="creator.picker.surf.desc">Cards, panels</span></div><input class="cvp-pick" type="color" data-var="--surf" data-i18n-attr="aria-label:creator.picker.surf" aria-label="Surface"/></div>

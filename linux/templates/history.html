@@ -41,18 +41,18 @@
 
   /* table */
   .table-wrap{flex:1;overflow-y:auto;overflow-x:hidden}
-  .table-header{display:grid;grid-template-columns:100px 1fr 80px 70px 70px 90px;padding:6px 22px 6px 14px;border-bottom:1px solid var(--border);background:var(--surf);position:sticky;top:0;z-index:1}
+  .table-header{display:grid;grid-template-columns:100px 1fr 80px 70px 70px 90px;padding-block:6px;padding-inline:14px 22px;border-bottom:1px solid var(--border);background:var(--surf);position:sticky;top:0;z-index:1}
   .th{font-size:9px;font-weight:500;color:var(--text2);opacity:0.65;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;transition:opacity .1s}
   .th:hover{color:var(--text2);opacity:1}
-  .row{display:grid;grid-template-columns:100px 1fr 80px 70px 70px 90px;padding:6px 22px 6px 14px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center}
+  .row{display:grid;grid-template-columns:100px 1fr 80px 70px 70px 90px;padding-block:6px;padding-inline:14px 22px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center}
   .row:hover{background:var(--surf2)}
   .rthumb-wrap{position:relative;width:96px;height:54px;border-radius:4px;overflow:hidden;background:var(--surf2);flex-shrink:0;border:0.5px solid var(--border)}
   .rthumb-bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:blur(10px) brightness(0.4);transform:scale(1.2)}
   .rthumb-fg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
   /* lint-allow-muted: decorative-icon */
   .rthumb-icon{width:96px;height:54px;border-radius:4px;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--muted);border:0.5px solid var(--border)}
-  .rt{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px}
-  .rm{font-size:9px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;margin-top:1px}
+  .rt{font-size:11px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rm{font-size:9px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
   .col{font-size:10px;color:var(--text2)}
   .col.hi{color:var(--text)}
   .fmt{font-size:9px;padding:1px 6px;border-radius:3px;border:1px solid;display:inline-block}
@@ -60,16 +60,18 @@
   .fmt-mp4,.fmt-webm{background:rgba(59,130,246,.1);color:#60a5fa;border-color:rgba(59,130,246,.3)}
   .fmt-flac,.fmt-wav{background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.3)}
   .fmt-other{background:rgba(255,255,255,.06);color:var(--text2);border-color:var(--border)}
-  .row-btns{display:flex;gap:3px;justify-content:flex-end;margin-left:auto;opacity:0;transition:opacity .1s}
+  .row-btns{display:flex;gap:3px;justify-content:flex-end;margin-inline-start:auto;opacity:0;transition:opacity .1s}
   .row:hover .row-btns{opacity:1}
   .rb{width:24px;height:24px;padding:0;border-radius:5px;cursor:pointer;border:0.5px solid var(--border2);background:transparent;color:var(--text2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
   .rb:hover{color:var(--acc);border-color:var(--acc)}
   .rb.red:hover{color:var(--red);border-color:var(--red)}
   .rb.pin-rb{color:var(--border2)}
   .rb.pin-rb.pinned{color:var(--acc);border-color:var(--acc)}
-  .row.row-pinned{background:rgba(45,212,191,.05);border-left:2px solid rgba(45,212,191,.3)}
+  .row.row-pinned{background:rgba(45,212,191,.05);border-inline-start:2px solid rgba(45,212,191,.3)}
   /* lint-allow-muted: empty-state */
   .empty-state{text-align:center;padding:60px 20px;color:var(--muted);font-size:13px}
+  /* Text with its own direction (dir="ltr": URLs, sizes; dir="auto": titles) keeps the page's alignment. */
+  :where(body [dir=ltr], body [dir=auto]){text-align:-webkit-match-parent}
 
   /* pagination */
   .pagination{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-top:1px solid var(--border);background:var(--surf);flex-shrink:0}
@@ -120,7 +122,7 @@
   <div class="th" data-i18n="history.col.format">Format</div>
   <div class="th" data-i18n="history.col.size">Size</div>
   <div class="th" data-i18n="history.col.date">Date</div>
-  <div class="th" style="text-align:right" data-i18n="history.col.actions">Actions</div>
+  <div class="th" style="text-align:end" data-i18n="history.col.actions">Actions</div>
 </div>
 
 <div class="table-wrap" id="table-wrap">
@@ -280,7 +282,7 @@
     document.getElementById('total-badge').textContent = allItems.length;
     const ts = totalSize(allItems);
     document.getElementById('status-bar').textContent = ts
-      ? (i18nFmt('history.summary', allItems.length, ts) || `${allItems.length} downloads · ${ts} total`)
+      ? (i18nFmt('history.summary', allItems.length, '\u2066' + ts + '\u2069') || `${allItems.length} downloads · ${ts} total`)   // the size reads "2.2 GB" inside a right to left sentence
       : (i18nFmt('status.bar.count', allItems.length) || `${allItems.length} downloads`);
 
     if (filtered.length === 0) { empty.style.display = ''; updatePagination(0, 0, 0); return; }
@@ -301,12 +303,12 @@
         : `<div class="rthumb-icon">${isAudio ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}</div>`;
       row.innerHTML = `
         ${thumbHtml}
-        <div style="min-width:0;overflow:hidden">
-          <div class="rt">${escH(item.title || item.filename || '—')}</div>
-          <div class="rm">${escH(item.url || '')}</div>
+        <div style="min-width:0;overflow:hidden;padding-inline-end:8px">
+          <div class="rt" dir="auto">${escH(item.title || item.filename || '—')}</div>
+          <div class="rm" dir="ltr">${escH(item.url || '')}</div>
         </div>
         <div class="col"><span class="fmt ${fmtClass(item.format)}">${(item.format||'?').toUpperCase()}</span></div>
-        <div class="col hi">${fmtSize(item.size_bytes)}</div>
+        <div class="col hi" dir="ltr">${fmtSize(item.size_bytes)}</div>
         <div class="col">${fmtDate(item.completed_at)}</div>
         <div class="row-btns">
           <button class="rb pin-rb" title="${i18nAttr('tooltip.card.pin','Pin to top')}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>

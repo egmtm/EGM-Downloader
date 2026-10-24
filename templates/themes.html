@@ -39,12 +39,12 @@
     }
     .search-icon {
       /* lint-allow-muted: decorative-icon */
-      position:absolute;left:8px;font-size:.7rem;color:var(--muted);
+      position:absolute;inset-inline-start:8px;font-size:.7rem;color:var(--muted);
       pointer-events:none;line-height:1;
     }
     input[type=search] {
       background:var(--surf2);border:1px solid var(--border);border-radius:var(--rs);
-      color:var(--text);font-size:.7rem;padding:5px 10px 5px 24px;
+      color:var(--text);font-size:.7rem;padding-block:5px;padding-inline:24px 10px;
       width:140px;outline:none;transition:width .15s,border-color .15s;height:28px;
     }
     input[type=search]:focus { border-color:var(--acc);width:200px; }
@@ -58,7 +58,7 @@
     /* ── Sidebar ── */
     .sidebar {
       width:135px;flex-shrink:0;
-      background:var(--surf);border-right:1px solid var(--border);
+      background:var(--surf);border-inline-end:1px solid var(--border);
       position:relative;z-index:1;
       display:flex;flex-direction:column;
       overflow:hidden;
@@ -68,20 +68,20 @@
     }
 
     .cat-tab {
-      padding:6px 14px 6px 18px;font-size:.7rem;color:var(--text2);
-      cursor:pointer;border-left:2px solid transparent;
+      padding-block:6px;padding-inline:18px 14px;font-size:.7rem;color:var(--text2);
+      cursor:pointer;border-inline-start:2px solid transparent;
       display:flex;align-items:center;gap:6px;user-select:none;
       transition:background .1s,color .1s,border-color .1s;
     }
     .cat-tab:hover { background:var(--surf2);color:var(--text); }
     .cat-tab.active {
       background:var(--acc-dim);color:var(--acc);
-      border-left-color:var(--acc);font-weight:500;
+      border-inline-start-color:var(--acc);font-weight:500;
     }
     .cat-tab.all-tab { font-weight:600; }
     /* lint-allow-muted: supplementary-metadata */
     .cat-count {
-      margin-left:auto;font-size:.55rem;color:var(--text2);opacity:0.7;font-weight:400;
+      margin-inline-start:auto;font-size:.55rem;color:var(--text2);opacity:0.7;font-weight:400;
     }
     .cat-tab.active .cat-count { color:var(--acc); opacity:1; }
 
@@ -97,6 +97,7 @@
       font-size:.6rem;color:var(--acc);opacity:0.7;transition:transform .15s;
     }
     .cat-section.collapsed .section-caret { transform:rotate(-90deg); }
+    [dir=rtl] .cat-section.collapsed .section-caret { transform:rotate(90deg); }   /* a collapsed section points to the reading direction */
 
     .cat-divider { height:1px;background:var(--border);margin:6px 14px; }
 
@@ -136,9 +137,11 @@
       overflow:hidden;text-overflow:ellipsis;
     }
     .theme-card.active .card-name { color:var(--acc);font-weight:500; }
+    /* A saved theme's name is dir="auto" and keeps the page's alignment. */
+    :where(body [dir=ltr], body [dir=auto]) { text-align:-webkit-match-parent; }
 
     .seasonal-badge {
-      font-size:.5rem;opacity:.6;margin-left:2px;
+      font-size:.5rem;opacity:.6;margin-inline-start:2px;
     }
 
     .empty {
@@ -174,7 +177,7 @@
   <span id="bc-all" style="color:var(--text2);cursor:pointer;opacity:.7" data-i18n="themes.topbar.all">All Themes</span>
   <span style="color:var(--border2);font-size:.65rem">›</span>
   <span id="bc-current" style="color:var(--acc);font-weight:500"></span>
-  <span id="bc-count" style="font-size:.65rem;color:var(--text2);opacity:.6;margin-left:2px"></span>
+  <span id="bc-count" style="font-size:.65rem;color:var(--text2);opacity:.6;margin-inline-start:2px"></span>
 </div>
 
 <div class="body-row">
@@ -369,13 +372,13 @@ function buildSidebar() {
   let html = `<div class="cat-tab all-tab${activeCat === 'all' ? ' active' : ''}" data-cat="all">All<span class="cat-count">${countTotal()}</span></div>`;
 
   if (favoriteThemes.size > 0) {
-    html += `<div class="cat-tab fav-tab${activeCat === 'favorites' ? ' active' : ''}" data-cat="favorites" style="color:var(--acc)"><span style="margin-right:4px;font-size:13px">♥</span>${i18nAttr('themes.tab.favorites','Favorites')}<span class="cat-count">${favoriteThemes.size}</span></div>`;
+    html += `<div class="cat-tab fav-tab${activeCat === 'favorites' ? ' active' : ''}" data-cat="favorites" style="color:var(--acc)"><span style="margin-inline-end:4px;font-size:13px">♥</span>${i18nAttr('themes.tab.favorites','Favorites')}<span class="cat-count">${favoriteThemes.size}</span></div>`;
   }
 
   // Seasonal — top-level, only if any are currently visible
   const seasonalCount = Object.entries(THEME_DATA).filter(([k,d]) => d.cat === 'seasonal' && SEASONAL_VISIBLE.has(k)).length;
   if (seasonalCount > 0) {
-    html += `<div class="cat-tab${activeCat === 'seasonal' ? ' active' : ''}" data-cat="seasonal"><span style="margin-right:4px;font-size:11px">✦</span>${i18nAttr('themes.tab.seasonal','Seasonal')}<span class="cat-count">${seasonalCount}</span></div>`;
+    html += `<div class="cat-tab${activeCat === 'seasonal' ? ' active' : ''}" data-cat="seasonal"><span style="margin-inline-end:4px;font-size:11px">✦</span>${i18nAttr('themes.tab.seasonal','Seasonal')}<span class="cat-count">${seasonalCount}</span></div>`;
   }
 
   html += `<div class="cat-divider"></div>`;
@@ -551,8 +554,8 @@ function render() {
         <div class="swatch" style="background:${esc(t.vars['--surf'] || '#111')}"></div>
         <div class="swatch" style="background:${esc(t.vars['--acc']  || '#3b82f6')}"></div>
       </div>
-      <span class="card-name">${esc(t.name)}</span>
-      <div class="saved-actions" style="display:flex;align-items:center;gap:8px;margin-left:auto">
+      <span class="card-name" dir="auto">${esc(t.name)}</span>
+      <div class="saved-actions" style="display:flex;align-items:center;gap:8px;margin-inline-start:auto">
         <span class="fav-heart" data-fav="${esc(t.id)}" title="${favoriteThemes.has(t.id) ? i18nAttr('themes.saved.fav.remove.tooltip', 'Remove from favorites') : i18nAttr('themes.saved.fav.add.tooltip', 'Add to favorites')}" style="font-size:14px;cursor:pointer;color:${favoriteThemes.has(t.id) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(t.id) ? '1' : '0.4'}">${favoriteThemes.has(t.id) ? '♥' : '♡'}</span>
         <span class="del-saved" data-del="${esc(t.id)}" title="${i18nAttr('themes.saved.delete.tooltip', 'Delete this saved theme')}" style="font-size:15px;line-height:1;cursor:pointer;color:var(--text2);opacity:.55">×</span>
       </div>
@@ -566,7 +569,7 @@ function render() {
         <div class="swatch" style="background:${d.acc}"></div>
       </div>
       <span class="card-name">${d.label}${d.cat === 'seasonal' ? '<span class="seasonal-badge">✦</span>' : ''}</span>
-      <span class="fav-heart" data-fav="${key}" title="${favoriteThemes.has(key) ? i18nAttr('themes.saved.fav.remove.tooltip', 'Remove from favorites') : i18nAttr('themes.saved.fav.add.tooltip', 'Add to favorites')}" style="font-size:14px;cursor:pointer;margin-left:auto;color:${favoriteThemes.has(key) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(key) ? '1' : '0.4'}">${favoriteThemes.has(key) ? '♥' : '♡'}</span>
+      <span class="fav-heart" data-fav="${key}" title="${favoriteThemes.has(key) ? i18nAttr('themes.saved.fav.remove.tooltip', 'Remove from favorites') : i18nAttr('themes.saved.fav.add.tooltip', 'Add to favorites')}" style="font-size:14px;cursor:pointer;margin-inline-start:auto;color:${favoriteThemes.has(key) ? 'var(--acc)' : 'var(--text2)'};opacity:${favoriteThemes.has(key) ? '1' : '0.4'}">${favoriteThemes.has(key) ? '♥' : '♡'}</span>
     </div>
   `).join('');
 

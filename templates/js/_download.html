@@ -130,7 +130,7 @@ function makePh(url) {
     <div class="thumb"><div class="noimg" style="display:flex;align-items:center;justify-content:center"><svg width="22" height="22" viewBox="0 0 32 32" style="animation:spin-svg 1.4s linear infinite" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="60 88" style="animation:dash 1.4s ease-in-out infinite"/></svg></div></div>
     <div class="vbody">
       <!-- lint-allow-muted: loading-state -->
-      <div class="vtitle" style="color:var(--muted)">${esc(trunc(url,70))}</div>
+      <div class="vtitle" dir="ltr" style="color:var(--muted)">${esc(trunc(url,70))}</div>
       <div class="vmeta"><span class="badge b-dl"><span class="spinner"></span> ${i18nAttr('card.status.fetching', 'Fetching…')}</span></div>
     </div>`;
   document.getElementById('results').appendChild(el);
@@ -177,7 +177,7 @@ function renderErr(el, url, msg, i18nKey) {
   el.classList.add('fetch-err');   // a card with no item behind it: the next Fetch and Clear remove it
   const shown = (i18nKey && i18nGet(i18nKey)) || msg;
   el.innerHTML = `<div class="thumb"><div class="noimg">⚠️</div></div>
-    <div class="vbody"><div class="vtitle">${esc(trunc(url,70))}</div>
+    <div class="vbody"><div class="vtitle" dir="ltr">${esc(trunc(url,70))}</div>
     <div class="vmeta"><span class="badge b-error">${esc((i18nGet('fetch.error.prefix') || 'Error') + ': ' + shown)}</span></div></div>`;
 }
 
@@ -223,8 +223,8 @@ function renderCard(el, item) {
       ${dur ? `<span class="dur">${esc(dur)}</span>` : ''}
     </div>
     <div class="vbody">
-      <div class="vtitle" title="${esc(info.title)}">${esc(info.title||item.url)}</div>
-      <div class="vmeta">${info.is_live ? `<span class="live-tag">${i18nAttr('card.badge.live', 'LIVE')}</span> ` : ''}${esc(info.uploader)}${dur?' · '+esc(dur):''}</div>
+      <div class="vtitle" dir="auto" title="${esc(info.title)}">${esc(info.title||item.url)}</div>
+      <div class="vmeta">${info.is_live ? `<span class="live-tag">${i18nAttr('card.badge.live', 'LIVE')}</span> ` : ''}<bdi>${esc(info.uploader)}</bdi>${dur?' · '+esc(dur):''}</div>
       <div class="qual-panel">
         <div class="qual-group">
           <span class="qual-label">${i18nAttr('card.label.format', 'Format')}</span>
@@ -648,7 +648,7 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     if (card) {
       card.style.transition = 'opacity .25s ease, transform .25s ease, margin .25s ease, max-height .3s ease, padding .25s ease';
       card.style.opacity = '0';
-      card.style.transform = 'translateX(8px)';
+      card.style.transform = document.documentElement.dir === 'rtl' ? 'translateX(-8px)' : 'translateX(8px)';   // slides toward the end side
       setTimeout(() => {
         card.remove();
         items = items.filter(i => i.id !== item.id);

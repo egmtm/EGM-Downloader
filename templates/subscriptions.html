@@ -17,13 +17,13 @@
     /* ── Sidebar ── */
     .sidebar {
       width:180px;min-width:140px;max-width:400px;
-      background:var(--surf);border-right:1px solid var(--border);
+      background:var(--surf);border-inline-end:1px solid var(--border);
       display:flex;flex-direction:column;transition:width .2s ease;
       overflow:hidden;position:relative;
     }
     .sidebar.collapsed { width:72px;min-width:72px;max-width:72px; }
     .sidebar-resize {
-      position:absolute;right:0;top:0;bottom:0;width:4px;cursor:col-resize;z-index:10;
+      position:absolute;inset-inline-end:0;top:0;bottom:0;width:4px;cursor:col-resize;z-index:10;
     }
     .sidebar-resize:hover { background:var(--acc);opacity:.3; }
     .sidebar.collapsed .sidebar-resize { display:none; }
@@ -62,12 +62,12 @@
 
     .sub-item {
       padding:8px 10px;font-size:.78rem;color:var(--text2);cursor:pointer;
-      border-left:2px solid transparent;transition:all .1s;
+      border-inline-start:2px solid transparent;transition:all .1s;
       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
     }
     .sub-item:hover { color:var(--text);background:var(--surf2); }
     .sub-item:hover .kebab-btn { opacity:1; }
-    .sub-item.drag-over { background:var(--acc-dim);border-left-color:var(--acc); }
+    .sub-item.drag-over { background:var(--acc-dim);border-inline-start-color:var(--acc); }
     .kebab-btn {
       background:none;border:none;color:var(--text2);cursor:pointer;
       font-size:14px;line-height:1;padding:2px 4px;opacity:0;transition:opacity .15s;
@@ -81,16 +81,16 @@
       font-size:.62rem;
     }
     .kebab-menu button {
-      display:block;width:100%;text-align:left;background:none;border:none;
+      display:block;width:100%;text-align:start;background:none;border:none;
       color:var(--text2);padding:5px 10px;cursor:pointer;font-family:inherit;font-size:.62rem;
     }
     .kebab-menu button:hover { background:var(--surf2);color:var(--text); }
     .kebab-menu button:disabled { opacity:.3;cursor:default; }
-    .sub-item.active { color:var(--acc);border-left-color:var(--acc);background:var(--surf2); }
+    .sub-item.active { color:var(--acc);border-inline-start-color:var(--acc);background:var(--surf2); }
 
     .queue-item {
       padding:8px 10px;font-size:.68rem;font-weight:500;color:var(--acc);
-      border-left:2px solid var(--acc);
+      border-inline-start:2px solid var(--acc);
       /* translucent accent stacked over the solid page bg — opaque, so
          channels scrolling underneath the sticky row don't bleed through */
       background:linear-gradient(var(--acc-dim),var(--acc-dim)),var(--bg);
@@ -102,7 +102,7 @@
     .sub-list:has(.queue-item) { padding-top:0; }
     .queue-item:hover { background:linear-gradient(var(--acc-dim),var(--acc-dim)),linear-gradient(var(--acc-dim),var(--acc-dim)),var(--bg); }
     .queue-badge {
-      margin-left:auto;background:rgba(45,212,191,.15);color:var(--acc);
+      margin-inline-start:auto;background:rgba(45,212,191,.15);color:var(--acc);
       font-size:.58rem;padding:2px 7px;border-radius:8px;font-weight:500;
     }
 
@@ -219,7 +219,7 @@
       background-size:cover;background-position:center;
     }
     .video-duration {
-      position:absolute;bottom:3px;right:3px;background:rgba(0,0,0,.8);
+      position:absolute;bottom:3px;inset-inline-end:3px;background:rgba(0,0,0,.8);
       color:#fff;font-size:.55rem;padding:1px 4px;border-radius:2px;
     }
 
@@ -235,6 +235,11 @@
       padding:3px 10px;border-radius:3px;cursor:pointer;font-size:.65rem;
     }
     .fetch-btn:hover { border-color:var(--acc);color:var(--acc); }
+
+    /* Text with its own direction (dir="ltr": URLs; dir="auto": channel names, titles, folders)
+       keeps the page's alignment, and a placeholder reads in its own direction. */
+    :where(body [dir=ltr], body [dir=auto]) { text-align:-webkit-match-parent; }
+    :where(body [dir=ltr], body [dir=auto])::placeholder { unicode-bidi:plaintext; }
 
     {% include 'theme_styles.html' %}
     /* ── Custom confirmation modal ── */
@@ -259,9 +264,9 @@
     /* ── "Quit when done" toggle + countdown ── */
     .sw-wrap { display:flex;align-items:center;gap:7px;font-size:.72rem;color:var(--text2);cursor:pointer;user-select:none; }
     input.sw[type=checkbox] { appearance:none;width:32px;height:17px;background:var(--border2);border-radius:999px;cursor:pointer;transition:background .15s ease;position:relative;flex-shrink:0; }
-    input.sw[type=checkbox]::after { content:'';position:absolute;top:2px;left:2px;width:13px;height:13px;background:var(--btn-primary-text);border-radius:50%;transition:left .15s ease; }
+    input.sw[type=checkbox]::after { content:'';position:absolute;top:2px;inset-inline-start:2px;width:13px;height:13px;background:var(--btn-primary-text);border-radius:50%;transition:inset-inline-start .15s ease; }
     input.sw[type=checkbox]:checked { background:var(--acc); }
-    input.sw[type=checkbox]:checked::after { left:17px; }
+    input.sw[type=checkbox]:checked::after { inset-inline-start:17px; }
     /* "Quit when done" countdown: a card in the middle of the window over a dimmed page that is
        locked while it shows (the script marks the rest of the page `inert`). The dim is this theme's
        dialog overlay at 70%, a little lighter than What's New, so the finished downloads stay readable.
@@ -282,7 +287,7 @@
     </div>
 
     <div class="add-bar">
-      <input type="text" id="add-url" data-i18n-attr="placeholder:subscriptions.url.placeholder" placeholder="Paste URL here..." />
+      <input type="text" id="add-url" dir="ltr" data-i18n-attr="placeholder:subscriptions.url.placeholder" placeholder="Paste URL here..." />
       <div style="display:flex;gap:4px;margin-top:4px">
         <button id="paste-btn" style="flex:1;background:var(--surf2);border:1px solid var(--border);color:var(--text2);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_paste" title="Paste from clipboard">📋 <span data-i18n="url.btn.paste">Paste</span></button>
         <button id="add-btn" style="flex:1;background:var(--surf2);border:1px solid var(--acc);color:var(--acc);padding:4px;border-radius:3px;cursor:pointer;font-size:.65rem" data-i18n-attr="title:tooltip.subscriptions_add" title="Add subscription"><span data-i18n="subscriptions.btn.add">+ Add</span></button>
@@ -579,7 +584,7 @@ function renderSidebar() {
 
   list.innerHTML = queueHtml + subs.map((s, i) => {
     const count = (s.videos || []).length;
-    const badge = count > 0 ? `<span style="margin-left:auto;font-size:.55rem;color:var(--text2);opacity:0.7">${count}</span>` : '';
+    const badge = count > 0 ? `<span style="margin-inline-start:auto;font-size:.55rem;color:var(--text2);opacity:0.7">${count}</span>` : '';
     const thumb = s.thumbnail_url
       ? `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);background-image:url('${esc(s.thumbnail_url)}');background-size:cover;background-position:center;overflow:hidden"></div>`
       : `<div style="width:24px;height:24px;border-radius:50%;flex-shrink:0;background:var(--surf2);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text2)">${esc((s.name || '?')[0])}</div>`;
@@ -587,7 +592,7 @@ function renderSidebar() {
     <div class="sub-item${activeSub && activeSub.id === s.id ? ' active' : ''}" data-id="${attrEsc(s.id)}" style="display:flex;align-items:center;gap:8px;position:relative">
       <span class="drag-handle" title="${i18nAttr('tooltip.subscriptions_drag_reorder','Drag to reorder')}" style="cursor:grab;color:var(--border2);font-size:11px;flex-shrink:0;opacity:0.6;user-select:none">⠿</span>
       ${thumb}
-      <span style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
+      <span dir="auto" style="flex:1;overflow:hidden;text-overflow:ellipsis">${esc(s.name || s.url)}</span>
       ${badge}
       ${_fetchAllJobs[s.id] ? `<span style="font-size:.55rem;padding:1px 5px;border-radius:8px;flex-shrink:0;font-weight:600;${
         _fetchAllJobs[s.id].status==='pending'  ? 'background:rgba(59,130,246,.12);color:var(--acc)' :
@@ -711,7 +716,7 @@ function renderSidebar() {
         menu.style.display = 'block';
         const mw = menu.offsetWidth || 120;
         const mh = menu.offsetHeight || 0;
-        let left = e.clientX;
+        let left = document.documentElement.dir === 'rtl' ? Math.max(4, e.clientX - mw) : e.clientX;   // opens toward the reading direction
         let top = e.clientY;
         if (left + mw > window.innerWidth - 4) left = window.innerWidth - mw - 4;
         if (top + mh > window.innerHeight - 4) top = Math.max(4, top - mh);
@@ -957,7 +962,7 @@ function renderQueue() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/><path d="M7 11l5 5l5-5"/><path d="M12 4l0 12"/></svg>
     <span style="font-weight:600;font-size:.85rem">${i18nAttr('subscriptions.queue.title', 'Download queue')}</span>
     <span style="font-size:.65rem;color:var(--text2)">${(i18nFmt('subscriptions.queue.active', activeJobs.length) || `${activeJobs.length} active`)}</span>
-    ${window.electronAPI?.quit ? `<label class="sw-wrap" style="margin-left:auto" title="${i18nAttr('tooltip.quit_when_done', 'Automatically close the app when all downloads finish')}"><input type="checkbox" class="sw" ${quitWhenDone ? 'checked' : ''} onchange="setQuitWhenDone(this.checked)"><span>${i18nAttr('advanced.toggle.quit_when_done', 'Quit when done')}</span></label>` : ''}
+    ${window.electronAPI?.quit ? `<label class="sw-wrap" style="margin-inline-start:auto" title="${i18nAttr('tooltip.quit_when_done', 'Automatically close the app when all downloads finish')}"><input type="checkbox" class="sw" ${quitWhenDone ? 'checked' : ''} onchange="setQuitWhenDone(this.checked)"><span>${i18nAttr('advanced.toggle.quit_when_done', 'Quit when done')}</span></label>` : ''}
   </div>`;
 
   html += '<div style="flex:1;overflow-y:auto;padding:0 18px 8px">';
@@ -976,8 +981,8 @@ function renderQueue() {
         ${job.thumbnailUrl ? `<img src="${attrEsc(job.thumbnailUrl)}" style="width:100%;height:100%;object-fit:cover">` : ''}
       </div>
       <div style="flex:1;min-width:0">
-        <div style="font-size:.78rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(job.title)}</div>
-        <div style="font-size:.62rem;color:var(--text2);margin-top:2px">${esc(job.channelName)}</div>
+        <div dir="auto" style="font-size:.78rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(job.title)}</div>
+        <div dir="auto" style="font-size:.62rem;color:var(--text2);margin-top:2px">${esc(job.channelName)}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
           <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? (pct > 0 ? pct : 100) : pct}%"></div></div>
@@ -1026,8 +1031,8 @@ function renderDetail() {
       <div class="channel-info" style="flex:1;min-width:0">
         <div style="display:flex;align-items:flex-start;justify-content:space-between">
           <div>
-            <h2 style="font-size:1.05rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
-            <p style="font-size:.72rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
+            <h2 dir="auto" style="font-size:1.05rem;font-weight:600;margin-bottom:3px">${esc(activeSub.name || 'Untitled')}</h2>
+            <p dir="ltr" style="font-size:.72rem;color:var(--acc);margin-bottom:2px">${esc(activeSub.url)}</p>
             <p style="font-size:.68rem;color:var(--text2)">
               ${(i18nFmt('subscriptions.detail.videos_count', videos.length) || `${videos.length} videos`)}${activeSub.last_fetched ? (i18nFmt('subscriptions.detail.last_fetched', new Date(activeSub.last_fetched).toLocaleDateString()) || ' · Last fetched: ' + new Date(activeSub.last_fetched).toLocaleDateString()) : ''}
             </p>
@@ -1055,7 +1060,7 @@ function renderDetail() {
               </div>
             </div>` : ''}
           </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;margin-left:16px">
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;margin-inline-start:16px">
             <div style="display:flex;gap:8px;align-items:center">
               <select id="sort-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text2);font-size:.7rem;border-radius:5px;padding:5px 10px;cursor:pointer;height:28px">
                 <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.latest', 'Latest')}</option>
@@ -1070,7 +1075,7 @@ function renderDetail() {
         <div style="display:inline-flex;align-items:center;gap:12px;margin-top:12px;padding:8px 14px;background:var(--surf2);border:1px solid var(--border);border-radius:8px">
           <div style="display:flex;align-items:center;gap:6px">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--yellow)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l3 3h7a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-11a2 2 0 0 1 2 -2"/></svg>
-            <span id="dl-folder-label" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : (i18nGet('subscriptions.label.folder_default') || 'Default'))}</span>
+            <span id="dl-folder-label" dir="auto" style="font-size:.7rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)" title="${attrEsc(activeSub.download_folder || 'Default (app setting)')}">${esc(activeSub.download_folder ? activeSub.download_folder.split(/[\\/]/).pop() : (i18nGet('subscriptions.label.folder_default') || 'Default'))}</span>
             <button id="dl-folder-browse" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">${i18nAttr('settings.folder.btn.browse', 'Browse')}</button>
             ${activeSub.download_folder ? '<button id="dl-folder-open" class="fetch-btn" style="font-size:.6rem;padding:2px 8px">' + i18nAttr('settings.folder.btn.open', 'Open') + '</button><button id="dl-folder-reset" class="fetch-btn" style="font-size:.6rem;padding:2px 8px;color:var(--text2)">' + i18nAttr('creator.btn.reset', 'Reset') + '</button>' : ''}
           </div>
@@ -1115,7 +1120,7 @@ function renderDetail() {
               ${v.duration ? `<span class="video-duration">${formatDuration(v.duration)}</span>` : ''}
             </div>
             <div class="video-info" style="flex:1;min-width:0">
-              <div class="video-title">${esc(v.title)}</div>
+              <div class="video-title" dir="auto">${esc(v.title)}</div>
               <div class="video-meta" id="meta-${attrEsc(v.video_id || '')}">${esc(v.upload_date ? formatDate(v.upload_date) : '—')}${v.is_new ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(45,212,191,.12);color:var(--acc);font-weight:500">' + i18nAttr('subscriptions.badge.new', 'New') + '</span>' : ''}${v.downloaded ? ` <span class="video-status done">${i18nAttr('subscriptions.status.downloaded', 'Downloaded')}</span> <button class="video-action-btn" onclick="clearDownloaded('${attrEsc(v.video_id || '')}')">${i18nAttr('subscriptions.btn.clear_downloaded', 'Clear')}</button>` : ''}${v.availability === 'subscriber_only' ? ' <span style="font-size:.5rem;padding:1px 5px;border-radius:3px;background:rgba(245,158,11,.12);color:var(--yellow);font-weight:500">' + i18nAttr('subscriptions.badge.members', 'Members') + '</span>' : ''}</div>
             </div>
             <div style="display:flex;align-items:center;gap:5px;flex-shrink:0">
@@ -1447,7 +1452,7 @@ function toggleKebab(subId, btn) {
     const r = anchor.getBoundingClientRect();
     const mw = menu.offsetWidth || 120;
     const mh = menu.offsetHeight || 0;
-    let left = r.right - mw;
+    let left = document.documentElement.dir === 'rtl' ? Math.min(r.left, window.innerWidth - mw - 4) : r.right - mw;   // left-aligned under the button in a right to left layout
     if (left < 4) left = 4;
     let top = r.bottom + 2;
     if (top + mh > window.innerHeight - 4) top = Math.max(4, r.top - mh - 2); // flip up if no room below
@@ -1773,7 +1778,8 @@ Promise.all([loadSubs(), loadGlobalSettings()]).then(() => {
   });
   document.addEventListener('mousemove', (e) => {
     if (!dragging) return;
-    const w = Math.min(400, Math.max(140, startW + (e.clientX - startX)));
+    const dx = document.documentElement.dir === 'rtl' ? startX - e.clientX : e.clientX - startX;   // the handle is on the left edge in a right to left layout
+    const w = Math.min(400, Math.max(140, startW + dx));
     sidebar.style.width = w + 'px';
   });
   document.addEventListener('mouseup', () => {

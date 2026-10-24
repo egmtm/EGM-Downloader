@@ -130,7 +130,7 @@ function _buildEntry(item) {
   div.innerHTML = `
     ${thumbHtml}
     <div style="flex:1;min-width:0">
-      <p class="htitle">${_hEsc(item.title || item.filename || '—')}</p>
+      <p class="htitle" dir="auto">${_hEsc(item.title || item.filename || '—')}</p>
       <p class="hmeta">${_fmtFmt(item.format)}${item.size_bytes ? ' · ' + _fmtSize(item.size_bytes) : ''} · ${_fmtDate(item.completed_at)}</p>
     </div>
     <div class="hbtns">

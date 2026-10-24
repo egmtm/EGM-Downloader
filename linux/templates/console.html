@@ -26,7 +26,7 @@
   /* Body text uses --text (the one var every theme guarantees readable on its
      bg) with slight opacity; --text2/--muted go too dim on several themes. */
   .log-line{white-space:pre-wrap;word-break:break-word;color:var(--text);opacity:.85}
-  .log-line .lt{color:var(--text2);margin-right:8px}
+  .log-line .lt{color:var(--text2);margin-inline-end:8px}
   .log-line.err{color:var(--red);opacity:1}
   .log-line.okc{color:var(--green);opacity:1}
   .log-line.yt{opacity:.6;font-size:11px}
@@ -37,6 +37,8 @@
   .log-line.ffmpeg .lt{opacity:.8}
   /* lint-allow-muted: empty-state */
   .log-empty{color:var(--muted);padding:20px 6px;font-style:italic}
+  /* Log lines are left to right text (dir="ltr") and keep the page's alignment. */
+  :where(body [dir=ltr]){text-align:-webkit-match-parent}
 
   .log-wrap::-webkit-scrollbar{width:8px}
   .log-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
@@ -138,6 +140,7 @@ function appendLines(entries, extraClass) {
   for (const e of entries) {
     const div = document.createElement('div');
     div.className = 'log-line ' + (extraClass || classify(e.m));
+    div.dir = 'ltr';   // log output reads left to right in every language
     const t = document.createElement('span'); t.className = 'lt'; t.textContent = e.t;
     div.appendChild(t);
     div.appendChild(document.createTextNode(e.m));
