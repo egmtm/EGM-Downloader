@@ -970,7 +970,7 @@ function renderQueue() {
     const pct = Math.round(job.data?.progress || 0);
     const speed = job.data?.speed || '';
     const eta = job.data?.eta || '';
-    const meta = [speed, eta ? `ETA ${eta}` : ''].filter(Boolean).join(' · ');
+    const meta = [speed, eta ? (i18nFmt('card.status.eta', eta) || `ETA ${eta}`) : ''].filter(Boolean).join(' · ');
     const statusLabel = job.status === 'queued' ? (i18nGet('card.status.queued') || 'Queued')
       : job.status === 'downloading' ? `${pct}%`
       : job.status === 'converting' ? ((i18nGet('card.status.converting') || 'Converting…') + (pct > 0 ? ` ${pct}%` : ''))
@@ -1135,7 +1135,7 @@ function renderDetail() {
           </div>
         `).join('') + (hasMore ? `
           <button id="load-more-btn" style="width:100%;margin-top:10px;padding:10px;background:var(--surf2);border:1px solid var(--border);color:var(--text2);border-radius:6px;cursor:pointer;font-size:.7rem" onclick="const vl=document.getElementById('video-list'),st=vl?vl.scrollTop:0;visibleCount+=20;renderDetail();const nv=document.getElementById('video-list');if(nv){nv.scrollTop=st;requestAnimationFrame(()=>{nv.scrollTop=st})}">${(i18nFmt('subscriptions.btn.load_more', visible.length, sortedVideos.length) || `Load more (${visible.length} of ${sortedVideos.length})`)}</button>
-        ` : `<div style="text-align:center;padding:10px;font-size:.6rem;color:var(--text2);opacity:0.5">${sortedVideos.length} videos total</div>`);
+        ` : `<div style="text-align:center;padding:10px;font-size:.6rem;color:var(--text2);opacity:0.5">${i18nFmt('subscriptions.detail.videos_total', sortedVideos.length) || `${sortedVideos.length} videos total`}</div>`);
       })()}
     </div>
   `;

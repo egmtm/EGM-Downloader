@@ -218,3 +218,21 @@ def test_the_allowlist_has_no_stale_entries():
         f"remove from the allowlist: EXTRA {problems}; COMMON keys not in en.json {gone}; "
         f"COMMON keys translated in every language {translated_everywhere}")
 
+
+
+# Keys that replaced English text written straight into a template, with how many places read each.
+# Without the template reading the key, ten files carry a translation that never shows (the other
+# direction is covered by test_i18n_keys_exist_in_en_locale).
+READ_IN_TEMPLATES = {"card.status.eta": 2, "subscriptions.title_short": 1, "subscriptions.detail.videos_total": 1}
+
+
+def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():
+    templates = ""
+    for dirpath, _, files in os.walk(os.path.join(ROOT, "templates")):
+        for name in files:
+            if name.endswith(".html"):
+                with open(os.path.join(dirpath, name), encoding="utf-8") as fh:
+                    templates += fh.read()
+    short = {key: templates.count(f"'{key}'") + templates.count(f'"{key}"') for key in READ_IN_TEMPLATES}
+    short = {key: n for key, n in short.items() if n < READ_IN_TEMPLATES[key]}
+    assert not short, f"read in fewer templates places than expected, so some text shows in English: {short}"
