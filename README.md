@@ -77,7 +77,7 @@ A side by side look at one well known alternative, using details you can check y
 | **Source code** | Public under AGPL-3.0 ([LICENSE](LICENSE)) | Proprietary. Terms: "We reserve all our rights over our Proprietary Materials." These include "software, scripts, source code" ([terms, section 3](https://www.4kdownload.com/agreement/videodownloader)) |
 | **Videos behind a login** | Included. Import cookies from your browser, they stay on your machine | Premium: "private content download is a premium feature" ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
 | **What the app sends out** | No analytics or tracking code. It connects to the sites you download from, plus a short list of hosts for updates and its tools (GitHub, PyPI, egerena.com and an ffmpeg mirror), listed in the [source](app.py). On Windows, first run also installs its runtimes: Node.js (nodejs.org), Electron (npm registry and GitHub, fetched again when an app update needs a newer one) and, for the portable, Python (python.org) and pip (files.pythonhosted.org), listed in [windows/launch.py](windows/launch.py). | Terms: "we may collect and use anonymous technical data and related information … that is gathered periodically to facilitate the provision of updates to the Application." ([terms, section 9](https://www.4kdownload.com/agreement/videodownloader)) |
-| **Platforms** | Windows 10/11 (needs Python 3.10+), macOS 13+ (Apple Silicon only), Linux AppImage | Windows 11, macOS 12+, Ubuntu 22.04+ (GNOME only) ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
+| **Platforms** | Windows 10/11 (needs Python 3.11+), macOS 13+ (Apple Silicon only), Linux AppImage | Windows 11, macOS 12+, Ubuntu 22.04+ (GNOME only) ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
 
 ---
 
@@ -164,7 +164,7 @@ A side by side look at one well known alternative, using details you can check y
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (662 KB · ~800 MB after install)  
 **SHA256:** `b462c08181cc31d34e7e0e773502ccabf639ba4ef507414a35d0aea16951f1c9`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
-**Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
+**Requirements:** Windows 10/11 (64-bit) · **Python 3.11+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
@@ -173,7 +173,7 @@ A side by side look at one well known alternative, using details you can check y
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (667 KB · ~1 GB after first run)  
 **SHA256:** `ff9251c013cbf91818a9f3be550633ac4bdca54f96d1e556d9ec98522c609c2c`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
-**Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
+**Requirements:** Windows 10/11 (64-bit) · **Python 3.11+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
@@ -248,7 +248,7 @@ ReClip is the starting point, and it is intentionally small. Here is what this p
 
 | | [ReClip](https://github.com/averygan/reclip), where it started | EGM Downloader today |
 |---|---|---|
-| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. Windows needs Python 3.10+ first; macOS and Linux bundle Electron and Python and fetch ffmpeg and Deno on first launch |
+| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. Windows needs Python first (3.11+ for the installer, 3.10+ for the portable zip); macOS and Linux bundle Electron and Python and fetch ffmpeg and Deno on first launch |
 | **How you use it** | A local web server you start yourself, then open `localhost:8899` in a browser ([Quick Start](https://github.com/averygan/reclip#quick-start)) | A native desktop app window, nothing to start |
 | **Platforms** | Install commands for Homebrew or apt, or a Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Windows 10/11, macOS 13+ (Apple Silicon), Linux AppImage |
 | **Formats and quality** | MP4 video or MP3 audio, resolution picker ([Features](https://github.com/averygan/reclip#features)) | MP4, MKV or H.264 MP4 video; MP3, M4A, OPUS or FLAC audio; up to 8K, HDR kept as MKV |
