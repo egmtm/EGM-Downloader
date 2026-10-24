@@ -37,8 +37,7 @@
   .log-line.ffmpeg .lt{opacity:.8}
   /* lint-allow-muted: empty-state */
   .log-empty{color:var(--muted);padding:20px 6px;font-style:italic}
-  /* Log lines are left to right text (dir="ltr") and keep the page's alignment. */
-  :where(body [dir=ltr]){text-align:-webkit-match-parent}
+  /* Log lines are left to right text (dir="ltr") and sit on the left edge in every language, so the timestamps form a column. */
 
   .log-wrap::-webkit-scrollbar{width:8px}
   .log-wrap::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
