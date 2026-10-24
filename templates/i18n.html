@@ -6,6 +6,10 @@
 // Locale codes are allowlisted here AND server-side (/api/language rejects
 // anything outside SUPPORTED_LANGUAGES before building a file path).
 const I18N_SUPPORTED = ['en', 'ar', 'de', 'es', 'fr', 'it', 'ja', 'nl', 'pt', 'ru'];
+// Right to left codes. The page direction comes from this list and the allowlisted
+// code, never from a language file, so a file cannot change the layout.
+// tests/test_language_direction.py keeps each file's direction field in step with it.
+const I18N_RTL = ['ar'];
 const I18N_NAMES = {
   en: 'English',  ar: 'العربية',  de: 'Deutsch',    es: 'Español', fr: 'Français',
   it: 'Italiano', ja: '日本語',    nl: 'Nederlands', pt: 'Português', ru: 'Русский'
@@ -78,6 +82,7 @@ async function i18nLoad(code) {
   I18N.strings = (code === 'en') ? I18N.en : (await i18nFetch(code)) || I18N.en;
   I18N.code = code;
   document.documentElement.setAttribute('lang', code);
+  document.documentElement.setAttribute('dir', I18N_RTL.includes(code) ? 'rtl' : 'ltr');
   i18nApply(document);
   // State-owned text (cookie badge, live statuses) re-renders on this signal —
   // those elements must NOT carry data-i18n or i18nApply stomps their state.

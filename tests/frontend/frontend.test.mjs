@@ -4,7 +4,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { bootPage, en, CURRENT_APP_VERSION } from "./harness.mjs";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -13,6 +13,32 @@ test("i18n boot applies English strings to the live DOM", async () => {
   const label = d.querySelector('[data-i18n="settings.toggle.upscale"]');
   assert.ok(label, "upscale toggle label present");
   assert.equal(label.textContent.trim(), en.strings["settings.toggle.upscale"]);
+});
+
+// The page direction follows the language: right to left for Arabic, left to right for
+// every other language, and back again on the next switch. Expected directions come from
+// the language files; tests/test_language_direction.py ties those to I18N_RTL.
+test("i18nLoad sets dir: rtl for Arabic, ltr for every other language, both ways", async () => {
+  const langDir = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "languages");
+  const files = Object.fromEntries(readdirSync(langDir).filter((f) => f.endsWith(".json"))
+    .map((f) => [f.slice(0, -5), JSON.parse(readFileSync(join(langDir, f), "utf8"))]));
+  const { w, d } = await bootPage({
+    onFetch: (u) => { const m = /^\/api\/language\/([a-z]{2})$/.exec(u); return m && files[m[1]] ? { ok: true, json: async () => files[m[1]] } : null; },
+  });
+  const html = d.documentElement;
+  assert.equal(html.getAttribute("dir"), "ltr", "English boot is left to right");
+  const codes = Object.keys(files);
+  assert.equal(codes.length, 10);
+  for (const code of ["ar", ...codes.filter((c) => c !== "ar"), "ar", "en"]) {
+    await w.i18nLoad(code);
+    assert.equal(html.getAttribute("lang"), code);
+    assert.equal(html.getAttribute("dir"), code === "ar" ? "rtl" : "ltr", `dir after i18nLoad('${code}')`);
+    assert.equal(html.getAttribute("dir"), files[code]._direction, `${code}.json declares the direction the page gets`);
+  }
+  await w.i18nLoad("ar");
+  await w.i18nLoad("xx");   // not allowlisted: English, left to right
+  assert.equal(html.getAttribute("lang"), "en");
+  assert.equal(html.getAttribute("dir"), "ltr");
 });
 
 test("card render: HDR entries appear beneath SDR with tooltip; SDR untouched", async () => {
