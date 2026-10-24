@@ -229,6 +229,20 @@ The following standard Python packages are bundled with EGM Downloader to expand
 
 ---
 
+## 🔤 Fonts
+
+### Bricolage Grotesque
+**Typeface drawn into the splash screen**
+
+- **What it does:** Its letter shapes are used as outlines for the mark and the wordmark on the splash screen (the same font as the website)
+- **License:** SIL Open Font License 1.1
+- **Copyright:** Copyright 2022 The Bricolage Grotesque Project Authors
+- **Repository:** https://github.com/ateliertriay/bricolage
+
+**Thank you** to the Bricolage Grotesque Project Authors for a typeface that is free to use.
+
+---
+
 ## 🌟 Special Thanks
 
 ### Open Source Community
@@ -259,6 +273,7 @@ EGM Downloader is released under the **GNU Affero General Public License v3.0 (A
 - **Unlicense (Public Domain):** yt-dlp
 - **LGPL/GPL:** FFmpeg (dynamically linked, separate binary)
 - **Python Software Foundation License:** Python
+- **SIL Open Font License 1.1:** Bricolage Grotesque (outlines on the splash screen)
 
 All licenses are compatible with the AGPL-3.0 License under which EGM Downloader is distributed.
 
