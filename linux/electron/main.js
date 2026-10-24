@@ -178,7 +178,7 @@ async function startFlask() {
   const appPy  = path.join(__dirname, '..', 'app', 'app.py');
   if (!python) {
     dialog.showErrorBox('Python not found',
-      'Bundled Python not found and no system Python 3.10+ available.\n\nPlease reinstall EGM Downloader or install Python from python.org');
+      'Bundled Python not found and no system Python 3.11+ available.\n\nPlease reinstall EGM Downloader or install Python from python.org');
     app.quit();
     return;
   }

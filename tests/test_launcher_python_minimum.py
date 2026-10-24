@@ -107,3 +107,11 @@ def test_every_place_that_states_the_minimum_agrees_with_the_gate():
 
     build_sh = (WINDOWS / "BUILD.sh").read_text(encoding="utf-8")
     assert "Python 3.10 or newer — for the FIRST launch only" in build_sh
+
+
+@pytest.mark.parametrize("platform", ["mac", "linux"])
+def test_mac_and_linux_fallback_message_names_the_same_minimum(platform):
+    """Mac and Linux ship their own Python 3.11; the message shown when that bundled copy
+    is missing and no system Python is found must not promise that 3.10 would do."""
+    main_js = (ROOT / platform / "electron" / "main.js").read_text(encoding="utf-8")
+    assert "no system Python 3.11+ available" in main_js and "Python 3.10" not in main_js
