@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-16",
+  "_last_updated": "2026-10-24",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo и {0} других сайтов",
@@ -103,6 +103,7 @@
     "download.warning.source_codec": "Не удалось преобразовать видео в H.264, поэтому оно сохранено в исходном кодеке.",
     "card.status.queued": "В очереди",
     "card.status.downloading": "Загрузка…",
+    "card.status.eta": "Осталось {0}",
     "card.status.fetching_short": "Получение...",
     "card.status.fetching_quality": "Получение качества…",
     "card.status.queued_ellipsis": "В очереди...",
@@ -212,6 +213,7 @@
     "themes.btn.apply": "Применить",
     "themes.active_label": "Активная",
     "subscriptions.title": "Подписки",
+    "subscriptions.title_short": "Подписки",
     "subscriptions.url.placeholder": "Вставьте URL сюда...",
     "subscriptions.empty": "Добавьте URL канала или плейлиста, чтобы начать",
     "subscriptions.empty.no_subs": "Подписок пока нет",
@@ -241,6 +243,7 @@
     "subscriptions.queue.active": "{0} активно",
     "subscriptions.queue.quitting_in": "Закрытие через {0} с",
     "subscriptions.detail.videos_count": "{0} видео",
+    "subscriptions.detail.videos_total": "Всего видео: {0}",
     "subscriptions.detail.last_fetched": " · Последнее получение: {0}",
     "subscriptions.detail.autofetch": "Автополучение при открытии",
     "subscriptions.detail.select_all": "Выбрать всё",

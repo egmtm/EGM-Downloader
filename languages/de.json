@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-16",
+  "_last_updated": "2026-10-24",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} weitere Seiten",
@@ -103,6 +103,7 @@
     "download.warning.source_codec": "Die Konvertierung in H.264 ist fehlgeschlagen, daher wurde das Video im ursprünglichen Codec gespeichert.",
     "card.status.queued": "In Warteschlange",
     "card.status.downloading": "Wird heruntergeladen…",
+    "card.status.eta": "Noch {0}",
     "card.status.fetching_short": "Wird geladen...",
     "card.status.fetching_quality": "Qualität wird geladen…",
     "card.status.queued_ellipsis": "In Warteschlange...",
@@ -212,6 +213,7 @@
     "themes.btn.apply": "Anwenden",
     "themes.active_label": "Aktiv",
     "subscriptions.title": "Abonnements",
+    "subscriptions.title_short": "Abos",
     "subscriptions.url.placeholder": "URL hier einfügen...",
     "subscriptions.empty": "Füge eine Kanal- oder Playlist-URL hinzu, um zu beginnen",
     "subscriptions.empty.no_subs": "Noch keine Abonnements",
@@ -241,6 +243,7 @@
     "subscriptions.queue.active": "{0} aktiv",
     "subscriptions.queue.quitting_in": "Beenden in {0} s",
     "subscriptions.detail.videos_count": "{0} Videos",
+    "subscriptions.detail.videos_total": "{0} Videos insgesamt",
     "subscriptions.detail.last_fetched": " · Zuletzt geladen: {0}",
     "subscriptions.detail.autofetch": "Automatisch laden beim Öffnen",
     "subscriptions.detail.select_all": "Alle auswählen",

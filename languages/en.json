@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-19",
+  "_last_updated": "2026-10-24",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} more sites",
@@ -103,6 +103,7 @@
     "download.warning.source_codec": "The H.264 conversion failed, so the video was saved in its original codec.",
     "card.status.queued": "Queued",
     "card.status.downloading": "Downloading…",
+    "card.status.eta": "ETA {0}",
     "card.status.fetching_short": "Fetching...",
     "card.status.fetching_quality": "Fetching quality…",
     "card.status.queued_ellipsis": "Queued...",
@@ -212,6 +213,7 @@
     "themes.btn.apply": "Apply",
     "themes.active_label": "Active",
     "subscriptions.title": "Subscriptions",
+    "subscriptions.title_short": "Subs",
     "subscriptions.url.placeholder": "Paste URL here...",
     "subscriptions.empty": "Add a channel or playlist URL to get started",
     "subscriptions.empty.no_subs": "No subscriptions yet",
@@ -241,6 +243,7 @@
     "subscriptions.queue.active": "{0} active",
     "subscriptions.queue.quitting_in": "Quitting in {0}s",
     "subscriptions.detail.videos_count": "{0} videos",
+    "subscriptions.detail.videos_total": "{0} videos total",
     "subscriptions.detail.last_fetched": " · Last fetched: {0}",
     "subscriptions.detail.autofetch": "Auto-fetch on open",
     "subscriptions.detail.select_all": "Select all",

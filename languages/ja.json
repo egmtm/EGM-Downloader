@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-16",
+  "_last_updated": "2026-10-24",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & 他{0}サイト",
@@ -103,6 +103,7 @@
     "download.warning.source_codec": "H.264 への変換に失敗したため、動画は元のコーデックのまま保存されました。",
     "card.status.queued": "待機中",
     "card.status.downloading": "ダウンロード中…",
+    "card.status.eta": "残り {0}",
     "card.status.fetching_short": "取得中...",
     "card.status.fetching_quality": "画質情報を取得中…",
     "card.status.queued_ellipsis": "キュー待ち...",
@@ -212,6 +213,7 @@
     "themes.btn.apply": "適用",
     "themes.active_label": "アクティブ",
     "subscriptions.title": "購読",
+    "subscriptions.title_short": "購読",
     "subscriptions.url.placeholder": "URL をここに貼り付け...",
     "subscriptions.empty": "チャンネルまたはプレイリストの URL を追加して開始",
     "subscriptions.empty.no_subs": "まだ購読がありません",
@@ -241,6 +243,7 @@
     "subscriptions.queue.active": "{0} 件アクティブ",
     "subscriptions.queue.quitting_in": "{0}秒後に終了します",
     "subscriptions.detail.videos_count": "{0} 本の動画",
+    "subscriptions.detail.videos_total": "合計 {0} 本の動画",
     "subscriptions.detail.last_fetched": " · 最終取得: {0}",
     "subscriptions.detail.autofetch": "開いたときに自動取得",
     "subscriptions.detail.select_all": "すべて選択",
