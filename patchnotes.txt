@@ -3,6 +3,7 @@ vTBD - TBD (TBD)
 
   • [ALL] Changed: The What's New button in the footer was replaced by the version number. Click the version number to see what's new.
   • [ALL] Changed: The splash screen was redesigned.
+  • [ALL] Changed: The app starts faster on Windows, Mac and Linux.
   • [ALL] Fixed: The update check compares build numbers, so an older release is never offered as an update.
   • [LINUX] Fixed: An older yt-dlp or brotli left over from Update Plugins is removed at start, so the newer one that comes with the app is used.
   • [ALL] Fixed: A download that fails partway is no longer reported as saved when only the video part of it was downloaded, and the leftover files are removed.
