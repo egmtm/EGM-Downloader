@@ -369,7 +369,7 @@ function buildSidebar() {
   const sb = document.getElementById('sidebar');
   const collapsed = getCollapsed();
 
-  let html = `<div class="cat-tab all-tab${activeCat === 'all' ? ' active' : ''}" data-cat="all">All<span class="cat-count">${countTotal()}</span></div>`;
+  let html = `<div class="cat-tab all-tab${activeCat === 'all' ? ' active' : ''}" data-cat="all">${i18nAttr('themes.filter.all', 'All')}<span class="cat-count">${countTotal()}</span></div>`;
 
   if (favoriteThemes.size > 0) {
     html += `<div class="cat-tab fav-tab${activeCat === 'favorites' ? ' active' : ''}" data-cat="favorites" style="color:var(--acc)"><span style="margin-inline-end:4px;font-size:13px">♥</span>${i18nAttr('themes.tab.favorites','Favorites')}<span class="cat-count">${favoriteThemes.size}</span></div>`;
