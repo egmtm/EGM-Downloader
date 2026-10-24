@@ -55,7 +55,7 @@ def test_bump_version_still_matches_the_version_pill_markup():
         cwd=ROOT, capture_output=True, text=True, timeout=60,
     ).stdout
     for p in INDEX_FILES:
-        assert f"{p} -> footer-version-pill text (1 replacement)" in out, (
+        assert f"[DRY] {p} -> footer-version-pill text (1 replacement)" in out, (
             f"bump-version.py no longer matches the version pill in {p}; "
             f"a bump would leave the footer showing the old version. Output:\n{out}"
         )
