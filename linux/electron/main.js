@@ -216,11 +216,8 @@ async function startFlask() {
 // count of attempts would not add up to 3 minutes there.
 function waitForFlask(budgetMs = 180000, delay = 250) {
   return new Promise((resolve, reject) => {
-    let attemptCount = 0;
     const deadline = Date.now() + budgetMs;
     const try_ = () => {
-      attemptCount++;
-      // Exponential curve: visible movement early, slows as it approaches 90%
       const req = http.get(APP_URL, res => { res.resume(); resolve(); });
       req.on('error', () => {
         if (Date.now() >= deadline) {
