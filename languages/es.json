@@ -117,7 +117,7 @@
     "card.status.fetching": "Obteniendo info...",
     "bulk.status.downloading": "Descargando…",
     "bulk.btn.clear_completed": "✓ Limpiar completados",
-    "bulk.btn.cancel_all": "✕ Cancelar todo",
+    "bulk.btn.cancel_all": "Cancelar todo",
     "quality.modal.title": "🎬 Calidad de video",
     "quality.modal.subtitle": "Selecciona la calidad para todas las descargas de video.",
     "quality.option.best": "La mejor disponible",

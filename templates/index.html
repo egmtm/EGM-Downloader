@@ -2234,8 +2234,8 @@
       </div>
     </div>
     <div id="bulk-actions" style="display:none;gap:8px;margin-top:8px">
-      <button class="btn btn-primary" id="dl-all-btn">⬇ Download All Videos</button>
-      <button class="btn btn-ghost" id="dl-all-audio-btn" style="border-color:var(--audio-btn-color);color:var(--audio-btn-color)">♫ Download All Audio</button>
+      <button class="btn btn-primary" id="dl-all-btn"><span>⬇ <span data-i18n="url.btn.download_all_videos">Download All Videos</span></span></button>
+      <button class="btn btn-ghost" id="dl-all-audio-btn" style="border-color:var(--audio-btn-color);color:var(--audio-btn-color)"><span>♫ <span data-i18n="url.btn.download_all_audio">Download All Audio</span></span></button>
     </div>
   </div>
 </div>
@@ -2356,7 +2356,7 @@
 <div id="bulk-bar">
   <span id="bulk-txt">Downloading…</span>
 
-  <button class="btn btn-red btn-sm" onclick="cancelBulk()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> Cancel All</button>
+  <button class="btn btn-red btn-sm" onclick="cancelBulk()"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="vertical-align:-1px"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg> <span data-i18n="bulk.btn.cancel_all">Cancel All</span></button>
 </div>
 
 <!-- Results -->

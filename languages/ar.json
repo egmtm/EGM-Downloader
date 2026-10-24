@@ -117,7 +117,7 @@
     "card.status.fetching": "جاري جلب المعلومات...",
     "bulk.status.downloading": "جاري التحميل…",
     "bulk.btn.clear_completed": "✓ مسح المكتملة",
-    "bulk.btn.cancel_all": "✕ إلغاء الكل",
+    "bulk.btn.cancel_all": "إلغاء الكل",
     "quality.modal.title": "🎬 جودة الفيديو",
     "quality.modal.subtitle": "اختر الجودة لجميع تحميلات الفيديو.",
     "quality.option.best": "الأفضل المتاحة",

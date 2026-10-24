@@ -117,7 +117,7 @@
     "card.status.fetching": "情報取得中...",
     "bulk.status.downloading": "ダウンロード中…",
     "bulk.btn.clear_completed": "✓ 完了をクリア",
-    "bulk.btn.cancel_all": "✕ すべてキャンセル",
+    "bulk.btn.cancel_all": "すべてキャンセル",
     "quality.modal.title": "🎬 動画の画質",
     "quality.modal.subtitle": "すべての動画ダウンロードの画質を選択してください。",
     "quality.option.best": "最高画質",

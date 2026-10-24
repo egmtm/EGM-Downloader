@@ -117,7 +117,7 @@
     "card.status.fetching": "Info ophalen...",
     "bulk.status.downloading": "Downloaden…",
     "bulk.btn.clear_completed": "✓ Voltooide wissen",
-    "bulk.btn.cancel_all": "✕ Alles annuleren",
+    "bulk.btn.cancel_all": "Alles annuleren",
     "quality.modal.title": "🎬 Videokwaliteit",
     "quality.modal.subtitle": "Selecteer de kwaliteit voor alle videodownloads.",
     "quality.option.best": "Beste beschikbaar",
