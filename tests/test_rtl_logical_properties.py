@@ -5,7 +5,8 @@ padding-inline-end, border-inline-start, inset-inline-end, text-align: start/end
 mirrors on its own. A physical one (margin-left, padding-right, border-left, left:/right: offsets,
 text-align: left/right) stays put in Arabic, so this test fails when one appears in a stylesheet
 rule, a <style> block, a style="" attribute (in markup or built in a JS string), a cssText string,
-or an el.style.marginLeft style assignment.
+an el.style.marginLeft or el.style.left assignment, a setProperty call or a setAttribute('style', …)
+call, whatever the case of the letters.
 
 Only places CSS lives are read: comments are blanked first and text content is never scanned, so
 prose and JS geometry such as getBoundingClientRect().left do not count. The few physical
@@ -31,19 +32,25 @@ ALLOWED = {
         "centred with left: 50% and translate(-50%), the same in both directions",
     ("templates/subscriptions.html", ".quit-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20001; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: min(300px, 86vw); padding: 22px 28px; background: var(--surf); border: 1px solid var(--border2); border-radius: 12px; box-shadow: var(--modal-shadow); color: var(--text); font-size: .95rem; font-weight: 600; text-align: center; animation: quit-card-in .18s ease; }"):
         "centred with left: 50% and translate(-50%), the same in both directions",
+    ("templates/subscriptions.html", "menu.style.left = Math.round(left) + 'px';"):
+        "the context menu and the kebab menu are placed by a left offset the line above computes from the page direction",
 }
 
 # Files that are plain CSS, included inside a <style> element.
 CSS_FILES = {"index_styles.html", "theme_styles.html"}
 
+# CSS is case-insensitive, so every pattern is too.
 PHYSICAL = re.compile(
-    r"(?<![\w.$-])(?:(?:margin|padding)-(?:left|right)|border-(?:left|right)(?:-[a-z]+)?)\s*:"
+    r"(?<![\w.$-])(?:(?:margin|padding)-(?:left|right)|border-(?:left|right)(?:-[a-z]+)?"
+    r"|border-(?:top|bottom)-(?:left|right)-radius|float|clear|text-indent)\s*:"
     r"|(?<![\w.$-])(?:left|right)\s*:\s*(?=[-+.\d]|auto\b|calc\(|var\()"
-    r"|(?<![\w-])text-align\s*:\s*(?:left|right)\b")
-CSSOM = re.compile(r"\.style\.(?:(?:margin|padding|border)(?:Left|Right)\w*\s*=|textAlign\s*=\s*['\"](?:left|right)\b)")
+    r"|(?<![\w-])(?:text-align|background-position)\s*:\s*(?:left|right)\b", re.I)
+# Styles set from JS: el.style.marginLeft, el.style.left, setProperty('margin-left', …) and setAttribute('style', …).
+CSSOM = re.compile(r"\.style\.(?:(?:margin|padding|border)(?:Left|Right)\w*\s*=|(?:left|right)\s*=|textAlign\s*=\s*['\"](?:left|right)\b)"
+                   r"|\.setProperty\(\s*['\"](?:(?:margin|padding|border)-(?:left|right)|left|right|text-align|float)\b", re.I)
 STYLE_BLOCK = re.compile(r"<style[^>]*>(.*?)</style>", re.S | re.I)
-STYLE_ATTR = re.compile(r"""\bstyle\s*=\s*(?:"([^"]*)"|'([^']*)')""")
-CSS_TEXT = re.compile(r"""cssText\s*\+?=\s*(['"`])(.*?)\1""")
+STYLE_ATTR = re.compile(r"""(?:\bstyle\s*=|setAttribute\(\s*['"]style['"]\s*,)\s*(?:"([^"]*)"|'([^']*)'|`([^`]*)`)""", re.I)
+CSS_TEXT = re.compile(r"""cssText\s*\+?=\s*(['"`])(.*?)\1""", re.I)
 COMMENTS = re.compile(r"/\*.*?\*/|<!--.*?-->|(?:^|(?<=[\s;{}(),]))//[^\n]*", re.S | re.M)
 
 
@@ -57,7 +64,7 @@ def findings(name, text):
     spans = [(0, text)] if name in CSS_FILES else []
     for rx, group in ((STYLE_BLOCK, 1), (STYLE_ATTR, None), (CSS_TEXT, 2)):
         for m in rx.finditer(text):
-            g = group or (1 if m.group(1) is not None else 2)
+            g = group or next(i for i in (1, 2, 3) if m.group(i) is not None)
             spans.append((m.start(g), m.group(g)))
     hits = {(start + m.start(), m.group(0)) for start, body in spans for m in PHYSICAL.finditer(body)}
     hits |= {(m.start(), m.group(0)) for m in CSSOM.finditer(text)}
@@ -95,11 +102,15 @@ def test_no_physical_left_right_properties_outside_the_allowlist():
     ("a.html", "el.innerHTML = `<span style=\"border-left:2px solid\">${t}</span>`;", 1),
     ("a.html", "t.style.cssText = 'display:flex;right:0';", 1),
     ("a.html", "el.style.marginLeft = '4px';", 1),
+    ("a.html", "menu.style.left = Math.round(x) + 'px';", 1),
+    ("a.html", "el.style.setProperty('margin-left', '4px'); el.setAttribute('style', 'padding-right:2px');", 2),
+    ("a.html", "el.innerHTML = `<div STYLE=\"Margin-Left:${n}px\">`;", 1),
+    ("index_styles.html", ".x { border-top-left-radius: 4px; float: left; text-indent: 8px; background-position: right; }", 4),
     ("index_styles.html", ".x { text-align: right; left: 2px; }", 2),
     ("index_styles.html", ".x { margin-inline-start: 4px; inset-inline-end: 0; text-align: end; }", 0),
     ("index_styles.html", "/* nav → margin-right -21px lands its right edge */ .x { color: red; }", 0),
     ("a.html", "<p>Move it left: 4 places</p>", 0),
-    ("a.html", "const r = el.getBoundingClientRect(); let left = r.right - w; menu.style.left = left + 'px';", 0),
+    ("a.html", "const r = el.getBoundingClientRect(); let left = r.right - w; if (left < 4) left = 4;", 0),
     ("a.html", "// was style=\"margin-left:auto\"\nconst a = 1;", 0),
 ])
 def test_guard_finds_physical_css_and_ignores_the_rest(name, text, expected):
