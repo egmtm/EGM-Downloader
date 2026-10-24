@@ -236,7 +236,7 @@ async function startFlask() {
   if (!python) {
     closeSplash();
     dialog.showErrorBox('Python not found',
-      'Python 3.10+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
+      'Python 3.11+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
     app.quit();
     return;
   }

@@ -86,7 +86,8 @@ def test_portable_edition_still_needs_3_10(tmp_path, monkeypatch, version):
 def test_every_place_that_states_the_minimum_agrees_with_the_gate():
     """The words users read must match what the launcher enforces. The installer says 3.11
     (instructions file, the installer's welcome page in all ten languages, the launcher's
-    "no Python found" box); the portable instructions keep 3.10 for the first launch."""
+    "no Python found" box and the Windows shell's own "Python not found" message); the
+    portable instructions keep 3.10 for the first launch."""
     instructions = (WINDOWS / "instructions.txt").read_text(encoding="utf-8")
     assert "Python 3.11 or newer" in instructions and "3.10" not in instructions
 
@@ -100,6 +101,9 @@ def test_every_place_that_states_the_minimum_agrees_with_the_gate():
 
     launcher_c = (WINDOWS / "launcher.c").read_text(encoding="utf-8")
     assert "Python 3.11+ is required" in launcher_c and "3.10" not in launcher_c
+
+    main_js = (WINDOWS / "electron" / "main.js").read_text(encoding="utf-8")
+    assert "'Python 3.11+ is required." in main_js and "Python 3.10" not in main_js
 
     build_sh = (WINDOWS / "BUILD.sh").read_text(encoding="utf-8")
     assert "Python 3.10 or newer — for the FIRST launch only" in build_sh
