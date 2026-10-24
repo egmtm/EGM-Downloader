@@ -200,6 +200,17 @@ A side by side look at one well known alternative, using details you can check y
 
 **First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) into your user data directory. Electron alone is about 250 MB, so the whole Windows first launch download is several hundred MB. After an app update that needs a newer Electron, the new one is downloaded next to the current one and only switched in once it works. If the download fails or you are offline, a point update keeps the current Electron and tries again at the next launch. macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
 
+### What's inside each download
+
+| Download | Contents | Start with |
+|---|---|---|
+| `EGMd.zip` (Windows installer) | `egm-setup.exe`, `instructions.txt`, `LICENSE` | `egm-setup.exe` |
+| `EGMd-portable.zip` (Windows portable) | `EGM Downloader.exe`, `instructions.txt`, `LICENSE`, `patchnotes.txt`, the `languages` folder, and the app's own files (`app.py`, `launch.py`, `.portable`, and the `electron`, `static` and `templates` folders), which are hidden after the first run | `EGM Downloader.exe` |
+| `EGMdM.zip` (macOS) | `EGM Downloader.dmg`, `INSTRUCTIONS.txt`, `LICENSE` | `EGM Downloader.dmg` |
+| `EGMdL.zip` (Linux) | `EGM Downloader.AppImage`, `INSTRUCTIONS.txt`, `LICENSE` | `EGM Downloader.AppImage` |
+
+Every download comes from egerena.com. The GitHub release pages carry the notes and link there. Check your zip against the SHA256 listed above.
+
 ---
 
 <a id="system-requirements"></a>
