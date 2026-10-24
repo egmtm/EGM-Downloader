@@ -79,7 +79,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nSho
 
     /* Nothing worked — show error */
     MessageBoxW(NULL,
-        L"Python 3.10+ is required.\n\n"
+        L"Python 3.11+ is required.\n\n"
         L"Download from: https://python.org\n"
         L"Check 'Add Python to PATH' during install.",
         L"EGM Downloader",

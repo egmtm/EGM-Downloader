@@ -6,7 +6,7 @@ https://egerena.com/apps/egm.html
 REQUIREMENTS
 ─────────────
   • Windows 10 or 11 (64-bit)
-  • Python 3.10 or newer
+  • Python 3.11 or newer
       Download: https://www.python.org/downloads/
       IMPORTANT: During install, check "Add Python to PATH"
 

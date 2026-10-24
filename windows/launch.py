@@ -4,12 +4,13 @@ from pathlib import Path
 
 # ── Python version gate ───────────────────────────────────────────────────────
 # This guards the interpreter that is *running this script*. Installer: the system
-# Python (which also runs the app). Portable: on the FIRST run that's the system
-# Python used only to bootstrap (it then downloads a private embedded Python and
-# runs everything on that); on warm runs the launcher re-enters via the embedded
-# 3.12, which always passes. Fail fast with a clear native dialog instead of a
+# Python, which also runs the app, so it has to be one yt-dlp still supports (3.11 or
+# newer; yt-dlp dropped 3.10). Portable: on the FIRST run that's the system Python used
+# only to bootstrap (it then downloads a private embedded Python and runs everything on
+# that), so 3.10 is still enough there; on warm runs the launcher re-enters via the
+# embedded 3.12, which always passes. Fail fast with a clear native dialog instead of a
 # confusing traceback. (Uses %-formatting + ctypes only, so it runs on old ones.)
-_PY_MIN = (3, 10)
+_PY_MIN = (3, 10) if (Path(__file__).resolve().parent / ".portable").exists() else (3, 11)
 if sys.version_info < _PY_MIN:
     _msg = ("EGM Downloader needs Python %d.%d or newer.\n\n"
             "Detected: Python %d.%d.%d\n\n"
