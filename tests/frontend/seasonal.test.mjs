@@ -13,7 +13,7 @@ const on = (y, m, d) => [...seasonalVisibleKeys(new Date(y, m - 1, d, 12))];
 test("windows: Hanami, Velvet Rose and the newer themes follow their dates", () => {
   assert.ok(on(2026, 3, 19).indexOf("hanami") < 0 && on(2026, 3, 20).includes("hanami"), "Hanami opens Mar 20");
   assert.ok(on(2026, 5, 5).includes("hanami") && !on(2026, 5, 6).includes("hanami"), "Hanami closes after May 5");
-  assert.ok(on(2026, 2, 14).includes("velvetrose") && !on(2026, 7, 1).includes("velvetrose"), "Velvet Rose around Valentine's");
+  assert.ok(on(2026, 5, 10).includes("velvetrose") && !on(2026, 2, 14).includes("velvetrose") && !on(2026, 7, 1).includes("velvetrose"), "Velvet Rose around Mother's Day (second Sunday of May), no longer around Valentine's");
   assert.ok(on(2026, 10, 18).includes("halloween") && !on(2026, 10, 18).includes("hanami"));
   assert.ok(on(2026, 5, 1).includes("vesak") && on(2026, 4, 5).includes("qingming"), "variable dates still work");
   assert.ok(on(2026, 12, 25).includes("christmas") && on(2027, 1, 10).includes("christmas"), "year wrap");

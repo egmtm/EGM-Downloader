@@ -557,7 +557,6 @@ const THEME_DATA = {
 // Fixed: [[startMonth,startDay],[endMonth,endDay]]; a window may wrap the new year.
 const SEASONAL_FIXED = {
     valentines:    [[1,15],[3,15]],
-    velvetrose:    [[1,15],[3,15]],
     stpatricks:    [[2,15],[4,16]],
     fourthofjuly:  [[6,4],[8,3]],
     halloween:     [[10,1],[11,30]],
@@ -589,6 +588,7 @@ const SEASONAL_VARIABLE = {
     eid:      {2025:[3,30],2026:[3,20],2027:[3,9],2028:[2,27],2029:[2,15],2030:[2,4]},
     vesak:    {2025:[5,12],2026:[5,1],2027:[5,20],2028:[5,8],2029:[5,27],2030:[5,17]},
     qingming: {2025:[4,4],2026:[4,5],2027:[4,5],2028:[4,4],2029:[4,4],2030:[4,5]},
+    velvetrose: {2025:[5,11],2026:[5,10],2027:[5,9],2028:[5,14],2029:[5,13],2030:[5,12]},
 };
 // The set of seasonal theme keys whose window contains `now`.
 function seasonalVisibleKeys(now = new Date()) {
