@@ -75,6 +75,16 @@ def test_a_video_stream_without_its_audio_is_not_a_finished_download(app, monkey
     assert left == []
 
 
+@pytest.mark.parametrize("stream", ["fhls-1080p.mp4", "fdash-video_1080p.mp4", "f1080p.0.mp4", "f137.temp.mp4"],
+                         ids=["hls id", "dash id", "id with a dot", "temp piece"])
+def test_a_stream_is_never_the_finished_file_whatever_its_format_id_looks_like(app, monkeypatch, tmp_path, stream):
+    """The finished file is exactly {job_id}.{ext}; a format id is not always digits (hls-1080p, dash-video_1080p,
+    ids with a dot), so the rule must not depend on the id's shape."""
+    job, left = _run_failed(app, monkeypatch, tmp_path, [f"{JOB}.{stream}", f"{JOB}.f140.m4a"])
+    assert job["status"] == "error", job
+    assert left == []
+
+
 def test_two_unmerged_streams_are_an_error_and_leave_nothing_behind(app, monkeypatch, tmp_path):
     job, left = _run_failed(app, monkeypatch, tmp_path, [f"{JOB}.f137.mp4", f"{JOB}.f140.m4a"])
     assert job["status"] == "error"
