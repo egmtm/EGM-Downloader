@@ -225,7 +225,7 @@ def test_the_allowlist_has_no_stale_entries():
 # direction is covered by test_i18n_keys_exist_in_en_locale).
 READ_IN_TEMPLATES = {"card.status.eta": 2, "subscriptions.title_short": 1, "subscriptions.detail.videos_total": 1,
                      "url.btn.download_all_videos": 1, "url.btn.download_all_audio": 1, "bulk.btn.cancel_all": 1,
-                     "themes.filter.all": 1}
+                     "themes.filter.all": 1, "url.btn.paste_fetch": 2}
 
 
 def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():
