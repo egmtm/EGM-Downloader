@@ -164,8 +164,8 @@ A side by side look at one well known alternative, using details you can check y
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.5.0.0.5  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (662 KB · ~800 MB after install)  
-**SHA256:** `b462c08181cc31d34e7e0e773502ccabf639ba4ef507414a35d0aea16951f1c9`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (669 KB · ~800 MB after install)  
+**SHA256:** `383e53790a4b5469f815c455a74a7ce00be6b52b42ba76a5f53ea869eb4e1cef`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.11+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -173,8 +173,8 @@ A side by side look at one well known alternative, using details you can check y
 
 ### Windows Portable
 **Latest:** v1.5.0.0.5  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (667 KB · ~1 GB after first run)  
-**SHA256:** `ff9251c013cbf91818a9f3be550633ac4bdca54f96d1e556d9ec98522c609c2c`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (675 KB · ~1 GB after first run)  
+**SHA256:** `c7aa4cb4dfa41e5dece643dde16c71e739595ba8053466016c45badd5adbd739`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -185,7 +185,7 @@ A side by side look at one well known alternative, using details you can check y
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.5.0.0.5  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (143 MB · ~300 MB after install)  
-**SHA256:** `921594eec74fd786ad1607551107123dfb79b0f39dc4b6ff857d81dcf70c1423`  
+**SHA256:** `0e1872fc95300a062b4c3bfcff17913bb776b4a4b9bcc247b4340e1e143de0fb`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -195,7 +195,7 @@ A side by side look at one well known alternative, using details you can check y
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.5.0.0.5  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (171 MB · ~300 MB after install)  
-**SHA256:** `a3e28f3eadf9d0bbfe4b1fc539b4419c95af554c818860c0ac41925da4a70b6e`  
+**SHA256:** `acd30c3f1a0c7adfe9375abee9e59987bddb465d27c8b6d55c2ce52b2bd060b1`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
