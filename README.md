@@ -250,6 +250,19 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 ---
 
+## 🗺️ Roadmap
+
+### Next: v1.6 · [redacted]
+
+- 🔒 [redacted]
+- 🎨 100 new themes
+- ⚡ Electron 46
+- More to be announced
+
+*Plans can change. This list is updated as things are locked in.*
+
+---
+
 ## 📖 The Origin Story
 
 EGM Downloader started with [ReClip](https://github.com/averygan/reclip) by [@averygan](https://github.com/averygan), which showed what's possible with yt-dlp and a clean web interface. ReClip is a web app you host yourself, which suits developers, but I wanted something friends and family could use without a terminal. Setting up Python, yt-dlp, ffmpeg and Flask isn't everyone's cup of tea.
