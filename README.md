@@ -25,6 +25,11 @@
   
   <p>Download videos or extract audio from YouTube, TikTok, Instagram, Twitter, Facebook, and hundreds of other platforms with a beautiful, easy-to-use interface.</p>
   <p><em>Powered by yt-dlp · runs locally · no cloud · no tracking · no accounts</em></p>
+
+  <p>
+    <a href="screenshots/tour.mp4"><img src="screenshots/tour-poster.png" width="640" alt="EGM Downloader in 24 seconds: paste a link, pick a quality, done. Click to watch the video."/></a>
+    <br/><sub>▶ Click the picture to watch the 24 second tour</sub>
+  </p>
 </div>
 
 ---
