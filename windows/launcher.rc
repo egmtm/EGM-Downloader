@@ -20,12 +20,12 @@ FILETYPE        0x1L
         {
             VALUE "CompanyName",      "EGM"
             VALUE "FileDescription",  "EGM Downloader Launcher"
-            VALUE "FileVersion",      "1.5.0.0.1"
+            VALUE "FileVersion",      "1.5.0.0.5"
             VALUE "InternalName",     "EGM Downloader"
             VALUE "LegalCopyright",   "Copyright (C) EGM"
             VALUE "OriginalFilename", "EGM Downloader.exe"
             VALUE "ProductName",      "EGM Downloader"
-            VALUE "ProductVersion",   "1.5.0.0.1"
+            VALUE "ProductVersion",   "1.5.0.0.5"
         }
     }
     BLOCK "VarFileInfo"
