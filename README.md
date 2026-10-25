@@ -88,7 +88,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.5.0.0.1, THE ONE ABOUT BROTLI. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.0.0.5, CITIUS · أصيل. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -97,12 +97,12 @@ A side by side look at one well known alternative, using details you can check y
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Jazz Club theme"/></a>
-      <br/><sub><b>Main UI</b> (Halloween theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI in Arabic, Meadow theme"/></a>
+      <br/><sub><b>Main UI</b> (Arabic, Meadow theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Blueprint theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Ubuntu theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel in Arabic, Miami theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Arabic, Miami theme)</sub>
     </td>
   </tr>
 </table>
@@ -111,11 +111,11 @@ A side by side look at one well known alternative, using details you can check y
   <tr>
     <td align="center" width="50%">
       <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Northern Lights theme"/></a>
-      <br/><sub><b>Live Streams</b> (Abyssal theme)</sub>
+      <br/><sub><b>Live Streams</b> (Northern Lights theme)</sub>
     </td>
     <td align="center" width="50%">
       <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Holographic theme"/></a>
-      <br/><sub><b>Live Stream Reconnecting</b> (Cobalt Rush theme)</sub>
+      <br/><sub><b>Live Stream Reconnecting</b> (Holographic theme)</sub>
     </td>
   </tr>
 </table>
@@ -124,11 +124,11 @@ A side by side look at one well known alternative, using details you can check y
   <tr>
     <td align="center" width="50%">
       <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Polaroid theme"/></a>
-      <br/><sub><b>Quit When Done</b> (Mint theme)</sub>
+      <br/><sub><b>Quit When Done</b> (Polaroid theme)</sub>
     </td>
     <td align="center" width="50%">
       <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Lilac Mist theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Arch Linux theme)</sub>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Lilac Mist theme)</sub>
     </td>
   </tr>
 </table>
@@ -137,11 +137,11 @@ A side by side look at one well known alternative, using details you can check y
   <tr>
     <td align="center" width="50%">
       <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Monsoon theme"/></a>
-      <br/><sub><b>All Themes</b> (Dialup theme)</sub>
+      <br/><sub><b>All Themes</b> (Monsoon theme)</sub>
     </td>
     <td align="center" width="50%">
       <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Copper Tide"/></a>
-      <br/><sub><b>Theme Creator</b> (custom Toxic Orchid theme)</sub>
+      <br/><sub><b>Theme Creator</b> (custom Copper Tide theme)</sub>
     </td>
   </tr>
 </table>
@@ -149,12 +149,12 @@ A side by side look at one well known alternative, using details you can check y
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Wanderlust theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Matcha theme)</sub>
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions in Arabic, Favela Sunset theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Arabic, Favela Sunset theme)</sub>
     </td>
     <td align="center" width="50%">
       <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Permafrost theme"/></a>
-      <br/><sub><b>Download History</b> (Velvet Rose theme)</sub>
+      <br/><sub><b>Download History</b> (Permafrost theme)</sub>
     </td>
   </tr>
 </table>
