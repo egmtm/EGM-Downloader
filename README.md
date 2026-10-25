@@ -27,8 +27,6 @@
   <p><em>Powered by yt-dlp · runs locally · no cloud · no tracking · no accounts</em></p>
 </div>
 
-https://github.com/user-attachments/assets/50671736-bfa5-466c-84b7-9c203eaf663e
-
 ---
 
 <p align="center">
@@ -86,7 +84,11 @@ A side by side look at one well known alternative, using details you can check y
 
 <a id="screenshots"></a>
 
-## 🖼️ Screenshots
+## 🖼️ Screenshots and videos
+
+https://github.com/user-attachments/assets/50671736-bfa5-466c-84b7-9c203eaf663e
+
+https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 
 > 📸 *Screenshots of v1.5.0.0.5, CITIUS · أصيل. The UI is identical across Windows, macOS, and Linux.*
 
