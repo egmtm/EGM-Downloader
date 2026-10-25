@@ -238,3 +238,13 @@ def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():
     short = {key: templates.count(f"'{key}'") + templates.count(f'"{key}"') for key in READ_IN_TEMPLATES}
     short = {key: n for key, n in short.items() if n < READ_IN_TEMPLATES[key]}
     assert not short, f"read in fewer templates places than expected, so some text shows in English: {short}"
+
+
+def test_no_translation_contains_markup():
+    """A translated string is text. Some of them are placed into HTML by the page (the card ETA, the
+    queue lines, the videos total), so a '<' or '>' inside one would become markup that runs in the page
+    that holds the API token. No value has either character today. A translator who needs a comparison
+    sign writes the word instead."""
+    markup = {f"{code}.json: {key}": value for code, strings in LOCALES.items()
+              for key, value in strings.items() if "<" in value or ">" in value}
+    assert not markup, f"these translations contain < or >: {markup}"
