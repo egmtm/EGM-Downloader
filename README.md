@@ -27,8 +27,8 @@
   <p><em>Powered by yt-dlp · runs locally · no cloud · no tracking · no accounts</em></p>
 
   <p>
-    <a href="screenshots/tour.mp4"><img src="screenshots/tour-poster.png" width="640" alt="EGM Downloader in 24 seconds: paste a link, pick a quality, done. Click to watch the video."/></a>
-    <br/><sub>▶ Click the picture to watch the 24 second tour</sub>
+    <a href="screenshots/tour.mp4"><img src="screenshots/tour-poster.png" width="640" alt="EGM Downloader in 24 seconds: paste a link, pick a quality, done. Opens the video file."/></a>
+    <br/><sub>▶ 24 second video tour (MP4, 6 MB): click the picture to open the file</sub>
   </p>
 </div>
 
