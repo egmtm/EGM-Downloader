@@ -1,4 +1,4 @@
-v1.5.0.0.5 - CITIUS · أصيل (10/24/2026)
+v1.5.0.0.5 - CITIUS · أصيل (10/25/2026)
 -----------------------------------------
 
   • [ALL] New: Arabic now reads right to left, with the whole app mirrored.
