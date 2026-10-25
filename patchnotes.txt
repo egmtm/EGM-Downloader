@@ -8,7 +8,7 @@ vTBD - TBD (TBD)
   • [LINUX] Fixed: An older yt-dlp or brotli left over from Update Plugins is removed at start, so the newer one that comes with the app is used.
   • [ALL] Fixed: A download that fails partway is no longer reported as saved when only the video part of it was downloaded, and the leftover files are removed.
   • [WINDOWS] Fixed: Portable: a rare case where the first launch used Python packages already on your PC instead of its own, which made the next launch noticeably slower while it installed them.
-  • [WINDOWS] Changed: The installer edition now needs Python 3.11 or newer (it was 3.10). Python 3.10 reached end of life this month and current yt-dlp no longer supports it. The portable edition is not affected.
+  • [WINDOWS] Changed: The installer edition now needs Python 3.11 or newer (it was 3.10). Python 3.10 reached end of life in October 2026 and current yt-dlp no longer supports it. The portable edition is not affected.
 
 v1.5.0.0.1 - THE ONE ABOUT BROTLI (10/22/2026)
 -----------------------------------------
