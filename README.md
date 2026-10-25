@@ -27,9 +27,7 @@
   <p><em>Powered by yt-dlp · runs locally · no cloud · no tracking · no accounts</em></p>
 </div>
 
-<p align="center">
-  <video src="https://github.com/user-attachments/assets/a2fe575d-746e-432a-bb61-98f39776d2ac" controls playsinline width="720"></video>
-</p>
+https://github.com/user-attachments/assets/50671736-bfa5-466c-84b7-9c203eaf663e
 
 ---
 
