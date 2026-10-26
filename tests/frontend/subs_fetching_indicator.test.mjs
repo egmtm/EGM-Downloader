@@ -7,7 +7,12 @@ import { test, after } from "node:test";
 import assert from "node:assert/strict";
 import { bootSubsPage, en } from "./harness.mjs";
 
-const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+// Waits for the list to show `re` (checked every 50 ms, up to 10 s) instead of sleeping a fixed time: the first
+// poll answers 1.2 s after the fetch starts, and a slow runner must not turn that into a failure.
+const until = (t, re) => new Promise((resolve, reject) => {
+  const t0 = Date.now();
+  (function look() { if (re.test(listText(t))) return resolve(); if (Date.now() - t0 > 10000) return reject(new Error(`video-list never matched ${re}: ${listText(t)}`)); setTimeout(look, 50); })();
+});
 const windows = [];
 after(() => windows.forEach((w) => w.close()));   // stops the page timers (the fetch keeps polling), or the test process never exits
 const json = (body) => ({ ok: true, json: async () => body });
@@ -42,14 +47,32 @@ test("the indicator is still up after the language arrives mid fetch, and the ol
 
 test("a fetch that fails shows its error, not an indicator or the old list", async () => {
   const t = await boot({ status: "error", error: "boom" });
-  await wait(700);                                      // the first poll answers at 1.2 s
+  await until(t, /Error: boom/);                        // the first poll answers 1.2 s after the fetch started
   assert.match(listText(t), /Error: boom/);
   assert.doesNotMatch(listText(t), /Fetching videos|OLD video/);
 });
 
+// A fetch whose request throws must not leave the channel marked as fetching, or every later render of it
+// would show the line for good. The request fails 500 ms in, after the language has arrived, so no re-render
+// follows the error text; a render afterwards shows the stored list without the line.
+test("a fetch whose request throws shows the error and leaves no indicator behind", async () => {
+  const t = await bootSubsPage({
+    onFetch: (u) => {
+      if (u === "/api/subscriptions") return json({ subscriptions: [channel("OLD video")] });
+      if (u === "/api/language/en") return late(300, json(en));
+      if (u === "/api/subscriptions/fetch") return new Promise((_, reject) => setTimeout(() => reject(new Error("network down")), 500));
+    },
+  });
+  windows.push(t.w);
+  await until(t, /Fetch failed/);
+  t.w.eval("renderDetail()");
+  assert.match(listText(t), /OLD video/);
+  assert.doesNotMatch(listText(t), /Fetching videos/);
+});
+
 test("a fetch that finishes replaces the indicator with the new list", async () => {
   const t = await boot({ status: "done", subscription: channel("NEW video") });
-  await wait(700);
+  await until(t, /NEW video/);
   assert.match(listText(t), /NEW video/);
   assert.doesNotMatch(listText(t), /Fetching videos|OLD video/);
 });
