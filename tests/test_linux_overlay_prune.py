@@ -89,9 +89,10 @@ def test_a_current_brotli_is_kept(mod, overlay):
 @pytest.mark.parametrize("version, pruned", [
     ("2026.8.19", True),
     ("2026.10.20", True),
-    ("2026.10.21", False),            # at the floor
-    ("2026.10.22.232843", False),     # a nightly after the floor
-    ("2026.10.20.220001", True),      # a nightly before it
+    ("2026.10.21", True),             # the previous floor: it stops at curl_cffi 0.16.x
+    ("2026.10.26", False),            # at the floor
+    ("2026.10.27.232843", False),     # a nightly after the floor
+    ("2026.10.25.220001", True),      # a nightly before it
 ])
 def test_yt_dlp_is_compared_on_its_version(mod, overlay, version, pruned):
     _ytdlp(overlay, version)
@@ -102,7 +103,7 @@ def test_yt_dlp_is_compared_on_its_version(mod, overlay, version, pruned):
 
 def test_an_old_dist_info_next_to_a_current_one_does_not_trigger_a_prune(mod, overlay):
     """pip --target leaves superseded dist-infos beside the overwritten code: the highest wins."""
-    _ytdlp(overlay, "2026.10.21")
+    _ytdlp(overlay, "2026.10.26")
     (overlay / "yt_dlp-2026.8.19.dist-info").mkdir()
     mod._prune_overlay_below_floors()
     assert (overlay / "yt_dlp" / "__init__.py").exists()
@@ -197,11 +198,11 @@ def test_a_record_row_for_the_overlay_itself_removes_nothing_else(mod, overlay):
     """"./x", "" or "." rows name the overlay folder itself: the whole overlay (other packages
     included) must never go, whichever guard catches it."""
     _brotli(overlay, "1.2.0")
-    _install(overlay, ["yt_dlp/__init__.py"], "yt_dlp-2026.10.21.dist-info")
+    _install(overlay, ["yt_dlp/__init__.py"], "yt_dlp-2026.10.26.dist-info")
     (overlay / "brotli-1.2.0.dist-info" / "RECORD").write_text("./brotli.py,,\n,,\n.,,\n./,,\nbrotli.py,,\n")
     mod._prune_overlay_below_floors()
     assert not (overlay / "brotli.py").exists()
-    assert (overlay / "yt_dlp" / "__init__.py").exists() and (overlay / "yt_dlp-2026.10.21.dist-info").exists()
+    assert (overlay / "yt_dlp" / "__init__.py").exists() and (overlay / "yt_dlp-2026.10.26.dist-info").exists()
     assert overlay.exists()
 
 

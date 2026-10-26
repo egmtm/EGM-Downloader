@@ -2637,7 +2637,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             # against the running env, not the target dir (same reason the
             # yt-dlp path above uses it) — without it the overlay never updates.
             r = _run(sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall",
-                     "curl-cffi<0.17.0", "brotli", "pycryptodomex", "websockets", "certifi",
+                     "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--target", str(PACKAGES_DIR), timeout=300)
             if r.returncode == 0:
                 vers = _get_optlibs_versions()
@@ -2705,7 +2705,7 @@ def _parse_simple_version(v):
 # The two packages whose minimum versions protect users (yt-dlp: current extractors,
 # brotli: the CVE-2026-111497 fix). The same table as PY_DEP_FLOORS in windows/launch.py;
 # test_linux_overlay_prune.py holds it equal to that table and to requirements.txt.
-PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}
+PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1)}
 
 def _prune_overlay_below_floors():
     """Update Plugins installs into PACKAGES_DIR, which _yt_env() puts first on PYTHONPATH,
@@ -2745,7 +2745,7 @@ def _prune_overlay_below_floors():
 # test_curl_cffi_ceiling_also_enforced_on_every_live_update_path holds the
 # code-side three together; test_curl_cffi_stays_within_yt_dlps_supported_
 # version_range covers requirements.txt.
-_CURL_CFFI_CEILING = (0, 17, 0)
+_CURL_CFFI_CEILING = (0, 18, 0)
 
 def _get_latest_optlibs_versions() -> dict:
     def _one(lib):

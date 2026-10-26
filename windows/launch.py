@@ -194,8 +194,9 @@ def _progress(count, block, total):
 # Minimum versions of the packages whose old copies matter. An install whose imports already
 # work is never touched by the sentinels below, so without these floors it would keep an old
 # copy for good. Keep in sync with requirements.txt and the two pip lists (a test compares
-# them): yt-dlp 2026.10.21 has the reworked Kick extractor, brotli 1.2.1 fixes CVE-2026-111497.
-PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}
+# them): yt-dlp 2026.10.26 is the first stable that works with curl_cffi 0.17.x (2026.10.21 has the reworked
+# Kick extractor), brotli 1.2.1 fixes CVE-2026-111497.
+PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1)}
 
 def _version_tuple(s):
     try: return tuple(int(p) for p in str(s).split(".")[:3])
@@ -247,7 +248,7 @@ def ensure_python_deps():
         except ImportError: pass
     _gui_msg("Installing Python packages…")
     _pip_install([sys.executable, "-m", "pip", "install", "-q",
-                  "flask", "yt-dlp>=2026.10.21", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.17.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
                  upgrading, 300)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
@@ -450,7 +451,7 @@ def ensure_python_deps_embedded(py_exe):
         upgrading = True   # everything is there, but a floor package is old
     _gui_msg("Installing Python packages…")
     _pip_install([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                  "flask", "yt-dlp>=2026.10.21", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.17.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
                  upgrading, 600)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────

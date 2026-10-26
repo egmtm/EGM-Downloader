@@ -2703,7 +2703,7 @@ def _parse_simple_version(v):
 # test_curl_cffi_ceiling_also_enforced_on_every_live_update_path holds the
 # code-side three together; test_curl_cffi_stays_within_yt_dlps_supported_
 # version_range covers requirements.txt.
-_CURL_CFFI_CEILING = (0, 17, 0)
+_CURL_CFFI_CEILING = (0, 18, 0)
 
 def _get_latest_optlibs_versions() -> dict:
     def _one(lib):
@@ -2809,7 +2809,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
         if do_optlibs:
             log("Updating optional libraries...")
             r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
-                     "curl-cffi<0.17.0", "brotli", "pycryptodomex", "websockets", "certifi",
+                     "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--break-system-packages", timeout=120)
             if r.returncode == 0:
                 vers = _get_optlibs_versions()

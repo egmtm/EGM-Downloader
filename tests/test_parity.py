@@ -1182,6 +1182,15 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
     stable 2026.10.21, which is why that is the yt-dlp floor -- a Kick
     extractor matter, not a curl_cffi/networking one.
 
+    Raised to <0.18.0 (0.17.x now included) with the yt-dlp floor at 2026.10.26,
+    the first stable whose gate reads "0.5.10 and 0.10.x through 0.17.x"
+    (2026.10.21 stops at 0.16.x, so the two moved together). Confirmed the same
+    way: curl_cffi 0.17.0 with yt-dlp 2026.10.26 stable lists 47 real impersonate
+    targets and zero "(unavailable)", and impersonated requests complete on
+    Chrome, Safari and Firefox fingerprints. The floor is 0.17.0 (libcurl 8.23.0
+    with brotli 1.2.1; 0.16.3 has brotli 1.2.0 inside libcurl).
+    requirements.txt carries the same note.
+
     This upper bound remains a moving target -- raising it further should
     come with the same live confirmation every bump so far has: real targets
     listed under --list-impersonate-targets against the yt-dlp version(s) in
@@ -1192,8 +1201,8 @@ def test_curl_cffi_stays_within_yt_dlps_supported_version_range():
             None,
         )
         assert line, f"{req}: no curl_cffi line found"
-        assert "<0.17.0" in line or re.search(r"==0\.1[0-6]\.\d", line), (
-            f"{req}: curl_cffi pin ({line!r}) doesn't exclude 0.17.0+ -- "
+        assert "<0.18.0" in line or re.search(r"==0\.1[0-7]\.\d", line), (
+            f"{req}: curl_cffi pin ({line!r}) doesn't exclude 0.18.0+ -- "
             f"confirm yt-dlp actually supports the new range "
             f"(python3 -m yt_dlp --list-impersonate-targets, real targets "
             f"listed rather than '(unavailable)') before raising this bound"
@@ -1222,16 +1231,21 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
     comment above the curl_cffi line in requirements.txt: this ceiling is
     ahead of what yt-dlp STABLE actually supports as of this change, staged
     deliberately on the testing branch with release held until stable
-    catches up."""
+    catches up.
+
+    Ceiling raised again 0.17.0 -> 0.18.0 once yt-dlp STABLE 2026.10.26
+    supported 0.17.x (the yt-dlp floor in requirements.txt is that release, so
+    the gap above is closed); see the matching paragraph in
+    test_curl_cffi_stays_within_yt_dlps_supported_version_range."""
     for p in PLATFORM_APP_FILES:
         src = read_source(p)
-        assert "_CURL_CFFI_CEILING = (0, 17, 0)" in src, (
+        assert "_CURL_CFFI_CEILING = (0, 18, 0)" in src, (
             f"{p}: missing or drifted _CURL_CFFI_CEILING constant"
         )
         i = src.index('if do_optlibs:')
         j = src.index('\n', src.index('curl-cffi', i))
         line = src[i:j]
-        assert "curl-cffi<0.17.0" in line, (
+        assert "curl-cffi<0.18.0" in line, (
             f"{p}: the do_optlibs 'Update Plugins' pip install still "
             f"upgrades curl-cffi below the currently-confirmed ceiling -- "
             f"this is the exact path that put curl_cffi at an unsupported "
@@ -1249,7 +1263,7 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
     for pos in bootstrap_installs:
         end = launch.index("\n", launch.index("curl_cffi", pos))
         block = launch[pos:end]
-        assert "curl_cffi<0.17.0" in block, (
+        assert "curl_cffi<0.18.0" in block, (
             "windows/launch.py: a first-launch bootstrap pip-install still "
             "pulls curl_cffi below the currently-confirmed ceiling -- a "
             "brand-new install would hit the same unsupported-version bug "
@@ -1289,7 +1303,7 @@ def test_no_pip_install_path_can_pull_curl_cffi_past_the_ceiling():
             if "curl-cffi" not in args and "curl_cffi" not in args:
                 continue
             capped += 1
-            assert "<0.17.0" in args, (
+            assert "<0.18.0" in args, (
                 f"{p}: a pip-install call site pulls curl-cffi without the "
                 f"version ceiling:\n    {args.strip()[:200]}\n"
                 f"Every install path must carry the cap -- an uncapped upgrade "

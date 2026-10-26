@@ -75,11 +75,12 @@ def test_version_tuple():
 
 
 @pytest.mark.parametrize("versions, below", [
-    ({"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}, False),      # at the floors
-    ({"yt-dlp": (2026, 10, 22), "brotli": (1, 3, 0)}, False),      # newer
+    ({"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1)}, False),      # at the floors
+    ({"yt-dlp": (2026, 10, 27), "brotli": (1, 3, 0)}, False),      # newer
     ({"yt-dlp": (2026, 8, 19), "brotli": (1, 2, 1)}, True),        # old yt-dlp
-    ({"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 0)}, True),       # old brotli
-    ({"yt-dlp": (2026, 10, 21), "brotli": (1, 1, 0)}, True),
+    ({"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}, True),       # the previous floor: it stops at curl_cffi 0.16.x
+    ({"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0)}, True),       # old brotli
+    ({"yt-dlp": (2026, 10, 26), "brotli": (1, 1, 0)}, True),
     ({"yt-dlp": None, "brotli": None}, False),                     # unknown is not "below": the sentinels cover missing
 ])
 def test_deps_below_floor(mod, versions, below):
@@ -87,18 +88,18 @@ def test_deps_below_floor(mod, versions, below):
 
 
 def test_installer_upgrades_an_old_brotli_without_importing_first(mod, pip, monkeypatch):
-    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 0)}[n])
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0)}[n])
     monkeypatch.setattr(mod, "_modules_present", lambda names: True)      # everything is installed
     # if the sentinel imports ran first they would map brotli's files into this process
     monkeypatch.setitem(sys.modules, "flask", None)
     mod.ensure_python_deps()
     (cmd, kw), = pip.calls
-    assert "brotli>=1.2.1" in cmd and "yt-dlp>=2026.10.21" in cmd
+    assert "brotli>=1.2.1" in cmd and "yt-dlp>=2026.10.26" in cmd
     assert kw["check"] is False and "--retries" in cmd and "--timeout" in cmd
 
 
 def test_installer_failed_upgrade_does_not_stop_the_start(mod, pip, monkeypatch):
-    monkeypatch.setattr(mod, "_meta_version", lambda n: (1, 0, 0) if n == "brotli" else (2026, 10, 21))
+    monkeypatch.setattr(mod, "_meta_version", lambda n: (1, 0, 0) if n == "brotli" else (2026, 10, 26))
     monkeypatch.setattr(mod, "_modules_present", lambda names: True)
     pip.fail = True
     mod.ensure_python_deps()            # offline: no exception
@@ -106,7 +107,7 @@ def test_installer_failed_upgrade_does_not_stop_the_start(mod, pip, monkeypatch)
 
 
 def test_installer_current_versions_run_no_pip(mod, pip, monkeypatch):
-    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}[n])
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1)}[n])
     for name in REQUIRED + ("brotli",):
         monkeypatch.setitem(sys.modules, name, type(sys)(name))
     mod.ensure_python_deps()
@@ -126,7 +127,7 @@ def test_installer_missing_package_is_still_fatal(mod, pip, monkeypatch):
 def test_installer_old_brotli_and_a_missing_package_stays_fatal(mod, pip, monkeypatch):
     """The floor upgrade must not hide a missing package: with brotli old AND flask missing,
     pip runs as a real install (fatal on failure), like the portable path."""
-    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 0)}[n])
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0)}[n])
     monkeypatch.setitem(sys.modules, "flask", None)          # find_spec says missing, import fails
     pip.fail = True
     with pytest.raises(subprocess.CalledProcessError):
@@ -164,7 +165,7 @@ def _site_packages(tmp_path, brotli, ytdlp):
 
 
 def test_portable_old_brotli_is_upgraded(mod, pip, monkeypatch, tmp_path):
-    _site_packages(tmp_path, "1.2.0", "2026.10.21")
+    _site_packages(tmp_path, "1.2.0", "2026.10.26")
     monkeypatch.setattr(mod, "PY_DIR", tmp_path / "python")
     mod.ensure_python_deps_embedded("python.exe")
     (cmd, kw), = pip.calls
@@ -172,7 +173,7 @@ def test_portable_old_brotli_is_upgraded(mod, pip, monkeypatch, tmp_path):
 
 
 def test_portable_old_dist_infos_do_not_hide_the_new_one(mod, pip, monkeypatch, tmp_path):
-    sp = _site_packages(tmp_path, "1.2.1", "2026.10.21")
+    sp = _site_packages(tmp_path, "1.2.1", "2026.10.26")
     (sp / "brotli-1.2.0.dist-info").mkdir()                  # a leftover next to the current one
     monkeypatch.setattr(mod, "PY_DIR", tmp_path / "python")
     mod.ensure_python_deps_embedded("python.exe")
@@ -188,7 +189,7 @@ def test_portable_failed_upgrade_does_not_stop_the_start(mod, pip, monkeypatch, 
 
 
 def test_portable_missing_package_is_still_fatal(mod, pip, monkeypatch, tmp_path):
-    sp = _site_packages(tmp_path, "1.2.1", "2026.10.21")
+    sp = _site_packages(tmp_path, "1.2.1", "2026.10.26")
     (sp / "flask").rmdir()
     monkeypatch.setattr(mod, "PY_DIR", tmp_path / "python")
     pip.fail = True
