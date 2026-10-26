@@ -1263,7 +1263,7 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
     for pos in bootstrap_installs:
         end = launch.index("\n", launch.index("curl_cffi", pos))
         block = launch[pos:end]
-        assert "curl_cffi<0.18.0" in block, (
+        assert "curl_cffi>=0.17.0,<0.18.0" in block, (
             "windows/launch.py: a first-launch bootstrap pip-install still "
             "pulls curl_cffi below the currently-confirmed ceiling -- a "
             "brand-new install would hit the same unsupported-version bug "

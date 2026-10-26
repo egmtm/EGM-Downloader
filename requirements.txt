@@ -51,7 +51,9 @@ cryptography>=50.0.2
 # brotli response decodes on all three). The floor is 0.17.0, not 0.16.3,
 # because 0.17.0 bundles libcurl 8.23.0 with brotli 1.2.1 (0.16.3 has brotli
 # 1.2.0 inside libcurl) and requires certifi>=2026.10.19, which the certifi
-# floor below already exceeds.
+# floor below already exceeds. The Windows launcher and the Linux plugin
+# overlay prune carry the same 0.17.0 floor (PY_DEP_FLOORS), so installs that
+# already work move to it at start instead of keeping 0.16.x.
 curl_cffi>=0.17.0,<0.18.0
 # brotli floor raised to 1.2.1 for CVE-2026-111497, a decoder bug fixed upstream
 # in 1.2.1. yt-dlp decodes br (brotli) web responses with this module.

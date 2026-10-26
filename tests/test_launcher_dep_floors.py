@@ -1,8 +1,8 @@
 """
-Windows launcher: minimum versions for yt-dlp and brotli on installs that already work.
+Windows launcher: minimum versions for yt-dlp, brotli and curl_cffi on installs that already work.
 
 The launcher only installed Python packages when an import failed (installer) or a folder was
-missing (portable), so an existing install kept an old yt-dlp or brotli for good. The launcher
+missing (portable), so an existing install kept an old yt-dlp, brotli or curl_cffi for good. The launcher
 now also checks PY_DEP_FLOORS and runs pip with the floors when a package is older. A failed
 upgrade (offline, say) must never stop the start; a missing package still does.
 windows/launch.py is import safe, so these tests drive the real functions with a fake pip.
@@ -61,8 +61,10 @@ def test_floors_match_requirements_and_both_pip_lists(mod):
         for req in ("requirements.txt", "linux/requirements.txt"):
             lines = (ROOT / req).read_text(encoding="utf-8").splitlines()
             line = next(l for l in lines if l.strip().lower().startswith(name + ">="))
-            assert line.strip() == f"{name}>={spec}", f"{req}: {line!r} differs from the launcher floor {spec}"
-        assert src.count(f'"{name}>={spec}"') == 2, f"both launcher pip lists must carry {name}>={spec}"
+            assert line.strip().split(",")[0] == f"{name}>={spec}", f"{req}: {line!r} differs from the launcher floor {spec}"
+        # the pip lists may carry a ceiling after the floor (curl_cffi>=0.17.0,<0.18.0)
+        n = len(re.findall(rf'"{re.escape(name)}>={re.escape(spec)}(?:,<[\d.]+)?"', src))
+        assert n == 2, f"both launcher pip lists must carry {name}>={spec}"
 
 
 def test_version_tuple():
@@ -75,8 +77,9 @@ def test_version_tuple():
 
 
 @pytest.mark.parametrize("versions, below", [
-    ({"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1)}, False),      # at the floors
-    ({"yt-dlp": (2026, 10, 27), "brotli": (1, 3, 0)}, False),      # newer
+    ({"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1), "curl_cffi": (0, 17, 0)}, False),   # at the floors
+    ({"yt-dlp": (2026, 10, 27), "brotli": (1, 3, 0), "curl_cffi": (0, 17, 1)}, False),   # newer
+    ({"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1), "curl_cffi": (0, 16, 3)}, True),    # old curl_cffi: brotli 1.2.0 inside its libcurl
     ({"yt-dlp": (2026, 8, 19), "brotli": (1, 2, 1)}, True),        # old yt-dlp
     ({"yt-dlp": (2026, 10, 21), "brotli": (1, 2, 1)}, True),       # the previous floor: it stops at curl_cffi 0.16.x
     ({"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0)}, True),       # old brotli
@@ -88,7 +91,7 @@ def test_deps_below_floor(mod, versions, below):
 
 
 def test_installer_upgrades_an_old_brotli_without_importing_first(mod, pip, monkeypatch):
-    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0)}[n])
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0), "curl_cffi": (0, 17, 0)}[n])
     monkeypatch.setattr(mod, "_modules_present", lambda names: True)      # everything is installed
     # if the sentinel imports ran first they would map brotli's files into this process
     monkeypatch.setitem(sys.modules, "flask", None)
@@ -96,6 +99,16 @@ def test_installer_upgrades_an_old_brotli_without_importing_first(mod, pip, monk
     (cmd, kw), = pip.calls
     assert "brotli>=1.2.1" in cmd and "yt-dlp>=2026.10.26" in cmd
     assert kw["check"] is False and "--retries" in cmd and "--timeout" in cmd
+
+
+def test_installer_upgrades_an_old_curl_cffi_with_its_floor(mod, pip, monkeypatch):
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1), "curl_cffi": (0, 16, 3)}[n])
+    monkeypatch.setattr(mod, "_modules_present", lambda names: True)
+    monkeypatch.setitem(sys.modules, "flask", None)          # the import sentinel must not run first
+    mod.ensure_python_deps()
+    (cmd, kw), = pip.calls
+    assert "curl_cffi>=0.17.0,<0.18.0" in cmd
+    assert kw["check"] is False and "--retries" in cmd
 
 
 def test_installer_failed_upgrade_does_not_stop_the_start(mod, pip, monkeypatch):
@@ -107,7 +120,7 @@ def test_installer_failed_upgrade_does_not_stop_the_start(mod, pip, monkeypatch)
 
 
 def test_installer_current_versions_run_no_pip(mod, pip, monkeypatch):
-    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1)}[n])
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1), "curl_cffi": (0, 17, 0)}[n])
     for name in REQUIRED + ("brotli",):
         monkeypatch.setitem(sys.modules, name, type(sys)(name))
     mod.ensure_python_deps()
@@ -127,7 +140,7 @@ def test_installer_missing_package_is_still_fatal(mod, pip, monkeypatch):
 def test_installer_old_brotli_and_a_missing_package_stays_fatal(mod, pip, monkeypatch):
     """The floor upgrade must not hide a missing package: with brotli old AND flask missing,
     pip runs as a real install (fatal on failure), like the portable path."""
-    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0)}[n])
+    monkeypatch.setattr(mod, "_meta_version", lambda n: {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 0), "curl_cffi": (0, 17, 0)}[n])
     monkeypatch.setitem(sys.modules, "flask", None)          # find_spec says missing, import fails
     pip.fail = True
     with pytest.raises(subprocess.CalledProcessError):
@@ -150,7 +163,7 @@ def test_dep_modules_match_the_sentinel_import_line(mod):
     assert tuple(x.strip() for x in m.group(1).split(",")) == mod._DEP_MODULES
 
 
-def _site_packages(tmp_path, brotli, ytdlp):
+def _site_packages(tmp_path, brotli, ytdlp, curl="0.17.0"):
     sp = tmp_path / "python" / "Lib" / "site-packages"
     sp.mkdir(parents=True)
     for pkg in REQUIRED:
@@ -160,6 +173,8 @@ def _site_packages(tmp_path, brotli, ytdlp):
         (sp / f"Brotli-{brotli}.dist-info").mkdir()         # older wheels used a capital B
     if ytdlp:
         (sp / f"yt_dlp-{ytdlp}.dist-info").mkdir()
+    if curl:
+        (sp / f"curl_cffi-{curl}.dist-info").mkdir()
     (sp / "yt_dlp_ejs-0.3.2.dist-info").mkdir()             # a neighbour with a similar name
     return sp
 
@@ -170,6 +185,14 @@ def test_portable_old_brotli_is_upgraded(mod, pip, monkeypatch, tmp_path):
     mod.ensure_python_deps_embedded("python.exe")
     (cmd, kw), = pip.calls
     assert "brotli>=1.2.1" in cmd and kw["check"] is False
+
+
+def test_portable_old_curl_cffi_is_upgraded(mod, pip, monkeypatch, tmp_path):
+    _site_packages(tmp_path, "1.2.1", "2026.10.26", curl="0.16.3")
+    monkeypatch.setattr(mod, "PY_DIR", tmp_path / "python")
+    mod.ensure_python_deps_embedded("python.exe")
+    (cmd, kw), = pip.calls
+    assert "curl_cffi>=0.17.0,<0.18.0" in cmd and kw["check"] is False
 
 
 def test_portable_old_dist_infos_do_not_hide_the_new_one(mod, pip, monkeypatch, tmp_path):

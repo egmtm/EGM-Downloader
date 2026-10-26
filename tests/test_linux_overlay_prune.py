@@ -1,5 +1,5 @@
 """
-Linux: an older yt-dlp or brotli in the plugin overlay must not hide the bundled one.
+Linux: an older yt-dlp, brotli or curl_cffi in the plugin overlay must not hide the bundled one.
 
 Update Plugins installs into DATA_DIR/packages (PACKAGES_DIR) and _yt_env() puts that folder
 first on PYTHONPATH, so a copy installed there before a floor was raised keeps winning over the
@@ -65,6 +65,24 @@ def _brotli(ov, version):
 def _ytdlp(ov, version):
     _install(ov, ["yt_dlp/__init__.py", "yt_dlp/extractor/kick.py"], f"yt_dlp-{version}.dist-info",
              extra_record=["../../bin/yt-dlp"])
+
+
+def _curl_cffi(ov, version):
+    _install(ov, ["curl_cffi/__init__.py", "curl_cffi/_wrapper.abi3.so"], f"curl_cffi-{version}.dist-info")
+
+
+@pytest.mark.parametrize("version, pruned", [
+    ("0.16.3", True),                 # brotli 1.2.0 inside its libcurl
+    ("0.17.0", False),                # at the floor
+    ("0.17.1", False),
+])
+def test_curl_cffi_is_compared_on_its_version(mod, overlay, version, pruned):
+    _curl_cffi(overlay, version)
+    _install(overlay, ["cffi/__init__.py"], "cffi-2.1.1.dist-info")
+    mod._prune_overlay_below_floors()
+    assert (not (overlay / "curl_cffi").exists()) is pruned
+    assert (not (overlay / f"curl_cffi-{version}.dist-info").exists()) is pruned
+    assert (overlay / "cffi" / "__init__.py").exists()       # its neighbour is never touched
 
 
 def test_old_brotli_is_removed_and_the_rest_is_left(mod, overlay):
