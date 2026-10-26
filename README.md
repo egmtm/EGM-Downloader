@@ -42,31 +42,27 @@
 - 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
 - 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
-- 🎬 **Video & Audio Downloads** - MP4, MKV, or MP4 H.264 (max compatibility) video; MP3, M4A, OPUS, or FLAC audio
-- 📊 **Quality Selection** - Video up to 8K/4K/2K/1080p; audio up to FLAC or 320 kbps MP3
+- 🎬 **Video & Audio Downloads** - MP4, MKV, or MP4 H.264 (max compatibility) video up to 8K; MP3 (up to 320 kbps), M4A, OPUS, or FLAC audio
 - 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
 - 📋 **Playlist Support** - Download entire playlists with one click
-- ➕ **Add While Downloading** - Paste more links while downloads are running. New videos join the list and the current run, Clear keeps the downloads in progress, and one progress bar with a Cancel All button covers them all.
-- 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. "Stop and save" ends the recording and keeps what was captured, and a recording that fails partway is saved instead of lost.
-- 🔁 **Live Stream Reconnect** - If a live stream drops, the recording reconnects on its own (up to 5 times in a row) and joins the pieces into one file. A notice tells you when a few seconds may be missing or repeated.
+- ➕ **Add While Downloading** - Paste more links while downloads are running. New videos join the list and the current run, Clear keeps the downloads in progress, and one progress bar with Cancel All covers everything.
+- 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. "Stop and save" keeps what was captured, and a recording that fails partway is saved instead of lost. If the stream drops, it reconnects on its own (up to 5 times in a row) and joins the pieces into one file, with a notice when a few seconds may be missing or repeated.
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
 - 🚫 **SponsorBlock** - Optionally cut sponsor reads, self promotion, intros and outros out of downloaded YouTube videos, using the community [SponsorBlock](https://sponsor.ajay.app/) database. Off by default; choose categories globally or per subscription.
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
-- ⚡ **GPU-Accelerated Conversion** - Video conversion and Upscale use your GPU when available, cutting CPU load and heat dramatically; falls back to software encoding automatically
+- ⚡ **GPU-Accelerated Conversion** - Video conversion and Upscale use your GPU when available, cutting CPU load and heat; falls back to software encoding automatically
 - 📐 **Upscale to Quality** - Opt-in upscaling proportionally scales videos smaller than your chosen quality preset after download; off by default, adds pixels not detail
 - 🌍 **10 Languages** - English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, and Russian — auto-detected from your system, changeable anytime from the footer
 - ↔️ **Native Right to Left** - Arabic reads right to left with the whole layout mirrored: panels, menus, progress bars, buttons and windows. Web addresses and file paths stay left to right.
-- 🎨 **500 Themes** - 470 permanent across 32 categories + 30 seasonal themes that rotate throughout the year. If you see fewer than 500, seasonal themes appear during their respective time of year.
-- 🎨 **Theme Creator** - Build your own theme with 10 live-preview color pickers, export as `.json`, save directly to your library, favorite alongside built-in themes
+- 🎨 **500 Themes + Theme Creator** - 470 permanent themes across 32 categories plus 30 seasonal ones that rotate through the year, so you may see fewer than 500 out of season. Build your own with 10 live-preview color pickers, export as `.json`, save to your library, and favorite it alongside the built-in themes.
 - 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
-- 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own download folder, format, quality, auto fetch and SponsorBlock settings
-- 🔄 **Auto-Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac)
-- 🛠️ **Plugin Updates** - Update yt-dlp, ffmpeg, and optional libraries without reinstalling
-- 💼 **Windows Portable** - Run from any folder or USB drive — no installer, no registry, downloads its own embedded Python on first run
-- 📋 **Diagnostics** - Live diagnostic log viewer, available from the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
+- 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own folder, format, quality, auto fetch and SponsorBlock settings
+- 🔄 **Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac), plus in app updates for yt-dlp, ffmpeg, and optional libraries without reinstalling
+- 💼 **Windows Portable** - Run from any folder or USB drive, no installer and no registry. Downloads its own embedded Python on first run.
+- 📋 **Diagnostics** - Live log viewer in the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
-- ⏱️ **Quit When Done** - Close the app automatically once every download has finished. A 30 second countdown appears in the middle of the window, and you can stop it with the Cancel button or the Esc key. Works from the main window and the Subscriptions queue, and won't close if a download failed or was cancelled.
+- ⏱️ **Quit When Done** - Close the app automatically once every download has finished, from the main window or the Subscriptions queue. A 30 second countdown appears in the middle of the window and stops with Cancel or Esc. It won't close if a download failed or was cancelled.
 
 ## 🔍 How EGM Downloader compares
 
@@ -245,10 +241,10 @@ Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 1
 
 - **Playlists:** Paste a playlist URL, choose "Download All" (or pick specific videos), then a resolution. "Download All Audio" does the same with your preferred bitrate. Items are processed in sequence.
 - **Batch downloads:** Queue multiple URLs, set format and quality for each, start them together, and cancel any individual download anytime.
-- **Plugin updates:** "Update Plugins" in the Advanced panel updates yt-dlp (newest site support) and ffmpeg (latest codecs).
+- **Plugin updates:** "Update Plugins" in the Advanced panel updates yt-dlp and ffmpeg.
 - **Cookies / login-required content:** For premium or age-restricted content, import cookies from Chrome, Edge, Brave, or Firefox in the app. They stay on your machine and are never transmitted.
-- **Subscriptions:** Follow YouTube channels and playlists and fetch new videos automatically, with per-channel folder, format, and quality settings and one download queue across all channels.
-- **Theme Creator:** Press Ctrl+K anywhere in the app. 10 live-preview color pickers recolor the UI in real time; export as `.json` or save to your library.
+- **Subscriptions:** Follow YouTube channels and playlists and fetch new videos automatically, with one download queue across all channels.
+- **Theme Creator:** Press Ctrl+K anywhere in the app.
 
 ---
 
