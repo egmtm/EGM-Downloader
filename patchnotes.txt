@@ -2,6 +2,7 @@ vTBD - TBD (TBD)
 -----------------------------------------
 
   • [ALL] Fixed: The Theme Creator panel no longer slides across the window when you switch to or from Arabic.
+  • [ALL] Fixed: More labels that stayed in English in other languages now follow the selected language.
 
 v1.5.0.0.5 - CITIUS · أصيل (10/25/2026)
 -----------------------------------------
