@@ -216,15 +216,17 @@
 {% endraw %}{% include 'theme_data.html' %}
 {% include 'theme_validator.html' %}{% raw %}
 
-// Sidebar structure: ordered sections + categories per section
+// Sidebar structure: ordered sections + categories per section.
+// label is the stable identity (the saved collapsed state and data-section use it) and the English fallback; key is the language file's name for it.
 const SECTIONS = [
-  { label: 'Style',         cats: ['dark', 'futuristic', 'light', 'retro', 'space'] },
-  { label: 'Vibe',          cats: ['cities', 'food', 'modern', 'moods', 'music', 'nature', 'sports', 'weather'] },
-  { label: 'Pop Culture',   cats: ['eightbit', 'animation', 'brands', 'characters', 'consoles', 'memes', 'movies', 'oldinternet', 'sneakers'] },
-  { label: 'Heritage',      cats: ['architecture', 'decades', 'eras', 'mythology', 'puerto_rico', 'venues'] },
-  { label: 'Other',         cats: ['experimental', 'os', 'custom'] },
+  { label: 'Style',         key: 'themes.section.style',       cats: ['dark', 'futuristic', 'light', 'retro', 'space'] },
+  { label: 'Vibe',          key: 'themes.section.vibe',        cats: ['cities', 'food', 'modern', 'moods', 'music', 'nature', 'sports', 'weather'] },
+  { label: 'Pop Culture',   key: 'themes.section.pop_culture', cats: ['eightbit', 'animation', 'brands', 'characters', 'consoles', 'memes', 'movies', 'oldinternet', 'sneakers'] },
+  { label: 'Heritage',      key: 'themes.section.heritage',    cats: ['architecture', 'decades', 'eras', 'mythology', 'puerto_rico', 'venues'] },
+  { label: 'Other',         key: 'themes.section.other',       cats: ['experimental', 'os', 'custom'] },
 ];
 
+// English names, the fallback of catLabel(): the language file names every one of these as themes.cat.<id>
 const CAT_LABELS = {
   dark:'Dark', light:'Light', 
   music:'Music', nature:'Nature', cities:'Cities', moods:'Moods',
@@ -243,6 +245,12 @@ const CAT_LABELS = {
   sneakers:'Sneakers',
   oldinternet:'Old Internet',
 };
+
+// The category's name in the current language. Imported and Seasonal already had keys of their own (the filter chips).
+function catLabel(id) {
+  const key = id === 'custom' ? 'themes.filter.imported' : id === 'seasonal' ? 'themes.filter.seasonal' : 'themes.cat.' + id;
+  return i18nGet(key) || CAT_LABELS[id] || id;
+}
 
 let currentTheme = localStorage.getItem('egm-theme') || 'void';
 let favoriteThemes = new Set();
@@ -386,13 +394,13 @@ function buildSidebar() {
   SECTIONS.forEach(sec => {
     const isCollapsed = collapsed.has(sec.label);
     html += `<div class="cat-section${isCollapsed ? ' collapsed' : ''}" data-section="${sec.label}">
-      <span>${sec.label}</span>
+      <span>${i18nAttr(sec.key, sec.label)}</span>
       <span class="section-caret">▾</span>
     </div>`;
     html += `<div class="cat-group${isCollapsed ? ' collapsed' : ''}" data-group="${sec.label}">`;
     sec.cats.forEach(cat => {
       const count = countForCat(cat);
-      html += `<div class="cat-tab${activeCat === cat ? ' active' : ''}" data-cat="${cat}">${CAT_LABELS[cat]}<span class="cat-count">${count}</span></div>`;
+      html += `<div class="cat-tab${activeCat === cat ? ' active' : ''}" data-cat="${cat}">${esc(catLabel(cat))}<span class="cat-count">${count}</span></div>`;
     });
     html += `</div>`;
   });
@@ -489,7 +497,7 @@ function updateBreadcrumb() {
     bcCur.textContent   = `"${searchQ}"`;
     bcCount.textContent = hits === 1 ? (i18nFmt('themes.search.results_one', hits) || `${hits} result`) : (i18nFmt('themes.search.results_many', hits) || `${hits} results`);
   } else {
-    const label = CAT_LABELS[activeCat] || activeCat;
+    const label = catLabel(activeCat);
     // Imported (custom) themes live in the saved-themes library, not THEME_DATA.
     const count = activeCat === 'custom'
       ? loadSavedThemes().length

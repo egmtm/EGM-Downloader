@@ -439,7 +439,14 @@ let activeSub = null;
 const _fetching = new Map();
 function _fetchStarted(id) { _fetching.set(id, (_fetching.get(id) || 0) + 1); }
 function _fetchEnded(id) { const n = (_fetching.get(id) || 0) - 1; if (n > 0) _fetching.set(id, n); else _fetching.delete(id); }
-const FETCHING_HTML = '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> Fetching videos...</div>';
+// A function, not a constant: the language file can arrive after the first render, and the next render must pick up the translation.
+function fetchingHtml() {
+  return '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> ' + i18nAttr('subscriptions.detail.fetching', 'Fetching videos...') + '</div>';
+}
+// The red error line of a fetch, with the prefix from the language file.
+function fetchErrorHtml(msg) {
+  return '<div class="empty-state" style="color:var(--red,#e04040)">' + esc(i18nFmt('toast.plugins.error_prefix', msg) || ('Error: ' + msg)) + '</div>';
+}
 function setVideoList(html) { const l = document.getElementById('video-list'); if (l) l.innerHTML = html; }   // looked up each time: a re-render replaces the element
 let showQueue = false;
 // "Quit when done": armed from the queue header and held in memory only. It is
@@ -992,7 +999,7 @@ function renderQueue() {
       </div>
       <div style="flex:1;min-width:0">
         <div dir="auto" style="font-size:.78rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(job.title)}</div>
-        <div dir="auto" style="font-size:.62rem;color:var(--text2);margin-top:2px">${esc(job.channelName)}</div>
+        <div dir="auto" style="font-size:.62rem;color:var(--text2);margin-top:2px">${esc(job.channelName || i18nGet('subscriptions.label.unknown') || 'Unknown')}</div>
         <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
           <span style="font-size:.62rem;color:var(--acc);font-weight:500;min-width:50px">${statusLabel}</span>
           <div class="video-progress-bar" style="flex:1"><div class="video-progress-fill" style="width:${job.status === 'converting' ? (pct > 0 ? pct : 100) : pct}%"></div></div>
@@ -1109,7 +1116,7 @@ function renderDetail() {
       </div>
     </div>
     <div class="video-list" id="video-list">
-      ${_fetching.has(activeSub.id) ? FETCHING_HTML : videos.length === 0 ? `
+      ${_fetching.has(activeSub.id) ? fetchingHtml() : videos.length === 0 ? `
         <div class="empty-state">${i18nAttr('subscriptions.detail.hint', 'Click \\"Fetch\\" to load videos from this channel')}</div>
       ` : (() => {
         const visible = sortedVideos.slice(0, visibleCount);
@@ -1415,7 +1422,7 @@ function renderDetail() {
               jobId: result.job_id, status: 'queued', data: {},
               subId: activeSub.id,
               title: video?.title || videoId,
-              channelName: activeSub.name || 'Unknown',
+              channelName: activeSub.name || '',
               thumbnailUrl: video?.thumbnail_url || ''
             });
             updateVideoState(videoId, 'queued', {});
@@ -1559,7 +1566,7 @@ async function fetchVideos(id, force) {
   let ended = false;
   const end = () => { if (!ended) { ended = true; _fetchEnded(id); } };   // once per fetch, whichever way it leaves
   const isOpen = () => activeSub && activeSub.id === id;   // the message belongs to the channel on screen
-  if (isOpen()) setVideoList(FETCHING_HTML);
+  if (isOpen()) setVideoList(fetchingHtml());
 
   // The fetch runs as a background job on the server; we just start it and poll a
   // tiny status endpoint. Every request here is sub-second, so a slow channel
@@ -1573,7 +1580,7 @@ async function fetchVideos(id, force) {
     }).then(r => r.json());
 
     if (!start || !start.fetch_id) {
-      if (isOpen()) setVideoList(`<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((start && start.error) || 'Unknown')}</div>`);
+      if (isOpen()) setVideoList(fetchErrorHtml((start && start.error) || i18nGet('subscriptions.label.unknown') || 'Unknown'));
       return;
     }
 
@@ -1596,7 +1603,7 @@ async function fetchVideos(id, force) {
       renderSidebar();
       renderDetail();
     } else {
-      if (isOpen()) setVideoList(`<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`);
+      if (isOpen()) setVideoList(fetchErrorHtml((data && data.error) || i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed'));
     }
   } catch {
     if (isOpen()) setVideoList(`<div class="empty-state" style="color:var(--red,#e04040)">${esc(i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`);

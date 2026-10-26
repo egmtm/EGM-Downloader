@@ -22,7 +22,7 @@ let _bulkRun = null;   // the run in progress (the bar is its face): Download al
 function runQueuedItems() { return _bulkRun ? _bulkRun.waiting() : []; }
 // A card started from its own button joins the run in progress, or opens one: the bar is up from the first download
 function joinBulkRun(item) {
-  if (!_bulkRun) createBulkRun('downloads', true);   // neutral word: the cards can be videos, audio or a mix (final wording still open)
+  if (!_bulkRun) createBulkRun('mixed', true);   // neutral wording: the cards can be videos, audio or a mix
   _bulkRun.join(item);
 }
 
@@ -38,14 +38,25 @@ async function downloadAll(forceFormat, audioQuality, videoQuality) {
     .map(item => ({ item, forceFormat, audioQuality, videoQuality, dir: chosenPath }));   // each card keeps the choices of the click that queued it
   if (!pending.length) { toast(i18nGet('toast.nothing_to_download') || 'Nothing to download', 'err'); return; }
   if (_bulkRun) { _bulkRun.add(pending); return; }
-  const run = createBulkRun(forceFormat === 'audio' ? 'audio files' : 'videos', false);
+  const run = createBulkRun(forceFormat === 'audio' ? 'audio' : 'videos', false);
   run.add(pending);
   await run.ended;
 }
 
-// One run: the bar, the concurrency pump and the count. modeLabel is the word the bar uses; byCard says
-// a download started from its own button opened it (Download all opens it otherwise).
-function createBulkRun(modeLabel, byCard) {
+// What the bar and the Done toast say for each kind of run: [language key, English if no language file has loaded].
+// The count goes into the sentence, so a language can put the kind of download where its grammar wants it.
+const BULK_TEXT = {
+  videos: { bar: ['bulk.progress.videos', 'Downloading videos: {0} / {1} done  ({2} active)'], done: ['toast.bulk.done_videos', 'Done — videos: {0}'] },
+  audio:  { bar: ['bulk.progress.audio',  'Downloading audio files: {0} / {1} done  ({2} active)'], done: ['toast.bulk.done_audio', 'Done — audio files: {0}'] },
+  mixed:  { bar: ['bulk.progress.mixed',  'Downloading: {0} / {1} done  ({2} active)'], done: ['toast.bulk.done_mixed', 'Done — downloads: {0}'] },
+};
+function bulkFmt([key, en], ...args) {
+  return i18nFmt(key, ...args) ?? en.replace(/\{(\d+)\}/g, (_, i) => args[i]);
+}
+
+// One run: the bar, the concurrency pump and the count. mode is 'videos', 'audio' or 'mixed' and picks the wording of
+// the bar and the Done toast; byCard says a download started from its own button opened it (Download all opens it otherwise).
+function createBulkRun(mode, byCard) {
   bulkStop = false;
   const bar       = document.getElementById('bulk-bar');
   bar.classList.add('show');
@@ -77,8 +88,7 @@ function createBulkRun(modeLabel, byCard) {
   function updateBulkTxt() {
     if (run.stopped) return;   // cancelled: a later run owns the bar now
     const c = counts();
-    document.getElementById('bulk-txt').textContent =
-      `Downloading ${c.done} / ${c.total} ${modeLabel} done  (${c.active} active)`;
+    document.getElementById('bulk-txt').textContent = bulkFmt(BULK_TEXT[mode].bar, c.done, c.total, c.active);
   }
   // downloadOne: starts one item's download and resolves when finished
   async function downloadOne({ item, forceFormat, audioQuality, videoQuality, dir }) {
@@ -243,7 +253,7 @@ function createBulkRun(modeLabel, byCard) {
     bar.classList.remove('show');
     // A single card that opened the run said "Saved" itself; a Download all always says Done
     const c = counts();
-    if (c.total >= (byCard ? 2 : 1)) toast((i18nGet('toast.done') || 'Done') + ' — ' + c.done + ' ' + modeLabel, 'ok');
+    if (c.total >= (byCard ? 2 : 1)) toast(bulkFmt(BULK_TEXT[mode].done, c.done), 'ok');
     // Only a run that finished something: one whose last card was cancelled and removed leaves an empty list, which
     // _qodArmed reads as "all done", and the app would quit on a download the user just stopped
     if (c.ok) quitWhenDoneCheck();

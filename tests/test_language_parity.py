@@ -245,7 +245,14 @@ def test_the_allowlist_has_no_stale_entries():
 # direction is covered by test_i18n_keys_exist_in_en_locale).
 READ_IN_TEMPLATES = {"card.status.eta": 2, "subscriptions.title_short": 1, "subscriptions.detail.videos_total": 1,
                      "url.btn.download_all_videos": 1, "url.btn.download_all_audio": 1, "bulk.btn.cancel_all": 1,
-                     "themes.filter.all": 1, "url.btn.paste_fetch": 2}
+                     "themes.filter.all": 1, "url.btn.paste_fetch": 2,
+                     "subscriptions.detail.fetching": 1, "subscriptions.label.unknown": 2, "toast.plugins.error_prefix": 3,
+                     "whatsnew.loading": 1,
+                     "bulk.progress.videos": 1, "bulk.progress.audio": 1, "bulk.progress.mixed": 1,
+                     "toast.bulk.done_videos": 1, "toast.bulk.done_audio": 1, "toast.bulk.done_mixed": 1,
+                     "themes.section.style": 1, "themes.section.vibe": 1, "themes.section.pop_culture": 1,
+                     "themes.section.heritage": 1, "themes.section.other": 1,
+                     "themes.filter.imported": 1, "themes.filter.seasonal": 1}
 
 
 def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():
@@ -258,6 +265,24 @@ def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():
     short = {key: templates.count(f"'{key}'") + templates.count(f'"{key}"') for key in READ_IN_TEMPLATES}
     short = {key: n for key, n in short.items() if n < READ_IN_TEMPLATES[key]}
     assert not short, f"read in fewer templates places than expected, so some text shows in English: {short}"
+
+
+def test_every_themes_category_is_named_by_the_language_file():
+    """The Themes sidebar builds a category's key as themes.cat.<id>, so no template text carries the key
+    for the reading test above to count. This reads the category ids from the page instead: each one
+    (Seasonal and Imported use the filter chips' keys) has its name in the language file, and each sidebar
+    section is read by its own key."""
+    with open(os.path.join(ROOT, "templates", "themes.html"), encoding="utf-8") as fh:
+        page = fh.read()
+    labels = re.search(r"const CAT_LABELS = \{(.*?)\n\};", page, re.S).group(1)
+    ids = set(re.findall(r"\b(\w+):\s*'", labels)) - {"seasonal", "custom"}
+    sections = re.findall(r"key: '([^']+)'", re.search(r"const SECTIONS = \[(.*?)\n\];", page, re.S).group(1))
+    assert len(ids) == 30 and len(sections) == 5, f"expected 30 categories and 5 sections, found {len(ids)} and {len(sections)}"
+    missing = sorted({f"themes.cat.{i}" for i in ids} - set(EN)) + sorted(set(sections) - set(EN))
+    assert not missing, f"the Themes sidebar names these in a language file, but en.json lacks them: {missing}"
+    assert "'themes.cat.' + id" in page, "the sidebar no longer reads themes.cat.<id>, so the 30 translations never show"
+    unused = sorted(k for k in EN if k.startswith("themes.cat.") and k[len("themes.cat."):] not in ids)
+    assert not unused, f"language keys for categories the page does not have: {unused}"
 
 
 def test_no_translation_contains_markup():

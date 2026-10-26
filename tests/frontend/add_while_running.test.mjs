@@ -315,10 +315,10 @@ test("the run is not over while a card started from its own button is still runn
   t.finish("j1"); await t.tick(); await t.tick();   // the run's own card is done, B still runs
   assert.ok(bar().classList.contains("show"), "the bar stays while B downloads");
   assert.match(t.d.getElementById("bulk-txt").textContent, /1 \/ 2 .*\(1 active\)/);
-  assert.deepEqual(t.toasts().filter((x) => /2 videos/.test(x)), [], "no Done toast yet");
+  assert.deepEqual(t.toasts().filter((x) => /^Done — videos: 2$/.test(x)), [], "no Done toast yet");
   t.finish("j2"); await t.tick(); await t.tick();
   assert.ok(!bar().classList.contains("show"), "the bar goes once B is done too");
-  assert.ok(t.toasts().some((x) => /2 videos/.test(x)), "and the Done toast counts both");
+  assert.ok(t.toasts().some((x) => /^Done — videos: 2$/.test(x)), "and the Done toast counts both");
 });
 
 test("a card already downloading when Download all starts is counted in the bar too", async () => {
@@ -337,7 +337,7 @@ test("a card already downloading when Download all starts is counted in the bar 
   assert.match(txt(), /1 \/ 2 .*\(1 active\)/);
   t.finish("j1"); await t.tick(); await t.tick();
   assert.ok(!bar().classList.contains("show"));
-  assert.ok(t.toasts().some((x) => /2 downloads/.test(x)), "the Done toast counts both (A opened the run, so the word is the neutral one)");
+  assert.ok(t.toasts().some((x) => /^Done — downloads: 2$/.test(x)), "the Done toast counts both (A opened the run, so the word is the neutral one)");
 });
 
 test("Cancel all stops the run but leaves cards that were added after it started idle", async () => {
@@ -768,7 +768,7 @@ test("a download started from its own button shows the bar from the first one", 
   assert.ok(!barShown(t), "nothing is downloading yet");
   await hand(t, 0);
   assert.ok(barShown(t));
-  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+  assert.match(barText(t), /^Downloading: 0 \/ 1 done {2}\(1 active\)/);
 });
 
 test("cards started one by one all go into the same count, and the bar ends with the last one", async () => {
@@ -776,15 +776,15 @@ test("cards started one by one all go into the same count, and the bar ends with
   await t.fetchLinks(`${A}\n${B}`);
   await hand(t, 0);
   await hand(t, 1);
-  assert.match(barText(t), /0 \/ 2 downloads .*\(2 active\)/);
+  assert.match(barText(t), /^Downloading: 0 \/ 2 done {2}\(2 active\)/);
   t.finish("j1"); await t.tick(); await t.tick();
   assert.ok(barShown(t), "B is still downloading");
-  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/, "A left the list and still counts as done");
+  assert.match(barText(t), /^Downloading: 1 \/ 2 done {2}\(1 active\)/, "A left the list and still counts as done");
   t.clearToasts();
   t.finish("j2"); await t.tick(); await t.tick();
   assert.ok(!barShown(t));
   assert.equal(doneToasts(t).length, 1);
-  assert.match(doneToasts(t)[0], /2 downloads/);
+  assert.match(doneToasts(t)[0], /^Done — downloads: 2$/);
   assert.equal(t.timers.size, 0, "no poller or watcher left running");
 });
 
@@ -817,7 +817,7 @@ test("a new download after the bar ended starts a fresh count from zero", async 
   await t.fetchLinks(B);
   await hand(t, t.ev("items[0].id"));            // B is a new card with a new id
   assert.ok(barShown(t));
-  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+  assert.match(barText(t), /^Downloading: 0 \/ 1 done {2}\(1 active\)/);
 });
 
 test("Download all while single downloads run goes into the same bar and the same count", async () => {
@@ -826,13 +826,13 @@ test("Download all while single downloads run goes into the same bar and the sam
   await hand(t, 0);                              // A on its own: j1
   t.all(); await settle();                       // the run takes B and C
   assert.deepEqual(t.log.download, [A, B, C]);
-  assert.match(barText(t), /0 \/ 3 downloads .*\(3 active\)/);
+  assert.match(barText(t), /^Downloading: 0 \/ 3 done {2}\(3 active\)/);
   t.clearToasts();
   for (const id of ["j1", "j2", "j3"]) t.finish(id);
   await t.tick(); await t.tick();
   assert.ok(!barShown(t));
   assert.equal(doneToasts(t).length, 1);
-  assert.match(doneToasts(t)[0], /3 downloads/);
+  assert.match(doneToasts(t)[0], /^Done — downloads: 3$/);
 });
 
 test("Cancel all reaches single downloads, hides the bar, and the next download starts a new count", async () => {
@@ -848,7 +848,7 @@ test("Cancel all reaches single downloads, hides the bar, and the next download 
   assert.equal(t.timers.size, 0, "the old run's watcher is gone");
   await hand(t, 2);
   assert.ok(barShown(t));
-  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/, "the cancelled cards are not part of the new count");
+  assert.match(barText(t), /^Downloading: 0 \/ 1 done {2}\(1 active\)/, "the cancelled cards are not part of the new count");
 });
 
 // ── A card that was removed before it finished leaves the count ────────────
@@ -860,9 +860,9 @@ test("a cancelled card stays in the count until it is removed, then it leaves to
   await hand(t, 1);
   t.d.getElementById("cancel0").click(); await settle();
   await t.tick();
-  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/, "cancelled but still on the list");
+  assert.match(barText(t), /^Downloading: 1 \/ 2 done {2}\(1 active\)/, "cancelled but still on the list");
   removeCard(t, 0);
-  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/, "removed: gone from the total and from done");
+  assert.match(barText(t), /^Downloading: 0 \/ 1 done {2}\(1 active\)/, "removed: gone from the total and from done");
 });
 
 test("the same inside a Download all run, with no watcher: the bar changes at the removal itself", async () => {
@@ -871,7 +871,7 @@ test("the same inside a Download all run, with no watcher: the bar changes at th
   t.all(); await settle();
   t.d.getElementById("cancel0").click(); await settle();
   removeCard(t, 0);
-  assert.match(barText(t), /0 \/ 1 videos .*\(1 active\)/);
+  assert.match(barText(t), /^Downloading videos: 0 \/ 1 done {2}\(1 active\)/);
 });
 
 test("a running card removed with the red X leaves the count", async () => {
@@ -881,7 +881,7 @@ test("a running card removed with the red X leaves the count", async () => {
   await hand(t, 1);
   removeCard(t, 0); await settle();
   assert.equal(t.ctl.confirms.length, 1);
-  assert.match(barText(t), /0 \/ 1 downloads .*\(1 active\)/);
+  assert.match(barText(t), /^Downloading: 0 \/ 1 done {2}\(1 active\)/);
 });
 
 test("a download that finished and left the list on its own still counts as done", async () => {
@@ -891,16 +891,16 @@ test("a download that finished and left the list on its own still counts as done
   await hand(t, 1);
   t.finish("j1"); await t.tick(); await t.tick();
   assert.equal(t.ev("items.length"), 1, "A's card is gone");
-  assert.match(barText(t), /1 \/ 2 downloads .*\(1 active\)/);
+  assert.match(barText(t), /^Downloading: 1 \/ 2 done {2}\(1 active\)/);
 });
 
 test("Clear takes the cards that were only waiting out of the count", async () => {
   const t = await boot();
   await t.fetchLinks(`${A}\n${B}\n${C}`);
   t.all(); await settle();                       // A and B run, C waits in the run
-  assert.match(barText(t), /0 \/ 3 videos/);
+  assert.match(barText(t), /^Downloading videos: 0 \/ 3 done/);
   t.clear();
-  assert.match(barText(t), /0 \/ 2 videos .*\(2 active\)/);
+  assert.match(barText(t), /^Downloading videos: 0 \/ 2 done {2}\(2 active\)/);
 });
 
 test("removing the only card of a run ends it quietly", async () => {
