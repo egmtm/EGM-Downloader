@@ -1,6 +1,11 @@
 vTBD - TBD (TBD)
 -----------------------------------------
 
+  • [ALL] Security: The minimum curl_cffi version is now 0.17.0, the library that lets the app download from sites that check which browser is asking. It includes the same upstream fix as brotli for how malformed compressed data is handled (CVE-2026-111497).
+  • [ALL] Updated: The minimum yt-dlp version is now 2026.10.26, the first one that works with curl_cffi 0.17.
+  • [WINDOWS] Fixed: Installs that were already set up now also get these two minimum versions at start instead of keeping older copies. If the app is offline, it starts normally with what it has.
+  • [LINUX] Fixed: An older curl_cffi left over from Update Plugins is removed at start, so the newer one that comes with the app is used.
+  • [ALL] Fixed: The Subscriptions window keeps showing "Fetching videos..." until the fetch has finished, also when the language loads late or two fetches of the same channel run at once.
   • [ALL] Fixed: The Theme Creator panel no longer slides across the window when you switch to or from Arabic.
   • [ALL] Fixed: More labels that stayed in English in other languages now follow the selected language.
 
