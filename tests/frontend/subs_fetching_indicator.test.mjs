@@ -86,6 +86,8 @@ test("the indicator stays up while a second fetch of the same channel still runs
   await new Promise((resolve) => (function look() { polls >= 2 ? setTimeout(resolve, 50) : setTimeout(look, 50); })());   // f1 is done, f2 was polled once
   assert.match(listText(t), /Fetching videos/);
   assert.doesNotMatch(listText(t), /NEW video|OLD video/);
+  t.w.eval("renderDetail()");                            // a later render (the language, a sort change) must still show the line: the first fetch counted out once
+  assert.match(listText(t), /Fetching videos/);
 });
 
 test("a fetch that finishes replaces the indicator with the new list", async () => {
