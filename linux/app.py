@@ -2702,10 +2702,11 @@ def _parse_simple_version(v):
     except (ValueError, AttributeError):
         return None
 
-# The two packages whose minimum versions protect users (yt-dlp: current extractors,
-# brotli: the CVE-2026-111497 fix). The same table as PY_DEP_FLOORS in windows/launch.py;
+# The packages whose minimum versions protect users (yt-dlp: current extractors,
+# brotli: the CVE-2026-111497 fix, curl_cffi: the same fix inside its own libcurl, from
+# 0.17.0). The same table as PY_DEP_FLOORS in windows/launch.py;
 # test_linux_overlay_prune.py holds it equal to that table and to requirements.txt.
-PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1)}
+PY_DEP_FLOORS = {"yt-dlp": (2026, 10, 26), "brotli": (1, 2, 1), "curl_cffi": (0, 17, 0)}
 
 def _prune_overlay_below_floors():
     """Update Plugins installs into PACKAGES_DIR, which _yt_env() puts first on PYTHONPATH,
