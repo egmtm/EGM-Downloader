@@ -49,3 +49,25 @@ def test_i18n_load_takes_the_direction_from_the_code_only():
     assert "setAttribute('dir', I18N_RTL.includes(code) ? 'rtl' : 'ltr')" in load
     for path in glob.glob(os.path.join(ROOT, "templates", "**", "*.html"), recursive=True):
         assert not re.search(r"\b_direction\b", open(path, encoding="utf-8").read()), f"{path} reads the direction from a language file"
+
+
+def test_direction_change_runs_with_transitions_off():
+    """A direction change is not an animation.
+
+    The closed Theme Creator panel sits at translateX(100%) in left to right and translateX(-100%) in
+    right to left, and its anchor moves to the other side at the same moment, so with its .22s transition
+    on it sweeps across the whole window on every switch and at start up with Arabic saved. i18nLoad
+    adds html.dir-switching, sets the direction, forces a style flush and removes the class again;
+    index_styles.html turns transitions off while the class is on. Verified in Chromium: 340 px of the
+    panel visible mid switch before, 0 after (tests have no real browser, so this guards the wiring).
+    """
+    load = I18N[I18N.index("async function i18nLoad"):I18N.index("function i18nBoot")]
+    cls = re.search(r"classList\.add\('([\w-]+)'\)", load)
+    assert cls, "i18nLoad does not add a class around the direction change"
+    cls = cls.group(1)
+    steps = [f"classList.add('{cls}')", "setAttribute('dir'", "offsetWidth", f"classList.remove('{cls}')"]
+    at = [load.index(s) for s in steps]
+    assert at == sorted(at), f"i18nLoad must add the class, set dir, flush style, then remove the class: {steps}"
+    css = read_source("templates/index_styles.html")
+    assert re.search(rf"html\.{cls} \*\s*,[^{{]*\{{\s*transition:\s*none\s*!important", css), \
+        f"index_styles.html has no rule that turns transitions off under html.{cls}"

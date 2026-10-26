@@ -82,7 +82,10 @@ async function i18nLoad(code) {
   I18N.strings = (code === 'en') ? I18N.en : (await i18nFetch(code)) || I18N.en;
   I18N.code = code;
   document.documentElement.setAttribute('lang', code);
+  document.documentElement.classList.add('dir-switching');   // a direction change is not an animation: the rule is in index_styles.html
   document.documentElement.setAttribute('dir', I18N_RTL.includes(code) ? 'rtl' : 'ltr');
+  void document.documentElement.offsetWidth;   // apply the new direction now, with transitions off
+  document.documentElement.classList.remove('dir-switching');
   i18nApply(document);
   // State-owned text (cookie badge, live statuses) re-renders on this signal —
   // those elements must NOT carry data-i18n or i18nApply stomps their state.
