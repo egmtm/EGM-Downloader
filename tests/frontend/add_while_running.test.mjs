@@ -255,7 +255,7 @@ test("a second Download all feeds the running run: one concurrency limit, each c
   assert.equal(t.ctl.maxRunning, 2, "never more than the limit");
   assert.deepEqual(t.log.bodies.map((b) => b.format), ["video", "video", "video", "audio", "audio"]);
   assert.equal(t.log.bodies[3].audio_quality, "192");
-  assert.equal(t.toasts().filter((x) => x.startsWith(en.strings["toast.done"])).length, 1, "one run, one Done");
+  assert.equal(t.toasts().filter((x) => /^Done — /.test(x)).length, 1, "one run, one Done");
 });
 
 test("a second Download all while the run's cards are still loading their info does not start them twice", async () => {
@@ -610,7 +610,7 @@ test("Download all after a run ended starts a new run with its own bar and Done"
   t.all(); await settle();
   assert.ok(t.d.getElementById("bulk-bar").classList.contains("show"));
   t.finish("j2"); await t.tick();
-  assert.equal(t.toasts().filter((x) => x.startsWith(en.strings["toast.done"])).length, 1, "the second run says Done too");
+  assert.equal(t.toasts().filter((x) => /^Done — /.test(x)).length, 1, "the second run says Done too");
 });
 
 test("Clear keeps a card that is converting", async () => {
@@ -640,7 +640,7 @@ test("a card cleared while its name dialog is open is not downloaded", async () 
 
 const barText = (t) => t.d.getElementById("bulk-txt").textContent;
 const barShown = (t) => t.d.getElementById("bulk-bar").classList.contains("show");
-const doneToasts = (t) => t.toasts().filter((x) => x.startsWith(en.strings["toast.done"]));
+const doneToasts = (t) => t.toasts().filter((x) => /^Done — /.test(x));
 
 test("a queued card started from its own button keeps the run going until it ends", async () => {
   const t = await boot();

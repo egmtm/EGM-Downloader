@@ -30,7 +30,7 @@ def _check(find, html, expected):
 
 
 JS_CASES = {
-    "wired_toast": ("toast(i18nGet('toast.done') || 'Done', 'ok');", []),
+    "wired_toast": ("toast(i18nGet('toast.nothing_to_download') || 'Nothing to download', 'ok');", []),
     "wired_assignment": ("badge.textContent = i18nGet('plugins.badge.all_current') || 'All current';", []),
     "toast_type_argument_not_a_message": ("toast('Something happened', 'err');", [("toast", "Something happened")]),
     "punctuation_fragment_not_separate": ("toast('Reset failed' + ': ' + e.message, 'err');", [("toast", "Reset failed")]),
