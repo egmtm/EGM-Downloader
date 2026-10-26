@@ -928,6 +928,9 @@
       box-shadow: -10px 0 28px rgba(0,0,0,.4);
     }
     [dir=rtl] #creator-panel { transform: translateX(-100%); box-shadow: 10px 0 28px rgba(0,0,0,.4); }   /* docked at the left */
+    /* A direction change is not an animation. i18nLoad adds html.dir-switching around it: the closed panel moves to
+       the other side and its offset changes sign, so with transitions on it would sweep across the window. */
+    html.dir-switching *, html.dir-switching *::before, html.dir-switching *::after { transition: none !important; }
     body.creator-panel-open #creator-panel { transform: translateX(0); }
     body.creator-panel-open { padding-inline-end: 356px; }
     body.creator-panel-open #scroll-top, body.creator-panel-open #toasts { inset-inline-end: 362px; }
