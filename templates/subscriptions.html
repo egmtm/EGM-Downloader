@@ -431,6 +431,12 @@ function egmPrompt(msg, defaultValue = '') {
 
 let subs = [];
 let activeSub = null;
+// Channels with a fetch running (subscription ids). While the open channel is in this set, renderDetail() shows
+// the "Fetching videos..." line instead of the stored list, so a re-render during a fetch (the language file
+// arriving after an auto fetch started, another channel finishing, a sort change) never brings the old list back.
+const _fetching = new Set();
+const FETCHING_HTML = '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> Fetching videos...</div>';
+function setVideoList(html) { const l = document.getElementById('video-list'); if (l) l.innerHTML = html; }   // looked up each time: a re-render replaces the element
 let showQueue = false;
 // "Quit when done": armed from the queue header and held in memory only. It is
 // deliberately never saved, so it resets whenever this window closes.
@@ -1099,7 +1105,7 @@ function renderDetail() {
       </div>
     </div>
     <div class="video-list" id="video-list">
-      ${videos.length === 0 ? `
+      ${_fetching.has(activeSub.id) ? FETCHING_HTML : videos.length === 0 ? `
         <div class="empty-state">${i18nAttr('subscriptions.detail.hint', 'Click \\"Fetch\\" to load videos from this channel')}</div>
       ` : (() => {
         const visible = sortedVideos.slice(0, visibleCount);
@@ -1545,8 +1551,9 @@ function kebabDeleteSub(id) {
 
 async function fetchVideos(id, force) {
   visibleCount = 20; // reset on new fetch
-  const list = document.getElementById('video-list');
-  if (list) list.innerHTML = '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> Fetching videos...</div>';
+  _fetching.add(id);
+  const isOpen = () => activeSub && activeSub.id === id;   // the message belongs to the channel on screen
+  if (isOpen()) setVideoList(FETCHING_HTML);
 
   // The fetch runs as a background job on the server; we just start it and poll a
   // tiny status endpoint. Every request here is sub-second, so a slow channel
@@ -1560,7 +1567,7 @@ async function fetchVideos(id, force) {
     }).then(r => r.json());
 
     if (!start || !start.fetch_id) {
-      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((start && start.error) || 'Unknown')}</div>`;
+      if (isOpen()) setVideoList(`<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((start && start.error) || 'Unknown')}</div>`);
       return;
     }
 
@@ -1575,6 +1582,7 @@ async function fetchVideos(id, force) {
       if (!data || data.status === 'done' || data.status === 'error' || data.status === 'unknown') break;
     }
 
+    _fetching.delete(id);                      // before the renders below, which would otherwise show the line again
     if (data && data.status === 'done' && data.subscription) {
       const idx = subs.findIndex(s => s.id === id);
       if (idx >= 0) subs[idx] = data.subscription;
@@ -1582,10 +1590,12 @@ async function fetchVideos(id, force) {
       renderSidebar();
       renderDetail();
     } else {
-      if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`;
+      if (isOpen()) setVideoList(`<div class="empty-state" style="color:var(--red,#e04040)">Error: ${esc((data && data.error) || i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`);
     }
   } catch {
-    if (list) list.innerHTML = `<div class="empty-state" style="color:var(--red,#e04040)">${esc(i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`;
+    if (isOpen()) setVideoList(`<div class="empty-state" style="color:var(--red,#e04040)">${esc(i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`);
+  } finally {
+    _fetching.delete(id);
   }
 }
 

@@ -50,7 +50,9 @@ export function bootPage({ settings = {}, onFetch, prep } = {}) {
 // main page as <name>_subs.html). Intervals are captured instead of run so a
 // test drives pollJobs() and the "Quit when done" countdown tick by tick, and
 // window.electronAPI is a recorder.
-export function bootSubsPage({ probeBusy = false } = {}) {
+// onFetch(url, options) may answer a call first (return a response, or a promise of one to answer late);
+// returning nothing falls through to the defaults below.
+export function bootSubsPage({ probeBusy = false, onFetch } = {}) {
   const main = process.env.EGM_RENDERED_PAGE || "/tmp/egm_rendered_index.html";
   const html = readFileSync(main.replace(/(\.[^./]+)?$/, "_subs$1"), "utf8");
   const calls = { quit: [], fetch: [] };
@@ -71,6 +73,7 @@ export function bootSubsPage({ probeBusy = false } = {}) {
       };
       w.fetch = async (u, o) => {
         calls.fetch.push(u);
+        if (onFetch) { const r = onFetch(u, o); if (r) return r; }
         let m;
         if ((m = /^\/api\/status\/(.+)$/.exec(u))) return { ok: true, json: async () => ({ status: status[m[1]] || "downloading", progress: 10 }) };
         if (u === "/api/settings") return { ok: true, json: async () => ({ language: "en" }) };
