@@ -70,6 +70,24 @@ test("a fetch whose request throws shows the error and leaves no indicator behin
   assert.doesNotMatch(listText(t), /Fetching videos/);
 });
 
+// Two fetches of the same channel at once (the Fetch button during the auto fetch): the line stays up until the
+// last one has ended. The first fetch finishes at its first poll; the second one is still running.
+test("the indicator stays up while a second fetch of the same channel still runs", async () => {
+  let starts = 0, polls = 0;
+  const t = await bootSubsPage({
+    onFetch: (u, o) => {
+      if (u === "/api/subscriptions") return json({ subscriptions: [channel("OLD video")] });
+      if (u === "/api/subscriptions/fetch") return json({ fetch_id: "f" + (++starts) });
+      if (u === "/api/subscriptions/fetch-status") { polls++; return json(JSON.parse(o.body).fetch_id === "f1" ? { status: "done", subscription: channel("NEW video") } : { status: "running" }); }
+    },
+  });
+  windows.push(t.w);
+  t.w.eval("fetchVideos('s1', false)");                  // the Fetch button, while the auto fetch (f1) runs
+  await new Promise((resolve) => (function look() { polls >= 2 ? setTimeout(resolve, 50) : setTimeout(look, 50); })());   // f1 is done, f2 was polled once
+  assert.match(listText(t), /Fetching videos/);
+  assert.doesNotMatch(listText(t), /NEW video|OLD video/);
+});
+
 test("a fetch that finishes replaces the indicator with the new list", async () => {
   const t = await boot({ status: "done", subscription: channel("NEW video") });
   await until(t, /NEW video/);

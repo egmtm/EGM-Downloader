@@ -431,10 +431,14 @@ function egmPrompt(msg, defaultValue = '') {
 
 let subs = [];
 let activeSub = null;
-// Channels with a fetch running (subscription ids). While the open channel is in this set, renderDetail() shows
-// the "Fetching videos..." line instead of the stored list, so a re-render during a fetch (the language file
-// arriving after an auto fetch started, another channel finishing, a sort change) never brings the old list back.
-const _fetching = new Set();
+// Channels with a fetch running: subscription id -> how many fetches of it run right now. While the open channel
+// is in this map, renderDetail() shows the "Fetching videos..." line instead of the stored list, so a re-render
+// during a fetch (the language file arriving after an auto fetch started, another channel finishing, a sort
+// change) never brings the old list back. A count, not a set: the Fetch button during an auto fetch starts a
+// second fetch of the same channel, and the line must stay up until the last one has ended.
+const _fetching = new Map();
+function _fetchStarted(id) { _fetching.set(id, (_fetching.get(id) || 0) + 1); }
+function _fetchEnded(id) { const n = (_fetching.get(id) || 0) - 1; if (n > 0) _fetching.set(id, n); else _fetching.delete(id); }
 const FETCHING_HTML = '<div class="empty-state"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;animation:spin 1.5s linear infinite" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg> Fetching videos...</div>';
 function setVideoList(html) { const l = document.getElementById('video-list'); if (l) l.innerHTML = html; }   // looked up each time: a re-render replaces the element
 let showQueue = false;
@@ -1551,7 +1555,9 @@ function kebabDeleteSub(id) {
 
 async function fetchVideos(id, force) {
   visibleCount = 20; // reset on new fetch
-  _fetching.add(id);
+  _fetchStarted(id);
+  let ended = false;
+  const end = () => { if (!ended) { ended = true; _fetchEnded(id); } };   // once per fetch, whichever way it leaves
   const isOpen = () => activeSub && activeSub.id === id;   // the message belongs to the channel on screen
   if (isOpen()) setVideoList(FETCHING_HTML);
 
@@ -1582,7 +1588,7 @@ async function fetchVideos(id, force) {
       if (!data || data.status === 'done' || data.status === 'error' || data.status === 'unknown') break;
     }
 
-    _fetching.delete(id);                      // before the renders below, which would otherwise show the line again
+    end();                                     // before the renders below, which would otherwise show the line again
     if (data && data.status === 'done' && data.subscription) {
       const idx = subs.findIndex(s => s.id === id);
       if (idx >= 0) subs[idx] = data.subscription;
@@ -1595,7 +1601,7 @@ async function fetchVideos(id, force) {
   } catch {
     if (isOpen()) setVideoList(`<div class="empty-state" style="color:var(--red,#e04040)">${esc(i18nGet('subscriptions.error.fetch_failed') || 'Fetch failed')}</div>`);
   } finally {
-    _fetching.delete(id);
+    end();
   }
 }
 
