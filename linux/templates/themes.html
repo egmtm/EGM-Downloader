@@ -71,6 +71,7 @@
       padding-block:6px;padding-inline:18px 14px;font-size:.7rem;color:var(--text2);
       cursor:pointer;border-inline-start:2px solid transparent;
       display:flex;align-items:center;gap:6px;user-select:none;
+      overflow-wrap:anywhere;   /* a name longer than the sidebar (Russian, Dutch) breaks instead of pushing the count out of sight */
       transition:background .1s,color .1s,border-color .1s;
     }
     .cat-tab:hover { background:var(--surf2);color:var(--text); }
@@ -82,6 +83,7 @@
     /* lint-allow-muted: supplementary-metadata */
     .cat-count {
       margin-inline-start:auto;font-size:.55rem;color:var(--text2);opacity:0.7;font-weight:400;
+      flex-shrink:0;white-space:nowrap;   /* the number never breaks, the name beside it does */
     }
     .cat-tab.active .cat-count { color:var(--acc); opacity:1; }
 
