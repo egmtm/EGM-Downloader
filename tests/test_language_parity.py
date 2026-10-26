@@ -78,6 +78,10 @@ EXTRA = {
         "settings.toggle.sponsorblock_outro",
         "settings.toggle.sponsorblock_sponsor",
         "subscriptions.label.format",
+        "themes.cat.memes",
+        "themes.cat.modern",
+        "themes.cat.puerto_rico",
+        "themes.cat.retro",
         "themes.window.title",
     },
     "es": {
@@ -91,6 +95,11 @@ EXTRA = {
         "settings.toggle.sponsorblock_intro",
         "settings.toggle.sponsorblock_outro",
         "subscriptions.detail.videos_count",
+        "themes.cat.experimental",
+        "themes.cat.memes",
+        "themes.cat.puerto_rico",
+        "themes.cat.retro",
+        "themes.cat.sneakers",
         "toast.plugins.error_prefix",
     },
     "fr": {
@@ -115,6 +124,9 @@ EXTRA = {
         "settings.toggle.sponsorblock_outro",
         "settings.toggle.sponsorblock_sponsor",
         "subscriptions.label.format",
+        "themes.cat.architecture",
+        "themes.cat.nature",
+        "themes.section.style",
         "url.label.fragments",
     },
     "it": {
@@ -128,6 +140,7 @@ EXTRA = {
         "settings.toggle.sponsorblock_intro",
         "settings.toggle.sponsorblock_outro",
         "settings.toggle.sponsorblock_sponsor",
+        "themes.cat.sneakers",
     },
     "nl": {
         "advanced.section.interface",
@@ -152,6 +165,11 @@ EXTRA = {
         "settings.toggle.sponsorblock_outro",
         "settings.toggle.sponsorblock_sponsor",
         "status.bar.count",
+        "themes.cat.memes",
+        "themes.cat.modern",
+        "themes.cat.puerto_rico",
+        "themes.cat.retro",
+        "themes.cat.sneakers",
         "update.available.btn.later",
     },
     "pt": {
@@ -162,6 +180,8 @@ EXTRA = {
         "settings.toggle.sponsorblock_intro",
         "settings.toggle.sponsorblock_outro",
         "status.bar.count",
+        "themes.cat.experimental",
+        "themes.cat.memes",
     },
 }
 
