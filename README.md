@@ -82,6 +82,8 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots and videos
 
+https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
+
 https://github.com/user-attachments/assets/ef67937c-2f11-4e28-95ca-62f168f194a0
 
 https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
