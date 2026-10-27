@@ -14,7 +14,7 @@ Each file covers one language and contains the same set of string keys as `en.js
 3. Test by importing: **Advanced → Import language file**
 4. Open a pull request with your changes to the relevant `languages/*.json` file
 
-Rules: keep every key present, preserve `{0}` / `{1}` / `{2}` placeholders exactly, leave brand and tool names untouched (yt-dlp, ffmpeg, Deno, YouTube, etc.).
+Rules: keep every key present, preserve `{0}` / `{1}` / `{2}` placeholders exactly, leave brand and tool names untouched (yt-dlp, ffmpeg, Deno, YouTube, etc.), and do not use the characters `<` or `>` in any value (the app places some translated lines into the page as HTML, so a value with either of them is rejected by the tests).
 
 The test suite enforces this. Every language file must have exactly the keys of `en.json` with the same placeholders, and a value identical to the English text fails unless it is on the allowlist in `tests/test_language_parity.py` (brand and tool names, and words that are the same in the language, such as Audio or Video). A key added to `en.json` has to be translated in all ten files in the same change.
 
