@@ -231,8 +231,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "1.5.0.0.5"
-APP_BUILD             = 171
+APP_VERSION           = "1.5.0.0.8"
+APP_BUILD             = 172
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
