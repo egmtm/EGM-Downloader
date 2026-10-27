@@ -10,6 +10,8 @@ The gate in windows/launch.py is run here for real, with a stand in for `sys` an
 so no dialog can open on any operating system.
 """
 import io
+import os
+import subprocess
 import sys
 import types
 from pathlib import Path
@@ -49,7 +51,10 @@ def _run_gate(tmp_path, monkeypatch, version, portable):
     fake_sys = types.SimpleNamespace(
         version_info=version + ("final", 0), stderr=io.StringIO(), exit=fake_exit
     )
-    namespace = {"__file__": str(tmp_path / "launch.py"), "sys": fake_sys, "Path": Path}
+    # No newer Python on this PC: the hand over (tests/test_launcher_newer_python_handover.py) finds nothing,
+    # so the gate ends in the dialog, as it always did.
+    namespace = {"__file__": str(tmp_path / "launch.py"), "sys": fake_sys, "Path": Path,
+                 "os": os, "subprocess": subprocess, "_find_newer_python": lambda minimum: None}
     try:
         exec(compile(_gate_source(), "launch_gate", "exec"), namespace)
     except SystemExit as stop:

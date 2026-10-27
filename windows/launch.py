@@ -2,6 +2,34 @@
 import os, sys, subprocess
 from pathlib import Path
 
+
+def _find_newer_python(minimum):
+    """Path of a python.exe at or above `minimum` that the py launcher knows, or None.
+    The launcher stops at the first Python that starts, so a PC with 3.10 first on PATH and
+    3.12 installed behind `py` lands here on the old one. Newest first; a version that is not
+    installed, or one that answers wrongly, is skipped. No py launcher at all: None at once."""
+    for tag in ("3.13", "3.12", "3.11"):
+        try:
+            r = subprocess.run(
+                ["py", "-" + tag, "-c", "import sys; print(sys.version_info[0], sys.version_info[1]); print(sys.executable)"],
+                stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, universal_newlines=True,
+                timeout=10, creationflags=0x08000000)   # CREATE_NO_WINDOW
+        except FileNotFoundError:
+            return None
+        except Exception:
+            continue
+        if r.returncode != 0:
+            continue
+        lines = r.stdout.splitlines()
+        try:
+            found, exe = tuple(int(n) for n in lines[0].split()), lines[1].strip()
+        except (IndexError, ValueError):
+            continue
+        if found >= minimum and exe and Path(exe).is_file():
+            return exe
+    return None
+
+
 # ── Python version gate ───────────────────────────────────────────────────────
 # This guards the interpreter that is *running this script*. Installer: the system
 # Python, which also runs the app, so it has to be one yt-dlp still supports (3.11 or
@@ -12,6 +40,18 @@ from pathlib import Path
 # confusing traceback. (Uses %-formatting + ctypes only, so it runs on old ones.)
 _PY_MIN = (3, 10) if (Path(__file__).resolve().parent / ".portable").exists() else (3, 11)
 if sys.version_info < _PY_MIN:
+    # Too old, but the PC may have a new enough Python behind this one: hand over to it before
+    # giving up. Its folder goes first on PATH for everything started from here, because the
+    # app finds its Python by name (main.js: "python"), and that must be this one, not the old
+    # one. EGM_PY_HANDOVER stops a second hand over; EGM_SILENT is set as for the pythonw hop below.
+    _newer = None if os.environ.get("EGM_PY_HANDOVER") else _find_newer_python(_PY_MIN)
+    if _newer:
+        _pw = Path(_newer).with_name("pythonw.exe")
+        subprocess.Popen([str(_pw) if _pw.exists() else _newer, str(__file__)] + sys.argv[1:],
+                         env={**os.environ, "EGM_SILENT": "1", "EGM_PY_HANDOVER": "1",
+                              "PATH": str(Path(_newer).parent) + os.pathsep + os.environ.get("PATH", "")},
+                         creationflags=0x08000000)   # CREATE_NO_WINDOW
+        sys.exit(0)
     _msg = ("EGM Downloader needs Python %d.%d or newer.\n\n"
             "Detected: Python %d.%d.%d\n\n"
             "Install Python %d.%d+ from https://python.org\n"
