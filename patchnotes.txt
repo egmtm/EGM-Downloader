@@ -1,4 +1,4 @@
-vTBD - TBD (TBD)
+v1.5.0.0.8 - CITIUS · أصيل: Reloaded (10/26/2026)
 -----------------------------------------
 
   • [ALL] Security: The minimum curl_cffi version is now 0.17.0, the library that lets the app download from sites that check which browser is asking. It includes the same upstream fix as brotli for how malformed compressed data is handled (CVE-2026-111497).
