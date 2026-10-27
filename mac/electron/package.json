@@ -48,7 +48,8 @@
           "templates/**",
           "static/**",
           "languages/*.json",
-          "requirements.txt"
+          "requirements.txt",
+          "patchnotes.txt"
         ]
       },
       {

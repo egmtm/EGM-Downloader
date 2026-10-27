@@ -44,6 +44,13 @@
         ]
       },
       {
+        "from": "../../",
+        "to": "app",
+        "filter": [
+          "patchnotes.txt"
+        ]
+      },
+      {
         "from": "../../languages",
         "to": "app/languages",
         "filter": [

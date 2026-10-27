@@ -3053,10 +3053,39 @@ def deno_reinstall():
 
 # ── Check for app update (informational only — Linux has no auto-install) ─────
 
+# What's New lists the notes of the RUNNING version, read from the patchnotes.txt that ships
+# next to app.py (the same bullets and the same platform filter the signed feed carries), so
+# the list always matches the version in the heading, also offline. Only when that file is
+# missing or has no block for this version does it ask the signed feed: first its history,
+# then its latest notes if the feed is this very version. Never another version's notes.
+_PATCHNOTES_FILE = Path(__file__).parent / "patchnotes.txt"
+_PATCHNOTES_TAG  = "LINUX"
+
+
+def _bundled_version_notes(version):
+    try:
+        text = _PATCHNOTES_FILE.read_text(encoding="utf-8")
+    except Exception:
+        return []
+    notes, inside = [], False
+    for line in text.splitlines():
+        head = _re.match(r"^v(\S+)\s+-", line)
+        if head:
+            inside = head.group(1) == version
+        elif inside:
+            m = _re.match(r"^\s+•\s+((?:\[[A-Z]+\]\s*)+)(.+?)\s*$", line)
+            if m and {"ALL", _PATCHNOTES_TAG} & set(_re.findall(r"\[([A-Z]+)\]", m.group(1))):
+                notes.append(m.group(2))
+    return notes
+
+
 @app.route("/api/whats-new")
 def whats_new():
-    """Return _version_notes from the platform JSON feed for the What's New modal.
+    """Return the release notes of the running version for the What's New modal.
     Falls back to empty list gracefully — modal stays shown but with no bullets."""
+    notes = _bundled_version_notes(APP_VERSION)
+    if notes:
+        return jsonify({"version": APP_VERSION, "notes_list": notes})
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
                                      headers={"User-Agent": "EGM-Downloader"})
@@ -3066,13 +3095,17 @@ def whats_new():
         if not _verify_manifest(data):
             _sec_event("whats-new: manifest signature INVALID or MISSING — notes suppressed")
             return jsonify({"version": APP_VERSION, "notes_list": []})
-        notes = data.get("_version_notes", [])
+        entry = next((h for h in data.get("_history") or []
+                      if isinstance(h, dict) and h.get("version") == APP_VERSION), None)
+        if entry:
+            notes = entry.get("notes", [])
+        elif data.get("version") == APP_VERSION:
+            notes = data.get("_version_notes", [])
+        else:
+            notes = []
         if not isinstance(notes, list):
             notes = [str(notes)] if notes else []
-        return jsonify({
-            "version": data.get("version", APP_VERSION),
-            "notes_list": notes,
-        })
+        return jsonify({"version": APP_VERSION, "notes_list": notes})
     except Exception:
         return jsonify({"version": APP_VERSION, "notes_list": []})
 

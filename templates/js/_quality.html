@@ -89,9 +89,9 @@ function videoQualityBgClick(e) {
 
 // ── What's New — shown automatically once per version, or manually via the
 // footer button. Both paths call the same showWhatsNewModal(), which always
-// fetches the CURRENTLY RUNNING version's notes (the signed update feed only
-// ever carries one version's worth of _version_notes -- there's no history
-// to page through yet).
+// asks for the CURRENTLY RUNNING version's notes: the backend reads them from
+// the patchnotes.txt shipped with the app, and only falls back to the signed
+// update feed (its history) when that file has no block for this version.
 async function showWhatsNewModal(currentVersion) {
   document.getElementById('whats-new-version').textContent = currentVersion;
   // whatsnew.title's {0} placeholder isn't always at the end (e.g. Japanese
@@ -104,7 +104,7 @@ async function showWhatsNewModal(currentVersion) {
   document.getElementById('whats-new-title-after').textContent = after ?? '';
   document.getElementById('whats-new-modal').style.display = 'flex';
 
-  // Fetch release notes from the platform JSON feed
+  // Fetch the running version's release notes from the backend
   const list = document.getElementById('whats-new-list');
   const showFallback = () => {
     list.innerHTML = '';
