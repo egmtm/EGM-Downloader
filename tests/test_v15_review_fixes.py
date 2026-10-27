@@ -109,7 +109,8 @@ def test_stop_route_is_identical_on_all_platforms():
     was not: weakening the live/downloading guard in mac/app.py alone left the
     whole suite green."""
     base = _route_body(read_source(PLATFORM_APP_FILES[0]), "stop_and_keep")
-    assert 'if not job.get("live") or job.get("status") != "downloading":' in base
+    # live, and either recording or (between two runs, see _live_run_ended) converting with the check flag
+    assert 'if not job.get("live") or not (status == "downloading" or (status == "converting" and job.get("_live_check"))):' in base
     for p in PLATFORM_APP_FILES[1:]:
         assert _route_body(read_source(p), "stop_and_keep") == base, p
 

@@ -844,3 +844,134 @@ def test_the_card_clock_never_counts_a_step_backwards(app_module):
     # A small step back in the source timestamps (a restart a second behind) is skipped, not added.
     clock = app_module._live_clock(0)
     assert [clock(t) for t in ("00:10:05", "00:10:04", "00:10:06")] == [605, 605, 607]
+
+
+# ── the card at the end of a run ─────────────────────────────────────────────
+# When a run ends, the app waits two seconds and asks yt-dlp whether the stream is still live. The
+# card used to step back to "Recording" for that time (after the Merger line had moved it to
+# "Converting…") and then jump to saved. It now stays on Converting… until another run really starts.
+def _watch(rig, monkeypatch, am, answers=None):
+    """Record (what, status, check flag) at every wait, probe and new run, in order."""
+    events, answers = [], list(answers or [])
+
+    def snap(what):
+        events.append((what, rig.job.get("status"), bool(rig.job.get("_live_check")), "progress" in rig.job))
+
+    def wait(job, secs):
+        snap("wait")
+        return not (job.get("cancelled") or job.get("stop_keep"))
+
+    def probe(job, url):
+        snap("probe")
+        return answers.pop(0) if answers else True
+
+    def attempt(job, job_id, cmd, base_s, base_kib):
+        snap("run")
+        return 0
+
+    monkeypatch.setattr(am, "_live_wait", wait)
+    monkeypatch.setattr(am, "_live_is_still_live", probe)
+    monkeypatch.setattr(am, "_run_live_attempt", attempt)
+    return events
+
+
+def test_the_card_stays_on_converting_while_it_waits_and_checks_when_the_stream_has_ended(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=[])
+    events = _watch(rig, monkeypatch, app_module, answers=[False])
+    rig.job.update(status="converting")   # the Merger line has moved the card here
+    assert rig.run(rc=0) == "saved"
+    assert events == [("wait", "converting", True, False), ("probe", "converting", True, False)]
+    assert rig.job["status"] == "converting" and "_live_check" not in rig.job
+
+
+def test_a_clean_end_without_a_merger_line_also_reads_converting_not_recording(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=[])
+    events = _watch(rig, monkeypatch, app_module, answers=[False])
+    rig.job.update(status="downloading", progress=100.0, speed="1MiB/s", eta="00:00")
+    rig.run(rc=0)
+    assert [e[:2] for e in events] == [("wait", "converting"), ("probe", "converting")]
+    assert rig.job["speed"] == "" and rig.job["eta"] == ""
+
+
+def test_it_goes_back_to_downloading_only_when_a_new_run_starts_and_converts_again_when_it_ends(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=["j_r2.mp4"])
+    events = _watch(rig, monkeypatch, app_module, answers=[True, False])
+    rig.job.update(status="converting", progress=100.0)
+    rig.run(rc=0)
+    assert events == [
+        ("wait", "converting", True, False), ("probe", "converting", True, False),
+        ("run", "downloading", False, False),     # reconnecting: no Converting, no check flag, no leftover 100 %
+        ("wait", "converting", True, False), ("probe", "converting", True, False),
+    ]
+
+
+def test_an_unclear_answer_keeps_the_card_on_converting_through_every_try(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=[])
+    events = _watch(rig, monkeypatch, app_module, answers=[None, None, False])
+    rig.run(rc=0)
+    assert [e[0] for e in events] == ["wait", "probe", "wait", "probe", "wait", "probe"]
+    assert {e[1] for e in events} == {"converting"}
+
+
+def test_the_reason_for_dropping_progress_still_holds_at_the_start_of_a_new_run(app_module, monkeypatch, tmp_path):
+    # A run that ended cleanly printed 100 %, and a downloading card with 100 % reads Converting.
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, False], captures=["j_r2.mp4"])
+    events = _watch(rig, monkeypatch, app_module, answers=[True, False])
+    rig.job.update(status="downloading", progress=100.0)
+    rig.run(rc=0)
+    assert ("run", "downloading", False, False) in events
+
+
+def _route(app_module, path):
+    with app_module.app.test_client() as client:
+        return client.post(path, headers={"X-EGM-Token": app_module._API_TOKEN})
+
+
+@pytest.mark.parametrize("fields, code", [
+    ({"status": "downloading"}, 200),                                      # recording: as before
+    ({"status": "converting", "_live_check": True}, 200),                  # waiting or asking whether it is still live
+    ({"status": "converting"}, 400),                                       # the Merger: not touched by this change
+    ({"status": "error", "_live_check": True}, 400),                       # a flag left behind never opens the route
+    ({"status": "done", "_live_check": True}, 400),
+])
+def test_stop_and_save_is_accepted_while_the_card_reads_converting_between_runs(app_module, fields, code):
+    app_module.jobs["t_stop_check"] = {"live": True, "proc": None, **fields}
+    try:
+        assert _route(app_module, "/api/stop/t_stop_check").status_code == code
+        assert bool(app_module.jobs["t_stop_check"].get("stop_keep")) == (code == 200)
+    finally:
+        app_module.jobs.pop("t_stop_check", None)
+
+
+def test_stop_and_save_pressed_during_the_check_saves_at_once_and_records_nothing_more(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=["j_r2.mp4"])
+    app_module.jobs["j"] = rig.job
+    rig.job.update(live=True, proc=None, status="converting")
+    codes = []
+
+    def probe(job, url):
+        codes.append(_route(app_module, "/api/stop/j").status_code)
+        return None   # what the real check answers when it is cut short
+    monkeypatch.setattr(app_module, "_live_is_still_live", probe)
+    try:
+        assert rig.run(rc=0) == "saved"
+    finally:
+        app_module.jobs.pop("j", None)
+    assert codes == [200] and rig.attempts == [] and rig.joined == []
+
+
+def test_cancel_pressed_during_the_check_discards_everything(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=["j_r2.mp4"])
+    app_module.jobs["j"] = rig.job
+    rig.job.update(live=True, proc=None, status="converting")
+    codes = []
+
+    def probe(job, url):
+        codes.append(_route(app_module, "/api/cancel/j").status_code)
+        return None
+    monkeypatch.setattr(app_module, "_live_is_still_live", probe)
+    try:
+        assert rig.run(rc=0) == "cancelled"
+    finally:
+        app_module.jobs.pop("j", None)
+    assert codes == [200] and rig.attempts == [] and rig.joined == []

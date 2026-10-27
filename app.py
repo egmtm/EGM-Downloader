@@ -2128,22 +2128,28 @@ def _live_keep_parts(job, job_id, out_dir, segs):
             job.setdefault("_live_parts", []).append(str(dst))   # Cancel during the finish step removes them too
         except OSError: pass
 
+def _live_run_ended(job):
+    """A yt-dlp run of a live job has ended. The card reads Converting from here until another run
+    really starts (not Recording for the two second wait and the still-live check, then saved).
+    Progress is dropped too: a run that ended cleanly printed 100 %, a cut one stopped at some figure,
+    and neither belongs on the card.
+    _live_check lets Stop and save through while the card is in this state (stop_and_keep)."""
+    job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+    job.pop("progress", None)
+    job["_live_check"] = True
+
 def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
     """After the first yt-dlp run of a live job has ended (any exit code): keep what was
     captured and, when the stream is still live and the user did not stop it, record
     again (up to _LIVE_MAX_RETRIES times in a row, see _LIVE_RECOVERED_S) and join the pieces into {job_id}<ext>.
     Returns "saved" (a usable recording sits at {job_id}<ext>), "cancelled", or None
     (nothing was captured)."""
-    if job.get("stop_keep") or rc != 0:
-        job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
-        job.pop("progress", None)
+    _live_run_ended(job)
     first = _live_collect(job_id, out_dir, ffmpeg, want_ext, audio_only)
     segs = [first] if first else []
     attempts = unknown = 0
     while (segs and not job.get("stop_keep") and not job.get("cancelled")
            and attempts < _LIVE_MAX_RETRIES):
-        job["status"] = "downloading"
-        job.pop("progress", None)   # a run that ended cleanly printed 100 %, and the card would read Converting
         if not _live_wait(job, 2 if unknown == 0 else _LIVE_UNKNOWN_WAITS[unknown - 1]):
             break
         state = _live_is_still_live(job, url)
@@ -2156,6 +2162,9 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
             continue
         unknown = 0
         attempts += 1
+        job.pop("_live_check", None)
+        job["status"] = "downloading"
+        job.pop("progress", None)   # a run that ended cleanly printed 100 %, and the card would read Converting
         job["live_reconnecting"] = attempts
         job["live_retries_max"] = _LIVE_MAX_RETRIES
         sid = f"{job_id}_r{len(segs) + 1}"   # attempts can start over, so it cannot name the piece
@@ -2165,8 +2174,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         rc = _run_live_attempt(job, job_id, cmd2, base_s, base_kib)
         if job.get("cancelled"):
             break
-        if job.get("stop_keep") or rc != 0:
-            job["status"] = "converting"; job["speed"] = ""; job["eta"] = ""
+        _live_run_ended(job)
         seg = _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only)
         if not seg:
             break
@@ -2186,6 +2194,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
             job.pop("live_reconnecting", None)   # only a stats line clears it otherwise: a run that printed none kept the old count on the card
     job.pop("live_reconnecting", None)
     job.pop("live_retries_max", None)
+    job.pop("_live_check", None)
     if job.get("cancelled"):
         return "cancelled"
     if not segs:
@@ -2429,7 +2438,8 @@ def stop_and_keep(job_id):
     with _jobs_lock:
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
-        if not job.get("live") or job.get("status") != "downloading":
+        status = job.get("status")
+        if not job.get("live") or not (status == "downloading" or (status == "converting" and job.get("_live_check"))):
             return jsonify({"error": "Not a live recording in progress"}), 400
         job["stop_keep"] = True
         proc = job.get("proc")
