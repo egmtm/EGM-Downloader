@@ -8,7 +8,7 @@ def _find_newer_python(minimum):
     The launcher stops at the first Python that starts, so a PC with 3.10 first on PATH and
     3.12 installed behind `py` lands here on the old one. Newest first; a version that is not
     installed, or one that answers wrongly, is skipped. No py launcher at all: None at once."""
-    for tag in ("3.13", "3.12", "3.11"):
+    for tag in ("3.14", "3.13", "3.12", "3.11"):
         try:
             r = subprocess.run(
                 ["py", "-" + tag, "-c", "import sys; print(sys.version_info[0], sys.version_info[1]); print(sys.executable)"],

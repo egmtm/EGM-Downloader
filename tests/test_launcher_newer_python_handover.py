@@ -4,7 +4,7 @@ Windows installer edition: an old Python first on PATH must not block a newer on
 windows/launcher.c starts the first of `python`, `python3`, `py` that starts at all. A PC with
 Python 3.10 first on PATH and 3.12 installed behind the py launcher therefore ran launch.py on
 3.10 and got the "needs Python 3.11" dialog, although a good Python was installed. The gate in
-windows/launch.py now looks for one through `py -3.13`, `-3.12`, `-3.11` (newest first) before
+windows/launch.py now looks for one through `py -3.14`, `-3.13`, `-3.12`, `-3.11` (newest first) before
 it gives up, and hands over to it. The new Python's folder goes first on PATH for everything
 started from there, because the app finds its Python by the name `python` (main.js findPython):
 without that the window would open and the backend would still run on the old one.
@@ -77,7 +77,7 @@ def _find(py, minimum=(3, 11)):
 def exes(tmp_path):
     """python.exe files that exist, one per version."""
     made = {}
-    for tag in ("3.13", "3.12", "3.11"):
+    for tag in ("3.14", "3.13", "3.12", "3.11"):
         d = tmp_path / ("Python" + tag.replace(".", ""))
         d.mkdir()
         (d / "python.exe").write_text("x")
@@ -87,38 +87,38 @@ def exes(tmp_path):
 
 def test_newest_installed_python_wins_and_the_rest_are_not_asked(exes):
     py = _Py(exes)
-    assert _find(py) == exes["3.13"]
-    assert py.calls == ["3.13"]
+    assert _find(py) == exes["3.14"]
+    assert py.calls == ["3.14"]
 
 
 def test_a_version_that_is_not_installed_is_skipped(exes):
     py = _Py({"3.12": exes["3.12"], "3.11": exes["3.11"]})
     assert _find(py) == exes["3.12"]
-    assert py.calls == ["3.13", "3.12"]
+    assert py.calls == ["3.14", "3.13", "3.12"]
 
 
 def test_only_3_11_installed(exes):
     py = _Py({"3.11": exes["3.11"]})
     assert _find(py) == exes["3.11"]
-    assert py.calls == ["3.13", "3.12", "3.11"]
+    assert py.calls == ["3.14", "3.13", "3.12", "3.11"]
 
 
 def test_nothing_installed_returns_none(exes):
     py = _Py({})
     assert _find(py) is None
-    assert py.calls == ["3.13", "3.12", "3.11"]
+    assert py.calls == ["3.14", "3.13", "3.12", "3.11"]
 
 
 def test_no_py_launcher_returns_none_at_once():
     py = _Py({}, missing_launcher=True)
     assert _find(py) is None
-    assert py.calls == ["3.13"], "without the py launcher nothing else is worth asking"
+    assert py.calls == ["3.14"], "without the py launcher nothing else is worth asking"
 
 
 def test_a_hung_or_failing_probe_does_not_stop_the_search(exes):
-    py = _Py(exes, raises=["3.13"])
-    assert _find(py) == exes["3.12"]
-    assert py.calls == ["3.13", "3.12"]
+    py = _Py(exes, raises=["3.14"])
+    assert _find(py) == exes["3.13"]
+    assert py.calls == ["3.14", "3.13"]
 
 
 def test_a_python_below_the_minimum_is_skipped(exes):
@@ -128,20 +128,20 @@ def test_a_python_below_the_minimum_is_skipped(exes):
 
 
 def test_an_answer_that_is_older_than_it_claims_is_skipped(exes):
-    py = _Py({"3.13": exes["3.13"], "3.12": exes["3.12"]}, versions={"3.13": (3, 9)})
-    assert _find(py) == exes["3.12"]
+    py = _Py({"3.14": exes["3.14"], "3.13": exes["3.13"]}, versions={"3.14": (3, 9)})
+    assert _find(py) == exes["3.13"]
 
 
 def test_a_reported_python_that_is_not_on_disk_is_skipped(exes, tmp_path):
     ghost = str(tmp_path / "gone" / "python.exe")
-    py = _Py({"3.13": ghost, "3.12": exes["3.12"]})
-    assert _find(py) == exes["3.12"]
+    py = _Py({"3.14": ghost, "3.13": exes["3.13"]})
+    assert _find(py) == exes["3.13"]
 
 
 @pytest.mark.parametrize("raw", ["RAW:", "RAW:garbage", "RAW:3 12", "RAW:x y\nC:\\python.exe\n", "RAW:3 12\n\n"])
 def test_nonsense_output_is_skipped_without_raising(raw, exes):
-    py = _Py({"3.13": raw, "3.12": exes["3.12"]})
-    assert _find(py) == exes["3.12"]
+    py = _Py({"3.14": raw, "3.13": exes["3.13"]})
+    assert _find(py) == exes["3.13"]
 
 
 # ── the gate hands over ────────────────────────────────────────────────────────
