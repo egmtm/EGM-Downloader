@@ -82,13 +82,13 @@
     .cat-tab.all-tab { font-weight:600; }
     /* lint-allow-muted: supplementary-metadata */
     .cat-count {
-      margin-inline-start:auto;font-size:.55rem;color:var(--text2);opacity:0.7;font-weight:400;
+      margin-inline-start:auto;font-size:.55rem;color:var(--text2);font-weight:400;
       flex-shrink:0;white-space:nowrap;   /* the number never breaks, the name beside it does */
     }
     .cat-tab.active .cat-count { color:var(--acc); opacity:1; }
 
     .cat-section {
-      font-size:.55rem;color:var(--acc);opacity:0.7;letter-spacing:.1em;
+      font-size:.55rem;color:var(--acc);letter-spacing:.1em;
       text-transform:uppercase;padding:10px 14px 4px;font-weight:600;
       display:flex;align-items:center;justify-content:space-between;
       cursor:pointer;user-select:none;
@@ -96,7 +96,7 @@
     }
     .cat-section:hover { color:var(--acc); opacity:1; }
     .section-caret {
-      font-size:.6rem;color:var(--acc);opacity:0.7;transition:transform .15s;
+      font-size:.6rem;color:var(--acc);transition:transform .15s;
     }
     .cat-section.collapsed .section-caret { transform:rotate(-90deg); }
     [dir=rtl] .cat-section.collapsed .section-caret { transform:rotate(90deg); }   /* a collapsed section points to the reading direction */
