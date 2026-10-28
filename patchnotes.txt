@@ -1,4 +1,4 @@
-v1.5.1.0 - STEADY STATE (TBD)
+v1.5.1.0 - STEADY STATE (10/27/2026)
 -----------------------------------------
 
   • [ALL] Fixed: What's New now shows the notes of the version you are running, not the notes of the latest release. It also works without a connection.
