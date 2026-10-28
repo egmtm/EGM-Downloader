@@ -17,11 +17,12 @@ TREES = ("templates", "linux/templates")
 WINDOWS = ("themes.html", "history.html", "console.html", "subscriptions.html")
 
 
-def _root_colours(path):
-    css = path.read_text(encoding="utf-8")
+def _root_vars(path):
+    """Every variable the file's first :root block declares, comments dropped and spacing normalised."""
+    css = re.sub(r"/\*.*?\*/", "", path.read_text(encoding="utf-8"), flags=re.S)
     m = re.search(r":root\s*\{([^}]*)\}", css)
     assert m, f"{path}: no :root block"
-    return {k: v.lower() for k, v in re.findall(r"--(bg|surf|acc)\s*:\s*(#[0-9a-fA-F]{3,8})", m.group(1))}
+    return {k: re.sub(r"\s+", " ", v.strip()).lower() for k, v in re.findall(r"(--[\w-]+)\s*:\s*([^;]+);", m.group(1))}
 
 
 @pytest.mark.parametrize("tree", TREES)
@@ -29,8 +30,8 @@ def test_void_swatches_match_what_users_get(tree):
     data = (ROOT / tree / "theme_data.html").read_text(encoding="utf-8")
     m = re.search(r"^\s*void:\s*\{label:'[^']*',\s*bg:'(#\w+)',\s*surf:'(#\w+)',\s*acc:'(#\w+)'", data, re.M)
     assert m, f"{tree}: no void entry in THEME_DATA"
-    expected = _root_colours(ROOT / tree / "index_styles.html")
-    assert set(expected) == {"bg", "surf", "acc"}, f"{tree}: index_styles.html :root lacks bg, surf or acc"
+    root = _root_vars(ROOT / tree / "index_styles.html")
+    expected = {"bg": root["--bg"], "surf": root["--surf"], "acc": root["--acc"]}
     assert dict(zip(("bg", "surf", "acc"), (g.lower() for g in m.groups()))) == expected, (
         f"{tree}: THEME_DATA void swatches differ from the :root default")
 
@@ -38,5 +39,9 @@ def test_void_swatches_match_what_users_get(tree):
 @pytest.mark.parametrize("tree", TREES)
 @pytest.mark.parametrize("window", WINDOWS)
 def test_every_window_carries_the_default_colours(tree, window):
-    expected = _root_colours(ROOT / tree / "index_styles.html")
-    assert _root_colours(ROOT / tree / window) == expected, f"{tree}/{window}: :root bg, surf and acc differ from the default"
+    """Each variable a window declares in :root must equal index_styles.html's, so the windows show one default look."""
+    root = _root_vars(ROOT / tree / "index_styles.html")
+    theirs = _root_vars(ROOT / tree / window)
+    assert {"--bg", "--surf", "--acc"} <= set(theirs), f"{tree}/{window}: :root lacks bg, surf or acc"
+    differ = {k: (v, root.get(k)) for k, v in theirs.items() if root.get(k) != v}
+    assert not differ, f"{tree}/{window}: :root differs from the default (window, index_styles): {differ}"
