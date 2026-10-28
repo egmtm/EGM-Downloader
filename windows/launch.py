@@ -83,7 +83,7 @@ ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
 ELECTRON_DIR = ROOT / "electron"
 NODE_MIN     = (22, 12, 0)  # minimum Node.js version (Electron's installer, @electron/get 5, needs 22.12+)
-NODE_VERSION = "24.22.0"    # version to download if not found / outdated (Node 24 LTS)
+NODE_VERSION = "24.22.1"    # version to download if not found / outdated (Node 24 LTS)
 NODE_ZIP_NAME = f"node-v{NODE_VERSION}-win-x64.zip"
 NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
 # PINNED SHA-256 of the exact zip above, keyed by the Node version it was taken from
@@ -95,7 +95,7 @@ NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
 # Then check it against nodejs.org (a mistyped pin is not caught by the tests):
 #   python3 scripts/check-node-pin.py --download
 NODE_ZIP_SHA256 = {
-    "24.22.0": "f9683a19877e12a9b167305c8db71040d812876359de21f0d2e97c3f321f80c3",
+    "24.22.1": "d2046d28c2c3dcd211ac5145c0bf30e2047ef9dfb306693c8c6e2eccd8b95fa5",
 }
 NODE_ZIP_DIR = f"node-v{NODE_VERSION}-win-x64"
 NODE_EXE     = NODE_DIR / "node.exe"
