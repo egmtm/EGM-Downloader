@@ -75,13 +75,18 @@ def count_vars(body: str) -> int:
     return len(re.findall(_START + r"--[\w-]+\s*:", body, re.MULTILINE))
 
 
+# A complete themed block (one that declares every variable) read for the schema size. Void is not
+# one: it is the page's :root default, so it has no body.void block.
+REFERENCE_THEME = "morrigan"
+
+
 def get_reference_var_count() -> int:
-    """The current canonical CSS variable count, read from the live 'void'
-    theme rather than hardcoded -- stays correct if the schema ever grows."""
+    """The current canonical CSS variable count, read from a live theme
+    rather than hardcoded -- stays correct if the schema ever grows."""
     styles = (ROOT / "templates" / "theme_styles.html").read_text(encoding="utf-8")
-    m = re.search(r"^body\.void \{(.*?)\n\}", styles, re.DOTALL | re.MULTILINE)
+    m = re.search(r"^body\." + REFERENCE_THEME + r" \{(.*?)\n\}", styles, re.DOTALL | re.MULTILINE)
     if not m:
-        raise RuntimeError("Could not find body.void in theme_styles.html to establish the reference schema")
+        raise RuntimeError(f"Could not find body.{REFERENCE_THEME} in theme_styles.html to establish the reference schema")
     return count_vars(m.group(1))
 
 
@@ -161,7 +166,7 @@ def main():
 
     mode = "polish" if polish else "new themes"
     print(f"Mode: {mode}")
-    print(f"Reference schema: {ref_vars} CSS variables (from the live 'void' theme)")
+    print(f"Reference schema: {ref_vars} CSS variables (from the live '{REFERENCE_THEME}' theme)")
     print(f"Parsed {len(entries)} THEME_DATA entries, {len(css_blocks)} CSS blocks\n")
 
     problems = []
