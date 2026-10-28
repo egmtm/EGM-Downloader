@@ -1,4 +1,10 @@
-"""The LIVE tag on a video card is black or white text on the theme's --red, whichever reads better.
+"""Three colours that did not follow the theme now do, so they stay readable on every theme.
+
+- The LIVE tag on a video card is black or white text on the theme's --red, whichever reads better.
+- The History format badges (MP3, MP4, FLAC and the like) are light on dark themes and dark on light
+  ones. The lightness comes from --surf because --bg is a gradient in a few themes, and a gradient
+  would make the whole colour invalid.
+- The Save button of the Theme Creator panel (a fixed dark panel) is a blue that carries white text.
 
 Windows and Mac read templates/, Linux reads linux/templates/ (kept byte identical elsewhere).
 """
@@ -51,3 +57,25 @@ def test_live_tag_text_reads_on_every_theme_red(tree):
         text = (255, 255, 255) if _lum(red) <= t else (0, 0, 0)
         worst = min(worst, _ratio(text, red))
     assert worst >= 4.5, f"{tree}: the LIVE tag text is {worst:.2f}:1 on the worst theme red"
+
+
+@pytest.mark.parametrize("tree", TREES)
+def test_history_badges_take_their_lightness_from_a_solid_colour(tree):
+    css = (ROOT / tree / "history.html").read_text(encoding="utf-8")
+    rules = re.findall(r"^\s*(\.fmt-(?:mp3|mp4|flac)[^{]*)\{([^}]*)\}", css, re.M)
+    assert len(rules) == 3
+    for sel, body in rules:
+        assert "oklch(from var(--surf)" in body, f"{sel.strip()}: the badge colour is fixed or reads a gradient"
+    for key, v in _theme_vars(tree).items():
+        assert re.fullmatch(r"#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)", v["--surf"]), (
+            f"{key}: --surf is not a solid colour, so the History badge colours would be dropped")
+
+
+@pytest.mark.parametrize("tree", TREES)
+def test_creator_save_button_carries_white_text(tree):
+    css = (ROOT / tree / "index_styles.html").read_text(encoding="utf-8")
+    m = re.search(r"\.cvp-save\s*\{\s*background:\s*(#\w+);\s*border-color:\s*(#\w+);\s*color:\s*(#\w+);", css)
+    assert m, "the Creator panel Save rule changed shape"
+    bg, border, text = m.groups()
+    assert bg == border
+    assert _ratio(_rgb(text), _rgb(bg)) >= 4.5
