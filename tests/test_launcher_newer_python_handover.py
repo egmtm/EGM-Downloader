@@ -48,7 +48,10 @@ class _Py:
 
     def run(self, cmd, **kw):
         assert cmd[0] == "py" and cmd[1].startswith("-3."), cmd
-        assert kw.get("creationflags") == CREATE_NO_WINDOW and kw.get("timeout"), kw
+        assert kw.get("creationflags") == CREATE_NO_WINDOW and 0 < kw.get("timeout", 0) <= 15, kw
+        # The answer is read as text: without universal_newlines the real subprocess hands back bytes, and
+        # Path(bytes) raises TypeError in the gate, before the dialog could show.
+        assert kw.get("universal_newlines") or kw.get("text"), kw
         tag = cmd[1][1:]
         self.calls.append(tag)
         if self.missing_launcher:

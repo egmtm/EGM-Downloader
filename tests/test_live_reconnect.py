@@ -960,6 +960,39 @@ def test_stop_and_save_pressed_during_the_check_saves_at_once_and_records_nothin
     assert codes == [200] and rig.attempts == [] and rig.joined == []
 
 
+@pytest.mark.parametrize("fields", [{"status": "downloading"}, {"status": "converting", "_live_check": True}])
+def test_stop_and_save_kills_the_process_of_the_moment_recording_or_check(app_module, monkeypatch, fields):
+    """While the card reads Converting between runs the registered process is the yt-dlp that asks
+    whether the stream is still live (up to 45 s): Stop and save must end it, not wait for it."""
+    killed = []
+    monkeypatch.setattr(app_module, "_kill_proc", lambda proc: killed.append(proc))
+    proc = object()
+    app_module.jobs["t_stop_kill"] = {"live": True, "proc": proc, **fields}
+    try:
+        assert _route(app_module, "/api/stop/t_stop_kill").status_code == 200
+    finally:
+        app_module.jobs.pop("t_stop_kill", None)
+    assert killed == [proc]
+
+
+def test_stop_and_save_that_lands_as_the_check_answers_live_records_nothing_more(app_module, monkeypatch, tmp_path):
+    """The check can finish with "still live" in the instant the user presses Stop and save: the loop
+    reads the flag again after the answer and keeps what was recorded instead of starting a new run."""
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=["j_r2.mp4"])
+    app_module.jobs["j"] = rig.job
+    rig.job.update(live=True, proc=None, status="converting")
+
+    def probe(job, url):
+        job["stop_keep"] = True
+        return True
+    monkeypatch.setattr(app_module, "_live_is_still_live", probe)
+    try:
+        assert rig.run(rc=0) == "saved"
+    finally:
+        app_module.jobs.pop("j", None)
+    assert rig.attempts == [] and rig.joined == [] and rig.job["status"] == "converting"
+
+
 def test_cancel_pressed_during_the_check_discards_everything(app_module, monkeypatch, tmp_path):
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[], captures=["j_r2.mp4"])
     app_module.jobs["j"] = rig.job
