@@ -710,7 +710,9 @@
     .vtitle { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
     [dir=rtl] .vtitle { padding-right: 0; padding-left: 4px; }   /* the gap follows the page; the title itself is dir="auto" */
     .vmeta  { font-size: .73rem; color: var(--text2); }
-    .live-tag { display: inline-block; font-size: .62rem; font-weight: 700; letter-spacing: .04em; padding: 1px 6px; margin-inline-end: 4px; border-radius: 999px; background: var(--red); color: #fff; vertical-align: 1px; }
+    .live-tag { display: inline-block; font-size: .62rem; font-weight: 700; letter-spacing: .04em; padding: 1px 6px; margin-inline-end: 4px; border-radius: 999px; background: var(--red); vertical-align: 1px;
+      /* black or white, whichever reads better on this theme's red */
+      color: color(from var(--red) xyz-d65 calc(.9505 * clamp(0, (.18 - y) * 1000, 1)) clamp(0, (.18 - y) * 1000, 1) calc(1.089 * clamp(0, (.18 - y) * 1000, 1))); }
 
     /* ── Quality panel ── */
     .qual-panel {
