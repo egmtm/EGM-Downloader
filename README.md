@@ -14,6 +14,7 @@
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Tests/badge.svg" alt="Tests"/>
     <a href="https://www.gnu.org/licenses/agpl-3.0"><img src="https://img.shields.io/badge/License-AGPL_3.0-blue.svg" alt="License"/></a>
     <a href="https://x.com/EGMDownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-000000?logo=x&logoColor=white" alt="Follow on X"/></a>
+    <a href="https://www.instagram.com/egmdownloader"><img src="https://img.shields.io/badge/follow-%40EGMDownloader-E4405F?logo=instagram&logoColor=white" alt="Follow on Instagram"/></a>
     <img src="https://img.shields.io/badge/Windows-10%2F11-0078D6?logo=windows&logoColor=white" alt="Windows"/>
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Ventura+-000000?logo=apple&logoColor=white" alt="macOS"/>
@@ -34,7 +35,8 @@
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
   <a href="https://egerena.com/apps/egm-downloader.html">🌐 Website</a> ·
-  <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a>
+  <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a> ·
+  <a href="https://www.instagram.com/egmdownloader">📷 @EGMDownloader</a>
 </p>
 
 ## ✨ Features
@@ -380,6 +382,6 @@ You should have received a copy of the GNU Affero General Public License along w
 
 - 🐛 **Bug Reports / Feature Requests:** [Open an Issue](https://github.com/egmtm/EGM-Downloader/issues)
 - 🛠️ **Troubleshooting:** The instructions file included with each download covers the common fixes. Still stuck? Open an issue.
-- 🐦 **Updates & Announcements:** [@EGMDownloader](https://x.com/EGMDownloader) on X
+- 🐦 **Updates & Announcements:** [@EGMDownloader](https://x.com/EGMDownloader) on X and [@EGMDownloader](https://www.instagram.com/egmdownloader) on Instagram
 - 📖 **Contributing:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
 - 🔒 **Security Vulnerabilities:** Do not open a public issue — email contact@egerena.com or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We aim to respond within 48 hours.
