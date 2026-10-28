@@ -45,3 +45,21 @@ def test_every_window_carries_the_default_colours(tree, window):
     assert {"--bg", "--surf", "--acc"} <= set(theirs), f"{tree}/{window}: :root lacks bg, surf or acc"
     differ = {k: (v, root.get(k)) for k, v in theirs.items() if root.get(k) != v}
     assert not differ, f"{tree}/{window}: :root differs from the default (window, index_styles): {differ}"
+
+
+def _all_root_vars(path):
+    css = re.sub(r"/\*.*?\*/", "", path.read_text(encoding="utf-8"), flags=re.S)
+    return {k for m in re.finditer(r":root\s*\{([^}]*)\}", css) for k in re.findall(r"(--[\w-]+)\s*:", m.group(1))}
+
+
+@pytest.mark.parametrize("tree", TREES)
+@pytest.mark.parametrize("window", WINDOWS)
+def test_every_colour_a_window_uses_is_declared(tree, window):
+    """A var(--x) with no fallback shows nothing when --x is not declared for the default theme.
+    A window can use only what its own :root declares (plus the texture pair theme_styles.html declares)."""
+    path = ROOT / tree / window
+    css = re.sub(r"/\*.*?\*/", "", path.read_text(encoding="utf-8"), flags=re.S)
+    used = set(re.findall(r"var\(\s*(--[\w-]+)\s*\)", css))
+    declared = _all_root_vars(path) | _all_root_vars(ROOT / tree / "theme_styles.html")
+    assert not used - declared, f"{tree}/{window}: used with no fallback but not declared in :root: {sorted(used - declared)}"
+
