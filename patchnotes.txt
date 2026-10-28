@@ -2,6 +2,7 @@ vTBD - TBD (TBD)
 -----------------------------------------
 
   • [ALL] Fixed: What's New now shows the notes of the version you are running, not the notes of the latest release. It also works without a connection.
+  • [ALL] Fixed: When a live recording ends on its own, the card now stays on Converting until it is saved, instead of going back to Recording for a moment.
   • [WINDOWS] Fixed: The installer edition now starts on a newer Python when an older one comes first on your PC, instead of asking you to install Python 3.11 or newer.
 
 v1.5.0.0.8 - CITIUS · أصيل: Reloaded (10/26/2026)
