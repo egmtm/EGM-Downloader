@@ -35,7 +35,7 @@
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
   <a href="https://egerena.com/apps/egm-downloader.html">🌐 Website</a> ·
-  <a href="https://x.com/EGMDownloader">🐦 @EGMDownloader</a> ·
+  <a href="https://x.com/EGMDownloader">𝕏 @EGMDownloader</a> ·
   <a href="https://www.instagram.com/egmdownloader">📷 @EGMDownloader</a>
 </p>
 
