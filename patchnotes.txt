@@ -1,3 +1,9 @@
+vTBD - TBD (TBD)
+-----------------------------------------
+
+  • [ALL] Fixed: Small labels, like Format, Video quality, the table headers and the Themes window headings, are clearer and easier to read on many themes.
+  • [ALL] Fixed: The hint text in the download folder field now follows your theme.
+
 v1.5.1.0 - STEADY STATE (10/27/2026)
 -----------------------------------------
 
