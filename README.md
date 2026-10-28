@@ -88,7 +88,7 @@ https://github.com/user-attachments/assets/ef67937c-2f11-4e28-95ca-62f168f194a0
 
 https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 
-> 📸 *Screenshots of v1.5.0.0.8, CITIUS · أصيل: Reloaded. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.1.0, STEADY STATE. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -97,12 +97,12 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI in Arabic, Halloween theme"/></a>
-      <br/><sub><b>Main UI</b> (Arabic, Halloween theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI in Arabic, Parchment theme"/></a>
+      <br/><sub><b>Main UI</b> (Arabic, Parchment theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel in Arabic, Uranus theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Arabic, Uranus theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Halloween theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Halloween theme)</sub>
     </td>
   </tr>
 </table>
@@ -110,25 +110,12 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Singapore theme"/></a>
-      <br/><sub><b>Live Streams</b> (Singapore theme)</sub>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Dubai Midnight theme"/></a>
+      <br/><sub><b>Live Streams</b> (Dubai Midnight theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Blizzard theme"/></a>
-      <br/><sub><b>Live Stream Reconnecting</b> (Blizzard theme)</sub>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Blanc theme"/></a>
-      <br/><sub><b>Quit When Done</b> (Blanc theme)</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Floppy theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Floppy theme)</sub>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Neural theme"/></a>
+      <br/><sub><b>Live Stream Reconnecting</b> (Neural theme)</sub>
     </td>
   </tr>
 </table>
@@ -136,12 +123,12 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Titan theme"/></a>
-      <br/><sub><b>All Themes</b> (Titan theme)</sub>
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Marble theme"/></a>
+      <br/><sub><b>Quit When Done</b> (Marble theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Sage Linen"/></a>
-      <br/><sub><b>Theme Creator</b> (custom Sage Linen theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Hologram theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Hologram theme)</sub>
     </td>
   </tr>
 </table>
@@ -149,12 +136,25 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions in Arabic, Seoul theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Arabic, Seoul theme)</sub>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Sydney theme"/></a>
+      <br/><sub><b>All Themes</b> (Sydney theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Exoplanet theme"/></a>
-      <br/><sub><b>Download History</b> (Exoplanet theme)</sub>
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Violet Hour"/></a>
+      <br/><sub><b>Theme Creator</b> (custom Violet Hour theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Bioluminescent theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Bioluminescent theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Terraform theme"/></a>
+      <br/><sub><b>Download History</b> (Terraform theme)</sub>
     </td>
   </tr>
 </table>
@@ -164,8 +164,8 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.5.1.0  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (673 KB · ~800 MB after install)  
-**SHA256:** `a0bf6a87fca2a6cdcc3a638bb8d48d33961178db7a9e28f764e3eae052346314`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (674 KB · ~800 MB after install)  
+**SHA256:** `27c6205d5936e5685341bdb75c14032d0e9b74ef1bc2958a34b62fb2e5475665`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.11+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -173,8 +173,8 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 
 ### Windows Portable
 **Latest:** v1.5.1.0  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (683 KB · ~1 GB after first run)  
-**SHA256:** `49b6347870c7986ac08a09a36b4ba92e5c000b6d7a37efd3d0bc0a055f4bd24b`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (684 KB · ~1 GB after first run)  
+**SHA256:** `feca7a8f997a0819d9ee171a3317cb3114d19d8ef29ff2c267fd7a7534f8e765`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -185,7 +185,7 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.5.1.0  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `33395f963e839c1adb12bcb76d3268133523eabd21b019fd82dda7ea7828fcb5`  
+**SHA256:** `0758de130c64a70e7918fa3914a35270d82920ea45f93300ad58e5e37ba03313`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -195,7 +195,7 @@ https://github.com/user-attachments/assets/7d02363a-2c88-47c1-8807-8403a2979d48
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.5.1.0  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (171 MB · ~300 MB after install)  
-**SHA256:** `88e82ce21ad9df0ab2229ca3be50ab41c2f9dd2c128e25c9e83915845fe3b493`  
+**SHA256:** `2b89e472175bf70a8c38be3be78207b089bf1b494183dc636bab39e37fb7e4c2`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
