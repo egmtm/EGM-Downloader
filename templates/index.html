@@ -2184,8 +2184,10 @@
   </div>
 </header>
 
+<script>
+{% include 'js/_card_order.html' %}</script>
 <!-- URL Input -->
-<div class="card">
+<div class="card" id="urls-card">
   <div class="card-header">
     <span class="card-title" data-i18n="url.section_title">Video / Playlist URLs</span>
     <div style="display:flex;gap:6px">
@@ -2238,6 +2240,7 @@
       <button class="btn btn-ghost" id="dl-all-audio-btn" style="border-color:var(--audio-btn-color);color:var(--audio-btn-color)"><span>♫ <span data-i18n="url.btn.download_all_audio">Download All Audio</span></span></button>
     </div>
   </div>
+  <div class="card-grip" aria-hidden="true"></div>
 </div>
 
 <!-- Unified settings panel -->
@@ -2350,7 +2353,9 @@
     </div>
   </div>
 
+  <div class="card-grip" aria-hidden="true"></div>
 </div>
+<script>cardOrderBoot();</script>
 
 <!-- Bulk bar -->
 <div id="bulk-bar">

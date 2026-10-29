@@ -373,6 +373,7 @@ Section "Install"
   File "${REPO_ROOT}/templates/js/_theme.html"
   File "${REPO_ROOT}/templates/js/_quality.html"
   File "${REPO_ROOT}/templates/js/_creator.html"
+  File "${REPO_ROOT}/templates/js/_card_order.html"
 
   ; ── languages\ ──
   SetOutPath "$INSTDIR\languages"

@@ -268,6 +268,77 @@ function toggleSettingsPanel() {
   }
 })();
 
+// ── Swap the links card and the Settings panel by dragging the grip on either ─
+// The order is read, applied and stored by js/_card_order.html. Pointer events with capture, not
+// native drag and drop: the URL box takes dropped text and must not see a card go by.
+(() => {
+  const urlsCard = document.getElementById('urls-card');
+  const panel = document.getElementById('settings-panel-wrap');
+  const linksGrip = urlsCard.querySelector(':scope > .card-grip');
+  // While "Show settings panel" is off there is nothing to swap with: the links card shows no grip
+  const syncGrip = () => { linksGrip.hidden = getComputedStyle(panel).display === 'none'; };
+  new MutationObserver(syncGrip).observe(panel, { attributes: true, attributeFilter: ['style'] });
+  syncGrip();
+
+  let drag = null;   // the press being followed
+  const center = el => el.offsetTop + el.offsetHeight / 2;   // layout position; the drag transform does not count
+
+  // The held card's centre follows the pointer (kept within the two cards). Once it passes the
+  // other card's centre the other card moves to the far side, so the held one never leaves the
+  // page (it keeps the pointer capture) and, being placed from its new slot, stays under the pointer.
+  function place(e) {
+    const { card, other } = drag;
+    const lo = Math.min(card.offsetTop, other.offsetTop);
+    const hi = Math.max(card.offsetTop + card.offsetHeight, other.offsetTop + other.offsetHeight);
+    const c = Math.min(Math.max(drag.c0 + e.pageY - drag.y0, lo), hi);
+    const before = card.offsetTop < other.offsetTop;
+    if (before ? c > center(other) : c < center(other)) {
+      if (before) card.before(other); else card.after(other);
+    }
+    card.style.transform = `translateY(${c - center(card)}px) scale(1.012)`;
+  }
+
+  for (const grip of [linksGrip, panel.querySelector(':scope > .card-grip')]) {
+    const card = grip.parentElement;
+    let settle = 0;
+    grip.addEventListener('pointerdown', e => {
+      if (drag || e.button !== 0 || !e.isPrimary) return;
+      e.preventDefault();   // no text selection, no focus change
+      grip.setPointerCapture(e.pointerId);
+      drag = { card, other: card === panel ? urlsCard : panel, id: e.pointerId, x0: e.pageX, y0: e.pageY, on: false };
+    });
+    grip.addEventListener('pointermove', e => {
+      if (!drag || drag.card !== card || e.pointerId !== drag.id) return;
+      if (!drag.on) {
+        if (Math.hypot(e.pageX - drag.x0, e.pageY - drag.y0) < 4) return;   // a press is not a drag yet
+        drag.on = true;
+        drag.c0 = center(card);
+        clearTimeout(settle);
+        card.classList.remove('card-settling');
+        card.classList.add('card-dragging');
+        document.documentElement.classList.add('card-reordering');
+      }
+      place(e);
+    });
+    // Release, cancel or a lost capture: the order on the page stays and is stored
+    const end = e => {
+      if (!drag || drag.card !== card || e.pointerId !== drag.id) return;
+      const moved = drag.on;
+      drag = null;
+      if (!moved) return;
+      document.documentElement.classList.remove('card-reordering');
+      card.classList.add('card-settling');   // eases into its slot, 120 ms
+      card.style.transform = '';
+      settle = setTimeout(() => card.classList.remove('card-settling', 'card-dragging'),
+        matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 120);
+      cardOrderSave(cardOrderNow());
+    };
+    grip.addEventListener('pointerup', end);
+    grip.addEventListener('pointercancel', end);
+    grip.addEventListener('lostpointercapture', end);
+  }
+})();
+
 // ── Paste ─────────────────────────────────────────────────────────────────────
 async function doPaste() {
   try {
