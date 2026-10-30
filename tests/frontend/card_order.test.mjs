@@ -249,6 +249,27 @@ test("the links card shows no grip while the Settings panel is hidden, and gets 
   w.close();
 });
 
+test("the pill is marked near only while the pointer is in the top 24px of the card and within 90px of its middle", async () => {
+  const { w, d, errors } = await boot(undefined);
+  for (const id of ["urls-card", "settings-panel-wrap"]) {
+    const card = d.getElementById(id);
+    card.getBoundingClientRect = () => ({ top: 100, left: 50, width: 760, height: 212, right: 810, bottom: 312 });   // middle at x = 430
+    const at = (x, y) => { card.dispatchEvent(new w.MouseEvent("pointermove", { bubbles: true, clientX: x, clientY: y })); return card.classList.contains("card-grip-near"); };
+    assert.equal(at(430, 108), true, `${id}: on the handle`);
+    assert.equal(at(430 + 89, 123), true, `${id}: edge of the area`);
+    assert.equal(at(430 - 89, 100), true, `${id}: edge of the area, the other side`);
+    assert.equal(at(430 + 90, 108), false, `${id}: 90px aside`);
+    assert.equal(at(430, 124), false, `${id}: 24px down`);
+    assert.equal(at(80, 108), false, `${id}: top corner`);
+    assert.equal(at(430, 200), false, `${id}: middle of the card`);
+    assert.equal(at(430, 108), true);
+    card.dispatchEvent(new w.MouseEvent("pointerleave"));
+    assert.equal(card.classList.contains("card-grip-near"), false, `${id}: leaving the card clears it`);
+  }
+  assert.deepEqual(errors, []);
+  w.close();
+});
+
 test("the grip is decorative, sits in the card and not in its header, and a click on it does not toggle Settings", async () => {
   const { w, d, saved } = await boot(undefined);
   for (const id of ["urls-card", "settings-panel-wrap"]) {

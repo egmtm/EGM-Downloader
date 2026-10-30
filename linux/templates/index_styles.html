@@ -561,8 +561,8 @@
     }
     /* ── Grip: the links card and the Settings panel swap places by dragging it (_settings.html) ──
        A 64×16 grab zone centred on the card's top edge, with a 34×4 pill 5px down that shows only
-       while the pointer is over the card. Last child of the card, so it sits above the header and a
-       press on it never reaches the Settings header's click. */
+       while the pointer is near it (card-grip-near, set in js/_settings.html). Last child of the card,
+       so it sits above the header and a press on it never reaches the Settings header's click. */
     #urls-card, #settings-panel-wrap { position: relative; }   /* the theme's body > * rule does this too; the grip must not depend on it */
     .card-order-pending :is(#urls-card, #settings-panel-wrap) { display: none; }   /* while the page is parsed with Settings first (_card_order.html) */
     .card-grip {
@@ -574,7 +574,7 @@
       width: 34px; height: 4px; border-radius: 2px; background: var(--text2);
       opacity: 0; transition: opacity .12s ease, background-color .12s ease;
     }
-    :hover > .card-grip::before { opacity: .5; }
+    .card-grip-near > .card-grip::before { opacity: .5; }
     .card-grip:hover::before, .card-dragging > .card-grip::before { opacity: 1; background: var(--acc); }
     .card-dragging { z-index: 11; box-shadow: var(--modal-shadow); outline: 2px solid var(--acc); }   /* over the header (10), which a tall card can reach */
     .card-dragging > .card-grip { cursor: grabbing; }

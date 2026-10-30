@@ -301,6 +301,12 @@ function toggleSettingsPanel() {
   for (const grip of [linksGrip, panel.querySelector(':scope > .card-grip')]) {
     const card = grip.parentElement;
     let settle = 0;
+    // The pill shows only while the pointer is near it: the top 24px of the card, 90px either side of the middle
+    card.addEventListener('pointermove', e => {
+      const b = card.getBoundingClientRect();
+      card.classList.toggle('card-grip-near', e.clientY - b.top < 24 && Math.abs(e.clientX - b.left - b.width / 2) < 90);
+    });
+    card.addEventListener('pointerleave', () => card.classList.remove('card-grip-near'));
     grip.addEventListener('pointerdown', e => {
       if (drag || e.button !== 0 || !e.isPrimary) return;
       e.preventDefault();   // no text selection, no focus change
