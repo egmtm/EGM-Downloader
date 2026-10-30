@@ -1,6 +1,7 @@
 vTBD - TBD (TBD)
 -----------------------------------------
 
+  • [ALL] New: Drag the small handle at the top of the links card or the Settings panel to swap their places. The app remembers your choice.
   • [ALL] Fixed: Small labels, like Format, Video quality, the table headers and the Themes window headings, are clearer and easier to read on many themes.
   • [ALL] Fixed: The hint text in the download folder field now follows your theme.
   • [ALL] Fixed: The History, Console and Subscriptions windows now match the main window's colors on the default theme.
