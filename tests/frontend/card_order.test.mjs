@@ -154,6 +154,68 @@ test("Export carries egm_card_order with Themes & preferences, and Import writes
   imp.w.close();
 });
 
+// Runs Import with `lsPart` as the file's localStorage part; resolves with how many reloads were scheduled.
+async function importLocalStorage(page, lsPart) {
+  const reloads = [];
+  page.w.setTimeout = (fn, ms) => { if (String(fn).includes("location.reload")) reloads.push(ms); return 0; };   // jsdom cannot navigate
+  page.w.electronAPI = { openFile: async () => ({ content: JSON.stringify({ _egm_export_version: 4, localStorage: lsPart }) }) };
+  page.w._egmSelectorModal = async () => ({ settings: false, history: false, themes: true, subscriptions: false });
+  page.d.getElementById("adv-import-btn").click();
+  await wait(300);
+  return reloads.length;
+}
+
+test("Export always says which order the page has, the default one too, and writes nothing itself", async () => {
+  let content = null;
+  const { w, d } = await boot(undefined, {
+    prep(w) { w.electronAPI = { saveFile: async (name, c) => { content = c; return { ok: true }; } }; },
+  });
+  w._egmSelectorModal = async () => ({ settings: false, history: false, themes: true, subscriptions: false });
+  d.getElementById("adv-export-btn").click();
+  await wait(300);
+  assert.equal(JSON.parse(content).localStorage[KEY], '["urls","settings"]', "the default order is in the file");
+  assert.equal(w.localStorage.getItem(KEY), null, "exporting stores nothing");
+  // after a swap on the page it says so (the page decides, not an old stored value)
+  w.cardOrderApply(["settings", "urls"]);
+  d.getElementById("adv-export-btn").click();
+  await wait(300);
+  assert.equal(JSON.parse(content).localStorage[KEY], SWAPPED);
+  w.close();
+});
+
+test("Import takes the file's order, the default one too, and ignores a value that is not one of the two", async () => {
+  // a file with the default order puts a default order back on a machine whose cards are swapped
+  {
+    const page = await boot(SWAPPED);
+    assert.equal(order(page.d), SETTINGS_FIRST);
+    assert.equal(await importLocalStorage(page, { [KEY]: '["urls","settings"]' }), 1, "the page reloads to show it");
+    assert.equal(page.w.localStorage.getItem(KEY), null, "the default order is stored as no key");
+    page.w.close();
+  }
+  // the other way round, and a spaced but valid value is stored in its plain form
+  {
+    const page = await boot(undefined);
+    assert.equal(await importLocalStorage(page, { [KEY]: '[ "settings" , "urls" ]' }), 1);
+    assert.equal(page.w.localStorage.getItem(KEY), SWAPPED);
+    page.w.close();
+  }
+  // anything else is left out: the machine keeps its order and nothing odd is written
+  for (const bad of ["junk", "[]", '["settings"]', '["urls","urls"]', '["settings","urls","x"]', "null", 5, null, ["settings", "urls"]]) {
+    const page = await boot(SWAPPED);
+    await importLocalStorage(page, { [KEY]: bad, "egm-other": "kept" });
+    assert.equal(page.w.localStorage.getItem(KEY), SWAPPED, `a bad value is ignored: ${JSON.stringify(bad)}`);
+    assert.equal(page.w.localStorage.getItem("egm-other"), "kept", "the other keys still come across");
+    page.w.close();
+  }
+  // a file from before this feature has no such key: the order on this machine stays
+  {
+    const page = await boot(SWAPPED);
+    await importLocalStorage(page, { "egm-other": "x" });
+    assert.equal(page.w.localStorage.getItem(KEY), SWAPPED);
+    page.w.close();
+  }
+});
+
 test("Reset removes egm_card_order with the other egm_ keys", async () => {
   const reloads = [];
   const { w, d } = await boot(SWAPPED, {

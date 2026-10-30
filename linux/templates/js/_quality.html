@@ -344,6 +344,9 @@ document.getElementById('footer-version-pill').addEventListener('click', () => {
           if (k && (k.startsWith('egm-') || k.startsWith('egm_'))) lsKeys[k] = localStorage.getItem(k);
         }
       } catch {}
+      // The default card order is stored as no key, so the file always says which order the page has
+      // now: an import then puts a default order back instead of leaving the other machine's swapped one
+      try { lsKeys[CARD_ORDER_KEY] = JSON.stringify(cardOrderNow()); } catch {}
       const histItems = (h && Array.isArray(h.items)) ? h.items : [];
 
       // Show selector
@@ -445,6 +448,11 @@ document.getElementById('footer-version-pill').addEventListener('click', () => {
         let themesApplied = false;
         try {
           Object.entries(lsData).forEach(([k, v]) => {
+            if (k === CARD_ORDER_KEY) {   // the same save a drag does: the default order removes the key, anything that is not one of the two orders is ignored
+              const order = typeof v === 'string' ? cardOrderParse(v) : null;
+              if (order) { cardOrderSave(order); themesApplied = true; }
+              return;
+            }
             if (typeof v === 'string' && (k.startsWith('egm-') || k.startsWith('egm_'))) { localStorage.setItem(k, v); themesApplied = true; }
           });
         } catch {}
