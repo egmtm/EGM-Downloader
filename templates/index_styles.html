@@ -662,8 +662,11 @@
     .btn-ghost:hover:not(:disabled) { border-color: var(--acc); color: var(--acc); }
     .btn-red { background: transparent; color: var(--red); border: 1px solid var(--btn-red-border); }
     .btn-red:hover:not(:disabled) { background: rgba(239,68,68,.1); border-color: var(--red); }
-    /* label: black or white, whichever reads on this theme's green; the first color is the fallback */
-    .btn-green { background: var(--green); color: var(--btn-on-accent); color: contrast-color(var(--green)); }
+    .btn-green { background: var(--green); color: var(--btn-on-accent); }
+    /* label: black or white, whichever reads on this theme's green. Behind @supports because the value holds var():
+       an engine without contrast-color() keeps such a line and then inherits a colour, so a plain second
+       declaration could never fall back to the one above */
+    @supports (color: contrast-color(red)) { .btn-green { color: contrast-color(var(--green)); } }
     .btn-green:hover:not(:disabled) { filter: brightness(1.1); }
     .btn-sm { padding: 5px 12px; font-size: .78rem; }
     .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
@@ -733,9 +736,12 @@
     .vtitle { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
     [dir=rtl] .vtitle { padding-right: 0; padding-left: 4px; }   /* the gap follows the page; the title itself is dir="auto" */
     .vmeta  { font-size: .73rem; color: var(--text2); }
-    .live-tag { display: inline-block; font-size: .62rem; font-weight: 700; letter-spacing: .04em; padding: 1px 6px; margin-inline-end: 4px; border-radius: 999px; background: var(--red); vertical-align: 1px;
-      /* black or white, whichever reads better on this theme's red */
-      color: color(from var(--red) xyz-d65 calc(.9505 * clamp(0, (.18 - y) * 1000, 1)) clamp(0, (.18 - y) * 1000, 1) calc(1.089 * clamp(0, (.18 - y) * 1000, 1))); }
+    .live-tag { display: inline-block; font-size: .62rem; font-weight: 700; letter-spacing: .04em; padding: 1px 6px; margin-inline-end: 4px; border-radius: 999px; background: var(--red); vertical-align: 1px; color: #fff; }
+    /* black or white, whichever reads better on this theme's red; white where relative colour syntax is missing
+       (behind @supports for the reason given at .btn-green) */
+    @supports (color: color(from red xyz-d65 x y z)) {
+      .live-tag { color: color(from var(--red) xyz-d65 calc(.9505 * clamp(0, (.18 - y) * 1000, 1)) clamp(0, (.18 - y) * 1000, 1) calc(1.089 * clamp(0, (.18 - y) * 1000, 1))); }
+    }
 
     /* ── Quality panel ── */
     .qual-panel {
