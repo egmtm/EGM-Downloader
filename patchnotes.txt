@@ -9,7 +9,7 @@ vTBD - TBD (TBD)
   • [ALL] Fixed: The format badges in History (MP3, MP4, FLAC and the like) are readable on light themes.
   • [ALL] Fixed: The Save button in the Theme Creator panel is easier to read.
   • [ALL] Fixed: 105 themes are easier to read, with clearer labels, hints, status colors and button text. A few accents also changed so similar themes look different from each other.
-  • [ALL] Electron runtime updated to v45.2.0.
+  • [ALL] Electron runtime updated to v45.2.1.
 
 v1.5.1.0 - STEADY STATE (10/27/2026)
 -----------------------------------------
