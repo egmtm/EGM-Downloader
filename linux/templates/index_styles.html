@@ -662,7 +662,8 @@
     .btn-ghost:hover:not(:disabled) { border-color: var(--acc); color: var(--acc); }
     .btn-red { background: transparent; color: var(--red); border: 1px solid var(--btn-red-border); }
     .btn-red:hover:not(:disabled) { background: rgba(239,68,68,.1); border-color: var(--red); }
-    .btn-green { background: var(--green); color: var(--btn-on-accent); }
+    /* label: black or white, whichever reads on this theme's green; the first color is the fallback */
+    .btn-green { background: var(--green); color: var(--btn-on-accent); color: contrast-color(var(--green)); }
     .btn-green:hover:not(:disabled) { filter: brightness(1.1); }
     .btn-sm { padding: 5px 12px; font-size: .78rem; }
     .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
