@@ -1,0 +1,52 @@
+// ── Order of the two top cards: the links card and the Settings panel ────────
+// index.html runs this inline just before the two cards, and cardOrderBoot() inline right after
+// them. The drag that changes the order is in _settings.html. egm_card_order holds the two names
+// in display order; the default order (links first) is stored as no key at all. The value can
+// come from an imported file, so it is only ever compared with the two names below, never used
+// as a selector, an id or markup.
+var CARD_ORDER_KEY = 'egm_card_order';
+
+// ['urls', 'settings'] or ['settings', 'urls'] for exactly those two JSON arrays, null for anything else
+function cardOrderParse(raw) {
+  let v;
+  try { v = JSON.parse(raw); } catch { return null; }
+  if (!Array.isArray(v) || v.length !== 2) return null;
+  if (v[0] === 'urls' && v[1] === 'settings') return ['urls', 'settings'];
+  if (v[0] === 'settings' && v[1] === 'urls') return ['settings', 'urls'];
+  return null;
+}
+
+// The order the two cards are in on the page
+function cardOrderNow() {
+  const urls = document.getElementById('urls-card'), panel = document.getElementById('settings-panel-wrap');
+  return urls.compareDocumentPosition(panel) & Node.DOCUMENT_POSITION_PRECEDING ? ['settings', 'urls'] : ['urls', 'settings'];
+}
+
+// Moves the Settings panel before or after the links card (null: the default order). Both cards
+// keep their ids and listeners; nothing moves when they are already in that order.
+function cardOrderApply(order) {
+  const urls = document.getElementById('urls-card'), panel = document.getElementById('settings-panel-wrap');
+  const want = order && order[0] === 'settings' ? 'settings' : 'urls';
+  if (cardOrderNow()[0] === want) return;
+  if (want === 'settings') urls.before(panel); else urls.after(panel);
+}
+
+// Stores the order, or removes the key when it is the default one
+function cardOrderSave(order) {
+  try {
+    if (order && order[0] === 'settings') localStorage.setItem(CARD_ORDER_KEY, JSON.stringify(['settings', 'urls']));
+    else localStorage.removeItem(CARD_ORDER_KEY);
+  } catch {}
+}
+
+// Read once, before the cards are parsed; nothing is written at load. The browser can draw a frame
+// between the cards and the script after them, so with Settings first both cards stay out of the
+// layout until cardOrderBoot() has moved the panel: no frame shows them the other way round.
+var cardOrderStored = null;
+try { cardOrderStored = cardOrderParse(localStorage.getItem(CARD_ORDER_KEY)); } catch {}
+if (cardOrderStored && cardOrderStored[0] === 'settings') document.documentElement.classList.add('card-order-pending');
+
+function cardOrderBoot() {
+  try { cardOrderApply(cardOrderStored); } catch {}
+  document.documentElement.classList.remove('card-order-pending');   // the cards show whatever happened above
+}

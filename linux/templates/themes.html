@@ -11,6 +11,7 @@
       --bg:#0b1120;--surf:#111c2e;--surf2:#182338;--surf3:#1e2d47;
       --border:#243454;--border2:#2d4068;--acc:#3b82f6;--acc-h:#60a5fa;
       --text:#e2e8f6;--text2:#8faecf;--muted:#3d5470;
+      --red:#ef4444;
       --acc-dim:rgba(59,130,246,.14);
       --r:10px;--rs:7px;
     }
@@ -82,21 +83,21 @@
     .cat-tab.all-tab { font-weight:600; }
     /* lint-allow-muted: supplementary-metadata */
     .cat-count {
-      margin-inline-start:auto;font-size:.55rem;color:var(--text2);opacity:0.7;font-weight:400;
+      margin-inline-start:auto;font-size:.55rem;color:var(--text2);font-weight:400;
       flex-shrink:0;white-space:nowrap;   /* the number never breaks, the name beside it does */
     }
     .cat-tab.active .cat-count { color:var(--acc); opacity:1; }
 
     .cat-section {
-      font-size:.55rem;color:var(--acc);opacity:0.7;letter-spacing:.1em;
+      font-size:.55rem;color:var(--acc);letter-spacing:.1em;
       text-transform:uppercase;padding:10px 14px 4px;font-weight:600;
       display:flex;align-items:center;justify-content:space-between;
       cursor:pointer;user-select:none;
-      transition:color .1s, opacity .1s;
+      transition:background .1s;
     }
-    .cat-section:hover { color:var(--acc); opacity:1; }
+    .cat-section:hover { background:var(--acc-dim); }
     .section-caret {
-      font-size:.6rem;color:var(--acc);opacity:0.7;transition:transform .15s;
+      font-size:.6rem;color:var(--acc);transition:transform .15s;
     }
     .cat-section.collapsed .section-caret { transform:rotate(-90deg); }
     [dir=rtl] .cat-section.collapsed .section-caret { transform:rotate(90deg); }   /* a collapsed section points to the reading direction */

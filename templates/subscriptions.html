@@ -241,6 +241,36 @@
     :where(body [dir=ltr], body [dir=auto]) { text-align:-webkit-match-parent; }
     :where(body [dir=ltr], body [dir=auto])::placeholder { unicode-bidi:plaintext; }
 
+    :root {
+      --bg:      #0b1120;
+      --surf:    #111c2e;
+      --surf2:   #182338;
+      --surf3:   #1e2d47;
+      --border:  #243454;
+      --border2: #2d4068;
+      --acc:     #3b82f6;
+      --acc-h:   #60a5fa;
+      --acc-dim: rgba(59,130,246,.14);
+      --green:   #22c55e;
+      --red:     #ef4444;
+      --yellow:  #f59e0b;
+      --text:    #e2e8f6;
+      --text2:   #8faecf;
+      --muted:   #3d5470;
+      --shadow:  0 4px 32px rgba(0,0,0,.6);
+      --thumb-bg:          #080808;
+      --log-bg:            #060606;
+      --log-text:          #8a9a80;
+      --modal-overlay:     rgba(0,0,0,.75);
+      --modal-shadow:      0 20px 60px rgba(0,0,0,.8);
+      --btn-primary-text:  #0a0a0a;
+      --btn-on-accent:     #000;
+      --btn-red-border:    #3a1a1a;
+      --audio-btn-color:   #b45309;
+      --dur-bg:            rgba(0,0,0,.85);
+      --dur-text:          #ddd;
+    }
+
     {% include 'theme_styles.html' %}
     /* ── Custom confirmation modal ── */
     .egm-modal-overlay {

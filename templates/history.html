@@ -8,10 +8,10 @@
     body.from-subs .rb[title="Re-add"] { display: none; }
   *{box-sizing:border-box;margin:0;padding:0}
   :root{
-    --bg:#0b1120;--surf:#111c2e;--surf2:#162338;--surf3:#1c2d47;
-    --border:#1e3a5f;--border2:#274d7a;--acc:#3b82f6;--acc-h:#60a5fa;
-    --text:#e2e8f0;--text2:#8b949e;--muted:#4a5568;
-    --green:#4ade80;--red:#f87171;--yellow:#fbbf24;
+    --bg:#0b1120;--surf:#111c2e;--surf2:#182338;--surf3:#1e2d47;
+    --border:#243454;--border2:#2d4068;--acc:#3b82f6;--acc-h:#60a5fa;
+    --text:#e2e8f6;--text2:#8faecf;--muted:#3d5470;
+    --green:#22c55e;--red:#ef4444;--yellow:#f59e0b;
     --shadow:0 4px 32px rgba(0,0,0,.6);
   }
   body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,sans-serif;font-size:13px;height:100vh;display:flex;flex-direction:column;overflow:hidden}
@@ -42,8 +42,7 @@
   /* table */
   .table-wrap{flex:1;overflow-y:auto;overflow-x:hidden}
   .table-header{display:grid;grid-template-columns:100px 1fr 80px 70px 70px 90px;padding-block:6px;padding-inline:14px 22px;border-bottom:1px solid var(--border);background:var(--surf);position:sticky;top:0;z-index:1}
-  .th{font-size:9px;font-weight:500;color:var(--text2);opacity:0.65;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;user-select:none;transition:opacity .1s}
-  .th:hover{color:var(--text2);opacity:1}
+  .th{font-size:9px;font-weight:500;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;user-select:none}
   .row{display:grid;grid-template-columns:100px 1fr 80px 70px 70px 90px;padding-block:6px;padding-inline:14px 22px;border-bottom:1px solid rgba(255,255,255,.04);align-items:center}
   .row:hover{background:var(--surf2)}
   .rthumb-wrap{position:relative;width:96px;height:54px;border-radius:4px;overflow:hidden;background:var(--surf2);flex-shrink:0;border:0.5px solid var(--border)}
@@ -59,6 +58,17 @@
   .fmt-mp3,.fmt-aac,.fmt-m4a{background:rgba(22,163,74,.1);color:#4ade80;border-color:rgba(22,163,74,.3)}
   .fmt-mp4,.fmt-webm{background:rgba(59,130,246,.1);color:#60a5fa;border-color:rgba(59,130,246,.3)}
   .fmt-flac,.fmt-wav{background:rgba(168,85,247,.1);color:#c084fc;border-color:rgba(168,85,247,.3)}
+  /* dark on light themes, light on dark ones; the light colours above stay where relative colour syntax is missing
+     (the value holds var(), so only @supports can fall back) */
+  @supports (color: oklch(from red l c h)) {
+    .fmt-mp3,.fmt-aac,.fmt-m4a{color:oklch(from var(--surf) calc(.35 + 0.45 * (1 - clamp(0, (l - .62) * 1000, 1))) 0.182 151.7)}
+    .fmt-mp4,.fmt-webm{color:oklch(from var(--surf) calc(.35 + 0.364 * (1 - clamp(0, (l - .62) * 1000, 1))) 0.143 254.6)}
+    .fmt-flac,.fmt-wav{color:oklch(from var(--surf) calc(.35 + 0.372 * (1 - clamp(0, (l - .62) * 1000, 1))) 0.177 305.5)}
+  }
+  /* Windows 95 and 98 draw the rows on the teal desktop (--bg), not on the light --surf the badge colour is taken from, so at rest
+     the badges get white text; a hovered row turns light (--surf2), where the colours above read */
+  body.windows95 .row:not(:hover) :is(.fmt-mp3,.fmt-aac,.fmt-m4a,.fmt-mp4,.fmt-webm,.fmt-flac,.fmt-wav),
+  body.windows98 .row:not(:hover) :is(.fmt-mp3,.fmt-aac,.fmt-m4a,.fmt-mp4,.fmt-webm,.fmt-flac,.fmt-wav){color:#fff}
   .fmt-other{background:rgba(255,255,255,.06);color:var(--text2);border-color:var(--border)}
   .row-btns{display:flex;gap:3px;justify-content:flex-end;margin-inline-start:auto;opacity:0;transition:opacity .1s}
   .row:hover .row-btns{opacity:1}

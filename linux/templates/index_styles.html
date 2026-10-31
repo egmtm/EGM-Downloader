@@ -559,6 +559,28 @@
       background: var(--surf); border: 1px solid var(--border);
       border-radius: var(--r); box-shadow: var(--shadow); overflow: hidden;
     }
+    /* ── Grip: the links card and the Settings panel swap places by dragging it (_settings.html) ──
+       A 64×16 grab zone centred on the card's top edge, with a 34×4 pill 5px down that shows only
+       while the pointer is near it (card-grip-near, set in js/_settings.html). Last child of the card,
+       so it sits above the header and a press on it never reaches the Settings header's click. */
+    #urls-card, #settings-panel-wrap { position: relative; }   /* the theme's body > * rule does this too; the grip must not depend on it */
+    .card-order-pending :is(#urls-card, #settings-panel-wrap) { display: none; }   /* while the page is parsed with Settings first (_card_order.html) */
+    .card-grip {
+      position: absolute; inset-block-start: 0; inset-inline: 0; margin-inline: auto;
+      width: 64px; height: 16px; z-index: 1; cursor: grab; touch-action: none;
+    }
+    .card-grip::before {
+      content: ''; position: absolute; inset-block-start: 5px; inset-inline: 0; margin-inline: auto;
+      width: 34px; height: 4px; border-radius: 2px; background: var(--text2);
+      opacity: 0; transition: opacity .12s ease, background-color .12s ease;
+    }
+    .card-grip-near > .card-grip::before { opacity: .5; }
+    .card-grip:hover::before, .card-dragging > .card-grip::before { opacity: 1; background: var(--acc); }
+    .card-dragging { z-index: 11; box-shadow: var(--modal-shadow); outline: 2px solid var(--acc); }   /* over the header (10), which a tall card can reach */
+    .card-dragging > .card-grip { cursor: grabbing; }
+    .card-reordering body { user-select: none; -webkit-user-select: none; cursor: grabbing; }
+    .card-settling { transition: transform .12s ease-out; }
+    @media (prefers-reduced-motion: reduce) { .card-settling, .card-grip::before { transition: none; } }
     .sec-hdr {
       display: flex; align-items: center; justify-content: space-between;
       padding: 8px 14px; cursor: pointer; user-select: none;
@@ -608,6 +630,7 @@
       direction: ltr; text-align: -webkit-match-parent;   /* URLs read left to right and keep the page's alignment */
     }
     textarea#urls::placeholder { color: var(--text2); opacity: 0.55; unicode-bidi: plaintext; }
+    #dl-dir::placeholder { color: var(--text2); opacity: 0.55; }
     textarea#urls:focus { border-color: var(--acc); }
     textarea#urls.drag-over { border-color: var(--acc); box-shadow: 0 0 0 2px var(--acc-dim); background: var(--surf3); }
     .paste-btn {
@@ -640,12 +663,16 @@
     .btn-red { background: transparent; color: var(--red); border: 1px solid var(--btn-red-border); }
     .btn-red:hover:not(:disabled) { background: rgba(239,68,68,.1); border-color: var(--red); }
     .btn-green { background: var(--green); color: var(--btn-on-accent); }
+    /* label: black or white, whichever reads on this theme's green. Behind @supports because the value holds var():
+       an engine without contrast-color() keeps such a line and then inherits a colour, so a plain second
+       declaration could never fall back to the one above */
+    @supports (color: contrast-color(red)) { .btn-green { color: contrast-color(var(--green)); } }
     .btn-green:hover:not(:disabled) { filter: brightness(1.1); }
     .btn-sm { padding: 5px 12px; font-size: .78rem; }
     .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
 
     /* ── Settings ── */
-    .opt-label { font-size: .68rem; color: var(--text2); opacity: 0.7; text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 6px; display: block; }
+    .opt-label { font-size: .68rem; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 6px; display: block; }
     .path-row { display: flex; gap: 7px; align-items: center; }
     .path-row input {
       flex: 1; background: var(--surf2); border: 1px solid var(--border);
@@ -709,7 +736,12 @@
     .vtitle { font-size: .9rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 4px; }
     [dir=rtl] .vtitle { padding-right: 0; padding-left: 4px; }   /* the gap follows the page; the title itself is dir="auto" */
     .vmeta  { font-size: .73rem; color: var(--text2); }
-    .live-tag { display: inline-block; font-size: .62rem; font-weight: 700; letter-spacing: .04em; padding: 1px 6px; margin-inline-end: 4px; border-radius: 999px; background: var(--red); color: #fff; vertical-align: 1px; }
+    .live-tag { display: inline-block; font-size: .62rem; font-weight: 700; letter-spacing: .04em; padding: 1px 6px; margin-inline-end: 4px; border-radius: 999px; background: var(--red); vertical-align: 1px; color: #fff; }
+    /* black or white, whichever reads better on this theme's red; white where relative colour syntax is missing
+       (behind @supports for the reason given at .btn-green) */
+    @supports (color: color(from red xyz-d65 x y z)) {
+      .live-tag { color: color(from var(--red) xyz-d65 calc(.9505 * clamp(0, (.18 - y) * 1000, 1)) clamp(0, (.18 - y) * 1000, 1) calc(1.089 * clamp(0, (.18 - y) * 1000, 1))); }
+    }
 
     /* ── Quality panel ── */
     .qual-panel {
@@ -718,7 +750,7 @@
       display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end;
     }
     .qual-group { display: flex; flex-direction: column; gap: 4px; }
-    .qual-label { font-size: .65rem; color: var(--text2); opacity: 0.65; text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
+    .qual-label { font-size: .65rem; color: var(--text2); text-transform: uppercase; letter-spacing: .07em; font-weight: 700; }
 
     .pills { display: flex; background: var(--surf3); border: 1px solid var(--border); border-radius: 999px; padding: 3px; gap: 2px; }
     .pills input[type=radio] { display: none; }
@@ -954,7 +986,7 @@
     .cvp-foot { flex:none; display:flex; gap:6px; padding:11px 14px; border-top:1px solid #232c39; background:#131922; }
     .cvp-btn { flex:1; height:30px; border-radius:6px; font-size:11.5px; font-weight:600; cursor:pointer; background:#1b2330; border:1px solid #2a3340; color:#dbe3ec; }
     .cvp-btn:hover { border-color:#3b82f6; }
-    .cvp-save { background:#3b82f6; border-color:#3b82f6; color:#fff; }
+    .cvp-save { background:#2563eb; border-color:#2563eb; color:#fff; }
     .cvp-modal-back { position:fixed; inset:0; background:rgba(0,0,0,.6); display:flex; align-items:center; justify-content:center; z-index:1000; }
     .cvp-modal { width:300px; max-width:90vw; background:#171c24; border:1px solid #2a3340; border-radius:12px; padding:18px; color:#e6ebf2; box-shadow:0 20px 60px rgba(0,0,0,.8); }
     .cvp-modal h3 { font-size:14px; margin-bottom:8px; }

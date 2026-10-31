@@ -54,7 +54,9 @@ def run(tmp_path, text, polish):
 def test_the_parsers_cover_the_whole_catalog():
     entries = open(os.path.join(ROOT, "templates", "theme_data.html"), encoding="utf-8").read().count("cat:'")
     assert len(CATALOG) == entries, "a THEME_DATA entry was not parsed (label quoting? key quoting?)"
-    assert len(BLOCKS) == entries - 1, "a CSS block was not parsed (every theme but custom has one)"
+    # custom has no block (it is user made) and neither has void (it is the page's :root default)
+    assert set(CATALOG) - set(BLOCKS) == {"custom", "void"}, "a CSS block was not parsed"
+    assert len(BLOCKS) == entries - 2, "a CSS block was not parsed (every theme but custom and void has one)"
 
 
 def test_no_built_in_block_trips_the_typo_check_except_the_known_bugs():
