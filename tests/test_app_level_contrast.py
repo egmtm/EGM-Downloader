@@ -140,3 +140,40 @@ def test_new_colour_functions_sit_behind_supports(tree):
         for m in re.finditer(r"contrast-color\(|\b(?:color|oklch|oklab|lch|lab|rgb|rgba|hsl|hsla|hwb)\(\s*from\b", rest):
             found.append(f"{path.name}: ...{rest[max(0, m.start() - 40):m.start() + 30]}...")
     assert not found, f"{tree}: outside @supports: {found}"
+
+
+_HISTORY_BADGE_CLASSES = {"fmt-mp3", "fmt-aac", "fmt-m4a", "fmt-mp4", "fmt-webm", "fmt-flac", "fmt-wav"}
+_BADGE_TINTS = ((22, 163, 74), (59, 130, 246), (168, 85, 247))   # the three .fmt backgrounds, at .1
+
+
+@pytest.mark.parametrize("tree", TREES)
+def test_windows_95_and_98_history_badges_are_white_on_the_teal_desktop_and_dark_on_a_hovered_row(tree):
+    """These two themes draw the History rows straight on --bg (teal) while the badge colour is taken from the
+    light --surf, so the dark badges sat on teal at about 2:1. At rest they get white text; a hovered row turns
+    light (--surf2), where white would be about 1.5:1, so the rule must not apply there."""
+    css = (ROOT / tree / "history.html").read_text(encoding="utf-8")
+    m = re.search(r"body\.windows95\s+\.row:not\(:hover\)\s*:is\(([^)]*)\)\s*,\s*"
+                  r"body\.windows98\s+\.row:not\(:hover\)\s*:is\(([^)]*)\)\s*\{\s*color:\s*#fff\s*\}", css)
+    assert m, "the Windows 95 and 98 History badge rule is gone or lost its :not(:hover)"
+    for group in m.groups():
+        assert {c.strip(" .") for c in group.split(",")} == _HISTORY_BADGE_CLASSES
+    themes = _theme_vars(tree)
+    for key in ("windows95", "windows98"):
+        bg, surf2 = _rgb(themes[key]["--bg"]), _rgb(themes[key]["--surf2"])
+        assert _ratio((255, 255, 255), surf2) < 4.5, f"{key}: white would read on a hovered row, so :not(:hover) is no longer needed"
+        for tint in _BADGE_TINTS:
+            behind = tuple(round(t * .1 + b * .9) for t, b in zip(tint, bg))
+            assert _ratio((255, 255, 255), behind) >= 4.5, f"{key}: white badge text on the teal desktop is under 4.5:1"
+
+
+@pytest.mark.parametrize("tree", TREES)
+def test_windows_98_hover_blue_keeps_the_downloading_badge_readable(tree):
+    """--acc-h is the Downloading badge text as well as the hover colour: on Windows 98's light cards a bright
+    hover blue (#0e78c4) read at 2.6:1. It stays lighter than the navy accent, and reads at 4.5:1."""
+    css = (ROOT / tree / "index_styles.html").read_text(encoding="utf-8")
+    r, g, b, a = re.search(r"\.b-dl\s*\{\s*background:\s*rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)\s*;\s*color:\s*var\(--acc-h\)", css).groups()
+    v = _theme_vars(tree)["windows98"]
+    surf = _rgb(v["--surf"])
+    behind = tuple(round(int(t) * float(a) + s * (1 - float(a))) for t, s in zip((r, g, b), surf))
+    assert _ratio(_rgb(v["--acc-h"]), behind) >= 4.5, "the Windows 98 Downloading badge is under 4.5:1"
+    assert _lum(_rgb(v["--acc-h"])) > _lum(_rgb(v["--acc"])), "the Windows 98 hover blue is no longer lighter than its accent"

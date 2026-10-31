@@ -65,6 +65,10 @@
     .fmt-mp4,.fmt-webm{color:oklch(from var(--surf) calc(.35 + 0.364 * (1 - clamp(0, (l - .62) * 1000, 1))) 0.143 254.6)}
     .fmt-flac,.fmt-wav{color:oklch(from var(--surf) calc(.35 + 0.372 * (1 - clamp(0, (l - .62) * 1000, 1))) 0.177 305.5)}
   }
+  /* Windows 95 and 98 draw the rows on the teal desktop (--bg), not on the light --surf the badge colour is taken from, so at rest
+     the badges get white text; a hovered row turns light (--surf2), where the colours above read */
+  body.windows95 .row:not(:hover) :is(.fmt-mp3,.fmt-aac,.fmt-m4a,.fmt-mp4,.fmt-webm,.fmt-flac,.fmt-wav),
+  body.windows98 .row:not(:hover) :is(.fmt-mp3,.fmt-aac,.fmt-m4a,.fmt-mp4,.fmt-webm,.fmt-flac,.fmt-wav){color:#fff}
   .fmt-other{background:rgba(255,255,255,.06);color:var(--text2);border-color:var(--border)}
   .row-btns{display:flex;gap:3px;justify-content:flex-end;margin-inline-start:auto;opacity:0;transition:opacity .1s}
   .row:hover .row-btns{opacity:1}
