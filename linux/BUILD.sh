@@ -62,12 +62,17 @@ echo ""
 echo "🐍 Downloading Python 3.11 Linux x64..."
 cd "$LINUX_DIR"
 PYTHON_DIR="$LINUX_DIR/python"
+# Pinned: version, release and SHA-256 (from that release's SHA256SUMS). Keep in step with mac/BUILD.sh.
+# The Python bundle brings its own pip, so this pin also decides the pip version.
+PYTHON_VERSION="3.11.18"
+PYTHON_RELEASE="20261026"
+PYTHON_SHA256="a87ee63646c8f8438b7af3954b2135ed2af91d033c631f12a8f20af903046d06"
 
 if [ ! -d "$PYTHON_DIR" ]; then
-    PYTHON_VERSION="3.11.9"
-    PYTHON_URL="https://github.com/indygreg/python-build-standalone/releases/download/20240415/cpython-${PYTHON_VERSION}+20240415-x86_64-unknown-linux-gnu-install_only.tar.gz"
+    PYTHON_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/cpython-${PYTHON_VERSION}+${PYTHON_RELEASE}-x86_64-unknown-linux-gnu-install_only.tar.gz"
     echo "   Downloading from GitHub..."
     curl -L --progress-bar "$PYTHON_URL" -o python.tar.gz
+    echo "$PYTHON_SHA256  python.tar.gz" | sha256sum -c - || { echo "   ✗ python.tar.gz does not match the pinned SHA-256"; rm -f python.tar.gz; exit 1; }
     echo "   Extracting..."
     mkdir -p "$PYTHON_DIR"
     tar -xzf python.tar.gz -C "$PYTHON_DIR" --strip-components=1
@@ -100,7 +105,7 @@ echo ""
 
 # ── Install Python deps ───────────────────────────────────────────────────────
 echo "📚 Installing Python dependencies..."
-# Note: do NOT upgrade pip — pip 26 has a resolvelib regression that breaks installs
+# pip is the one inside the pinned Python above (26.2.2); it is not upgraded here
 # PYTHONNOUSERSITE=1: pip must only see the bundled Python's own site-packages. Without it
 # a package in the host's user site (~/.local) counts as "already installed" and is left out of the AppImage.
 PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$LINUX_DIR/requirements.txt" 2>/dev/null || \
@@ -125,6 +130,9 @@ rm -rf "$PYTHON_DIR/lib/python3.11/tkinter"
 rm -rf "$PYTHON_DIR/lib/python3.11/lib2to3"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtledemo"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
+
+# bin/python3.11 has the interpreter built in; this second 55 MB copy is only for programs that embed Python
+rm -f "$PYTHON_DIR/lib/libpython3.11.so"* "$PYTHON_DIR/lib/libpython3.so"
 
 # DO NOT bulk-strip .dist-info directories — werkzeug calls
 # importlib.metadata.version('werkzeug') at server startup; flask 3.x and many

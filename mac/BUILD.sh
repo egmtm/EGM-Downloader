@@ -58,12 +58,17 @@ echo ""
 echo "🐍 Downloading Python 3.11 ARM64..."
 cd "$MAC_DIR"
 PYTHON_DIR="$MAC_DIR/python"
+# Pinned: version, release and SHA-256 (from that release's SHA256SUMS). Keep in step with linux/BUILD.sh.
+# The Python bundle brings its own pip, so this pin also decides the pip version.
+PYTHON_VERSION="3.11.18"
+PYTHON_RELEASE="20261026"
+PYTHON_SHA256="cba3455e18516fbe8668cff2820c9b6a53447c552d612443c2b2fb60d390a908"
 
 if [ ! -d "$PYTHON_DIR" ]; then
-    PYTHON_VERSION="3.11.9"
-    PYTHON_URL="https://github.com/indygreg/python-build-standalone/releases/download/20240415/cpython-${PYTHON_VERSION}+20240415-aarch64-apple-darwin-install_only.tar.gz"
+    PYTHON_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/cpython-${PYTHON_VERSION}+${PYTHON_RELEASE}-aarch64-apple-darwin-install_only.tar.gz"
     echo "   Downloading from GitHub..."
     curl -L --progress-bar "$PYTHON_URL" -o python.tar.gz
+    echo "$PYTHON_SHA256  python.tar.gz" | shasum -a 256 -c - || { echo "   ✗ python.tar.gz does not match the pinned SHA-256"; rm -f python.tar.gz; exit 1; }
     echo "   Extracting..."
     mkdir -p "$PYTHON_DIR"
     tar -xzf python.tar.gz -C "$PYTHON_DIR" --strip-components=1
@@ -76,7 +81,7 @@ echo ""
 
 # ── Install Python deps ───────────────────────────────────────────────────────
 echo "📚 Installing Python dependencies..."
-"$PYTHON_DIR/bin/python3" -m pip install --quiet --upgrade pip
+# pip is the one inside the pinned Python above (26.2.2); it is not upgraded here
 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
 echo "   ✓ Dependencies installed"
 echo ""
