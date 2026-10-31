@@ -199,8 +199,9 @@ test("Import takes the file's order, the default one too, and ignores a value th
     assert.equal(page.w.localStorage.getItem(KEY), SWAPPED);
     page.w.close();
   }
-  // anything else is left out: the machine keeps its order and nothing odd is written
-  for (const bad of ["junk", "[]", '["settings"]', '["urls","urls"]', '["settings","urls","x"]', "null", 5, null, ["settings", "urls"]]) {
+  // anything else is left out: the machine keeps its order and nothing odd is written. The last one is not a
+  // string but turns into a valid default order when made one, so only the type check keeps it out.
+  for (const bad of ["junk", "[]", '["settings"]', '["urls","urls"]', '["settings","urls","x"]', "null", 5, null, ["settings", "urls"], ['["urls","settings"]']]) {
     const page = await boot(SWAPPED);
     await importLocalStorage(page, { [KEY]: bad, "egm-other": "kept" });
     assert.equal(page.w.localStorage.getItem(KEY), SWAPPED, `a bad value is ignored: ${JSON.stringify(bad)}`);
