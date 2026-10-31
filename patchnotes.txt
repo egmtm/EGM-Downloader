@@ -6,7 +6,7 @@ v1.5.2.1 - RITOCCO (10/31/2026)
   • [ALL] Fixed: The hint text in the download folder field now follows your theme.
   • [ALL] Fixed: The History, Console and Subscriptions pages now match the main window's colors on the default theme.
   • [ALL] Fixed: The LIVE tag on a video card is readable on every theme.
-  • [ALL] Fixed: The format badges in History (MP3, MP4, FLAC and the like) are readable on light themes.
+  • [ALL] Fixed: The format badges in History (MP3, MP4, FLAC and the like) are easier to read on light themes.
   • [ALL] Fixed: The Save button in the Theme Creator panel is easier to read.
   • [ALL] Fixed: Green buttons, like Stop and save, are easier to read on many themes.
   • [ALL] Fixed: 139 themes are easier to read, with clearer labels, hints, status colors and button text. Some accents, surfaces and background patterns also changed, so similar themes look different from each other and text stays clear.
