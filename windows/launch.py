@@ -401,6 +401,7 @@ def _move_python_into_place(stage):
         return True
     except Exception as e:
         _py_log(f"could not move the new Python into place: {e}")
+        shutil.rmtree(PY_DIR, ignore_errors=True)     # a copy cut off halfway must not leave a python.exe behind
         return False
 
 

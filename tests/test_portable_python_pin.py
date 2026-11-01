@@ -310,6 +310,28 @@ def test_a_rename_that_keeps_failing_falls_back_to_a_copy(launch, tmp_path, monk
     assert not launch._py_stage_dir().exists()
 
 
+def test_a_copy_that_is_cut_off_halfway_leaves_no_python_folder(launch, tmp_path, monkeypatch):
+    archive = _archive(tmp_path, [("python/python.exe", b"exe")])
+    monkeypatch.setattr(launch, "PY_SHA256", _sha(archive.read_bytes()))
+    monkeypatch.setattr(launch.urllib.request, "urlretrieve",
+                        lambda url, dest, *a, **k: Path(dest).write_bytes(archive.read_bytes()))
+    monkeypatch.setattr(launch.subprocess, "run", _fake_run([]))
+
+    def locked(src, dst):
+        raise PermissionError("a scanner still has a file open")
+
+    def half_copy(src, dst, **k):
+        Path(dst).mkdir(parents=True)
+        (Path(dst) / "python.exe").write_bytes(b"half")
+        raise OSError("the disk went away")
+
+    monkeypatch.setattr(launch.os, "rename", locked)
+    monkeypatch.setattr(launch.shutil, "copytree", half_copy)
+    assert launch.ensure_python() is None
+    assert not launch.PY_DIR.exists()
+    assert not launch._py_stage_dir().exists()
+
+
 def test_the_python_this_launcher_runs_on_is_kept_without_a_probe(launch, monkeypatch):
     """On a warm start the launcher runs on the private Python. A probe that misses its time limit
     (a slow USB stick or network folder) must not get it deleted while it runs."""
