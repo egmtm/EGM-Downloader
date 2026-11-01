@@ -61,7 +61,7 @@
 - 📜 **Download History** - Track all downloads with search, filter, and re-download capability
 - 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own folder, format, quality, auto fetch and SponsorBlock settings
 - 🔄 **Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac), plus in app updates for yt-dlp, ffmpeg, and optional libraries without reinstalling
-- 💼 **Windows Portable** - Run from any folder or USB drive, no installer and no registry. Downloads its own embedded Python on first run.
+- 💼 **Windows Portable** - Run from any folder or USB drive, no installer and no registry. Downloads its own private Python on first run.
 - 📋 **Diagnostics** - Live log viewer in the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - ⏱️ **Quit When Done** - Close the app automatically once every download has finished, from the main window or the Subscriptions queue. A 30 second countdown appears in the middle of the window and stops with Cancel or Esc. It won't close if a download failed or was cancelled.
@@ -188,7 +188,7 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 **SHA256:** `0eeb11e2aed1d962be410c1ff7113823168085bfb91ec77ec73160c183b92af2`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
-**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
+**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
