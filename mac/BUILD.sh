@@ -104,6 +104,9 @@ rm -rf "$PYTHON_DIR/lib/python3.11/lib2to3"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtledemo"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
 
+# bin/python3.11 has the interpreter built in; this second 17 MB copy is only for programs that embed Python
+rm -f "$PYTHON_DIR/lib/libpython3.11.dylib"
+
 # DO NOT bulk-strip .dist-info directories — werkzeug calls
 # importlib.metadata.version('werkzeug') at server startup; flask 3.x and many
 # other packages do similar metadata lookups. Stripping their .dist-info breaks
