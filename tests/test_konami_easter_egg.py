@@ -17,7 +17,7 @@ import re
 
 from conftest import read_source
 
-CORE_JS_FILES = ["templates/js/_core.html", "linux/templates/js/_core.html"]
+CORE_JS_FILES = ["templates/js/_core.html"]
 
 KONAMI_KEYS = {
     "konami.title": "EGM Downloader has stopped responding",

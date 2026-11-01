@@ -3,7 +3,8 @@ Tier 1 — JS syntax gate.
 
 Runs `node --check` on every front-end JS surface the app ships, rendered through
 Jinja first (so includes/variables resolve) and written to a temp .js file, since
-node won't check .html directly. Covers BOTH the root and linux template dirs:
+node won't check .html directly. Covers the root templates/ dir, which every
+platform ships:
 
   - js/*.html index modules            (whole rendered file is JS)
   - theme_validator.html, theme_data.html   pure-JS partials (whole file is JS)
@@ -48,7 +49,6 @@ NODE = _find_node()
 # (platform label, absolute template dir)
 _TEMPLATE_DIRS = [
     ("root", os.path.join(ROOT, "templates")),
-    ("linux", os.path.join(ROOT, "linux", "templates")),
 ]
 
 # Pure-JS partials: the whole rendered file is JavaScript (checked as-is).
@@ -64,7 +64,7 @@ _SCRIPT_RE = re.compile(r"<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>", re.DOTALL
 
 
 def _units():
-    """Every JS-bearing unit across both template dirs.
+    """Every JS-bearing unit in the template dir.
 
     Yields (label, tdir, relpath, mode) where mode is:
       'whole'  -> the rendered template IS javascript
@@ -88,16 +88,10 @@ _UNITS = _units()
 
 
 def test_js_units_discovered():
-    """Sanity: we found the expected JS surfaces on BOTH platforms and the counts
-    match (else the parametrized gate would silently pass with too few cases, or a
-    file added on one platform but not the other would go ungated)."""
+    """Sanity: we found the expected JS surfaces (else the parametrized gate would
+    silently pass with too few cases)."""
     root = [u for u in _UNITS if u[0] == "root"]
-    linux = [u for u in _UNITS if u[0] == "linux"]
     assert root, "no JS units found under templates/"
-    assert linux, "no JS units found under linux/templates/"
-    assert len(root) == len(linux), (
-        f"root has {len(root)} JS units but linux has {len(linux)} — drift"
-    )
     # The non-module surfaces must all be present (they carry large/critical JS).
     root_names = {os.path.basename(u[2]) for u in root}
     for name in _JS_PARTIALS + _INLINE_SCRIPT_TEMPLATES:

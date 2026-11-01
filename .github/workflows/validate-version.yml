@@ -2,8 +2,8 @@ name: Validate Version Sync
 
 # Triggers only on changes to files the validator actually checks.
 # Skips noise from STATE.md, README.md, CREDITS.md, .github/, etc.
-# IMPORTANT: linux/templates/** and linux/requirements.txt MUST be included
-# to preserve the drift guard (added 2026-04-28).
+# IMPORTANT: linux/requirements.txt MUST be included to preserve the drift
+# guard (added 2026-04-28).
 
 on:
   push:

@@ -12,7 +12,7 @@ import re
 
 from conftest import ROOT, read_source
 
-SUBS = ("templates/subscriptions.html", "linux/templates/subscriptions.html")
+SUBS = ("templates/subscriptions.html",)
 MAINS = ("windows/electron/main.js", "mac/electron/main.js", "linux/electron/main.js")
 
 
@@ -50,13 +50,12 @@ MAIN_JS = ("templates/js/_core.html", "templates/js/_download.html", "templates/
 
 
 def test_main_window_quits_only_through_the_countdown():
-    for base in ("", "linux/"):
-        for name in ("_download.html", "_bulk.html"):
-            src = read_source(f"{base}templates/js/{name}")
-            assert "quitWhenDoneCheck()" in src, f"{base}{name}: must start the shared countdown"
-            assert "electronAPI.quit(" not in src and "QUIT_DELAY_MS" not in src, (
-                f"{base}{name}: no direct timed quit; it would skip the wait, the failure rule and Cancel"
-            )
+    for name in ("_download.html", "_bulk.html"):
+        src = read_source(f"templates/js/{name}")
+        assert "quitWhenDoneCheck()" in src, f"{name}: must start the shared countdown"
+        assert "electronAPI.quit(" not in src and "QUIT_DELAY_MS" not in src, (
+            f"{name}: no direct timed quit; it would skip the wait, the failure rule and Cancel"
+        )
 
 
 def test_both_windows_show_the_same_30_second_centered_card():

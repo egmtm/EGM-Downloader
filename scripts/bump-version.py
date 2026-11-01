@@ -14,7 +14,6 @@ This script is the single source of truth for version management. It updates:
 
   Linux:
     - linux/app.py                       (APP_VERSION, APP_BUILD)
-    - linux/templates/index.html         (title, header + footer spans)
     - linux/electron/package.json        (version, first three numbers of the app version)
     - linux/INSTRUCTIONS.txt             (header line)
 
@@ -226,26 +225,6 @@ def update_linux_app_py(v, b, dry_run):
           rf'\g<1>{b}', dry_run)
 
 
-def update_linux_index_html(v, b, date, time_str, dry_run):
-    path = ROOT / "linux" / "templates" / "index.html"
-
-    # <title> tag
-    patch(path, "linux/templates/index.html -> <title>",
-          r'(<title>EGM Downloader )v[\d.]+(</title>)',
-          rf'\g<1>v{v}\g<2>', dry_run)
-
-
-    # footer-version-pill text
-    patch(path, "linux/templates/index.html -> footer-version-pill text",
-          r'(id="footer-version-pill"[^>]*>)v[\d.]+(</button>)',
-          rf'\g<1>v{v}\g<2>', dry_run, flags=re.DOTALL)
-
-    # whats-new-version text
-    patch(path, "linux/templates/index.html -> whats-new-version text",
-          r'(id="whats-new-version">)v[\d.]+(</span>)',
-          rf'\g<1>v{v}\g<2>', dry_run)
-
-
 def update_linux_package_json(v, dry_run):
     # Mac & Linux electron package.json use "X.Y.Z" semver (extra ".0" suffix).
     path = ROOT / "linux" / "electron" / "package.json"
@@ -360,7 +339,6 @@ def main():
 
     print("\n-- Linux -------------------------------------------------")
     update_linux_app_py(new_version, new_build, args.dry_run)
-    update_linux_index_html(new_version, new_build, date, time_str, args.dry_run)
     update_linux_package_json(new_version, args.dry_run)
     update_linux_instructions(new_version, args.dry_run)
 

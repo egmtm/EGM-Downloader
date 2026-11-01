@@ -505,19 +505,19 @@ def test_video_id_xss_guard():
         assert not id_re.fullmatch(bad), f"allowlist accepted breakout id: {bad!r}"
 
     # 2. Client-side: attribute contexts use attrEsc, not esc/CSS.escape
-    for tpl in ("templates/subscriptions.html", "linux/templates/subscriptions.html"):
-        src = read_source(tpl)
-        assert "function attrEsc" in src, f"{tpl} missing attrEsc()"
-        for needle in (
-            'data-video-id="${attrEsc(v.video_id',
-            'id="meta-${attrEsc(v.video_id',
-            "cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')",
-            "clearVideoState('${attrEsc(videoId)}')",
-        ):
-            assert needle in src, f"{tpl} attribute site not using attrEsc: {needle}"
-        assert "onclick=\"cancelJob('${jobId}'" not in src
-        for stale in ('data-video-id="${esc(v.video_id', 'id="meta-${esc(v.video_id'):
-            assert stale not in src, f"{tpl} still uses esc() in attribute context"
+    tpl = "templates/subscriptions.html"
+    src = read_source(tpl)
+    assert "function attrEsc" in src, f"{tpl} missing attrEsc()"
+    for needle in (
+        'data-video-id="${attrEsc(v.video_id',
+        'id="meta-${attrEsc(v.video_id',
+        "cancelJob('${attrEsc(jobId)}','${attrEsc(videoId)}')",
+        "clearVideoState('${attrEsc(videoId)}')",
+    ):
+        assert needle in src, f"{tpl} attribute site not using attrEsc: {needle}"
+    assert "onclick=\"cancelJob('${jobId}'" not in src
+    for stale in ('data-video-id="${esc(v.video_id', 'id="meta-${esc(v.video_id'):
+        assert stale not in src, f"{tpl} still uses esc() in attribute context"
 
 
 # ── Build-feed guards ──────────────────────────────────────────────────────────
@@ -931,10 +931,8 @@ def test_creator_storage_bridge_defers_until_focused():
     main window while it's still unfocused (the widen setBounds gets dropped on Linux,
     compressing the main UI). The storage-event bridge therefore defers openThemeCreator
     until main has focus — document.hasFocus() fast-path, else a one-shot 'focus' listener
-    with a setTimeout fallback. Root and linux must carry this byte-identically."""
+    with a setTimeout fallback."""
     root = read_source("templates/js/_creator.html")
-    linux = read_source("linux/templates/js/_creator.html")
-    assert root == linux, "templates/js/_creator.html differs from linux/templates/js/_creator.html"
 
     m = re.search(r"addEventListener\('storage',(.*?)\}\);\s*\}\)\(\);", root, re.DOTALL)
     assert m, "storage-event bridge not found in _creator.html"
@@ -964,10 +962,8 @@ def test_saved_themes_favoritable():
     themes: a .fav-heart on each saved card keyed by the theme's id, toggled through the
     shared favoriteThemes set / favorite_themes setting, and surfaced in the Favorites
     section. Saved-theme ids are 'st-...' which match the backend favorite-key regex, so
-    no backend change is needed. Root and linux carry it byte-identically."""
+    no backend change is needed."""
     root = read_source("templates/themes.html")
-    linux = read_source("linux/templates/themes.html")
-    assert root == linux, "templates/themes.html differs from linux/templates/themes.html"
 
     # The saved-card markup carries a heart bound to the saved theme's id (same class /
     # icon the built-in cards use).
@@ -999,8 +995,6 @@ def test_optlibs_update_panel_cross_platform():
     the app's own Python, Linux into the plugin overlay), so every check_updates reports
     the full current/latest/updates_available shape. The current-only shape belongs to the
     other route, installed-versions, which only lists what is installed on Linux and Mac.
-    The template that hosts the optlibs card must also stay root<->linux byte-identical
-    (Mac serves root templates).
     """
     # All three backends expose the optlibs list + version helper and an optlibs key.
     for app_file in PLATFORM_APP_FILES:
@@ -1024,10 +1018,6 @@ def test_optlibs_update_panel_cross_platform():
     root = read_source("app.py")
     assert "updates_available" in root and "do_optlibs" in root, \
         "root app.py lost the actionable optlibs upgrade path"
-
-    # The optlibs card lives in _settings.html, which must be mirrored to linux byte-identically.
-    assert read_source("templates/js/_settings.html") == read_source("linux/templates/js/_settings.html"), \
-        "templates/js/_settings.html differs from linux/templates/js/_settings.html"
 
 
 def test_portable_sentinel_tolerates_module_packages():
@@ -1351,13 +1341,13 @@ def test_history_fields_escaped_against_xss():
     """History title/filename/url are attacker-controllable — a download's title comes from
     the source site, and /api/history/import accepts arbitrary entries — and they render into
     innerHTML. They MUST be escaped (stored-XSS guard) on BOTH the main-UI panel and the
-    standalone window, root + linux."""
-    for f in ("templates/js/_nav_history.html", "linux/templates/js/_nav_history.html"):
-        assert "_hEsc(item.title" in read_source(f), f"{f}: history title is not escaped before innerHTML"
-    for f in ("templates/history.html", "linux/templates/history.html"):
-        src = read_source(f)
-        assert "escH(item.title" in src and "escH(item.url" in src, \
-            f"{f}: history title/url is not escaped before innerHTML"
+    standalone window."""
+    panel = "templates/js/_nav_history.html"
+    assert "_hEsc(item.title" in read_source(panel), f"{panel}: history title is not escaped before innerHTML"
+    window = "templates/history.html"
+    src = read_source(window)
+    assert "escH(item.title" in src and "escH(item.url" in src, \
+        f"{window}: history title/url is not escaped before innerHTML"
 
 
 # ── Feed bullet guard (catches generation-layer drops) ─────────────────────────
@@ -1527,19 +1517,19 @@ def test_i18n_keys_exist_in_en_locale():
     root = os.path.dirname(os.path.dirname(__file__))
     keys = set(json.load(open(os.path.join(root, "languages", "en.json")))["strings"])
     bad = []
-    for pattern in ("templates/**/*.html", "linux/templates/**/*.html"):
-        for p in glob.glob(os.path.join(root, pattern), recursive=True):
-            if p.endswith("i18n.html"):
-                continue  # loader partial documents the attr format with a sample key
-            src = open(p, encoding="utf-8").read()
-            for k in re.findall(r'data-i18n="([^"]+)"', src):
+    pattern = "templates/**/*.html"
+    for p in glob.glob(os.path.join(root, pattern), recursive=True):
+        if p.endswith("i18n.html"):
+            continue  # loader partial documents the attr format with a sample key
+        src = open(p, encoding="utf-8").read()
+        for k in re.findall(r'data-i18n="([^"]+)"', src):
+            if k not in keys: bad.append((os.path.relpath(p, root), k))
+        for k in re.findall(r"i18n(?:Get|Fmt|Attr)\('([^']+)'", src):
+            if k not in keys: bad.append((os.path.relpath(p, root), k))
+        for pair in re.findall(r'data-i18n-attr="([^"]+)"', src):
+            for item in pair.split(","):
+                k = item.split(":", 1)[1].strip()
                 if k not in keys: bad.append((os.path.relpath(p, root), k))
-            for k in re.findall(r"i18n(?:Get|Fmt|Attr)\('([^']+)'", src):
-                if k not in keys: bad.append((os.path.relpath(p, root), k))
-            for pair in re.findall(r'data-i18n-attr="([^"]+)"', src):
-                for item in pair.split(","):
-                    k = item.split(":", 1)[1].strip()
-                    if k not in keys: bad.append((os.path.relpath(p, root), k))
     assert not bad, f"templates reference keys missing from en.json: {bad}"
 
 

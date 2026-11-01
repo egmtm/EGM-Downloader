@@ -8,7 +8,7 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-TEMPLATE_DIRS = [ROOT / "templates", ROOT / "linux" / "templates"]
+TEMPLATE_DIRS = [ROOT / "templates"]
 
 # An attribute opened with a single quote whose value reaches an i18nAttr(...) call:
 #   template literal:      title='${i18nAttr(...)}'   or   title='text ${a + i18nAttr(...)}'

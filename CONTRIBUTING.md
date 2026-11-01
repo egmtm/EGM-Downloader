@@ -400,7 +400,6 @@ EGM-Downloader/
 │
 └── linux/                    # Linux platform
     ├── app.py                # Linux-specific backend
-    ├── templates/            # Linux-specific UI
     ├── electron/             # Electron wrapper + builder config
     ├── BUILD.sh              # Build script
     └── INSTRUCTIONS.txt      # User instructions
@@ -410,16 +409,15 @@ EGM-Downloader/
 
 **Shared (Windows + Mac):**
 - `app.py` - Main backend
-- `templates/index.html` - UI
+- `templates/` - UI (Linux packages the same tree)
 - `static/` - Assets
 - `requirements.txt` - Python dependencies
 
 **Linux-Specific:**
 - `linux/app.py` - Linux-specific backend, AppImage paths
-- `linux/templates/` - Slightly different UI
 - `linux/requirements.txt` - Linux-specific dependencies
 
-> **Why does Linux have its own `app.py` and `templates/`?** The AppImage distribution model requires a self-contained package (Electron and Python are bundled inside it, and ffmpeg and Deno are downloaded on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations.
+> **Why does Linux have its own `app.py`?** The AppImage distribution model requires a self-contained package (Electron and Python are bundled inside it, and ffmpeg and Deno are downloaded on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations. The UI is shared: `linux/electron/package.json` packages the root `templates/` next to `linux/app.py`, as Mac does.
 
 **Platform Directories:**
 - `windows/electron/` - Windows Electron configuration

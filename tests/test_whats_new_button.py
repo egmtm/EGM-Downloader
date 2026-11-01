@@ -9,8 +9,8 @@ import sys
 
 from conftest import ROOT, read_source
 
-INDEX_FILES = ("templates/index.html", "linux/templates/index.html")
-QUALITY_FILES = ("templates/js/_quality.html", "linux/templates/js/_quality.html")
+INDEX_FILES = ("templates/index.html",)
+QUALITY_FILES = ("templates/js/_quality.html",)
 
 
 def test_footer_version_pill_is_the_whatsnew_button_and_correctly_ordered():
@@ -19,7 +19,7 @@ def test_footer_version_pill_is_the_whatsnew_button_and_correctly_ordered():
     clicking the version is the natural way to see what's new). It is a real
     <button> so it is keyboard reachable, it carries the translated
     "What's New" string as its tooltip, and it sits first, before the website
-    link and Diagnostics, on both platform copies. The old button must not
+    link and Diagnostics. The old button must not
     come back."""
     for p in INDEX_FILES:
         src = read_source(p)
@@ -47,7 +47,7 @@ def test_bump_version_still_matches_the_version_pill_markup():
     names its closing tag. When that pattern stops matching it only prints a
     warning and the pill keeps the old version, and nothing else in the
     version sync check reads the pill. A dry run on the current version must
-    therefore report exactly one match in each template tree."""
+    therefore report exactly one match in templates/index.html."""
     with open(f"{ROOT}/version.json", encoding="utf-8") as fh:
         current = json.load(fh)["version"]
     out = subprocess.run(
@@ -210,7 +210,7 @@ def test_support_link_label_is_not_hardcoded_english():
 
 # ── SponsorBlock: the per-channel selection must actually reach a download ─────
 
-SUBSCRIPTION_FILES = ("templates/subscriptions.html", "linux/templates/subscriptions.html")
+SUBSCRIPTION_FILES = ("templates/subscriptions.html",)
 
 
 def test_per_subscription_sponsorblock_reaches_the_download_request():

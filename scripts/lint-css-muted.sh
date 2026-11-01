@@ -35,7 +35,7 @@ while IFS= read -r match; do
     if ! grep -q "lint-allow-muted:" <<< "$preceding"; then
         VIOLATIONS+=("$file:$line_num")
     fi
-done < <(grep -rn "color:\s*var(--muted)" templates/ linux/templates/ 2>/dev/null || true)
+done < <(grep -rn "color:\s*var(--muted)" templates/ 2>/dev/null || true)
 
 if [[ ${#VIOLATIONS[@]} -gt 0 ]]; then
     echo "❌ CSS lint failed — 'color: var(--muted)' without 'lint-allow-muted:' annotation"

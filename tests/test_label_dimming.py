@@ -5,7 +5,7 @@ label was dimmed twice and fell under 3:1 in many themes. The extra opacity is g
 capitals and letter spacing keep the hierarchy. The download folder field also follows the
 theme for its hint text instead of the browser's grey.
 
-Windows and Mac read templates/, Linux reads linux/templates/ (kept byte identical elsewhere).
+Every platform ships templates/ (Linux and Mac package it from the repo root).
 """
 import re
 from pathlib import Path
@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-TREES = ("templates", "linux/templates")
+TREES = ("templates",)
 
 # (file, selector, colour variable) of the rules that must not set an opacity of their own
 LABEL_RULES = (

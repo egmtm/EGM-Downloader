@@ -39,7 +39,6 @@
         "to": "app",
         "filter": [
           "app.py",
-          "templates/**",
           "requirements.txt"
         ]
       },
@@ -47,6 +46,7 @@
         "from": "../../",
         "to": "app",
         "filter": [
+          "templates/**",
           "patchnotes.txt"
         ]
       },

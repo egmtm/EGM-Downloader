@@ -12,7 +12,7 @@ and an engine that does not know the function keeps such a declaration at parse 
 colour, so a plain earlier declaration is never a fallback: each sits in an @supports block, with a fixed
 colour outside it.
 
-Windows and Mac read templates/, Linux reads linux/templates/ (kept byte identical elsewhere).
+Every platform ships templates/ (Linux and Mac package it from the repo root).
 """
 import re
 from pathlib import Path
@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-TREES = ("templates", "linux/templates")
+TREES = ("templates",)
 
 
 def _rgb(c):
