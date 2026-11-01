@@ -441,7 +441,9 @@ DIFFERENCES FROM THE INSTALLER VERSION
          Updating from v1.5.2.1 or older? Also copy your old electron-data\ folder
          into the new folder, next to data\ (not inside it). The app moves it
          into data\ on the first start. It holds your saved themes, history
-         pins and sidebar layout.
+         pins and sidebar layout. Copy it before you start the new version
+         for the first time: once that version has run, it keeps the
+         electron-data it made and leaves the copied one unused.
       4. Delete the old folder
   • "Update Plugins" panel is hidden in portable mode.
     To manually update yt-dlp or mutagen, open a command prompt
