@@ -197,7 +197,11 @@ def test_a_verified_archive_is_unpacked_pip_is_checked_and_the_download_is_clean
     assert launch.ensure_python() == str(launch.PY_EXE)
     assert launch.PY_EXE.read_bytes() == b"exe"
     assert not (launch.PY_DIR / "py_tmp.tar.gz").exists()
-    assert [str(launch.PY_EXE), "-m", "pip", "--version"] in calls
+    # pip is checked in the stage folder, before the new Python becomes python\, and the
+    # stage folder is gone once it has been moved into place
+    stage = launch._py_stage_dir()
+    assert [str(stage / "python.exe"), "-m", "pip", "--version"] in calls
+    assert not stage.exists()
 
 
 def test_a_python_that_cannot_run_pip_is_reported_not_used(launch, tmp_path, monkeypatch):
@@ -248,6 +252,82 @@ def test_a_broken_private_python_is_rebuilt(launch, tmp_path, monkeypatch):
     assert not (launch.PY_DIR / "stale.txt").exists()
 
 
+# ── an unpack that is cut off ────────────────────────────────────────────────
+# The native launcher prefers python\python.exe whenever that file exists, and ensure_python keeps
+# any python.exe that starts. An unpack cut off after python.exe (the launcher killed, power loss,
+# antivirus) must therefore never leave python\ behind: the new Python is unpacked and checked in
+# python.part\ and only then renamed to python\.
+
+def test_an_unpack_that_is_cut_off_leaves_no_python_folder(launch, tmp_path, monkeypatch):
+    archive = _archive(tmp_path, [("python/python.exe", b"exe")])
+    monkeypatch.setattr(launch, "PY_SHA256", _sha(archive.read_bytes()))
+    monkeypatch.setattr(launch.urllib.request, "urlretrieve",
+                        lambda url, dest, *a, **k: Path(dest).write_bytes(archive.read_bytes()))
+
+    def cut_off(src, dest):
+        (Path(dest) / "python.exe").write_bytes(b"half")
+        raise OSError("the disk went away")
+
+    monkeypatch.setattr(launch, "_extract_python_archive", cut_off)
+    monkeypatch.setattr(launch.subprocess, "run", _fake_run([]))
+    assert launch.ensure_python() is None
+    assert not launch.PY_DIR.exists()
+    assert not launch._py_stage_dir().exists()
+
+
+def test_a_stage_folder_left_by_a_killed_launcher_is_cleared_and_setup_completes(launch, tmp_path, monkeypatch):
+    stage = launch._py_stage_dir()
+    stage.mkdir(parents=True)
+    (stage / "python.exe").write_bytes(b"half")
+    (stage / "stale.txt").write_bytes(b"old")
+    archive = _archive(tmp_path, [("python/python.exe", b"fresh")])
+    monkeypatch.setattr(launch, "PY_SHA256", _sha(archive.read_bytes()))
+    monkeypatch.setattr(launch.urllib.request, "urlretrieve",
+                        lambda url, dest, *a, **k: Path(dest).write_bytes(archive.read_bytes()))
+    monkeypatch.setattr(launch.subprocess, "run", _fake_run([]))
+    assert launch.ensure_python() == str(launch.PY_EXE)
+    assert launch.PY_EXE.read_bytes() == b"fresh"
+    assert not (launch.PY_DIR / "stale.txt").exists()
+    assert not stage.exists()
+
+
+def test_a_rename_that_keeps_failing_falls_back_to_a_copy(launch, tmp_path, monkeypatch):
+    archive = _archive(tmp_path, [("python/python.exe", b"exe"), ("python/Lib/os.py", b"os")])
+    monkeypatch.setattr(launch, "PY_SHA256", _sha(archive.read_bytes()))
+    monkeypatch.setattr(launch.urllib.request, "urlretrieve",
+                        lambda url, dest, *a, **k: Path(dest).write_bytes(archive.read_bytes()))
+    monkeypatch.setattr(launch.subprocess, "run", _fake_run([]))
+    tries = []
+
+    def locked(src, dst):
+        tries.append(src)
+        raise PermissionError("a scanner still has a file open")
+
+    monkeypatch.setattr(launch.os, "rename", locked)
+    assert launch.ensure_python() == str(launch.PY_EXE)
+    assert len(tries) == 20
+    assert (launch.PY_DIR / "Lib" / "os.py").read_bytes() == b"os"
+    assert not launch._py_stage_dir().exists()
+
+
+def test_the_python_this_launcher_runs_on_is_kept_without_a_probe(launch, monkeypatch):
+    """On a warm start the launcher runs on the private Python. A probe that misses its time limit
+    (a slow USB stick or network folder) must not get it deleted while it runs."""
+    launch.PY_DIR.mkdir()
+    launch.PY_EXE.write_bytes(b"exe")
+    (launch.PY_DIR / "Lib").mkdir()
+    monkeypatch.setattr(launch.sys, "executable", str(launch.PY_DIR / "pythonw.exe"))
+
+    def must_not_run(*a, **k):
+        raise AssertionError("nothing may be probed, downloaded or removed")
+
+    monkeypatch.setattr(launch.subprocess, "run", must_not_run)
+    monkeypatch.setattr(launch.urllib.request, "urlretrieve", must_not_run)
+    monkeypatch.setattr(launch.shutil, "rmtree", must_not_run)
+    assert launch.ensure_python() == str(launch.PY_EXE)
+    assert (launch.PY_DIR / "Lib").is_dir()
+
+
 # ── nothing unchecked is fetched or run ──────────────────────────────────────
 
 def test_the_download_is_checked_before_it_is_unpacked_or_run(launch):
@@ -257,8 +337,9 @@ def test_the_download_is_checked_before_it_is_unpacked_or_run(launch):
     download = body.index("urlretrieve(")
     verify = body.index("_verify_py_archive(")
     unpack = body.index("_extract_python_archive(")
-    first_run = body.index("_python_has_pip()")
-    assert download < verify < unpack < first_run
+    first_run = body.index("_python_has_pip(")
+    move = body.index("_move_python_into_place(")
+    assert download < verify < unpack < first_run < move
 
 
 def test_the_embeddable_zip_and_the_pip_wheel_steps_are_gone():

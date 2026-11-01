@@ -344,11 +344,11 @@ def _extract_python_archive(archive, dest):
                 shutil.copyfileobj(src, dst)
 
 
-def _python_has_pip():
+def _python_has_pip(exe=None):
     """True iff the unpacked Python can run pip (it ships its own). Logs the real error to
     PY_SETUP_LOG on a failure, so "could not enable pip" is debuggable."""
     try:
-        r = subprocess.run([str(PY_EXE), "-m", "pip", "--version"],
+        r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--version"],
                            capture_output=True, text=True, timeout=60, creationflags=NO_WIN)
         if r.returncode == 0:
             return True
@@ -359,50 +359,116 @@ def _python_has_pip():
     return False
 
 
+def _py_stage_dir():
+    """Where a new private Python is unpacked and checked before it becomes python\\. Next to
+    PY_DIR, so the final rename stays on the same drive."""
+    return PY_DIR.with_name(PY_DIR.name + ".part")
+
+
+def _drop_stale_stage():
+    """Remove a python.part\\ that a cut off unpack or a copy fallback left behind. Nothing
+    runs from it, so it is always safe to remove."""
+    stage = _py_stage_dir()
+    if stage.exists():
+        shutil.rmtree(stage, ignore_errors=True)
+
+
+def _running_on_private_python():
+    """True when this launcher is itself running on the private Python (a warm start: the
+    native launcher prefers python\\python.exe, and the hand over may move to pythonw.exe)."""
+    try:
+        return Path(sys.executable).resolve().parent == PY_DIR.resolve()
+    except Exception:
+        return False
+
+
+def _move_python_into_place(stage):
+    """Rename the checked stage folder to python\\. A rename is all or nothing, so python\\
+    is either missing or complete, and the native launcher never starts a half unpacked
+    one. Antivirus can keep a file it is still scanning open for a moment, which makes the
+    rename fail, so it is retried; a copy is the last resort."""
+    if PY_DIR.exists():                       # leftovers of a broken one that could not all be removed
+        shutil.rmtree(PY_DIR, ignore_errors=True)
+    for _ in range(20):
+        try:
+            os.rename(stage, PY_DIR)
+            return True
+        except OSError:
+            time.sleep(0.5)
+    try:
+        shutil.copytree(stage, PY_DIR, dirs_exist_ok=True)
+        shutil.rmtree(stage, ignore_errors=True)
+        return True
+    except Exception as e:
+        _py_log(f"could not move the new Python into place: {e}")
+        return False
+
+
 def ensure_python():
     """Ensure the portable's private Python exists (download → verify → extract → check
     pip), cached across runs like ensure_node(). Returns the python.exe path str, or None
     on failure (caller shows an error). A working private Python is never replaced here:
     on a warm start this launcher is itself running on it, and Windows will not replace a
     folder whose python.exe is running. A new Python reaches users with the new folder
-    they extract (python\\ is not copied)."""
+    they extract (python\\ is not copied).
+
+    A new one is unpacked into python.part\\ and renamed to python\\ only after it has been
+    checked, so an unpack that is cut off (the launcher killed, power loss, antivirus) never
+    leaves a python\\ that starts but is incomplete: the next start finds no python\\, runs
+    on the system Python again, removes python.part\\ and starts over."""
+    # This launcher runs on it, so it works (the version gate at the top of this file has
+    # already checked it). Never probe it here: a slow first start (a USB stick, a network
+    # folder, a virus scan) could miss the probe's time limit, and it must not be removed
+    # while it runs.
+    if _running_on_private_python() and PY_EXE.exists():
+        _drop_stale_stage()
+        return str(PY_EXE)
     # Fast path: a good cached interpreter.
     if PY_EXE.exists() and _py_version(PY_EXE) >= _PY_MIN:
+        _drop_stale_stage()
         return str(PY_EXE)
     if PY_DIR.exists():
         _gui_msg("Updating bundled Python…")           # present but broken/old — rebuild
         try: shutil.rmtree(PY_DIR, ignore_errors=True)
         except Exception: pass
 
+    stage = _py_stage_dir()
+    shutil.rmtree(stage, ignore_errors=True)       # left by an unpack that was cut off
     _gui_msg(f"Downloading Python {PY_VERSION}…")
-    PY_DIR.mkdir(parents=True, exist_ok=True)
-    tmp = PY_DIR / "py_tmp.tar.gz"
+    stage.mkdir(parents=True, exist_ok=True)
+    tmp = stage / "py_tmp.tar.gz"
+    stage_exe = stage / "python.exe"
     try:
         urllib.request.urlretrieve(PY_ARCHIVE_URL, tmp, reporthook=_progress)
         _gui_msg("Verifying Python download…")
         if not _verify_py_archive(tmp):
             _gui_msg("ERROR: Python checksum verification failed")
-            try: tmp.unlink(missing_ok=True)
-            except Exception: pass
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
         _gui_msg("Extracting Python…")
-        _extract_python_archive(tmp, PY_DIR)
+        _extract_python_archive(tmp, stage)
         tmp.unlink(missing_ok=True)
-        if not PY_EXE.exists():
+        if not stage_exe.exists():
             _py_log("python.exe missing after extract"); _gui_msg("ERROR: Python extract failed")
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
-        if not _python_has_pip():
+        if not _python_has_pip(stage_exe):
             _gui_msg("ERROR: could not enable pip (see embedded-python-setup.log)")
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
-        if _py_version(PY_EXE) < _PY_MIN:
+        if _py_version(stage_exe) < _PY_MIN:
             _py_log("embedded Python older than required"); _gui_msg("ERROR: bundled Python too old")
+            shutil.rmtree(stage, ignore_errors=True)
+            time.sleep(4); return None
+        if not _move_python_into_place(stage):
+            _gui_msg("ERROR: could not finish setting up Python (see embedded-python-setup.log)")
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
         return str(PY_EXE)
     except Exception as e:
         _py_log(f"ensure_python exception: {e}")
         _gui_msg(f"ERROR: {e}")
-        try: tmp.unlink(missing_ok=True)
-        except Exception: pass
+        shutil.rmtree(stage, ignore_errors=True)
         time.sleep(4); return None
 
 
