@@ -408,7 +408,7 @@ HOW TO RUN
   2. Double-click "EGM Downloader.exe" to launch
   3. On first launch, the app downloads required components:
 
-       Private Python      ~35 MB   (one time only)
+       Private Python      ~40 MB   (one time only)
        Node.js + Electron  ~190 MB  (one time only)
        ffmpeg              ~185 MB  (one time only, background)
        Deno                ~40 MB   (one time only, background)
@@ -419,10 +419,14 @@ HOW TO RUN
 
 WHERE YOUR DATA IS STORED
 ──────────────────────────
-  Settings, download history, and cookies are stored in:
+  Settings, download history, cookies, saved themes, history pins and the
+  window position are stored in:
     data\  (inside this folder, next to EGM Downloader.exe)
 
   Moving or copying this entire folder preserves all your settings.
+
+  The data folder is hidden once the app has run. To see it, open this
+  folder in File Explorer, click View, then Show, then turn on Hidden items.
 
 
 DIFFERENCES FROM THE INSTALLER VERSION
@@ -432,7 +436,12 @@ DIFFERENCES FROM THE INSTALLER VERSION
   • Auto-update is disabled. To update:
       1. Download the latest EGMd-portable.zip from egerena.com/apps
       2. Extract to a new folder
-      3. Copy your old data\ folder into the new folder
+      3. Copy your old data\ folder into the new folder (it is hidden,
+         see WHERE YOUR DATA IS STORED above)
+         Updating from v1.5.2.1 or older? Also copy your old electron-data\ folder
+         into the new folder, next to data\ (not inside it). The app moves it
+         into data\ on the first start. It holds your saved themes, history
+         pins and sidebar layout.
       4. Delete the old folder
   • "Update Plugins" panel is hidden in portable mode.
     To manually update yt-dlp or mutagen, open a command prompt

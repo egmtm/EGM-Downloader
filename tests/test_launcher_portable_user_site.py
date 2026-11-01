@@ -1,4 +1,5 @@
-"""Windows launcher, portable edition: the embedded Python never reads a user packages folder.
+"""Windows launcher, portable edition: the private Python never reads a user packages folder,
+and never reads PYTHONPATH or PYTHONHOME.
 
 The Python that starts the first run (the system Python the launcher finds) can hand the embedded
 Python its own user packages folder: the Microsoft Store Python 3.12 does, and its folder showed up in
@@ -56,9 +57,22 @@ def test_the_setting_is_made_once_in_the_portable_branch_before_anything_is_star
 def test_the_processes_that_matter_inherit_the_environment():
     # none of these passes a custom env=, so the setting reaches the pip steps; Electron's env is
     # built from os.environ, and the backend inherits Electron's
-    for name in ("_py_version", "_setup_embedded_pip", "_pip_install"):
+    for name in ("_py_version", "_python_has_pip", "_pip_install"):
         assert "env=" not in _function(name), name
     assert 'env = {**os.environ, "PATH"' in _function("launch_electron")
+
+
+def test_the_private_python_does_not_inherit_search_path_variables_from_the_user():
+    """The python.org embeddable zip ignored PYTHONPATH and PYTHONHOME; the full Python the portable
+    runs on now honours them, so they are cleared in the portable branch, before anything is started
+    (the pip steps, Electron and the backend inherit the environment from this process)."""
+    portable, installer = _branches()
+    for name in ("PYTHONPATH", "PYTHONHOME"):
+        clear = f'os.environ.pop("{name}", None)'
+        assert portable.count(clear) == 1, name
+        assert clear not in installer, name
+        for later in ("py_exe = ensure_python()", "ensure_python_deps_embedded(py_exe)"):
+            assert portable.index(clear) < portable.index(later), (name, later)
 
 
 def _child(code, env):

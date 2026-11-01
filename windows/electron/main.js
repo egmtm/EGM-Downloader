@@ -20,17 +20,45 @@ if (process.platform === 'win32') {
 // ── Portable mode: redirect Electron userData into the portable folder ─────────
 // Must be called BEFORE app ready — Chromium locks userData path on startup.
 // Prevents localStorage/theme state leaking to %APPDATA% in portable builds.
+// Everything the user owns sits in <root>\data, the folder app.py already uses, so copying
+// that one folder when updating carries it all over. Earlier versions kept Electron's data in
+// <root>\electron-data: it is moved in on the first start, and used where it is if it cannot be.
 const _portableMarker = path.join(__dirname, '..', '.portable');
-if (fs.existsSync(_portableMarker)) {
-  // Anchor to the install folder (parent of electron/), NOT process.cwd().
-  // cwd depends on how the process was launched and is not guaranteed to be the
-  // portable root; using __dirname makes this deterministic and keeps the path
-  // in sync with launch.py's portable hide-list (which hides <root>/electron-data).
-  app.setPath('userData', path.join(__dirname, '..', 'electron-data'));
+const _isPortable = fs.existsSync(_portableMarker);
+// Anchor to the install folder (parent of electron/), NOT process.cwd().
+// cwd depends on how the process was launched and is not guaranteed to be the
+// portable root; using __dirname makes this deterministic.
+const _dataRoot = _isPortable ? path.join(__dirname, '..', 'data') : path.join(__dirname, '..');
+if (_isPortable) {
+  const _oldUserData = path.join(__dirname, '..', 'electron-data');
+  let _userData = path.join(_dataRoot, 'electron-data');
+  try {
+    fs.mkdirSync(_dataRoot, { recursive: true });
+    if (fs.existsSync(_oldUserData) && !fs.existsSync(_userData)) fs.renameSync(_oldUserData, _userData);
+  } catch {
+    if (fs.existsSync(_oldUserData)) _userData = _oldUserData;
+  }
+  app.setPath('userData', _userData);
 }
 
-// ── Settings file (same location as app.py BASE_DIR) ─────────────────────────
-const SETTINGS_FILE = path.join(__dirname, '..', 'egm_settings.json');
+// ── Settings file (same location as app.py's: BASE_DIR, or the data folder in portable) ──
+const SETTINGS_FILE = path.join(_dataRoot, 'egm_settings.json');
+// Portable, one time: earlier versions kept the window position in a root egm_settings.json.
+if (_isPortable) {
+  try {
+    const _oldSettings = path.join(__dirname, '..', 'egm_settings.json');
+    if (fs.existsSync(_oldSettings)) {
+      const _old = JSON.parse(fs.readFileSync(_oldSettings, 'utf8'));
+      const _now = loadSettings();
+      const _patch = {};
+      for (const k of ['window_bounds', 'window_maximized']) {
+        if (_old[k] !== undefined && _now[k] === undefined) _patch[k] = _old[k];
+      }
+      if (Object.keys(_patch).length) saveSettings(_patch);
+      fs.unlinkSync(_oldSettings);
+    }
+  } catch {}
+}
 
 // ── Window hardening: route external links to default browser, block navigation ─
 function hardenWindow(win) {
