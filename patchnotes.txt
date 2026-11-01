@@ -3,6 +3,7 @@ vTBD - TBD (TBD)
 
   • [LINUX] Security: The Python that comes with the app is now 3.11.18, a security release, and it includes a newer pip.
   • [MAC] Security: The Python that comes with the app is now 3.11.18, a security release, and it includes a newer pip.
+  • [MAC] The app starts faster.
 
 v1.5.2.1 - RITOCCO (10/31/2026)
 -----------------------------------------
