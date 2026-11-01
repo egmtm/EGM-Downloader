@@ -5,7 +5,7 @@ vTBD - TBD (TBD)
   • [WINDOWS] Changed: Portable: Your saved themes, history pins and window position now live in the data folder, so copying data when you update keeps them. The steps in instructions.txt show how to reveal the hidden folder.
   • [LINUX] Security: The Python that comes with the app is now 3.11.18, a security release, and it includes a newer pip.
   • [MAC] Security: The Python that comes with the app is now 3.11.18, a security release.
-  • [MAC] The app starts faster.
+  • [MAC] The app may start faster.
 
 v1.5.2.1 - RITOCCO (10/31/2026)
 -----------------------------------------
