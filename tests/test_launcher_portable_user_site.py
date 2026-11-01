@@ -93,3 +93,21 @@ def test_the_setting_really_hides_an_existing_user_packages_folder(tmp_path):
         pytest.skip("this interpreter does not use a user site folder (virtual environment)")
     after = _child(show, {**base_env, "PYTHONNOUSERSITE": "1"})
     assert user_site not in after
+
+
+def test_the_native_launcher_clears_them_for_the_private_python_only():
+    """On a warm start the native launcher runs launch.py on the private Python itself, before
+    launch.py can clear anything, so the launcher clears PYTHONHOME and PYTHONPATH for that child
+    and puts them back before it falls through to a system Python."""
+    src = (LAUNCH.parent / "launcher.c").read_text(encoding="utf-8")
+    start = src.index("if (attrs != INVALID_FILE_ATTRIBUTES")
+    branch = src[start:src.index("/* First-run / installer / fallback", start)]
+    for name in ("PYTHONHOME", "PYTHONPATH"):
+        assert f'L"{name}"' in branch, name
+    clear = branch.index("SetEnvironmentVariableW(names[i], NULL)")
+    launch = branch.index("try_launch(embedded_py, script_path)")
+    restore = branch.index("SetEnvironmentVariableW(names[i], saved[i])")
+    assert clear < launch < restore
+    # the system Python attempts below are left as they were
+    rest = src[src.index("/* First-run / installer / fallback"):]
+    assert "SetEnvironmentVariableW" not in rest

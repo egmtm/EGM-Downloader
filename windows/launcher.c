@@ -64,8 +64,31 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nSho
     _snwprintf_s(embedded_py, MAX_PATH, _TRUNCATE, L"%s\\python\\python.exe", exe_path);
     DWORD attrs = GetFileAttributesW(embedded_py);
     if (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY)) {
+        /* The private Python is a full one: a PYTHONHOME or PYTHONPATH set on this PC for
+         * another Python would point it at the wrong standard library before launch.py
+         * could clear them. Clear both for this child only, and put them back if it does
+         * not start, so a system Python below still gets them. */
+        static const wchar_t *names[2] = { L"PYTHONHOME", L"PYTHONPATH" };
+        wchar_t *saved[2] = { NULL, NULL };
+        for (int i = 0; i < 2; i++) {
+            DWORD n = GetEnvironmentVariableW(names[i], NULL, 0);
+            if (n > 0) {
+                saved[i] = (wchar_t *)HeapAlloc(GetProcessHeap(), 0, n * sizeof(wchar_t));
+                if (saved[i] && GetEnvironmentVariableW(names[i], saved[i], n) == 0) {
+                    HeapFree(GetProcessHeap(), 0, saved[i]);
+                    saved[i] = NULL;
+                }
+            }
+            SetEnvironmentVariableW(names[i], NULL);
+        }
         if (try_launch(embedded_py, script_path)) {
             return 0;
+        }
+        for (int i = 0; i < 2; i++) {
+            if (saved[i]) {
+                SetEnvironmentVariableW(names[i], saved[i]);
+                HeapFree(GetProcessHeap(), 0, saved[i]);
+            }
         }
     }
 
