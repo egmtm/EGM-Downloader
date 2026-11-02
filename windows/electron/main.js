@@ -303,11 +303,16 @@ async function startFlask() {
 
   splashProgress(55, 9);   // backend process started
 
-  flaskProc.on('exit', (code) => {
-    if (code !== 0 && code !== null && !app.isQuitting) {
+  flaskProc.on('exit', (code, signal) => {
+    // It is gone: before-quit must not try to stop this PID later (it may belong to another
+    // program by then). Any exit while the app is not quitting is a crash, also one by a
+    // signal (code null, e.g. killed for memory) and a clean code 0 nobody asked for.
+    flaskProc = null;
+    if (!app.isQuitting) {
       app.isQuitting = true;
-      dialog.showErrorBox('EGM Downloader — Backend crashed',
-        `The backend stopped unexpectedly (code ${code}).\n\nPlease restart the app.`);
+      dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
+        ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
+        : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
       app.quit();
     }
   });
@@ -331,14 +336,21 @@ function waitForFlask(budgetMs = 180000, delay = 250) {
   return new Promise((resolve, reject) => {
     const deadline = Date.now() + budgetMs;
     const try_ = () => {
-      const req = http.get(APP_URL, res => { res.resume(); resolve(); });
-      req.on('error', () => {
+      const retry = () => {
         if (Date.now() >= deadline) {
           reject(new Error('The backend did not start within 3 minutes.\n\nTry launching the app again.'));
           return;
         }
         setTimeout(try_, delay);
+      };
+      // Only this run's backend answers 200 here: it knows the per-run token. Another program on
+      // the port, or a backend left over from an earlier run, must not be loaded into this window
+      // (with the preload, its page would pass the sender check, which compares the origin only).
+      const req = http.get(APP_URL + '/api/settings', { headers: { 'X-EGM-Token': EGM_TOKEN } }, res => {
+        res.resume();
+        if (res.statusCode === 200) resolve(); else retry();
       });
+      req.on('error', retry);
       req.setTimeout(900, () => { req.destroy(); });
     };
     try_();

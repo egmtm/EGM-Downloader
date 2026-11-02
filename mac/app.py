@@ -4028,8 +4028,15 @@ if __name__ == "__main__":
         return 8899
     port = _resolve_port()
     host = "127.0.0.1"  # always localhost — never exposed to network
-    threading.Thread(target=lambda: app.run(host=host,port=port,threaded=True,use_reloader=False),
-                     daemon=True, name="flask").start()
+    def _serve():
+        try:
+            app.run(host=host, port=port, threaded=True, use_reloader=False)
+        finally:
+            # app.run only comes back when the server could not start (the port is taken by another
+            # program or by a backend from an earlier run); waiting on with no server helps nobody.
+            # Code 3 tells the shell why.
+            os._exit(3)
+    threading.Thread(target=_serve, daemon=True, name="flask").start()
     threading.Thread(target=_warm_templates, args=(host, port), daemon=True, name="template-warmup").start()
 
     # Under Electron: keep Flask alive; Electron manages the window and lifecycle.
