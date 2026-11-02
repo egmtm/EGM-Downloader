@@ -262,8 +262,15 @@ def _pip_install(cmd, upgrading, timeout):
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
         subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)
-    except (subprocess.SubprocessError, OSError):
-        if not upgrading: raise
+    except (subprocess.SubprocessError, OSError) as e:
+        if not upgrading:
+            # Fatal, but say so: the error used to end the launcher with no message at all (the
+            # progress window just closed), which on a first start offline looked like nothing.
+            _py_log(f"pip install failed: {e}")
+            _gui_msg("The app's Python packages could not be installed. Check your internet "
+                     "connection and start EGM Downloader again.")
+            time.sleep(8)
+            raise
 
 def ensure_python_deps():
     # Keep this list in sync with requirements.txt. cryptography is REQUIRED for
@@ -1074,7 +1081,16 @@ def _signal_running_instance():
     except Exception:
         return False
 
+# A download that stalls (the server stops sending, a network that silently drops traffic) has no
+# end without a time limit: urlretrieve would wait forever while this launcher holds its lock, so
+# every later start would quietly exit. With one, the stall becomes the normal download error.
+DOWNLOAD_STALL_TIMEOUT = 60
+
+def _limit_stalled_downloads(seconds=DOWNLOAD_STALL_TIMEOUT):
+    socket.setdefaulttimeout(seconds)
+
 if __name__ == "__main__":
+    _limit_stalled_downloads()
     # If we are relaunching to reinstall Electron (Advanced -> Reinstall Electron
     # -> "Restart now"), the outgoing instance may still be shutting down. Skip the
     # already-running early-exit in that case, so a transient signal to the dying

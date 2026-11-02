@@ -46,6 +46,7 @@ def pip(mod, monkeypatch):
 
     monkeypatch.setattr(mod.subprocess, "run", fake_run)
     monkeypatch.setattr(mod, "_gui_msg", lambda *a, **k: None)
+    monkeypatch.setattr(mod.time, "sleep", lambda *a, **k: None)   # the pause that keeps a failure message on screen
     return p
 
 
