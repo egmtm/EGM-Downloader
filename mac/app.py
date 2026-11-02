@@ -852,6 +852,7 @@ DENO_ZIP_URL = f"https://github.com/denoland/deno/releases/latest/download/{DENO
 def ensure_ffmpeg():
     ffmpeg_bin  = FFMPEG_DIR / "ffmpeg"
     ffprobe_bin = FFMPEG_DIR / "ffprobe"
+    shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)   # left by a run that was killed
     if ffmpeg_bin.exists() and ffprobe_bin.exists():
         _egm_log("ffmpeg ready.")
         return True
@@ -860,6 +861,7 @@ def ensure_ffmpeg():
     tmp_ffmpeg  = FFMPEG_DIR / "ffmpeg_tmp.zip"
     tmp_ffprobe = FFMPEG_DIR / "ffprobe_tmp.zip"
     try:
+        stage = _ffmpeg_stage()
         # Download + verify ffmpeg
         ffmpeg_redirect = f"{_MARTIN_BASE}/redirect/latest/macos/{_MARTIN_ARCH}/{_get_ffmpeg_build()}/ffmpeg.zip"
         req = urllib.request.Request(ffmpeg_redirect, headers={"User-Agent": "EGM-Downloader"})
@@ -875,7 +877,7 @@ def ensure_ffmpeg():
         with zipfile.ZipFile(tmp_ffmpeg, "r") as z:
             if "ffmpeg" not in z.namelist():
                 raise RuntimeError("ffmpeg binary not found in zip")
-            _safe_extract(z, "ffmpeg", FFMPEG_DIR)
+            _safe_extract(z, "ffmpeg", stage)
         tmp_ffmpeg.unlink(missing_ok=True)
 
         # Download + verify ffprobe
@@ -893,12 +895,13 @@ def ensure_ffmpeg():
         with zipfile.ZipFile(tmp_ffprobe, "r") as z:
             if "ffprobe" not in z.namelist():
                 raise RuntimeError("ffprobe binary not found in zip")
-            _safe_extract(z, "ffprobe", FFMPEG_DIR)
+            _safe_extract(z, "ffprobe", stage)
         tmp_ffprobe.unlink(missing_ok=True)
 
-        # Make binaries executable
-        os.chmod(ffmpeg_bin,  0o755)
-        os.chmod(ffprobe_bin, 0o755)
+        # Make binaries executable, then put both in place
+        os.chmod(stage / "ffmpeg",  0o755)
+        os.chmod(stage / "ffprobe", 0o755)
+        _place_ffmpeg(stage)
 
         try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception: pass
@@ -909,7 +912,22 @@ def ensure_ffmpeg():
         for t in (tmp_ffmpeg, tmp_ffprobe):
             try: t.unlink(missing_ok=True)
             except Exception: pass
+        shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)
         return False
+
+def _ffmpeg_stage():
+    """An empty folder inside ffmpeg_bin to unpack into. ffmpeg and ffprobe move to their final
+    names only once both are complete (_place_ffmpeg), so a failure part way (a full disk, a
+    kill) never leaves a half written binary that the next start takes as installed."""
+    stage = FFMPEG_DIR / "_staging"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True, exist_ok=True)
+    return stage
+
+def _place_ffmpeg(stage):
+    for f in sorted(stage.iterdir()):
+        os.replace(f, FFMPEG_DIR / f.name)
+    shutil.rmtree(stage, ignore_errors=True)
 
 def _ffmpeg_args():
     return ["--ffmpeg-location", str(FFMPEG_DIR)]
@@ -2702,16 +2720,21 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     update_status["done"]  = True
                     return
                 log("Extracting...")
+                stage = _ffmpeg_stage()
                 with zipfile.ZipFile(tmp_ffmpeg, "r") as z:
-                    _safe_extract(z, "ffmpeg", FFMPEG_DIR)
+                    _safe_extract(z, "ffmpeg", stage)
                 with zipfile.ZipFile(tmp_ffprobe, "r") as z:
-                    _safe_extract(z, "ffprobe", FFMPEG_DIR)
+                    _safe_extract(z, "ffprobe", stage)
+                for f in stage.iterdir():
+                    os.chmod(f, 0o755)
+                _place_ffmpeg(stage)
                 if ffmpeg_bin.exists():  os.chmod(ffmpeg_bin,  0o755)
                 if ffprobe_bin.exists(): os.chmod(ffprobe_bin, 0o755)
             finally:
                 for t in (tmp_ffmpeg, tmp_ffprobe):
                     try: t.unlink(missing_ok=True)
                     except Exception: pass
+                shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)
             try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")

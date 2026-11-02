@@ -909,6 +909,7 @@ DENO_ZIP_URL = ("https://github.com/denoland/deno/releases/latest/download/"
                 "deno-x86_64-pc-windows-msvc.zip")
 
 def ensure_ffmpeg():
+    shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)   # left by a run that was killed
     if (FFMPEG_DIR / "ffmpeg.exe").exists() and (FFMPEG_DIR / "ffprobe.exe").exists():
         _egm_log("ffmpeg ready.")
         return True
@@ -925,6 +926,7 @@ def ensure_ffmpeg():
         if not ok:
             tmp.unlink(missing_ok=True)
             return
+        stage = _ffmpeg_stage()
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
                 # Zip slip guard: skip any entry with path traversal or absolute path
@@ -932,8 +934,9 @@ def ensure_ffmpeg():
                     continue
                 fn = Path(m).name
                 if fn in ("ffmpeg.exe", "ffprobe.exe"):
-                    with z.open(m) as src, open(FFMPEG_DIR / fn, "wb") as dst:
+                    with z.open(m) as src, open(stage / fn, "wb") as dst:
                         shutil.copyfileobj(src, dst)
+        _place_ffmpeg(stage)
         tmp.unlink(missing_ok=True)
         try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception: pass
@@ -943,7 +946,22 @@ def ensure_ffmpeg():
         _egm_log(f"ffmpeg download failed: {e}")
         try: tmp.unlink(missing_ok=True)
         except Exception: pass
+        shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)
         return False
+
+def _ffmpeg_stage():
+    """An empty folder inside ffmpeg_bin to unpack into. ffmpeg and ffprobe move to their final
+    names only once both are complete (_place_ffmpeg), so a failure part way (a full disk, a
+    kill) never leaves a half written binary that the next start takes as installed."""
+    stage = FFMPEG_DIR / "_staging"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True, exist_ok=True)
+    return stage
+
+def _place_ffmpeg(stage):
+    for f in sorted(stage.iterdir()):
+        os.replace(f, FFMPEG_DIR / f.name)
+    shutil.rmtree(stage, ignore_errors=True)
 
 def _ffmpeg_args():
     return ["--ffmpeg-location", str(FFMPEG_DIR)]
@@ -2795,15 +2813,20 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
                 update_status["done"]  = True
                 return
             log("Extracting...")
-            with zipfile.ZipFile(tmp, "r") as z:
-                for m in z.namelist():
-                    if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
-                        continue
-                    fn = Path(m).name
-                    if fn in ("ffmpeg.exe","ffprobe.exe"):
-                        with z.open(m) as src, open(FFMPEG_DIR/fn,"wb") as dst:
-                            shutil.copyfileobj(src, dst)
-            tmp.unlink(missing_ok=True)
+            stage = _ffmpeg_stage()
+            try:
+                with zipfile.ZipFile(tmp, "r") as z:
+                    for m in z.namelist():
+                        if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
+                            continue
+                        fn = Path(m).name
+                        if fn in ("ffmpeg.exe","ffprobe.exe"):
+                            with z.open(m) as src, open(stage/fn,"wb") as dst:
+                                shutil.copyfileobj(src, dst)
+                _place_ffmpeg(stage)
+            finally:
+                shutil.rmtree(stage, ignore_errors=True)
+                tmp.unlink(missing_ok=True)
             try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")

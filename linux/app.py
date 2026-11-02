@@ -820,6 +820,7 @@ YT_DLP_EXE  = PYTHON_DIR / "bin" / "yt-dlp"   # bundled fallback"
 def ensure_ffmpeg():
     ffmpeg_bin  = FFMPEG_DIR / "ffmpeg"
     ffprobe_bin = FFMPEG_DIR / "ffprobe"
+    shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)   # left by a run that was killed
 
     if ffmpeg_bin.exists() and ffprobe_bin.exists():
         _egm_log("ffmpeg ready.")
@@ -839,6 +840,7 @@ def ensure_ffmpeg():
             tmp.unlink(missing_ok=True)
             return
         _egm_log("Extracting ffmpeg...")
+        stage = _ffmpeg_stage()
         with tarfile.open(tmp, "r:xz") as t:
             for member in t.getmembers():
                 # Tar slip guard: skip path traversal / absolute paths
@@ -848,7 +850,8 @@ def ensure_ffmpeg():
                 fn = Path(member.name).name
                 if fn in ("ffmpeg", "ffprobe") and member.isfile():
                     member.name = fn   # flatten path
-                    t.extract(member, FFMPEG_DIR)
+                    t.extract(member, stage)
+        _place_ffmpeg(stage)
         tmp.unlink(missing_ok=True)
         # Make executable
         os.chmod(ffmpeg_bin,  0o755)
@@ -865,7 +868,22 @@ def ensure_ffmpeg():
             tmp.unlink(missing_ok=True)
         except Exception:
             pass
+        shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)
         return False
+
+def _ffmpeg_stage():
+    """An empty folder inside ffmpeg_bin to unpack into. ffmpeg and ffprobe move to their final
+    names only once both are complete (_place_ffmpeg), so a failure part way (a full disk, a
+    kill) never leaves a half written binary that the next start takes as installed."""
+    stage = FFMPEG_DIR / "_staging"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True, exist_ok=True)
+    return stage
+
+def _place_ffmpeg(stage):
+    for f in sorted(stage.iterdir()):
+        os.replace(f, FFMPEG_DIR / f.name)
+    shutil.rmtree(stage, ignore_errors=True)
 
 def _ffmpeg_args():
     return ["--ffmpeg-location", str(FFMPEG_DIR)]
@@ -2624,15 +2642,20 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                 update_status["done"]  = True
                 return
             log("Extracting...")
-            with tarfile.open(tmp, "r:xz") as t:
-                for member in t.getmembers():
-                    if ".." in member.name.split("/") or member.name.startswith("/"):
-                        continue
-                    fn = Path(member.name).name
-                    if fn in ("ffmpeg", "ffprobe") and member.isfile():
-                        member.name = fn
-                        t.extract(member, FFMPEG_DIR)
-            tmp.unlink(missing_ok=True)
+            stage = _ffmpeg_stage()
+            try:
+                with tarfile.open(tmp, "r:xz") as t:
+                    for member in t.getmembers():
+                        if ".." in member.name.split("/") or member.name.startswith("/"):
+                            continue
+                        fn = Path(member.name).name
+                        if fn in ("ffmpeg", "ffprobe") and member.isfile():
+                            member.name = fn
+                            t.extract(member, stage)
+                _place_ffmpeg(stage)
+            finally:
+                shutil.rmtree(stage, ignore_errors=True)
+                tmp.unlink(missing_ok=True)
             ffmpeg_bin  = FFMPEG_DIR / "ffmpeg"
             ffprobe_bin = FFMPEG_DIR / "ffprobe"
             if ffmpeg_bin.exists():  os.chmod(ffmpeg_bin,  0o755)
