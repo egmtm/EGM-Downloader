@@ -3649,6 +3649,13 @@ def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
                 for v in (sub.get("videos") or []):
                     v["is_new"] = False
                 if force:
+                    # Start from scratch (every video found again is New), but what was already
+                    # downloaded stays marked: the files are still there.
+                    done = {v.get("video_id"): v for v in (sub.get("videos") or []) if v.get("downloaded") is True}
+                    for v in fetched:
+                        o = done.get(v["video_id"])
+                        if o:
+                            v["downloaded"], v["download_path"] = True, o.get("download_path")
                     new_videos = fetched
                     sub["videos"] = list(new_videos)
                 else:
