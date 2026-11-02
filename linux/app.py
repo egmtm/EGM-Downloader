@@ -2107,12 +2107,13 @@ def _live_keep_parts(job, job_id, out_dir, segs):
     """The pieces could not be joined: keep every later piece as its own file next to the
     first one ("<title> (part 2).mp4") instead of deleting recorded video."""
     title = (job.get("title") or "").strip() or job_id
+    stem = _safe_filename(title, "")   # cut the title first: " (part n)" must not be cut off with its end
     for n, p in enumerate(segs[1:], 2):
         ext = Path(p).suffix
-        dst, k = Path(out_dir) / _safe_filename(f"{title} (part {n})", ext), 1
+        dst, k = Path(out_dir) / f"{stem} (part {n}){ext}", 1
         try:
             while dst.exists():
-                dst = Path(out_dir) / _safe_filename(f"{title} (part {n}) ({k})", ext); k += 1
+                dst = Path(out_dir) / f"{stem} (part {n}) ({k}){ext}"; k += 1
             os.replace(p, dst)
             job.setdefault("_live_parts", []).append(str(dst))   # Cancel during the finish step removes them too
         except OSError: pass

@@ -127,3 +127,29 @@ def test_a_conversion_whose_last_step_fails_keeps_the_original_file(backend, tmp
     result = backend._ensure_h264("j1", original, job)
     assert Path(result).read_bytes() == b"original video"
     assert not (tmp_path / "clip.mp4.h264.mp4").exists()
+
+
+# ── Live recording pieces that cannot be joined are kept under their own names ───────────────
+
+@pytest.mark.parametrize("script", sorted(TITLES))
+def test_pieces_that_cannot_be_joined_get_different_names_for_a_long_title(backend, script, tmp_path, monkeypatch):
+    """The ' (part n)' suffix used to be cut off together with the end of a long title, so the second
+    and later pieces were given the same name and the search for a free one never ended."""
+    real, calls = backend._safe_filename, []
+
+    def counted(*a, **k):
+        calls.append(1)
+        assert len(calls) < 100, "the search for a free name does not end"
+        return real(*a, **k)
+    monkeypatch.setattr(backend, "_safe_filename", counted)
+    segs = []
+    for i in range(3):
+        p = tmp_path / f"piece{i}.mp4"
+        p.write_bytes(b"x")
+        segs.append(str(p))
+    job = {"title": TITLES[script]}
+    backend._live_keep_parts(job, "0123456789", tmp_path, segs)
+    kept = [Path(p).name for p in job["_live_parts"]]
+    assert len(kept) == 2 and len(set(kept)) == 2, kept
+    assert kept[0].endswith("(part 2).mp4") and kept[1].endswith("(part 3).mp4"), kept
+    assert all(len(n.encode("utf-8")) <= 255 for n in kept)
