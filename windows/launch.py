@@ -527,6 +527,11 @@ def _node_version(exe):
     return (0,0,0)
 
 def ensure_node():
+    # An unpack that never finished (a kill, a full disk) leaves its marker: node.exe can be
+    # there without npm, so drop the folder and download again instead of using it.
+    if (NODE_DIR / ".unpacking").exists():
+        shutil.rmtree(NODE_DIR, ignore_errors=True)
+
     # Fast path: if cached node path exists and version matches, skip subprocess check
     if VERSION_CACHE.exists():
         try:
@@ -572,6 +577,7 @@ def ensure_node():
             except Exception: pass
             time.sleep(4); sys.exit(1)
         _gui_msg("Extracting Node.js…")
+        (NODE_DIR / ".unpacking").write_text("")   # removed only once the whole zip is out
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
                 rel  = m[len(NODE_ZIP_DIR):].lstrip("/\\")
@@ -593,6 +599,7 @@ def ensure_node():
                     with z.open(m) as src, open(dest,"wb") as dst:
                         shutil.copyfileobj(src, dst)
         tmp.unlink(missing_ok=True)
+        (NODE_DIR / ".unpacking").unlink()
         return str(NODE_EXE)
     except (urllib.error.URLError, ConnectionError, TimeoutError, http.client.HTTPException):
         # Offline, a failed name lookup, a timeout or a connection that dropped in the middle
