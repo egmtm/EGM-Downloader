@@ -8,7 +8,6 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --mac --arm64",
-    "build-universal": "electron-builder --mac --universal",
     "pack": "electron-builder --dir"
   },
   "devDependencies": {
