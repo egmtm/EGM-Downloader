@@ -368,3 +368,14 @@ def test_the_embeddable_zip_and_the_pip_wheel_steps_are_gone():
     src = LAUNCH.read_text(encoding="utf-8")
     for old in ("embed-amd64", "PIP_BOOTSTRAP_CODE", "PIP_WHEEL", "PIP_SHA256", "_setup_embedded_pip", "_pth"):
         assert old not in src, old
+
+
+def test_a_python_older_than_required_is_not_put_in_place(launch, tmp_path, monkeypatch):
+    archive = _archive(tmp_path, [("python/python.exe", b"exe")])
+    monkeypatch.setattr(launch, "PY_SHA256", _sha(archive.read_bytes()))
+    monkeypatch.setattr(launch.urllib.request, "urlretrieve",
+                        lambda url, dest, *a, **k: Path(dest).write_bytes(archive.read_bytes()))
+    monkeypatch.setattr(launch.subprocess, "run", _fake_run([], version="3.9.18"))
+    assert launch.ensure_python() is None
+    assert not launch.PY_DIR.exists() and not launch._py_stage_dir().exists()
+    assert "older than required" in launch.PY_SETUP_LOG.read_text(encoding="utf-8")
