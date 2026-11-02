@@ -210,6 +210,15 @@ def _verify_host_header():
             _sec_event(f"Token mismatch on {request.path}")
             abort(403)
 
+@app.before_request
+def _reject_non_object_json():
+    """Every route reads its JSON body as an object (data.get). A list, a number or a string
+    used to raise inside the route and answer 500; it is a bad request."""
+    if request.method in ("POST", "PUT", "PATCH", "DELETE") and request.is_json:
+        body = request.get_json(silent=True)
+        if body is not None and not isinstance(body, dict):
+            return jsonify({"error": "The request body must be a JSON object"}), 400
+
 @app.after_request
 def _no_cache_html(response):
     """Prevent Electron's Chromium from serving stale templates after app updates.
@@ -535,6 +544,11 @@ def _is_internal_host(host: str) -> bool:
                 or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
             return True
     return False
+
+def _text(value, default=""):
+    """A request field that must be text. Anything else (a number, a list, null) reads as the
+    default, so a wrong type gets the route's normal 400 instead of a 500."""
+    return value if isinstance(value, str) else default
 
 def _clamp_int(value, default, lo, hi):
     """Parse value to int and clamp to [lo, hi]; return default on bad/empty input.
@@ -2261,7 +2275,7 @@ def index():
 @app.route("/api/info", methods=["POST"])
 def get_info():
     data = request.get_json(silent=True) or {}
-    url  = data.get("url", "").strip()
+    url  = _text(data.get("url")).strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported",
@@ -2300,7 +2314,7 @@ def _video_key(e):
 @app.route("/api/playlist", methods=["POST"])
 def get_playlist():
     data = request.get_json(silent=True) or {}
-    url  = data.get("url", "").strip()
+    url  = _text(data.get("url")).strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
@@ -2330,7 +2344,7 @@ def get_playlist():
 @app.route("/api/download", methods=["POST"])
 def start_download():
     data = request.get_json(silent=True) or {}
-    url  = data.get("url","").strip()
+    url  = _text(data.get("url")).strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
@@ -2343,12 +2357,12 @@ def start_download():
     dl_dir = resolved_dir
 
     # #13 — format_id validation: only safe yt-dlp selector characters allowed
-    raw_format_id = data.get("format_id") or ""
+    raw_format_id = _text(data.get("format_id"))
     if raw_format_id and not _re.fullmatch(r'[A-Za-z0-9_+\-]+', raw_format_id):
         return jsonify({"error": "Invalid format_id"}), 400
 
     # #12 — bitrate validation: extract bitrate from m4a_NNN / opus_NNN and range-check
-    audio_quality = data.get("audio_quality") or "320"
+    audio_quality = _text(data.get("audio_quality")) or "320"
     if audio_quality.startswith(("m4a_", "opus_")):
         _bitrate_str = audio_quality.split("_", 1)[1]
         if not (_bitrate_str.isdigit() and 32 <= int(_bitrate_str) <= 320):
@@ -2364,10 +2378,10 @@ def start_download():
                         "live": bool(data.get("is_live"))}
     threading.Thread(target=_run_download_slot,
                      args=(job_id, url, data.get("format","video"),
-                           data.get("format_id") or None, dl_dir,
+                           raw_format_id or None, dl_dir,
                            data.get("audio_codec") or "",
                            _clamp_int(data.get("concurrent_fragments"), 1, 1, 16),
-                           data.get("audio_quality") or "320",
+                           audio_quality,
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
@@ -2537,15 +2551,61 @@ def save_settings():
         data["sponsorblock_enabled"] = bool(data["sponsorblock_enabled"])
     if "sponsorblock_categories" in data:
         data["sponsorblock_categories"] = _clean_sponsorblock_categories(data["sponsorblock_categories"])
+    _clean_setting_types(data)
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
+
+_SETTING_FLAGS = ("settings_open", "upd_open", "ck_open", "quit_on_done", "window_maximized",
+                  "check_updates_on_launch", "subtitles", "embed_metadata")
+_SETTING_CHOICES = {
+    "output_format":        ("mp4_h264", "mp4", "mkv"),
+    "default_audio_format": ("320", "192", "128", "flac", "m4a_256", "opus_192", "opus_128"),
+    "yt_dlp_channel":       ("stable", "nightly"),
+    "ffmpeg_channel":       ("stable", "nightly"),
+    "random_theme_scope":   ("favorites", "all"),
+}
+_SETTING_WORDS = {"theme": r"[a-z0-9-]{1,64}", "default_video_format": r"[A-Za-z0-9_.+-]{1,32}",
+                  "last_seen_version": r"[0-9][0-9.]{0,31}"}
+
+def _clean_setting_types(data):
+    """The settings route also stores whole imported settings files, which can come from
+    anyone: keep each key only with the type and values the page itself writes."""
+    for k in _SETTING_FLAGS:
+        if k in data:
+            data[k] = bool(data[k])
+    for k, hi in (("concurrency", 20), ("fragments", 16)):
+        if k in data:
+            v = data[k]
+            n = None if isinstance(v, bool) else _clamp_int(v, None, 1, hi)
+            if n is None:
+                data.pop(k)
+            else:
+                data[k] = n
+    for k, choices in _SETTING_CHOICES.items():
+        if k in data and not (isinstance(data[k], str) and data[k] in choices):
+            data.pop(k)
+    for k, pattern in _SETTING_WORDS.items():
+        if k in data and not (isinstance(data[k], str) and _re.fullmatch(pattern, data[k])):
+            data.pop(k)
+    if "window_bounds" in data:
+        b = data["window_bounds"]
+        ok = isinstance(b, dict) and set(b) == {"x", "y", "width", "height"} and all(
+            isinstance(v, (int, float)) and not isinstance(v, bool) and abs(v) < 100000 for v in b.values())
+        if ok:
+            data["window_bounds"] = {k: int(v) for k, v in b.items()}
+        else:
+            data.pop("window_bounds")
 
 @app.route("/api/open-folder", methods=["POST"])
 def open_folder():
     data   = request.get_json(silent=True) or {}
     folder = data.get("folder", _get_last_folder() or str(Path.home()))
-    path   = Path(folder)
-    if not path.exists() or not path.is_dir():
+    try:
+        path = Path(folder) if isinstance(folder, str) and folder else None
+        found = path is not None and path.is_dir()
+    except (OSError, ValueError):   # a name too long for the system, a null character
+        found = False
+    if not found:
         return jsonify({"error": "Folder not found"}), 400
     try:
         if sys.platform == "win32": os.startfile(str(path))
@@ -2557,7 +2617,7 @@ def open_folder():
 @app.route("/api/rename", methods=["POST"])
 def rename_file():
     data = request.get_json(silent=True) or {}
-    job_id, new_name = data.get("job_id","").strip(), data.get("name","").strip()
+    job_id, new_name = _text(data.get("job_id")).strip(), _text(data.get("name")).strip()
     if not job_id or not new_name: return jsonify({"error": "job_id and name required"}), 400
     job = jobs.get(job_id)
     if not job or job.get("status") != "done": return jsonify({"error": "Not complete"}), 404
@@ -2573,6 +2633,7 @@ def rename_file():
         old_path.rename(new_path)
         job["file"] = str(new_path); job["filename"] = new_path.name
         return jsonify({"success": True, "filename": new_path.name})
+    except ValueError as e: return jsonify({"error": str(e)}), 400   # e.g. a null character in the name
     except Exception as e: return jsonify({"error": str(e)}), 500
 
 # ── Update system ──────────────────────────────────────────────────────────────
@@ -2909,7 +2970,7 @@ def cookies_status():
 @app.route("/api/cookies/save", methods=["POST"])
 def cookies_save():
     data = request.get_json(silent=True) or {}
-    text = data.get("content", "").strip()
+    text = _text(data.get("content")).strip()
     if not text:
         return jsonify({"error": "No content provided"}), 400
     if len(text) > 1 * 1024 * 1024:  # 1 MB cap for cookies content
@@ -3187,8 +3248,8 @@ def download_update():
     Mac auto-update UI; the implementation itself is complete and hardened
     (SSRF guard, fail-closed checksum verify, zip-slip guard)."""
     data    = request.get_json(silent=True) or {}
-    zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
-    expected_checksum = data.get("expected_checksum", "").strip().lower()
+    zip_url = _text(data.get("zip_url", APP_UPDATE_ZIP_URL)).strip()
+    expected_checksum = _text(data.get("expected_checksum")).strip().lower()
     if not zip_url:
         return jsonify({"error": "No zip URL provided"}), 400
     if not expected_checksum:
@@ -3265,10 +3326,10 @@ def download_update():
 @app.route("/api/settings/reset", methods=["POST"])
 def settings_reset():
     """Reset all settings to defaults — keeps downloads and history."""
+    global _settings_cache
     try:
-        _atomic_write_text(SETTINGS_FILE, "{}", owner_only=True)
-        global _settings_cache
         with _settings_lock:
+            _atomic_write_text(SETTINGS_FILE, "{}", owner_only=True)
             _settings_cache = {}
         return jsonify({"ok": True})
     except Exception as e:
@@ -3354,6 +3415,31 @@ def serve_thumbnail(filename):
     resp.headers["Cache-Control"] = "max-age=86400"
     return resp
 
+_HISTORY_TEXT_FIELDS = ("url", "title", "filename", "download_dir", "file_path", "completed_at")
+
+def _clean_history_entry(item):
+    """One imported history entry, reduced to what _append_history writes. An imported file
+    can come from anyone, and these fields are shown in the page and the thumbnail name is
+    used as a file name, so a wrong type or a markup or path value is dropped here."""
+    if not isinstance(item, dict):
+        return None
+    eid = item.get("id")
+    if not isinstance(eid, str) or not _re.fullmatch(r"[A-Za-z0-9_-]{1,64}", eid):
+        return None
+    out = {"id": eid}
+    for k in _HISTORY_TEXT_FIELDS:
+        if isinstance(item.get(k), str):
+            out[k] = item[k][:4096]
+    fmt = item.get("format")
+    if isinstance(fmt, str) and _re.fullmatch(r"[a-z0-9]{1,16}", fmt):
+        out["format"] = fmt
+    size = item.get("size_bytes")
+    if isinstance(size, int) and not isinstance(size, bool) and size >= 0:
+        out["size_bytes"] = size
+    thumb = item.get("thumbnail")
+    out["thumbnail"] = thumb if isinstance(thumb, str) and _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', thumb) else ""
+    return out
+
 @app.route("/api/history/import", methods=["POST"])
 def import_history():
     """Replace history with the provided list. Used by Import Settings flow."""
@@ -3362,7 +3448,7 @@ def import_history():
     if not isinstance(items, list):
         return jsonify({"error": "items must be a list"}), 400
     # Light validation — keep only entries with the expected shape
-    cleaned = [i for i in items if isinstance(i, dict) and "id" in i]
+    cleaned = [c for c in (_clean_history_entry(i) for i in items) if c]
     with _history_lock:
         _save_history(cleaned)
     return jsonify({"ok": True, "count": len(cleaned)})
@@ -3413,11 +3499,11 @@ def get_subscriptions():
 @app.route("/api/subscriptions/add", methods=["POST"])
 def add_subscription():
     data = request.get_json(silent=True) or {}
-    url = (data.get("url") or "").strip()
+    url = _text(data.get("url")).strip()
     if not url or not url.startswith(("http://", "https://")):
         return jsonify({"error": "Valid HTTP(S) URL is required"}), 400
 
-    name = (data.get("name") or "")[:200].strip()
+    name = _text(data.get("name"))[:200].strip()
 
     sub = {
         "id": str(uuid.uuid4()),
@@ -3454,7 +3540,7 @@ def add_subscription():
 @app.route("/api/subscriptions/remove", methods=["POST"])
 def remove_subscription():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
@@ -3470,7 +3556,7 @@ def remove_subscription():
 @app.route("/api/subscriptions/update", methods=["POST"])
 def update_subscription():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
@@ -3499,7 +3585,7 @@ def update_subscription():
                     elif k == "format":
                         v = v if v in ("video", "audio") else "video"
                     elif k == "quality":
-                        v = v if v in _VALID_QUALITY else "best"
+                        v = v if isinstance(v, str) and v in _VALID_QUALITY else "best"
                     elif k == "auto_fetch_on_open":
                         v = bool(v)
                     elif k == "sponsorblock_enabled":
@@ -3642,7 +3728,7 @@ def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
 @app.route("/api/subscriptions/fetch", methods=["POST"])
 def fetch_subscription_videos():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     force = bool(data.get("force", False))
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
@@ -3668,7 +3754,7 @@ def fetch_subscription_videos():
 @app.route("/api/subscriptions/fetch-status", methods=["POST"])
 def fetch_subscription_status():
     data = request.get_json(silent=True) or {}
-    fetch_id = (data.get("fetch_id") or "").strip()
+    fetch_id = _text(data.get("fetch_id")).strip()
     with _subfetch_lock:
         job = _subfetch_jobs.get(fetch_id)
         if job and job.get("status") in ("done", "error"):
@@ -3714,8 +3800,8 @@ def fetch_cancel():
 @app.route("/api/subscriptions/mark-downloaded", methods=["POST"])
 def mark_downloaded():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("sub_id") or "").strip()
-    video_id = (data.get("video_id") or "").strip()
+    sub_id = _text(data.get("sub_id")).strip()
+    video_id = _text(data.get("video_id")).strip()
     if not sub_id or not video_id:
         return jsonify({"error": "sub_id and video_id required"}), 400
     downloaded = data.get("downloaded", True) is True
@@ -3742,7 +3828,7 @@ def mark_downloaded():
 def mark_all_seen():
     """Mark all videos for a subscription as seen (is_new = False)."""
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     if not sub_id:
         return jsonify({"error": "id required"}), 400
     def _mark(subs):
@@ -3774,8 +3860,8 @@ def reorder_subscription_absolute():
 @app.route("/api/subscriptions/reorder", methods=["POST"])
 def reorder_subscription():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
-    direction = (data.get("direction") or "").strip()
+    sub_id = _text(data.get("id")).strip()
+    direction = _text(data.get("direction")).strip()
     if not sub_id or direction not in ("top", "up", "down", "bottom"):
         return jsonify({"error": "id and direction (top/up/down/bottom) required"}), 400
     def _reorder(subs):

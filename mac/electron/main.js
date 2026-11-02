@@ -52,7 +52,9 @@ function loadSettings() {
 }
 
 function atomicWriteJson(file, data) {
-  const tmp = `${file}.tmp`;
+  // Not `${file}.tmp`: the backend writes the same settings file through that name, and two
+  // writers sharing one temporary file can rename the other's half written copy into place.
+  const tmp = `${file}.${process.pid}.tmp`;
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
   fs.renameSync(tmp, file);

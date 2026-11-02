@@ -101,7 +101,9 @@ function loadSettings() {
 // Atomic JSON write (tmp + rename) — mirrors app.py's atomic settings writes so a
 // kill mid-write can't leave a truncated/corrupt egm_settings.json.
 function atomicWriteJson(file, data) {
-  const tmp = `${file}.tmp`;
+  // Not `${file}.tmp`: the backend writes the same settings file through that name, and two
+  // writers sharing one temporary file can rename the other's half written copy into place.
+  const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
   fs.renameSync(tmp, file);
 }
