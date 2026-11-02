@@ -566,12 +566,29 @@ _HISTORY_MAX  = 500  # soft cap on stored entries
 THUMBNAILS_DIR = get_data_dir() / "thumbnails"
 THUMBNAILS_DIR.mkdir(exist_ok=True)
 
+def _keep_unreadable_copy(path):
+    """A data file that cannot be read as expected is treated as empty and replaced at the next
+    save. Keep a copy first (once) so a hand edit or a damaged file can still be recovered."""
+    try:
+        backup = path.with_name(path.name + ".unreadable")
+        if path.exists() and not backup.exists():
+            shutil.copy2(path, backup)
+            _egm_log(f"{path.name} could not be read; a copy was kept as {backup.name}")
+    except Exception:
+        pass
+
 def _load_history() -> list:
     try:
         if HISTORY_FILE.exists():
-            return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+            data = json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                items = [i for i in data if isinstance(i, dict)]
+                if len(items) != len(data):
+                    _keep_unreadable_copy(HISTORY_FILE)
+                return items
+            _keep_unreadable_copy(HISTORY_FILE)
     except Exception:
-        pass
+        _keep_unreadable_copy(HISTORY_FILE)
     return []
 
 def _save_history(items: list):
@@ -705,15 +722,29 @@ def _load_settings() -> dict:
     global _settings_cache
     with _settings_lock:
         if not _settings_cache:
-            try:
-                _settings_cache = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-            except Exception:
-                _settings_cache = {}
+            _settings_cache = _read_settings_file()
         return dict(_settings_cache)
 
+def _read_settings_file() -> dict:
+    try:
+        if not SETTINGS_FILE.exists():
+            return {}
+        data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    _keep_unreadable_copy(SETTINGS_FILE)
+    return {}
+
 def _save_settings(data: dict):
+    global _settings_cache
     with _settings_lock:
         try:
+            if not _settings_cache:
+                # Not read yet (or empty): read it now, or this save would write only the new
+                # keys and drop every other setting in the file.
+                _settings_cache = _read_settings_file()
             _settings_cache.update(data)
             _atomic_write_text(SETTINGS_FILE, json.dumps(_settings_cache, indent=2), owner_only=True)
         except Exception as e:
@@ -732,9 +763,16 @@ def _load_subscriptions_unlocked() -> list:
     global _subs_cache
     if _subs_cache is None:
         try:
-            data = json.loads(SUBS_FILE.read_text(encoding="utf-8"))
-            _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
+            data = json.loads(SUBS_FILE.read_text(encoding="utf-8")) if SUBS_FILE.exists() else {}
+            subs = data.get("subscriptions", []) if isinstance(data, dict) else None
+            if not isinstance(subs, list):
+                _keep_unreadable_copy(SUBS_FILE)
+                subs = []
+            _subs_cache = [s for s in subs if isinstance(s, dict)]
+            if len(_subs_cache) != len(subs):
+                _keep_unreadable_copy(SUBS_FILE)
         except Exception:
+            _keep_unreadable_copy(SUBS_FILE)
             _subs_cache = []
         # Backfill defaults for records written before a field existed -- .get(key,
         # default) at read time, same spirit as _load_settings()'s per-key defaults,
