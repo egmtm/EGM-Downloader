@@ -52,6 +52,8 @@ def api(backend, tmp_path, monkeypatch):
     for name in ("SETTINGS_FILE", "HISTORY_FILE", "SUBS_FILE", "COOKIES_FILE"):
         monkeypatch.setattr(backend, name, data / Path(getattr(backend, name)).name)
     monkeypatch.setattr(backend, "THUMBNAILS_DIR", data / "thumbnails")
+    if hasattr(backend, "BASE_DIR"):   # /api/electron/reinstall writes a marker file beside app.py
+        monkeypatch.setattr(backend, "BASE_DIR", tmp_path)
     monkeypatch.setattr(backend, "_settings_cache", {})
     monkeypatch.setattr(backend, "_subs_cache", None)
 
