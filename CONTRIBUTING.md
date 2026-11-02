@@ -277,6 +277,17 @@ Before submitting a PR, test:
 3. **No regressions** - Did you break anything else?
 4. **Cross-platform** (if applicable) - Test on your target platform
 
+### Automated Tests
+
+The suite lives in `tests/`. The pre-commit hook runs it before every commit; to run it yourself:
+
+```bash
+cd tests
+EGM_API_TOKEN=ci-test-token-not-secret python3 -m pytest . -q
+```
+
+**A test that runs `git` must drop the `GIT_*` variables first.** Git exports `GIT_DIR` and `GIT_INDEX_FILE` to commit hooks. A test that runs `git init` or `git add` in a temporary folder while the hook is running would otherwise write to the real repository's index and put test files into your commit. Remove every `GIT_*` variable from the environment the test passes to `git` (see `_clean_env()` in `tests/test_build_push_guard.py`), and check `git show --stat` after the first commit that includes such a test.
+
 ### Test Cases
 
 **For Download Features:**
