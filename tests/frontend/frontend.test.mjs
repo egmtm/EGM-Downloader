@@ -311,3 +311,66 @@ test("whats-new dismiss stays live across repeated manual opens", async () => {
   assert.equal(saved.length - savesBefore, 3, `expected one settings save per dismiss, got ${saved.length - savesBefore}`);
   assert.equal(saved[saved.length - 1].last_seen_version, CURRENT_APP_VERSION, "dismiss records the running version");
 });
+
+// ── Update and plugin results: a failed check or install is never shown as success ─────────────
+const _json = (body) => ({ ok: true, json: async () => body, text: async () => JSON.stringify(body) });
+const _sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const _toasts = (d) => [...d.querySelectorAll("#toasts .toast")].map((t) => t.textContent);
+
+test("plugins update: a run that stopped on a failed checksum shows the error, not 'Update complete'", async () => {
+  const { d } = await bootPage({ onFetch(u) {
+    if (u === "/api/run-update") return _json({ started: true });
+    if (u === "/api/update-status") return _json({ running: false, done: true, error: "Checksum mismatch — update aborted", log: [] });
+  } });
+  d.getElementById("run-update-btn").click();
+  await _sleep(1300);
+  const t = _toasts(d);
+  assert.ok(t.some((x) => x.includes("Checksum mismatch")), t);
+  assert.ok(!t.some((x) => x.includes(en.strings["toast.plugins.update_complete"])), t);
+});
+
+test("plugins update: a Deno reinstall that failed is reported, not folded into 'Update complete'", async () => {
+  const { d } = await bootPage({ onFetch(u) {
+    if (u === "/api/deno/reinstall") return _json({ started: true });
+    if (u === "/api/deno/install-status") return _json({ running: false, done: false, error: "network down", log: ["Error: network down"] });
+  } });
+  d.getElementById("update-grid").innerHTML =
+    '<input type="checkbox" id="sw-ytdlp"><input type="checkbox" id="sw-deno" checked>';
+  d.getElementById("run-update-btn").click();
+  await _sleep(1300);
+  const t = _toasts(d);
+  assert.ok(t.some((x) => x.includes(en.strings["toast.settings.deno_install_failed"]) && x.includes("network down")), t);
+  assert.ok(!t.some((x) => x.includes(en.strings["toast.plugins.update_complete"])), t);
+});
+
+test("Deno install: a failed checksum shows the failure, not 'Deno installed'", async () => {
+  const { w, d } = await bootPage({ onFetch(u) {
+    if (u === "/api/deno/install") return _json({ started: true });
+    if (u === "/api/deno/install-status") return _json({ running: false, done: true, error: "Checksum mismatch — install aborted", log: [] });
+  } });
+  const btn = d.createElement("button");
+  btn.id = "install-deno-btn";
+  d.body.appendChild(btn);
+  await w.installDeno();
+  await _sleep(1000);
+  const t = _toasts(d);
+  assert.ok(t.some((x) => x.includes(en.strings["toast.settings.deno_install_failed"])), t);
+  assert.ok(!t.some((x) => x.includes(en.strings["toast.settings.deno_installed_signature"])), t);
+});
+
+test("footer update check follows the backend's build decision, not the version text", async () => {
+  const cases = [
+    // [feed answer, expect the update dialog]
+    [{ up_to_date: true, current_version: "1.5.2.1", current_build: 175, latest_version: "1.5.3", latest_build: 170 }, false],
+    [{ up_to_date: false, current_version: "1.5.3", current_build: 175, latest_version: "1.5.2.9", latest_build: 176 }, true],
+    [{ up_to_date: false, current_version: "1.5.2.1", current_build: 175, latest_version: "1.5.2.1", latest_build: 176 }, true],
+    [{ up_to_date: true, current_version: "1.5.2.1", current_build: 175, latest_version: "1.5.2.1", latest_build: 175 }, false],
+  ];
+  for (const [answer, offered] of cases) {
+    const { w, d } = await bootPage({ onFetch(u) { if (u === "/api/check-app-update") return _json(answer); } });
+    d.getElementById("footer-update-btn").click();
+    await _sleep(100);
+    assert.equal(!!d.querySelector(".upd-backdrop"), offered, JSON.stringify(answer));
+    w.close();
+  }
+});
