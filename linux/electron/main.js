@@ -667,6 +667,21 @@ function saveSubsBounds(win) {
   try { fs.writeFileSync(SUBS_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
 }
 
+// Asked when the Subscriptions window is closed, and before a quit shuts the backend down: a quit
+// the user then refuses ("Keep open") must find the backend and its downloads still running.
+function confirmCloseWithDownloads(parent) {
+  return dialog.showMessageBoxSync(parent, {
+    type: 'warning',
+    buttons: ['Close anyway', 'Keep open'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+    title: 'Downloads in progress',
+    message: 'Downloads are still in progress.',
+    detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
+  }) === 0;
+}
+
 ipcMain.handle('open-subscriptions-window', async (event) => {
   if (!isTrustedSender(event)) return;
   if (subsWindow && !subsWindow.isDestroyed()) { subsWindow.focus(); return; }
@@ -690,17 +705,7 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     // renderer's "Back to app" → close-subscriptions) and confirm natively.
     if (subsForceClose || !subsActiveDownloads) return;
     e.preventDefault();
-    const choice = dialog.showMessageBoxSync(subsWindow, {
-      type: 'warning',
-      buttons: ['Close anyway', 'Keep open'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-      title: 'Downloads in progress',
-      message: 'Downloads are still in progress.',
-      detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
-    });
-    if (choice === 0) { subsForceClose = true; subsWindow.close(); }
+    if (confirmCloseWithDownloads(subsWindow)) { subsForceClose = true; subsWindow.close(); }
   });
   // Teardown order matters: the activity slot is dropped and the reference
   // cleared BEFORE re-aggregating, so the per-window shell loop never
@@ -904,7 +909,17 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
+  // Ask first, while the backend still runs: "Keep open" has to leave the app and its downloads as
+  // they were. (Asking after the shutdown request left a window on a dead backend.)
+  if (subsWindow && !subsWindow.isDestroyed() && subsActiveDownloads && !subsForceClose) {
+    if (!confirmCloseWithDownloads(subsWindow)) {
+      event.preventDefault();
+      app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
+      return;
+    }
+    subsForceClose = true;       // the window's own close handler must not ask a second time
+  }
   app.isQuitting = true;
   if (_psbId !== null) { try { powerSaveBlocker.stop(_psbId); } catch {} _psbId = null; }
   if (!flaskProc) return;
