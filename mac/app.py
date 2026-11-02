@@ -1107,6 +1107,10 @@ def _validate_download_dir(dl_dir):
 
 def _safe_filename(title: str, ext: str) -> str:
     safe = "".join(c for c in title if c not in r'\/:\*?"<>|').strip()[:120].strip()
+    # 120 characters can be far more than the 255 bytes a Linux or Mac file name may hold (three
+    # bytes a character in Japanese or Chinese, four for an emoji): cut by bytes too, on a
+    # character boundary, leaving room for " (n)" and the extension.
+    safe = safe.encode("utf-8")[:200].decode("utf-8", "ignore").strip()
     return f"{safe}{ext}" if safe else f"download{ext}"
 
 def _build_formats(info):
@@ -1359,7 +1363,9 @@ def _ensure_h264(job_id, path, job):
         tmp = f"{path}.h264.mp4"
         if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0", ffprobe=ffprobe):
             try:
-                os.remove(path); os.rename(tmp, path)
+                # One step: the original stays until the converted copy takes its place, so a
+                # failure here (a scanner holding the new file) keeps the download.
+                os.replace(tmp, path)
             except OSError:
                 try: os.remove(tmp)
                 except OSError: pass
@@ -1696,9 +1702,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 _fname = _safe_filename(_title, _ext) if _title else os.path.basename(_main_file)
                 _fpath = out_dir / _fname
                 _stem, _n = Path(_fname).stem, 1
-                while _fpath.exists() and str(_fpath) != _main_file:
-                    _fpath = out_dir / f"{_stem} ({_n}){_ext}"; _n += 1
-                try: os.rename(_main_file, _fpath)
+                try:
+                    while _fpath.exists() and str(_fpath) != _main_file:
+                        _fpath = out_dir / f"{_stem} ({_n}){_ext}"; _n += 1
+                    os.rename(_main_file, _fpath)
                 except OSError: _fpath = Path(_main_file)
                 job["file"]        = str(_fpath)
                 job["filename"]    = _fpath.name
@@ -1773,9 +1780,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         final_name = _safe_filename(title, ext) if title else os.path.basename(chosen)
         final_path = out_dir / final_name
         stem, n    = Path(final_name).stem, 1
-        while final_path.exists() and str(final_path) != chosen:
-            final_path = out_dir / f"{stem} ({n}){ext}"; n += 1
-        try: os.rename(chosen, final_path)
+        try:
+            while final_path.exists() and str(final_path) != chosen:
+                final_path = out_dir / f"{stem} ({n}){ext}"; n += 1
+            os.rename(chosen, final_path)
         except OSError: final_path = Path(chosen)
 
         # Safety net — clean up any leftover subtitle temp files yt-dlp didn't remove after --embed-subs
@@ -2138,9 +2146,9 @@ def _live_keep_parts(job, job_id, out_dir, segs):
     for n, p in enumerate(segs[1:], 2):
         ext = Path(p).suffix
         dst, k = Path(out_dir) / _safe_filename(f"{title} (part {n})", ext), 1
-        while dst.exists():
-            dst = Path(out_dir) / _safe_filename(f"{title} (part {n}) ({k})", ext); k += 1
         try:
+            while dst.exists():
+                dst = Path(out_dir) / _safe_filename(f"{title} (part {n}) ({k})", ext); k += 1
             os.replace(p, dst)
             job.setdefault("_live_parts", []).append(str(dst))   # Cancel during the finish step removes them too
         except OSError: pass
