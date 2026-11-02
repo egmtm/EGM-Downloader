@@ -3787,6 +3787,22 @@ def shutdown():
     threading.Thread(target=_do_shutdown, daemon=True).start()
     return jsonify({"ok": True})
 
+def _exit_when_electron_is_gone(interval=2.0):
+    """Electron starts this backend and ends it with /api/shutdown when the app quits. When
+    Electron is killed instead (a crash, a force quit), this process gets a new parent and would
+    run on alone: downloads keep going after the app is gone, and it keeps the port, so the next
+    launch is served by it, its own backend cannot start, and quitting that launch stops neither.
+    End it the way /api/shutdown does."""
+    parent = os.getppid()
+    while True:
+        time.sleep(interval)
+        if os.getppid() != parent:
+            with _active_procs_lock:
+                procs = list(_active_procs.values())
+            for p in procs:
+                _kill_proc(p)
+            os._exit(0)
+
 def _cleanup_orphan_partials(last_folder):
     """Remove this app's own *.part / *.ytdl leftovers from a crashed session.
     Only job files -- {job_id}.* or {job_id}_r2.*, job_id being 10 hex digits.
@@ -3820,6 +3836,8 @@ if __name__ == "__main__":
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
 
+    if os.environ.get("EGM_ELECTRON") == "1":
+        threading.Thread(target=_exit_when_electron_is_gone, daemon=True, name="parent-watch").start()
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
     def _resolve_port():
         for candidate in (os.environ.get("PORT"), _load_settings().get("flask_port")):

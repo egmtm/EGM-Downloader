@@ -203,3 +203,61 @@ def test_every_ipc_handler_checks_the_sender_before_anything_else(shell):
     late = [name for name, (arg, body) in bodies.items()
             if not _first_statement(body).startswith(f"if (!isTrustedSender({arg})")]
     assert not late, f"{shell}/electron/main.js: these handlers do not check the sender first: {late}"
+
+
+# ── Electron killed (crash, force quit): the backend must not run on alone ─────────────────────
+
+def _free_port():
+    import socket
+    with socket.socket() as s:
+        s.bind(("127.0.0.1", 0))
+        return s.getsockname()[1]
+
+
+def _data_dir(path, home):
+    return (Path(home) / "Library" / "Application Support" / "EGM Downloader" if path.startswith("mac")
+            else Path(home) / ".local" / "share" / "egm-downloader")
+
+
+@skip_on_windows
+@pytest.mark.parametrize("path", POSIX_APPS)
+def test_the_backend_ends_when_electron_is_killed(path, tmp_path):
+    import socket
+    home = tmp_path / "home"
+    ffmpeg_dir = _data_dir(path, home) / "ffmpeg_bin"
+    ffmpeg_dir.mkdir(parents=True)
+    for name in ("ffmpeg", "ffprobe"):   # present, so start-up downloads nothing
+        (ffmpeg_dir / name).write_text("")
+    port = _free_port()
+    env = {**os.environ, "HOME": str(home), "XDG_DATA_HOME": str(home), "XDG_CONFIG_HOME": str(home),
+           "TMP": str(tmp_path), "TEMP": str(tmp_path), "PORT": str(port), "EGM_ELECTRON": "1",
+           "EGM_API_TOKEN": "ci-test-token-not-secret"}
+    env.pop("EGM_DEV_MODE", None)
+    # A stand-in for Electron: a shell that starts the backend as its child and waits.
+    parent = subprocess.Popen(["sh", "-c", '"$0" "$1" >/dev/null 2>&1 & echo $!; wait',
+                               sys.executable, str(ROOT / path)],
+                              stdout=subprocess.PIPE, text=True, env=env, start_new_session=True)
+    backend = int(parent.stdout.readline())
+    try:
+        end = time.time() + 30
+        while time.time() < end:
+            try:
+                socket.create_connection(("127.0.0.1", port), timeout=0.2).close()
+                break
+            except OSError:
+                time.sleep(0.1)
+        else:
+            pytest.fail(f"{path}: the backend never listened on {port}")
+        time.sleep(3)
+        assert _alive(backend), f"{path}: the backend ended while Electron was still running"
+        os.kill(parent.pid, signal.SIGKILL)
+        parent.wait(timeout=5)
+        assert _wait_gone(backend, 10), (
+            f"{path}: the backend kept running after Electron was killed; it would keep the port "
+            "and its downloads, and serve the next launch")
+    finally:
+        for pid in (backend, parent.pid):
+            try:
+                os.kill(pid, signal.SIGKILL)
+            except OSError:
+                pass
