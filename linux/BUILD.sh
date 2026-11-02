@@ -172,6 +172,7 @@ fi
 # Linux zip — no password (per EGM build rules)
 # Must contain: AppImage + INSTRUCTIONS.txt + LICENSE
 cd "$ELECTRON_DIR/dist"
+rm -f "$REPO_ROOT/dist/EGMdL.zip"   # zip adds to an existing archive: an older AppImage would stay inside
 zip -r "$REPO_ROOT/dist/EGMdL.zip" "$(basename "$APPIMAGE")"
 cd "$LINUX_DIR"
 zip -j "$REPO_ROOT/dist/EGMdL.zip" "$LINUX_DIR/INSTRUCTIONS.txt" "$REPO_ROOT/LICENSE"

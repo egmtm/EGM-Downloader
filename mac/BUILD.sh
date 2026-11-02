@@ -263,6 +263,7 @@ EOF
 
 # ── Create zip with DMG + INSTRUCTIONS ────────────────────────────────────────
 cp "$REPO_ROOT/LICENSE" LICENSE
+rm -f "$REPO_ROOT/dist/EGMdM.zip"   # zip adds to an existing archive: an older DMG would stay inside
 zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt LICENSE
 echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt and LICENSE)"
 echo ""
