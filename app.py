@@ -2771,6 +2771,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): _egm_log(f"{m}"); update_status["log"].append(m)
+    failed = []   # parts that did not install: the run then ends with an error, not "done"
     try:
         if do_ytdlp:
             channel = _load_settings().get("yt_dlp_channel", "stable")
@@ -2797,6 +2798,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"yt-dlp update failed: {err}")
+                failed.append("yt-dlp")
         if do_ffmpeg:
             log("Downloading latest ffmpeg...")
             FFMPEG_DIR.mkdir(exist_ok=True)
@@ -2839,6 +2841,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"mutagen update failed: {err}")
+                failed.append("mutagen")
         if do_optlibs:
             log("Updating optional libraries...")
             r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
@@ -2850,8 +2853,12 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"optional libs update failed: {err}")
-        log("All done.")
-        update_status["done"] = True
+                failed.append("optional libraries")
+        if failed:
+            update_status["error"] = "Update failed: " + ", ".join(failed)
+        else:
+            log("All done.")
+            update_status["done"] = True
     except Exception as e:
         log(f"Error: {e}"); update_status["error"] = str(e)
     finally:
