@@ -301,6 +301,7 @@ let searchQ   = '';
 // ── Apply current theme CSS to this window ─────────────────────────────────
 const ALL_THEME_KEYS = Object.keys(THEME_DATA);
 function applyBodyTheme(name) {
+  if (typeof name !== 'string' || !/^[a-z0-9-]+$/.test(name)) name = 'void';   // see _theme.html applyTheme
   document.body.classList.remove(...ALL_THEME_KEYS);
   if (name && name !== 'void') document.body.classList.add(name);
 }

@@ -374,3 +374,64 @@ test("footer update check follows the backend's build decision, not the version 
     w.close();
   }
 });
+
+// ── History entries and stored theme names come from imported files: shown as text, never run ──
+import { JSDOM as _JSDOM } from "jsdom";
+const _hjson = (body) => ({ ok: true, json: async () => body, text: async () => JSON.stringify(body) });
+const _HOSTILE = {
+  id: "h1", title: "ok", url: "https://example.invalid/v", completed_at: new Date().toISOString(),
+  thumbnail: 'x"><img id="pwn-thumb" src="y" onerror="window.__pwn=1">',
+  format: '<img id="pwn-fmt" src="y" onerror="window.__pwn=1">',
+  size_bytes: '<b id="pwn-size">x</b>',
+};
+function _bootHistory({ items, theme } = {}) {
+  const main = process.env.EGM_RENDERED_PAGE || "/tmp/egm_rendered_index.html";
+  const html = readFileSync(main.replace(/(\.[^./]+)?$/, "_history$1"), "utf8");
+  const dom = new _JSDOM(html, { runScripts: "dangerously", url: "http://localhost/history-page",
+    beforeParse(w) {
+      if (theme) w.localStorage.setItem("egm-theme", theme);
+      w.fetch = async (u) => {
+        if (u === "/api/settings") return _hjson({ language: "en" });
+        if (u === "/api/language/en") return _hjson(en);
+        if (u.startsWith("/api/history")) return _hjson({ items, total: items.length, page: 1, pages: 1, per_page: 500 });
+        return _hjson({});
+      };
+    } });
+  return new Promise((r) => setTimeout(() => r(dom), 600));
+}
+
+test("history panel: an imported thumbnail, format and size are shown as text, never as markup", async () => {
+  const { w, d } = await bootPage({ onFetch(u) {
+    if (u.startsWith("/api/history?")) return _hjson({ items: [_HOSTILE, { id: "n", title: "t", format: 5, size_bytes: "x" }], total: 2, page: 1, pages: 1, per_page: 5 });
+  } });
+  await w.loadHistoryPanel();
+  for (const id of ["pwn-thumb", "pwn-fmt", "PWN-FMT", "pwn-size"]) assert.equal(d.getElementById(id), null, id);
+  const img = d.querySelector("img.hthumb");
+  if (img) img.dispatchEvent(new w.Event("error"));
+  assert.equal(w.__pwn, undefined);
+  assert.equal(d.querySelectorAll(".hentry").length, 2, "both entries render, the one with a number as its format too");
+  w.close();
+});
+
+test("History window: an imported thumbnail, format and size are shown as text, never as markup", async () => {
+  const dom = await _bootHistory({ items: [_HOSTILE, { id: "n", title: "t", format: 5, size_bytes: "x" }] });
+  const d = dom.window.document;
+  for (const id of ["pwn-thumb", "pwn-fmt", "PWN-FMT", "pwn-size"]) assert.equal(d.getElementById(id), null, id);
+  assert.equal(d.querySelectorAll(".row").length >= 2, true, "both entries render");
+  assert.equal(dom.window.__pwn, undefined);
+  dom.window.close();
+});
+
+test("a stored theme name that is not a theme key does not stop the main window or the History window", async () => {
+  const { w, d } = await bootPage({ prep(w) { w.localStorage.setItem("egm-theme", "bad theme"); } });
+  assert.equal(typeof w.openThemeCreator, "function", "the scripts after the theme module still ran");
+  assert.ok(d.querySelectorAll("#theme-list .theme-row").length > 0, "the theme picker was drawn");
+  let asked = false;
+  w.confirm = () => { asked = true; return false; };
+  d.getElementById("adv-reset-btn").click();
+  assert.equal(asked, true, "Reset settings still works");
+  w.close();
+  const dom = await _bootHistory({ items: [{ id: "a", title: "kept", format: "mp4" }], theme: "bad theme" });
+  assert.equal(dom.window.document.querySelectorAll(".row").length, 1);
+  dom.window.close();
+});

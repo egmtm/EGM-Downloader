@@ -84,6 +84,9 @@
   // it (prevents an IPC ping-pong between windows).
   let _applyingRemoteTheme = false;
   function applyTheme(name) {
+    // A stored name comes from localStorage, which Import settings fills from a file: one that
+    // is not a theme key (a space in it) would make classList.add throw and stop this script.
+    if (typeof name !== 'string' || !/^[a-z0-9-]+$/.test(name)) name = 'void';
     document.body.classList.remove(...THEMES);
     if (name && name !== 'void') document.body.classList.add(name);
     localStorage.setItem('egm-theme', name || 'void');
