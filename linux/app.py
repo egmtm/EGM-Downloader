@@ -1113,6 +1113,18 @@ def _build_audio_formats(info):
         audio.append({"id": f["format_id"], "label": f"{int(abr)}kbps" if abr else "unknown", "abr": abr})
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
+# ── First-run ffmpeg setup: remember how it ended ─────────────────────────────
+# A download that starts before ffmpeg is in place waits for it. When the setup thread has ended
+# and ffmpeg is still not there (offline, a failed checksum), waiting cannot help: it only runs at
+# start. The waiting downloads then end at once, with a message that says what to do.
+_ffmpeg_first_run = {"finished": False}
+
+def _setup_ffmpeg_at_start():
+    try:
+        ensure_ffmpeg()
+    finally:
+        _ffmpeg_first_run["finished"] = True
+
 # ── Download worker ────────────────────────────────────────────────────────────
 def _run_download_slot(job_id, *rest):
     """Hold a concurrency slot for the whole download and wait out first-run ffmpeg."""
@@ -1131,10 +1143,17 @@ def _run_download_slot(job_id, *rest):
                 if job.get("cancelled"):
                     job["status"] = "cancelled"; job["_finished_at"] = time.time()
                     return
+                if _ffmpeg_first_run["finished"] and not ff.exists():
+                    job["status"] = "error"
+                    job["error"]  = "ffmpeg could not be downloaded. Check your internet connection and restart the app, or reinstall ffmpeg from Advanced → Plugins."
+                    job["error_code"] = "ffmpeg_failed"
+                    job["_finished_at"] = time.time()
+                    return
                 time.sleep(1); waited += 1
             if not ff.exists():
                 job["status"] = "error"
-                job["error"]  = "ffmpeg is still installing (first-run setup). Please try again in a moment."
+                job["error"]  = "ffmpeg is still being set up. Please try again in a moment."
+                job["error_code"] = "ffmpeg_installing"
                 job["_finished_at"] = time.time()
                 return
         try:
@@ -3900,7 +3919,7 @@ if __name__ == "__main__":
 
     if os.environ.get("EGM_ELECTRON") == "1":
         threading.Thread(target=_exit_when_electron_is_gone, daemon=True, name="parent-watch").start()
-    threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
+    threading.Thread(target=_setup_ffmpeg_at_start, daemon=True, name="ffmpeg-setup").start()
     def _resolve_port():
         for candidate in (os.environ.get("PORT"), _load_settings().get("flask_port")):
             try:

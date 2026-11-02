@@ -204,7 +204,7 @@ def test_the_prune_runs_at_start_before_anything_uses_the_overlay():
     main = src[src.index('if __name__ == "__main__":'):]
     call = main.index("_prune_overlay_below_floors()")
     assert call < main.index("_cleanup_orphan_partials(")
-    assert call < main.index("ensure_ffmpeg")
+    assert call < main.index("_setup_ffmpeg_at_start")
     assert call < main.index("app.run(")
     # and never at import time (tests and tools load this module without starting the app)
     assert not re.search(r"^_prune_overlay_below_floors\(\)", src, flags=re.M)

@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-26",
+  "_last_updated": "2026-11-02",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo et {0} sites supplémentaires",
@@ -619,6 +619,8 @@
     "footer.btn.whatsnew": "Nouveautés",
     "download.error.no_formats": "Aucun format téléchargeable trouvé. Il s'agit généralement d'une vidéo réservée aux membres — si vous êtes membre de cette chaîne, chargez les cookies de votre compte dans les Paramètres et réessayez. Elle peut aussi être privée, bloquée par région, ou restreinte d'une autre manière.",
     "download.error.extract": "Impossible d'extraire les informations de la vidéo. La page a peut-être changé.",
+    "download.error.ffmpeg_installing": "ffmpeg est encore en cours de configuration. Veuillez réessayer dans un instant.",
+    "download.error.ffmpeg_failed": "ffmpeg n'a pas pu être téléchargé. Vérifiez votre connexion internet et redémarrez l'application, ou réinstallez ffmpeg depuis Avancé → Plugins.",
     "konami.title": "EGM Downloader ne répond plus",
     "konami.collecting": "Collecte du rapport de plantage…",
     "konami.gotcha": "Gotcha !",

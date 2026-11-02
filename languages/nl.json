@@ -8,7 +8,7 @@
   "_contributors": [
     "egmtm"
   ],
-  "_last_updated": "2026-10-26",
+  "_last_updated": "2026-11-02",
   "strings": {
     "app.title": "EGM Downloader",
     "app.subtitle": "YouTube · TikTok · Instagram · Twitter/X · Reddit · Facebook · Twitch · Vimeo & {0} meer sites",
@@ -619,6 +619,8 @@
     "footer.btn.whatsnew": "Wat is nieuw",
     "download.error.no_formats": "Geen downloadbare formaten gevonden. Dit is meestal een video die alleen voor leden is — als je lid bent van dit kanaal, laad dan je accountcookies in Instellingen en probeer het opnieuw. Het kan ook privé, regionaal geblokkeerd of anderszins beperkt zijn.",
     "download.error.extract": "Kon video-informatie niet ophalen. De pagina is mogelijk gewijzigd.",
+    "download.error.ffmpeg_installing": "ffmpeg wordt nog ingesteld. Probeer het over een moment opnieuw.",
+    "download.error.ffmpeg_failed": "ffmpeg kon niet worden gedownload. Controleer je internetverbinding en herstart de app, of installeer ffmpeg opnieuw via Geavanceerd → Plugins.",
     "konami.title": "EGM Downloader reageert niet meer",
     "konami.collecting": "Crashrapport verzamelen…",
     "konami.gotcha": "Gesnapt!",

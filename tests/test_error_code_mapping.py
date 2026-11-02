@@ -54,6 +54,11 @@ def _map_codes_from_source(path):
     return set(re.findall(r'_re\.I\),\s*"([a-z0-9_]+)"\)', m.group(1)))
 
 
+def _direct_codes_from_source(path):
+    """Codes the backend sets itself (job["error_code"] = "..."), without the classifier."""
+    return set(re.findall(r'\["error_code"\]\s*=\s*"([a-z0-9_]+)"', path.read_text(encoding="utf-8")))
+
+
 def test_classifier_codes_all_platforms():
     """Every representative sample resolves to its expected code on every
     platform, and an unknown error resolves to None (raw-text path)."""
@@ -71,13 +76,13 @@ def test_classifier_codes_all_platforms():
 def test_every_code_has_a_locale_key_and_vice_versa():
     """code↔key completeness: every code _ERROR_MAP can emit has a
     download.error.* key in en.json, and every download.error.* key is
-    reachable from some pattern (no orphans in either direction).
-    'generic' is the deliberate exception: it's the UI's final fallback,
-    not a classifier output."""
+    reachable from some pattern or from a code the backend sets itself
+    (no orphans in either direction). 'generic' is the deliberate
+    exception: it's the UI's final fallback, not a classifier output."""
     en = json.loads((REPO / "languages" / "en.json").read_text(encoding="utf-8"))["strings"]
     keyed = {k.split(".", 2)[2] for k in en if k.startswith("download.error.")}
     for name, path in PLATFORMS:
-        codes = _map_codes_from_source(path)
+        codes = _map_codes_from_source(path) | _direct_codes_from_source(path)
         missing_keys = codes - keyed
         assert not missing_keys, f"{name}: codes without locale keys: {missing_keys}"
         orphan_keys = keyed - codes - {"generic"}
