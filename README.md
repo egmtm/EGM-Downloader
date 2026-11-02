@@ -57,10 +57,10 @@
 - 🌍 **10 Languages** - English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, and Russian — auto-detected from your system, changeable anytime from the footer
 - ↔️ **Native Right to Left** - Arabic reads right to left with the whole layout mirrored: panels, menus, progress bars, buttons and windows. Web addresses and file paths stay left to right.
 - 🎨 **500 Themes + Theme Creator** - 470 permanent themes across 32 categories plus 30 seasonal ones that rotate through the year, so you may see fewer than 500 out of season. Build your own with 10 live-preview color pickers, export as `.json`, save to your library, and favorite it alongside the built-in themes.
-- 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
-- 📜 **Download History** - Track all downloads with search, filter, and re-download capability
+- 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return fetches the links in the box, Esc clears
+- 📜 **Download History** - Your last 500 downloads, with search, filter, and re-download capability
 - 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own folder, format, quality, auto fetch and SponsorBlock settings
-- 🔄 **Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac), plus in app updates for yt-dlp, ffmpeg, and optional libraries without reinstalling
+- 🔄 **Updates** - Built-in update checker that only trusts a signed release feed (on Windows the app also downloads the update and checks its SHA256 before installing; on Mac and Linux it opens the download page), plus in app updates for yt-dlp, ffmpeg, and optional libraries without reinstalling
 - 💼 **Windows Portable** - Run from any folder or USB drive, no installer and no registry. Downloads its own private Python on first run.
 - 📋 **Diagnostics** - Live log viewer in the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
@@ -200,7 +200,7 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
-**Auto-Update:** ✅ Built-in update checker with SHA256 verification
+**Auto-Update:** Built-in update checker (signed release feed); it opens the download page and you install the new version yourself
 
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
@@ -210,7 +210,7 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
-**Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
+**Auto-Update:** Built-in update checker (signed release feed); it opens the download page and you replace the AppImage yourself, or check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 **First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) into your user data directory. Electron alone is about 250 MB, so the whole Windows first launch download is several hundred MB. After an app update that needs a newer Electron, the new one is downloaded next to the current one and only switched in once it works. If the download fails or you are offline, a point update keeps the current Electron and tries again at the next launch. macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
 

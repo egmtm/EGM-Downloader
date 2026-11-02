@@ -108,7 +108,10 @@ git clone https://github.com/egmtm/EGM-Downloader.git
 cd EGM-Downloader
 
 # Wire the pre-commit and pre-push hooks (one-time per clone)
-# Runs version sync + parity check + full test suite before every commit and push
+# Runs version sync + parity check + full test suite before every commit and push.
+# The same folder holds a commit-msg hook that only accepts the maintainer's name and
+# email, so outside contributors should not use core.hooksPath: copy only pre-commit
+# and pre-push into .git/hooks instead, or run their checks by hand.
 git config core.hooksPath .githooks
 
 # Install Python dependencies (shared)
@@ -188,7 +191,9 @@ All scripts are in `scripts/` directory:
 - **add-patchnote.py** - Add entries to patchnotes.txt
 - **gen-update-json.py** - Generate platform update JSONs
 
-Run any script with `--help` for detailed usage.
+`bump-version.py`, `add-patchnote.py` and `gen-update-json.py` take `--help`; the other scripts
+explain their arguments in the docstring at the top of the file. `check-node-pin.py` always
+contacts the Node.js release server.
 
 ---
 
@@ -375,7 +380,7 @@ Why is this change needed? What problem does it solve?
 ```
 EGM-Downloader/
 │
-├── app.py                    # Flask backend (Windows + Mac)
+├── app.py                    # Flask backend (Windows; Mac and Linux use mac/app.py and linux/app.py)
 ├── templates/                # UI templates (Windows + Mac)
 │   ├── index.html            # Main UI shell
 │   ├── subscriptions.html    # Subscriptions window
@@ -419,7 +424,7 @@ EGM-Downloader/
 ### Shared vs Platform-Specific
 
 **Shared (Windows + Mac):**
-- `app.py` - Main backend
+- `app.py` - Windows backend (Mac has its own `mac/app.py`, Linux `linux/app.py`)
 - `templates/` - UI (Linux packages the same tree)
 - `static/` - Assets
 - `requirements.txt` - Python dependencies

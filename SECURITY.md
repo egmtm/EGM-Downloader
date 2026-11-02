@@ -86,7 +86,7 @@ We provide security updates for the latest stable release only. Users on older v
 ### General Recommendations
 
 - ✅ **Download from official sources only** - https://egerena.com or https://github.com/egmtm/EGM-Downloader
-- ✅ **Keep software updated** - Enable auto-updates (Windows/Mac) or check regularly (Linux)
+- ✅ **Keep software updated** - Turn on Advanced → Check updates on launch (Windows installs the update for you; on Mac and Linux it tells you and opens the download page)
 - ✅ **Verify checksums** - When available, verify file integrity
 - ✅ **Use antivirus software** - Keep your system protected
 - ✅ **Review permissions** - Understand what access the application requests

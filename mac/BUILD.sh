@@ -208,7 +208,7 @@ On first launch, the app will:
 1. Paste a video URL (YouTube, Vimeo, TikTok, 1000+ sites)
 2. Choose quality (video) or audio-only (MP3)
 3. Click Download
-4. Files save to your Downloads folder by default
+4. Choose a download folder with Browse before your first download
 
 FEATURES:
 • 1000+ supported sites via yt-dlp
