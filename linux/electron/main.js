@@ -682,6 +682,20 @@ function confirmCloseWithDownloads(parent) {
   }) === 0;
 }
 
+// Asked once per quit, while the backend still runs: true when the quit may go on. Nothing is asked
+// when the backend is already gone (a crash quits the app, and "Keep open" would only leave a window
+// on nothing).
+function subsDownloadsAllowQuit() {
+  if (!flaskProc || !subsWindow || subsWindow.isDestroyed() || !subsActiveDownloads || subsForceClose) return true;
+  // A modal question on a minimized window can stay out of sight while it holds up the whole app.
+  if (subsWindow.isMinimized()) subsWindow.restore();
+  subsWindow.show();
+  subsWindow.focus();
+  if (!confirmCloseWithDownloads(subsWindow)) return false;
+  subsForceClose = true;       // the window's own close handler must not ask a second time
+  return true;
+}
+
 ipcMain.handle('open-subscriptions-window', async (event) => {
   if (!isTrustedSender(event)) return;
   if (subsWindow && !subsWindow.isDestroyed()) { subsWindow.focus(); return; }
@@ -912,13 +926,10 @@ app.on('window-all-closed', () => {
 app.on('before-quit', (event) => {
   // Ask first, while the backend still runs: "Keep open" has to leave the app and its downloads as
   // they were. (Asking after the shutdown request left a window on a dead backend.)
-  if (subsWindow && !subsWindow.isDestroyed() && subsActiveDownloads && !subsForceClose) {
-    if (!confirmCloseWithDownloads(subsWindow)) {
-      event.preventDefault();
-      app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
-      return;
-    }
-    subsForceClose = true;       // the window's own close handler must not ask a second time
+  if (!subsDownloadsAllowQuit()) {
+    event.preventDefault();
+    app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
+    return;
   }
   app.isQuitting = true;
   if (_psbId !== null) { try { powerSaveBlocker.stop(_psbId); } catch {} _psbId = null; }

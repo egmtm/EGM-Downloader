@@ -197,7 +197,11 @@ document.getElementById('footer-version-pill').addEventListener('click', () => {
     if (window.electronAPI && window.electronAPI.quit &&
         confirm(i18nGet('confirm.electron_restart_now') || 'Electron will be reinstalled.\n\nRestart the app now to apply it? (Choose Cancel to apply it the next time you open the app.)')) {
       toast(i18nGet('toast.electron.restarting') || 'Restarting to reinstall Electron…', 'ok');
-      setTimeout(() => window.electronAPI.quit({ relaunch: true }), 600);
+      setTimeout(async () => {
+        const q = await window.electronAPI.quit({ relaunch: true });
+        // "Keep open" on the Subscriptions question: nothing restarts, the reinstall waits for the next launch
+        if (q && q.cancelled) toast(i18nGet('toast.electron.will_reinstall_next_launch') || 'Electron will reinstall the next time you open the app', 'ok');
+      }, 600);
     } else {
       toast(i18nGet('toast.electron.will_reinstall_next_launch') || 'Electron will reinstall the next time you open the app', 'ok');
     }

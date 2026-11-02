@@ -503,6 +503,8 @@ ipcMain.handle('launch-installer', async (event, installerPath) => {
     // allowed. Resolve BOTH sides so normalization can't cause a false mismatch.
     if (path.resolve(installerPath) !== path.resolve(EXPECTED_INSTALLER)) return { error: 'Unexpected installer path' };
     if (!fs.existsSync(installerPath)) return { error: 'Installer not found: ' + installerPath };
+    // The installer closes the app: ask about Subscriptions downloads before it starts, not after.
+    if (!subsDownloadsAllowQuit()) return { cancelled: true };
     // Spawn installer detached so it outlives Electron
     // spawn is already imported at the top of this file
     const child = spawn(installerPath, [], {
@@ -536,6 +538,9 @@ ipcMain.handle('quit-app', (event, opts) => {
   // relaunch if the launcher isn't found: the app still reopens and the marker
   // persists, so the reinstall applies on the next manual launch.
   if (opts && opts.relaunch) {
+    // A queued relaunch cannot be taken back: ask about Subscriptions downloads before queueing it,
+    // not only in before-quit, where "Keep open" would leave it waiting to fire at the next quit.
+    if (!subsDownloadsAllowQuit()) return { cancelled: true };
     try {
       const launcher = path.join(__dirname, '..', 'EGM Downloader.exe');
       if (fs.existsSync(launcher)) app.relaunch({ execPath: launcher });
@@ -827,6 +832,20 @@ function confirmCloseWithDownloads(parent) {
     message: 'Downloads are still in progress.',
     detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
   }) === 0;
+}
+
+// Asked once per quit, while the backend still runs: true when the quit may go on. Nothing is asked
+// when the backend is already gone (a crash quits the app, and "Keep open" would only leave a window
+// on nothing).
+function subsDownloadsAllowQuit() {
+  if (!flaskProc || !subsWindow || subsWindow.isDestroyed() || !subsActiveDownloads || subsForceClose) return true;
+  // A modal question on a minimized window can stay out of sight while it holds up the whole app.
+  if (subsWindow.isMinimized()) subsWindow.restore();
+  subsWindow.show();
+  subsWindow.focus();
+  if (!confirmCloseWithDownloads(subsWindow)) return false;
+  subsForceClose = true;       // the window's own close handler must not ask a second time
+  return true;
 }
 
 ipcMain.handle('open-subscriptions-window', async (event) => {
@@ -1187,13 +1206,10 @@ app.on('window-all-closed', () => {
 app.on('before-quit', (event) => {
   // Ask first, while the backend still runs: "Keep open" has to leave the app and its downloads as
   // they were. (Asking after the shutdown request left a window on a dead backend.)
-  if (subsWindow && !subsWindow.isDestroyed() && subsActiveDownloads && !subsForceClose) {
-    if (!confirmCloseWithDownloads(subsWindow)) {
-      event.preventDefault();
-      app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
-      return;
-    }
-    subsForceClose = true;       // the window's own close handler must not ask a second time
+  if (!subsDownloadsAllowQuit()) {
+    event.preventDefault();
+    app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
+    return;
   }
   app.isQuitting = true;
   // OS-level power save blockers are released on process death regardless,
