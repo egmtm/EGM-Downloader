@@ -42,6 +42,19 @@ def backend(request, tmp_path_factory):
     return mod
 
 
+@pytest.fixture(autouse=True)
+def _data_files_in_tmp(backend, tmp_path_factory, monkeypatch):
+    """The Windows copy keeps its data next to app.py (the repository root in a checkout): keep
+    every data file of every copy in a temporary folder, so no test here writes the developer's
+    own. (Not tmp_path: the atomic write test checks what that folder holds.)"""
+    data = tmp_path_factory.mktemp("egm_data")
+    for name in ("SETTINGS_FILE", "HISTORY_FILE", "SUBS_FILE", "COOKIES_FILE"):
+        monkeypatch.setattr(backend, name, data / Path(getattr(backend, name)).name)
+    monkeypatch.setattr(backend, "THUMBNAILS_DIR", data / "thumbnails")
+    monkeypatch.setattr(backend, "_settings_cache", {})
+    monkeypatch.setattr(backend, "_subs_cache", None)
+
+
 def _client(backend):
     return backend.app.test_client()
 
