@@ -429,7 +429,7 @@ document.getElementById('footer-version-pill').addEventListener('click', () => {
           { key:'subscriptions', icon:'📺', label:(i18nGet('settings.io.item.subscriptions.label')||'Subscriptions'),        sub: subEntries.length > 0 ? (i18nFmt('settings.io.item.subscriptions.count', subEntries.length) || `${subEntries.length} channels in file`) : (i18nGet('settings.io.item.history.not_found')||'Not found in this file'), available:subEntries.length>0 },
         ],
         state: { settings:true, history:histItems.length>0, themes:!!lsData, subscriptions:subEntries.length>0 },
-        confirmLabel: (i18nGet('panel.themes.btn.import') || '↓ Import'),
+        confirmLabel: (i18nGet('panel.themes.btn.import') || 'Import'),
       });
       if (!sel) return;
 
