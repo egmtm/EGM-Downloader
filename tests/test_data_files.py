@@ -68,6 +68,27 @@ def test_a_damaged_history_file_is_kept_before_it_is_replaced(files):
     assert [i["title"] for i in json.loads(backend.HISTORY_FILE.read_text())] == ["new"]
 
 
+def test_clear_history_also_removes_the_kept_copy_of_a_damaged_history_file(files):
+    backend, client, headers = files
+    backend.HISTORY_FILE.write_text('[{"id": "a", "title": "old"}] x')
+    backend._append_history({"url": "https://example.invalid/v", "title": "new"}, backend.HISTORY_FILE.parent / "x.mp4")
+    backup = backend.HISTORY_FILE.with_name(backend.HISTORY_FILE.name + ".unreadable")
+    other = backend.SUBS_FILE.with_name(backend.SUBS_FILE.name + ".unreadable")
+    other.write_text("{x")                                      # the subscriptions copy is not history
+    assert backup.exists()
+    assert client.post("/api/history/clear", headers=headers).get_json() == {"ok": True}
+    assert not backup.exists(), "the damaged file's copy survived Clear history"
+    assert other.exists()
+    assert client.get("/api/history", headers=headers).get_json()["items"] == []
+
+
+def test_clear_history_without_a_kept_copy_still_works(files):
+    backend, client, headers = files
+    backend._append_history({"url": "https://example.invalid/v", "title": "t"}, backend.HISTORY_FILE.parent / "x.mp4")
+    assert client.post("/api/history/clear", headers=headers).get_json() == {"ok": True}
+    assert client.get("/api/history", headers=headers).get_json()["items"] == []
+
+
 @pytest.mark.parametrize("content", ['{"subscriptions": {"a": 1}}', '{"subscriptions": [1, "x"]}', "[]", "{x"])
 def test_a_subscriptions_file_with_the_wrong_shape_reads_as_empty_and_is_kept(files, content):
     backend, client, headers = files

@@ -3509,6 +3509,8 @@ def delete_history_entry(entry_id):
 def clear_history():
     with _history_lock:
         _save_history([])
+        try: HISTORY_FILE.with_name(HISTORY_FILE.name + ".unreadable").unlink(missing_ok=True)   # the kept copy of a damaged file goes too
+        except Exception: pass
     # Clear all thumbnails
     try:
         for f in THUMBNAILS_DIR.iterdir():
