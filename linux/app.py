@@ -1137,7 +1137,18 @@ def _run_download_slot(job_id, *rest):
                 job["error"]  = "ffmpeg is still installing (first-run setup). Please try again in a moment."
                 job["_finished_at"] = time.time()
                 return
-        run_download(job_id, *rest)
+        try:
+            run_download(job_id, *rest)
+        except Exception as e:
+            # Anything raised before run_download's own error handling used to end this thread
+            # with the job still "queued": Cancel could not end it and it never left the list.
+            _egm_log(f"download worker failed: {type(e).__name__}: {e}")
+            if job.get("proc"):
+                _kill_proc(job["proc"])
+            if job.get("status") not in ("done", "error", "cancelled"):
+                job["status"] = "cancelled" if job.get("cancelled") else "error"
+                job.setdefault("error", f"The download could not start ({type(e).__name__}). Please try again.")
+                job["_finished_at"] = time.time()
     finally:
         _download_sem.release()
 
@@ -1256,6 +1267,8 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
     duration_s = _media_duration_s(ffprobe, in_path) if ffprobe else None
     try:
         for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
+            if job.get("cancelled"):      # pressed while ffprobe or the previous attempt ran
+                return False
             job["encoder"] = attempt   # surfaced in the converting badge
             cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
             if vf:
@@ -1333,6 +1346,8 @@ def _ensure_h264(job_id, path, job):
             return path
         try: os.remove(tmp)
         except OSError: pass
+        if job.get("cancelled"):
+            return path
         job["warning"] = "The H.264 conversion failed, so the video was saved in its original codec."
         job["warning_key"] = "download.warning.source_codec"
         return path
@@ -1711,6 +1726,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # available" has no target). Runs after the H.264 pass; adds at most one
         # extra encode, and only when the user opted in and the source is small.
         if (format_choice != "audio" and video_height and int(video_height or 0) != 0
+                and not job.get("cancelled")
                 and _load_settings().get("upscale_to_quality", False)
                 and str(chosen).lower().endswith(".mp4")):
             chosen = _upscale_to_preset(job_id, chosen, job, video_height)
