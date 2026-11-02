@@ -2844,8 +2844,8 @@ def check_updates():
         cy, cf = _get_ytdlp_version(), _get_ffmpeg_version()
         cm     = _get_mutagen_version()
         ly, lf = _f_ly.result(), _f_lf.result()
-    # Mutagen on Mac is informational-only — bundled Python has no pip,
-    # so we can't upgrade in-app. latest=None / up_to_date=None tells the UI
+    # Mutagen on Mac is informational-only — the plugins panel does not offer
+    # to update it (the bundled Python does have pip). latest=None / up_to_date=None tells the UI
     # to render the "—" badge instead of green/red, and prevents the slow
     # endpoint from clobbering the fast endpoint's correct version with
     # undefined → "checking…" placeholder.
