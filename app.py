@@ -3999,6 +3999,33 @@ def shutdown():
     threading.Thread(target=_do_shutdown, daemon=True).start()
     return jsonify({"ok": True})
 
+def _exit_when_electron_is_gone():
+    """Electron starts this backend and ends it with /api/shutdown when the app quits. When Electron
+    is killed instead (a crash, End task), nothing tells this process: it runs on alone, downloads
+    keep going, it keeps the port, and the next launch finds it answering and quietly exits without
+    opening a window. Windows has no change of parent to poll for (Mac and Linux do), so wait on the
+    parent's process handle. End it the way /api/shutdown does."""
+    import ctypes
+    from ctypes import wintypes
+    SYNCHRONIZE, INFINITE, WAIT_OBJECT_0, ERROR_INVALID_PARAMETER = 0x00100000, 0xFFFFFFFF, 0, 87
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.OpenProcess.restype = wintypes.HANDLE
+    k32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    k32.WaitForSingleObject.restype = wintypes.DWORD
+    k32.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+    handle = k32.OpenProcess(SYNCHRONIZE, False, os.getppid())
+    if handle:
+        if k32.WaitForSingleObject(handle, INFINITE) != WAIT_OBJECT_0:
+            return                                     # cannot wait on it: leave things as they are
+    elif ctypes.get_last_error() != ERROR_INVALID_PARAMETER:
+        return                                         # access denied and the like: cannot watch it
+    # Reached when the parent has ended (or there is no such process any more).
+    with _active_procs_lock:
+        procs = list(_active_procs.values())
+    for p in procs:
+        _kill_proc(p)
+    os._exit(0)
+
 def _cleanup_orphan_partials(last_folder):
     """Remove this app's own *.part / *.ytdl leftovers from a crashed session.
     Only job files -- {job_id}.* or {job_id}_r2.*, job_id being 10 hex digits.
@@ -4032,6 +4059,8 @@ if __name__ == "__main__":
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
 
+    if os.environ.get("EGM_ELECTRON") == "1":
+        threading.Thread(target=_exit_when_electron_is_gone, daemon=True, name="parent-watch").start()
     threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
     # Electron launches Flask with PORT in the env and then polls that exact port.
     # The env value MUST win over the persisted flask_port setting — otherwise a
