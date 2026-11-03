@@ -82,6 +82,27 @@ def test_clear_history_also_removes_the_kept_copy_of_a_damaged_history_file(file
     assert client.get("/api/history", headers=headers).get_json()["items"] == []
 
 
+def test_reset_settings_also_removes_the_kept_copy_of_a_damaged_settings_file(files):
+    backend, client, headers = files
+    backend.SETTINGS_FILE.write_text("[1, 2]")
+    client.post("/api/settings/save", json={"quit_on_done": True}, headers=headers)
+    backup = backend.SETTINGS_FILE.with_name(backend.SETTINGS_FILE.name + ".unreadable")
+    history_copy = backend.HISTORY_FILE.with_name(backend.HISTORY_FILE.name + ".unreadable")
+    history_copy.write_text("[x")                               # the history copy is not settings
+    assert backup.exists()
+    assert client.post("/api/settings/reset", headers=headers).get_json() == {"ok": True}
+    assert not backup.exists(), "the damaged file's copy survived Reset settings"
+    assert history_copy.exists()
+    assert json.loads(backend.SETTINGS_FILE.read_text()) == {}
+
+
+def test_reset_settings_without_a_kept_copy_still_works(files):
+    backend, client, headers = files
+    client.post("/api/settings/save", json={"quit_on_done": True}, headers=headers)
+    assert client.post("/api/settings/reset", headers=headers).get_json() == {"ok": True}
+    assert json.loads(backend.SETTINGS_FILE.read_text()) == {}
+
+
 def test_clear_history_without_a_kept_copy_still_works(files):
     backend, client, headers = files
     backend._append_history({"url": "https://example.invalid/v", "title": "t"}, backend.HISTORY_FILE.parent / "x.mp4")

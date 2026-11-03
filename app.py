@@ -3415,6 +3415,8 @@ def settings_reset():
         with _settings_lock:
             _atomic_write_text(SETTINGS_FILE, "{}", owner_only=True)
             _settings_cache = {}
+            try: SETTINGS_FILE.with_name(SETTINGS_FILE.name + ".unreadable").unlink(missing_ok=True)   # the kept copy of a damaged file goes too
+            except Exception: pass
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
