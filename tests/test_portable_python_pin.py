@@ -142,6 +142,36 @@ def test_extract_refuses_paths_outside_the_folder_and_non_files(launch, tmp_path
     assert not (tmp_path / "evil2.txt").exists() and not (tmp_path / "abs.txt").exists()
 
 
+# The extractor has two guards on a path: the name check (no "..", not absolute, no drive) and
+# the resolve check (the written file must resolve to a place inside the folder). The test above
+# is stopped by either one, so removing one of them alone went unnoticed. These two each need
+# their own guard.
+
+def test_extract_refuses_dotdot_even_when_it_would_land_inside(launch, tmp_path):
+    # Resolves to dest/inside.txt, so only the name check stops it.
+    archive = _archive(tmp_path, [("python/ok.txt", b"ok"), ("python/a/../inside.txt", b"x")])
+    dest = tmp_path / "out"
+    dest.mkdir()
+    launch._extract_python_archive(archive, dest)
+    assert sorted(p.name for p in dest.rglob("*") if p.is_file()) == ["ok.txt"]
+
+
+def test_extract_refuses_a_path_that_resolves_outside_through_a_link(launch, tmp_path):
+    # No ".." and not absolute, so the name check lets it through; only the resolve check stops it.
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    dest = tmp_path / "out"
+    dest.mkdir()
+    try:
+        (dest / "link").symlink_to(outside, target_is_directory=True)
+    except (OSError, NotImplementedError):
+        pytest.skip("this system cannot make symbolic links")
+    archive = _archive(tmp_path, [("python/ok.txt", b"ok"), ("python/link/evil.txt", b"x")])
+    launch._extract_python_archive(archive, dest)
+    assert not (outside / "evil.txt").exists()
+    assert (dest / "ok.txt").read_bytes() == b"ok"
+
+
 # ── ensure_python ─────────────────────────────────────────────────────────────
 
 class _Done:
