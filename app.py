@@ -4056,6 +4056,50 @@ def _exit_when_electron_is_gone():
         _kill_proc(p)
     os._exit(0)
 
+def _probe_own_port(host, port):
+    """The HTTP status the port gives for /api/settings with this run's token: 200 from this backend.
+    None when nothing answers (yet); -1 when something answers that is not speaking HTTP. Plain
+    http.client, so no proxy setting can stand in the way."""
+    import http.client
+    try:
+        conn = http.client.HTTPConnection(host, port, timeout=2)
+        try:
+            conn.request("GET", "/api/settings", headers={"X-EGM-Token": _API_TOKEN})
+            return conn.getresponse().status
+        finally:
+            conn.close()
+    except http.client.HTTPException:
+        return -1
+    except Exception:
+        return None
+
+def _port_verdict(host, port, probes=3, pause=0.3, patience=10.0):
+    """'ours' when `probes` answers in a row are 200, 'taken' as soon as one is not, 'unknown' when
+    nothing (more) answers within `patience` seconds. Windows lets a second program listen on a port
+    that is already in use, so the bind can succeed behind it, and which of the two gets a connection
+    is not something to rely on: one good answer proves nothing. Not answering yet is never 'taken'."""
+    deadline = time.monotonic() + patience
+    good = 0
+    while good < probes:
+        status = _probe_own_port(host, port)
+        if status is None:
+            if time.monotonic() >= deadline:
+                return "unknown"
+            time.sleep(0.05)
+            continue
+        if status != 200:
+            return "taken"
+        good += 1
+        if good < probes:
+            time.sleep(pause)
+    return "ours"
+
+def _watch_own_port(host, port):
+    """End the backend with code 3, as when the bind fails on Mac and Linux, when another program
+    answers on its port; the shell then says so instead of waiting out its three minutes."""
+    if _port_verdict(host, port) == "taken":
+        os._exit(3)
+
 def _cleanup_orphan_partials(last_folder):
     """Remove this app's own *.part / *.ytdl leftovers from a crashed session.
     Only job files -- {job_id}.* or {job_id}_r2.*, job_id being 10 hex digits.
@@ -4120,6 +4164,8 @@ if __name__ == "__main__":
             # Code 3 tells the shell why.
             os._exit(3)
     threading.Thread(target=_serve, daemon=True, name="flask").start()
+    if os.environ.get("EGM_ELECTRON") == "1":
+        threading.Thread(target=_watch_own_port, args=(host, port), daemon=True, name="port-check").start()
     threading.Thread(target=_warm_templates, args=(host, port), daemon=True, name="template-warmup").start()
 
     # Under Electron: keep Flask alive; Electron manages the window and lifecycle.
