@@ -65,13 +65,26 @@ if sys.version_info < _PY_MIN:
         sys.stderr.write(_msg + "\n")
     sys.exit(1)
 
+def _private_python_flags():
+    """Interpreter flags for the hand over to pythonw.exe below. The native launcher starts the
+    private Python (python\\ beside this file) with -s -E: the user's packages folder, and any .pth
+    file in it, stay out of the process, and PYTHON* variables are ignored. The hop has to keep
+    that. The installer edition runs on the system Python, whose packages may live in that user
+    folder, so it gets none."""
+    try:
+        private = (Path(__file__).resolve().parent / "python").resolve()
+        return ["-s", "-E"] if Path(sys.executable).resolve().parent == private else []
+    except Exception:
+        return []
+
+
 # Re-exec under pythonw.exe (no console) if not already silent. This sits above the
 # heavier imports below on purpose: the first interpreter only hands over to pythonw.exe,
 # which imports everything again, so it should not load them first.
 if sys.platform == "win32" and not os.environ.get("EGM_SILENT"):
     pw = Path(sys.executable).with_name("pythonw.exe")
     if pw.exists():
-        subprocess.Popen([str(pw), str(__file__)] + sys.argv[1:],
+        subprocess.Popen([str(pw)] + _private_python_flags() + [str(__file__)] + sys.argv[1:],
                          env={**os.environ, "EGM_SILENT":"1"})
         sys.exit(0)
 

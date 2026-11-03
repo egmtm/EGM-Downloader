@@ -19,10 +19,17 @@
 #include <windows.h>
 #include <stdio.h>
 
-static int try_launch(const wchar_t *py_cmd, const wchar_t *script_path) {
-    /* Build: "python" "<script_path>" */
+/* Interpreter flags for the private Python only: -s keeps the user's packages folder (and any
+ * .pth file in it, which runs code at start) out of this process, -E makes it ignore PYTHON*
+ * variables. launch.py passes the same on when it hands over to pythonw.exe and sets the
+ * environment for everything else it starts. The system Python attempts below get none: the
+ * installer edition runs on that Python and its packages may live in that user folder. */
+static const wchar_t *PRIVATE_PY_FLAGS = L"-s -E ";
+
+static int try_launch(const wchar_t *py_cmd, const wchar_t *py_flags, const wchar_t *script_path) {
+    /* Build: "python" <flags>"<script_path>" (flags are empty or end in a space) */
     wchar_t cmdline[1024];
-    _snwprintf_s(cmdline, 1024, _TRUNCATE, L"\"%s\" \"%s\"", py_cmd, script_path);
+    _snwprintf_s(cmdline, 1024, _TRUNCATE, L"\"%s\" %s\"%s\"", py_cmd, py_flags, script_path);
 
     STARTUPINFOW si = { 0 };
     PROCESS_INFORMATION pi = { 0 };
@@ -81,7 +88,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nSho
             }
             SetEnvironmentVariableW(names[i], NULL);
         }
-        if (try_launch(embedded_py, script_path)) {
+        if (try_launch(embedded_py, PRIVATE_PY_FLAGS, script_path)) {
             return 0;
         }
         for (int i = 0; i < 2; i++) {
@@ -95,7 +102,7 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nSho
     /* First-run / installer / fallback: system python, python3, then py. */
     const wchar_t *candidates[] = { L"python", L"python3", L"py" };
     for (int i = 0; i < 3; i++) {
-        if (try_launch(candidates[i], script_path)) {
+        if (try_launch(candidates[i], L"", script_path)) {
             return 0;
         }
     }
