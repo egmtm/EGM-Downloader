@@ -310,6 +310,8 @@ async function startFlask() {
     flaskProc = null;
     if (!app.isQuitting) {
       app.isQuitting = true;
+      // The splash is always on top, so a box opened under it can't be reached: drop it first.
+      if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }
       dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
         ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
         : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
