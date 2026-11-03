@@ -52,7 +52,7 @@ for (const platform of ["windows", "mac", "linux"]) {
     for (const [code, signal, expect] of [[null, "SIGKILL", /signal SIGKILL/], [0, null, /code 0/], [3, null, /port 8899/], [1, null, /code 1/]]) {
       const shown = [];
       const ctx = {
-        flaskProc: new EventEmitter(), PORT: 8899,
+        flaskProc: new EventEmitter(), PORT: 8899, splashWindow: null,
         app: { isQuitting: false, quits: 0, quit() { this.quits++; } },
         dialog: { showErrorBox: (t, msg) => shown.push(msg) },
       };
@@ -64,9 +64,36 @@ for (const platform of ["windows", "mac", "linux"]) {
       assert.equal(ctx.app.quits, 1);
       assert.equal(ctx.flaskProc, null, "the exited process is still kept for before-quit to stop");
     }
-    const ctx = { flaskProc: new EventEmitter(), PORT: 8899, app: { isQuitting: true, quit() {} },
+    const ctx = { flaskProc: new EventEmitter(), PORT: 8899, splashWindow: null, app: { isQuitting: true, quit() {} },
                   dialog: { showErrorBox: () => assert.fail("a normal quit is not a crash") } };
     vm.runInNewContext(m[0], ctx);
     ctx.flaskProc.emit("exit", 0, null);
   });
 }
+
+test("windows: the always on top splash is destroyed before the backend crash box opens", () => {
+  const m = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(source("windows"));
+  assert.ok(m, "exit handler found");
+  const order = [];
+  const ctx = {
+    flaskProc: new EventEmitter(), PORT: 8899,
+    splashWindow: { isDestroyed: () => false, destroy: () => order.push("splash destroyed") },
+    app: { isQuitting: false, quit() {} },
+    dialog: { showErrorBox: () => order.push("box shown") },
+  };
+  vm.runInNewContext(m[0], ctx);
+  ctx.flaskProc.emit("exit", 3, null);
+  assert.deepEqual(order, ["splash destroyed", "box shown"]);
+  assert.equal(ctx.splashWindow, null, "the closed splash is forgotten");
+  // a splash that is already gone is left alone
+  const gone = { destroyed: false };
+  const ctx2 = {
+    flaskProc: new EventEmitter(), PORT: 8899,
+    splashWindow: { isDestroyed: () => true, destroy: () => { gone.destroyed = true; } },
+    app: { isQuitting: false, quit() {} },
+    dialog: { showErrorBox() {} },
+  };
+  vm.runInNewContext(m[0], ctx2);
+  ctx2.flaskProc.emit("exit", 3, null);
+  assert.equal(gone.destroyed, false, "a destroyed window is not destroyed again");
+});
