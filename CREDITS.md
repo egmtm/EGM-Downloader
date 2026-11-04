@@ -261,7 +261,7 @@ To everyone who contributes to open source software - from bug reports to docume
 
 ### Security Reporters
 
-**kta1kri** reported a security issue in version 1.5.2.1, fixed in version 1.5.2.2. We had already found the same issue in our own independent security review, and the report was valid and confirmed it independently.
+**[kta1kri](https://github.com/kta1kri)** reported a security issue in version 1.5.2.1, fixed in version 1.5.2.2. We had already found the same issue in our own independent security review, and the report was valid and confirmed it independently.
 
 **Thank you, kta1kri, for the careful report!** 🙏
 
