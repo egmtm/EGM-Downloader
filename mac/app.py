@@ -3523,7 +3523,7 @@ def _clean_history_entry(item):
     if isinstance(size, int) and not isinstance(size, bool) and size >= 0:
         out["size_bytes"] = size
     thumb = item.get("thumbnail")
-    out["thumbnail"] = thumb if isinstance(thumb, str) and _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', thumb) else ""
+    out["thumbnail"] = thumb if isinstance(thumb, str) and _re.fullmatch(r'[a-f0-9\-]+\.(jpg|png|webp)', thumb) else ""
     return out
 
 @app.route("/api/history/import", methods=["POST"])

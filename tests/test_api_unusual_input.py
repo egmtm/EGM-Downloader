@@ -215,18 +215,20 @@ def test_imported_history_keeps_only_well_formed_fields(api):
         {"id": "a2", "title": "t", "format": '<img src=x onerror=alert(1)>', "size_bytes": "<b>1</b>",
          "thumbnail": 'x"><img src=y>'},
         {"id": "a3", "thumbnail": 123, "format": 5},
+        {"id": "a4", "thumbnail": "0123abcd-ef.jpg\n"},   # a name plus a line break is not a stored name
         {"id": 7, "title": "number id"},
         {"id": "../../x", "title": "path id"},
         "not an entry",
     ]
     r = api.post("/api/history/import", {"items": items})
-    assert r.status_code == 200 and r.get_json()["count"] == 3
+    assert r.status_code == 200 and r.get_json()["count"] == 4
     stored = {e["id"]: e for e in api.get("/api/history?per_page=50").get_json()["items"]}
-    assert set(stored) == {"a1", "a2", "a3"}
+    assert set(stored) == {"a1", "a2", "a3", "a4"}
     assert stored["a1"] == {k: v for k, v in items[0].items() if k != "extra"}
     assert "format" not in stored["a2"] and "size_bytes" not in stored["a2"] and stored["a2"]["thumbnail"] == ""
     assert stored["a3"]["thumbnail"] == "" and "format" not in stored["a3"]
-    for eid in ("a1", "a2", "a3"):
+    assert stored["a4"]["thumbnail"] == ""
+    for eid in ("a1", "a2", "a3", "a4"):
         assert api.delete(f"/api/history/{eid}").status_code == 200
 
 
