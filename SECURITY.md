@@ -194,7 +194,7 @@ We currently **do not** have a formal bug bounty program. However:
 
 We'd like to thank the following individuals for responsibly disclosing security issues:
 
-*(No vulnerabilities reported yet)*
+**kta1kri** (November 2026): reported a security issue in version 1.5.2.1. Our own independent security review had already found the same issue and the fix was in place, and the report was valid and independently confirmed it. Fixed in version 1.5.2.2. Thank you!
 
 ---
 
