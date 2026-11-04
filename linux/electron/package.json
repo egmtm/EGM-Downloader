@@ -11,7 +11,7 @@
     "pack": "electron-builder --dir"
   },
   "devDependencies": {
-    "electron": "45.2.1",
+    "electron": "45.2.2",
     "electron-builder": "^26.18.0"
   },
   "build": {
@@ -39,7 +39,6 @@
         "to": "app",
         "filter": [
           "app.py",
-          "templates/**",
           "requirements.txt"
         ]
       },
@@ -47,6 +46,7 @@
         "from": "../../",
         "to": "app",
         "filter": [
+          "templates/**",
           "patchnotes.txt"
         ]
       },

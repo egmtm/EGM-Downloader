@@ -7,7 +7,7 @@
   
   <p>
     <img src="https://img.shields.io/badge/dynamic/json?url=https://egerena.com/version.json&query=version&label=version&style=flat-square&color=0078b0" alt="Version"/>
-    <img src="https://img.shields.io/badge/Electron-45.2.1-47848F?logo=electron&logoColor=white" alt="Electron"/>
+    <img src="https://img.shields.io/badge/Electron-45.2.2-47848F?logo=electron&logoColor=white" alt="Electron"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Validate%20Version%20Sync/badge.svg" alt="Version Sync"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20Python/badge.svg" alt="Python Lint"/>
     <img src="https://github.com/egmtm/EGM-Downloader/workflows/Lint%20JavaScript/badge.svg" alt="JavaScript Lint"/>
@@ -57,11 +57,11 @@
 - 🌍 **10 Languages** - English, Arabic, German, Spanish, French, Italian, Japanese, Dutch, Portuguese, and Russian — auto-detected from your system, changeable anytime from the footer
 - ↔️ **Native Right to Left** - Arabic reads right to left with the whole layout mirrored: panels, menus, progress bars, buttons and windows. Web addresses and file paths stay left to right.
 - 🎨 **500 Themes + Theme Creator** - 470 permanent themes across 32 categories plus 30 seasonal ones that rotate through the year, so you may see fewer than 500 out of season. Build your own with 10 live-preview color pickers, export as `.json`, save to your library, and favorite it alongside the built-in themes.
-- 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return starts, Esc clears
-- 📜 **Download History** - Track all downloads with search, filter, and re-download capability
+- 🖱️ **Drag & Drop + Keyboard Shortcuts** - Drop URLs directly into the app; Ctrl+V / ⌘V fetches, Ctrl+Enter / ⌘Return fetches the links in the box, Esc clears
+- 📜 **Download History** - Your last 500 downloads, with search, filter, and re-download capability
 - 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own folder, format, quality, auto fetch and SponsorBlock settings
-- 🔄 **Updates** - Built-in update checker with SHA256 checksum verification (Windows/Mac), plus in app updates for yt-dlp, ffmpeg, and optional libraries without reinstalling
-- 💼 **Windows Portable** - Run from any folder or USB drive, no installer and no registry. Downloads its own embedded Python on first run.
+- 🔄 **Updates** - Built-in update checker that only trusts a signed release feed (on Windows the app also downloads the update and checks its SHA256 before installing; on Mac and Linux it opens the download page), plus in app updates for yt-dlp, ffmpeg, and optional libraries without reinstalling
+- 💼 **Windows Portable** - Run from any folder or USB drive, no installer and no registry. Downloads its own private Python on first run.
 - 📋 **Diagnostics** - Live log viewer in the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - ⏱️ **Quit When Done** - Close the app automatically once every download has finished, from the main window or the Subscriptions queue. A 30 second countdown appears in the middle of the window and stops with Cancel or Esc. It won't close if a download failed or was cancelled.
@@ -75,7 +75,7 @@ A side by side look at one well known alternative, using details you can check y
 | **Price** | Free. No paid tier, no license key | Free plan "with quantity limitations". Paid plans from $15/year ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
 | **Source code** | Public under AGPL-3.0 ([LICENSE](LICENSE)) | Proprietary. Terms: "We reserve all our rights over our Proprietary Materials." These include "software, scripts, source code" ([terms, section 3](https://www.4kdownload.com/agreement/videodownloader)) |
 | **Videos behind a login** | Included. Import cookies from your browser, they stay on your machine | Premium: "private content download is a premium feature" ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
-| **What the app sends out** | No analytics or tracking code. It connects to the sites you download from, plus a short list of hosts for updates and its tools (GitHub, PyPI, egerena.com and an ffmpeg mirror), listed in the [source](app.py). On Windows, first run also installs its runtimes: Node.js (nodejs.org), Electron (npm registry and GitHub, fetched again when an app update needs a newer one) and, for the portable, Python (python.org) and pip (files.pythonhosted.org), listed in [windows/launch.py](windows/launch.py). | Terms: "we may collect and use anonymous technical data and related information, including but not limited to technical information about your device, system and application software, and peripherals, that is gathered periodically to facilitate the provision of updates to the Application." ([terms, section 9](https://www.4kdownload.com/agreement/videodownloader)) |
+| **What the app sends out** | No analytics or tracking code. It connects to the sites you download from, plus a short list of hosts for updates and its tools (GitHub, PyPI, egerena.com and an ffmpeg mirror), listed in the [source](app.py). On Windows, first run also installs its runtimes: Node.js (nodejs.org), Electron (npm registry and GitHub, fetched again when an app update needs a newer one) and, for the portable, its private Python (GitHub), listed in [windows/launch.py](windows/launch.py). | Terms: "we may collect and use anonymous technical data and related information, including but not limited to technical information about your device, system and application software, and peripherals, that is gathered periodically to facilitate the provision of updates to the Application." ([terms, section 9](https://www.4kdownload.com/agreement/videodownloader)) |
 | **Platforms** | Windows 10/11 (needs Python 3.11+ for the installer, 3.10+ for the portable zip), macOS 13+ (Apple Silicon only), Linux AppImage | Windows 11, macOS 12+, Ubuntu 22.04+ (GNOME only) ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
 
 ---
@@ -188,7 +188,7 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 **SHA256:** `0eeb11e2aed1d962be410c1ff7113823168085bfb91ec77ec73160c183b92af2`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
-**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private embedded Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
+**No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
 **Code Signed:** Portable is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
@@ -200,7 +200,7 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
-**Auto-Update:** ✅ Built-in update checker with SHA256 verification
+**Auto-Update:** Built-in update checker (signed release feed); it opens the download page and you install the new version yourself
 
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
@@ -210,7 +210,7 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
-**Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
+**Auto-Update:** Built-in update checker (signed release feed); it opens the download page and you replace the AppImage yourself, or check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 **First launch:** On Windows, the installer downloads runtime components (Node.js, Electron, ffmpeg) into your user data directory. Electron alone is about 250 MB, so the whole Windows first launch download is several hundred MB. After an app update that needs a newer Electron, the new one is downloaded next to the current one and only switched in once it works. If the download fails or you are offline, a point update keeps the current Electron and tries again at the next launch. macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
 

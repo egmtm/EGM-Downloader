@@ -11,7 +11,7 @@ test_js_i18n_coverage.py did not catch the original because any inline
 i18nGet() counts as wired there; this pins the specific shape instead."""
 from conftest import read_source
 
-DOWNLOAD_FILES = ("templates/js/_download.html", "linux/templates/js/_download.html")
+DOWNLOAD_FILES = ("templates/js/_download.html",)
 KEYS = ("toast.stopped_keeping_one", "toast.stopped_keeping_many")
 
 

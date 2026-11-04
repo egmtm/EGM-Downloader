@@ -20,17 +20,45 @@ if (process.platform === 'win32') {
 // ── Portable mode: redirect Electron userData into the portable folder ─────────
 // Must be called BEFORE app ready — Chromium locks userData path on startup.
 // Prevents localStorage/theme state leaking to %APPDATA% in portable builds.
+// Everything the user owns sits in <root>\data, the folder app.py already uses, so copying
+// that one folder when updating carries it all over. Earlier versions kept Electron's data in
+// <root>\electron-data: it is moved in on the first start, and used where it is if it cannot be.
 const _portableMarker = path.join(__dirname, '..', '.portable');
-if (fs.existsSync(_portableMarker)) {
-  // Anchor to the install folder (parent of electron/), NOT process.cwd().
-  // cwd depends on how the process was launched and is not guaranteed to be the
-  // portable root; using __dirname makes this deterministic and keeps the path
-  // in sync with launch.py's portable hide-list (which hides <root>/electron-data).
-  app.setPath('userData', path.join(__dirname, '..', 'electron-data'));
+const _isPortable = fs.existsSync(_portableMarker);
+// Anchor to the install folder (parent of electron/), NOT process.cwd().
+// cwd depends on how the process was launched and is not guaranteed to be the
+// portable root; using __dirname makes this deterministic.
+const _dataRoot = _isPortable ? path.join(__dirname, '..', 'data') : path.join(__dirname, '..');
+if (_isPortable) {
+  const _oldUserData = path.join(__dirname, '..', 'electron-data');
+  let _userData = path.join(_dataRoot, 'electron-data');
+  try {
+    fs.mkdirSync(_dataRoot, { recursive: true });
+    if (fs.existsSync(_oldUserData) && !fs.existsSync(_userData)) fs.renameSync(_oldUserData, _userData);
+  } catch {
+    if (fs.existsSync(_oldUserData)) _userData = _oldUserData;
+  }
+  app.setPath('userData', _userData);
 }
 
-// ── Settings file (same location as app.py BASE_DIR) ─────────────────────────
-const SETTINGS_FILE = path.join(__dirname, '..', 'egm_settings.json');
+// ── Settings file (same location as app.py's: BASE_DIR, or the data folder in portable) ──
+const SETTINGS_FILE = path.join(_dataRoot, 'egm_settings.json');
+// Portable, one time: earlier versions kept the window position in a root egm_settings.json.
+if (_isPortable) {
+  try {
+    const _oldSettings = path.join(__dirname, '..', 'egm_settings.json');
+    if (fs.existsSync(_oldSettings)) {
+      const _old = JSON.parse(fs.readFileSync(_oldSettings, 'utf8'));
+      const _now = loadSettings();
+      const _patch = {};
+      for (const k of ['window_bounds', 'window_maximized']) {
+        if (_old[k] !== undefined && _now[k] === undefined) _patch[k] = _old[k];
+      }
+      if (Object.keys(_patch).length) saveSettings(_patch);
+      fs.unlinkSync(_oldSettings);
+    }
+  } catch {}
+}
 
 // ── Window hardening: route external links to default browser, block navigation ─
 function hardenWindow(win) {
@@ -73,7 +101,9 @@ function loadSettings() {
 // Atomic JSON write (tmp + rename) — mirrors app.py's atomic settings writes so a
 // kill mid-write can't leave a truncated/corrupt egm_settings.json.
 function atomicWriteJson(file, data) {
-  const tmp = `${file}.tmp`;
+  // Not `${file}.tmp`: the backend writes the same settings file through that name, and two
+  // writers sharing one temporary file can rename the other's half written copy into place.
+  const tmp = `${file}.${process.pid}.tmp`;
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
   fs.renameSync(tmp, file);
 }
@@ -273,11 +303,18 @@ async function startFlask() {
 
   splashProgress(55, 9);   // backend process started
 
-  flaskProc.on('exit', (code) => {
-    if (code !== 0 && code !== null && !app.isQuitting) {
+  flaskProc.on('exit', (code, signal) => {
+    // It is gone: before-quit must not try to stop this PID later (it may belong to another
+    // program by then). Any exit while the app is not quitting is a crash, also one by a
+    // signal (code null, e.g. killed for memory) and a clean code 0 nobody asked for.
+    flaskProc = null;
+    if (!app.isQuitting) {
       app.isQuitting = true;
-      dialog.showErrorBox('EGM Downloader — Backend crashed',
-        `The backend stopped unexpectedly (code ${code}).\n\nPlease restart the app.`);
+      // The splash is always on top, so a box opened under it can't be reached: drop it first.
+      if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }
+      dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
+        ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
+        : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
       app.quit();
     }
   });
@@ -301,14 +338,21 @@ function waitForFlask(budgetMs = 180000, delay = 250) {
   return new Promise((resolve, reject) => {
     const deadline = Date.now() + budgetMs;
     const try_ = () => {
-      const req = http.get(APP_URL, res => { res.resume(); resolve(); });
-      req.on('error', () => {
+      const retry = () => {
         if (Date.now() >= deadline) {
           reject(new Error('The backend did not start within 3 minutes.\n\nTry launching the app again.'));
           return;
         }
         setTimeout(try_, delay);
+      };
+      // Only this run's backend answers 200 here: it knows the per-run token. Another program on
+      // the port, or a backend left over from an earlier run, must not be loaded into this window
+      // (with the preload, its page would pass the sender check, which compares the origin only).
+      const req = http.get(APP_URL + '/api/settings', { headers: { 'X-EGM-Token': EGM_TOKEN } }, res => {
+        res.resume();
+        if (res.statusCode === 200) resolve(); else retry();
       });
+      req.on('error', retry);
       req.setTimeout(900, () => { req.destroy(); });
     };
     try_();
@@ -461,6 +505,8 @@ ipcMain.handle('launch-installer', async (event, installerPath) => {
     // allowed. Resolve BOTH sides so normalization can't cause a false mismatch.
     if (path.resolve(installerPath) !== path.resolve(EXPECTED_INSTALLER)) return { error: 'Unexpected installer path' };
     if (!fs.existsSync(installerPath)) return { error: 'Installer not found: ' + installerPath };
+    // The installer closes the app: ask about Subscriptions downloads before it starts, not after.
+    if (!subsDownloadsAllowQuit()) return { cancelled: true };
     // Spawn installer detached so it outlives Electron
     // spawn is already imported at the top of this file
     const child = spawn(installerPath, [], {
@@ -494,6 +540,9 @@ ipcMain.handle('quit-app', (event, opts) => {
   // relaunch if the launcher isn't found: the app still reopens and the marker
   // persists, so the reinstall applies on the next manual launch.
   if (opts && opts.relaunch) {
+    // A queued relaunch cannot be taken back: ask about Subscriptions downloads before queueing it,
+    // not only in before-quit, where "Keep open" would leave it waiting to fire at the next quit.
+    if (!subsDownloadsAllowQuit()) return { cancelled: true };
     try {
       const launcher = path.join(__dirname, '..', 'EGM Downloader.exe');
       if (fs.existsSync(launcher)) app.relaunch({ execPath: launcher });
@@ -772,6 +821,35 @@ function saveSubsBounds(win) {
   try { fs.writeFileSync(SUBS_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
 }
 
+// Asked when the Subscriptions window is closed, and before a quit shuts the backend down: a quit
+// the user then refuses ("Keep open") must find the backend and its downloads still running.
+function confirmCloseWithDownloads(parent) {
+  return dialog.showMessageBoxSync(parent, {
+    type: 'warning',
+    buttons: ['Close anyway', 'Keep open'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+    title: 'Downloads in progress',
+    message: 'Downloads are still in progress.',
+    detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
+  }) === 0;
+}
+
+// Asked once per quit, while the backend still runs: true when the quit may go on. Nothing is asked
+// when the backend is already gone (a crash quits the app, and "Keep open" would only leave a window
+// on nothing).
+function subsDownloadsAllowQuit() {
+  if (!flaskProc || !subsWindow || subsWindow.isDestroyed() || !subsActiveDownloads || subsForceClose) return true;
+  // A modal question on a minimized window can stay out of sight while it holds up the whole app.
+  if (subsWindow.isMinimized()) subsWindow.restore();
+  subsWindow.show();
+  subsWindow.focus();
+  if (!confirmCloseWithDownloads(subsWindow)) return false;
+  subsForceClose = true;       // the window's own close handler must not ask a second time
+  return true;
+}
+
 ipcMain.handle('open-subscriptions-window', async (event) => {
   if (!isTrustedSender(event)) return;
   if (subsWindow && !subsWindow.isDestroyed()) { subsWindow.focus(); return; }
@@ -797,17 +875,7 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     // renderer's "Back to app" → close-subscriptions) and confirm natively.
     if (subsForceClose || !subsActiveDownloads) return;
     e.preventDefault();
-    const choice = dialog.showMessageBoxSync(subsWindow, {
-      type: 'warning',
-      buttons: ['Close anyway', 'Keep open'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-      title: 'Downloads in progress',
-      message: 'Downloads are still in progress.',
-      detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
-    });
-    if (choice === 0) { subsForceClose = true; subsWindow.close(); }
+    if (confirmCloseWithDownloads(subsWindow)) { subsForceClose = true; subsWindow.close(); }
   });
   // Teardown order matters: the activity slot is dropped and the reference
   // cleared BEFORE re-aggregating, so the per-window shell loop never
@@ -1137,7 +1205,14 @@ app.on('window-all-closed', () => {
 });
 
 // Single cleanup point for every quit path (X button, tray Quit, crash)
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
+  // Ask first, while the backend still runs: "Keep open" has to leave the app and its downloads as
+  // they were. (Asking after the shutdown request left a window on a dead backend.)
+  if (!subsDownloadsAllowQuit()) {
+    event.preventDefault();
+    app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
+    return;
+  }
   app.isQuitting = true;
   // OS-level power save blockers are released on process death regardless,
   // but stop it explicitly here too -- same "single cleanup point" spirit

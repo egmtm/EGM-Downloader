@@ -77,7 +77,7 @@ def test_powersaveblocker_explicitly_released_on_quit():
     for p in MAIN_JS:
         src = read_source(p)
         i = src.index("app.on('before-quit'")
-        block = src[i:i + 400]
+        block = src[i:src.index("\n});", i)]     # the whole handler, however long it grows
         assert "powerSaveBlocker.stop(_psbId)" in block, (
             f"{p}: before-quit must explicitly release the power save "
             f"blocker, not rely solely on implicit OS cleanup"

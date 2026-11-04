@@ -249,6 +249,15 @@ def _verify_host_header():
             _sec_event(f"Token mismatch on {request.path}")
             abort(403)
 
+@app.before_request
+def _reject_non_object_json():
+    """Every route reads its JSON body as an object (data.get). A list, a number or a string
+    used to raise inside the route and answer 500; it is a bad request."""
+    if request.method in ("POST", "PUT", "PATCH", "DELETE") and request.is_json:
+        body = request.get_json(silent=True)
+        if body is not None and not isinstance(body, dict):
+            return jsonify({"error": "The request body must be a JSON object"}), 400
+
 @app.after_request
 def _no_cache_html(response):
     """Prevent Electron's Chromium from serving stale templates after app updates.
@@ -557,12 +566,29 @@ _HISTORY_MAX  = 500  # soft cap on stored entries
 THUMBNAILS_DIR = get_data_dir() / "thumbnails"
 THUMBNAILS_DIR.mkdir(exist_ok=True)
 
+def _keep_unreadable_copy(path):
+    """A data file that cannot be read as expected is treated as empty and replaced at the next
+    save. Keep a copy first (once) so a hand edit or a damaged file can still be recovered."""
+    try:
+        backup = path.with_name(path.name + ".unreadable")
+        if path.exists() and not backup.exists():
+            shutil.copy2(path, backup)
+            _egm_log(f"{path.name} could not be read; a copy was kept as {backup.name}")
+    except Exception:
+        pass
+
 def _load_history() -> list:
     try:
         if HISTORY_FILE.exists():
-            return json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+            data = json.loads(HISTORY_FILE.read_text(encoding="utf-8"))
+            if isinstance(data, list):
+                items = [i for i in data if isinstance(i, dict)]
+                if len(items) != len(data):
+                    _keep_unreadable_copy(HISTORY_FILE)
+                return items
+            _keep_unreadable_copy(HISTORY_FILE)
     except Exception:
-        pass
+        _keep_unreadable_copy(HISTORY_FILE)
     return []
 
 def _save_history(items: list):
@@ -593,6 +619,11 @@ def _is_internal_host(host: str) -> bool:
                 or ip.is_reserved or ip.is_multicast or ip.is_unspecified):
             return True
     return False
+
+def _text(value, default=""):
+    """A request field that must be text. Anything else (a number, a list, null) reads as the
+    default, so a wrong type gets the route's normal 400 instead of a 500."""
+    return value if isinstance(value, str) else default
 
 def _clamp_int(value, default, lo, hi):
     """Parse value to int and clamp to [lo, hi]; return default on bad/empty input.
@@ -691,15 +722,29 @@ def _load_settings() -> dict:
     global _settings_cache
     with _settings_lock:
         if not _settings_cache:
-            try:
-                _settings_cache = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
-            except Exception:
-                _settings_cache = {}
+            _settings_cache = _read_settings_file()
         return dict(_settings_cache)
 
+def _read_settings_file() -> dict:
+    try:
+        if not SETTINGS_FILE.exists():
+            return {}
+        data = json.loads(SETTINGS_FILE.read_text(encoding="utf-8"))
+        if isinstance(data, dict):
+            return data
+    except Exception:
+        pass
+    _keep_unreadable_copy(SETTINGS_FILE)
+    return {}
+
 def _save_settings(data: dict):
+    global _settings_cache
     with _settings_lock:
         try:
+            if not _settings_cache:
+                # Not read yet (or empty): read it now, or this save would write only the new
+                # keys and drop every other setting in the file.
+                _settings_cache = _read_settings_file()
             _settings_cache.update(data)
             _atomic_write_text(SETTINGS_FILE, json.dumps(_settings_cache, indent=2), owner_only=True)
         except Exception as e:
@@ -718,9 +763,16 @@ def _load_subscriptions_unlocked() -> list:
     global _subs_cache
     if _subs_cache is None:
         try:
-            data = json.loads(SUBS_FILE.read_text(encoding="utf-8"))
-            _subs_cache = data.get("subscriptions", []) if isinstance(data, dict) else []
+            data = json.loads(SUBS_FILE.read_text(encoding="utf-8")) if SUBS_FILE.exists() else {}
+            subs = data.get("subscriptions", []) if isinstance(data, dict) else None
+            if not isinstance(subs, list):
+                _keep_unreadable_copy(SUBS_FILE)
+                subs = []
+            _subs_cache = [s for s in subs if isinstance(s, dict)]
+            if len(_subs_cache) != len(subs):
+                _keep_unreadable_copy(SUBS_FILE)
         except Exception:
+            _keep_unreadable_copy(SUBS_FILE)
             _subs_cache = []
         # Backfill defaults for records written before a field existed -- .get(key,
         # default) at read time, same spirit as _load_settings()'s per-key defaults,
@@ -909,6 +961,7 @@ DENO_ZIP_URL = ("https://github.com/denoland/deno/releases/latest/download/"
                 "deno-x86_64-pc-windows-msvc.zip")
 
 def ensure_ffmpeg():
+    shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)   # left by a run that was killed
     if (FFMPEG_DIR / "ffmpeg.exe").exists() and (FFMPEG_DIR / "ffprobe.exe").exists():
         _egm_log("ffmpeg ready.")
         return True
@@ -925,6 +978,7 @@ def ensure_ffmpeg():
         if not ok:
             tmp.unlink(missing_ok=True)
             return
+        stage = _ffmpeg_stage()
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
                 # Zip slip guard: skip any entry with path traversal or absolute path
@@ -932,8 +986,9 @@ def ensure_ffmpeg():
                     continue
                 fn = Path(m).name
                 if fn in ("ffmpeg.exe", "ffprobe.exe"):
-                    with z.open(m) as src, open(FFMPEG_DIR / fn, "wb") as dst:
+                    with z.open(m) as src, open(stage / fn, "wb") as dst:
                         shutil.copyfileobj(src, dst)
+        _place_ffmpeg(stage)
         tmp.unlink(missing_ok=True)
         try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
         except Exception: pass
@@ -943,7 +998,22 @@ def ensure_ffmpeg():
         _egm_log(f"ffmpeg download failed: {e}")
         try: tmp.unlink(missing_ok=True)
         except Exception: pass
+        shutil.rmtree(FFMPEG_DIR / "_staging", ignore_errors=True)
         return False
+
+def _ffmpeg_stage():
+    """An empty folder inside ffmpeg_bin to unpack into. ffmpeg and ffprobe move to their final
+    names only once both are complete (_place_ffmpeg), so a failure part way (a full disk, a
+    kill) never leaves a half written binary that the next start takes as installed."""
+    stage = FFMPEG_DIR / "_staging"
+    shutil.rmtree(stage, ignore_errors=True)
+    stage.mkdir(parents=True, exist_ok=True)
+    return stage
+
+def _place_ffmpeg(stage):
+    for f in sorted(stage.iterdir()):
+        os.replace(f, FFMPEG_DIR / f.name)
+    shutil.rmtree(stage, ignore_errors=True)
 
 def _ffmpeg_args():
     return ["--ffmpeg-location", str(FFMPEG_DIR)]
@@ -1085,6 +1155,10 @@ def _validate_download_dir(dl_dir):
 
 def _safe_filename(title: str, ext: str) -> str:
     safe = "".join(c for c in title if c not in r'\/:\*?"<>|').strip()[:120].strip()
+    # 120 characters can be far more than the 255 bytes a Linux or Mac file name may hold (three
+    # bytes a character in Japanese or Chinese, four for an emoji): cut by bytes too, on a
+    # character boundary, leaving room for " (n)" and the extension.
+    safe = safe.encode("utf-8")[:200].decode("utf-8", "ignore").strip()
     return f"{safe}{ext}" if safe else f"download{ext}"
 
 def _build_formats(info):
@@ -1126,6 +1200,18 @@ def _build_audio_formats(info):
         audio.append({"id": f["format_id"], "label": f"{int(abr)}kbps" if abr else "unknown", "abr": abr})
     return sorted(audio, key=lambda x: x["abr"], reverse=True)
 
+# ── First-run ffmpeg setup: remember how it ended ─────────────────────────────
+# A download that starts before ffmpeg is in place waits for it. When the setup thread has ended
+# and ffmpeg is still not there (offline, a failed checksum), waiting cannot help: it only runs at
+# start. The waiting downloads then end at once, with a message that says what to do.
+_ffmpeg_first_run = {"finished": False}
+
+def _setup_ffmpeg_at_start():
+    try:
+        ensure_ffmpeg()
+    finally:
+        _ffmpeg_first_run["finished"] = True
+
 # ── Download worker ────────────────────────────────────────────────────────────
 def _run_download_slot(job_id, *rest):
     """Hold a concurrency slot for the whole download and wait out first-run ffmpeg.
@@ -1147,13 +1233,31 @@ def _run_download_slot(job_id, *rest):
                 if job.get("cancelled"):
                     job["status"] = "cancelled"; job["_finished_at"] = time.time()
                     return
+                if _ffmpeg_first_run["finished"] and not ff.exists():
+                    job["status"] = "error"
+                    job["error"]  = "ffmpeg could not be downloaded. Check your internet connection and restart the app, or reinstall ffmpeg from Advanced → Plugins."
+                    job["error_code"] = "ffmpeg_failed"
+                    job["_finished_at"] = time.time()
+                    return
                 time.sleep(1); waited += 1
             if not ff.exists():
                 job["status"] = "error"
-                job["error"]  = "ffmpeg is still installing (first-run setup). Please try again in a moment."
+                job["error"]  = "ffmpeg is still being set up. Please try again in a moment."
+                job["error_code"] = "ffmpeg_installing"
                 job["_finished_at"] = time.time()
                 return
-        run_download(job_id, *rest)
+        try:
+            run_download(job_id, *rest)
+        except Exception as e:
+            # Anything raised before run_download's own error handling used to end this thread
+            # with the job still "queued": Cancel could not end it and it never left the list.
+            _egm_log(f"download worker failed: {type(e).__name__}: {e}")
+            if job.get("proc"):
+                _kill_proc(job["proc"])
+            if job.get("status") not in ("done", "error", "cancelled"):
+                job["status"] = "cancelled" if job.get("cancelled") else "error"
+                job.setdefault("error", f"The download could not start ({type(e).__name__}). Please try again.")
+                job["_finished_at"] = time.time()
     finally:
         _download_sem.release()
 
@@ -1274,6 +1378,8 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
     duration_s = _media_duration_s(ffprobe, in_path) if ffprobe else None
     try:
         for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
+            if job.get("cancelled"):      # pressed while ffprobe or the previous attempt ran
+                return False
             job["encoder"] = attempt   # surfaced in the converting badge
             cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
             if vf:
@@ -1343,13 +1449,17 @@ def _ensure_h264(job_id, path, job):
         tmp = f"{path}.h264.mp4"
         if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0", ffprobe=ffprobe):
             try:
-                os.remove(path); os.rename(tmp, path)
+                # One step: the original stays until the converted copy takes its place, so a
+                # failure here (a scanner holding the new file) keeps the download.
+                os.replace(tmp, path)
             except OSError:
                 try: os.remove(tmp)
                 except OSError: pass
             return path
         try: os.remove(tmp)
         except OSError: pass
+        if job.get("cancelled"):
+            return path
         job["warning"] = "The H.264 conversion failed, so the video was saved in its original codec."
         job["warning_key"] = "download.warning.source_codec"
         return path
@@ -1679,9 +1789,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 _fname = _safe_filename(_title, _ext) if _title else os.path.basename(_main_file)
                 _fpath = out_dir / _fname
                 _stem, _n = Path(_fname).stem, 1
-                while _fpath.exists() and str(_fpath) != _main_file:
-                    _fpath = out_dir / f"{_stem} ({_n}){_ext}"; _n += 1
-                try: os.rename(_main_file, _fpath)
+                try:
+                    while _fpath.exists() and str(_fpath) != _main_file:
+                        _fpath = out_dir / f"{_stem} ({_n}){_ext}"; _n += 1
+                    os.rename(_main_file, _fpath)
                 except OSError: _fpath = Path(_main_file)
                 job["file"]        = str(_fpath)
                 job["filename"]    = _fpath.name
@@ -1739,6 +1850,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # available" has no target). Runs after the H.264 pass; adds at most one
         # extra encode, and only when the user opted in and the source is small.
         if (format_choice != "audio" and video_height and int(video_height or 0) != 0
+                and not job.get("cancelled")
                 and _load_settings().get("upscale_to_quality", False)
                 and str(chosen).lower().endswith(".mp4")):
             chosen = _upscale_to_preset(job_id, chosen, job, video_height)
@@ -1756,9 +1868,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         final_name = _safe_filename(title, ext) if title else os.path.basename(chosen)
         final_path = out_dir / final_name
         stem, n    = Path(final_name).stem, 1
-        while final_path.exists() and str(final_path) != chosen:
-            final_path = out_dir / f"{stem} ({n}){ext}"; n += 1
-        try: os.rename(chosen, final_path)
+        try:
+            while final_path.exists() and str(final_path) != chosen:
+                final_path = out_dir / f"{stem} ({n}){ext}"; n += 1
+            os.rename(chosen, final_path)
         except OSError: final_path = Path(chosen)
 
         # Safety net — clean up any leftover subtitle temp files yt-dlp didn't remove after --embed-subs
@@ -2118,12 +2231,13 @@ def _live_keep_parts(job, job_id, out_dir, segs):
     """The pieces could not be joined: keep every later piece as its own file next to the
     first one ("<title> (part 2).mp4") instead of deleting recorded video."""
     title = (job.get("title") or "").strip() or job_id
+    stem = _safe_filename(title, "")   # cut the title first: " (part n)" must not be cut off with its end
     for n, p in enumerate(segs[1:], 2):
         ext = Path(p).suffix
-        dst, k = Path(out_dir) / _safe_filename(f"{title} (part {n})", ext), 1
-        while dst.exists():
-            dst = Path(out_dir) / _safe_filename(f"{title} (part {n}) ({k})", ext); k += 1
+        dst, k = Path(out_dir) / f"{stem} (part {n}){ext}", 1
         try:
+            while dst.exists():
+                dst = Path(out_dir) / f"{stem} (part {n}) ({k}){ext}"; k += 1
             os.replace(p, dst)
             job.setdefault("_live_parts", []).append(str(dst))   # Cancel during the finish step removes them too
         except OSError: pass
@@ -2296,7 +2410,7 @@ def index():
 @app.route("/api/info", methods=["POST"])
 def get_info():
     data = request.get_json(silent=True) or {}
-    url  = data.get("url", "").strip()
+    url  = _text(data.get("url")).strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported",
@@ -2335,7 +2449,7 @@ def _video_key(e):
 @app.route("/api/playlist", methods=["POST"])
 def get_playlist():
     data = request.get_json(silent=True) or {}
-    url  = data.get("url", "").strip()
+    url  = _text(data.get("url")).strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
@@ -2365,7 +2479,7 @@ def get_playlist():
 @app.route("/api/download", methods=["POST"])
 def start_download():
     data = request.get_json(silent=True) or {}
-    url  = data.get("url","").strip()
+    url  = _text(data.get("url")).strip()
     if not url: return jsonify({"error": "No URL provided"}), 400
     if not url.lower().startswith(("http://", "https://")):
         return jsonify({"error": "Only http and https URLs are supported"}), 400
@@ -2378,12 +2492,12 @@ def start_download():
     dl_dir = resolved_dir
 
     # #13 — format_id validation: only safe yt-dlp selector characters allowed
-    raw_format_id = data.get("format_id") or ""
+    raw_format_id = _text(data.get("format_id"))
     if raw_format_id and not _re.fullmatch(r'[A-Za-z0-9_+\-]+', raw_format_id):
         return jsonify({"error": "Invalid format_id"}), 400
 
     # #12 — bitrate validation: extract bitrate from m4a_NNN / opus_NNN and range-check
-    audio_quality = data.get("audio_quality") or "320"
+    audio_quality = _text(data.get("audio_quality")) or "320"
     if audio_quality.startswith(("m4a_", "opus_")):
         _bitrate_str = audio_quality.split("_", 1)[1]
         if not (_bitrate_str.isdigit() and 32 <= int(_bitrate_str) <= 320):
@@ -2399,10 +2513,10 @@ def start_download():
                         "live": bool(data.get("is_live"))}
     threading.Thread(target=_run_download_slot,
                      args=(job_id, url, data.get("format","video"),
-                           data.get("format_id") or None, dl_dir,
+                           raw_format_id or None, dl_dir,
                            data.get("audio_codec") or "",
                            _clamp_int(data.get("concurrent_fragments"), 1, 1, 16),
-                           data.get("audio_quality") or "320",
+                           audio_quality,
                            (int(data.get("video_height")) if str(data.get("video_height","")) in ("360","480","720","1080","1440","2160","4320") else None),
                            bool(data.get("subtitles", False)),
                            bool(data.get("embed_metadata", True)),
@@ -2572,15 +2686,61 @@ def save_settings():
         data["sponsorblock_enabled"] = bool(data["sponsorblock_enabled"])
     if "sponsorblock_categories" in data:
         data["sponsorblock_categories"] = _clean_sponsorblock_categories(data["sponsorblock_categories"])
+    _clean_setting_types(data)
     _save_settings({k: v for k, v in data.items() if k in ALLOWED})
     return jsonify({"ok": True})
+
+_SETTING_FLAGS = ("settings_open", "upd_open", "ck_open", "quit_on_done", "window_maximized",
+                  "check_updates_on_launch", "subtitles", "embed_metadata")
+_SETTING_CHOICES = {
+    "output_format":        ("mp4_h264", "mp4", "mkv"),
+    "default_audio_format": ("320", "192", "128", "flac", "m4a_256", "opus_192", "opus_128"),
+    "yt_dlp_channel":       ("stable", "nightly"),
+    "ffmpeg_channel":       ("stable", "nightly"),
+    "random_theme_scope":   ("favorites", "all"),
+}
+_SETTING_WORDS = {"theme": r"[a-z0-9-]{1,64}", "default_video_format": r"[A-Za-z0-9_.+-]{1,32}",
+                  "last_seen_version": r"[0-9][0-9.]{0,31}"}
+
+def _clean_setting_types(data):
+    """The settings route also stores whole imported settings files, which can come from
+    anyone: keep each key only with the type and values the page itself writes."""
+    for k in _SETTING_FLAGS:
+        if k in data:
+            data[k] = bool(data[k])
+    for k, hi in (("concurrency", 20), ("fragments", 16)):
+        if k in data:
+            v = data[k]
+            n = None if isinstance(v, bool) else _clamp_int(v, None, 1, hi)
+            if n is None:
+                data.pop(k)
+            else:
+                data[k] = n
+    for k, choices in _SETTING_CHOICES.items():
+        if k in data and not (isinstance(data[k], str) and data[k] in choices):
+            data.pop(k)
+    for k, pattern in _SETTING_WORDS.items():
+        if k in data and not (isinstance(data[k], str) and _re.fullmatch(pattern, data[k])):
+            data.pop(k)
+    if "window_bounds" in data:
+        b = data["window_bounds"]
+        ok = isinstance(b, dict) and set(b) == {"x", "y", "width", "height"} and all(
+            isinstance(v, (int, float)) and not isinstance(v, bool) and abs(v) < 100000 for v in b.values())
+        if ok:
+            data["window_bounds"] = {k: int(v) for k, v in b.items()}
+        else:
+            data.pop("window_bounds")
 
 @app.route("/api/open-folder", methods=["POST"])
 def open_folder():
     data   = request.get_json(silent=True) or {}
     folder = data.get("folder", _get_last_folder() or str(Path.home()))
-    path   = Path(folder)
-    if not path.exists() or not path.is_dir():
+    try:
+        path = Path(folder) if isinstance(folder, str) and folder else None
+        found = path is not None and path.is_dir()
+    except (OSError, ValueError):   # a name too long for the system, a null character
+        found = False
+    if not found:
         return jsonify({"error": "Folder not found"}), 400
     try:
         if sys.platform == "win32": os.startfile(str(path))
@@ -2592,7 +2752,7 @@ def open_folder():
 @app.route("/api/rename", methods=["POST"])
 def rename_file():
     data = request.get_json(silent=True) or {}
-    job_id, new_name = data.get("job_id","").strip(), data.get("name","").strip()
+    job_id, new_name = _text(data.get("job_id")).strip(), _text(data.get("name")).strip()
     if not job_id or not new_name: return jsonify({"error": "job_id and name required"}), 400
     job = jobs.get(job_id)
     if not job or job.get("status") != "done": return jsonify({"error": "Not complete"}), 404
@@ -2608,6 +2768,7 @@ def rename_file():
         old_path.rename(new_path)
         job["file"] = str(new_path); job["filename"] = new_path.name
         return jsonify({"success": True, "filename": new_path.name})
+    except ValueError as e: return jsonify({"error": str(e)}), 400   # e.g. a null character in the name
     except Exception as e: return jsonify({"error": str(e)}), 500
 
 # ── Update system ──────────────────────────────────────────────────────────────
@@ -2753,6 +2914,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
     def log(m): _egm_log(f"{m}"); update_status["log"].append(m)
+    failed = []   # parts that did not install: the run then ends with an error, not "done"
     try:
         if do_ytdlp:
             channel = _load_settings().get("yt_dlp_channel", "stable")
@@ -2779,6 +2941,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"yt-dlp update failed: {err}")
+                failed.append("yt-dlp")
         if do_ffmpeg:
             log("Downloading latest ffmpeg...")
             FFMPEG_DIR.mkdir(exist_ok=True)
@@ -2795,15 +2958,20 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
                 update_status["done"]  = True
                 return
             log("Extracting...")
-            with zipfile.ZipFile(tmp, "r") as z:
-                for m in z.namelist():
-                    if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
-                        continue
-                    fn = Path(m).name
-                    if fn in ("ffmpeg.exe","ffprobe.exe"):
-                        with z.open(m) as src, open(FFMPEG_DIR/fn,"wb") as dst:
-                            shutil.copyfileobj(src, dst)
-            tmp.unlink(missing_ok=True)
+            stage = _ffmpeg_stage()
+            try:
+                with zipfile.ZipFile(tmp, "r") as z:
+                    for m in z.namelist():
+                        if ".." in m.replace("\\", "/").split("/") or m.startswith(("/", "\\")):
+                            continue
+                        fn = Path(m).name
+                        if fn in ("ffmpeg.exe","ffprobe.exe"):
+                            with z.open(m) as src, open(stage/fn,"wb") as dst:
+                                shutil.copyfileobj(src, dst)
+                _place_ffmpeg(stage)
+            finally:
+                shutil.rmtree(stage, ignore_errors=True)
+                tmp.unlink(missing_ok=True)
             try: FFMPEG_TAG_FILE.write_text(_get_latest_ffmpeg_tag() + " · " + _load_settings().get("ffmpeg_channel", "stable"))
             except Exception: pass
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
@@ -2816,6 +2984,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"mutagen update failed: {err}")
+                failed.append("mutagen")
         if do_optlibs:
             log("Updating optional libraries...")
             r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
@@ -2827,8 +2996,12 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"optional libs update failed: {err}")
-        log("All done.")
-        update_status["done"] = True
+                failed.append("optional libraries")
+        if failed:
+            update_status["error"] = "Update failed: " + ", ".join(failed)
+        else:
+            log("All done.")
+            update_status["done"] = True
     except Exception as e:
         log(f"Error: {e}"); update_status["error"] = str(e)
     finally:
@@ -2908,7 +3081,7 @@ def cookies_status():
 @app.route("/api/cookies/save", methods=["POST"])
 def cookies_save():
     data = request.get_json(silent=True) or {}
-    text = data.get("content", "").strip()
+    text = _text(data.get("content")).strip()
     if not text:
         return jsonify({"error": "No content provided"}), 400
     if len(text) > 1 * 1024 * 1024:  # 1 MB cap for cookies content
@@ -3189,8 +3362,8 @@ def download_update():
     if PORTABLE_MODE:
         return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps."}), 400
     data    = request.get_json(silent=True) or {}
-    zip_url = data.get("zip_url", APP_UPDATE_ZIP_URL).strip()
-    expected_checksum = data.get("expected_checksum", "").strip().lower()
+    zip_url = _text(data.get("zip_url", APP_UPDATE_ZIP_URL)).strip()
+    expected_checksum = _text(data.get("expected_checksum")).strip().lower()
     if not zip_url:
         return jsonify({"error": "No zip URL provided"}), 400
     if not expected_checksum:
@@ -3237,11 +3410,13 @@ def download_update():
 @app.route("/api/settings/reset", methods=["POST"])
 def settings_reset():
     """Reset all settings to defaults — keeps downloads and history."""
+    global _settings_cache
     try:
-        _atomic_write_text(SETTINGS_FILE, "{}", owner_only=True)
-        global _settings_cache
         with _settings_lock:
+            _atomic_write_text(SETTINGS_FILE, "{}", owner_only=True)
             _settings_cache = {}
+            try: SETTINGS_FILE.with_name(SETTINGS_FILE.name + ".unreadable").unlink(missing_ok=True)   # the kept copy of a damaged file goes too
+            except Exception: pass
         return jsonify({"ok": True})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -3336,6 +3511,8 @@ def delete_history_entry(entry_id):
 def clear_history():
     with _history_lock:
         _save_history([])
+        try: HISTORY_FILE.with_name(HISTORY_FILE.name + ".unreadable").unlink(missing_ok=True)   # the kept copy of a damaged file goes too
+        except Exception: pass
     # Clear all thumbnails
     try:
         for f in THUMBNAILS_DIR.iterdir():
@@ -3360,6 +3537,31 @@ def serve_thumbnail(filename):
     resp.headers["Cache-Control"] = "max-age=86400"
     return resp
 
+_HISTORY_TEXT_FIELDS = ("url", "title", "filename", "download_dir", "file_path", "completed_at")
+
+def _clean_history_entry(item):
+    """One imported history entry, reduced to what _append_history writes. An imported file
+    can come from anyone, and these fields are shown in the page and the thumbnail name is
+    used as a file name, so a wrong type or a markup or path value is dropped here."""
+    if not isinstance(item, dict):
+        return None
+    eid = item.get("id")
+    if not isinstance(eid, str) or not _re.fullmatch(r"[A-Za-z0-9_-]{1,64}", eid):
+        return None
+    out = {"id": eid}
+    for k in _HISTORY_TEXT_FIELDS:
+        if isinstance(item.get(k), str):
+            out[k] = item[k][:4096]
+    fmt = item.get("format")
+    if isinstance(fmt, str) and _re.fullmatch(r"[a-z0-9]{1,16}", fmt):
+        out["format"] = fmt
+    size = item.get("size_bytes")
+    if isinstance(size, int) and not isinstance(size, bool) and size >= 0:
+        out["size_bytes"] = size
+    thumb = item.get("thumbnail")
+    out["thumbnail"] = thumb if isinstance(thumb, str) and _re.match(r'^[a-f0-9\-]+\.(jpg|png|webp)$', thumb) else ""
+    return out
+
 @app.route("/api/history/import", methods=["POST"])
 def import_history():
     """Replace history with the provided list. Used by Import Settings flow."""
@@ -3368,7 +3570,7 @@ def import_history():
     if not isinstance(items, list):
         return jsonify({"error": "items must be a list"}), 400
     # Light validation — keep only entries with the expected shape
-    cleaned = [i for i in items if isinstance(i, dict) and "id" in i]
+    cleaned = [c for c in (_clean_history_entry(i) for i in items) if c]
     with _history_lock:
         _save_history(cleaned)
     return jsonify({"ok": True, "count": len(cleaned)})
@@ -3419,11 +3621,11 @@ def get_subscriptions():
 @app.route("/api/subscriptions/add", methods=["POST"])
 def add_subscription():
     data = request.get_json(silent=True) or {}
-    url = (data.get("url") or "").strip()
+    url = _text(data.get("url")).strip()
     if not url or not url.startswith(("http://", "https://")):
         return jsonify({"error": "Valid HTTP(S) URL is required"}), 400
 
-    name = (data.get("name") or "")[:200].strip()
+    name = _text(data.get("name"))[:200].strip()
 
     sub = {
         "id": str(uuid.uuid4()),
@@ -3460,7 +3662,7 @@ def add_subscription():
 @app.route("/api/subscriptions/remove", methods=["POST"])
 def remove_subscription():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
@@ -3476,7 +3678,7 @@ def remove_subscription():
 @app.route("/api/subscriptions/update", methods=["POST"])
 def update_subscription():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
 
@@ -3505,7 +3707,7 @@ def update_subscription():
                     elif k == "format":
                         v = v if v in ("video", "audio") else "video"
                     elif k == "quality":
-                        v = v if v in _VALID_QUALITY else "best"
+                        v = v if isinstance(v, str) and v in _VALID_QUALITY else "best"
                     elif k == "auto_fetch_on_open":
                         v = bool(v)
                     elif k == "sponsorblock_enabled":
@@ -3618,6 +3820,13 @@ def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
                 for v in (sub.get("videos") or []):
                     v["is_new"] = False
                 if force:
+                    # Start from scratch (every video found again is New), but what was already
+                    # downloaded stays marked: the files are still there.
+                    done = {v.get("video_id"): v for v in (sub.get("videos") or []) if v.get("downloaded") is True}
+                    for v in fetched:
+                        o = done.get(v["video_id"])
+                        if o:
+                            v["downloaded"], v["download_path"] = True, o.get("download_path")
                     new_videos = fetched
                     sub["videos"] = list(new_videos)
                 else:
@@ -3647,7 +3856,7 @@ def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
 @app.route("/api/subscriptions/fetch", methods=["POST"])
 def fetch_subscription_videos():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     force = bool(data.get("force", False))
     if not sub_id:
         return jsonify({"error": "ID is required"}), 400
@@ -3673,7 +3882,7 @@ def fetch_subscription_videos():
 @app.route("/api/subscriptions/fetch-status", methods=["POST"])
 def fetch_subscription_status():
     data = request.get_json(silent=True) or {}
-    fetch_id = (data.get("fetch_id") or "").strip()
+    fetch_id = _text(data.get("fetch_id")).strip()
     with _subfetch_lock:
         job = _subfetch_jobs.get(fetch_id)
         if job and job.get("status") in ("done", "error"):
@@ -3719,8 +3928,8 @@ def fetch_cancel():
 @app.route("/api/subscriptions/mark-downloaded", methods=["POST"])
 def mark_downloaded():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("sub_id") or "").strip()
-    video_id = (data.get("video_id") or "").strip()
+    sub_id = _text(data.get("sub_id")).strip()
+    video_id = _text(data.get("video_id")).strip()
     if not sub_id or not video_id:
         return jsonify({"error": "sub_id and video_id required"}), 400
     downloaded = data.get("downloaded", True) is True
@@ -3745,7 +3954,7 @@ def mark_downloaded():
 def mark_all_seen():
     """Mark all videos for a subscription as seen (is_new = False)."""
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
+    sub_id = _text(data.get("id")).strip()
     if not sub_id:
         return jsonify({"error": "id required"}), 400
     def _mark(subs):
@@ -3777,8 +3986,8 @@ def reorder_subscription_absolute():
 @app.route("/api/subscriptions/reorder", methods=["POST"])
 def reorder_subscription():
     data = request.get_json(silent=True) or {}
-    sub_id = (data.get("id") or "").strip()
-    direction = (data.get("direction") or "").strip()
+    sub_id = _text(data.get("id")).strip()
+    direction = _text(data.get("direction")).strip()
     if not sub_id or direction not in ("top", "up", "down", "bottom"):
         return jsonify({"error": "id and direction (top/up/down/bottom) required"}), 400
     def _reorder(subs):
@@ -3820,6 +4029,77 @@ def shutdown():
     threading.Thread(target=_do_shutdown, daemon=True).start()
     return jsonify({"ok": True})
 
+def _exit_when_electron_is_gone():
+    """Electron starts this backend and ends it with /api/shutdown when the app quits. When Electron
+    is killed instead (a crash, End task), nothing tells this process: it runs on alone, downloads
+    keep going, it keeps the port, and the next launch finds it answering and quietly exits without
+    opening a window. Windows has no change of parent to poll for (Mac and Linux do), so wait on the
+    parent's process handle. End it the way /api/shutdown does."""
+    import ctypes
+    from ctypes import wintypes
+    SYNCHRONIZE, INFINITE, WAIT_OBJECT_0, ERROR_INVALID_PARAMETER = 0x00100000, 0xFFFFFFFF, 0, 87
+    k32 = ctypes.WinDLL("kernel32", use_last_error=True)
+    k32.OpenProcess.restype = wintypes.HANDLE
+    k32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    k32.WaitForSingleObject.restype = wintypes.DWORD
+    k32.WaitForSingleObject.argtypes = [wintypes.HANDLE, wintypes.DWORD]
+    handle = k32.OpenProcess(SYNCHRONIZE, False, os.getppid())
+    if handle:
+        if k32.WaitForSingleObject(handle, INFINITE) != WAIT_OBJECT_0:
+            return                                     # cannot wait on it: leave things as they are
+    elif ctypes.get_last_error() != ERROR_INVALID_PARAMETER:
+        return                                         # access denied and the like: cannot watch it
+    # Reached when the parent has ended (or there is no such process any more).
+    with _active_procs_lock:
+        procs = list(_active_procs.values())
+    for p in procs:
+        _kill_proc(p)
+    os._exit(0)
+
+def _probe_own_port(host, port):
+    """The HTTP status the port gives for /api/settings with this run's token: 200 from this backend.
+    None when nothing answers (yet); -1 when something answers that is not speaking HTTP. Plain
+    http.client, so no proxy setting can stand in the way."""
+    import http.client
+    try:
+        conn = http.client.HTTPConnection(host, port, timeout=2)
+        try:
+            conn.request("GET", "/api/settings", headers={"X-EGM-Token": _API_TOKEN})
+            return conn.getresponse().status
+        finally:
+            conn.close()
+    except http.client.HTTPException:
+        return -1
+    except Exception:
+        return None
+
+def _port_verdict(host, port, probes=3, pause=0.3, patience=10.0):
+    """'ours' when `probes` answers in a row are 200, 'taken' as soon as one is not, 'unknown' when
+    nothing (more) answers within `patience` seconds. Windows lets a second program listen on a port
+    that is already in use, so the bind can succeed behind it, and which of the two gets a connection
+    is not something to rely on: one good answer proves nothing. Not answering yet is never 'taken'."""
+    deadline = time.monotonic() + patience
+    good = 0
+    while good < probes:
+        status = _probe_own_port(host, port)
+        if status is None:
+            if time.monotonic() >= deadline:
+                return "unknown"
+            time.sleep(0.05)
+            continue
+        if status != 200:
+            return "taken"
+        good += 1
+        if good < probes:
+            time.sleep(pause)
+    return "ours"
+
+def _watch_own_port(host, port):
+    """End the backend with code 3, as when the bind fails on Mac and Linux, when another program
+    answers on its port; the shell then says so instead of waiting out its three minutes."""
+    if _port_verdict(host, port) == "taken":
+        os._exit(3)
+
 def _cleanup_orphan_partials(last_folder):
     """Remove this app's own *.part / *.ytdl leftovers from a crashed session.
     Only job files -- {job_id}.* or {job_id}_r2.*, job_id being 10 hex digits.
@@ -3853,7 +4133,9 @@ if __name__ == "__main__":
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
 
-    threading.Thread(target=ensure_ffmpeg, daemon=True, name="ffmpeg-setup").start()
+    if os.environ.get("EGM_ELECTRON") == "1":
+        threading.Thread(target=_exit_when_electron_is_gone, daemon=True, name="parent-watch").start()
+    threading.Thread(target=_setup_ffmpeg_at_start, daemon=True, name="ffmpeg-setup").start()
     # Electron launches Flask with PORT in the env and then polls that exact port.
     # The env value MUST win over the persisted flask_port setting — otherwise a
     # stale or hand-edited setting binds Flask to a port Electron never connects
@@ -3873,8 +4155,17 @@ if __name__ == "__main__":
         return 8899
     port = _resolve_port()
     host = "127.0.0.1"  # always localhost — never exposed to network
-    threading.Thread(target=lambda: app.run(host=host,port=port,threaded=True,use_reloader=False),
-                     daemon=True, name="flask").start()
+    def _serve():
+        try:
+            app.run(host=host, port=port, threaded=True, use_reloader=False)
+        finally:
+            # app.run only comes back when the server could not start (the port is taken by another
+            # program or by a backend from an earlier run); waiting on with no server helps nobody.
+            # Code 3 tells the shell why.
+            os._exit(3)
+    threading.Thread(target=_serve, daemon=True, name="flask").start()
+    if os.environ.get("EGM_ELECTRON") == "1":
+        threading.Thread(target=_watch_own_port, args=(host, port), daemon=True, name="port-check").start()
     threading.Thread(target=_warm_templates, args=(host, port), daemon=True, name="template-warmup").start()
 
     # Under Electron: keep Flask alive; Electron manages the window and lifecycle.

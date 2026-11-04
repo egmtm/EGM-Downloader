@@ -108,7 +108,10 @@ git clone https://github.com/egmtm/EGM-Downloader.git
 cd EGM-Downloader
 
 # Wire the pre-commit and pre-push hooks (one-time per clone)
-# Runs version sync + parity check + full test suite before every commit and push
+# Runs version sync + parity check + full test suite before every commit and push.
+# The same folder holds a commit-msg hook that only accepts the maintainer's name and
+# email, so outside contributors should not use core.hooksPath: copy only pre-commit
+# and pre-push into .git/hooks instead, or run their checks by hand.
 git config core.hooksPath .githooks
 
 # Install Python dependencies (shared)
@@ -188,7 +191,9 @@ All scripts are in `scripts/` directory:
 - **add-patchnote.py** - Add entries to patchnotes.txt
 - **gen-update-json.py** - Generate platform update JSONs
 
-Run any script with `--help` for detailed usage.
+`bump-version.py`, `add-patchnote.py` and `gen-update-json.py` take `--help`; the other scripts
+explain their arguments in the docstring at the top of the file. `check-node-pin.py` always
+contacts the Node.js release server.
 
 ---
 
@@ -277,6 +282,17 @@ Before submitting a PR, test:
 3. **No regressions** - Did you break anything else?
 4. **Cross-platform** (if applicable) - Test on your target platform
 
+### Automated Tests
+
+The suite lives in `tests/`. The pre-commit hook runs it before every commit; to run it yourself:
+
+```bash
+cd tests
+EGM_API_TOKEN=ci-test-token-not-secret python3 -m pytest . -q
+```
+
+**A test that runs `git` must drop the `GIT_*` variables first.** Git exports `GIT_DIR` and `GIT_INDEX_FILE` to commit hooks. A test that runs `git init` or `git add` in a temporary folder while the hook is running would otherwise write to the real repository's index and put test files into your commit. Remove every `GIT_*` variable from the environment the test passes to `git` (see `_clean_env()` in `tests/test_build_push_guard.py`), and check `git show --stat` after the first commit that includes such a test.
+
 ### Test Cases
 
 **For Download Features:**
@@ -364,7 +380,7 @@ Why is this change needed? What problem does it solve?
 ```
 EGM-Downloader/
 │
-├── app.py                    # Flask backend (Windows + Mac)
+├── app.py                    # Flask backend (Windows; Mac and Linux use mac/app.py and linux/app.py)
 ├── templates/                # UI templates (Windows + Mac)
 │   ├── index.html            # Main UI shell
 │   ├── subscriptions.html    # Subscriptions window
@@ -400,7 +416,6 @@ EGM-Downloader/
 │
 └── linux/                    # Linux platform
     ├── app.py                # Linux-specific backend
-    ├── templates/            # Linux-specific UI
     ├── electron/             # Electron wrapper + builder config
     ├── BUILD.sh              # Build script
     └── INSTRUCTIONS.txt      # User instructions
@@ -409,17 +424,16 @@ EGM-Downloader/
 ### Shared vs Platform-Specific
 
 **Shared (Windows + Mac):**
-- `app.py` - Main backend
-- `templates/index.html` - UI
+- `app.py` - Windows backend (Mac has its own `mac/app.py`, Linux `linux/app.py`)
+- `templates/` - UI (Linux packages the same tree)
 - `static/` - Assets
 - `requirements.txt` - Python dependencies
 
 **Linux-Specific:**
 - `linux/app.py` - Linux-specific backend, AppImage paths
-- `linux/templates/` - Slightly different UI
 - `linux/requirements.txt` - Linux-specific dependencies
 
-> **Why does Linux have its own `app.py` and `templates/`?** The AppImage distribution model requires a self-contained package (Electron and Python are bundled inside it, and ffmpeg and Deno are downloaded on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations.
+> **Why does Linux have its own `app.py`?** The AppImage distribution model requires a self-contained package (Electron and Python are bundled inside it, and ffmpeg and Deno are downloaded on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations. The UI is shared: `linux/electron/package.json` packages the root `templates/` next to `linux/app.py`, as Mac does.
 
 **Platform Directories:**
 - `windows/electron/` - Windows Electron configuration

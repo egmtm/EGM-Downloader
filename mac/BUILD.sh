@@ -58,12 +58,17 @@ echo ""
 echo "🐍 Downloading Python 3.11 ARM64..."
 cd "$MAC_DIR"
 PYTHON_DIR="$MAC_DIR/python"
+# Pinned: version, release and SHA-256 (from that release's SHA256SUMS). Keep in step with linux/BUILD.sh.
+# The Python bundle brings its own pip, so this pin also decides the pip version.
+PYTHON_VERSION="3.11.18"
+PYTHON_RELEASE="20261026"
+PYTHON_SHA256="cba3455e18516fbe8668cff2820c9b6a53447c552d612443c2b2fb60d390a908"
 
 if [ ! -d "$PYTHON_DIR" ]; then
-    PYTHON_VERSION="3.11.9"
-    PYTHON_URL="https://github.com/indygreg/python-build-standalone/releases/download/20240415/cpython-${PYTHON_VERSION}+20240415-aarch64-apple-darwin-install_only.tar.gz"
+    PYTHON_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/cpython-${PYTHON_VERSION}+${PYTHON_RELEASE}-aarch64-apple-darwin-install_only.tar.gz"
     echo "   Downloading from GitHub..."
     curl -L --progress-bar "$PYTHON_URL" -o python.tar.gz
+    echo "$PYTHON_SHA256  python.tar.gz" | shasum -a 256 -c - || { echo "   ✗ python.tar.gz does not match the pinned SHA-256"; rm -f python.tar.gz; exit 1; }
     echo "   Extracting..."
     mkdir -p "$PYTHON_DIR"
     tar -xzf python.tar.gz -C "$PYTHON_DIR" --strip-components=1
@@ -76,7 +81,7 @@ echo ""
 
 # ── Install Python deps ───────────────────────────────────────────────────────
 echo "📚 Installing Python dependencies..."
-"$PYTHON_DIR/bin/python3" -m pip install --quiet --upgrade pip
+# pip is the one inside the pinned Python above (26.2.2); it is not upgraded here
 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
 echo "   ✓ Dependencies installed"
 echo ""
@@ -98,6 +103,9 @@ rm -rf "$PYTHON_DIR/lib/python3.11/tkinter"
 rm -rf "$PYTHON_DIR/lib/python3.11/lib2to3"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtledemo"
 rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
+
+# bin/python3.11 has the interpreter built in; this second 17 MB copy is only for programs that embed Python
+rm -f "$PYTHON_DIR/lib/libpython3.11.dylib"
 
 # DO NOT bulk-strip .dist-info directories — werkzeug calls
 # importlib.metadata.version('werkzeug') at server startup; flask 3.x and many
@@ -200,7 +208,7 @@ On first launch, the app will:
 1. Paste a video URL (YouTube, Vimeo, TikTok, 1000+ sites)
 2. Choose quality (video) or audio-only (MP3)
 3. Click Download
-4. Files save to your Downloads folder by default
+4. Choose a download folder with Browse before your first download
 
 FEATURES:
 • 1000+ supported sites via yt-dlp
@@ -255,6 +263,7 @@ EOF
 
 # ── Create zip with DMG + INSTRUCTIONS ────────────────────────────────────────
 cp "$REPO_ROOT/LICENSE" LICENSE
+rm -f "$REPO_ROOT/dist/EGMdM.zip"   # zip adds to an existing archive: an older DMG would stay inside
 zip -r "$REPO_ROOT/dist/EGMdM.zip" "$(basename "$DMG")" INSTRUCTIONS.txt LICENSE
 echo "   ✓ dist/EGMdM.zip created (with INSTRUCTIONS.txt and LICENSE)"
 echo ""

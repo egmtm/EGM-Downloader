@@ -171,7 +171,6 @@ def test_ffmpeg_drain_thread_actually_captures_real_subprocess_output():
 
 
 def test_ffmpeg_toggle_present_in_console_html():
-    # the Linux copy is held identical by test_template_mirrors.py
     root = read_source("templates/console.html")
     for marker in ("ffmpeg-toggle", "console.toggle.ffmpeg", "ffmpeg_lines",
                    "egm-console-ffmpeg", "log-line.ffmpeg"):

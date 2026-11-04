@@ -112,6 +112,7 @@ function showUpdateAvailableModal(d) {
         backdrop.remove();
         await new Promise(res => setTimeout(res, 800));
         const launch = await window.electronAPI.launchInstaller(dl.installer_path);
+        if (launch.cancelled) return;   // "Keep open" on the Subscriptions question: the update waits
         if (launch.error) { toast((i18nGet('toast.installer.launch_failed') || 'Could not launch installer') + ': ' + launch.error, 'err'); return; }
         setTimeout(() => window.electronAPI.quit(), QUIT_DELAY_MS);
       } catch {
@@ -157,18 +158,10 @@ async function checkForUpdates() {
     const d = await fetch('/api/check-app-update').then(r => r.json());
     if (d.error) { showUpdateErrorModal(); return; }
 
-    const cmp = compareVersions(d.current_version, d.latest_version);
-    if (cmp === 0) {
-      if (d.latest_build && d.current_build && d.latest_build > d.current_build) {
-        showUpdateAvailableModal(d);
-      } else {
-        showUpToDateModal();
-      }
-    } else if (cmp < 0) {
-      showUpToDateModal(true);
-    } else {
-      showUpdateAvailableModal(d);
-    }
+    // The backend decides by build number (an older signed feed served again is never an
+    // update); the launch check already trusts it, and this button must agree with it.
+    if (d.up_to_date === false) showUpdateAvailableModal(d);
+    else showUpToDateModal((d.current_build || 0) > (d.latest_build || 0));
   } catch {
     showUpdateErrorModal();
   } finally {
@@ -325,7 +318,7 @@ async function checkForUpdatesOnLaunch() {
           i18nGet('update.toast.btn.restart') || 'Restart now',
           async () => {
             const launch = await window.electronAPI.launchInstaller(installerPath);
-            if (!launch.error) setTimeout(() => window.electronAPI.quit(), 800);
+            if (!launch.error && !launch.cancelled) setTimeout(() => window.electronAPI.quit(), 800);
           },
           8000
         );

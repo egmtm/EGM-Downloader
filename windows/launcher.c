@@ -19,10 +19,17 @@
 #include <windows.h>
 #include <stdio.h>
 
-static int try_launch(const wchar_t *py_cmd, const wchar_t *script_path) {
-    /* Build: "python" "<script_path>" */
+/* Interpreter flags for the private Python only: -s keeps the user's packages folder (and any
+ * .pth file in it, which runs code at start) out of this process, -E makes it ignore PYTHON*
+ * variables. launch.py passes the same on when it hands over to pythonw.exe and sets the
+ * environment for everything else it starts. The system Python attempts below get none: the
+ * installer edition runs on that Python and its packages may live in that user folder. */
+static const wchar_t *PRIVATE_PY_FLAGS = L"-s -E ";
+
+static int try_launch(const wchar_t *py_cmd, const wchar_t *py_flags, const wchar_t *script_path) {
+    /* Build: "python" <flags>"<script_path>" (flags are empty or end in a space) */
     wchar_t cmdline[1024];
-    _snwprintf_s(cmdline, 1024, _TRUNCATE, L"\"%s\" \"%s\"", py_cmd, script_path);
+    _snwprintf_s(cmdline, 1024, _TRUNCATE, L"\"%s\" %s\"%s\"", py_cmd, py_flags, script_path);
 
     STARTUPINFOW si = { 0 };
     PROCESS_INFORMATION pi = { 0 };
@@ -64,15 +71,38 @@ int WINAPI wWinMain(HINSTANCE hInst, HINSTANCE hPrev, LPWSTR lpCmdLine, int nSho
     _snwprintf_s(embedded_py, MAX_PATH, _TRUNCATE, L"%s\\python\\python.exe", exe_path);
     DWORD attrs = GetFileAttributesW(embedded_py);
     if (attrs != INVALID_FILE_ATTRIBUTES && !(attrs & FILE_ATTRIBUTE_DIRECTORY)) {
-        if (try_launch(embedded_py, script_path)) {
+        /* The private Python is a full one: a PYTHONHOME or PYTHONPATH set on this PC for
+         * another Python would point it at the wrong standard library before launch.py
+         * could clear them. Clear both for this child only, and put them back if it does
+         * not start, so a system Python below still gets them. */
+        static const wchar_t *names[2] = { L"PYTHONHOME", L"PYTHONPATH" };
+        wchar_t *saved[2] = { NULL, NULL };
+        for (int i = 0; i < 2; i++) {
+            DWORD n = GetEnvironmentVariableW(names[i], NULL, 0);
+            if (n > 0) {
+                saved[i] = (wchar_t *)HeapAlloc(GetProcessHeap(), 0, n * sizeof(wchar_t));
+                if (saved[i] && GetEnvironmentVariableW(names[i], saved[i], n) == 0) {
+                    HeapFree(GetProcessHeap(), 0, saved[i]);
+                    saved[i] = NULL;
+                }
+            }
+            SetEnvironmentVariableW(names[i], NULL);
+        }
+        if (try_launch(embedded_py, PRIVATE_PY_FLAGS, script_path)) {
             return 0;
+        }
+        for (int i = 0; i < 2; i++) {
+            if (saved[i]) {
+                SetEnvironmentVariableW(names[i], saved[i]);
+                HeapFree(GetProcessHeap(), 0, saved[i]);
+            }
         }
     }
 
     /* First-run / installer / fallback: system python, python3, then py. */
     const wchar_t *candidates[] = { L"python", L"python3", L"py" };
     for (int i = 0; i < 3; i++) {
-        if (try_launch(candidates[i], script_path)) {
+        if (try_launch(candidates[i], L"", script_path)) {
             return 0;
         }
     }

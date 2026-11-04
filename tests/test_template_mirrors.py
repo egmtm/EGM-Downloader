@@ -1,35 +1,48 @@
-"""Proposal A: one tree-walk replaces the six hand-listed mirror tests.
+"""Linux ships the root templates/ tree, like Mac.
 
-templates/ is the source; linux/templates/ is a byte-for-byte copy of it (mac uses the
-root tree). Walking the tree means a new template is covered the day it is added and a
-file present on only one side is a failure, not a silent skip (today both this suite's
-hand-written list and scripts/validate-version-sync.py skip templates/i18n.html and
-templates/console.html; the latter is only mirrored by tests in other files).
+linux/electron/package.json packages templates/ from the repo root into app/templates, next to
+app/app.py, where Flask looks for them. A linux/templates/ folder would be a second copy that the
+build ignores and no test reads, so it must not come back, and the packaging config must keep
+pulling the root tree.
 """
+import json
 import os
+
+import pytest
 
 from conftest import ROOT
 
-ROOT_T = os.path.join(ROOT, "templates")
-LINUX_T = os.path.join(ROOT, "linux", "templates")
+
+def _template_sources(platform):
+    """[(source dir, packaged dir)] for every extraResources entry that brings in templates."""
+    base = os.path.join(ROOT, platform, "electron")
+    with open(os.path.join(base, "package.json"), encoding="utf-8") as fh:
+        entries = json.load(fh)["build"]["extraResources"]
+    out = []
+    for e in entries:
+        src = os.path.normpath(os.path.join(base, e["from"]))
+        filters = e.get("filter", [])
+        if any(f == "templates" or f.startswith("templates/") for f in filters):
+            out.append((os.path.join(src, "templates"), f"{e['to']}/templates"))
+        elif os.path.basename(src) == "templates":
+            out.append((src, e["to"]))
+    return out, entries
 
 
-def _tree(base):
-    out = {}
-    for dirpath, _dirs, files in os.walk(base):
-        for f in files:
-            full = os.path.join(dirpath, f)
-            out[os.path.relpath(full, base).replace(os.sep, "/")] = full
-    return out
-
-
-def test_linux_templates_are_a_byte_identical_copy_of_the_root_tree():
-    root, linux = _tree(ROOT_T), _tree(LINUX_T)
-    assert len(root) >= 19, f"template tree looks truncated: {sorted(root)}"
-    assert set(root) == set(linux), (
-        f"only in templates/: {sorted(set(root) - set(linux))}; "
-        f"only in linux/templates/: {sorted(set(linux) - set(root))}"
+def test_linux_has_no_template_copy():
+    path = os.path.join(ROOT, "linux", "templates")
+    assert not os.path.exists(path), (
+        "linux/templates/ is back; Linux packages templates/ from the repo root "
+        "(linux/electron/package.json), so this copy would never ship. Edit templates/ instead."
     )
-    drifted = [rel for rel in sorted(root)
-               if open(root[rel], "rb").read() != open(linux[rel], "rb").read()]
-    assert not drifted, f"linux/templates copies differ from templates/ (bytes): {drifted}"
+
+
+@pytest.mark.parametrize("platform", ["linux", "mac"])
+def test_packaging_pulls_the_root_templates_next_to_app_py(platform):
+    sources, entries = _template_sources(platform)
+    assert sources == [(os.path.join(ROOT, "templates"), "app/templates")], (
+        f"{platform}/electron/package.json must package the root templates/ (and nothing else) "
+        f"as app/templates; found {sources}"
+    )
+    app_py = [e["to"] for e in entries if "app.py" in e.get("filter", [])]
+    assert app_py == ["app"], f"{platform}: app.py must be packaged as app/app.py, beside app/templates; found {app_py}"

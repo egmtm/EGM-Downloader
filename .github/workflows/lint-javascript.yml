@@ -13,13 +13,11 @@ on:
     branches: [ main, testing/* ]
     paths:
       - 'templates/**.html'
-      - 'linux/templates/**.html'
       - '**/electron/*.js'
   pull_request:
     branches: [ main, testing/* ]
     paths:
       - 'templates/**.html'
-      - 'linux/templates/**.html'
       - '**/electron/*.js'
 
 permissions:

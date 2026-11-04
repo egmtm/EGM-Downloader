@@ -5,7 +5,7 @@ what users get. THEME_DATA's swatches for Void must match them, and every window
 theme_styles.html must carry the same default colours itself, or it shows no theme at all for a
 user on the default theme.
 
-Windows and Mac read templates/, Linux reads linux/templates/ (kept byte identical elsewhere).
+Every platform ships templates/ (Linux and Mac package it from the repo root).
 """
 import re
 from pathlib import Path
@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-TREES = ("templates", "linux/templates")
+TREES = ("templates",)
 WINDOWS = ("themes.html", "history.html", "console.html", "subscriptions.html")
 
 

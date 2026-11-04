@@ -86,6 +86,7 @@
 // ── Theme + window title (same pattern as the other child windows) ───────────
 let _themeClass = '';
 function applyConsoleTheme(name) {
+  if (typeof name !== 'string' || !/^[a-z0-9-]+$/.test(name)) name = 'void';   // see _theme.html applyTheme
   if (_themeClass) { document.body.classList.remove(_themeClass); _themeClass = ''; }
   if (name && name !== 'void') { document.body.classList.add(name); _themeClass = name; }
 }

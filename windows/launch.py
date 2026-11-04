@@ -36,7 +36,7 @@ def _find_newer_python(minimum):
 # newer; yt-dlp dropped 3.10). Portable: on the FIRST run that's the system Python used
 # only to bootstrap (it then downloads a private embedded Python and runs everything on
 # that), so 3.10 is still enough there; on warm runs the launcher re-enters via the
-# embedded 3.12, which always passes. Fail fast with a clear native dialog instead of a
+# private Python, which always passes. Fail fast with a clear native dialog instead of a
 # confusing traceback. (Uses %-formatting + ctypes only, so it runs on old ones.)
 _PY_MIN = (3, 10) if (Path(__file__).resolve().parent / ".portable").exists() else (3, 11)
 if sys.version_info < _PY_MIN:
@@ -65,19 +65,33 @@ if sys.version_info < _PY_MIN:
         sys.stderr.write(_msg + "\n")
     sys.exit(1)
 
+def _private_python_flags():
+    """Interpreter flags for the hand over to pythonw.exe below. The native launcher starts the
+    private Python (python\\ beside this file) with -s -E: the user's packages folder, and any .pth
+    file in it, stay out of the process, and PYTHON* variables are ignored. The hop has to keep
+    that. The installer edition runs on the system Python, whose packages may live in that user
+    folder, so it gets none."""
+    try:
+        private = (Path(__file__).resolve().parent / "python").resolve()
+        return ["-s", "-E"] if Path(sys.executable).resolve().parent == private else []
+    except Exception:
+        return []
+
+
 # Re-exec under pythonw.exe (no console) if not already silent. This sits above the
 # heavier imports below on purpose: the first interpreter only hands over to pythonw.exe,
 # which imports everything again, so it should not load them first.
 if sys.platform == "win32" and not os.environ.get("EGM_SILENT"):
     pw = Path(sys.executable).with_name("pythonw.exe")
     if pw.exists():
-        subprocess.Popen([str(pw), str(__file__)] + sys.argv[1:],
+        subprocess.Popen([str(pw)] + _private_python_flags() + [str(__file__)] + sys.argv[1:],
                          env={**os.environ, "EGM_SILENT":"1"})
         sys.exit(0)
 
 import shutil, zipfile, urllib.request, urllib.parse, urllib.error, json, time, hashlib, re
 import errno, http.client
 import socket, threading
+import tarfile
 
 ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
@@ -87,7 +101,7 @@ NODE_VERSION = "24.22.1"    # version to download if not found / outdated (Node 
 NODE_ZIP_NAME = f"node-v{NODE_VERSION}-win-x64.zip"
 NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
 # PINNED SHA-256 of the exact zip above, keyed by the Node version it was taken from
-# (same fail-closed model as PY_SHA256 and PIP_SHA256). The pin ships inside the signed
+# (same fail-closed model as PY_SHA256). The pin ships inside the signed
 # installer, so the node.exe that ends up running Electron (and our whole app) is checked
 # against a hash nobody can swap on the way, and no manifest is fetched at run time.
 # To bump NODE_VERSION: copy the win-x64.zip line of
@@ -115,31 +129,23 @@ NO_WIN       = 0x08000000 if sys.platform == "win32" else 0
 # findPython(). Installer keeps using the system Python via sys.executable.
 PY_DIR        = ROOT / "python"
 PY_EXE        = PY_DIR / "python.exe"
-PY_VERSION    = "3.12.10"   # embeddable build to download (cp312 wheels on PyPI)
-PY_ZIP_NAME   = f"python-{PY_VERSION}-embed-amd64.zip"
-PY_ZIP_URL    = f"https://www.python.org/ftp/python/{PY_VERSION}/{PY_ZIP_NAME}"
-# python.org has no machine-readable SHASUMS file for the embed zips, so the hash
-# is PINNED (same fail-closed model as the rcedit hash). It MUST be set to the
-# real SHA-256 of the exact zip above before building a portable — compute with:
-#   certutil -hash python-3.12.10-embed-amd64.zip SHA256   (Windows)
-#   sha256sum  python-3.12.10-embed-amd64.zip              (Linux/Mac)
-PY_SHA256     = "4acbed6dd1c744b0376e3b1cf57ce906f9dc9e95e68824584c8099a63025a3c3"
-# pip is set up from a PINNED wheel, so no downloaded script is ever run unverified
-# (same fail-closed model as PY_SHA256). To bump: take the newest pip that supports
-# PY_VERSION, and copy the py3-none-any.whl URL and sha256 from
-# https://pypi.org/pypi/pip/<version>/json. Bump it together with PY_VERSION/PY_SHA256.
-PIP_VERSION    = "26.2.1"
-PIP_WHEEL_NAME = f"pip-{PIP_VERSION}-py3-none-any.whl"   # pip rejects a non-wheel file name
-PIP_WHEEL_URL  = "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl"
-PIP_SHA256     = "71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e"
-# How the wheel installs itself. On Windows pip refuses to modify pip when its
-# sys.argv[0] is named "pip" ("To modify pip, please run python -m pip ..."), which is
-# what `python <wheel>\pip install` gives it. `python -c` makes argv[0] "-c", so the
-# guard stays quiet; argv[1] is the wheel, which goes on sys.path so pip imports from it.
-PIP_BOOTSTRAP_CODE = ("import sys; sys.path.insert(0, sys.argv[1]); "
-                      "from pip._internal.cli.main import main; sys.exit(main(sys.argv[2:]))")
-# Setup diagnostics land here (next to the launcher) so a failed first-run pip
-# bootstrap is debuggable instead of silent. Survives a PY_DIR wipe/retry.
+# The same python-build-standalone builds Mac and Linux bundle, and like theirs it is a full
+# Python that brings its own pip (26.2.2 in this archive), so there is no separate pip download.
+# It is not the python.org embeddable zip any more: python.org ships no Windows binaries for
+# 3.12 after 3.12.10, so that one can no longer be patched. Two things the embeddable did that
+# this one does not: it ignored PYTHONPATH and PYTHONHOME (the portable start clears them, see
+# the start-up block), and it was signed (this one is not). The "stripped" archive is the same
+# files without the debug (.pdb) files, half the download.
+PY_VERSION    = "3.11.18"
+PY_RELEASE    = "20261026"
+PY_ARCHIVE_NAME = f"cpython-{PY_VERSION}+{PY_RELEASE}-x86_64-pc-windows-msvc-install_only_stripped.tar.gz"
+PY_ARCHIVE_URL  = f"https://github.com/astral-sh/python-build-standalone/releases/download/{PY_RELEASE}/{PY_ARCHIVE_NAME}"
+# PINNED SHA-256 of the exact archive above, copied from that release's SHA256SUMS (same
+# fail-closed model as the Node.js pin). Bump PY_VERSION, PY_RELEASE and this hash together;
+# mac/BUILD.sh and linux/BUILD.sh pin the same version and release.
+PY_SHA256     = "67215a7bf1643e33d01b17ee3f1e91a8b0b39163746855ee02594bf0608f68b4"
+# Setup diagnostics land here (next to the launcher) so a failed first-run Python
+# setup is debuggable instead of silent. Survives a PY_DIR wipe/retry.
 PY_SETUP_LOG  = ROOT / "embedded-python-setup.log"
 
 
@@ -269,8 +275,15 @@ def _pip_install(cmd, upgrading, timeout):
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
         subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)
-    except (subprocess.SubprocessError, OSError):
-        if not upgrading: raise
+    except (subprocess.SubprocessError, OSError) as e:
+        if not upgrading:
+            # Fatal, but say so: the error used to end the launcher with no message at all (the
+            # progress window just closed), which on a first start offline looked like nothing.
+            _py_log(f"pip install failed: {e}")
+            _gui_msg("The app's Python packages could not be installed. Check your internet "
+                     "connection and start EGM Downloader again.")
+            time.sleep(8)
+            raise
 
 def ensure_python_deps():
     # Keep this list in sync with requirements.txt. cryptography is REQUIRED for
@@ -314,9 +327,9 @@ def _verify_sha256(path, pin, label):
         return False
 
 
-def _verify_py_zip(zip_path):
-    """Return True iff zip_path matches the pinned PY_SHA256 (fail-closed)."""
-    return _verify_sha256(zip_path, PY_SHA256, "Python zip")
+def _verify_py_archive(archive_path):
+    """Return True iff archive_path matches the pinned PY_SHA256 (fail-closed)."""
+    return _verify_sha256(archive_path, PY_SHA256, "Python archive")
 
 
 def _py_version(exe):
@@ -330,125 +343,153 @@ def _py_version(exe):
     return (0, 0, 0)
 
 
-def _setup_embedded_pip():
-    """Make pip usable in the embedded Python: (1) enable `import site` and add
-    Lib\\site-packages in the pythonNNN._pth so installed packages are importable,
-    (2) set up pip from the pinned wheel (downloaded, SHA-256 verified, then run
-    to install itself). Returns True on success; logs the real error to
-    PY_SETUP_LOG on any failure (so "could not enable pip" is debuggable)."""
-    try:
-        # (1) ._pth: uncomment `import site`, ensure Lib\site-packages is present.
-        pths = list(PY_DIR.glob("python*._pth"))
-        if not pths:
-            _py_log("no python*._pth file in the extracted embeddable package")
-            return False
-        pth = pths[0]
-        out, has_site, has_sp = [], False, False
-        for ln in pth.read_text(encoding="utf-8", errors="replace").splitlines():
-            t = ln.strip()
-            if t in ("#import site", "# import site", "import site"):
-                out.append("import site"); has_site = True
-            else:
-                out.append(ln)
-                if t.lower() in ("lib\\site-packages", "lib/site-packages"):
-                    has_sp = True
-        if not has_sp:
-            out.append("Lib\\site-packages")
-        if not has_site:
-            out.append("import site")
-        pth.write_text("\n".join(out) + "\n", encoding="utf-8")
-        (PY_DIR / "Lib" / "site-packages").mkdir(parents=True, exist_ok=True)
+def _extract_python_archive(archive, dest):
+    """Unpack the python-build-standalone archive into dest, leaving out its top level
+    python\\ folder. Only regular files are written, and any entry that would land outside
+    dest is skipped (the archive is SHA-256 checked first, this is the second line)."""
+    root = dest.resolve()
+    with tarfile.open(archive, "r:gz") as t:
+        for m in t:
+            parts = Path(m.name.replace("\\", "/")).parts
+            if len(parts) < 2 or parts[0] != "python" or not m.isreg():
+                continue
+            rel = Path(*parts[1:])
+            if rel.is_absolute() or rel.drive or ".." in rel.parts:
+                continue
+            out = dest / rel
+            try: out.resolve().relative_to(root)
+            except ValueError: continue
+            out.parent.mkdir(parents=True, exist_ok=True)
+            with t.extractfile(m) as src, open(out, "wb") as dst:
+                shutil.copyfileobj(src, dst)
 
-        # (2) Pinned pip wheel: download, verify (fail-closed), then run pip from
-        # inside the wheel with the embedded interpreter to install itself (see
-        # PIP_BOOTSTRAP_CODE). Nothing is executed before the SHA-256 check passes.
-        _gui_msg("Setting up pip…")
-        wheel = PY_DIR / PIP_WHEEL_NAME
+
+def _python_has_pip(exe=None):
+    """True iff the unpacked Python can run pip (it ships its own). Logs the real error to
+    PY_SETUP_LOG on a failure, so "could not enable pip" is debuggable."""
+    try:
+        r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--version"],
+                           capture_output=True, text=True, timeout=60, creationflags=NO_WIN)
+        if r.returncode == 0:
+            return True
+        _py_log("pip --version failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"
+                % (r.returncode, (r.stdout or "")[-2000:], (r.stderr or "")[-2000:]))
+    except Exception as e:
+        _py_log(f"_python_has_pip exception: {e}")
+    return False
+
+
+def _py_stage_dir():
+    """Where a new private Python is unpacked and checked before it becomes python\\. Next to
+    PY_DIR, so the final rename stays on the same drive."""
+    return PY_DIR.with_name(PY_DIR.name + ".part")
+
+
+def _drop_stale_stage():
+    """Remove a python.part\\ that a cut off unpack or a copy fallback left behind. Nothing
+    runs from it, so it is always safe to remove."""
+    stage = _py_stage_dir()
+    if stage.exists():
+        shutil.rmtree(stage, ignore_errors=True)
+
+
+def _running_on_private_python():
+    """True when this launcher is itself running on the private Python (a warm start: the
+    native launcher prefers python\\python.exe, and the hand over may move to pythonw.exe)."""
+    try:
+        return Path(sys.executable).resolve().parent == PY_DIR.resolve()
+    except Exception:
+        return False
+
+
+def _move_python_into_place(stage):
+    """Rename the checked stage folder to python\\. A rename is all or nothing, so python\\
+    is either missing or complete, and the native launcher never starts a half unpacked
+    one. Antivirus can keep a file it is still scanning open for a moment, which makes the
+    rename fail, so it is retried; a copy is the last resort."""
+    if PY_DIR.exists():                       # leftovers of a broken one that could not all be removed
+        shutil.rmtree(PY_DIR, ignore_errors=True)
+    for _ in range(20):
         try:
-            urllib.request.urlretrieve(PIP_WHEEL_URL, wheel)
-        except Exception as e:
-            _py_log(f"pip wheel download failed from {PIP_WHEEL_URL}: {e}")
-            return False
-        if not _verify_sha256(wheel, PIP_SHA256, "pip wheel"):
-            try: wheel.unlink(missing_ok=True)
-            except Exception: pass
-            return False
-        r = subprocess.run([str(PY_EXE), "-c", PIP_BOOTSTRAP_CODE, str(wheel), "install",
-                            "--no-index", "--no-warn-script-location", str(wheel)],
-                           capture_output=True, text=True, timeout=300, creationflags=NO_WIN)
-        if r.returncode != 0:
-            _py_log("pip wheel install failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"
-                    % (r.returncode, (r.stdout or "")[-2000:], (r.stderr or "")[-2000:]))
-            return False
-        chk = subprocess.run([str(PY_EXE), "-m", "pip", "--version"],
-                             capture_output=True, text=True, timeout=60, creationflags=NO_WIN)
-        if chk.returncode != 0:
-            _py_log("pip --version failed after bootstrap (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"
-                    % (chk.returncode, (chk.stdout or ""), (chk.stderr or "")))
-            return False
-        try: wheel.unlink(missing_ok=True)
-        except Exception: pass
+            os.rename(stage, PY_DIR)
+            return True
+        except OSError:
+            time.sleep(0.5)
+    try:
+        shutil.copytree(stage, PY_DIR, dirs_exist_ok=True)
+        shutil.rmtree(stage, ignore_errors=True)
         return True
     except Exception as e:
-        _py_log(f"_setup_embedded_pip exception: {e}")
+        _py_log(f"could not move the new Python into place: {e}")
+        shutil.rmtree(PY_DIR, ignore_errors=True)     # a copy cut off halfway must not leave a python.exe behind
         return False
 
 
 def ensure_python():
-    """Ensure the portable's embedded Python exists (download → verify → extract →
-    enable pip), cached across runs like ensure_node(). Returns the python.exe path
-    str, or None on failure (caller shows an error)."""
+    """Ensure the portable's private Python exists (download → verify → extract → check
+    pip), cached across runs like ensure_node(). Returns the python.exe path str, or None
+    on failure (caller shows an error). A working private Python is never replaced here:
+    on a warm start this launcher is itself running on it, and Windows will not replace a
+    folder whose python.exe is running. A new Python reaches users with the new folder
+    they extract (python\\ is not copied).
+
+    A new one is unpacked into python.part\\ and renamed to python\\ only after it has been
+    checked, so an unpack that is cut off (the launcher killed, power loss, antivirus) never
+    leaves a python\\ that starts but is incomplete: the next start finds no python\\, runs
+    on the system Python again, removes python.part\\ and starts over."""
+    # This launcher runs on it, so it works (the version gate at the top of this file has
+    # already checked it). Never probe it here: a slow first start (a USB stick, a network
+    # folder, a virus scan) could miss the probe's time limit, and it must not be removed
+    # while it runs.
+    if _running_on_private_python() and PY_EXE.exists():
+        _drop_stale_stage()
+        return str(PY_EXE)
     # Fast path: a good cached interpreter.
     if PY_EXE.exists() and _py_version(PY_EXE) >= _PY_MIN:
+        _drop_stale_stage()
         return str(PY_EXE)
     if PY_DIR.exists():
         _gui_msg("Updating bundled Python…")           # present but broken/old — rebuild
         try: shutil.rmtree(PY_DIR, ignore_errors=True)
         except Exception: pass
 
+    stage = _py_stage_dir()
+    shutil.rmtree(stage, ignore_errors=True)       # left by an unpack that was cut off
     _gui_msg(f"Downloading Python {PY_VERSION}…")
-    PY_DIR.mkdir(parents=True, exist_ok=True)
-    tmp = PY_DIR / "py_tmp.zip"
+    stage.mkdir(parents=True, exist_ok=True)
+    tmp = stage / "py_tmp.tar.gz"
+    stage_exe = stage / "python.exe"
     try:
-        urllib.request.urlretrieve(PY_ZIP_URL, tmp, reporthook=_progress)
+        urllib.request.urlretrieve(PY_ARCHIVE_URL, tmp, reporthook=_progress)
         _gui_msg("Verifying Python download…")
-        if not _verify_py_zip(tmp):
+        if not _verify_py_archive(tmp):
             _gui_msg("ERROR: Python checksum verification failed")
-            try: tmp.unlink(missing_ok=True)
-            except Exception: pass
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
         _gui_msg("Extracting Python…")
-        # The embeddable zip extracts flat (no top-level folder). Zip-slip guarded.
-        with zipfile.ZipFile(tmp, "r") as z:
-            for m in z.namelist():
-                rel = m.lstrip("/\\")
-                if not rel or ".." in Path(rel).parts or Path(rel).is_absolute():
-                    continue
-                dest = PY_DIR / rel
-                try: dest.resolve().relative_to(PY_DIR.resolve())
-                except ValueError: continue
-                if m.endswith("/"):
-                    dest.mkdir(parents=True, exist_ok=True)
-                else:
-                    dest.parent.mkdir(parents=True, exist_ok=True)
-                    with z.open(m) as src, open(dest, "wb") as dst:
-                        shutil.copyfileobj(src, dst)
+        _extract_python_archive(tmp, stage)
         tmp.unlink(missing_ok=True)
-        if not PY_EXE.exists():
+        if not stage_exe.exists():
             _py_log("python.exe missing after extract"); _gui_msg("ERROR: Python extract failed")
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
-        if not _setup_embedded_pip():
+        if not _python_has_pip(stage_exe):
             _gui_msg("ERROR: could not enable pip (see embedded-python-setup.log)")
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
-        if _py_version(PY_EXE) < _PY_MIN:
+        if _py_version(stage_exe) < _PY_MIN:
             _py_log("embedded Python older than required"); _gui_msg("ERROR: bundled Python too old")
+            shutil.rmtree(stage, ignore_errors=True)
+            time.sleep(4); return None
+        if not _move_python_into_place(stage):
+            _gui_msg("ERROR: could not finish setting up Python (see embedded-python-setup.log)")
+            shutil.rmtree(stage, ignore_errors=True)
             time.sleep(4); return None
         return str(PY_EXE)
     except Exception as e:
         _py_log(f"ensure_python exception: {e}")
         _gui_msg(f"ERROR: {e}")
-        try: tmp.unlink(missing_ok=True)
-        except Exception: pass
+        shutil.rmtree(stage, ignore_errors=True)
         time.sleep(4); return None
 
 
@@ -457,15 +498,12 @@ def ensure_python_deps_embedded(py_exe):
     (isolated from any system/installer Python).
 
     The sentinel is a FILESYSTEM check of the embedded Lib\\site-packages — NOT a
-    subprocess `import`. The embeddable's ._pth has `import site` enabled (pip needs
-    it, and it's what makes Lib\\site-packages importable), and with site active even
-    `-I`/`-E`/`-s` don't reliably hide a system-installed copy — so an import sentinel
-    can PASS against the system's yt_dlp, pip then gets skipped, and the embedded
-    interpreter never receives its own copy (the exact bug we hit). Checking the
+    subprocess `import`. With site active (it has to be, for Lib\\site-packages to be
+    importable) even `-I`/`-E`/`-s` don't reliably hide a system-installed copy — so an
+    import sentinel can PASS against the system's yt_dlp, pip then gets skipped, and the
+    embedded interpreter never receives its own copy (the exact bug we hit). Checking the
     package directories on disk is unambiguous: it's true only when the packages live
-    in OUR site-packages, and is unsatisfiable by anything on the system. (The ._pth +
-    `import site` setup is left intact — only this check changes; pip still installs
-    into the embedded interpreter exactly as before.)
+    in OUR site-packages, and is unsatisfiable by anything on the system.
     """
     site_packages = PY_DIR / "Lib" / "site-packages"
     # Top-level names pip drops in site-packages. NB import name, not pip name:
@@ -509,6 +547,11 @@ def _node_version(exe):
     return (0,0,0)
 
 def ensure_node():
+    # An unpack that never finished (a kill, a full disk) leaves its marker: node.exe can be
+    # there without npm, so drop the folder and download again instead of using it.
+    if (NODE_DIR / ".unpacking").exists():
+        shutil.rmtree(NODE_DIR, ignore_errors=True)
+
     # Fast path: if cached node path exists and version matches, skip subprocess check
     if VERSION_CACHE.exists():
         try:
@@ -554,6 +597,7 @@ def ensure_node():
             except Exception: pass
             time.sleep(4); sys.exit(1)
         _gui_msg("Extracting Node.js…")
+        (NODE_DIR / ".unpacking").write_text("")   # removed only once the whole zip is out
         with zipfile.ZipFile(tmp, "r") as z:
             for m in z.namelist():
                 rel  = m[len(NODE_ZIP_DIR):].lstrip("/\\")
@@ -575,6 +619,7 @@ def ensure_node():
                     with z.open(m) as src, open(dest,"wb") as dst:
                         shutil.copyfileobj(src, dst)
         tmp.unlink(missing_ok=True)
+        (NODE_DIR / ".unpacking").unlink()
         return str(NODE_EXE)
     except (urllib.error.URLError, ConnectionError, TimeoutError, http.client.HTTPException):
         # Offline, a failed name lookup, a timeout or a connection that dropped in the middle
@@ -1049,7 +1094,16 @@ def _signal_running_instance():
     except Exception:
         return False
 
+# A download that stalls (the server stops sending, a network that silently drops traffic) has no
+# end without a time limit: urlretrieve would wait forever while this launcher holds its lock, so
+# every later start would quietly exit. With one, the stall becomes the normal download error.
+DOWNLOAD_STALL_TIMEOUT = 60
+
+def _limit_stalled_downloads(seconds=DOWNLOAD_STALL_TIMEOUT):
+    socket.setdefaulttimeout(seconds)
+
 if __name__ == "__main__":
+    _limit_stalled_downloads()
     # If we are relaunching to reinstall Electron (Advanced -> Reinstall Electron
     # -> "Restart now"), the outgoing instance may still be shutting down. Skip the
     # already-running early-exit in that case, so a transient signal to the dying
@@ -1075,6 +1129,10 @@ if __name__ == "__main__":
         # installed and leave this folder empty, and the app would run on the user's copies. The pip
         # steps, Electron and the backend all inherit this setting.
         os.environ["PYTHONNOUSERSITE"] = "1"
+        # The private Python is a full one, which (unlike the old embeddable zip) honours these two
+        # and would put the user's own folders in front of its packages.
+        os.environ.pop("PYTHONPATH", None)
+        os.environ.pop("PYTHONHOME", None)
         py_exe = ensure_python()
         if not py_exe:
             _gui_msg("ERROR: could not set up the bundled Python runtime")

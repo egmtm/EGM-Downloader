@@ -16,16 +16,34 @@ The script:
   2. Removes any existing 'signature' field
   3. Produces a canonical payload (keys sorted, compact JSON, UTF-8)
   4. Signs with the ed25519 private key
-  5. Writes the base64 signature back into the JSON under 'signature'
+  5. Checks the signature with the public key the app trusts (the one in app.py, mac/app.py
+     and linux/app.py) and stops, writing nothing, when it does not verify: a feed signed with
+     another key would be refused by every installed app
+  6. Writes the base64 signature back into the JSON under 'signature'
 
 Private key passphrase is always prompted interactively — never read from
 environment or args to avoid shell history / process list exposure.
 """
+import ast
+import re
 import sys
 import json
 import base64
 import getpass
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent.parent
+APP_FILES = ("app.py", "mac/app.py", "linux/app.py")
+
+
+def _trusted_public_keys():
+    """{app file: public key PEM} the app copies check update feeds with."""
+    keys = {}
+    for rel in APP_FILES:
+        src = (ROOT / rel).read_text(encoding="utf-8")
+        m = re.search(r"^_MANIFEST_PUBLIC_KEY_PEM\s*=\s*(\(.*?\))\s*$", src, re.M | re.S)
+        keys[rel] = ast.literal_eval(m.group(1)) if m else None
+    return keys
 
 
 def sign_manifest(json_path: str, key_path: str) -> None:
@@ -66,6 +84,18 @@ def sign_manifest(json_path: str, key_path: str) -> None:
         sig = private_key.sign(payload)
     except Exception as e:
         print(f"Error: signing failed — {e}")
+        sys.exit(1)
+
+    trusted = _trusted_public_keys()
+    if None in trusted.values() or len(set(trusted.values())) != 1:
+        print(f"Error: the app copies do not hold one and the same manifest public key: "
+              f"{ {k: bool(v) for k, v in trusted.items()} }")
+        sys.exit(1)
+    try:
+        from cryptography.hazmat.primitives.serialization import load_pem_public_key
+        load_pem_public_key(next(iter(trusted.values()))).verify(sig, payload)
+    except Exception:
+        print(f"Error: {key_path_obj.name} is not the key the app trusts; nothing written to {json_path}")
         sys.exit(1)
 
     data['signature'] = base64.b64encode(sig).decode('ascii')

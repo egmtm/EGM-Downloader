@@ -17,3 +17,9 @@ subs = m.app.test_client().get("/subscriptions-page").get_data(as_text=True)
 subs_out = out.with_name(out.stem + "_subs" + out.suffix)
 subs_out.write_text(subs, encoding="utf-8")
 print(f"rendered {len(subs)} bytes -> {subs_out}")
+
+# The History window too (<name>_history.html), for the tests of what it shows.
+hist = m.app.test_client().get("/history-page").get_data(as_text=True)
+hist_out = out.with_name(out.stem + "_history" + out.suffix)
+hist_out.write_text(hist, encoding="utf-8")
+print(f"rendered {len(hist)} bytes -> {hist_out}")

@@ -52,7 +52,9 @@ function loadSettings() {
 }
 
 function atomicWriteJson(file, data) {
-  const tmp = `${file}.tmp`;
+  // Not `${file}.tmp`: the backend writes the same settings file through that name, and two
+  // writers sharing one temporary file can rename the other's half written copy into place.
+  const tmp = `${file}.${process.pid}.tmp`;
   fs.mkdirSync(path.dirname(file), { recursive: true });
   fs.writeFileSync(tmp, JSON.stringify(data, null, 2), 'utf8');
   fs.renameSync(tmp, file);
@@ -187,11 +189,16 @@ async function startFlask() {
 
   splashProgress(55, 9);   // backend process started
 
-  flaskProc.on('exit', (code) => {
-    if (code !== 0 && code !== null && !app.isQuitting) {
+  flaskProc.on('exit', (code, signal) => {
+    // It is gone: before-quit must not try to stop this PID later (it may belong to another
+    // program by then). Any exit while the app is not quitting is a crash, also one by a
+    // signal (code null, e.g. killed for memory) and a clean code 0 nobody asked for.
+    flaskProc = null;
+    if (!app.isQuitting) {
       app.isQuitting = true;
-      dialog.showErrorBox('EGM Downloader — Backend crashed',
-        `The backend stopped unexpectedly (code ${code}).\n\nPlease restart the app.`);
+      dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
+        ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
+        : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
       app.quit();
     }
   });
@@ -214,14 +221,21 @@ function waitForFlask(budgetMs = 180000, delay = 250) {
   return new Promise((resolve, reject) => {
     const deadline = Date.now() + budgetMs;
     const try_ = () => {
-      const req = http.get(APP_URL, res => { res.resume(); resolve(); });
-      req.on('error', () => {
+      const retry = () => {
         if (Date.now() >= deadline) {
           reject(new Error('The backend did not start within 3 minutes.\n\nTry launching the app again or check your internet connection.'));
           return;
         }
         setTimeout(try_, delay);
+      };
+      // Only this run's backend answers 200 here: it knows the per-run token. Another program on
+      // the port, or a backend left over from an earlier run, must not be loaded into this window
+      // (with the preload, its page would pass the sender check, which compares the origin only).
+      const req = http.get(APP_URL + '/api/settings', { headers: { 'X-EGM-Token': EGM_TOKEN } }, res => {
+        res.resume();
+        if (res.statusCode === 200) resolve(); else retry();
       });
+      req.on('error', retry);
       req.setTimeout(900, () => { req.destroy(); });
     };
     try_();
@@ -606,6 +620,35 @@ function saveSubsBounds(win) {
   try { fs.writeFileSync(SUBS_BOUNDS_FILE, JSON.stringify(win.getBounds()), 'utf8'); } catch {}
 }
 
+// Asked when the Subscriptions window is closed, and before a quit shuts the backend down: a quit
+// the user then refuses ("Keep open") must find the backend and its downloads still running.
+function confirmCloseWithDownloads(parent) {
+  return dialog.showMessageBoxSync(parent, {
+    type: 'warning',
+    buttons: ['Close anyway', 'Keep open'],
+    defaultId: 1,
+    cancelId: 1,
+    noLink: true,
+    title: 'Downloads in progress',
+    message: 'Downloads are still in progress.',
+    detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
+  }) === 0;
+}
+
+// Asked once per quit, while the backend still runs: true when the quit may go on. Nothing is asked
+// when the backend is already gone (a crash quits the app, and "Keep open" would only leave a window
+// on nothing).
+function subsDownloadsAllowQuit() {
+  if (!flaskProc || !subsWindow || subsWindow.isDestroyed() || !subsActiveDownloads || subsForceClose) return true;
+  // A modal question on a minimized window can stay out of sight while it holds up the whole app.
+  if (subsWindow.isMinimized()) subsWindow.restore();
+  subsWindow.show();
+  subsWindow.focus();
+  if (!confirmCloseWithDownloads(subsWindow)) return false;
+  subsForceClose = true;       // the window's own close handler must not ask a second time
+  return true;
+}
+
 ipcMain.handle('open-subscriptions-window', async (event) => {
   if (!isTrustedSender(event)) return;
   if (subsWindow && !subsWindow.isDestroyed()) { subsWindow.focus(); return; }
@@ -629,17 +672,7 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     // renderer's "Back to app" → close-subscriptions) and confirm natively.
     if (subsForceClose || !subsActiveDownloads) return;
     e.preventDefault();
-    const choice = dialog.showMessageBoxSync(subsWindow, {
-      type: 'warning',
-      buttons: ['Close anyway', 'Keep open'],
-      defaultId: 1,
-      cancelId: 1,
-      noLink: true,
-      title: 'Downloads in progress',
-      message: 'Downloads are still in progress.',
-      detail: 'If you close this window, downloads will continue in the background as long as the app stays open.\n\nIf you close the entire app, active downloads will be cancelled.\n\nClose anyway?'
-    });
-    if (choice === 0) { subsForceClose = true; subsWindow.close(); }
+    if (confirmCloseWithDownloads(subsWindow)) { subsForceClose = true; subsWindow.close(); }
   });
   // Teardown order matters: the activity slot is dropped and the reference
   // cleared BEFORE re-aggregating, so the per-window shell loop never
@@ -846,7 +879,14 @@ app.on('window-all-closed', () => {
 });
 
 // Fix 3: single cleanup point for every quit path (X, crash)
-app.on('before-quit', () => {
+app.on('before-quit', (event) => {
+  // Ask first, while the backend still runs: "Keep open" has to leave the app and its downloads as
+  // they were. (Asking after the shutdown request left a window on a dead backend.)
+  if (!subsDownloadsAllowQuit()) {
+    event.preventDefault();
+    app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
+    return;
+  }
   app.isQuitting = true;
   if (_psbId !== null) { try { powerSaveBlocker.stop(_psbId); } catch {} _psbId = null; }
   if (!flaskProc) return;

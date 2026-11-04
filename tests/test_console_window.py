@@ -94,15 +94,15 @@ def test_diagnostics_buttons_prefer_ipc_over_window_open():
 
 
 def test_console_page_follows_child_window_conventions():
-    for path in ("templates/console.html", "linux/templates/console.html"):
-        src = read_source(path)
-        assert "localStorage.getItem('egm-theme')" in src, (
-            f"{path}: console window must apply the saved theme like every "
-            f"other child window"
-        )
-        assert "onThemeChanged" in src, (
-            f"{path}: console window must follow live theme changes"
-        )
-        assert re.search(r"document\.title\s*=.*i18nGet\('console\.title'\)", src), (
-            f"{path}: document.title must localize via console.title on i18n:ready"
-        )
+    path = "templates/console.html"
+    src = read_source(path)
+    assert "localStorage.getItem('egm-theme')" in src, (
+        f"{path}: console window must apply the saved theme like every "
+        f"other child window"
+    )
+    assert "onThemeChanged" in src, (
+        f"{path}: console window must follow live theme changes"
+    )
+    assert re.search(r"document\.title\s*=.*i18nGet\('console\.title'\)", src), (
+        f"{path}: document.title must localize via console.title on i18n:ready"
+    )

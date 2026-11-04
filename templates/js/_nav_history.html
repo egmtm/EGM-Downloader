@@ -85,6 +85,7 @@ try { _pinnedIds = new Set((JSON.parse(localStorage.getItem('egm-history-pins') 
 const HBATCH = 5;   // fetch == shown; fetching 10 while showing 5 skipped entries 6–10
 
 function _fmtSize(b) {
+  b = Number(b);            // an imported entry can carry text here; it is shown as markup below
   if (!b) return '';
   if (b > 1073741824) return (b/1073741824).toFixed(1) + ' GB';
   if (b > 1048576)    return (b/1048576).toFixed(1) + ' MB';
@@ -102,7 +103,7 @@ function _fmtDate(iso) {
   } catch { return ''; }
 }
 function _fmtFmt(f) {
-  return f ? f.toUpperCase() : '';
+  return f ? _hEsc(String(f).toUpperCase()) : '';
 }
 // Escape history fields before they go into innerHTML — title/filename/url are
 // attacker-controllable (a download's title comes from the source site, and
@@ -125,7 +126,7 @@ function _buildEntry(item) {
   const pinned = _pinnedIds.has(String(item.id));
   if (pinned) div.classList.add('pinned');
   const thumbHtml = item.thumbnail
-    ? `<img class="hthumb" src="/api/thumbnail/${item.thumbnail}" alt="" onerror="this.outerHTML=_thumbFallback(${isAudio})">`
+    ? `<img class="hthumb" src="/api/thumbnail/${encodeURIComponent(item.thumbnail)}" alt="" onerror="this.outerHTML=_thumbFallback(${isAudio})">`
     : _thumbFallback(isAudio);
   div.innerHTML = `
     ${thumbHtml}

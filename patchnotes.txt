@@ -1,3 +1,27 @@
+v1.5.2.2 - SNAKE EYES (11/04/2026)
+-----------------------------------------
+
+  • [WINDOWS] Security: Portable: The Python that comes with the app is now 3.11.18, a security release, and it includes a newer pip.
+  • [WINDOWS] Changed: Portable: Your saved themes, history pins and window position now live in the data folder, so copying data when you update keeps them. The steps in instructions.txt show how to reveal the hidden folder.
+  • [LINUX] Security: The Python that comes with the app is now 3.11.18, a security release, and it includes a newer pip.
+  • [MAC] Security: The Python that comes with the app is now 3.11.18, a security release.
+  • [MAC] The app may start faster.
+  • [ALL] Fixed: Quitting while Subscriptions downloads are running now asks first, and Keep open really keeps the app and its downloads running.
+  • [WINDOWS] Fixed: The update installer and Restart now (after reinstalling Electron) ask the same question first when Subscriptions downloads are running, and Keep open leaves the update or the reinstall for later.
+  • [ALL] Fixed: If the app crashes or is force quit, its downloads now stop too, and the next start opens normally instead of being blocked by a leftover copy.
+  • [ALL] Fixed: Force refresh in Subscriptions keeps the videos you already downloaded marked as downloaded.
+  • [ALL] Fixed: If ffmpeg could not be set up on first start, for example when you were offline, a download now says so right away and what to do, in every language, instead of waiting and then saying it is still being set up.
+  • [ALL] Fixed: Installing or updating ffmpeg can no longer leave a broken copy behind, and a plugins update or Deno install that fails now says so instead of reporting Update complete.
+  • [ALL] Fixed: A download that fails before it starts now shows an error instead of waiting forever. Cancel also stops the conversion step after a download, and a failed H.264 conversion keeps the original download.
+  • [MAC] Fixed: A video with a long title in Japanese, Chinese or emoji is now saved under its title instead of its job number.
+  • [LINUX] Fixed: A video with a long title in Japanese, Chinese or emoji is now saved under its title instead of its job number.
+  • [ALL] Fixed: Live recordings that cannot be joined keep every piece under its own name, even with a very long title, instead of waiting forever at the end.
+  • [ALL] Fixed: A damaged history, settings or subscriptions file no longer breaks the app, and saving a setting right after start can no longer erase your other settings. A copy of a damaged file is kept next to it as a .unreadable file; Clear history and Reset settings remove it.
+  • [ALL] Security: Imported history and settings are checked before they are saved, imported text is always shown as plain text, and the app only connects to its own background process, never to another program or a leftover copy. If another program uses the port, the app now says so.
+  • [WINDOWS] Fixed: Portable: the first start downloads Node.js again if unpacking it was interrupted, and a first start without internet now says what to do instead of hanging.
+  • [WINDOWS] Security: Portable: The Python that comes with the app no longer reads your own Python packages folder or Python environment settings when it starts, so a stray file there cannot run code in the launcher.
+  • [ALL] Electron runtime updated to v45.2.2.
+
 v1.5.2.1 - RITOCCO (10/31/2026)
 -----------------------------------------
 

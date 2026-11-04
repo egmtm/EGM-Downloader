@@ -235,3 +235,58 @@ def test_a_local_failure_is_not_blamed_on_the_connection(env, monkeypatch):
     with pytest.raises(SystemExit):
         env.mod.ensure_node()
     assert env.msgs[-1].startswith("ERROR") and "internet" not in env.msgs[-1]
+
+
+# ---- an unpack that did not finish -----------------------------------------------------
+
+def _full_zip(mod):
+    def download(url, dest, reporthook=None):
+        with zipfile.ZipFile(dest, "w") as z:
+            z.writestr(f"{mod.NODE_ZIP_DIR}/node.exe", "new node")
+            z.writestr(f"{mod.NODE_ZIP_DIR}/node_modules/npm/bin/npm-cli.js", "npm")
+            z.writestr(f"{mod.NODE_ZIP_DIR}/npm.cmd", "npm")
+    return download
+
+
+def test_an_unpack_that_stops_part_way_is_not_taken_as_installed_by_the_next_start(env, monkeypatch):
+    """node.exe comes out of the zip before npm. A full disk or a kill in between used to leave
+    node_bin with a working node.exe and no npm, and every later start took it as installed."""
+    import errno
+    monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", _full_zip(env.mod))
+    env.versions[str(env.mod.NODE_EXE)] = _tuple(env.mod.NODE_VERSION)   # node.exe itself would run
+    real_copy = env.mod.shutil.copyfileobj
+
+    def full_disk(src, dst, *a, **k):
+        if Path(getattr(dst, "name", "")).name == "npm-cli.js":
+            raise OSError(errno.ENOSPC, "No space left on device")
+        return real_copy(src, dst, *a, **k)
+    monkeypatch.setattr(env.mod.shutil, "copyfileobj", full_disk)
+    with pytest.raises(SystemExit):
+        env.mod.ensure_node()
+
+    # The next start is offline: it must try to download again, not run the half folder.
+    monkeypatch.setattr(env.mod.shutil, "copyfileobj", real_copy)
+
+    def offline(url, dest, reporthook=None):
+        raise urllib.error.URLError("offline")
+    monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", offline)
+    with pytest.raises(SystemExit):
+        env.mod.ensure_node()
+    assert not env.mod.NODE_EXE.exists()
+
+    # Back online, it installs completely and later starts use it.
+    monkeypatch.setattr(env.mod.urllib.request, "urlretrieve", _full_zip(env.mod))
+    assert env.mod.ensure_node() == str(env.mod.NODE_EXE)
+    assert (env.dir / "node_modules" / "npm" / "bin" / "npm-cli.js").exists()
+    assert env.mod.ensure_node() == str(env.mod.NODE_EXE)
+    left = {p.name for p in env.dir.iterdir()}
+    assert ".unpacking" not in left and "node_tmp.zip" not in left, left
+
+
+def test_a_complete_node_bin_from_an_earlier_release_is_kept(env, monkeypatch):
+    """Installs made before the unpack marker existed have no marker and are complete: no download."""
+    env.dir.mkdir()
+    (env.dir / "node.exe").write_text("old node")
+    env.versions[str(env.mod.NODE_EXE)] = _tuple(env.mod.NODE_VERSION)
+    assert env.mod.ensure_node() == str(env.mod.NODE_EXE)
+    assert env.downloads == [] and (env.dir / "node.exe").read_text() == "old node"

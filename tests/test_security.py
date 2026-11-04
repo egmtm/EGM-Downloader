@@ -5,6 +5,7 @@ Tests for regressions on security-critical paths. Each test maps to a
 real finding from the audit cycle. If any of these fails, something that
 was deliberately secured has been reverted.
 """
+import os
 import re
 import base64
 import json
@@ -15,7 +16,7 @@ from conftest import read_source
 # ── Fixtures ───────────────────────────────────────────────────────────────────
 
 @pytest.fixture(scope="module")
-def app_mod():
+def app_mod(tmp_path_factory):
     """Import Windows app module once for this test module."""
     import sys, os
     os.environ.setdefault("EGM_API_TOKEN", "ci-test-token-not-secret")
@@ -25,7 +26,20 @@ def app_mod():
     spec = importlib.util.spec_from_file_location("egm_app", os.path.join(root, "app.py"))
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
+    # The Windows app keeps its data next to app.py, which in a checkout is the repository root:
+    # without this, the settings tests below replaced the developer's own egm_settings.json.
+    data = tmp_path_factory.mktemp("egm_data")
+    for name in ("SETTINGS_FILE", "HISTORY_FILE", "SUBS_FILE", "COOKIES_FILE"):
+        setattr(mod, name, data / getattr(mod, name).name)
+    mod.THUMBNAILS_DIR = data / "thumbnails"
+    mod._settings_cache.clear()
     return mod
+
+
+def test_the_data_files_these_tests_write_are_outside_the_repository(app_mod):
+    root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    for name in ("SETTINGS_FILE", "HISTORY_FILE", "SUBS_FILE", "COOKIES_FILE", "THUMBNAILS_DIR"):
+        assert not str(getattr(app_mod, name)).startswith(root), name
 
 
 @pytest.fixture(scope="module")
@@ -445,10 +459,10 @@ def test_language_route_allowlist(app_mod):
             assert resp.status_code != 200, f"unknown code {bad!r} must be rejected"
 
 
-def test_language_setting_allowlist(app_mod, tmp_path):
+def test_language_setting_allowlist(app_mod, tmp_path, monkeypatch):
     """/api/settings/save must reject language codes outside SUPPORTED_LANGUAGES
     and coerce show_language_selector to a bool."""
-    app_mod.SETTINGS_FILE = tmp_path / "egm_settings.json"
+    monkeypatch.setattr(app_mod, "SETTINGS_FILE", tmp_path / "egm_settings.json")
     app_mod._settings_cache.clear()
     with app_mod.app.test_client() as client:
         headers = {"Content-Type": "application/json",
@@ -470,7 +484,7 @@ def test_installer_language_handoff(app_mod, tmp_path, monkeypatch):
     allowlist-validated, win over OS detect, and be deleted after one read —
     valid or not. Malformed content falls through to normal detection."""
     import pathlib
-    app_mod.SETTINGS_FILE = tmp_path / "egm_settings.json"
+    monkeypatch.setattr(app_mod, "SETTINGS_FILE", tmp_path / "egm_settings.json")
 
     handoff = pathlib.Path(app_mod.__file__ if hasattr(app_mod, "__file__") else ".").parent
     handoff = pathlib.Path(app_mod.LANGUAGES_DIR).parent / "first-run-language.txt"

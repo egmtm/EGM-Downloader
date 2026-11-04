@@ -50,14 +50,11 @@ def test_the_live_recording_code_is_identical_on_all_platforms():
 
 
 def test_frontend_sends_the_live_flag_and_has_the_button():
-    for base in ("templates", "linux/templates"):
-        dl = read_source(f"{base}/js/_download.html")
-        bulk = read_source(f"{base}/js/_bulk.html")
-        assert "is_live: !!item.info?.is_live" in dl and "is_live: !!item.info?.is_live" in bulk, base
-        assert "addStopSave(item, n, cancelBtn)" in dl and "addStopSave(item, n, cancelBtn)" in bulk, base
-        assert "/api/stop/${item.jobId}" in dl, base
-    for f in ("js/_download.html", "js/_bulk.html", "index_styles.html"):
-        assert read_source(f"templates/{f}") == read_source(f"linux/templates/{f}"), f
+    dl = read_source("templates/js/_download.html")
+    bulk = read_source("templates/js/_bulk.html")
+    assert "is_live: !!item.info?.is_live" in dl and "is_live: !!item.info?.is_live" in bulk
+    assert "addStopSave(item, n, cancelBtn)" in dl and "addStopSave(item, n, cancelBtn)" in bulk
+    assert "/api/stop/${item.jobId}" in dl
 
 
 # ── routes ──────────────────────────────────────────────────────────────────

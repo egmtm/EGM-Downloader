@@ -2,8 +2,8 @@
 
 #theme-list-static is hidden, but the seasonal code and tests read it. A row that stops after its
 swatches (no name, no check mark, no closing tag) swallows the next row inside it, and something
-further down has to carry stray closing tags to keep the page balanced. Windows and Mac read
-templates/, Linux reads linux/templates/ (kept byte identical elsewhere).
+further down has to carry stray closing tags to keep the page balanced. Every platform ships
+templates/ (Linux and Mac package it from the repo root).
 """
 import re
 from html.parser import HTMLParser
@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-TREES = ("templates", "linux/templates")
+TREES = ("templates",)
 
 
 class _Rows(HTMLParser):

@@ -289,13 +289,13 @@ def test_the_themes_sidebar_breaks_a_long_name_and_keeps_its_count_whole():
     """The sidebar is 135px wide. Measured in Chromium, the Russian Experimental and Imported and the Dutch
     Operating Systems names are one long word each: without these two rules the word pushes the count out of
     the sidebar (or the sidebar scrolls sideways), with them the word breaks and the number stays at the edge."""
-    for folder in ("templates", "linux/templates"):
-        with open(os.path.join(ROOT, folder, "themes.html"), encoding="utf-8") as fh:
-            page = fh.read()
-        tab = re.search(r"\.cat-tab \{(.*?)\}", page, re.S).group(1)
-        count = re.search(r"\.cat-count \{(.*?)\}", page, re.S).group(1)
-        assert "overflow-wrap:anywhere" in tab, f"{folder}/themes.html: .cat-tab no longer breaks a name longer than the sidebar"
-        assert "flex-shrink:0" in count and "white-space:nowrap" in count, f"{folder}/themes.html: .cat-count can shrink and wrap again"
+    folder = "templates"
+    with open(os.path.join(ROOT, folder, "themes.html"), encoding="utf-8") as fh:
+        page = fh.read()
+    tab = re.search(r"\.cat-tab \{(.*?)\}", page, re.S).group(1)
+    count = re.search(r"\.cat-count \{(.*?)\}", page, re.S).group(1)
+    assert "overflow-wrap:anywhere" in tab, f"{folder}/themes.html: .cat-tab no longer breaks a name longer than the sidebar"
+    assert "flex-shrink:0" in count and "white-space:nowrap" in count, f"{folder}/themes.html: .cat-count can shrink and wrap again"
 
 
 def test_no_translation_contains_markup():

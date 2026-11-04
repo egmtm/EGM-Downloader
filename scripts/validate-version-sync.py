@@ -14,7 +14,6 @@ consistent across the codebase. It checks that version.json matches:
 
   Linux:
     - linux/app.py (APP_VERSION, APP_BUILD)
-    - linux/templates/index.html (title, header + footer tooltips, visible spans)
     - linux/electron/package.json (version == the first three numbers of the app version)
     - linux/INSTRUCTIONS.txt (header)
 
@@ -183,25 +182,6 @@ def check_linux_app_py(v, b):
     return _check_app_py("linux/app.py", v, b)
 
 
-def check_linux_index_html(v, b, date, time):
-    errors = []
-    rel = "linux/templates/index.html"
-    path = ROOT / rel
-    content = _read_or_miss(path, rel, errors)
-    if content is None:
-        return errors
-
-    # <title> tag
-    m = re.search(r'<title>EGM Downloader v([\d.]+)</title>', content)
-    if not m:
-        errors.append(f"{rel}: <title> tag not found")
-    elif m.group(1) != v:
-        errors.append(f"{rel}: <title> is 'v{m.group(1)}', expected 'v{v}'")
-
-
-    return errors
-
-
 def check_linux_package_json(v):
     errors = []
     rel = "linux/electron/package.json"
@@ -280,43 +260,20 @@ def check_mac_build_sh(v):
 # --------------------------------------------------------------------------
 
 def check_linux_drift_from_root():
-    """Verify linux/templates/* matches root templates/* and linux/requirements.txt
-    matches root requirements.txt.
+    """Verify linux/requirements.txt matches root requirements.txt.
 
     Bug class this catches:
-      - linux/templates/theme_styles.html drifting from root → new themes
-        (added to root) silently don't apply on Linux because the CSS rules
-        are missing from the build.
       - linux/requirements.txt drifting from root → mutagen (or other deps)
         added to root never get installed in Linux Python bundle, so
         importlib.metadata.version() returns "not installed" forever.
+
+    Linux ships the root templates/ tree (linux/electron/package.json), so
+    there is no template copy to compare.
 
     Returns errors list. Opportunistic — skips if either side doesn't exist.
     """
     errors = []
     root = ROOT
-
-    # Templates that must stay in lock-step. index_styles.html / index_scripts.html
-    # were split out of index.html (the CSS + the JS, incl. the THEMES array), so
-    # they must be drift-checked too — otherwise a theme added to root but not linux
-    # would slip through.
-    template_files = ['index.html', 'index_styles.html', 'index_scripts.html',
-                      'history.html', 'themes.html', 'theme_styles.html', 'theme_data.html',
-                      'subscriptions.html', 'theme_validator.html',
-                      'js/_core.html', 'js/_settings.html', 'js/_download.html',
-                      'js/_bulk.html', 'js/_nav_history.html', 'js/_theme.html',
-                      'js/_quality.html', 'js/_creator.html', 'js/_card_order.html']
-    for name in template_files:
-        root_path = root / 'templates' / name
-        linux_path = root / 'linux' / 'templates' / name
-        if not root_path.exists() or not linux_path.exists():
-            continue
-        if root_path.read_bytes() != linux_path.read_bytes():
-            errors.append(
-                f"linux/templates/{name} has drifted from templates/{name} — "
-                f"copy root version into linux/ to resync (root may have new "
-                f"themes, fixes, or layout updates)."
-            )
 
     # requirements.txt
     root_req  = root / 'requirements.txt'
@@ -779,7 +736,6 @@ def main():
         ("windows/electron/package.json",       lambda: check_windows_package_json(v)),
         ("windows/launcher.rc",                 lambda: check_windows_launcher_rc(v)),
         ("linux/app.py",                        lambda: check_linux_app_py(v, b)),
-        ("linux/templates/index.html",          lambda: check_linux_index_html(v, b, date, time)),
         ("linux/electron/package.json",         lambda: check_linux_package_json(v)),
         ("linux/INSTRUCTIONS.txt",              lambda: check_linux_instructions(v)),
         ("mac/app.py",                          lambda: check_mac_app_py(v, b)),
@@ -796,10 +752,10 @@ def main():
     all_errors.extend(check_portable_file_list())
 
     # ── Item 6: Linux/Mac copies drift check ──────────────────────────────────
-    # linux/templates/* and linux/requirements.txt should track root/templates/*
-    # and root/requirements.txt. Mac uses root templates + root requirements,
-    # so it's only the linux side that needs explicit drift detection.
-    print("   Checking linux/templates and linux/requirements for drift vs root...")
+    # linux/requirements.txt should track root/requirements.txt. Mac uses root
+    # requirements, and both Mac and Linux ship the root templates/ tree, so the
+    # Linux requirements file is the only copy that needs drift detection.
+    print("   Checking linux/requirements for drift vs root...")
     all_errors.extend(check_linux_drift_from_root())
 
     # ── Item 2: Merge conflict markers ────────────────────────────────────────

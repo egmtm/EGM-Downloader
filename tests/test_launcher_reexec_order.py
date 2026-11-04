@@ -4,7 +4,8 @@ The launcher re-runs itself under pythonw.exe so no console window shows. The fi
 interpreter only hands over, and pythonw.exe imports everything again, so the first one
 must not load the heavier standard-library modules before it hands over. The hand-over
 block must therefore sit after the Python version gate and above those imports, and its
-text must be exactly what it always was (same command line, same EGM_SILENT marker).
+text must be exactly what it was (same command line, same EGM_SILENT marker), apart from the
+isolation flags the private Python takes (_private_python_flags, test_launcher_portable_user_site.py).
 
 windows/launch.py is import safe, so the module is also loaded for real to show that every
 name the other launcher tests drive is still there.
@@ -19,7 +20,7 @@ REEXEC_BLOCK = (
     'if sys.platform == "win32" and not os.environ.get("EGM_SILENT"):\n'
     '    pw = Path(sys.executable).with_name("pythonw.exe")\n'
     '    if pw.exists():\n'
-    '        subprocess.Popen([str(pw), str(__file__)] + sys.argv[1:],\n'
+    '        subprocess.Popen([str(pw)] + _private_python_flags() + [str(__file__)] + sys.argv[1:],\n'
     '                         env={**os.environ, "EGM_SILENT":"1"})\n'
     '        sys.exit(0)\n'
 )

@@ -692,7 +692,16 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
             denoLog = ds.log || [];
             log.textContent = denoLog.join('\n');
             log.scrollTop = log.scrollHeight;
-            if (!ds.running) { clearInterval(dv); res(); }
+            if (!ds.running) {
+              clearInterval(dv);
+              // A reinstall that failed (download, checksum, unpack) has removed the old Deno:
+              // it must be reported, not folded into "Update complete".
+              if (ds.error || !ds.done) {
+                denoFailMsg = (i18nGet('toast.settings.deno_install_failed') || 'Deno install failed')
+                              + ': ' + (ds.error || 'unknown');
+              }
+              res();
+            }
           } catch { clearInterval(dv); res(); }
         }, 800);
       });
@@ -747,8 +756,11 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
     if (!s.running) {
       clearInterval(iv);
       document.getElementById('run-update-btn').disabled = false;
-      if (s.done) {
-        toast(i18nGet('toast.plugins.update_complete')||'Update complete ✓', 'ok');
+      // error first: a run that stopped on a failed check can carry both
+      if (s.error) toast((i18nFmt('toast.plugins.error_prefix', s.error))||('Error: ' + s.error), 'err');
+      else if (s.done) {
+        if (denoFailMsg) toast(denoFailMsg, 'err');
+        else toast(i18nGet('toast.plugins.update_complete')||'Update complete ✓', 'ok');
         // Re-check versions so "Installed" reflects the new version immediately
         try {
           const [fresh, freshDeno] = await Promise.all([
@@ -764,12 +776,12 @@ document.getElementById('run-update-btn').addEventListener('click', async () => 
           });
           syncInstallBtn();
           // Auto-collapse the log panel after success — it served its purpose
-          setTimeout(() => {
+          if (!denoFailMsg) setTimeout(() => {
             log.classList.remove('show');
             log.textContent = '';
           }, 1500);
         } catch {}
-      } else if (s.error) toast((i18nFmt('toast.plugins.error_prefix', s.error))||('Error: ' + s.error), 'err');
+      }
     }
   }, 800);
   } catch (e) {
@@ -799,6 +811,7 @@ async function installDeno() {
   const iv = setInterval(async () => {
     try {
       const s = await fetch('/api/deno/install-status').then(r => r.json());
+      if (s.error) s.done = false;   // an install that stopped on a failed check carries both
       if (log) { log.textContent = (s.log || []).join('\n'); log.scrollTop = log.scrollHeight; }
 
       if (!s.running) {
@@ -901,6 +914,7 @@ refreshCookieCard();
     const iv = setInterval(async () => {
       try {
         const s = await fetch('/api/deno/install-status').then(r => r.json());
+        if (s.error) s.done = false;   // an install that stopped on a failed check carries both
         if (!s.running) {
           clearInterval(iv);
           if (s.done) {

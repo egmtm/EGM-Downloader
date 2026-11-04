@@ -173,6 +173,7 @@
   // exactly what we last added needs no catalog knowledge and cannot drift.
   let _histThemeClass = '';
   function applyHistTheme(name) {
+    if (typeof name !== 'string' || !/^[a-z0-9-]+$/.test(name)) name = 'void';   // see _theme.html applyTheme
     if (_histThemeClass) { document.body.classList.remove(_histThemeClass); _histThemeClass = ''; }
     if (name && name !== 'void') { document.body.classList.add(name); _histThemeClass = name; }
   }
@@ -200,6 +201,7 @@
   let sortAsc = false; // false = newest first
 
   function fmtSize(b) {
+    b = Number(b);          // an imported entry can carry text here; it is shown as markup below
     if (!b) return '—';
     if (b > 1073741824) return (b/1073741824).toFixed(1) + ' GB';
     if (b > 1048576)    return (b/1048576).toFixed(1) + ' MB';
@@ -217,7 +219,7 @@
   }
   function fmtClass(f) {
     if (!f) return 'fmt-other';
-    const fm = f.toLowerCase();
+    const fm = String(f).toLowerCase();
     if (['mp3','aac','m4a'].includes(fm)) return 'fmt-mp3';
     if (['mp4','webm'].includes(fm))      return 'fmt-mp4';
     if (['flac','wav'].includes(fm))      return 'fmt-flac';
@@ -307,9 +309,10 @@
     pageItems.forEach(item => {
       const row = document.createElement('div');
       row.className = 'row';
-      const isAudio = AUDIO_FMTS.includes((item.format||'').toLowerCase());
+      const isAudio = AUDIO_FMTS.includes(String(item.format||'').toLowerCase());
+      const thumb = encodeURIComponent(item.thumbnail || '');
       const thumbHtml = item.thumbnail
-        ? `<div class="rthumb-wrap"><img class="rthumb-bg" src="/api/thumbnail/${item.thumbnail}" alt=""><img class="rthumb-fg" src="/api/thumbnail/${item.thumbnail}" alt=""></div>`
+        ? `<div class="rthumb-wrap"><img class="rthumb-bg" src="/api/thumbnail/${thumb}" alt=""><img class="rthumb-fg" src="/api/thumbnail/${thumb}" alt=""></div>`
         : `<div class="rthumb-icon">${isAudio ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>' : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>'}</div>`;
       row.innerHTML = `
         ${thumbHtml}
@@ -317,7 +320,7 @@
           <div class="rt" dir="auto">${escH(item.title || item.filename || '—')}</div>
           <div class="rm" dir="ltr">${escH(item.url || '')}</div>
         </div>
-        <div class="col"><span class="fmt ${fmtClass(item.format)}">${(item.format||'?').toUpperCase()}</span></div>
+        <div class="col"><span class="fmt ${fmtClass(item.format)}">${escH(String(item.format||'?').toUpperCase())}</span></div>
         <div class="col hi" dir="ltr">${fmtSize(item.size_bytes)}</div>
         <div class="col">${fmtDate(item.completed_at)}</div>
         <div class="row-btns">
