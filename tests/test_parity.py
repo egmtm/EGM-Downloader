@@ -1348,6 +1348,13 @@ def test_history_fields_escaped_against_xss():
     src = read_source(window)
     assert "escH(item.title" in src and "escH(item.url" in src, \
         f"{window}: history title/url is not escaped before innerHTML"
+    # The thumbnail name goes into src="...": a quote in an imported value would close the
+    # attribute, so it is URL encoded in both views and never interpolated as it is.
+    for path in (panel, window):
+        text = read_source(path)
+        assert "encodeURIComponent(item.thumbnail" in text, \
+            f"{path}: the history thumbnail is not encoded before innerHTML"
+        assert "${item.thumbnail}" not in text, f"{path}: the history thumbnail is interpolated raw"
 
 
 # ── Feed bullet guard (catches generation-layer drops) ─────────────────────────
