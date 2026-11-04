@@ -86,7 +86,7 @@ A side by side look at one well known alternative, using details you can check y
 
 https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 
-> 📸 *Screenshots of v1.5.2.1, RITOCCO. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.2.2, SNAKE EYES. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -95,12 +95,12 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI in Arabic, Halloween theme"/></a>
-      <br/><sub><b>Main UI</b> (Arabic, Halloween theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI in Arabic, Anubis theme"/></a>
+      <br/><sub><b>Main UI</b> (Arabic, Anubis theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Little Blue Box theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Little Blue Box theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Quetzalcoatl theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Quetzalcoatl theme)</sub>
     </td>
   </tr>
 </table>
@@ -108,25 +108,12 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/12-card-order.png"><img src="screenshots/12-card-order.png" width="308" alt="Main window with the Settings panel moved above the links card, Neon Punk theme"/></a>
-      <br/><sub><b>Card Order</b> (Neon Punk theme)</sub>
+      <a href="screenshots/12-card-order.png"><img src="screenshots/12-card-order.png" width="308" alt="Main window with the Settings panel moved above the links card, Red Planet theme"/></a>
+      <br/><sub><b>Card Order</b> (Red Planet theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/13-card-drag.png"><img src="screenshots/13-card-drag.png" width="308" alt="Dragging the Settings panel up over the links card by its handle, Havana theme"/></a>
-      <br/><sub><b>Card Order, Dragging</b> (Havana theme)</sub>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Windows XP theme"/></a>
-      <br/><sub><b>Live Streams</b> (Windows XP theme)</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Mushroom Kingdom theme"/></a>
-      <br/><sub><b>Live Stream Reconnecting</b> (Mushroom Kingdom theme)</sub>
+      <a href="screenshots/13-card-drag.png"><img src="screenshots/13-card-drag.png" width="308" alt="Dragging the Settings panel up over the links card by its handle, Antimatter theme"/></a>
+      <br/><sub><b>Card Order, Dragging</b> (Antimatter theme)</sub>
     </td>
   </tr>
 </table>
@@ -134,25 +121,12 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Sugar Riot theme"/></a>
-      <br/><sub><b>Quit When Done</b> (Sugar Riot theme)</sub>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Disco Fever theme"/></a>
+      <br/><sub><b>Live Streams</b> (Disco Fever theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, GameCube theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (GameCube theme)</sub>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Valhalla theme"/></a>
-      <br/><sub><b>All Themes</b> (Valhalla theme)</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Citron Night"/></a>
-      <br/><sub><b>Theme Creator</b> (custom Citron Night theme)</sub>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Ice Giant theme"/></a>
+      <br/><sub><b>Live Stream Reconnecting</b> (Ice Giant theme)</sub>
     </td>
   </tr>
 </table>
@@ -160,12 +134,38 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Hylian theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Hylian theme)</sub>
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Ocean theme"/></a>
+      <br/><sub><b>Quit When Done</b> (Ocean theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Woodgrain theme"/></a>
-      <br/><sub><b>Download History</b> (Woodgrain theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Acid theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Acid theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Electric Dawn theme"/></a>
+      <br/><sub><b>All Themes</b> (Electric Dawn theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Cobalt Sand"/></a>
+      <br/><sub><b>Theme Creator</b> (custom Cobalt Sand theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Euphoria theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Euphoria theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Hangang theme"/></a>
+      <br/><sub><b>Download History</b> (Hangang theme)</sub>
     </td>
   </tr>
 </table>
@@ -175,8 +175,8 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 ### Windows
 🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
 **Latest:** v1.5.2.2  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (679 KB · ~800 MB after install)  
-**SHA256:** `a988b265c04242e6a63f5ca0dbaa351a192ba3fa0825c19a99ac33d79b0ff611`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (686 KB · ~800 MB after install)  
+**SHA256:** `cebfd70ee89349d5003f04a0d8d6e3ac659484e01fe046a54926a5711c3b9419`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.11+** — install from [python.org](https://www.python.org/downloads/) and tick "Add Python to PATH"  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -184,8 +184,8 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 
 ### Windows Portable
 **Latest:** v1.5.2.2  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (692 KB · ~1 GB after first run)  
-**SHA256:** `0eeb11e2aed1d962be410c1ff7113823168085bfb91ec77ec73160c183b92af2`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (702 KB · ~1 GB after first run)  
+**SHA256:** `39cc512dda4e36e143119f1262790f31ddf7de5e214d6631350bd21c339459c7`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -195,8 +195,8 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 ### macOS
 🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
 **Latest:** v1.5.2.2  
-**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (144 MB · ~300 MB after install)  
-**SHA256:** `2d1e196e4fd61a6a744b3b73ae44f3dfcb75d23da79a81b5c8cf8ffbf1ce63d6`  
+**Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (145 MB · ~300 MB after install)  
+**SHA256:** `d8b998bd2615d7d90b1bfb80b32cff175a18ae56d39da1aa4cb5dc9a39d89e4e`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -205,8 +205,8 @@ https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
 ### Linux
 🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
 **Latest:** v1.5.2.2  
-**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (171 MB · ~300 MB after install)  
-**SHA256:** `47e75a44ab71b2dc9c9fc9fd1e1ae7dccc4c8b340c7006ca696a062e2028ff47`  
+**Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (172 MB · ~300 MB after install)  
+**SHA256:** `568f44c41228c2c307ea5a62e7c257bdf3f9bbb1dcad834d32ee156a44f13888`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
@@ -295,7 +295,7 @@ ReClip is the starting point, and it is intentionally small. Here is what this p
 | **Beyond single downloads** | Bulk paste of URLs, files saved to a downloads folder ([Features](https://github.com/averygan/reclip#features)) | Subscriptions with a live download queue, searchable history, GPU conversion, 10 languages, 500 themes (30 seasonal) |
 | **Staying current** | `reclip.sh` updates yt-dlp on every start ([script](https://github.com/averygan/reclip/blob/main/reclip.sh)) | In app updates for yt-dlp and ffmpeg, plus an app update checker |
 
-ReClip stays deliberately small: a [single Python file backend](https://github.com/averygan/reclip#features), [two dependencies](https://github.com/averygan/reclip#stack) and an [MIT license](https://github.com/averygan/reclip/blob/main/LICENSE). EGM Downloader trades that simplicity for more features and a bigger download (144 MB on macOS, 171 MB on Linux).
+ReClip stays deliberately small: a [single Python file backend](https://github.com/averygan/reclip#features), [two dependencies](https://github.com/averygan/reclip#stack) and an [MIT license](https://github.com/averygan/reclip/blob/main/LICENSE). EGM Downloader trades that simplicity for more features and a bigger download (145 MB on macOS, 172 MB on Linux).
 
 Big thanks to [@averygan](https://github.com/averygan) for ReClip, you sparked the idea that became this project. 🙏 This is my first major project, and I'm excited to keep learning and building tools that make technology accessible to everyone. 🚀
 
