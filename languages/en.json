@@ -620,7 +620,7 @@
     "download.error.no_formats": "No downloadable formats found. This is usually a members-only video — if you're a member of this channel, load your account cookies in Settings and try again. It may also be private, region-locked, or otherwise restricted.",
     "download.error.extract": "Could not extract video info. The page may have changed.",
     "download.error.ffmpeg_installing": "ffmpeg is still being set up. Please try again in a moment.",
-    "download.error.ffmpeg_failed": "ffmpeg could not be downloaded. Check your internet connection and restart the app, or reinstall ffmpeg from Advanced → Plugins.",
+    "download.error.ffmpeg_failed": "ffmpeg could not be downloaded. Check your internet connection and restart the app, or open Advanced → Plugins, click Check for Updates, and then Install Updates.",
     "konami.title": "EGM Downloader has stopped responding",
     "konami.collecting": "collecting crash report…",
     "konami.gotcha": "Gotcha!",

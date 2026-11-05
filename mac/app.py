@@ -1184,7 +1184,7 @@ def _run_download_slot(job_id, *rest):
                     return
                 if _ffmpeg_first_run["finished"] and not ff.exists():
                     job["status"] = "error"
-                    job["error"]  = "ffmpeg could not be downloaded. Check your internet connection and restart the app, or reinstall ffmpeg from Advanced → Plugins."
+                    job["error"]  = "ffmpeg could not be downloaded. Check your internet connection and restart the app, or open Advanced → Plugins, click Check for Updates, and then Install Updates."
                     job["error_code"] = "ffmpeg_failed"
                     job["_finished_at"] = time.time()
                     return

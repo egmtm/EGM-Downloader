@@ -620,7 +620,7 @@
     "download.error.no_formats": "ダウンロード可能な形式が見つかりませんでした。多くの場合、メンバー限定動画です — このチャンネルのメンバーであれば、設定でアカウントの Cookie を読み込んでもう一度お試しください。非公開、地域制限、またはその他の制限がかかっている可能性もあります。",
     "download.error.extract": "動画情報を取得できませんでした。ページが変更された可能性があります。",
     "download.error.ffmpeg_installing": "ffmpegはまだセットアップ中です。しばらくしてからもう一度お試しください。",
-    "download.error.ffmpeg_failed": "ffmpegをダウンロードできませんでした。インターネット接続を確認してアプリを再起動するか、詳細 → プラグインからffmpegを再インストールしてください。",
+    "download.error.ffmpeg_failed": "ffmpegをダウンロードできませんでした。インターネット接続を確認してアプリを再起動するか、詳細 → プラグインを開き、「更新を確認」をクリックしてから「更新をインストール」をクリックしてください。",
     "konami.title": "EGM Downloader が応答していません",
     "konami.collecting": "クラッシュレポートを収集中…",
     "konami.gotcha": "やられた！",
