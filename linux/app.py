@@ -3354,7 +3354,7 @@ def delete_history_entry(entry_id):
             # absolute RHS escapes THUMBNAILS_DIR entirely — unlinking an
             # arbitrary user-writable file.
             if i.get("id") == entry_id and i.get("thumbnail") \
-                    and _re.fullmatch(r'[a-f0-9\-]+\.(jpg|png|webp)', i["thumbnail"]):
+                    and _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', i["thumbnail"]):
                 try: (THUMBNAILS_DIR / i["thumbnail"]).unlink(missing_ok=True)
                 except Exception: pass
         items = [i for i in items if i.get("id") != entry_id]
@@ -3376,7 +3376,7 @@ def clear_history():
 
 @app.route("/api/thumbnail/<filename>")
 def serve_thumbnail(filename):
-    if not _re.fullmatch(r'[a-f0-9\-]+\.(jpg|png|webp)', filename):
+    if not _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', filename):
         _sec_event(f"Thumbnail filename rejected (invalid pattern): {filename!r}")
         return "Not found", 404
     thumb_path = THUMBNAILS_DIR / filename
@@ -3410,7 +3410,7 @@ def _clean_history_entry(item):
     if isinstance(size, int) and not isinstance(size, bool) and size >= 0:
         out["size_bytes"] = size
     thumb = item.get("thumbnail")
-    out["thumbnail"] = thumb if isinstance(thumb, str) and _re.fullmatch(r'[a-f0-9\-]+\.(jpg|png|webp)', thumb) else ""
+    out["thumbnail"] = thumb if isinstance(thumb, str) and _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', thumb) else ""
     return out
 
 @app.route("/api/history/import", methods=["POST"])

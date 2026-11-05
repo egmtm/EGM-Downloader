@@ -293,6 +293,23 @@ def test_the_thumbnail_routes_use_the_same_name_rule_as_the_import(api):
     assert (thumbs / odd).exists(), "the delete route removed a file whose name is not a valid thumbnail name"
 
 
+def test_a_thumbnail_name_too_long_for_a_file_is_refused_not_an_error(api):
+    """The app names a thumbnail after a UUID (36 characters). A longer name made of the allowed
+    characters passed the rule and reached the file system: over 255 bytes, the serve route (which
+    needs no token) answered 500 with a traceback instead of 404. The rule now caps the name."""
+    api.mod.THUMBNAILS_DIR.mkdir(exist_ok=True)   # the name, not a missing folder, must decide
+    longest_ok, too_long = "a" * 64 + ".jpg", "a" * 300 + ".jpg"
+    r = api.post("/api/history/import", {"items": [{"id": "L1", "thumbnail": too_long},
+                                                   {"id": "L2", "thumbnail": longest_ok}]})
+    assert r.status_code == 200
+    stored = {e["id"]: e["thumbnail"] for e in api.get("/api/history?per_page=50").get_json()["items"]}
+    assert (stored["L1"], stored["L2"]) == ("", longest_ok)
+    assert api.get("/api/thumbnail/" + too_long).status_code == 404
+    assert api.get("/api/thumbnail/" + longest_ok).status_code == 404     # allowed, just not there
+    api.mod._save_history([{"id": "d3", "thumbnail": too_long}])
+    assert api.delete("/api/history/d3").status_code == 200
+
+
 @pytest.mark.skipif(shutil.which("node") is None, reason="needs node")
 @pytest.mark.parametrize("shell", ["windows", "mac", "linux"])
 def test_the_shell_writes_settings_through_its_own_temporary_file(shell, tmp_path):
