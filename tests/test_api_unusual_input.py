@@ -300,6 +300,22 @@ def test_the_thumbnail_routes_use_the_same_name_rule_as_the_import(api):
     assert (thumbs / odd).exists(), "the delete route removed a file whose name is not a valid thumbnail name"
 
 
+def test_the_delete_route_removes_the_file_of_a_good_name_and_leaves_every_bad_name_alone(api):
+    thumbs = api.mod.THUMBNAILS_DIR
+    thumbs.mkdir()
+    names = GOOD_THUMBNAIL_NAMES + BAD_THUMBNAIL_NAMES
+    # Every name gets a file at the place it points to, so only the name rule keeps a bad one from being
+    # unlinked. The ".." names point at files beside the thumbnails folder, still inside this test's folder.
+    for n in names:
+        target = thumbs / n
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(b"x")
+    api.mod._save_history([{"id": f"x{i}", "thumbnail": n} for i, n in enumerate(names)])
+    for i, n in enumerate(names):
+        assert api.delete(f"/api/history/x{i}").status_code == 200
+        assert (thumbs / n).exists() == (n not in GOOD_THUMBNAIL_NAMES), n
+
+
 def test_a_thumbnail_name_too_long_for_a_file_is_refused_not_an_error(api):
     """The app names a thumbnail after a UUID (36 characters). A longer name made of the allowed
     characters passed the rule and reached the file system: over 255 bytes, the serve route (which
