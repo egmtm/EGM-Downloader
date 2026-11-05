@@ -250,6 +250,7 @@ BAD_THUMBNAIL_NAMES = [
     ".jpg",           # an empty name
     "abc",            # no extension
     "abc.jpg.exe",    # a second extension after a valid name
+    "../abc.jpg",     # a path escape made only of allowed characters, a slash and dots are the only fault
 ]
 GOOD_THUMBNAIL_NAMES = [
     "a1b2c3d4-1234-5678-abcd-ef0123456789.jpg",
