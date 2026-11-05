@@ -206,41 +206,6 @@ def test_no_unvalidated_sponsorblock_category_can_reach_the_yt_dlp_argv(app_mod,
     )
 
 
-# ── serve_thumbnail — path traversal protection ────────────────────────────────
-
-def test_thumbnail_regex_blocks_path_traversal():
-    """
-    serve_thumbnail filename regex must block path traversal attempts.
-    Regression guard: ensures r'^[a-f0-9\\-]+\\.(jpg|png|webp)$' is not weakened.
-    """
-    pattern = re.compile(r'^[a-f0-9\-]+\.(jpg|png|webp)$')
-    traversal_attempts = [
-        "../etc/passwd",
-        "../../windows/system32/config",
-        "valid-name.jpg/../secret",
-        ".hidden",
-        "file with spaces.jpg",
-        "UPPERCASE.JPG",
-        "script.php",
-        "image.jpg.exe",
-        "%2e%2e/etc",
-    ]
-    for attempt in traversal_attempts:
-        assert not pattern.match(attempt), f"Path traversal not blocked: {attempt!r}"
-
-
-def test_thumbnail_regex_accepts_valid_filenames():
-    """serve_thumbnail regex must accept valid UUID-derived filenames."""
-    pattern = re.compile(r'^[a-f0-9\-]+\.(jpg|png|webp)$')
-    valid_names = [
-        "a1b2c3d4-1234-5678-abcd-ef0123456789.jpg",
-        "deadbeef-cafe-babe-0000-111122223333.png",
-        "aaaabbbb.webp",
-    ]
-    for name in valid_names:
-        assert pattern.match(name), f"Valid filename incorrectly rejected: {name!r}"
-
-
 # ── _verify_manifest — signed manifest enforcement ────────────────────────────
 
 def test_verify_manifest_rejects_unsigned(app_mod):

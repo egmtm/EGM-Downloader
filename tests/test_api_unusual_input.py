@@ -19,6 +19,7 @@ import shutil
 import subprocess
 import threading
 from pathlib import Path
+from urllib.parse import quote
 
 import pytest
 
@@ -230,6 +231,46 @@ def test_imported_history_keeps_only_well_formed_fields(api):
     assert stored["a4"]["thumbnail"] == ""
     for eid in ("a1", "a2", "a3", "a4"):
         assert api.delete(f"/api/history/{eid}").status_code == 200
+
+
+BAD_THUMBNAIL_NAMES = [
+    "../etc/passwd",
+    "../../windows/system32/config",
+    "valid-name.jpg/../secret",
+    ".hidden",
+    "file with spaces.jpg",
+    "UPPERCASE.JPG",
+    "script.php",
+    "image.jpg.exe",
+    "%2e%2e/etc",
+]
+GOOD_THUMBNAIL_NAMES = [
+    "a1b2c3d4-1234-5678-abcd-ef0123456789.jpg",
+    "deadbeef-cafe-babe-0000-111122223333.png",
+    "aaaabbbb.webp",
+]
+
+
+def test_the_import_keeps_good_thumbnail_names_and_empties_bad_ones(api):
+    names = GOOD_THUMBNAIL_NAMES + BAD_THUMBNAIL_NAMES
+    items = [{"id": f"t{i}", "thumbnail": n} for i, n in enumerate(names)]
+    assert api.post("/api/history/import", {"items": items}).status_code == 200
+    stored = {e["id"]: e["thumbnail"] for e in api.get("/api/history?per_page=50").get_json()["items"]}
+    for i, n in enumerate(names):
+        assert stored[f"t{i}"] == (n if n in GOOD_THUMBNAIL_NAMES else ""), n
+
+
+def test_the_serve_route_serves_good_names_and_answers_404_for_bad_ones(api):
+    thumbs = api.mod.THUMBNAILS_DIR
+    thumbs.mkdir()
+    # A bad name that can be a file is put on disk, so only the name rule keeps it from being served.
+    # Names with a slash cannot be files; the router already answers 404 for them.
+    for n in GOOD_THUMBNAIL_NAMES + [n for n in BAD_THUMBNAIL_NAMES if "/" not in n]:
+        (thumbs / n).write_bytes(b"x")
+    for n in GOOD_THUMBNAIL_NAMES:
+        assert api.get("/api/thumbnail/" + quote(n, safe="")).status_code == 200, n
+    for n in BAD_THUMBNAIL_NAMES:
+        assert api.get("/api/thumbnail/" + quote(n, safe="")).status_code == 404, n
 
 
 def test_the_thumbnail_routes_use_the_same_name_rule_as_the_import(api):
