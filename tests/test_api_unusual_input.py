@@ -232,6 +232,26 @@ def test_imported_history_keeps_only_well_formed_fields(api):
         assert api.delete(f"/api/history/{eid}").status_code == 200
 
 
+def test_the_thumbnail_routes_use_the_same_name_rule_as_the_import(api):
+    """Serve and delete reject a name plus a line break, like the import does (one rule everywhere)."""
+    thumbs = api.mod.THUMBNAILS_DIR
+    thumbs.mkdir()
+    good, odd = "0123abcd-ef.jpg", "0123abcd-ef.jpg\n"
+    (thumbs / good).write_bytes(b"good")
+    try:
+        (thumbs / odd).write_bytes(b"odd")
+    except OSError:
+        pytest.skip("this file system cannot hold a name with a line break")
+    r = api.get("/api/thumbnail/" + good)
+    assert r.status_code == 200 and r.data == b"good"
+    assert api.get("/api/thumbnail/" + good + "%0A").status_code == 404
+    api.mod._save_history([{"id": "d1", "thumbnail": good}, {"id": "d2", "thumbnail": odd}])
+    assert api.delete("/api/history/d1").status_code == 200
+    assert not (thumbs / good).exists()
+    assert api.delete("/api/history/d2").status_code == 200
+    assert (thumbs / odd).exists(), "the delete route removed a file whose name is not a valid thumbnail name"
+
+
 @pytest.mark.skipif(shutil.which("node") is None, reason="needs node")
 @pytest.mark.parametrize("shell", ["windows", "mac", "linux"])
 def test_the_shell_writes_settings_through_its_own_temporary_file(shell, tmp_path):
