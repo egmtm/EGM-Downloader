@@ -3,8 +3,8 @@ vTBD - TBD (TBD)
 
   • [ALL] Fixed: Random theme on launch no longer picks a seasonal theme outside its dates.
   • [ALL] Fixed: The message when ffmpeg could not be downloaded now names the buttons that exist, in every language.
-  • [ALL] Fixed: 7 themes (Dark World, Mermaid, Woodgrain, Odd Cab, Havana, Hangang and Seoul) are easier to read, with clearer accents, error colors and quiet text. Hangang is now cyan instead of pink.
-  • [ALL] Fixed: The color dots in the theme lists now match the real colors of 11 themes, like Zavala and Cobalt Rush.
+  • [ALL] Fixed: 7 themes (Dark World, Mermaid, Woodgrain, Odd Cab, Havana, Hangang and Seoul) have clearer accents, error colors and quiet text. Hangang is now cyan instead of pink.
+  • [ALL] Fixed: The color dots in the theme lists now match the real colors of every theme.
   • [ALL] Security: Thumbnail file names in History are checked the same strict way everywhere.
   • [ALL] Electron runtime updated to v45.2.3.
 
