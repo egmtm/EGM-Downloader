@@ -350,7 +350,6 @@
     "plugins.installing": "Instalando atualizações...",
     "plugins.install.success": "Plugins atualizados com sucesso",
     "plugins.install.error": "Falha ao atualizar plugins",
-    "plugins.ytdlp.updating": "Atualizando yt-dlp...",
     "toast.electron.restarting": "Reiniciando para reinstalar o Electron…",
     "toast.electron.will_reinstall_next_launch": "O Electron será reinstalado na próxima vez que você abrir o aplicativo",
     "toast.cookies.loaded": "cookies.txt carregado — downloads autenticados habilitados",

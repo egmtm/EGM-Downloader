@@ -350,7 +350,6 @@
     "plugins.installing": "Updates installeren...",
     "plugins.install.success": "Plugins succesvol bijgewerkt",
     "plugins.install.error": "Plugin-update mislukt",
-    "plugins.ytdlp.updating": "yt-dlp bijwerken...",
     "toast.electron.restarting": "Herstarten om Electron opnieuw te installeren…",
     "toast.electron.will_reinstall_next_launch": "Electron wordt opnieuw geïnstalleerd de volgende keer dat je de app opent",
     "toast.cookies.loaded": "cookies.txt geladen — geverifieerde downloads ingeschakeld",

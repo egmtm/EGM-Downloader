@@ -350,7 +350,6 @@
     "plugins.installing": "Установка обновлений...",
     "plugins.install.success": "Плагины успешно обновлены",
     "plugins.install.error": "Не удалось обновить плагин",
-    "plugins.ytdlp.updating": "Обновление yt-dlp...",
     "toast.electron.restarting": "Перезапуск для переустановки Electron…",
     "toast.electron.will_reinstall_next_launch": "Electron будет переустановлен при следующем открытии приложения",
     "toast.cookies.loaded": "cookies.txt загружен — авторизованные загрузки включены",

@@ -350,7 +350,6 @@
     "plugins.installing": "アップデートをインストール中...",
     "plugins.install.success": "プラグインを正常に更新しました",
     "plugins.install.error": "プラグインの更新に失敗しました",
-    "plugins.ytdlp.updating": "yt-dlpを更新中...",
     "toast.electron.restarting": "Electron を再インストールするため再起動しています…",
     "toast.electron.will_reinstall_next_launch": "次回アプリを開いたときに Electron が再インストールされます",
     "toast.cookies.loaded": "cookies.txt を読み込みました — 認証付きダウンロードが有効です",
