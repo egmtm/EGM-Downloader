@@ -111,8 +111,10 @@
     try {
       const s = await fetch('/api/settings').then(r => r.json());
       if (!s.random_theme_on_launch) return;
-      const favs = Array.isArray(s.favorite_themes) ? s.favorite_themes.filter(k => THEMES.includes(k)) : [];
-      const pool = (s.random_theme_scope === 'favorites' && favs.length > 0) ? favs : THEMES;
+      // A seasonal theme is only a candidate inside its window, the same table the pickers use.
+      const allowed = THEMES.filter(k => !(THEME_DATA[k] && THEME_DATA[k].cat === 'seasonal') || seasonalNow.has(k));
+      const favs = Array.isArray(s.favorite_themes) ? s.favorite_themes.filter(k => allowed.includes(k)) : [];
+      const pool = (s.random_theme_scope === 'favorites' && favs.length > 0) ? favs : allowed;
       const pick = pool[Math.floor(Math.random() * pool.length)];
       if (pick && pick !== saved) applyTheme(pick);
     } catch {}
