@@ -351,7 +351,6 @@
     "plugins.install.success": "Plugins erfolgreich aktualisiert",
     "plugins.install.error": "Plugin-Update fehlgeschlagen",
     "plugins.ytdlp.updating": "yt-dlp wird aktualisiert...",
-    "plugins.deno.reinstalling": "Deno wird neu installiert...",
     "toast.electron.restarting": "Neustart zur Neuinstallation von Electron…",
     "toast.electron.will_reinstall_next_launch": "Electron wird beim nächsten Öffnen der App neu installiert",
     "toast.cookies.loaded": "cookies.txt geladen — authentifizierte Downloads aktiviert",

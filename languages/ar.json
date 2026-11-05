@@ -351,7 +351,6 @@
     "plugins.install.success": "تم تحديث الإضافات بنجاح",
     "plugins.install.error": "فشل تحديث الإضافة",
     "plugins.ytdlp.updating": "جاري تحديث yt-dlp...",
-    "plugins.deno.reinstalling": "جاري إعادة تثبيت Deno...",
     "toast.electron.restarting": "جارٍ إعادة التشغيل لإعادة تثبيت Electron…",
     "toast.electron.will_reinstall_next_launch": "سيُعاد تثبيت Electron في المرة القادمة التي تفتح فيها التطبيق",
     "toast.cookies.loaded": "تم تحميل cookies.txt — التحميلات الموثقة مفعّلة",
