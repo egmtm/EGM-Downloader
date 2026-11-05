@@ -243,6 +243,13 @@ BAD_THUMBNAIL_NAMES = [
     "script.php",
     "image.jpg.exe",
     "%2e%2e/etc",
+    # Each of these breaks exactly one part of the rule, so loosening only that part is caught.
+    "abc.php",        # the extension is the only fault
+    "abc.JPG",        # a capital extension is the only fault
+    "ABC.jpg",        # a capital letter in the name is the only fault
+    ".jpg",           # an empty name
+    "abc",            # no extension
+    "abc.jpg.exe",    # a second extension after a valid name
 ]
 GOOD_THUMBNAIL_NAMES = [
     "a1b2c3d4-1234-5678-abcd-ef0123456789.jpg",
