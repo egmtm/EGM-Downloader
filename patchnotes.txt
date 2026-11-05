@@ -7,6 +7,7 @@ vTBD - TBD (TBD)
   • [ALL] Fixed: The color dots in the theme lists now match the real colors of every theme.
   • [ALL] Security: Thumbnail file names in History are checked the same strict way everywhere.
   • [ALL] Electron runtime updated to v45.2.3.
+  • [WINDOWS] Changed: When the app has to download its own Node.js, it now downloads 24.22.2. A Node.js 22.12 or newer that is already there is kept.
 
 v1.5.2.2 - SNAKE EYES (11/04/2026)
 -----------------------------------------
