@@ -196,6 +196,8 @@ We'd like to thank the following individuals for responsibly disclosing security
 
 **[kta1kri](https://github.com/kta1kri)** (November 2026): reported a security issue in version 1.5.2.1. Our own independent security review had already found the same issue and the fix was in place, and the report was valid and independently confirmed it. Fixed in version 1.5.2.2. Thank you!
 
+**[Ibnu76](https://github.com/Ibnu76)** (November 2026): reported the same security issue in version 1.5.2.1. Our own independent security review had already found it and the fix was in place, and the report was valid and independently confirmed it. Fixed in version 1.5.2.2. Thank you!
+
 ---
 
 ## Platform Security Posture

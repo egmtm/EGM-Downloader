@@ -265,6 +265,10 @@ To everyone who contributes to open source software - from bug reports to docume
 
 **Thank you, kta1kri, for the careful report!** 🙏
 
+**[Ibnu76](https://github.com/Ibnu76)** reported the same security issue in version 1.5.2.1, fixed in version 1.5.2.2. We had already found it in our own independent security review, and the report was valid and confirmed it independently.
+
+**Thank you, Ibnu76, for the detailed report!** 🙏
+
 ---
 
 ## 📄 License Compliance
