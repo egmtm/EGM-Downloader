@@ -58,6 +58,6 @@ curl_cffi>=0.17.0,<0.18.0
 # brotli floor raised to 1.2.1 for CVE-2026-111497, a decoder bug fixed upstream
 # in 1.2.1. yt-dlp decodes br (brotli) web responses with this module.
 brotli>=1.2.1
-pycryptodomex>=3.24.1
+pycryptodomex>=3.24.2
 websockets>=17.4
 certifi>=2026.10.23
