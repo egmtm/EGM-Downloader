@@ -291,7 +291,12 @@ def _no_dns_prefetch(response):
     return response
 
 # ── Paths ──────────────────────────────────────────────────────────────────────
-BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+# The packaged build keeps this file in resources\app and its shell passes the install folder (the
+# folder of the exe) in EGM_INSTALL_DIR: everything kept beside the app (settings, history, data,
+# ffmpeg_bin, runtime, the .portable marker, first-run-language.txt) goes there. Unset: beside app.py.
+_INSTALL_DIR_ENV = os.environ.get("EGM_INSTALL_DIR")
+INSTALL_DIR = Path(_INSTALL_DIR_ENV) if _INSTALL_DIR_ENV else Path(__file__).parent
+BASE_DIR   = INSTALL_DIR if _INSTALL_DIR_ENV else Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
 
 # ── Portable mode detection ────────────────────────────────────────────────────
@@ -303,7 +308,7 @@ def is_portable():
       2. If running from %LOCALAPPDATA%\\EGM Downloader → installed (not portable).
       3. Otherwise → installed (defensive default).
     """
-    app_dir = Path(__file__).parent.resolve()
+    app_dir = INSTALL_DIR.resolve()
     if (app_dir / ".portable").exists():
         return True
     if sys.platform == "win32":
@@ -327,7 +332,7 @@ def get_data_dir() -> Path:
     Installed builds use the standard BASE_DIR (beside app.py inside $INSTDIR).
     """
     if PORTABLE_MODE:
-        d = Path(__file__).parent.resolve() / "data"
+        d = INSTALL_DIR.resolve() / "data"
         d.mkdir(exist_ok=True)
         return d
     return BASE_DIR
@@ -570,7 +575,7 @@ def _read_installer_language():
     app.py. Contents are validated against SUPPORTED_LANGUAGES before being
     trusted; the file is deleted after any read attempt (valid or not)."""
     try:
-        p = Path(__file__).parent / "first-run-language.txt"
+        p = INSTALL_DIR / "first-run-language.txt"
         if not p.is_file():
             return None
         code = p.read_text(encoding="utf-8").strip().lower()

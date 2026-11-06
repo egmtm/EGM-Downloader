@@ -23,14 +23,14 @@ if (process.platform === 'win32') {
 // Everything the user owns sits in <root>\data, the folder app.py already uses, so copying
 // that one folder when updating carries it all over. Earlier versions kept Electron's data in
 // <root>\electron-data: it is moved in on the first start, and used where it is if it cannot be.
-const _portableMarker = path.join(__dirname, '..', '.portable');
+const _portableMarker = path.join(installDir(), '.portable');
 const _isPortable = fs.existsSync(_portableMarker);
 // Anchor to the install folder (parent of electron/), NOT process.cwd().
 // cwd depends on how the process was launched and is not guaranteed to be the
 // portable root; using __dirname makes this deterministic.
-const _dataRoot = _isPortable ? path.join(__dirname, '..', 'data') : path.join(__dirname, '..');
+const _dataRoot = _isPortable ? path.join(installDir(), 'data') : installDir();
 if (_isPortable) {
-  const _oldUserData = path.join(__dirname, '..', 'electron-data');
+  const _oldUserData = path.join(installDir(), 'electron-data');
   let _userData = path.join(_dataRoot, 'electron-data');
   try {
     fs.mkdirSync(_dataRoot, { recursive: true });
@@ -46,7 +46,7 @@ const SETTINGS_FILE = path.join(_dataRoot, 'egm_settings.json');
 // Portable, one time: earlier versions kept the window position in a root egm_settings.json.
 if (_isPortable) {
   try {
-    const _oldSettings = path.join(__dirname, '..', 'egm_settings.json');
+    const _oldSettings = path.join(installDir(), 'egm_settings.json');
     if (fs.existsSync(_oldSettings)) {
       const _old = JSON.parse(fs.readFileSync(_oldSettings, 'utf8'));
       const _now = loadSettings();
@@ -59,6 +59,20 @@ if (_isPortable) {
     }
   } catch {}
 }
+
+// ── Folders ───────────────────────────────────────────────────────────────────
+// Started by the launcher, this file is in <install>\electron and the app files are in <install>.
+// The packaged build (Electron, Python and the app in one folder) keeps this file inside
+// resources\app.asar, the backend, languages and icons in resources\app, and the exe at the top of
+// the install folder. Not app.isPackaged: that only looks at the exe's name, and the launcher
+// renames electron.exe to "EGM Downloader.exe", so it is already true for the launcher's Electron.
+// Function declarations, so the portable set up above can use them before this point.
+function packagedLayout() { return path.basename(__dirname).toLowerCase() === 'app.asar'; }
+function installDir()     { return packagedLayout() ? path.dirname(process.execPath) : path.join(__dirname, '..'); }
+function appFilesDir()    { return packagedLayout() ? path.join(process.resourcesPath, 'app') : path.join(__dirname, '..'); }
+const PACKAGED    = packagedLayout();
+const INSTALL_DIR = installDir();
+const APP_DIR     = appFilesDir();
 
 // ── Window hardening: route external links to default browser, block navigation ─
 function hardenWindow(win) {
@@ -220,8 +234,23 @@ function safeIcon(p, size) {
 }
 
 // ── Find Python ───────────────────────────────────────────────────────────────
+// The packaged build uses only the Python it ships with, and that Python sees only its own packages:
+// no user site folder, and no PYTHONHOME or PYTHONPATH from the user's environment. Windows names are
+// not case sensitive, so any spelling of a name is dropped before the value is set.
+function withoutEnv(env, names) {
+  const drop = new Set(names);
+  return Object.fromEntries(Object.entries(env).filter(([k]) => !drop.has(k.toUpperCase())));
+}
+function bundledPythonEnv(env) {
+  return {
+    ...withoutEnv(env, ['PYTHONHOME', 'PYTHONPATH', 'PYTHONNOUSERSITE', 'EGM_INSTALL_DIR']),
+    PYTHONNOUSERSITE: '1',
+    EGM_INSTALL_DIR: INSTALL_DIR,   // app.py keeps its data and downloaded tools here
+  };
+}
+
 function findPython() {
-  const candidates = [
+  const candidates = PACKAGED ? [path.join(process.resourcesPath, 'python', 'python.exe')] : [
     path.join(process.resourcesPath, 'python', 'python.exe'),
     path.join(__dirname, '..', 'python', 'python.exe'),
     'python',
@@ -230,7 +259,7 @@ function findPython() {
   for (const c of candidates) {
     try {
       // execFileSync passes args as a real argv array — no shell string to quote/escape.
-      execFileSync(c, ['--version'], { stdio: 'ignore', windowsHide: true });
+      execFileSync(c, ['--version'], { stdio: 'ignore', windowsHide: true, ...(PACKAGED ? { env: bundledPythonEnv(process.env) } : {}) });
       return c;
     } catch {}
   }
@@ -297,7 +326,7 @@ function closeSplash() {
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
   const python = findPython();
-  const appPy  = path.join(__dirname, '..', 'app.py');
+  const appPy  = path.join(APP_DIR, 'app.py');
 
   if (!python) {
     closeSplash();
@@ -306,9 +335,11 @@ async function startFlask() {
     app.quit();
     return;
   }
+  const env = { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN };
   flaskProc = spawn(python, [appPy], {
-    cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN },
+    cwd: INSTALL_DIR,
+    // EGM_INSTALL_DIR moves app.py's folders, so only the packaged build may set it.
+    env: PACKAGED ? bundledPythonEnv(env) : withoutEnv(env, ['EGM_INSTALL_DIR']),
     windowsHide: true,
     stdio: 'ignore',
     detached: false,
@@ -388,7 +419,7 @@ function shellStrings() {
     const lang = _shellLang || (loadSettings().language || 'en');   // this used to call a helper that does not exist, so the tray was always English
     if (!/^[a-z]{2}$/.test(lang)) return { ...SHELL_FALLBACK };
     const raw = JSON.parse(fs.readFileSync(
-      path.join(__dirname, '..', 'languages', `${lang}.json`), 'utf8')).strings || {};
+      path.join(APP_DIR, 'languages', `${lang}.json`), 'utf8')).strings || {};
     const out = {};
     for (const k of Object.keys(KEYS)) out[k] = raw[KEYS[k]] || SHELL_FALLBACK[k];
     return out;
@@ -421,7 +452,7 @@ function buildTrayMenu() {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
+  const iconPath = path.join(APP_DIR, 'static', 'icon-64.png');
   tray = new Tray(safeIcon(iconPath, 16));
   tray.setToolTip('EGM Downloader');
   tray.setContextMenu(buildTrayMenu());
@@ -437,7 +468,7 @@ function createTray() {
 
 // ── Create window ─────────────────────────────────────────────────────────────
 async function createWindow() {
-  const winIconPath = path.join(__dirname, '..', 'static', 'icon.ico');
+  const winIconPath = path.join(APP_DIR, 'static', 'icon.ico');
   const winIconOpts = fs.existsSync(winIconPath) ? { icon: winIconPath } : {};
 
   // Load saved window state — use saved dimensions or defaults
@@ -558,7 +589,7 @@ ipcMain.handle('quit-app', (event, opts) => {
     // not only in before-quit, where "Keep open" would leave it waiting to fire at the next quit.
     if (!subsDownloadsAllowQuit()) return { cancelled: true };
     try {
-      const launcher = path.join(__dirname, '..', 'EGM Downloader.exe');
+      const launcher = path.join(INSTALL_DIR, 'EGM Downloader.exe');
       if (fs.existsSync(launcher)) app.relaunch({ execPath: launcher });
       else app.relaunch();
     } catch { try { app.relaunch(); } catch {} }
@@ -707,7 +738,7 @@ ipcMain.handle('open-history-window', async (event, from) => {
   historyWindow = new BrowserWindow({
     ...bounds, minWidth: 600, minHeight: 420,
     title: 'Download History',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
@@ -752,7 +783,7 @@ ipcMain.handle('open-themes-window', async (event) => {
   themesWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 400,
     title: 'All Themes — EGM Downloader',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
@@ -798,7 +829,7 @@ ipcMain.handle('open-console-window', async (event) => {
   consoleWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 320,
     title: 'Diagnostics — EGM Downloader',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
@@ -871,7 +902,7 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
   subsWindow = new BrowserWindow({
     ...bounds, minWidth: 600, minHeight: 400,
     title: 'Subscriptions — EGM Downloader',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
     webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
@@ -933,7 +964,7 @@ const _activityBySender = new Map();   // BrowserWindow -> {active, progress}
 function _badgeIconForCount(n) {
   if (n <= 0) return null;
   const name = n > 9 ? '9plus' : String(n);
-  return safeIcon(path.join(__dirname, '..', 'static', `badge-${name}.png`), 32);
+  return safeIcon(path.join(APP_DIR, 'static', `badge-${name}.png`), 32);
 }
 
 function _applyAggregateActivity() {
@@ -1079,9 +1110,9 @@ ipcMain.on('send-url-to-main', (event, url) => {
 ipcMain.handle('create-shortcut', async (event) => {
   try {
     if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-    const lnkTarget = path.join(__dirname, '..', 'EGM Downloader.exe');
-    const workDir   = path.join(__dirname, '..');
-    const iconPath  = path.join(__dirname, '..', 'static', 'icon.ico');
+    const lnkTarget = path.join(INSTALL_DIR, 'EGM Downloader.exe');
+    const workDir   = INSTALL_DIR;
+    const iconPath  = path.join(APP_DIR, 'static', 'icon.ico');
     const tmpVbs    = path.join(os.tmpdir(), `egm_sc_${Date.now()}.vbs`);
 
     // Check if shortcut already exists on Desktop
@@ -1170,17 +1201,23 @@ app.whenReady().then(async () => {
   // runtime's internal FileDescription and shows "Electron".
   try {
     const lnkOpts = {
-      target: path.join(__dirname, '..', 'EGM Downloader.exe'),
-      cwd: path.join(__dirname, '..'),
-      icon: path.join(__dirname, '..', 'static', 'icon.ico'),
+      target: path.join(INSTALL_DIR, 'EGM Downloader.exe'),
+      cwd: INSTALL_DIR,
+      icon: path.join(APP_DIR, 'static', 'icon.ico'),
       iconIndex: 0,
       appUserModelId: 'com.egerena.egm-downloader',
     };
+    // Packaged: 'update' would also point the shortcuts at this exe. Only stamp the ones that already
+    // open it, so a copy run from another folder never takes over an installed app's shortcuts.
+    const opensThisExe = (lnk) => {
+      try { return path.resolve(shell.readShortcutLink(lnk).target).toLowerCase() === path.resolve(lnkOpts.target).toLowerCase(); }
+      catch { return false; }
+    };
     const smLnk = path.join(app.getPath('appData'),
       'Microsoft', 'Windows', 'Start Menu', 'Programs', 'EGM Downloader', 'EGM Downloader.lnk');
-    shell.writeShortcutLink(smLnk, 'update', lnkOpts);
+    if (!PACKAGED || opensThisExe(smLnk)) shell.writeShortcutLink(smLnk, 'update', lnkOpts);
     const deskLnk = path.join(app.getPath('desktop'), 'EGM Downloader.lnk');
-    shell.writeShortcutLink(deskLnk, 'update', lnkOpts);
+    if (!PACKAGED || opensThisExe(deskLnk)) shell.writeShortcutLink(deskLnk, 'update', lnkOpts);
   } catch {}
   // No spellchecker language, so Chromium never downloads a dictionary. Turning spellcheck off on the windows
   // does not stop that download (Electron 45.2.3 on Linux asked Google's CDN for one at the first start with
