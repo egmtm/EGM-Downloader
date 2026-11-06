@@ -1,4 +1,4 @@
-v1.5.2.3 - SNAKE EYES PART II (TBD)
+v1.5.2.3 - SNAKE EYES PART II (11/05/2026)
 -----------------------------------------
 
   • [ALL] Fixed: Random theme on launch no longer picks a seasonal theme outside its dates.
