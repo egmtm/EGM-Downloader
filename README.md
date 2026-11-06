@@ -84,7 +84,7 @@ A side by side look at one well known alternative, using details you can check y
 
 ## 🖼️ Screenshots and videos
 
-https://github.com/user-attachments/assets/ccfeb78d-4287-40e8-aced-9bebadb11184
+https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 
 > 📸 *Screenshots of v1.5.2.3, SNAKE EYES PART II. The UI is identical across Windows, macOS, and Linux.*
 
