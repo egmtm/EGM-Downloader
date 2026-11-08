@@ -28,3 +28,17 @@ def test_the_lint_and_the_validator_run_on_the_shipped_python():
         text = read_source(rel)
         assert re.search(r"python-version:\s*'3\.11'", text), rel
         assert "3.12" not in text, rel
+
+
+def test_the_frontend_workflow_runs_when_a_shell_changes_and_installs_from_the_lock():
+    """Four jsdom test files read the three shells' main.js, but the workflow's path filter had only
+    the templates, the languages, app.py and the tests, so a shell change never ran them on its own
+    push. And npm install can drift from tests/frontend/package-lock.json; npm ci cannot."""
+    text = read_source(".github/workflows/frontend-tests.yml")
+    for shell in ("windows/electron/**", "mac/electron/**", "linux/electron/**"):
+        assert text.count(f'- "{shell}"') == 2, f"{shell} must be in the push and the pull_request paths"
+    assert "npm install" not in text
+    assert re.search(r"run: npm ci\b", text)
+    readers = [n for n in ("backend_start", "python_missing_box", "quit_app_handler", "quit_confirm")
+               if '"electron", "main.js"' in read_source(f"tests/frontend/{n}.test.mjs")]
+    assert len(readers) == 4, readers
