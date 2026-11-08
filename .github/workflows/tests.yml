@@ -16,6 +16,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # The tags too: the installer test compares its 1.5.x list with what v1.5.2.3 installed
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
@@ -26,11 +29,12 @@ jobs:
         run: |
           pip install flask mutagen cryptography pytest
 
-      - name: Install ffmpeg
-        # The ffmpeg tests skip silently when ffmpeg or ffprobe is missing.
+      - name: Install ffmpeg, NSIS and 7-Zip
+        # The ffmpeg tests skip silently when ffmpeg or ffprobe is missing, and the installer
+        # compile test when makensis or 7z is.
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg
+          sudo apt-get install -y --no-install-recommends ffmpeg nsis p7zip-full
 
       - name: Lint CSS — --muted discipline
         run: bash scripts/lint-css-muted.sh
@@ -50,7 +54,7 @@ jobs:
       - name: Run tests
         run: |
           cd tests
-          python -m pytest -v --tb=short
+          python -m pytest -v --tb=short -rs
         env:
           EGM_API_TOKEN: ci-test-token-not-secret
 
