@@ -361,20 +361,43 @@ def portable_stage_files(sh_text):
     return out
 
 
+def portable_files_wanted():
+    """Every relative path the portable zip must hold: the app files plus the portable edition's own."""
+    return set(read_app_files()) | PORTABLE_ONLY | {f'electron/{n}' for n in SHELL_FILES}
+
+
 def check_portable_stage():
-    """The portable zip holds exactly the app files plus its own files (relative paths)."""
+    """The portable stage of windows/BUILD.sh copies exactly the app files plus its own files."""
     sh_path = ROOT / 'windows' / 'BUILD.sh'
     if not sh_path.exists() or not APP_FILES_LIST.exists():
         return []
     have = portable_stage_files(sh_path.read_text(encoding='utf-8', errors='replace'))
     if have is None:
         return ["windows/BUILD.sh: the portable stage section was not found"]
-    want = set(read_app_files()) | PORTABLE_ONLY | {f'electron/{n}' for n in SHELL_FILES}
+    want = portable_files_wanted()
     errors = []
     if want - have:
         errors.append(f"Portable stage is missing: {sorted(want - have)}")
     if have - want:
         errors.append(f"Portable stage has files that are neither app files nor portable-only: {sorted(have - want)}")
+    return errors
+
+
+def check_portable_zip_contents():
+    """The built portable zip (dist/EGMd-portable.zip), when there is one: its members are exactly
+    the portable stage's files. check_portable_stage reads the script; this reads what it wrote."""
+    zip_path = ROOT / 'dist' / 'EGMd-portable.zip'
+    if not zip_path.is_file():
+        return []
+    import zipfile
+    with zipfile.ZipFile(zip_path) as zf:
+        have = {n for n in zf.namelist() if not n.endswith('/')}
+    want = portable_files_wanted()
+    errors = []
+    if want - have:
+        errors.append(f"dist/EGMd-portable.zip is missing: {sorted(want - have)}")
+    if have - want:
+        errors.append(f"dist/EGMd-portable.zip holds files that are neither app files nor portable-only: {sorted(have - want)}")
     return errors
 
 
@@ -871,6 +894,8 @@ def main():
     all_errors.extend(check_portable_stage())
     print("   Checking the installer folder (dist/win-unpacked, if built)...")
     all_errors.extend(check_installer_folder())
+    print("   Checking the portable zip (dist/EGMd-portable.zip, if built)...")
+    all_errors.extend(check_portable_zip_contents())
     print("   Checking the feeds against the zips in dist/ (if built)...")
     all_errors.extend(check_feed_matches_zip())
 
