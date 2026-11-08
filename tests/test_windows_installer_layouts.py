@@ -67,6 +67,7 @@ def test_a_folder_holding_both_layouts_is_cleaned_of_both():
 
 def test_the_old_layout_is_checked_first_and_the_two_checks_are_independent():
     sec = section("Install")
+    sec = sec[sec.index("What is installed here already"):]
     old = sec.index('${If} ${FileExists} "$INSTDIR\\launch.py"')
     new = sec.index('${If} ${FileExists} "$INSTDIR\\resources\\app.asar"')
     assert old < sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT") < sec.index("${EndIf}", old) < new
@@ -93,3 +94,48 @@ def test_a_migration_cut_short_after_any_step_is_finished_by_the_next_run(cut):
     r = install(paths)
     assert r.outcome == "writes"
     assert paths == whole, sorted(paths ^ whole)
+
+
+# ── a folder that is not ours ─────────────────────────────────────────────────
+
+PORTABLE = {"EGM Downloader.exe", "launch.py", ".portable", "app.py", "instructions.txt", "templates/index.html",
+            "electron/package.json", "data/egm_settings.json", "python/python.exe"}
+FOREIGN = {"notes.txt", "photos/a.jpg"}
+MARKERS = ["EGM Downloader.exe", "resources/app.asar", "launch.py", "electron/main.js"]
+
+
+@pytest.mark.parametrize("name, contents", [
+    ("a portable copy", PORTABLE),
+    ("a 1.5.x portable copy", OLD | {".portable", "python/python.exe", "data/egm_settings.json"}),
+    ("a folder of something else", FOREIGN),
+    ("a folder with only a README.md", {"README.md"}),
+])
+def test_a_folder_that_is_not_ours_is_refused_before_anything_changes(name, contents):
+    for silent, answers in ((True, []), (False, ["IDOK"])):
+        paths = folder(contents)
+        r = install(paths, silent=silent, answers=answers, running={7})
+        assert r.outcome == "aborted", name
+        assert paths == folder(contents) and not r.deleted, name
+        assert r.boxes == [("$(EGM_FOLDER_NOT_OURS)", "IDOK")], (name, r.boxes)
+        assert r.finds == 0 and not r.execs, f"{name}: nothing is looked for or closed before the refusal"
+
+
+@pytest.mark.parametrize("marker", MARKERS)
+def test_each_marker_makes_a_folder_ours(marker):
+    paths = folder({marker} | FOREIGN)
+    r = install(paths)
+    assert r.outcome == "writes", marker
+    assert folder(FOREIGN) <= paths
+
+
+def test_an_empty_or_new_folder_is_installed_into():
+    paths = set()
+    r = install(paths)
+    assert r.outcome == "writes" and not r.boxes and not r.deleted
+
+
+def test_the_refusal_comes_first_in_the_install_section():
+    sec = section("Install")
+    refusal = sec.index("$(EGM_FOLDER_NOT_OURS)")
+    for later in ("Call EGM_FindRunning", "taskkill", "RMDir", "!insertmacro", "File ", "WriteReg"):
+        assert refusal < sec.index(later), later

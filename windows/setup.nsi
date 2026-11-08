@@ -25,6 +25,7 @@
 !include "MUI2.nsh"
 !include "LogicLib.nsh"
 !include "nsDialogs.nsh"
+!include "FileFunc.nsh"
 
 ; ── Required defines (sanity check) ──────────────────────────
 !ifndef VERSION
@@ -292,6 +293,17 @@ LangString EGM_UN_APP_STILL_RUNNING ${LANG_DUTCH} "EGM Downloader is still runni
 LangString EGM_UN_APP_STILL_RUNNING ${LANG_PORTUGUESEBR} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
 LangString EGM_UN_APP_STILL_RUNNING ${LANG_RUSSIAN} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
 
+LangString EGM_FOLDER_NOT_OURS ${LANG_ENGLISH} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_ARABIC} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_GERMAN} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_SPANISH} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_FRENCH} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_ITALIAN} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_JAPANESE} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_DUTCH} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_PORTUGUESEBR} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+LangString EGM_FOLDER_NOT_OURS ${LANG_RUSSIAN} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
+
 ; ── Welcome-page language selector ────────────────────────────────────────────
 ; Rows map 1:1, index-aligned, to the codes in LangCodeFromIndex below.
 Function WelcomePage_Show
@@ -394,6 +406,25 @@ FunctionEnd
 
 ; ── Install Section ──────────────────────────────────────────
 Section "Install"
+  ; ── Only into an empty folder or one of ours, checked before anything is closed or changed ──
+  ; A folder of something else would get the app's files mixed into it and loses files by name
+  ; below. A portable copy (launch.py with .portable) keeps its data inside and is not an install.
+  ${DirState} "$INSTDIR" $0
+  ${If} ${FileExists} "$INSTDIR\launch.py"
+  ${AndIf} ${FileExists} "$INSTDIR\.portable"
+    StrCpy $0 "refuse"
+  ${ElseIf} $0 == 1
+  ${AndIfNot} ${FileExists} "$INSTDIR\EGM Downloader.exe"
+  ${AndIfNot} ${FileExists} "$INSTDIR\resources\app.asar"
+  ${AndIfNot} ${FileExists} "$INSTDIR\launch.py"
+  ${AndIfNot} ${FileExists} "$INSTDIR\electron\main.js"
+    StrCpy $0 "refuse"
+  ${EndIf}
+  ${If} $0 == "refuse"
+    MessageBox MB_OK|MB_ICONSTOP "$(EGM_FOLDER_NOT_OURS)" /SD IDOK
+    Abort
+  ${EndIf}
+
   ; ── Guard: never install over a RUNNING app (locked files → corrupt/partial
   ;    copy or silent failure). Only the app of this folder counts (EGM_FindRunning). ──
   Call EGM_FindRunning

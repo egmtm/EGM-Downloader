@@ -73,7 +73,7 @@ def test_the_installer_runs_the_uninstaller_silently_from_the_already_installed_
 
 
 def test_a_silent_install_closes_a_running_app_instead_of_cancelling():
-    first = _message_boxes(_section("Install"))[0]
+    first = next(b for b in _message_boxes(_section("Install")) if "$(EGM_APP_RUNNING)" in b)
     assert "$(EGM_APP_RUNNING)" in first
     assert re.search(r"/SD IDOK IDOK kill_running\s*$", first), first
 

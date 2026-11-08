@@ -104,8 +104,9 @@ def test_the_old_layout_list_matches_what_v1_5_2_3_installed():
 def test_layout_is_decided_by_files_and_the_app_is_stopped_before_anything_changes():
     """The order of the two layout checks is in tests/test_windows_installer_layouts.py."""
     sec = _section("Install")
-    new = sec.index('${If} ${FileExists} "$INSTDIR\\resources\\app.asar"')
-    old = sec.index('${If} ${FileExists} "$INSTDIR\\launch.py"')
+    layout = sec.index("What is installed here already")
+    new = sec.index('${If} ${FileExists} "$INSTDIR\\resources\\app.asar"', layout)
+    old = sec.index('${If} ${FileExists} "$INSTDIR\\launch.py"', layout)
     assert old < sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT") < sec.index("${EndIf}", old) < new
     assert "PreviousVersion" not in sec and "${VERSION}" not in sec[:sec.index("File /r")]
     # The app is stopped first: the second check after the kill aborts before any change
