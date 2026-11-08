@@ -477,8 +477,10 @@ FEED_REQUIRED_KEYS = [
     'version', 'build', 'label', 'downloadUrl', 'zip',
 ]
 
+_WINDOWS_BANNED = ['mac update', 'macos', 'darwin', 'appimage', '.dmg', '.deb', '.rpm', 'snap install']
 FEED_BANNED_TERMS = {
-    'egm-version.json':     ['mac update', 'macos', 'darwin', 'appimage', '.dmg', '.deb', '.rpm', 'snap install'],
+    'egm-version.json':          _WINDOWS_BANNED,
+    'egm-portable-version.json': _WINDOWS_BANNED,
     'egmac-update.json':    ['windows', 'win32', 'nsis', '.msi', 'appimage', 'apt-get', 'yum', 'snap install'],
     'egmlinux-update.json': ['windows', 'win32', '.exe', 'mac update', 'macos', 'darwin', '.dmg'],
 }
