@@ -2842,6 +2842,22 @@ def _ytdlp_ejs_pin():
             return m.group(1)
     return None
 
+def _ytdlp_ejs_paired():
+    """False only when the installed yt-dlp names a yt-dlp-ejs version and another one (or none) is
+    installed, read the same way as the pin, without the network. Check for Updates then offers yt-dlp
+    again, and Update Plugins pairs the solver after it. A yt-dlp that names none, or a failed read: True."""
+    pin = _ytdlp_ejs_pin()
+    if pin in (None, EJS_PIN_UNREADABLE):
+        return True
+    code = ("import importlib.metadata as m\n"
+            "try: print(m.version('yt-dlp-ejs'))\n"
+            "except m.PackageNotFoundError: print('')")
+    try:
+        r = _run_yt(sys.executable, "-c", code, timeout=30)
+    except Exception:
+        return True
+    return r.returncode != 0 or r.stdout.strip() == pin
+
 def _install_ytdlp_ejs(log, failed):
     """Install, after a yt-dlp update, the solver package that yt-dlp names, so the pair never drifts."""
     pin = _ytdlp_ejs_pin()
@@ -3074,7 +3090,7 @@ def check_updates():
     # so the user can install the correct stable release.
     ytdlp_ch  = _load_settings().get("yt_dlp_channel", "stable")
     ffmpeg_ch = _load_settings().get("ffmpeg_channel", "stable")
-    ytdlp_ok = cy != "unknown" and cy == ly
+    ytdlp_ok = cy != "unknown" and cy == ly and _ytdlp_ejs_paired()
     oc = _get_optlibs_versions()
     ol = _f_ol.result()
     optlibs_updates = sum(
