@@ -282,6 +282,14 @@ def _no_referrer(response):
     response.headers["Referrer-Policy"] = "no-referrer"
     return response
 
+@app.after_request
+def _no_dns_prefetch(response):
+    """Chromium looks up the host of a link before it is clicked, when the pointer reaches it or when a
+    link is added to the page. The windows show links to X, the cookies extension pages and the like, so
+    left alone they would tell the DNS server about sites the person never asked for. Off on every response."""
+    response.headers["X-DNS-Prefetch-Control"] = "off"
+    return response
+
 # ── Paths ──────────────────────────────────────────────────────────────────────
 BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"

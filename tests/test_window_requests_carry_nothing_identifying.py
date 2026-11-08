@@ -13,6 +13,14 @@ makes that request itself. Two things in it were the app's to choose and are now
   tag and with both: the image server still got Referer: http://127.0.0.1:8899/). So each shell also
   strips Referer, at the session, from every request that is not to the app itself. The header alone
   passing is not proof, which is why the hook is run here and not just looked for.
+
+A third thing is not a request the app makes but one Chromium makes on its own: it looks up the host
+of a link before the link is clicked, when the pointer reaches it or when a link is added to the page
+(a Windows capture of the first test build showed DNS lookups for x.com, addons.mozilla.org and
+chromewebstore.google.com, the footer link and the links in the cookies dialog, with no connection
+after them). Every page the backend serves says X-DNS-Prefetch-Control: off. Checked in Electron
+45.2.3 with a page of links: the same page gave lookups for the hovered link and for a link added by
+script without the header, and none with it.
 """
 import importlib.util
 import json
@@ -76,6 +84,30 @@ def test_no_template_weakens_the_policy():
     for p in sorted(Path(ROOT, "templates").rglob("*.html")):
         text = p.read_text(encoding="utf-8").lower()
         assert 'name="referrer"' not in text and "referrerpolicy" not in text, p.name
+
+
+# ── Link lookups ──────────────────────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("path", PAGES)
+def test_every_page_tells_the_window_not_to_look_up_its_links(backend_module, path):
+    r = backend_module.app.test_client().get(path)
+    assert r.status_code == 200, path
+    assert r.headers.get("X-DNS-Prefetch-Control") == "off", f"{path} lets Chromium look up the sites its links point to"
+
+
+def test_api_answers_and_errors_say_it_too(backend_module):
+    c = backend_module.app.test_client()
+    ok = c.get("/api/logs", headers={"X-EGM-Token": backend_module._API_TOKEN})
+    missing = c.get("/no-such-page")
+    assert ok.headers.get("X-DNS-Prefetch-Control") == "off"
+    assert missing.headers.get("X-DNS-Prefetch-Control") == "off"
+
+
+def test_no_template_turns_the_lookups_back_on():
+    """A page could set its own control (or ask for a lookup with a hint) and undo the header."""
+    for p in sorted(Path(ROOT, "templates").rglob("*.html")):
+        text = p.read_text(encoding="utf-8").lower()
+        assert "x-dns-prefetch-control" not in text and 'rel="dns-prefetch"' not in text and 'rel="preconnect"' not in text, p.name
 
 
 # ── User agent ────────────────────────────────────────────────────────────────────────────────
