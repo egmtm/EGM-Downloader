@@ -272,6 +272,9 @@ def _modules_present(names):
 def _pip_install(cmd, upgrading, timeout):
     """Run pip. A missing package is fatal, but a failed floor upgrade (offline, say) must not
     stop the start: the app runs on the old copy and the next launch tries again."""
+    # The launcher runs before the backend, so the backend's PIP_DISABLE_PIP_VERSION_CHECK does not
+    # reach this pip: say it here, or pip asks pypi.org whether a newer pip exists after the install.
+    cmd = cmd + ["--disable-pip-version-check"]
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
         subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)

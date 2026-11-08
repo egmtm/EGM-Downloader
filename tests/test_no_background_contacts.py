@@ -9,7 +9,11 @@ An independent privacy review found two background contacts that were easy to cl
   pip asks pypi.org for a newer pip after every install. Both inherit the backend's environment,
   so the backend sets DENO_NO_UPDATE_CHECK and PIP_DISABLE_PIP_VERSION_CHECK when it starts. A
   value the user already set is kept.
+* The Windows launcher runs pip itself (first run, repair, a package below its floor) before the
+  backend exists, so the environment variable never reaches those runs: its pip command carries
+  --disable-pip-version-check.
 """
+import importlib.util
 import os
 import re
 import subprocess
@@ -107,3 +111,40 @@ def test_the_backend_turns_the_deno_and_pip_update_checks_off_for_its_children(r
 @pytest.mark.parametrize("rel", APPS)
 def test_a_value_the_user_already_set_is_kept(rel, tmp_path):
     assert _run_probe(rel, tmp_path, DENO_NO_UPDATE_CHECK="0", PIP_DISABLE_PIP_VERSION_CHECK="0") == ("'0'", "'0'")
+
+
+# ── The Windows launcher's own pip runs ───────────────────────────────────────────────────────
+
+@pytest.fixture
+def launcher(monkeypatch):
+    spec = importlib.util.spec_from_file_location("egm_launch_pip_check", os.path.join(ROOT, "windows", "launch.py"))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    calls = []
+    monkeypatch.setattr(mod.subprocess, "run", lambda cmd, **kw: calls.append(list(cmd)))
+    monkeypatch.setattr(mod, "_gui_msg", lambda *a, **k: None)
+    mod.pip_calls = calls
+    return mod
+
+
+def test_the_installer_launchers_pip_install_does_not_look_for_a_newer_pip(launcher, monkeypatch):
+    monkeypatch.setattr(launcher, "_meta_version", lambda n: None)
+    monkeypatch.setitem(sys.modules, "brotli", None)             # an import fails: a real install
+    launcher.ensure_python_deps()
+    (cmd,) = launcher.pip_calls
+    assert "install" in cmd and "--disable-pip-version-check" in cmd
+
+
+def test_the_installer_launchers_pip_upgrade_does_not_look_for_a_newer_pip(launcher, monkeypatch):
+    monkeypatch.setattr(launcher, "_meta_version", lambda n: (1, 0, 0) if n == "brotli" else (2026, 10, 26))
+    monkeypatch.setattr(launcher, "_modules_present", lambda names: True)
+    launcher.ensure_python_deps()
+    (cmd,) = launcher.pip_calls
+    assert "--retries" in cmd and "--disable-pip-version-check" in cmd
+
+
+def test_the_portable_launchers_pip_install_does_not_look_for_a_newer_pip(launcher, monkeypatch, tmp_path):
+    monkeypatch.setattr(launcher, "PY_DIR", tmp_path / "python")   # no site-packages yet: first run
+    launcher.ensure_python_deps_embedded("python.exe")
+    (cmd,) = launcher.pip_calls
+    assert "install" in cmd and "--disable-pip-version-check" in cmd
