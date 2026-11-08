@@ -8,6 +8,7 @@ the pieces into one file. These tests pin the helpers, the driver loop (with
 the yt-dlp runs replaced by stand ins), and the join against real ffmpeg."""
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 from pathlib import Path
@@ -16,9 +17,32 @@ import pytest
 
 from conftest import PLATFORM_APP_FILES, read_source
 
-FFMPEG = shutil.which("ffmpeg")
-FFPROBE = shutil.which("ffprobe")
-needs_ffmpeg = pytest.mark.skipif(not (FFMPEG and FFPROBE), reason="ffmpeg not installed")
+
+def _sibling_probe(ffmpeg):
+    """Where the app looks for ffprobe: next to the ffmpeg it is given (its ffmpeg_bin holds both)."""
+    return Path(ffmpeg).with_name(Path(ffmpeg).name.replace("ffmpeg", "ffprobe"))
+
+
+def _ffmpeg_pair():
+    """The first PATH folder that holds both ffmpeg and ffprobe. Taking each from PATH on its own
+    pairs an ffmpeg copied alone into an earlier folder (a static build in ~/bin) with another
+    folder's ffprobe: the app then finds no ffprobe next to that ffmpeg, every probe answers None,
+    and 12 tests fail although the app is fine with that ffmpeg."""
+    for d in os.environ.get("PATH", "").split(os.pathsep):
+        f = shutil.which("ffmpeg", path=d) if d else None
+        if f and _sibling_probe(f).is_file():
+            return f, str(_sibling_probe(f))
+    return None, None
+
+
+FFMPEG, FFPROBE = _ffmpeg_pair()
+needs_ffmpeg = pytest.mark.skipif(not (FFMPEG and FFPROBE), reason="no folder on PATH holds both ffmpeg and ffprobe")
+
+
+@needs_ffmpeg
+def test_the_tests_use_an_ffmpeg_with_its_ffprobe_alongside():
+    # The app's live helpers take ffprobe from next to ffmpeg, so a pair from two folders tests nothing real.
+    assert Path(FFPROBE) == _sibling_probe(FFMPEG)
 
 
 # ── small helpers ────────────────────────────────────────────────────────────
