@@ -166,14 +166,22 @@ echo "   ✓ All source files present"
 echo ""
 
 # ── Clean old build artifacts ────────────────────────────────────────────────
+# Each phase removes what it regenerates (and what a run that failed half way could have left),
+# and never a file a signature was just put on:
+#   phase 1     everything, the launcher and the installer folder included (both are rebuilt);
+#   --continue  egm-setup.exe and the uninstall list (remade by makensis) and the outputs of
+#               --finish; the signed launcher, the folder with its signed exe and its manifest stay;
+#   --finish    only its own outputs, the zips, the feeds and the portable stage; the signed
+#               egm-setup.exe and launcher stay, they are what this phase packages.
 echo "🧹 Cleaning old Windows build artifacts..."
 mkdir -p "$REPO_ROOT/dist"
-rm -f "$REPO_ROOT/dist/egm-setup.exe" "$REPO_ROOT/dist/EGMd.zip"
+rm -f "$REPO_ROOT/dist/EGMd.zip" "$REPO_ROOT/dist/EGMd-portable.zip" \
+      "$REPO_ROOT/dist/egm-version.json" "$REPO_ROOT/dist/egm-portable-version.json"
+rm -rf "$REPO_ROOT/dist/portable-stage"
+if [ "$FINISH" -eq 0 ]; then
+    rm -f "$REPO_ROOT/dist/egm-setup.exe" "$REPO_ROOT/dist/win-unpacked-files.nsh"
+fi
 if [ "$RESUME" -eq 0 ]; then
-    # Phase 1 recompiles the launcher fresh, so the old one (signed or not)
-    # is stale either way. On --continue, the launcher in place IS the
-    # signed one EGM just produced — must not be touched. The same goes for
-    # the installer folder and the Electron exe signed inside it.
     rm -f "$WIN_DIR/EGM Downloader.exe"
     rm -rf "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"
 fi

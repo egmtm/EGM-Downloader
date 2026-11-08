@@ -238,7 +238,7 @@ def test_the_signed_folder_survives_the_clean_step_on_continue():
     clean = sh[sh.index("Cleaning old Windows build artifacts"):sh.index("Compile launcher EXE")]
     guarded = re.search(r'if \[ "\$RESUME" -eq 0 \]; then\n(.*?)\nfi', clean, re.S).group(1)
     assert 'rm -rf "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"' in guarded
-    assert len([l for l in clean.splitlines() if "dist/win-unpacked" in l]) == 1
+    assert len([l for l in clean.splitlines() if 'dist/win-unpacked"' in l]) == 1, "the folder is removed in phase 1 only"
 
 
 def test_the_electron_zip_is_checked_against_the_locked_electron_package():
