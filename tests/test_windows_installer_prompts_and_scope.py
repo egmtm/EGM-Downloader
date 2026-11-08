@@ -50,7 +50,7 @@ def _message_boxes(text):
 
 def test_every_uninstaller_prompt_defaults_to_no_and_jumps_past_what_it_removes():
     sec = _section("Uninstall")
-    boxes = _message_boxes(sec)
+    boxes = [b for b in _message_boxes(sec) if "MB_YESNO" in b]   # the questions; the running app box closes it
     assert len(boxes) == 2, boxes
     for box in boxes:
         m = re.search(r"/SD (\w+) IDNO (\w+)\s*$", box)

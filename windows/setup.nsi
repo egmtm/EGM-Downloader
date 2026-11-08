@@ -268,6 +268,28 @@ LangString EGM_APP_RUNNING ${LANG_DUTCH} "EGM Downloader wordt momenteel uitgevo
 LangString EGM_APP_RUNNING ${LANG_PORTUGUESEBR} "O EGM Downloader está em execução no momento.$\r$\nFeche-o antes de continuar, ou deixe o instalador fechá-lo para você.$\r$\nOK → Fechar para mim$\r$\nCancelar → Cancelar instalação"
 LangString EGM_APP_RUNNING ${LANG_RUSSIAN} "EGM Downloader сейчас запущен.$\r$\nЗакройте его перед продолжением или позвольте установщику закрыть его за вас.$\r$\nОК → Закрыть за меня$\r$\nОтмена → Отменить установку"
 
+LangString EGM_UN_APP_RUNNING ${LANG_ENGLISH} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_ARABIC} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_GERMAN} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_SPANISH} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_FRENCH} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_ITALIAN} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_JAPANESE} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_DUTCH} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_PORTUGUESEBR} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING ${LANG_RUSSIAN} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
+
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_ENGLISH} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_ARABIC} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_GERMAN} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_SPANISH} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_FRENCH} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_ITALIAN} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_JAPANESE} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_DUTCH} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_PORTUGUESEBR} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+LangString EGM_UN_APP_STILL_RUNNING ${LANG_RUSSIAN} "EGM Downloader is still running and could not be closed.$\r$\nNothing was removed. Quit it from the tray icon (or end it in Task Manager), then run the uninstaller again."
+
 ; ── Welcome-page language selector ────────────────────────────────────────────
 ; Rows map 1:1, index-aligned, to the codes in LangCodeFromIndex below.
 Function WelcomePage_Show
@@ -312,6 +334,26 @@ Function FinishPage_LaunchApp
   ExecShell "open" "$INSTDIR\EGM Downloader.exe"
 FunctionEnd
 
+; ── The app of THIS folder, running: for the installer and the uninstaller ────
+; Only processes whose image is in the install folder: the app (also the 1.5.x launcher, and that
+; layout's Electron, renamed or not) and the bundled Python, which can outlive the app. A copy
+; running from any other folder (a portable copy, say) is left alone. wmic is gone from new Windows,
+; so PowerShell asks WMI (Win32_Process gives this 32 bit installer the image path of 64 bit
+; processes too, which Get-Process does not). The folder goes in an environment variable, so no
+; character of a folder name can break the command, and every tool is called by its full path:
+; a find.exe or tasklist.exe earlier on PATH (Git for Windows, MSYS) plays no part.
+; Out: $0 = how many (0 also when PowerShell could not run), $1 = "/PID n /PID m" for taskkill.
+!macro EGM_FIND_RUNNING_FUNCTION un
+Function ${un}EGM_FindRunning
+  System::Call 'kernel32::SetEnvironmentVariable(t "EGM_STOP_DIR", t "$INSTDIR")i'
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -Command "$$ProgressPreference = 'SilentlyContinue'; $$d = $$env:EGM_STOP_DIR; $$w = @(($$d + '\EGM Downloader.exe'), ($$d + '\resources\python\python.exe'), ($$d + '\electron\node_modules\electron\dist\EGM Downloader.exe'), ($$d + '\electron\node_modules\electron\dist\electron.exe')); $$p = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $$w -contains $$_.ExecutablePath }); [Console]::Out.Write((($$p | ForEach-Object { '/PID ' + $$_.ProcessId }) -join ' ')); exit $$p.Count"`
+  Pop $0
+  Pop $1
+FunctionEnd
+!macroend
+!insertmacro EGM_FIND_RUNNING_FUNCTION ""
+!insertmacro EGM_FIND_RUNNING_FUNCTION "un."
+
 ; ── Startup: detect existing install ─────────────────────────
 Function .onInit
   ; Language must be chosen HERE: NSIS binds the UI language once at startup;
@@ -351,29 +393,21 @@ FunctionEnd
 ; ── Install Section ──────────────────────────────────────────
 Section "Install"
   ; ── Guard: never install over a RUNNING app (locked files → corrupt/partial
-  ;    copy or silent failure). nsProcess isn't in our build environment, so we
-  ;    detect with tasklist piped to find: find's exit code is 0 only when the
-  ;    image name appears in tasklist's output. We match the IMAGE NAME (not
-  ;    tasklist's "no tasks" line, which is localized), so this is locale-robust.
-  ;    The old launcher, its renamed Electron runtime and the new Electron exe
-  ;    all run as "EGM Downloader.exe", so this one image name covers the app. ──
-  nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq ${APPNAME}.exe" /NH | find /I "${APPNAME}.exe"'
-  Pop $0   ; process exit code (= find's: 0 = running, 1 = not running)
-  Pop $1   ; captured stdout (unused)
-  ${If} $0 == 0
+  ;    copy or silent failure). Only the app of this folder counts (EGM_FindRunning). ──
+  Call EGM_FindRunning
+  ${If} $0 > 0
     MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
       "$(EGM_APP_RUNNING)" \
       /SD IDOK IDOK kill_running
     Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
     kill_running:
-      ; Same image name as the uninstaller's kill; /T also takes child processes.
-      nsExec::Exec 'taskkill /F /T /IM "${APPNAME}.exe"'
+      ; By process id, so only this folder's processes; /T also takes the processes they started.
+      nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T $1'
+      Pop $0
       Sleep 1000
       ; Check again: if it still runs, stop here, before anything is deleted or copied.
-      nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq ${APPNAME}.exe" /NH | find /I "${APPNAME}.exe"'
-      Pop $0
-      Pop $1
-      ${If} $0 == 0
+      Call EGM_FindRunning
+      ${If} $0 > 0
         MessageBox MB_OK|MB_ICONSTOP \
           "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again." \
           /SD IDOK
@@ -453,9 +487,24 @@ Function un.onInit
 FunctionEnd
 
 Section "Uninstall"
-  ; ── Close the app if it's still running, so files aren't locked ──
-  nsExec::Exec 'taskkill /F /T /IM "EGM Downloader.exe"'
-  Sleep 500
+  ; ── Close the app of this folder if it runs, so no file is locked: the installer's check ──
+  Call un.EGM_FindRunning
+  ${If} $0 > 0
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+      "$(EGM_UN_APP_RUNNING)" \
+      /SD IDOK IDOK un_kill_running
+    Abort
+    un_kill_running:
+      nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T $1'
+      Pop $0
+      Sleep 1000
+      ; Check again: if it still runs, stop here, before anything is removed.
+      Call un.EGM_FindRunning
+      ${If} $0 > 0
+        MessageBox MB_OK|MB_ICONSTOP "$(EGM_UN_APP_STILL_RUNNING)" /SD IDOK
+        Abort
+      ${EndIf}
+  ${EndIf}
 
   ; ── Remove app files: exactly what the installer wrote ──
   ; The folder's top level files and its resources\ and locales\ folders (generated list).

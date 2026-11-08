@@ -110,7 +110,7 @@ def test_layout_is_decided_by_files_and_the_app_is_stopped_before_anything_chang
     assert old < sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT") < sec.index("${EndIf}", old)
     assert "PreviousVersion" not in sec and "${VERSION}" not in sec[:sec.index("File /r")]
     # The app is stopped first: the second check after the kill aborts before any change
-    second_check = sec.index("tasklist", sec.index("taskkill"))
+    second_check = sec.index("Call EGM_FindRunning", sec.index("taskkill"))
     abort = sec.index("Abort", second_check)
     first_change = min(sec.find(k) for k in ("RMDir", "!insertmacro", "File ", "WriteReg") if k in sec)
     assert second_check < abort < first_change
@@ -217,7 +217,7 @@ def _run(lines, paths, answers):
                 removed_dirs.add(target)
             elif not any(p.startswith(target + "/") for p in paths):
                 removed_dirs.add(target)
-        elif line.startswith("MessageBox"):
+        elif line.startswith("MessageBox MB_YESNO"):   # the questions (the running app box is not one)
             jump = re.search(r"\bIDNO\s+(?!ID)(\w+)\s*$", line)   # "/SD IDNO IDNO label": the label
             if not answers.pop(0) and jump:
                 skip_to = jump.group(1)
@@ -268,7 +268,7 @@ def test_every_top_level_entry_the_installer_places_is_removed(tmp_path):
     folder = _folder_for_model(tmp_path)
     placed = {p.name for p in folder.iterdir()} | {"instructions.txt", "LICENSE", "uninstall.exe", "first-run-language.txt"}
     lines = "\n".join(_uninstall_lines(folder))
-    program_part = lines[:lines.index("MessageBox")]
+    program_part = lines[:lines.index("MessageBox MB_YESNO")]
     for name in placed:
         assert (f'Delete "$INSTDIR\\{name}"' in program_part or f'RMDir /r "$INSTDIR\\{name}"' in program_part), name
 
@@ -347,7 +347,7 @@ def test_the_uninstaller_removes_the_common_folder_names_only_where_this_app_is_
     old = sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT")
     guard = sec.rfind("${If}", 0, old)
     assert sec[guard:old].strip().startswith('${If} ${FileExists} "$INSTDIR\\launch.py"'), sec[guard:old]
-    assert sec.index("${EndIf}", old) < sec.index("MessageBox")
+    assert sec.index("${EndIf}", old) < sec.index("MessageBox MB_YESNO")
 
 
 def test_the_unreadable_copies_go_with_the_data():
