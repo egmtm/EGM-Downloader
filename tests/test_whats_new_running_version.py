@@ -209,7 +209,9 @@ def test_windows_installer_portable_and_update_zip_ship_patchnotes():
     sh = read_source("windows/BUILD.sh")
     zip_lines = [l for l in sh.splitlines() if "app.py" in l and "requirements.txt" in l and "patchnotes.txt" in l]
     assert zip_lines, "the update zip no longer lists patchnotes.txt"
-    assert re.search(r'cp "\$REPO_ROOT/patchnotes\.txt"\s+"\$PORTABLE_STAGE/"', sh), "the portable no longer gets patchnotes.txt"
+    # The portable stage copies the app files list, and patchnotes.txt is on it (next to app.py)
+    assert "patchnotes.txt" in read_source("windows/app-files.txt").splitlines(), "the portable no longer gets patchnotes.txt"
+    assert 'done < "$REPO_ROOT/windows/app-files.txt"' in sh
 
 
 @pytest.mark.parametrize("platform", ["linux", "mac"])

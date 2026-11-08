@@ -1,0 +1,58 @@
+# The app files of the Windows build, one per line, as repository-relative paths, in the order the
+# portable stage copies them. Both editions ship exactly these, at the same relative paths:
+#   portable:  next to EGM Downloader.exe (the launcher)
+#   installer: in resources\app of the packaged folder
+# windows/BUILD.sh copies them into the portable stage, windows/installer/build-folder.sh into the
+# installer's staging folder, and scripts/validate-version-sync.py checks both against this list.
+# Edition-only files (the launcher, launch.py, the shell files, the Electron runtime, Python) are not
+# listed here; the validator names them.
+app.py
+patchnotes.txt
+LICENSE
+templates/index.html
+templates/index_styles.html
+templates/index_scripts.html
+templates/console.html
+templates/history.html
+templates/themes.html
+templates/theme_styles.html
+templates/theme_data.html
+templates/theme_validator.html
+templates/i18n.html
+templates/subscriptions.html
+templates/js/_core.html
+templates/js/_settings.html
+templates/js/_download.html
+templates/js/_bulk.html
+templates/js/_nav_history.html
+templates/js/_theme.html
+templates/js/_quality.html
+templates/js/_creator.html
+templates/js/_card_order.html
+languages/ar.json
+languages/de.json
+languages/en.json
+languages/es.json
+languages/fr.json
+languages/it.json
+languages/ja.json
+languages/nl.json
+languages/pt.json
+languages/ru.json
+static/icon.ico
+static/icon-512.png
+static/icon-256.png
+static/icon-128.png
+static/icon-64.png
+static/icon-32.png
+static/icon-16.png
+static/badge-1.png
+static/badge-2.png
+static/badge-3.png
+static/badge-4.png
+static/badge-5.png
+static/badge-6.png
+static/badge-7.png
+static/badge-8.png
+static/badge-9.png
+static/badge-9plus.png

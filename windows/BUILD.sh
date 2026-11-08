@@ -3,13 +3,21 @@
 # Run from repo root: bash windows/BUILD.sh
 # Or from the windows/ directory: bash BUILD.sh
 # Produces: dist/EGMd.zip + dist/egm-version.json
+#           dist/EGMd-portable.zip + dist/egm-portable-version.json
 #
 # Requirements (Linux/Mac/WSL):
 #   - makensis (sudo apt install nsis  OR  brew install makensis)
-#   - python3 (standard library only)
+#   - python3 with pip (pip fetches the Windows wheels of the installer's bundled Python)
+#   - Node.js with npm (electron-builder packages the installer's Electron)
+#   - curl and tar
 #   - osslsigncode (optional but recommended: sudo apt install osslsigncode)
-#     — lets --continue verify the launcher is actually signed before it gets
+#     — lets --continue verify the two exes are actually signed before they get
 #     baked into the installer, instead of just trusting a flag was passed.
+#
+# The installer edition ships Electron, Python and its packages inside the app
+# folder (windows/installer/build-folder.sh builds it as dist/win-unpacked). The
+# portable edition is unchanged: launcher, launch.py, and everything else
+# downloaded on first launch.
 #
 # TWO-PHASE BUILD (added for EGM's Windows code-signing question, v1.3.2+):
 # Previously this script compiled "EGM Downloader.exe" (the native launcher)
@@ -19,14 +27,17 @@
 # it was already sealed inside the installer by the time signing happened.
 #
 # Fixed by splitting the build into two stops:
-#   1. bash windows/BUILD.sh              — compiles the launcher, STOPS.
-#      -> EGM signs windows/EGM Downloader.exe now.
-#   2. bash windows/BUILD.sh --continue   — skips recompiling (uses the now-
-#      signed launcher as-is), verifies it's actually signed if osslsigncode
-#      is available, then proceeds through NSIS + portable packaging with
-#      the SIGNED launcher baked into both. EGM still signs egm-setup.exe
-#      afterward, same as before — this adds a signing step, doesn't replace
-#      the existing one.
+#   1. bash windows/BUILD.sh              — compiles the launcher (portable)
+#      and builds the installer folder (dist/win-unpacked), then STOPS.
+#      -> EGM signs the two files named "EGM Downloader.exe" now:
+#         windows/EGM Downloader.exe              (the portable launcher)
+#         dist/win-unpacked/EGM Downloader.exe    (the installer's Electron)
+#   2. bash windows/BUILD.sh --continue   — skips recompiling and rebuilding
+#      (electron-builder never runs again, so the signed bytes reach the
+#      installer unchanged), verifies BOTH are actually signed if osslsigncode
+#      is available, then proceeds through NSIS + portable packaging. EGM still
+#      signs egm-setup.exe afterward, same as before.
+#   To sign more files later, add them to SIGNED_FILES below.
 #
 # Stopping by default (no flag) is deliberate: a forgotten flag fails safe
 # (nothing gets packaged) rather than failing silent (an unsigned launcher
@@ -72,6 +83,12 @@ if ! command -v python3 &> /dev/null; then
     echo "❌ python3 not found!"
     exit 1
 fi
+for tool in node npm curl tar; do
+    if ! command -v "$tool" &> /dev/null; then
+        echo "❌ $tool not found! (required for the installer folder)"
+        exit 1
+    fi
+done
 if ! command -v x86_64-w64-mingw32-gcc &> /dev/null; then
     echo "❌ mingw-w64 not found! (required for compiling the launcher EXE)"
     echo "   Install: sudo apt install mingw-w64   (Linux)"
@@ -86,7 +103,7 @@ echo "   ✓ makensis: $(makensis -VERSION)"
 echo "   ✓ Python:   $(python3 --version)"
 echo "   ✓ mingw-w64: $(x86_64-w64-mingw32-gcc --version | head -1)"
 if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
-    echo "   ✓ osslsigncode: available (launcher signature will be verified on --continue)"
+    echo "   ✓ osslsigncode: available (both signatures will be verified on --continue)"
 else
     echo "   ⚠ osslsigncode: not found — --continue will skip signature verification and"
     echo "     ask for manual confirmation instead (sudo apt install osslsigncode to enable it)"
@@ -107,7 +124,8 @@ MISSING=0
 for f in windows/launcher.c windows/launcher.rc windows/launch.py \
          windows/instructions.txt app.py requirements.txt patchnotes.txt README.md LICENSE \
          templates/index.html templates/history.html static/icon.ico static/icon-512.png \
-         windows/electron/main.js windows/electron/preload.js windows/electron/package.json; do
+         windows/electron/main.js windows/electron/preload.js windows/electron/package.json \
+         windows/app-files.txt windows/requirements-win-lock.txt windows/installer/build-folder.sh; do
     if [ ! -e "$REPO_ROOT/$f" ]; then
         echo "   ❌ MISSING: $f"
         MISSING=$((MISSING+1))
@@ -128,8 +146,10 @@ rm -f "$REPO_ROOT/dist/egm-setup.exe" "$REPO_ROOT/dist/EGMd.zip"
 if [ "$RESUME" -eq 0 ]; then
     # Phase 1 recompiles the launcher fresh, so the old one (signed or not)
     # is stale either way. On --continue, the launcher in place IS the
-    # signed one EGM just produced — must not be touched.
+    # signed one EGM just produced — must not be touched. The same goes for
+    # the installer folder and the Electron exe signed inside it.
     rm -f "$WIN_DIR/EGM Downloader.exe"
+    rm -rf "$REPO_ROOT/dist/win-unpacked"
 fi
 echo "   ✓ Cleaned"
 echo ""
@@ -145,54 +165,77 @@ if [ "$RESUME" -eq 0 ]; then
     rm -f launcher.res
     cd "$REPO_ROOT"
     echo ""
+    # ── Build the installer folder (Electron + Python + packages) ──
+    bash "$WIN_DIR/installer/build-folder.sh"
+    echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
     echo "║  STOP — launcher compiled, not yet signed                  ║"
+    echo "║         installer folder built, its exe not yet signed     ║"
     echo "╚════════════════════════════════════════════════════════════╝"
     echo ""
-    echo "   → Sign windows/EGM Downloader.exe now."
+    echo "   → Sign BOTH files named EGM Downloader.exe now:"
+    echo "       windows/EGM Downloader.exe              (portable launcher)"
+    echo "       dist/win-unpacked/EGM Downloader.exe    (installer: Electron)"
     echo "   → Then re-run:  bash windows/BUILD.sh --continue"
     echo ""
     exit 0
 fi
 
 # ── Resuming after signing: verify, don't just trust ─────────────────────────
-LAUNCHER_PATH="$WIN_DIR/EGM Downloader.exe"
-if [ ! -f "$LAUNCHER_PATH" ]; then
-    echo "❌ $LAUNCHER_PATH not found — run without --continue first to compile it."
-    exit 1
-fi
-LAUNCHER_SIZE=$(stat -c %s "$LAUNCHER_PATH")
-echo "🔒 Verifying the launcher is actually signed before packaging it in..."
-if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
-    if osslsigncode verify -in "$LAUNCHER_PATH" -ignore-timestamp > /tmp/osslsigncode_out.txt 2>&1; then
-        echo "   ✓ Signature verified — $LAUNCHER_SIZE bytes"
-    else
-        echo "   ❌ No valid signature found on EGM Downloader.exe:"
-        sed 's/^/     /' /tmp/osslsigncode_out.txt
-        echo ""
-        echo "   Sign it before continuing — packaging an unsigned launcher into the"
-        echo "   installer is exactly the gap this two-phase build exists to close."
-        rm -f /tmp/osslsigncode_out.txt
+# Every exe in this list must be signed before it is packaged in: the portable
+# launcher and the installer's Electron (both named EGM Downloader.exe). To sign
+# more files later (the bundled python.exe, say), add them here.
+SIGNED_FILES=(
+    "$WIN_DIR/EGM Downloader.exe"
+    "$REPO_ROOT/dist/win-unpacked/EGM Downloader.exe"
+)
+for SIGNED in "${SIGNED_FILES[@]}"; do
+    if [ ! -f "$SIGNED" ]; then
+        echo "❌ $SIGNED not found — run without --continue first to build it."
         exit 1
     fi
+done
+echo "🔒 Verifying the exes are actually signed before packaging them in..."
+if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
+    for SIGNED in "${SIGNED_FILES[@]}"; do
+        SIGNED_SIZE=$(stat -c %s "$SIGNED")
+        if osslsigncode verify -in "$SIGNED" -ignore-timestamp > /tmp/osslsigncode_out.txt 2>&1; then
+            echo "   ✓ Signature verified — ${SIGNED#"$REPO_ROOT"/} ($SIGNED_SIZE bytes)"
+        else
+            echo "   ❌ No valid signature found on ${SIGNED#"$REPO_ROOT"/}:"
+            sed 's/^/     /' /tmp/osslsigncode_out.txt
+            echo ""
+            echo "   Sign it before continuing — packaging an unsigned exe into the"
+            echo "   installer is exactly the gap this two-phase build exists to close."
+            rm -f /tmp/osslsigncode_out.txt
+            exit 1
+        fi
+    done
     rm -f /tmp/osslsigncode_out.txt
 else
     echo "   ⚠ osslsigncode not installed — can't verify automatically."
-    read -r -p "   Have you signed windows/EGM Downloader.exe? [y/N] " CONFIRM
+    for SIGNED in "${SIGNED_FILES[@]}"; do
+        echo "     ${SIGNED#"$REPO_ROOT"/}"
+    done
+    read -r -p "   Have you signed every file above? [y/N] " CONFIRM
     if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
-        echo "   Aborting — sign it first, or install osslsigncode for automatic checks."
+        echo "   Aborting — sign them first, or install osslsigncode for automatic checks."
         exit 1
     fi
-    echo "   ✓ Manual confirmation received — $LAUNCHER_SIZE bytes"
+    echo "   ✓ Manual confirmation received"
 fi
 echo ""
 
 # ── Compile NSIS installer ───────────────────────────────────────────────────
 echo "🔨 Compiling NSIS installer (egm-setup.exe)..."
+# The uninstaller's list of the folder's top level files and folders, read from the folder itself
+python3 "$WIN_DIR/installer/uninstall_list.py" "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked-files.nsh"
 makensis -V2 \
     -DVERSION="$VERSION" \
     -DBUILD="$BUILD_NUM" \
     -DREPO_ROOT="$REPO_ROOT" \
+    -DAPP_FOLDER="$REPO_ROOT/dist/win-unpacked" \
+    -DAPP_FOLDER_LIST="$REPO_ROOT/dist/win-unpacked-files.nsh" \
     -DOUTFILE="$REPO_ROOT/dist/egm-setup.exe" \
     "$WIN_DIR/setup.nsi"
 
@@ -302,66 +345,18 @@ PORTABLE_STAGE="$REPO_ROOT/dist/portable-stage"
 rm -rf "$PORTABLE_STAGE"
 mkdir -p "$PORTABLE_STAGE/templates" "$PORTABLE_STAGE/static" "$PORTABLE_STAGE/electron"
 
-# Root files — must exactly match what NSIS installs (validated by validate-version-sync.py)
+# Root files of this edition only (the instructions are rewritten below)
 cp "$REPO_ROOT/windows/EGM Downloader.exe"   "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/launch.py"             "$PORTABLE_STAGE/"
 cp "$REPO_ROOT/windows/instructions.txt"      "$PORTABLE_STAGE/"
-cp "$REPO_ROOT/app.py"                        "$PORTABLE_STAGE/"
-cp "$REPO_ROOT/patchnotes.txt"                "$PORTABLE_STAGE/"
-cp "$REPO_ROOT/LICENSE"                        "$PORTABLE_STAGE/"
 
-# Templates
-cp "$REPO_ROOT/templates/index.html"           "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/index_styles.html"    "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/index_scripts.html"   "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/console.html"         "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/history.html"         "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/themes.html"          "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/theme_styles.html"    "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/theme_data.html"      "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/theme_validator.html" "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/i18n.html" "$PORTABLE_STAGE/templates/"
-cp "$REPO_ROOT/templates/subscriptions.html"   "$PORTABLE_STAGE/templates/"
-mkdir -p "$PORTABLE_STAGE/templates/js"
-cp "$REPO_ROOT/templates/js/_core.html"        "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_settings.html"    "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_download.html"    "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_bulk.html"        "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_nav_history.html" "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_theme.html"       "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_quality.html"     "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_creator.html"     "$PORTABLE_STAGE/templates/js/"
-cp "$REPO_ROOT/templates/js/_card_order.html"  "$PORTABLE_STAGE/templates/js/"
-mkdir -p "$PORTABLE_STAGE/languages"
-cp "$REPO_ROOT/languages/ar.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/de.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/en.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/es.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/fr.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/it.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/ja.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/nl.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/pt.json"            "$PORTABLE_STAGE/languages/"
-cp "$REPO_ROOT/languages/ru.json"            "$PORTABLE_STAGE/languages/"
-
-# Static
-cp "$REPO_ROOT/static/icon.ico"               "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/icon-512.png"           "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/icon-256.png"           "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/icon-128.png"           "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/icon-64.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/icon-32.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/icon-16.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-1.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-2.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-3.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-4.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-5.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-6.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-7.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-8.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-9.png"            "$PORTABLE_STAGE/static/"
-cp "$REPO_ROOT/static/badge-9plus.png"        "$PORTABLE_STAGE/static/"
+# App files: windows/app-files.txt, in its order. The installer folder is built from the same
+# list (windows/installer/build-folder.sh); validate-version-sync.py checks both editions against it.
+while IFS= read -r f; do
+    case "$f" in ''|'#'*) continue ;; esac
+    mkdir -p "$PORTABLE_STAGE/$(dirname "$f")"
+    cp "$REPO_ROOT/$f" "$PORTABLE_STAGE/$f"
+done < "$REPO_ROOT/windows/app-files.txt"
 
 # Electron
 cp "$REPO_ROOT/windows/electron/main.js"      "$PORTABLE_STAGE/electron/"

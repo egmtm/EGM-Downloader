@@ -113,10 +113,12 @@ def test_all_ten_badge_assets_exist_and_are_shipped():
         path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "static", name)
         assert os.path.exists(path), f"static/{name} is missing from disk"
 
-    build_sh = read_source("windows/BUILD.sh")
+    # Both Windows editions ship the app files list (windows/app-files.txt): the portable stage
+    # in windows/BUILD.sh and the installer folder in windows/installer/build-folder.sh.
+    app_files = read_source("windows/app-files.txt").splitlines()
     nsi = read_source("windows/setup.nsi")
     for name in names:
-        assert name in build_sh, f"windows/BUILD.sh doesn't ship static/{name}"
+        assert f"static/{name}" in app_files, f"windows/app-files.txt doesn't ship static/{name}"
         assert name in nsi, f"windows/setup.nsi doesn't ship static/{name}"
 
 

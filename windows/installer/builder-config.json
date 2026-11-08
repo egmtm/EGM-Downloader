@@ -1,0 +1,45 @@
+{
+  "appId": "com.egerena.egm-downloader",
+  "productName": "EGM Downloader",
+  "executableName": "EGM Downloader",
+  "directories": {
+    "output": "out"
+  },
+  "files": [
+    "main.js",
+    "preload.js",
+    "splash.html",
+    "!node_modules/**/*"
+  ],
+  "extraResources": [
+    {
+      "from": "../app",
+      "to": "app",
+      "filter": [
+        "**/*"
+      ]
+    },
+    {
+      "from": "../python",
+      "to": "python",
+      "filter": [
+        "**/*"
+      ]
+    }
+  ],
+  "asar": true,
+  "electronLanguages": [
+    "en-US"
+  ],
+  "win": {
+    "target": [
+      {
+        "target": "dir",
+        "arch": [
+          "x64"
+        ]
+      }
+    ],
+    "icon": "../app/static/icon.ico"
+  }
+}
