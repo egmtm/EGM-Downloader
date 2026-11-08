@@ -7,8 +7,12 @@ makes that request itself. Two things in it were the app's to choose and are now
   tells the image server which app (and which build) this is. The shells strip both from
   app.userAgentFallback, before any window exists;
 * the referrer: every page the backend serves says Referrer-Policy: no-referrer, which covers the
-  six places that load a remote thumbnail (the download card and five in Subscriptions), including
-  the CSS background images, because a request takes the policy of the page that makes it.
+  <img> thumbnails (the download card and one place in Subscriptions). The four Subscriptions
+  thumbnails drawn as CSS background-image are not covered by it: Chromium gives CSS image requests
+  its default policy, not the page's (found by running Electron 45.2.3, with the header, with a meta
+  tag and with both: the image server still got Referer: http://127.0.0.1:8899/). So each shell also
+  strips Referer, at the session, from every request that is not to the app itself. The header alone
+  passing is not proof, which is why the hook is run here and not just looked for.
 """
 import importlib.util
 import json
@@ -46,6 +50,8 @@ def backend_module(request, tmp_path_factory):
 
 
 # ── Referrer ──────────────────────────────────────────────────────────────────────────────────
+
+# The page header: all that reaches an <img>. It does not reach a CSS background image (see below).
 
 PAGES = ("/", "/history-page", "/subscriptions-page", "/console-page", "/themes-page")
 
@@ -130,3 +136,70 @@ def test_the_shell_cleans_the_fallback_before_any_window_exists(rel):
     assert call in src, f"{rel} does not clean app.userAgentFallback"
     assert src.index(call) < src.index("app.whenReady()"), f"{rel} cleans it too late"
     assert src.count("new BrowserWindow(") == 6 and src.index(call) < src.index("new BrowserWindow(")
+
+
+# ── Referrer: the session hook (the only thing that reaches CSS background images) ───────────
+
+def _balanced_call(src, opener):
+    """The source of `opener ... )` up to its matching close parenthesis."""
+    i = src.index(opener)
+    j = src.index("(", i)
+    depth = 0
+    for k in range(j, len(src)):
+        depth += src[k] == "("
+        depth -= src[k] == ")"
+        if depth == 0:
+            return src[i:k + 1]
+    raise AssertionError("unbalanced")
+
+
+HOOK = "session.defaultSession.webRequest.onBeforeSendHeaders("
+APP = "http://127.0.0.1:8899"
+
+
+def _run_hook(rel, requests):
+    """Register the shell's own hook on a stand-in session and send each request through it."""
+    call = _balanced_call(read_source(rel), HOOK)
+    script = (f"const APP_URL = {json.dumps(APP)};\nlet hook = null;\n"
+              "const session = { defaultSession: { webRequest: { onBeforeSendHeaders: (f) => { hook = f; } } } };\n"
+              f"{call};\n"
+              "const out = [];\n"
+              f"for (const r of {json.dumps(requests)}) {{\n"
+              "  const answers = [];\n"
+              "  hook({ url: r.url, requestHeaders: Object.assign({}, r.headers) }, (a) => answers.push(a));\n"
+              "  out.push(answers);\n"
+              "}\n"
+              "console.log(JSON.stringify(out));")
+    r = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=20)
+    assert r.returncode == 0, r.stderr[-1500:]
+    return json.loads(r.stdout)
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_the_shell_registers_a_hook_that_strips_the_referer(rel):
+    src = read_source(rel)
+    assert src.count(HOOK) == 1, f"{rel} has no single onBeforeSendHeaders hook"
+    assert src.index(HOOK) > src.index("app.whenReady()"), f"{rel} registers it before the session exists"
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_a_request_to_an_image_server_leaves_without_a_referer(rel):
+    reqs = [{"url": "https://i.ytimg.com/vi/abc/hqdefault.jpg",
+             "headers": {"Referer": APP + "/", "User-Agent": "Chrome", "Accept": "image/*"}},
+            {"url": "https://yt3.ggpht.com/a.jpg", "headers": {"Referer": APP + "/subscriptions-page"}},
+            {"url": "https://cdn.example/x.jpg", "headers": {}}]
+    got = _run_hook(rel, reqs)
+    for answers, r in zip(got, reqs):
+        assert len(answers) == 1, "the hook must answer exactly once or the request hangs"
+        sent = answers[0]["requestHeaders"]
+        assert not any(k.lower() == "referer" for k in sent), f"{r['url']} still carries a Referer: {sent}"
+        assert {k: v for k, v in sent.items()} == {k: v for k, v in r["headers"].items() if k != "Referer"}, \
+            "the hook changed something other than the Referer"
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_the_apps_own_requests_keep_theirs(rel):
+    reqs = [{"url": APP + "/", "headers": {"Referer": APP + "/x"}},
+            {"url": APP + "/api/settings", "headers": {"Referer": APP + "/"}}]
+    for answers, r in zip(_run_hook(rel, reqs), reqs):
+        assert answers == [{"requestHeaders": r["headers"]}]
