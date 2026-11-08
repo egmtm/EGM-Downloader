@@ -460,14 +460,22 @@ Section "Uninstall"
   ; ── Remove app files: exactly what the installer wrote ──
   ; The folder's top level files and its resources\ and locales\ folders (generated list).
   ; resources\ goes as a whole, with the __pycache__ folders Python writes there at runtime.
-  !insertmacro EGM_REMOVE_APP_FOLDER
+  ; Only where this edition is installed: resources and locales are common folder names, and the
+  ; install folder is the user's choice (it can be one that held other things first).
+  ${If} ${FileExists} "$INSTDIR\resources\app.asar"
+  ${OrIf} ${FileExists} "$INSTDIR\EGM Downloader.exe"
+    !insertmacro EGM_REMOVE_APP_FOLDER
+  ${EndIf}
   Delete "$INSTDIR\instructions.txt"
   Delete "$INSTDIR\LICENSE"
   Delete "$INSTDIR\first-run-language.txt"
   ; The Reinstall Electron marker the app may have written, and anything an earlier
   ; layout left behind (an older installer run over this one, say).
   Delete "$INSTDIR\.electron-update"
-  !insertmacro EGM_REMOVE_OLD_LAYOUT
+  ${If} ${FileExists} "$INSTDIR\launch.py"
+  ${OrIf} ${FileExists} "$INSTDIR\electron\main.js"
+    !insertmacro EGM_REMOVE_OLD_LAYOUT
+  ${EndIf}
 
   Delete "$INSTDIR\uninstall.exe"
 
@@ -502,6 +510,10 @@ Choose No to keep them for a faster setup on next install." \
   Delete "$INSTDIR\egm_subscriptions.json.tmp"
   Delete "$INSTDIR\cookies.txt.tmp"
   Delete "$INSTDIR\egm_settings.json.*.tmp"
+  ; The copies the app keeps of a settings, history or subscriptions file it could not read
+  Delete "$INSTDIR\egm_settings.json.unreadable"
+  Delete "$INSTDIR\egm_history.json.unreadable"
+  Delete "$INSTDIR\egm_subscriptions.json.unreadable"
   RMDir /r "$INSTDIR\thumbnails"
   RMDir /r "$INSTDIR\data"
   RMDir /r "$INSTDIR\logs"

@@ -175,7 +175,9 @@ def _installed(folder):
         files.add(f"{name}/x" if "." not in name or name in ("logs", "runtime") else name)
     files |= {"ffmpeg_bin/ffmpeg.exe", "runtime/deno.exe", "thumbnails/a.jpg", "logs/security.log",
               "egm_debug.log.old", "egm_settings.json.tmp", "egm_history.json.tmp",
-              "egm_settings.json.4242.tmp", "data/x", "electron-data/x"}
+              "egm_settings.json.4242.tmp", "data/x", "electron-data/x",
+              # the copies app.py keeps of a file it could not read (_keep_unreadable_copy)
+              "egm_settings.json.unreadable", "egm_history.json.unreadable", "egm_subscriptions.json.unreadable"}
     other = {"$APPDATA/egm-downloader/Local Storage/x", "$SMPROGRAMS/EGM Downloader/EGM Downloader.lnk",
              "$SMPROGRAMS/EGM Downloader/Uninstall EGM Downloader.lnk", "$DESKTOP/EGM Downloader.lnk"}
     return {f"$INSTDIR/{f}" for f in files} | other
@@ -254,7 +256,9 @@ def test_no_to_a_prompt_keeps_only_what_it_names(tmp_path, components, data, sta
     tops = {p.split("/")[1] for p in left if p.startswith("$INSTDIR/")}
     assert stays <= tops, tops
     assert not tops & {"EGM Downloader.exe", "resources", "locales", "LICENSE", "instructions.txt", "uninstall.exe"}
-    data_files = KEEP - {"ffmpeg_bin", "runtime"} | {"egm_settings.json.tmp", "egm_history.json.tmp", "egm_settings.json.4242.tmp"}
+    data_files = KEEP - {"ffmpeg_bin", "runtime"} | {"egm_settings.json.tmp", "egm_history.json.tmp", "egm_settings.json.4242.tmp",
+                                                    "egm_settings.json.unreadable", "egm_history.json.unreadable",
+                                                    "egm_subscriptions.json.unreadable"}
     keep_all = (set() if components else {"ffmpeg_bin", "runtime"}) | (set() if data else data_files)
     assert tops <= keep_all, tops - keep_all
     assert "$INSTDIR" not in removed_dirs
@@ -329,3 +333,27 @@ def test_the_compiled_installer_holds_the_folder_and_the_uninstaller(tmp_path):
     listed.discard(str(out))
     want = {p.relative_to(folder).as_posix() for p in folder.rglob("*") if p.is_file()}
     assert listed == want | {"uninstall.exe", "instructions.txt", "LICENSE"}, sorted(listed ^ (want | {"uninstall.exe", "instructions.txt", "LICENSE"}))
+
+
+def test_the_uninstaller_removes_the_common_folder_names_only_where_this_app_is_installed():
+    """resources, locales, electron, templates, static and languages are common names, and the install
+    folder is the user's choice: the generated list runs only where this edition is installed, the old
+    layout's list only where a 1.5.x install is."""
+    sec = _section("Uninstall")
+    app = sec.index("!insertmacro EGM_REMOVE_APP_FOLDER")
+    guard = sec.rfind("${If}", 0, app)
+    assert sec[guard:app].strip().startswith('${If} ${FileExists} "$INSTDIR\\resources\\app.asar"'), sec[guard:app]
+    assert sec.index("${EndIf}", app) < sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT")
+    old = sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT")
+    guard = sec.rfind("${If}", 0, old)
+    assert sec[guard:old].strip().startswith('${If} ${FileExists} "$INSTDIR\\launch.py"'), sec[guard:old]
+    assert sec.index("${EndIf}", old) < sec.index("MessageBox")
+
+
+def test_the_unreadable_copies_go_with_the_data():
+    src = read_source("app.py")
+    assert "def _keep_unreadable_copy" in src and '.unreadable' in src
+    sec = _section("Uninstall")
+    data = sec[sec.index("skip_components:"):sec.index("skip_userdata:")]
+    for name in ("egm_settings.json", "egm_history.json", "egm_subscriptions.json"):
+        assert f'Delete "$INSTDIR\\{name}.unreadable"' in data, name
