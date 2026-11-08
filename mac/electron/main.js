@@ -129,7 +129,7 @@ let flaskProc   = null;
 // Electron writes "<app name>/<version>" and "Electron/<version>" into Chrome's user agent, which
 // tells an image server which app (and which build) is asking. Keep only what Chrome itself sends.
 // Whatever way the name is written (escaped, with a space, the package name), it sits between
-// "(KHTML, like Gecko)" and "Chrome/". Chrome itself sends only its major version (Chrome/142.0.0.0);
+// "(KHTML, like Gecko)" and "Chrome/". Chrome itself sends only its major version (Chrome/156.0.0.0);
 // the full build number Electron writes would still single out this app among Chrome users.
 function cleanUserAgent(ua) {
   return String(ua)
