@@ -78,7 +78,11 @@ def test_a_path_out_of_the_repo_is_refused(fake_root, val, entry):
 
 
 def test_a_broken_installer_folder_fails_the_validator_run(val, monkeypatch, capsys):
-    assert val.main() == 0
+    # Not asserted: whether the rest of the run is clean. The Tests workflow puts placeholder feeds
+    # in dist/ before pytest, and the feed checks (rightly) refuse those.
+    monkeypatch.setattr(val, "check_installer_folder", lambda folder=None: [])
+    val.main()
+    assert "broken on purpose" not in capsys.readouterr().err
     monkeypatch.setattr(val, "check_installer_folder", lambda folder=None: ["win-unpacked: broken on purpose"])
     assert val.main() == 1
     assert "broken on purpose" in capsys.readouterr().err
