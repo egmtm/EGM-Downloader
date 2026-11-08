@@ -38,3 +38,31 @@ def test_the_folder_page_is_skipped_only_where_the_app_is(contents, shown):
 def test_the_folder_the_page_looks_at_is_the_recorded_one():
     init = function(".onInit")
     assert init.index('ReadRegStr $PreviousInstDir HKCU "${REGKEY}" "InstallPath"') < init.index("StrCpy $INSTDIR $PreviousInstDir")
+
+
+# ── the processor ─────────────────────────────────────────────────────────────
+
+@pytest.mark.parametrize("arch, runs", [
+    ({"IsNativeAMD64": True, "IsNativeARM64": False, "AtLeastWin11": False}, True),    # x64 Windows 10
+    ({"IsNativeAMD64": True, "IsNativeARM64": False, "AtLeastWin11": True}, True),     # x64 Windows 11
+    ({"IsNativeAMD64": False, "IsNativeARM64": True, "AtLeastWin11": True}, True),     # Windows 11 on ARM
+    ({"IsNativeAMD64": False, "IsNativeARM64": True, "AtLeastWin11": False}, False),   # Windows 10 on ARM
+    ({"IsNativeAMD64": False, "IsNativeARM64": False, "AtLeastWin11": False}, False),  # 32 bit Windows
+    ({"IsNativeAMD64": False, "IsNativeARM64": False, "AtLeastWin11": True}, False),
+])
+def test_the_installer_runs_only_where_the_app_can(arch, runs):
+    for silent in (True, False):
+        r = Run(set(), silent=silent, answers=["IDOK"], arch=arch).run(statements(function(".onInit")))
+        if runs:
+            assert r.outcome == "end" and not r.boxes, (arch, r.boxes)
+        else:
+            assert r.outcome == "aborted", arch
+            assert r.boxes == [("$(EGM_ARCH_UNSUPPORTED)", "IDOK")]
+
+
+def test_the_check_comes_first_in_on_init():
+    init = function(".onInit")
+    check = init.index("${IsNativeAMD64}")
+    for later in ("MUI_LANGDLL_DISPLAY", "ReadRegStr", "StrCpy $INSTDIR"):
+        assert check < init.index(later), later
+    assert '!include "x64.nsh"' in NSI and '!include "WinVer.nsh"' in NSI

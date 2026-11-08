@@ -26,6 +26,8 @@
 !include "LogicLib.nsh"
 !include "nsDialogs.nsh"
 !include "FileFunc.nsh"
+!include "x64.nsh"
+!include "WinVer.nsh"
 
 ; ── Required defines (sanity check) ──────────────────────────
 !ifndef VERSION
@@ -305,6 +307,17 @@ LangString EGM_FOLDER_NOT_OURS ${LANG_DUTCH} "This folder is not empty and does 
 LangString EGM_FOLDER_NOT_OURS ${LANG_PORTUGUESEBR} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
 LangString EGM_FOLDER_NOT_OURS ${LANG_RUSSIAN} "This folder is not empty and does not hold an installed copy of EGM Downloader:$\r$\n$INSTDIR$\r$\n$\r$\nA portable copy is not an installed copy. Nothing was changed.$\r$\nRun the installer again and choose an empty folder, or the folder EGM Downloader is installed in."
 
+LangString EGM_ARCH_UNSUPPORTED ${LANG_ENGLISH} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_ARABIC} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_GERMAN} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_SPANISH} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_FRENCH} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_ITALIAN} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_JAPANESE} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_DUTCH} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_PORTUGUESEBR} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+LangString EGM_ARCH_UNSUPPORTED ${LANG_RUSSIAN} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
+
 ; ── Welcome-page language selector ────────────────────────────────────────────
 ; Rows map 1:1, index-aligned, to the codes in LangCodeFromIndex below.
 Function WelcomePage_Show
@@ -371,6 +384,18 @@ FunctionEnd
 
 ; ── Startup: detect existing install ─────────────────────────
 Function .onInit
+  ; ── Only where the app runs, checked first, before anything changes: 64 bit Windows on an Intel
+  ;    or AMD processor, or Windows 11 on ARM, which runs x64 programs (Windows 10 on ARM does not).
+  ;    Silent: no box, exit code 2 (Abort in .onInit). The language dialog has not run yet, so the
+  ;    box comes in the Windows display language when it is one of the ten, else in English. ──
+  ${IfNot} ${IsNativeAMD64}
+    ${IfNot} ${IsNativeARM64}
+    ${OrIfNot} ${AtLeastWin11}
+      MessageBox MB_OK|MB_ICONSTOP "$(EGM_ARCH_UNSUPPORTED)" /SD IDOK
+      Abort
+    ${EndIf}
+  ${EndIf}
+
   ; Language must be chosen HERE: NSIS binds the UI language once at startup;
   ; $LANGUAGE changes after GUI init have no effect (empirically verified —
   ; the welcome-page dropdown approach could never work). This dialog lists
