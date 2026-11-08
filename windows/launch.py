@@ -292,16 +292,22 @@ def _pip_install(cmd, upgrading, timeout):
 
 _EJS_PIN_LINE = re.compile(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$")
 
+_EJS_PIN_UNREADABLE = "could not read"   # the read failed: not the same as a yt-dlp that names none
+
 def _ytdlp_ejs_pin(py):
     """The yt-dlp-ejs version the installed yt-dlp names (it pins it with ==), or None. yt-dlp takes its
     YouTube solver script from that package only at that version. Same reading as the backend's
-    _ytdlp_ejs_pin: a child process on the interpreter pip just used, which sees the packages yt-dlp runs on."""
+    _ytdlp_ejs_pin: a child process on the interpreter pip just used, which sees the packages yt-dlp runs on.
+    A child that times out, fails to start or exits non zero gives _EJS_PIN_UNREADABLE."""
     code = "import importlib.metadata as m\nprint('\\n'.join(m.requires('yt-dlp') or []))"
     try:
-        out = subprocess.run([str(py), "-c", code], capture_output=True, text=True, timeout=30,
-                             creationflags=NO_WIN).stdout
+        r = subprocess.run([str(py), "-c", code], capture_output=True, text=True, timeout=30,
+                           creationflags=NO_WIN)
     except (subprocess.SubprocessError, OSError):
-        return None
+        return _EJS_PIN_UNREADABLE
+    if r.returncode != 0:
+        return _EJS_PIN_UNREADABLE
+    out = r.stdout
     for line in (out or "").splitlines():
         m = _EJS_PIN_LINE.match(line)
         if m: return m.group(1)
@@ -313,6 +319,9 @@ def _pair_ytdlp_ejs(py):
     yt-dlp accepts, yt-dlp would fetch its solver script from GitHub until Update Plugins ran. Never
     fatal: a yt-dlp that names none, or any failure, leaves that GitHub fallback in place."""
     pin = _ytdlp_ejs_pin(py)
+    if pin == _EJS_PIN_UNREADABLE:
+        _py_log("yt-dlp-ejs: could not read which version the installed yt-dlp names, so it was not paired")
+        return
     if not pin: return
     try:
         subprocess.run([str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--disable-pip-version-check"],

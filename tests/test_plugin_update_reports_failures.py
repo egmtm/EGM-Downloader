@@ -48,6 +48,9 @@ def stubbed(backend, monkeypatch, tmp_path):
     monkeypatch.setattr(backend, "_get_latest_ytdlp_version", lambda *a, **k: "2099.1.1")
     monkeypatch.setattr(backend, "_get_ytdlp_version", lambda: "2026.1.1")
     monkeypatch.setattr(backend, "_get_optlibs_versions", lambda: {})
+    # The solver pin is read by a child Python from the installed yt-dlp: not this test's subject, and a
+    # machine without yt-dlp (CI) would make it a failed read, which counts as a failed update.
+    monkeypatch.setattr(backend, "_ytdlp_ejs_pin", lambda: "0.8.0")
     if hasattr(backend, "PACKAGES_DIR"):
         monkeypatch.setattr(backend, "PACKAGES_DIR", tmp_path / "packages")
     settings = {"yt_dlp_channel": "stable"}

@@ -2758,15 +2758,22 @@ def _get_latest_ytdlp_version(channel=None):
 
 update_status: dict = {}
 
+# What _ytdlp_ejs_pin returns when the read itself failed: a failure to report, not a yt-dlp without one
+EJS_PIN_UNREADABLE = "could not read"
+
 def _ytdlp_ejs_pin():
     """The yt-dlp-ejs version the installed yt-dlp requires (it pins it with ==), or None. yt-dlp loads
     its YouTube solver script from that package first and refuses another version, falling back to a
-    GitHub download. Read by a child process, which sees the packages yt-dlp itself runs on."""
+    GitHub download. Read by a child process, which sees the packages yt-dlp itself runs on. A child
+    that times out, fails to start or exits non zero gives EJS_PIN_UNREADABLE."""
     code = "import importlib.metadata as m\nprint('\\n'.join(m.requires('yt-dlp') or []))"
     try:
-        out = _run_yt(sys.executable, "-c", code, timeout=30).stdout
+        r = _run_yt(sys.executable, "-c", code, timeout=30)
     except Exception:
-        return None
+        return EJS_PIN_UNREADABLE
+    if r.returncode != 0:
+        return EJS_PIN_UNREADABLE
+    out = r.stdout
     for line in (out or "").splitlines():
         m = _re.match(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$", line)
         if m:
@@ -2786,6 +2793,10 @@ def _install_ytdlp_ejs(log, failed):
     Into the same overlay as yt-dlp; --force-reinstall because with --target pip judges "already
     satisfied" against the running environment; pip --target cannot uninstall, so older dist-infos go."""
     pin = _ytdlp_ejs_pin()
+    if pin == EJS_PIN_UNREADABLE:
+        log("yt-dlp-ejs: could not read which solver version this yt-dlp needs")
+        failed.append("yt-dlp-ejs")
+        return
     if not pin:
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
