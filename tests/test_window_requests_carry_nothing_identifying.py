@@ -24,6 +24,7 @@ script without the header, and none with it.
 """
 import importlib.util
 import json
+import re
 import subprocess
 from pathlib import Path
 
@@ -103,11 +104,33 @@ def test_api_answers_and_errors_say_it_too(backend_module):
     assert missing.headers.get("X-DNS-Prefetch-Control") == "off"
 
 
+# Every hint that makes Chromium look up, connect to or fetch something before it is used.
+HINTS = ("dns-prefetch", "preconnect", "prefetch", "preload", "prerender", "modulepreload")
+
+
+def _pages():
+    """The pages the windows load: the template tree (the Mac and Linux apps carry the same one), the
+    static files, and each shell's splash page."""
+    files = sorted(Path(ROOT, "templates").rglob("*.html"))
+    files += sorted(p for p in Path(ROOT, "static").rglob("*") if p.suffix in (".html", ".js", ".css", ".json", ".svg"))
+    files += [Path(ROOT, rel).with_name("splash.html") for rel in MAIN_JS]
+    return files
+
+
 def test_no_template_turns_the_lookups_back_on():
-    """A page could set its own control (or ask for a lookup with a hint) and undo the header."""
-    for p in sorted(Path(ROOT, "templates").rglob("*.html")):
+    """A page could set its own control (or ask for a lookup, a connection or a fetch with a hint) and
+    undo the header: a <link rel=...> with any of the hints, the same rel set from script, or
+    <script type="speculationrules">."""
+    pages = _pages()
+    assert len(pages) > 10 and all(p.is_file() for p in pages)
+    for p in pages:
         text = p.read_text(encoding="utf-8").lower()
-        assert "x-dns-prefetch-control" not in text and 'rel="dns-prefetch"' not in text and 'rel="preconnect"' not in text, p.name
+        assert "x-dns-prefetch-control" not in text, p.name
+        for m in re.finditer(r"<link\b[^>]*\brel\s*=\s*[\"']?([^\"'>]*)", text):
+            assert not set(m.group(1).split()) & set(HINTS), f"{p.name}: {m.group(0)}"
+        for hint in HINTS:
+            assert not re.search(rf"[\"'`]\s*{hint}\s*[\"'`]", text), f"{p.name} sets rel {hint} from script"
+        assert "speculationrules" not in text, f"{p.name} asks for speculative loads"
 
 
 # ── User agent ────────────────────────────────────────────────────────────────────────────────
