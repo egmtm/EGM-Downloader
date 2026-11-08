@@ -2816,7 +2816,7 @@ def _install_ytdlp_ejs(log, failed):
     if not pin:
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
-    r = _run(sys.executable, "-m", "pip", "install", f"yt-dlp-ejs=={pin}",
+    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}",
              "--target", str(PACKAGES_DIR), "--upgrade", "--force-reinstall", timeout=120)
     if r.returncode == 0:
         for di in PACKAGES_DIR.glob("yt_dlp_ejs-*.dist-info"):
@@ -2852,7 +2852,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     except Exception: pass
                     update_status["error"] = f"yt-dlp nightly download failed: {e}"
                     return
-                r = _run(sys.executable, "-m", "pip", "install",
+                r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                          str(tmp_tar), "--target", str(PACKAGES_DIR),
                          "--upgrade", "--force-reinstall", timeout=120)
                 try: tmp_tar.unlink(missing_ok=True)
@@ -2861,12 +2861,12 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
                     log(f"Installing yt-dlp stable {latest_ver}...")
-                    r = _run(sys.executable, "-m", "pip", "install",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                              f"yt-dlp=={latest_ver}", "--target", str(PACKAGES_DIR),
                              "--upgrade", timeout=120)
                 else:
                     log("Installing yt-dlp stable (latest)...")
-                    r = _run(sys.executable, "-m", "pip", "install", "yt-dlp",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "yt-dlp",
                              "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
             if r.returncode == 0:
                 _prune_superseded_ytdlp_dist_info()
@@ -2923,7 +2923,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             # --force-reinstall: with --target, pip judges "already satisfied"
             # against the running env, not the target dir (same reason the
             # yt-dlp path above uses it) — without it the overlay never updates.
-            r = _run(sys.executable, "-m", "pip", "install", "--upgrade", "--force-reinstall",
+            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade", "--force-reinstall",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--target", str(PACKAGES_DIR), timeout=300)
             if r.returncode == 0:

@@ -2868,7 +2868,7 @@ def _install_ytdlp_ejs(log, failed):
     if not pin:
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
-    r = _run(sys.executable, "-m", "pip", "install", f"yt-dlp-ejs=={pin}", timeout=120)
+    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}", timeout=120)
     if r.returncode == 0:
         log(f"yt-dlp-ejs -> {pin}")
     else:
@@ -2898,7 +2898,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     except Exception: pass
                     update_status["error"] = f"yt-dlp nightly download failed: {e}"
                     return
-                r = _run(sys.executable, "-m", "pip", "install",
+                r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                          str(tmp_tar), "--upgrade", "--force-reinstall", timeout=120)
                 try: tmp_tar.unlink(missing_ok=True)
                 except Exception: pass
@@ -2906,12 +2906,12 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
                     log(f"Installing yt-dlp stable {latest_ver}...")
-                    r = _run(sys.executable, "-m", "pip", "install",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                              f"yt-dlp=={latest_ver}", "--force-reinstall",
                              timeout=120)
                 else:
                     log("Installing yt-dlp stable (latest)...")
-                    r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                              "--force-reinstall", "yt-dlp", timeout=120)
             v = _get_ytdlp_version()
             if r.returncode == 0:
@@ -2978,7 +2978,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
         if do_optlibs:
             log("Updating optional libraries...")
-            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      timeout=180)
             if r.returncode == 0:

@@ -3000,7 +3000,7 @@ def _install_ytdlp_ejs(log, failed):
     if not pin:
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
-    r = _run(sys.executable, "-m", "pip", "install", f"yt-dlp-ejs=={pin}", timeout=120)
+    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}", timeout=120)
     if r.returncode == 0:
         log(f"yt-dlp-ejs -> {pin}")
     else:
@@ -3018,7 +3018,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             channel = _load_settings().get("yt_dlp_channel", "stable")
             if channel == "nightly":
                 log("Installing yt-dlp nightly...")
-                r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                          "--force-reinstall",
                          "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
                          timeout=120)
@@ -3026,12 +3026,12 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
                     log(f"Installing yt-dlp stable {latest_ver}...")
-                    r = _run(sys.executable, "-m", "pip", "install",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                              f"yt-dlp=={latest_ver}", "--force-reinstall",
                              timeout=120)
                 else:
                     log("Installing yt-dlp stable (latest)...")
-                    r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                              "--force-reinstall", "yt-dlp", timeout=120)
             v = _get_ytdlp_version()
             if r.returncode == 0:
@@ -3076,7 +3076,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
         if do_mutagen:
             log("Updating mutagen...")
-            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                      "mutagen", "--break-system-packages", timeout=60)
             if r.returncode == 0:
                 log(f"mutagen -> {_get_mutagen_version()}")
@@ -3086,7 +3086,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
                 failed.append("mutagen")
         if do_optlibs:
             log("Updating optional libraries...")
-            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--break-system-packages", timeout=120)
             if r.returncode == 0:

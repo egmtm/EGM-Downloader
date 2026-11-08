@@ -274,7 +274,8 @@ def _pip_install(cmd, upgrading, timeout):
     stop the start: the app runs on the old copy and the next launch tries again."""
     # The launcher runs before the backend, so the backend's PIP_DISABLE_PIP_VERSION_CHECK does not
     # reach this pip: say it here, or pip asks pypi.org whether a newer pip exists after the install.
-    cmd = cmd + ["--disable-pip-version-check"]
+    # --isolated: no PIP_* variable and no pip.ini of the person's changes what is installed.
+    cmd = cmd + ["--isolated", "--disable-pip-version-check"]
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
         subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)
@@ -323,7 +324,7 @@ def _pair_ytdlp_ejs(py, upgrading=False):
         _py_log("yt-dlp-ejs: could not read which version the installed yt-dlp names, so it was not paired")
         return
     if not pin: return
-    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--disable-pip-version-check"]
+    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--isolated", "--disable-pip-version-check"]
     if upgrading: cmd += ["--retries", "1", "--timeout", "15"]      # gives up as fast as the upgrade itself
     try:
         subprocess.run(cmd, check=True, timeout=120, creationflags=NO_WIN)
@@ -413,7 +414,7 @@ def _python_has_pip(exe=None):
     """True iff the unpacked Python can run pip (it ships its own). Logs the real error to
     PY_SETUP_LOG on a failure, so "could not enable pip" is debuggable."""
     try:
-        r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--version"],
+        r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--isolated", "--version"],
                            capture_output=True, text=True, timeout=60, creationflags=NO_WIN)
         if r.returncode == 0:
             return True
