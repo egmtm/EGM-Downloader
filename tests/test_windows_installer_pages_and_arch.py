@@ -42,13 +42,18 @@ def test_the_folder_the_page_looks_at_is_the_recorded_one():
 
 # ── the processor ─────────────────────────────────────────────────────────────
 
+def _arch(native, win11):
+    return {"IsNativeAMD64": native == "AMD64", "IsNativeARM64": native == "ARM64", "IsNativeIA32": native == "IA32",
+            "AtLeastWin11": win11}
+
+
 @pytest.mark.parametrize("arch, runs", [
-    ({"IsNativeAMD64": True, "IsNativeARM64": False, "AtLeastWin11": False}, True),    # x64 Windows 10
-    ({"IsNativeAMD64": True, "IsNativeARM64": False, "AtLeastWin11": True}, True),     # x64 Windows 11
-    ({"IsNativeAMD64": False, "IsNativeARM64": True, "AtLeastWin11": True}, True),     # Windows 11 on ARM
-    ({"IsNativeAMD64": False, "IsNativeARM64": True, "AtLeastWin11": False}, False),   # Windows 10 on ARM
-    ({"IsNativeAMD64": False, "IsNativeARM64": False, "AtLeastWin11": False}, False),  # 32 bit Windows
-    ({"IsNativeAMD64": False, "IsNativeARM64": False, "AtLeastWin11": True}, False),
+    (_arch("AMD64", False), True),     # x64 Windows 10
+    (_arch("AMD64", True), True),      # x64 Windows 11
+    (_arch("ARM64", True), True),      # Windows 11 on ARM
+    (_arch("ARM64", False), False),    # Windows 10 on ARM
+    (_arch("IA32", False), False),     # 32 bit Windows 10
+    (_arch("other", False), False),    # any other processor
 ])
 def test_the_installer_runs_only_where_the_app_can(arch, runs):
     for silent in (True, False):
