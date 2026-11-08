@@ -3336,7 +3336,7 @@ def whats_new():
 def check_app_update():
     try:
         req = urllib.request.Request(APP_UPDATE_URL,
-            headers={"User-Agent": f"EGMDownloader/{APP_VERSION}"})
+            headers={"User-Agent": "EGM-Downloader"})
         with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             data = json.loads(r.read().decode())
         # Verify manifest signature before trusting any content
