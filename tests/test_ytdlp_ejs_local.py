@@ -196,3 +196,33 @@ def test_a_yt_dlp_that_names_no_solver_package_is_left_to_the_fallback(updater):
 def test_the_solver_package_is_not_touched_when_yt_dlp_is_not_updated(updater):
     updater.mod._run_update(False, False)
     assert not _pips(updater.calls)
+
+
+def test_linux_reads_the_pin_from_the_yt_dlp_it_just_installed(updater):
+    """pip --target leaves the old yt_dlp dist-info beside the new one; importlib.metadata reads whichever
+    the folder lists first, so the pin could come from the old yt-dlp (each stable names another ejs)."""
+    if not hasattr(updater.mod, "PACKAGES_DIR"):
+        pytest.skip("Linux only")
+    import os
+    pk = updater.state["packages"]
+    old, new = pk / "yt_dlp-2026.2.21.dist-info", pk / "yt_dlp-2026.10.26.dist-info"
+    old.mkdir()
+    new.mkdir()
+    os.utime(old, (1_700_000_000, 1_700_000_000))
+    seen = []
+    updater.mod._ytdlp_ejs_pin = lambda: (seen.append(sorted(p.name for p in pk.glob("yt_dlp-*.dist-info"))), "0.8.0")[1]
+    updater.go()
+    assert seen == [["yt_dlp-2026.10.26.dist-info"]], "the pin must be read with only the new dist-info left"
+
+
+def test_linux_keeps_the_yt_dlp_dist_info_when_the_install_failed(updater):
+    if not hasattr(updater.mod, "PACKAGES_DIR"):
+        pytest.skip("Linux only")
+    import os
+    pk = updater.state["packages"]
+    for name, t in (("yt_dlp-2026.2.21.dist-info", 1_700_000_000), ("yt_dlp-2026.10.26.dist-info", 1_800_000_000)):
+        (pk / name).mkdir()
+        os.utime(pk / name, (t, t))
+    updater.state["fail"] = {"ytdlp"}
+    updater.go()
+    assert len(list(pk.glob("yt_dlp-*.dist-info"))) == 2, "nothing is removed after a failed install"

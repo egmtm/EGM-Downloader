@@ -2773,6 +2773,14 @@ def _ytdlp_ejs_pin():
             return m.group(1)
     return None
 
+def _prune_superseded_ytdlp_dist_info():
+    """pip --target replaces the yt_dlp package but leaves the previous yt_dlp-<version>.dist-info next to
+    the new one, and importlib.metadata then reads whichever the folder lists first: the solver pin (and
+    the version shown) could come from the old yt-dlp. Keep only the dist-info this install just wrote."""
+    infos = sorted(PACKAGES_DIR.glob("yt_dlp-*.dist-info"), key=lambda p: p.stat().st_mtime)
+    for di in infos[:-1]:
+        shutil.rmtree(di, ignore_errors=True)
+
 def _install_ytdlp_ejs(log, failed):
     """Install, after a yt-dlp update, the solver package that yt-dlp names, so the pair never drifts.
     Into the same overlay as yt-dlp; --force-reinstall because with --target pip judges "already
@@ -2833,6 +2841,8 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     log("Installing yt-dlp stable (latest)...")
                     r = _run(sys.executable, "-m", "pip", "install", "yt-dlp",
                              "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
+            if r.returncode == 0:
+                _prune_superseded_ytdlp_dist_info()
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
