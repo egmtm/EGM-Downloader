@@ -85,7 +85,8 @@ PYTHON_SHA256="a87ee63646c8f8438b7af3954b2135ed2af91d033c631f12a8f20af903046d06"
 if [ ! -d "$PYTHON_DIR" ]; then
     PYTHON_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/cpython-${PYTHON_VERSION}+${PYTHON_RELEASE}-x86_64-unknown-linux-gnu-install_only.tar.gz"
     echo "   Downloading from GitHub..."
-    curl -L --progress-bar "$PYTHON_URL" -o python.tar.gz
+    HTTP=$(curl -fL --progress-bar -w '%{http_code}' "$PYTHON_URL" -o python.tar.gz) \
+        || { echo "   ✗ downloading the Python archive failed (HTTP status ${HTTP:-000})"; rm -f python.tar.gz; exit 1; }
     echo "$PYTHON_SHA256  python.tar.gz" | sha256sum -c - || { echo "   ✗ python.tar.gz does not match the pinned SHA-256"; rm -f python.tar.gz; exit 1; }
     echo "   Extracting..."
     mkdir -p "$PYTHON_DIR"

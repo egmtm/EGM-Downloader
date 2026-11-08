@@ -43,7 +43,7 @@ def test_linux_mac_and_the_windows_installer_pin_the_same_python():
 @pytest.mark.parametrize("target", ALL_SCRIPTS)
 def test_download_is_checked_before_it_is_unpacked(target):
     text = read_source(ALL_SCRIPTS[target])
-    download = text.index('curl -L --progress-bar "$PYTHON_URL"')
+    download = text.index('curl -fL --progress-bar -w \'%{http_code}\' "$PYTHON_URL"')
     check = text.index('"$PYTHON_SHA256  python.tar.gz"')
     unpack = text.index("tar -xzf python.tar.gz")
     assert download < check < unpack

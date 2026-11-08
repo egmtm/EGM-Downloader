@@ -67,7 +67,8 @@ PYTHON_SHA256="cba3455e18516fbe8668cff2820c9b6a53447c552d612443c2b2fb60d390a908"
 if [ ! -d "$PYTHON_DIR" ]; then
     PYTHON_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/cpython-${PYTHON_VERSION}+${PYTHON_RELEASE}-aarch64-apple-darwin-install_only.tar.gz"
     echo "   Downloading from GitHub..."
-    curl -L --progress-bar "$PYTHON_URL" -o python.tar.gz
+    HTTP=$(curl -fL --progress-bar -w '%{http_code}' "$PYTHON_URL" -o python.tar.gz) \
+        || { echo "   ✗ downloading the Python archive failed (HTTP status ${HTTP:-000})"; rm -f python.tar.gz; exit 1; }
     echo "$PYTHON_SHA256  python.tar.gz" | shasum -a 256 -c - || { echo "   ✗ python.tar.gz does not match the pinned SHA-256"; rm -f python.tar.gz; exit 1; }
     echo "   Extracting..."
     mkdir -p "$PYTHON_DIR"

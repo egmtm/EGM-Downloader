@@ -69,7 +69,8 @@ PYTHON_SHA256="75cb501dc11c7b55c6b447c58e4910bce5b1f609f1017328b4f3a858dfaf5428"
 PYTHON_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/cpython-${PYTHON_VERSION}+${PYTHON_RELEASE}-x86_64-pc-windows-msvc-install_only.tar.gz"
 echo "🐍 Downloading Python ${PYTHON_VERSION} (${PYTHON_RELEASE}, Windows x64)..."
 cd "$STAGE"
-curl -L --progress-bar "$PYTHON_URL" -o python.tar.gz
+HTTP=$(curl -fL --progress-bar -w '%{http_code}' "$PYTHON_URL" -o python.tar.gz) \
+    || { echo "   ✗ downloading the Python archive failed (HTTP status ${HTTP:-000})"; rm -f python.tar.gz; exit 1; }
 echo "$PYTHON_SHA256  python.tar.gz" | $SHA256SUM -c - || { echo "   ✗ python.tar.gz does not match the pinned SHA-256"; rm -f python.tar.gz; exit 1; }
 # The pin must also be the value the release itself publishes
 curl -fsSL "https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/SHA256SUMS" -o SHA256SUMS
