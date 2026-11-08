@@ -45,7 +45,8 @@ def test_continue_flag_gates_signature_verification():
     )
     # The verification failure path must exit non-zero -- a silent pass-
     # through here would defeat the entire point of the gate.
-    verify_block = source[source.index("osslsigncode verify"):source.index("osslsigncode verify") + 800]
+    # the check lives in verify_signed(): the failure branch of that function must exit
+    verify_block = source[source.index("osslsigncode verify"):source.index("\n}\n", source.index("osslsigncode verify"))]
     assert re.search(r"exit 1", verify_block), (
         "a failed signature verification must exit non-zero, not continue "
         "packaging an unsigned launcher"

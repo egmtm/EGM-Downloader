@@ -11,8 +11,9 @@
 #   - Node.js with npm (electron-builder packages the installer's Electron)
 #   - curl and tar
 #   - osslsigncode (optional but recommended: sudo apt install osslsigncode)
-#     — lets --continue and --finish verify that the exes are actually signed
-#     before they get baked in, instead of just trusting a flag was passed.
+#     — lets --continue and --finish verify that the exes are actually signed,
+#     with a timestamp, before they get baked in, instead of just trusting a
+#     flag was passed.
 #
 # The installer edition ships Electron, Python and its packages inside the app
 # folder (windows/installer/build-folder.sh builds it as dist/win-unpacked). The
@@ -128,7 +129,7 @@ echo "   ✓ makensis: $(makensis -VERSION)"
 echo "   ✓ Python:   $(python3 --version)"
 echo "   ✓ mingw-w64: $(x86_64-w64-mingw32-gcc --version | head -1)"
 if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
-    echo "   ✓ osslsigncode: available (the signatures are verified on --continue and --finish)"
+    echo "   ✓ osslsigncode: available (the signatures and their timestamps are verified on --continue and --finish)"
 else
     echo "   ⚠ osslsigncode: not found — --continue and --finish will skip signature verification and"
     echo "     ask for manual confirmation instead (sudo apt install osslsigncode to enable it)"
@@ -209,25 +210,36 @@ if [ "$RESUME" -eq 0 ]; then
 fi
 
 # ── Resuming after signing: verify, don't just trust ─────────────────────────
+# The tool's report goes to a file of its own, removed on every exit path by the trap.
+VERIFY_OUT=$(mktemp)
+trap 'rm -f "$VERIFY_OUT"' EXIT
 verify_signed() {
-    # Every file given must carry a valid signature; otherwise the build stops here (or, with
-    # no osslsigncode, after an explicit confirmation).
+    # Every file given must carry a valid signature with a verified timestamp; otherwise the build
+    # stops here (or, with no osslsigncode, after an explicit confirmation). osslsigncode exits 0 for
+    # a signature without a timestamp ("Timestamp is not available") and also when the timestamp's
+    # own chain does not verify, so its two result lines are read as well as its exit code. Without
+    # a timestamp the signature stops verifying the day the certificate expires.
     if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
         for SIGNED in "$@"; do
             SIGNED_SIZE=$(stat -c %s "$SIGNED")
-            if osslsigncode verify -in "$SIGNED" -ignore-timestamp > /tmp/osslsigncode_out.txt 2>&1; then
-                echo "   ✓ Signature verified — ${SIGNED#"$REPO_ROOT"/} ($SIGNED_SIZE bytes)"
+            if osslsigncode verify -in "$SIGNED" > "$VERIFY_OUT" 2>&1 \
+                && grep -qE '^Signature verification: ok[[:space:]]*$' "$VERIFY_OUT" \
+                && grep -qE '^Timestamp Server Signature verification: ok[[:space:]]*$' "$VERIFY_OUT"; then
+                echo "   ✓ Signature and timestamp verified — ${SIGNED#"$REPO_ROOT"/} ($SIGNED_SIZE bytes)"
             else
-                echo "   ❌ No valid signature found on ${SIGNED#"$REPO_ROOT"/}:"
-                sed 's/^/     /' /tmp/osslsigncode_out.txt
+                echo "   ❌ No valid signature with a verified timestamp on ${SIGNED#"$REPO_ROOT"/}:"
+                sed 's/^/     /' "$VERIFY_OUT"
                 echo ""
+                if grep -q 'Timestamp is not available' "$VERIFY_OUT"; then
+                    echo "   The signature carries no timestamp. Sign again with a timestamp server"
+                    echo "   (osslsigncode sign -ts <url>, or signtool sign /tr <url> /td sha256)."
+                    echo ""
+                fi
                 echo "   Sign it before continuing — packaging an unsigned exe is exactly the"
                 echo "   gap this build's stops exist to close."
-                rm -f /tmp/osslsigncode_out.txt
                 exit 1
             fi
         done
-        rm -f /tmp/osslsigncode_out.txt
     else
         echo "   ⚠ osslsigncode not installed — can't verify automatically."
         for SIGNED in "$@"; do
