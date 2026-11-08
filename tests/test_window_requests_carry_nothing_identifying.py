@@ -112,7 +112,8 @@ def test_no_template_turns_the_lookups_back_on():
 
 # ── User agent ────────────────────────────────────────────────────────────────────────────────
 
-CHROME = "Chrome/142.0.7444.59 Safari/537.36"
+CHROME = "Chrome/142.0.7444.59 Safari/537.36"     # what Electron 45.2.3 writes
+STOCK_CHROME = "Chrome/142.0.0.0 Safari/537.36"   # what Chrome itself sends (major version only)
 WEBKIT = "AppleWebKit/537.36 (KHTML, like Gecko)"
 PLATFORMS = {
     "windows/electron/main.js": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
@@ -149,7 +150,7 @@ def test_the_user_agent_keeps_only_what_chrome_itself_sends(rel):
     base = PLATFORMS[rel]
     uas = [" ".join(p for p in (base, WEBKIT, tok, CHROME.split()[0], "Electron/39.2.1", CHROME.split()[1]) if p)
            for tok in APP_TOKENS]
-    expected = f"{base} {WEBKIT} {CHROME}"
+    expected = f"{base} {WEBKIT} {STOCK_CHROME}"
     for got, ua in zip(_clean_with_node(rel, uas), uas):
         assert got == expected, f"{ua!r} became {got!r}"
         assert "egm" not in got.lower() and "electron" not in got.lower()
@@ -157,8 +158,17 @@ def test_the_user_agent_keeps_only_what_chrome_itself_sends(rel):
 
 @pytest.mark.parametrize("rel", MAIN_JS)
 def test_a_user_agent_without_either_token_is_left_alone(rel):
-    ua = f"{PLATFORMS[rel]} {WEBKIT} {CHROME}"
+    ua = f"{PLATFORMS[rel]} {WEBKIT} {STOCK_CHROME}"
     assert _clean_with_node(rel, [ua]) == [ua]
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_the_chrome_build_number_is_cut_to_the_major_version_like_chrome_does(rel):
+    """Stock Chrome sends Chrome/<major>.0.0.0; Electron's full build (142.0.7444.59) would tell an
+    image server that this is not Chrome but an app built on a known Electron release."""
+    for full, reduced in (("Chrome/142.0.7444.59", "Chrome/142.0.0.0"), ("Chrome/99.1.22.333", "Chrome/99.0.0.0")):
+        ua = f"{PLATFORMS[rel]} {WEBKIT} {full} Safari/537.36"
+        assert _clean_with_node(rel, [ua]) == [f"{PLATFORMS[rel]} {WEBKIT} {reduced} Safari/537.36"]
 
 
 @pytest.mark.parametrize("rel", MAIN_JS)
