@@ -139,3 +139,23 @@ def test_the_refusal_comes_first_in_the_install_section():
     refusal = sec.index("$(EGM_FOLDER_NOT_OURS)")
     for later in ("Call EGM_FindRunning", "taskkill", "RMDir", "!insertmacro", "File ", "WriteReg"):
         assert refusal < sec.index(later), later
+
+
+# ── v0.99 leftovers ───────────────────────────────────────────────────────────
+
+V099 = {"launch.py", "launch.vbs", "app.py", "README.md", "requirements.txt", "EGM Downloader.vbs", "patchnotes.txt",
+        "instructions.txt", "uninstall.exe", "templates/index.html", "static/icon.ico"}
+
+
+def test_the_v0_99_files_go_from_a_folder_that_is_ours():
+    paths = folder(V099, DATA)
+    r = install(paths)
+    assert r.outcome == "writes"
+    assert not tops(paths) & {"README.md", "requirements.txt", "EGM Downloader.vbs"}
+    assert folder(DATA) <= paths
+
+
+def test_the_v0_99_files_are_removed_only_after_the_check():
+    sec = section("Install")
+    for name in ("README.md", "requirements.txt", "EGM Downloader.vbs"):
+        assert sec.index("$(EGM_FOLDER_NOT_OURS)") < sec.index(f'Delete "$INSTDIR\\{name}"') < sec.index("File /r"), name

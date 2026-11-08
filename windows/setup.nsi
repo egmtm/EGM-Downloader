@@ -466,7 +466,12 @@ Section "Install"
     RMDir /r "$INSTDIR\resources"
     RMDir /r "$INSTDIR\locales"
   ${EndIf}
-  ; Anything else (a fresh install, a folder of something unknown): nothing is deleted.
+  ; Files the v0.99 installers put here and no later one removed (this folder passed the check
+  ; above, so it is one of ours).
+  Delete "$INSTDIR\README.md"
+  Delete "$INSTDIR\requirements.txt"
+  Delete "$INSTDIR\EGM Downloader.vbs"
+  ; Anything else: nothing is deleted.
 
   ; ── The app: Electron, the bundled Python with its packages, and the app files ──
   SetOutPath "$INSTDIR"
