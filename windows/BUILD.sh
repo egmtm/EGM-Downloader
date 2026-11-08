@@ -149,7 +149,7 @@ if [ "$RESUME" -eq 0 ]; then
     # signed one EGM just produced — must not be touched. The same goes for
     # the installer folder and the Electron exe signed inside it.
     rm -f "$WIN_DIR/EGM Downloader.exe"
-    rm -rf "$REPO_ROOT/dist/win-unpacked"
+    rm -rf "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"
 fi
 echo "   ✓ Cleaned"
 echo ""
@@ -224,6 +224,13 @@ else
     fi
     echo "   ✓ Manual confirmation received"
 fi
+echo ""
+
+# ── The folder is the one phase 1 built ──────────────────────────────────────
+# Only its exe may have changed (signed above). Anything else, such as settings, history, logs or
+# __pycache__ written by starting the exe from dist/win-unpacked, would ship to every user.
+echo "📋 Checking the installer folder against phase 1's manifest..."
+python3 "$WIN_DIR/installer/folder_manifest.py" check "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"
 echo ""
 
 # ── Compile NSIS installer ───────────────────────────────────────────────────

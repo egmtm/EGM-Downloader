@@ -157,3 +157,5 @@ cd "$REPO_ROOT"
 rm -rf "$STAGE"
 echo "   ✓ dist/win-unpacked: $(find "$OUT" -type f | wc -l | tr -d ' ') files, $(du -sh "$OUT" | cut -f1)"
 echo "   ✓ EGM Downloader.exe SHA-256 $($SHA256SUM "$OUT/EGM Downloader.exe" | cut -d' ' -f1)"
+# Every file but the exe, so --continue packages exactly this folder (see folder_manifest.py)
+python3 "$SCRIPT_DIR/folder_manifest.py" write "$OUT" "$OUT.sha256"

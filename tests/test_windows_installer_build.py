@@ -194,8 +194,8 @@ def test_the_signed_folder_survives_the_clean_step_on_continue():
     sh = read_source("windows/BUILD.sh")
     clean = sh[sh.index("Cleaning old Windows build artifacts"):sh.index("Compile launcher EXE")]
     guarded = re.search(r'if \[ "\$RESUME" -eq 0 \]; then\n(.*?)\nfi', clean, re.S).group(1)
-    assert 'rm -rf "$REPO_ROOT/dist/win-unpacked"' in guarded
-    assert clean.count("dist/win-unpacked") == 1
+    assert 'rm -rf "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"' in guarded
+    assert len([l for l in clean.splitlines() if "dist/win-unpacked" in l]) == 1
 
 
 def test_the_electron_zip_is_checked_against_the_locked_electron_package():
@@ -261,3 +261,79 @@ def test_the_folder_build_stops_when_the_lock_has_no_yt_dlp_ejs(tmp_path):
 def test_a_yt_dlp_that_names_no_yt_dlp_ejs_does_not_stop_the_build(tmp_path):
     assert _run_pair_check(tmp_path, _site(tmp_path, "Requires-Dist: requests\n", None)).returncode == 0
 
+
+# ── The folder --continue packages is the one phase 1 built ───────────────────
+
+def _manifest_module():
+    spec = importlib.util.spec_from_file_location("egm_folder_manifest", ROOT / "windows/installer/folder_manifest.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def _built_folder(tmp_path):
+    folder = tmp_path / "win-unpacked"
+    (folder / "resources" / "app").mkdir(parents=True)
+    (folder / "EGM Downloader.exe").write_bytes(b"MZ unsigned")
+    (folder / "resources" / "app.asar").write_bytes(b"asar")
+    (folder / "resources" / "app" / "app.py").write_text("print()", encoding="utf-8")
+    (folder / "ffmpeg.dll").write_bytes(b"dll")
+    mod = _manifest_module()
+    assert mod.main(["x", "write", str(folder), str(tmp_path / "m.sha256")]) == 0
+    return mod, folder, tmp_path / "m.sha256"
+
+
+def _check(mod, folder, manifest):
+    return mod.main(["x", "check", str(folder), str(manifest)])
+
+
+def test_the_folder_as_built_and_signed_passes(tmp_path):
+    mod, folder, manifest = _built_folder(tmp_path)
+    assert _check(mod, folder, manifest) == 0
+    (folder / "EGM Downloader.exe").write_bytes(b"MZ signed, longer")      # signing changes only the exe
+    assert _check(mod, folder, manifest) == 0
+
+
+@pytest.mark.parametrize("change", ["settings", "pycache", "changed", "missing", "nested_exe"])
+def test_any_other_change_after_phase_one_stops_the_build(tmp_path, capsys, change):
+    """The likely one: the exe is started from dist/win-unpacked to try it, and the app writes its data
+    into the folder it runs from (settings, history, cookies, logs, Python's __pycache__)."""
+    mod, folder, manifest = _built_folder(tmp_path)
+    if change == "settings":
+        (folder / "egm_settings.json").write_text("{}", encoding="utf-8")
+    elif change == "pycache":
+        (folder / "resources" / "app" / "__pycache__").mkdir()
+        (folder / "resources" / "app" / "__pycache__" / "app.cpython-311.pyc").write_bytes(b"pyc")
+    elif change == "changed":
+        (folder / "resources" / "app.asar").write_bytes(b"other")
+    elif change == "missing":
+        (folder / "ffmpeg.dll").unlink()
+    else:
+        (folder / "resources" / "EGM Downloader.exe").write_bytes(b"MZ")   # only the top level exe is exempt
+    assert _check(mod, folder, manifest) == 1
+    assert "changed after phase 1" in capsys.readouterr().out
+
+
+def test_no_manifest_stops_the_build(tmp_path):
+    mod, folder, manifest = _built_folder(tmp_path)
+    manifest.unlink()
+    assert _check(mod, folder, manifest) == 1
+
+
+def test_phase_one_writes_the_manifest_and_continue_checks_it_before_packaging():
+    sh = read_source("windows/installer/build-folder.sh")
+    write = sh.index('folder_manifest.py" write "$OUT" "$OUT.sha256"')
+    assert write > sh.index("exe_strings.js") and write > sh.index('diff -r "$STAGE/app" "$OUT/resources/app"')
+    build = read_source("windows/BUILD.sh")
+    resume = build[build.index("# ── Resuming after signing"):]
+    check = resume.index('folder_manifest.py" check "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"')
+    assert resume.index("osslsigncode verify") < check < resume.index("uninstall_list.py") < resume.index("makensis")
+
+
+def test_a_link_in_the_folder_stops_the_build(tmp_path):
+    """File /r would follow it and package whatever it points at."""
+    mod, folder, manifest = _built_folder(tmp_path)
+    (tmp_path / "elsewhere").mkdir()
+    (folder / "resources" / "link").symlink_to(tmp_path / "elsewhere")
+    with pytest.raises(SystemExit):
+        _check(mod, folder, manifest)
