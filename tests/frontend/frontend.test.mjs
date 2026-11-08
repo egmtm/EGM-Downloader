@@ -392,6 +392,27 @@ test("first launch Deno install: with the Plugins panel open, the grid is refres
   assert.ok(!asked.includes("/api/deno/status?latest=1"), asked);
 });
 
+test("Deno install button: the grid is refreshed from the installed versions, with no update check", async () => {
+  const asked = [];
+  const { w, d } = await bootPage({ onFetch(u) {
+    asked.push(u);
+    if (u === "/api/deno/install") return _json({ started: true });
+    if (u === "/api/deno/install-status") return _json({ running: false, done: true, log: [] });
+  } });
+  const btn = d.createElement("button");
+  btn.id = "install-deno-btn";
+  d.body.appendChild(btn);
+  const before = asked.length;
+  await w.installDeno();
+  await _sleep(2000);
+  const after = asked.slice(before);
+  w.close();
+  assert.ok(after.includes("/api/deno/install-status"), `the install never reached its end, so this checks nothing: ${after}`);
+  assert.ok(after.includes("/api/installed-versions") && after.includes("/api/deno/status"), after);
+  assert.ok(!after.includes("/api/check-updates"), after);
+  assert.ok(!after.includes("/api/deno/status?latest=1"), after);
+});
+
 test("footer update check follows the backend's build decision, not the version text", async () => {
   const cases = [
     // [feed answer, expect the update dialog]

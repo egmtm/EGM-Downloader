@@ -826,11 +826,13 @@ async function installDeno() {
         clearInterval(iv);
         if (s.done) {
           toast(i18nGet('toast.settings.deno_installed_signature') || 'Deno installed — YouTube signature solving now active', 'ok');
-          // Refresh the whole update grid to show installed state
+          // Refresh the update grid from what is installed here (the two calls the panel makes when it opens).
+          // The click asked for Deno, not for the full update check (GitHub, PyPI, the latest Deno): that is the
+          // Check button's.
           try {
             const [data, deno] = await Promise.all([
-              fetch('/api/check-updates').then(r => r.json()),
-              fetch('/api/deno/status?latest=1').then(r => r.json()),
+              fetch('/api/installed-versions').then(r => r.json()),
+              fetch('/api/deno/status').then(r => r.json()),
             ]);
             data.deno = deno;
             renderUpdGrid(data);
