@@ -825,8 +825,13 @@ def _update_targets():
     hops = [proxy] if proxy else []
     return hops if os.environ.get("ELECTRON_GET_USE_PROXY") else hops + [github]
 
+# npm's own contacts besides the packages: the audit report (it sends the dependency tree to the
+# registry), the funding notice and the check for a newer npm. The installer build already passes
+# --no-audit --no-fund; the launcher's runs say the same through the environment.
+_NPM_QUIET = {"npm_config_audit": "false", "npm_config_fund": "false", "npm_config_update_notifier": "false"}
+
 def _npm_env(node_exe):
-    return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
+    return _find_npm(node_exe), {**os.environ, **_NPM_QUIET, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
 
 def _npm_output(r):
     """What a finished npm run printed, as text (bytes on a real run)."""
