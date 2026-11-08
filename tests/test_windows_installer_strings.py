@@ -69,3 +69,13 @@ def test_every_message_box_shows_a_language_string_but_the_one_english_box_it_ha
                 english_only.append(text)
     assert english_only == ["${APPNAME} is still running and could not be closed.$\\r$\\nNothing was changed. "
                             "Quit it from the tray icon (or end it in Task Manager), then run the installer again."], english_only
+
+
+def test_the_english_finish_text_names_ffmpeg_and_deno_like_the_welcome_page():
+    texts = _texts("EGM_FINISH_TEXT")
+    english = texts.pop("ENGLISH")
+    assert "ffmpeg and Deno" in english and "required components" not in english
+    assert "ffmpeg" in _texts("EGM_WELCOME_TEXT")["ENGLISH"] and "Deno" in _texts("EGM_WELCOME_TEXT")["ENGLISH"]
+    assert not re.search(r"\d", english.replace("${VERSION}", "")), "no size and no other version"
+    # the nine others wait for the translator pass, as they were
+    assert len(texts) == 9 and all(t != english for t in texts.values())
