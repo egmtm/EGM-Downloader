@@ -905,6 +905,11 @@ ipcMain.on('send-url-to-main', (event, url) => {
 
 // ── App lifecycle ─────────────────────────────────────────────────────────────
 app.whenReady().then(async () => {
+  // No spellchecker language, so Chromium never downloads a dictionary. Turning spellcheck off on the windows
+  // does not stop that download (Electron 45.2.3 on Linux asked Google's CDN for one at the first start with
+  // it off); an empty language list does. Nothing is lost: every input already turns spellcheck off.
+  // A no-op on macOS, which uses the system spellchecker.
+  try { session.defaultSession.setSpellCheckerLanguages([]); } catch {}
   // No Referer to anyone but the app itself. The Referrer-Policy header the backend sends covers <img>,
   // but Chromium gives CSS background images the default policy, not the page's, so the four
   // Subscriptions thumbnails drawn that way would still send http://127.0.0.1:<port>/ to the image server.

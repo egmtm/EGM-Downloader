@@ -2,9 +2,13 @@
 
 An independent privacy review found two background contacts that were easy to close:
 
-* Electron downloads Hunspell spellcheck dictionaries from a Google CDN at start on Windows and
-  Linux, unless a window turns spellcheck off. The app's inputs already set spellcheck="false",
-  so nothing is lost: every window turns it off.
+* Electron downloads a Hunspell spellcheck dictionary from a Google CDN at start on Linux (seen in
+  the net log of the built app; a Windows capture of the first test build showed no such request,
+  and macOS uses the system spellchecker). Turning spellcheck off on the windows does not stop it:
+  in Electron 45.2.3 the request is the same with spellcheck: false and with the default. What does
+  stop it is giving the session no spellchecker language, so every shell does that before any window
+  exists (0 requests in 3 of 3 runs), and every window also keeps spellcheck off. Nothing is lost:
+  the app's inputs already set spellcheck="false".
 * Deno asks dl.deno.land for a newer Deno once a day (yt-dlp runs it for the YouTube solver) and
   pip asks pypi.org for a newer pip after every install. Both inherit the backend's environment,
   so the backend sets DENO_NO_UPDATE_CHECK and PIP_DISABLE_PIP_VERSION_CHECK when it starts. A
@@ -14,6 +18,7 @@ An independent privacy review found two background contacts that were easy to cl
   --disable-pip-version-check.
 """
 import importlib.util
+import json
 import os
 import re
 import subprocess
@@ -62,7 +67,7 @@ def _windows(src):
 
 
 @pytest.mark.parametrize("rel", MAIN_JS)
-def test_every_window_turns_the_spellcheck_dictionary_download_off(rel):
+def test_every_window_keeps_spellcheck_off(rel):
     wins = _windows(read_source(rel))
     assert len(wins) == 6, f"{rel}: expected the six windows (splash, main, history, themes, console, subscriptions)"
     for w in wins:
@@ -70,7 +75,49 @@ def test_every_window_turns_the_spellcheck_dictionary_download_off(rel):
         assert m, f"{rel}: a window has no webPreferences"
         prefs = _balanced(w, m.end() - 1)
         assert re.search(r"\bspellcheck\s*:\s*false\b", prefs), (
-            f"{rel}: a window leaves spellcheck on, which downloads a dictionary from Google:\n{prefs}")
+            f"{rel}: a window leaves spellcheck on:\n{prefs}")
+
+
+SPELL_CALL = "session.defaultSession.setSpellCheckerLanguages([])"
+
+
+def _spell_line(rel):
+    src = read_source(rel)
+    lines = [l for l in src.splitlines() if SPELL_CALL in l]
+    assert len(lines) == 1, f"{rel}: expected exactly one {SPELL_CALL} line"
+    return src, lines[0].strip()
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_every_shell_clears_the_spellchecker_languages_before_any_window(rel):
+    """spellcheck: false alone does not stop the dictionary download; an empty language list does."""
+    src, _ = _spell_line(rel)
+    ready = src.index("app.whenReady()")
+    splash = src.index("createSplash();", ready)
+    assert ready < src.index(SPELL_CALL) < splash, f"{rel}: it must run inside whenReady, before the first window"
+
+
+def _run_spell_line(rel, throws=False):
+    _, line = _spell_line(rel)
+    body = "throw new Error('no such api')" if throws else "calls.push(langs)"
+    script = ("const calls = [];\n"
+              f"const session = {{ defaultSession: {{ setSpellCheckerLanguages: (langs) => {{ {body}; }} }} }};\n"
+              f"{line}\n"
+              "console.log(JSON.stringify(calls));")
+    r = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=20)
+    assert r.returncode == 0, r.stderr[-1500:]
+    return json.loads(r.stdout)
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_the_call_gives_the_session_no_spellchecker_language_at_all(rel):
+    assert _run_spell_line(rel) == [[]]
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_a_session_that_refuses_the_call_does_not_stop_the_start(rel):
+    """The call is a no-op on macOS (system spellchecker). Where it throws, the app still starts."""
+    assert _run_spell_line(rel, throws=True) == []
 
 
 def test_the_three_shells_have_the_same_windows_and_the_same_spellcheck_setting():
