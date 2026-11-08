@@ -158,11 +158,27 @@ def test_precompiled_bytecode_is_off_unless_asked_for():
     assert re.search(r'if \[ "\$PRECOMPILE" = 1 \]; then\n\s+"\$\{HOST_PYTHON311:-python3\.11\}" -I -m compileall', sh)
 
 
-def test_pips_launcher_stubs_stay_in_the_bundled_python():
-    """Update Plugins replaces packages that declare console scripts; pip needs distlib's stubs."""
+def test_pips_launcher_stubs_for_this_python_stay_in_the_bundled_python():
+    """Update Plugins replaces packages that declare console scripts; pip needs distlib's stubs for
+    this Python (x64, so t64.exe and w64.exe: distlib's _get_launcher picks them by pointer size and
+    platform). pip itself and ensurepip stay too."""
     sh = read_source("windows/installer/build-folder.sh")
     removed = " ".join(l for l in sh.splitlines() if l.lstrip().startswith(("rm ", "find ")))
-    assert "distlib" not in removed and '"$SITE/pip"' not in removed and "ensurepip" not in removed
+    for kept in ("t64.exe", "w64.exe", '"$SITE/pip"', "ensurepip", 'distlib"', "distlib/*", "distlib/t*", "distlib/w*"):
+        assert kept not in removed, kept
+
+
+def test_the_folder_build_drops_the_pe_files_the_app_never_runs():
+    """The stubs for other architectures, the venv launchers (nothing here creates a venv, and pip's
+    venv build isolation is opt in) and certifi's test module: unsigned PE files and dead code that
+    only add antivirus surface. The certifi folder comes from the lock, so it goes after the install."""
+    sh = read_source("windows/installer/build-folder.sh")
+    removed = " ".join(l for l in sh.splitlines() if l.lstrip().startswith("rm "))
+    for name in ("t32", "w32", "t64-arm", "w64-arm"):
+        assert name in removed, name
+    assert "Lib/venv/scripts/nt/python.exe" in removed and "Lib/venv/scripts/nt/pythonw.exe" in removed
+    assert '"$SITE/certifi/tests"' in removed
+    assert sh.index('"$SITE/certifi/tests"') > sh.index("python3 -m pip install")
 
 
 def test_phase_one_builds_the_folder_and_stops_for_both_signatures():

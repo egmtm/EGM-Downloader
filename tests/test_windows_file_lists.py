@@ -134,3 +134,22 @@ def test_the_real_installer_folder_if_built(val):
     if not folder.is_dir():
         pytest.skip("dist/win-unpacked is not built")
     assert val.check_installer_folder(folder) == []
+
+
+# Every .exe the installer folder may hold: the app, the bundled Python's two interpreters and pip's
+# two launcher stubs for this Python (x64). Anything else is unsigned PE surface the app never runs.
+ALLOWED_EXES = {
+    "EGM Downloader.exe",
+    "resources/python/python.exe",
+    "resources/python/pythonw.exe",
+    "resources/python/Lib/site-packages/pip/_vendor/distlib/t64.exe",
+    "resources/python/Lib/site-packages/pip/_vendor/distlib/w64.exe",
+}
+
+
+def test_the_only_exes_in_the_built_folder_are_the_allowed_ones():
+    folder = ROOT / "dist" / "win-unpacked"
+    if not folder.is_dir():
+        pytest.skip("dist/win-unpacked is not built")
+    found = {p.relative_to(folder).as_posix() for p in folder.rglob("*") if p.is_file() and p.suffix.lower() == ".exe"}
+    assert found == ALLOWED_EXES, sorted(found ^ ALLOWED_EXES)

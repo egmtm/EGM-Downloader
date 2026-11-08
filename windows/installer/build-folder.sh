@@ -83,7 +83,9 @@ echo "   ✓ Python unpacked"
 # ── Strip what the app never uses ─────────────────────────────────────────────
 # Same idea as mac/BUILD.sh and linux/BUILD.sh, plus the Windows-only debug symbols, Tcl/Tk, C headers
 # and import libraries. pip and ensurepip stay: Update Plugins runs the bundled Python's pip, and pip
-# needs its launcher stubs (pip/_vendor/distlib/*.exe) to replace packages that have console scripts.
+# needs its launcher stubs for this Python (pip/_vendor/distlib/t64.exe and w64.exe) to replace
+# packages that have console scripts. The stubs for other architectures go, as do the venv launchers
+# (nothing here creates a venv, and pip's venv build isolation is opt in).
 SITE="$PYTHON_DIR/Lib/site-packages"
 find "$PYTHON_DIR" -name "*.pdb" -delete
 rm -rf "$PYTHON_DIR/tcl" "$PYTHON_DIR/include" "$PYTHON_DIR/libs"
@@ -91,6 +93,8 @@ rm -f "$PYTHON_DIR/DLLs/_tkinter.pyd" "$PYTHON_DIR/DLLs/tcl86t.dll" "$PYTHON_DIR
 rm -f "$PYTHON_DIR"/DLLs/_test*.pyd "$PYTHON_DIR/DLLs/_ctypes_test.pyd"
 rm -rf "$PYTHON_DIR/Lib/idlelib" "$PYTHON_DIR/Lib/tkinter" "$PYTHON_DIR/Lib/turtledemo" "$PYTHON_DIR/Lib/lib2to3" "$PYTHON_DIR/Lib/turtle.py"
 rm -rf "$SITE/setuptools" "$SITE"/setuptools-*.dist-info "$SITE/pkg_resources" "$SITE/_distutils_hack" "$SITE/distutils-precedence.pth"
+rm -f "$SITE"/pip/_vendor/distlib/{t32,w32,t64-arm,w64-arm}.exe
+rm -f "$PYTHON_DIR/Lib/venv/scripts/nt/python.exe" "$PYTHON_DIR/Lib/venv/scripts/nt/pythonw.exe"
 find "$PYTHON_DIR" -name "__pycache__" -type d -prune -exec rm -rf {} +
 echo "   ✓ Python stripped"
 
@@ -105,6 +109,8 @@ python3 -m pip install --quiet --disable-pip-version-check --no-index --find-lin
     --require-hashes --no-deps --no-compile "${PLAT[@]}" --target "$SITE" -r "$WIN_DIR/requirements-win-lock.txt"
 # pip wrote this machine's console scripts and man pages; the app runs "python -m yt_dlp"
 rm -rf "$SITE/bin" "$SITE/share"
+# certifi's own test module (what the app uses is certifi/cacert.pem)
+rm -rf "$SITE/certifi/tests"
 # yt-dlp loads its solver script from yt-dlp-ejs only at the exact version it names. The lock is
 # resolved without yt-dlp's extras, so a regenerated lock can pin a newer yt-dlp-ejs than yt-dlp
 # accepts: stop here instead of shipping a pair yt-dlp refuses (it would fetch the script from GitHub).
