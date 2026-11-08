@@ -173,6 +173,7 @@ def _site_packages(tmp_path, brotli, ytdlp, curl="0.17.0"):
     for pkg in REQUIRED:
         (sp / pkg).mkdir()
     (sp / "brotli.py").write_text("")                       # brotli is a single module file
+    (sp / "yt_dlp_ejs").mkdir()                              # the solver package (its absence is a non-fatal run)
     if brotli:
         (sp / f"Brotli-{brotli}.dist-info").mkdir()         # older wheels used a capital B
     if ytdlp:

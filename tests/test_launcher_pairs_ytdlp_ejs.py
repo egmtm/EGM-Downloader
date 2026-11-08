@@ -154,3 +154,37 @@ def test_the_launcher_reads_the_same_pin_as_the_backend(launcher, app_module, mo
     monkeypatch.setattr(app_module, "_run_yt", lambda *a, **k: types.SimpleNamespace(returncode=0, stdout=stdout, stderr=""))
     launcher.requires = stdout
     assert launcher._ytdlp_ejs_pin(sys.executable) == app_module._ytdlp_ejs_pin()
+
+
+# ── A portable folder from before yt-dlp-ejs ──────────────────────────────────────────────────
+
+_PORTABLE_PACKAGES = ("flask", "yt_dlp", "cryptography", "mutagen", "curl_cffi", "brotli", "Cryptodome", "websockets", "certifi")
+
+
+def _portable_folder(tmp_path, with_ejs):
+    site = tmp_path / "python" / "Lib" / "site-packages"
+    for pkg in _PORTABLE_PACKAGES + (("yt_dlp_ejs",) if with_ejs else ()):
+        (site / pkg).mkdir(parents=True)
+    for dist in ("yt_dlp-2026.10.26", "brotli-1.2.1", "curl_cffi-0.17.0"):
+        (site / f"{dist}.dist-info").mkdir()
+    return site
+
+
+def test_a_portable_folder_without_the_solver_package_gets_it_without_a_fatal_run(launcher, monkeypatch, tmp_path):
+    """A portable copy unpacked over an older one keeps its python folder: every sentinel is there and
+    every floor is met, so before this nothing ran and yt-dlp kept fetching its solver from GitHub."""
+    _portable_folder(tmp_path, with_ejs=False)
+    monkeypatch.setattr(launcher, "PY_DIR", tmp_path / "python")
+    launcher.ensure_python_deps_embedded("python.exe")
+    assert _kinds(launcher) == ["main", "read", "pair"]
+    assert "--retries" in launcher.calls[0], "an existing install must not be stopped by an offline start"
+    launcher.calls.clear()
+    launcher.fail = {"main": subprocess.CalledProcessError(1, "pip")}
+    launcher.ensure_python_deps_embedded("python.exe")   # offline: must not raise
+
+
+def test_a_complete_portable_folder_runs_no_pip(launcher, monkeypatch, tmp_path):
+    _portable_folder(tmp_path, with_ejs=True)
+    monkeypatch.setattr(launcher, "PY_DIR", tmp_path / "python")
+    launcher.ensure_python_deps_embedded("python.exe")
+    assert launcher.calls == []

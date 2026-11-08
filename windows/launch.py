@@ -560,8 +560,11 @@ def ensure_python_deps_embedded(py_exe):
         return max([v for v in found if v], default=None)
     upgrading = False
     if site_packages.is_dir() and all(_present(pkg) for pkg in required):
-        if not _deps_below_floor(_dist_version): return
-        upgrading = True   # everything is there, but a floor package is old
+        # yt_dlp_ejs is not in `required`: a folder from before it existed (a portable copy unpacked
+        # over an older one) must still start offline. It gets the same non-fatal run as an old floor
+        # package, so yt-dlp stops fetching its solver script from GitHub once the run succeeds.
+        if not _deps_below_floor(_dist_version) and _present("yt_dlp_ejs"): return
+        upgrading = True   # everything is there, but a floor package is old or the solver package is missing
     _gui_msg("Installing Python packages…")
     _pip_install([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
                   "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi", "yt-dlp-ejs>=0.8.0"],
