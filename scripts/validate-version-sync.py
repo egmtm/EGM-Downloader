@@ -34,6 +34,7 @@ Usage:
       run: python scripts/validate-version-sync.py
 """
 
+import hashlib
 import json
 import re
 import sys
@@ -756,6 +757,49 @@ def check_feed_size_bytes():
     return errors
 
 
+# The archive each feed describes. gen-update-json.py writes the feed from the zip's SHA-256 and
+# size, so with the zip in dist/ the feed must carry exactly those; a stale or hand edited feed
+# would send the app a hash it can never match (and, for size_bytes, a wrong download size).
+FEED_ZIP = {
+    'egm-version.json':          'EGMd.zip',
+    'egm-portable-version.json': 'EGMd-portable.zip',
+    'egmac-update.json':         'EGMdM.zip',
+    'egmlinux-update.json':      'EGMdL.zip',
+}
+
+
+def _sha256_of(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def check_feed_matches_zip():
+    """When a zip is in dist/, its feed's _checksums.sha256 and size_bytes must be the zip's own.
+    No zip (CI, which only writes placeholder feeds): nothing is checked."""
+    errors = []
+    for name, zip_name in FEED_ZIP.items():
+        zip_path = ROOT / 'dist' / zip_name
+        if not zip_path.is_file():
+            continue
+        d = _load_feed(name)
+        if d is None:
+            errors.append(f"dist/{zip_name} is present but dist/{name} is missing or unreadable")
+            continue
+        cs = d.get('_checksums')
+        sha = cs.get('sha256') if isinstance(cs, dict) else None
+        actual = _sha256_of(zip_path)
+        if sha != actual:
+            errors.append(f"dist/{name}: _checksums.sha256 is {sha!r} but dist/{zip_name} hashes to {actual}")
+        size = d.get('size_bytes')
+        actual_size = zip_path.stat().st_size
+        if not isinstance(size, int) or isinstance(size, bool) or size <= 0 or size != actual_size:
+            errors.append(f"dist/{name}: size_bytes is {size!r} but dist/{zip_name} is {actual_size} bytes")
+    return errors
+
+
 def check_feed_cross_consistency(v, b):
     """Every present feed must agree with version.json on BOTH version and build.
     This makes all four feeds consistent with each other (covers the case where the
@@ -827,6 +871,8 @@ def main():
     all_errors.extend(check_portable_stage())
     print("   Checking the installer folder (dist/win-unpacked, if built)...")
     all_errors.extend(check_installer_folder())
+    print("   Checking the feeds against the zips in dist/ (if built)...")
+    all_errors.extend(check_feed_matches_zip())
 
     # ── Item 6: Linux/Mac copies drift check ──────────────────────────────────
     # linux/requirements.txt should track root/requirements.txt. Mac uses root
