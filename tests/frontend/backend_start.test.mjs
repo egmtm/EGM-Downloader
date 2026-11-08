@@ -14,6 +14,12 @@ import { fileURLToPath } from "node:url";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const source = (p) => readFileSync(join(repo, p, "electron", "main.js"), "utf8");
+// The shells drop the splash at once before a box (a box blocks the timers closeSplash() waits on).
+function dropSplashOf(platform) {
+  const d = /\nfunction dropSplash\(\) \{[\s\S]*?\n\}\n/.exec(source(platform));
+  assert.ok(d, `${platform}: dropSplash found`);
+  return d[0];
+}
 
 function waitForFlaskOf(platform, appUrl, token) {
   const m = /function waitForFlask\([\s\S]*?\n\}\n/.exec(source(platform));
@@ -49,6 +55,7 @@ for (const platform of ["windows", "mac", "linux"]) {
   test(`${platform}: any backend exit while not quitting is reported, and the process is forgotten`, () => {
     const m = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(source(platform));
     assert.ok(m, `${platform}: exit handler found`);
+    m[0] = dropSplashOf(platform) + m[0];
     for (const [code, signal, expect] of [[null, "SIGKILL", /signal SIGKILL/], [0, null, /code 0/], [3, null, /port 8899/], [1, null, /code 1/]]) {
       const shown = [];
       const ctx = {
@@ -71,9 +78,10 @@ for (const platform of ["windows", "mac", "linux"]) {
   });
 }
 
-test("windows: the always on top splash is destroyed before the backend crash box opens", () => {
-  const m = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(source("windows"));
+for (const platform of ["windows", "mac", "linux"]) test(`${platform}: the always on top splash is destroyed before the backend crash box opens`, () => {
+  const m = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(source(platform));
   assert.ok(m, "exit handler found");
+  m[0] = dropSplashOf(platform) + m[0];
   const order = [];
   const ctx = {
     flaskProc: new EventEmitter(), PORT: 8899,

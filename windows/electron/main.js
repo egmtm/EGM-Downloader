@@ -325,13 +325,19 @@ function closeSplash() {
   }
 }
 
+// A box blocks the main process, so the timers closeSplash() waits on never run, and the splash is
+// always on top: a box opened while it is up sits under it, out of reach. Drop it at once instead.
+function dropSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }
+}
+
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
   const python = findPython();
   const appPy  = path.join(APP_DIR, 'app.py');
 
   if (!python) {
-    closeSplash();
+    dropSplash();
     if (PACKAGED) {
       dialog.showErrorBox('Python could not start',
         'The Python that comes with EGM Downloader could not start. Antivirus software may have blocked or removed it.\n\nReinstall EGM Downloader to restore it.');
@@ -361,8 +367,7 @@ async function startFlask() {
     flaskProc = null;
     if (!app.isQuitting) {
       app.isQuitting = true;
-      // The splash is always on top, so a box opened under it can't be reached: drop it first.
-      if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }
+      dropSplash();
       dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
         ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
         : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
@@ -373,7 +378,7 @@ async function startFlask() {
   flaskProc.on('error', (err) => {
     if (!app.isQuitting) {
       app.isQuitting = true;
-      closeSplash();
+      dropSplash();
       dialog.showErrorBox('EGM Downloader — Startup error',
         `Failed to start backend:\n${err.message}`);
       app.quit();
@@ -541,7 +546,7 @@ async function createWindow() {
     mainWindow.loadURL(APP_URL);
     hardenWindow(mainWindow);
   } catch (e) {
-    closeSplash();
+    dropSplash();
     dialog.showErrorBox('EGM Downloader — Startup error', e.message);
     app.quit();
   }

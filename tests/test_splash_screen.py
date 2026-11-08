@@ -102,6 +102,6 @@ def test_windows_backend_crash_box_is_not_hidden_under_the_splash():
     src = read_source(MAIN["windows"])
     handler = src[src.index("flaskProc.on('exit'"):]
     handler = handler[:handler.index("flaskProc.on('error'")]
-    drop = "if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }"
+    drop = "dropSplash();"   # destroys it at once (tests/test_error_boxes_above_the_splash.py checks the helper)
     assert handler.count(drop) == 1, "the splash window is destroyed in the exit handler"
     assert handler.index(drop) < handler.index("dialog.showErrorBox("), "and that happens before the box opens"

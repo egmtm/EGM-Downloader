@@ -18,14 +18,15 @@ async function noPython(packaged) {
   const shown = [], calls = [];
   const ctx = {
     path, PACKAGED: packaged, APP_DIR: "C:\\EGM", findPython: () => null,
-    closeSplash: () => calls.push("closeSplash"),
+    dropSplash: () => calls.push("dropSplash"),
+    closeSplash: () => assert.fail("a box blocks the timers closeSplash() waits on: the splash must go at once"),
     dialog: { showErrorBox: (title, msg) => shown.push({ title, msg }) },
     app: { quit: () => calls.push("quit") },
     spawn: () => assert.fail("nothing is started without a Python"),
   };
   vm.runInNewContext(m[0] + "\nthis.startFlask = startFlask;", ctx);
   await ctx.startFlask();
-  assert.deepEqual(calls, ["closeSplash", "quit"]);
+  assert.deepEqual(calls, ["dropSplash", "quit"]);
   assert.equal(shown.length, 1);
   return shown[0];
 }

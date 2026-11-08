@@ -193,6 +193,7 @@ async function startFlask() {
   const python = findPython();
   const appPy  = path.join(__dirname, '..', 'app', 'app.py');
   if (!python) {
+    dropSplash();
     dialog.showErrorBox('Python not found',
       'Bundled Python not found and no system Python 3.11+ available.\n\nPlease reinstall EGM Downloader or install Python from python.org');
     app.quit();
@@ -214,6 +215,7 @@ async function startFlask() {
     flaskProc = null;
     if (!app.isQuitting) {
       app.isQuitting = true;
+      dropSplash();
       dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
         ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
         : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
@@ -224,6 +226,7 @@ async function startFlask() {
   flaskProc.on('error', (err) => {
     if (!app.isQuitting) {
       app.isQuitting = true;
+      dropSplash();
       dialog.showErrorBox('EGM Downloader — Startup error',
         `Failed to start backend:\n${err.message}`);
       app.quit();
@@ -315,6 +318,12 @@ function closeSplash() {
       }
     }, 450);
   }
+}
+
+// A box blocks the main process, so the timers closeSplash() waits on never run, and the splash is
+// always on top: a box opened while it is up sits under it, out of reach. Drop it at once instead.
+function dropSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }
 }
 
 // ── Create window ─────────────────────────────────────────────────────────────
@@ -423,7 +432,7 @@ async function createWindow() {
       }
     }, 5000);
   } catch (e) {
-    closeSplash();
+    dropSplash();
     dialog.showErrorBox('EGM Downloader — Startup error', e.message);
     app.quit();
   }
