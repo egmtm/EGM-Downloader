@@ -288,7 +288,7 @@ def _pip_install(cmd, upgrading, timeout):
             time.sleep(8)
             raise
     else:
-        _pair_ytdlp_ejs(cmd[0])
+        _pair_ytdlp_ejs(cmd[0], upgrading)
 
 _EJS_PIN_LINE = re.compile(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$")
 
@@ -313,7 +313,7 @@ def _ytdlp_ejs_pin(py):
         if m: return m.group(1)
     return None
 
-def _pair_ytdlp_ejs(py):
+def _pair_ytdlp_ejs(py, upgrading=False):
     """After the launcher's own pip run, install the yt-dlp-ejs version the installed yt-dlp names. The
     lists above ask for yt-dlp-ejs>=0.8.0, which takes the newest release; if that is a newer minor than
     yt-dlp accepts, yt-dlp would fetch its solver script from GitHub until Update Plugins ran. Never
@@ -323,9 +323,10 @@ def _pair_ytdlp_ejs(py):
         _py_log("yt-dlp-ejs: could not read which version the installed yt-dlp names, so it was not paired")
         return
     if not pin: return
+    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--disable-pip-version-check"]
+    if upgrading: cmd += ["--retries", "1", "--timeout", "15"]      # gives up as fast as the upgrade itself
     try:
-        subprocess.run([str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--disable-pip-version-check"],
-                       check=True, timeout=120, creationflags=NO_WIN)
+        subprocess.run(cmd, check=True, timeout=120, creationflags=NO_WIN)
     except (subprocess.SubprocessError, OSError) as e:
         _py_log(f"yt-dlp-ejs {pin} could not be installed: {e}")
 
