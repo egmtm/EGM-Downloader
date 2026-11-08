@@ -330,8 +330,13 @@ async function startFlask() {
 
   if (!python) {
     closeSplash();
-    dialog.showErrorBox('Python not found',
-      'Python 3.11+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
+    if (PACKAGED) {
+      dialog.showErrorBox('Python could not start',
+        'The Python that comes with EGM Downloader could not start. Antivirus software may have blocked or removed it.\n\nReinstall EGM Downloader to restore it.');
+    } else {
+      dialog.showErrorBox('Python not found',
+        'Python 3.11+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
+    }
     app.quit();
     return;
   }
