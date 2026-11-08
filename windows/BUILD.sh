@@ -97,6 +97,22 @@ fi
 echo "   Commit: $HEAD_LINE"
 echo ""
 
+# ── The phases run on one commit ─────────────────────────────────────────────
+# Phase 1 writes the commit it built from. --continue and --finish refuse to run on another one:
+# the installer would otherwise be built from newer files than the folder that was signed.
+if [ "$RESUME" -eq 1 ]; then
+    if [ ! -f "$REPO_ROOT/dist/.build-commit" ]; then
+        echo "❌ dist/.build-commit not found: run phase 1 (bash windows/BUILD.sh) on this commit first."
+        exit 1
+    fi
+    PHASE1_COMMIT=$(cat "$REPO_ROOT/dist/.build-commit")
+    if [ "$PHASE1_COMMIT" != "${HEAD_LINE%% *}" ]; then
+        echo "❌ Phase 1 built commit $PHASE1_COMMIT, but this checkout is at ${HEAD_LINE%% *}."
+        echo "   Check out the first one again (git checkout $PHASE1_COMMIT), or start over with phase 1."
+        exit 1
+    fi
+fi
+
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 echo "📋 Checking prerequisites..."
 if ! command -v makensis &> /dev/null; then
@@ -182,7 +198,7 @@ if [ "$FINISH" -eq 0 ]; then
     rm -f "$REPO_ROOT/dist/egm-setup.exe" "$REPO_ROOT/dist/win-unpacked-files.nsh"
 fi
 if [ "$RESUME" -eq 0 ]; then
-    rm -f "$WIN_DIR/EGM Downloader.exe"
+    rm -f "$WIN_DIR/EGM Downloader.exe" "$REPO_ROOT/dist/.build-commit"
     rm -rf "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"
 fi
 echo "   ✓ Cleaned"
@@ -201,6 +217,7 @@ if [ "$RESUME" -eq 0 ]; then
     echo ""
     # ── Build the installer folder (Electron + Python + packages) ──
     bash "$WIN_DIR/installer/build-folder.sh"
+    echo "${HEAD_LINE%% *}" > "$REPO_ROOT/dist/.build-commit"
     echo ""
     echo "╔════════════════════════════════════════════════════════════╗"
     echo "║  STOP — launcher compiled, not yet signed                  ║"

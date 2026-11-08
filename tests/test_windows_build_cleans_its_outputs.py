@@ -17,9 +17,10 @@ FOLDER = ["dist/win-unpacked/EGM Downloader.exe", "dist/win-unpacked/resources/a
 MANIFEST = "dist/win-unpacked.sha256"
 UNINSTALL_LIST = "dist/win-unpacked-files.nsh"
 SETUP = "dist/egm-setup.exe"
+MARKER = "dist/.build-commit"   # the commit phase 1 built from
 PHASE3_OUTPUTS = ["dist/EGMd.zip", "dist/EGMd-portable.zip", "dist/egm-version.json",
                   "dist/egm-portable-version.json", "dist/portable-stage/launch.py"]
-EVERYTHING = [LAUNCHER, *FOLDER, MANIFEST, UNINSTALL_LIST, SETUP, *PHASE3_OUTPUTS]
+EVERYTHING = [LAUNCHER, *FOLDER, MANIFEST, UNINSTALL_LIST, SETUP, MARKER, *PHASE3_OUTPUTS]
 
 
 def _clean_block():
@@ -46,12 +47,12 @@ def test_phase_one_starts_from_nothing(tmp_path):
 
 def test_continue_keeps_the_signed_launcher_and_the_signed_folder_with_its_manifest(tmp_path):
     left = _run(tmp_path, resume=1, finish=0)
-    assert left == {LAUNCHER, *FOLDER, MANIFEST}, left
+    assert left == {LAUNCHER, *FOLDER, MANIFEST, MARKER}, left
 
 
 def test_finish_keeps_the_signed_installer_and_launcher_and_remakes_only_its_own_outputs(tmp_path):
     left = _run(tmp_path, resume=1, finish=1)
-    assert left == {LAUNCHER, *FOLDER, MANIFEST, UNINSTALL_LIST, SETUP}, left
+    assert left == {LAUNCHER, *FOLDER, MANIFEST, UNINSTALL_LIST, SETUP, MARKER}, left
 
 
 @pytest.mark.parametrize("resume, finish", [(0, 0), (1, 0), (1, 1)])
