@@ -337,3 +337,21 @@ def test_a_link_in_the_folder_stops_the_build(tmp_path):
     (folder / "resources" / "link").symlink_to(tmp_path / "elsewhere")
     with pytest.raises(SystemExit):
         _check(mod, folder, manifest)
+
+
+# ── Electron fuses of the signed exe ──────────────────────────────────────────
+
+def test_the_signed_electron_exe_cannot_be_used_as_a_plain_node():
+    """The exe is signed in the publisher's name. With Electron's default fuses, ELECTRON_RUN_AS_NODE=1,
+    NODE_OPTIONS or --inspect turn it into a signed host for any script; the app uses none of them.
+    OnlyLoadAppFromAsar: resources\\app (the app files) is also the folder Electron falls back to when
+    app.asar is missing. electron-builder flips the fuses before signing."""
+    fuses = _json("windows/installer/builder-config.json")["electronFuses"]
+    assert fuses["runAsNode"] is False
+    assert fuses["enableNodeOptionsEnvironmentVariable"] is False
+    assert fuses["enableNodeCliInspectArguments"] is False
+    assert fuses["onlyLoadAppFromAsar"] is True
+    _, _, pkg, _ = _staged()
+    assert pkg["build"]["electronFuses"] == fuses, "the staging package must carry them to electron-builder"
+    for rel in ("windows/electron/main.js", "windows/electron/preload.js"):
+        assert "ELECTRON_RUN_AS_NODE" not in read_source(rel), rel

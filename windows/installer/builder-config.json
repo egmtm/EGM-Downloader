@@ -41,5 +41,11 @@
       }
     ],
     "icon": "../app/static/icon.ico"
+  },
+  "electronFuses": {
+    "runAsNode": false,
+    "enableNodeOptionsEnvironmentVariable": false,
+    "enableNodeCliInspectArguments": false,
+    "onlyLoadAppFromAsar": true
   }
 }
