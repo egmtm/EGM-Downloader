@@ -3567,11 +3567,16 @@ def clear_history():
             try: f.unlink()
             except Exception: pass
     except Exception: pass
-    # The debug log lists the sites of past downloads with the time (and rotates into .old), so
-    # clearing the history clears it too.
-    for name in ("egm_debug.log", "egm_debug.log.old"):
-        try: (get_data_dir() / name).unlink(missing_ok=True)
-        except Exception: pass
+    # The debug log lists the sites of past downloads with the time (and rotates into .old), and a
+    # traceback in the error log can name one, so clearing the history clears them too. A log a thread
+    # is writing can refuse the delete on Windows: one more try after a short wait, then go on.
+    for name in ("egm_debug.log", "egm_debug.log.old", "egm_error.log"):
+        for attempt in (1, 2):
+            try:
+                (get_data_dir() / name).unlink(missing_ok=True)
+                break
+            except Exception:
+                if attempt == 1: time.sleep(0.2)
     # The Console's four rings (memory only) list what the downloads just cleared did: their URLs
     # (yt-dlp output), requests (Flask output), the same lines as the debug log file removed above
     # (diagnostics) and converted file paths (ffmpeg output). The line counters keep counting, so a
