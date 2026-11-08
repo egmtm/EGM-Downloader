@@ -322,10 +322,11 @@ def test_the_compiled_installer_holds_the_folder_and_the_uninstaller(tmp_path):
     lst = tmp_path / "files.nsh"
     lst.write_text(_uninstall_list(folder), encoding="utf-8")
     out = tmp_path / "egm-setup.exe"
-    r = subprocess.run(["makensis", "-V1", "-DVERSION=0.0.0.1", "-DBUILD=1", f"-DREPO_ROOT={ROOT}",
+    r = subprocess.run(["makensis", "-V2", "-DVERSION=0.0.0.1", "-DBUILD=1", f"-DREPO_ROOT={ROOT}",
                         f"-DAPP_FOLDER={folder}", f"-DAPP_FOLDER_LIST={lst}", f"-DOUTFILE={out}",
                         str(ROOT / "windows/setup.nsi")], capture_output=True, text=True, timeout=600)
     assert r.returncode == 0, r.stdout + r.stderr
+    assert "warning" not in (r.stdout + r.stderr).lower(), r.stdout + r.stderr   # -V2 prints warnings and errors only
     seven = shutil.which("7z") or shutil.which("7za")
     r = subprocess.run([seven, "l", "-slt", str(out)], capture_output=True, text=True, timeout=120)
     assert r.returncode == 0, r.stdout + r.stderr
