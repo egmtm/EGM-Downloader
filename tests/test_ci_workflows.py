@@ -42,3 +42,11 @@ def test_the_frontend_workflow_runs_when_a_shell_changes_and_installs_from_the_l
     readers = [n for n in ("backend_start", "python_missing_box", "quit_app_handler", "quit_confirm")
                if '"electron", "main.js"' in read_source(f"tests/frontend/{n}.test.mjs")]
     assert len(readers) == 4, readers
+
+
+def test_the_validator_workflow_runs_when_a_file_it_checks_changes():
+    """The validator checks windows/app-files.txt, the installer folder build and the language files,
+    but its path filter did not list them, so a change there never ran it on its own push."""
+    text = read_source(".github/workflows/validate-version.yml")
+    for path in ("windows/app-files.txt", "windows/installer/**", "languages/**"):
+        assert text.count(f"- '{path}'") == 2, f"{path} must be in the push and the pull_request paths"
