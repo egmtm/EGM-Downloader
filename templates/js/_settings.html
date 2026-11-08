@@ -93,7 +93,7 @@
     if (row) row.style.gridTemplateColumns = '1fr';
   }
 
-// ── Portable mode detection — runs immediately, hides update UI if portable ───
+// ── Edition detection — runs immediately: portable hides update UI, installer edition hides Reinstall Electron
 (async function() {
   // Windows-only endpoint — skip on Mac/Linux to avoid 404 console noise
   if (typeof window.electronAPI?.createShortcut !== 'function') return;
@@ -106,6 +106,14 @@
       // reach this branch when createShortcut exists) -- collapse the shared row to
       // one column so the shortcut button doesn't sit stranded beside empty space.
       const row = document.getElementById('adv-update-shortcut-row');
+      if (row) row.style.gridTemplateColumns = '1fr';
+    }
+    if (p.bundled) {
+      // Installer edition: Electron ships inside the app and nothing reads the Reinstall Electron
+      // marker, so the button is hidden (body.bundled-mode #adv-electron-btn) and Reset settings
+      // takes the whole row, as on Mac and Linux.
+      document.body.classList.add('bundled-mode');
+      const row = document.getElementById('adv-electron-reset-row');
       if (row) row.style.gridTemplateColumns = '1fr';
     }
   } catch {}

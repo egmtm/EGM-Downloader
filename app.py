@@ -3308,9 +3308,12 @@ def installed_versions():
 
 @app.route("/api/portable-status")
 def portable_status():
-    """Return whether the app is running in portable mode and its data directory."""
+    """Return whether the app is running in portable mode and its data directory, and whether it is
+    the installer edition that ships Electron and Python inside the app folder (bundled). Bundled,
+    nothing reads the Reinstall Electron marker, so the page hides that button."""
     return jsonify({
         "portable": PORTABLE_MODE,
+        "bundled": bool(_INSTALL_DIR_ENV) and not PORTABLE_MODE,
         "data_dir": str(get_data_dir()),
     })
 
