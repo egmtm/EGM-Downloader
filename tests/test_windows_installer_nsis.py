@@ -302,9 +302,11 @@ def test_an_old_layout_upgrade_keeps_data_and_unknown_files_and_then_uninstalls_
 def test_prompt_one_names_only_ffmpeg_and_deno():
     unsec = _section("Uninstall")
     prompt = unsec[unsec.index("Prompt 1"):unsec.index("skip_components:")]
-    assert "ffmpeg and Deno" in prompt
-    assert "Node.js" not in prompt and "Electron" not in prompt
-    assert not re.search(r"\d\s*MB", prompt), "no size is quoted (ffmpeg and Deno were not measured)"
+    assert '"$(EGM_UN_REMOVE_COMPONENTS)"' in prompt
+    text = re.search(r'^LangString EGM_UN_REMOVE_COMPONENTS \$\{LANG_ENGLISH\} "(.*)"$', NSI, re.M).group(1)
+    assert "ffmpeg and Deno" in text
+    assert "Node.js" not in text and "Electron" not in text
+    assert not re.search(r"\d\s*MB", text), "no size is quoted (ffmpeg and Deno were not measured)"
     assert _names(prompt) == ({"runtime", "ffmpeg_bin"}, set())
 
 

@@ -318,6 +318,28 @@ LangString EGM_ARCH_UNSUPPORTED ${LANG_DUTCH} "EGM Downloader needs 64 bit Windo
 LangString EGM_ARCH_UNSUPPORTED ${LANG_PORTUGUESEBR} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
 LangString EGM_ARCH_UNSUPPORTED ${LANG_RUSSIAN} "EGM Downloader needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on an ARM processor.$\r$\nThis computer has neither, so nothing was installed."
 
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_ENGLISH} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_ARABIC} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_GERMAN} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_SPANISH} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_FRENCH} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_ITALIAN} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_JAPANESE} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_DUTCH} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_PORTUGUESEBR} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+LangString EGM_UN_REMOVE_COMPONENTS ${LANG_RUSSIAN} "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\nThe app downloads them again on its first launch after a new install.$\r$\nChoose No to keep them for a faster reinstall."
+
+LangString EGM_UN_REMOVE_DATA ${LANG_ENGLISH} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_ARABIC} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_GERMAN} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_SPANISH} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_FRENCH} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_ITALIAN} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_JAPANESE} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_DUTCH} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_PORTUGUESEBR} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+LangString EGM_UN_REMOVE_DATA ${LANG_RUSSIAN} "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\nChoose No to keep them for a faster setup on next install."
+
 ; ── Welcome-page language selector ────────────────────────────────────────────
 ; Rows map 1:1, index-aligned, to the codes in LangCodeFromIndex below.
 Function WelcomePage_Show
@@ -628,9 +650,7 @@ Section "Uninstall"
 
   ; ── Prompt 1: downloaded RUNTIME COMPONENTS only (no user data here) ──
   MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\n\
-The app downloads them again on its first launch after a new install.$\r$\n\
-Choose No to keep them for a faster reinstall." \
+    "$(EGM_UN_REMOVE_COMPONENTS)" \
     /SD IDNO IDNO skip_components
 
   RMDir /r "$INSTDIR\runtime"
@@ -640,8 +660,7 @@ Choose No to keep them for a faster reinstall." \
 
   ; ── Prompt 2: USER DATA (settings, history, cookies, thumbnails, logs) ──
   MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Also remove your data (settings, download history, cookies, logs)?$\r$\n$\r$\n\
-Choose No to keep them for a faster setup on next install." \
+    "$(EGM_UN_REMOVE_DATA)" \
     /SD IDNO IDNO skip_userdata
 
   Delete "$INSTDIR\egm_settings.json"
