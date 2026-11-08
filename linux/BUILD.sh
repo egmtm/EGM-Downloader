@@ -20,6 +20,20 @@ echo ""
 echo "   Repo root: $REPO_ROOT"
 echo ""
 
+# ── The checkout must be committed ───────────────────────────────────────────
+# Every phase builds from a commit, so a build can be traced to one: a change that is not
+# committed (a modified or staged file, or an untracked file that is not ignored) stops it here.
+cd "$REPO_ROOT"
+HEAD_LINE=$(git log -1 --format='%H %s')
+DIRTY=$(git status --porcelain)
+if [ -n "$DIRTY" ]; then
+    echo "❌ The checkout has uncommitted changes. Commit (or stash) them first: the build must come from a commit."
+    echo "$DIRTY" | sed 's/^/     /'
+    exit 1
+fi
+echo "   Commit: $HEAD_LINE"
+echo ""
+
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 echo "📋 Checking prerequisites..."
 for cmd in python3 node curl; do
@@ -243,44 +257,15 @@ else
 fi
 echo ""
 
-# ── Push to GitHub ────────────────────────────────────────────────────────────
-echo "🚀 Pushing to GitHub..."
-cd "$REPO_ROOT"
-# Guard the commit: under `set -e`, an unconditional `git commit` on a clean
-# tree (e.g. a rebuild with no source changes) exits non-zero and aborts the
-# whole build. Mirror the Windows guard — only commit when something changed.
-# NOTE: last-released-build.txt is intentionally NOT bumped here -- see
-# the matching comment in windows/BUILD.sh for why. Bump it as a
-# deliberate, separate, LAST step of the actual release process instead.
-BRANCH="$(git rev-parse --abbrev-ref HEAD)"
-# A new file that was already "git add"ed is in the index, not untracked, and would be
-# committed by the step below, so it is listed with the untracked ones.
-UNTRACKED="$(git ls-files --others --exclude-standard; git diff --cached --name-only --diff-filter=A)"
-if ! git status --porcelain | grep -q .; then
-    echo "   ✓ No source changes to commit (binaries are gitignored)"
-elif [ "$BRANCH" != "main" ]; then
-    # Only a build run from main may commit and push. On a testing branch (or a
-    # detached HEAD) the changed files are left alone for a human to handle.
-    echo "   ⚠ Skipping the automatic commit and push: this checkout is on '$BRANCH', not 'main'."
-    echo "     Changed files are left as they are:"
-    git status --short | sed 's/^/       /'
-elif [ -n "$UNTRACKED" ]; then
-    # git add would sweep a stray file into a public commit. Tracked changes
-    # alone are committed automatically; anything untracked needs a human look.
-    echo "   ⚠ Skipping the automatic commit and push: untracked files are present (or new files are staged)."
-    echo "     Review them, then commit and push by hand if they belong:"
-    echo "$UNTRACKED" | sed 's/^/       /'
-else
-    git add -u
-    git commit -m "Linux v$VERSION Build $BUILD_NUM"
-    git push origin main
-    echo "   ✓ Pushed"
-fi
-
+# NOTE: last-released-build.txt is intentionally NOT bumped here -- see the matching comment in
+# windows/BUILD.sh for why. Bump it as a deliberate, separate, LAST step of the actual release
+# process instead.
 echo ""
 echo "╔════════════════════════════════════════╗"
 echo "║       ✅  LINUX BUILD DONE!            ║"
 echo "╚════════════════════════════════════════╝"
+echo ""
+echo "   Commit: $HEAD_LINE"
 echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMdL.zip"

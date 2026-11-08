@@ -347,7 +347,7 @@ def portable_stage_files(sh_text):
     """The relative paths the portable stage of windows/BUILD.sh produces, read from its cp lines,
     its loop over windows/app-files.txt and the files it writes itself."""
     start = sh_text.find('# ── Build portable variant')
-    end = sh_text.find('# ── Push to GitHub', start)
+    end = sh_text.find('# Package into zip (no password', start)
     if start == -1 or end == -1:
         return None
     section = sh_text[start:end]
