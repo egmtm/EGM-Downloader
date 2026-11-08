@@ -1,9 +1,9 @@
 """
 windows/setup.nsi for the installer edition (Electron, Python and the app in one folder).
 
-* Layout by files, never by version: the v1.5.0 to v1.5.2.3 layout (launch.py + electron\\, no
-  resources\\app.asar) loses its program files by explicit name; this layout loses only
-  resources\\python before the copy; anything else is installed over without deleting.
+* Layout by files, never by version: the v1.5.0 to v1.5.2.3 layout (launch.py) loses its program
+  files by explicit name; this layout (resources\\app.asar) loses resources\\ and locales\\ before
+  the copy; anything else is installed over without deleting.
 * The old-layout list is the program files of v1.5.2.3's installer (compared with that tag when the
   clone has it), never a user data name.
 * The uninstaller removes exactly what the installer wrote (its top level list is generated from
@@ -102,19 +102,18 @@ def test_the_old_layout_list_matches_what_v1_5_2_3_installed():
 
 
 def test_layout_is_decided_by_files_and_the_app_is_stopped_before_anything_changes():
+    """The order of the two layout checks is in tests/test_windows_installer_layouts.py."""
     sec = _section("Install")
     new = sec.index('${If} ${FileExists} "$INSTDIR\\resources\\app.asar"')
-    old = sec.index('${ElseIf} ${FileExists} "$INSTDIR\\launch.py"')
-    assert sec.index('${AndIf} ${FileExists} "$INSTDIR\\electron\\*.*"') > old
-    assert new < sec.index('RMDir /r "$INSTDIR\\resources\\python"') < old
-    assert old < sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT") < sec.index("${EndIf}", old)
+    old = sec.index('${If} ${FileExists} "$INSTDIR\\launch.py"')
+    assert old < sec.index("!insertmacro EGM_REMOVE_OLD_LAYOUT") < sec.index("${EndIf}", old) < new
     assert "PreviousVersion" not in sec and "${VERSION}" not in sec[:sec.index("File /r")]
     # The app is stopped first: the second check after the kill aborts before any change
     second_check = sec.index("Call EGM_FindRunning", sec.index("taskkill"))
     abort = sec.index("Abort", second_check)
     first_change = min(sec.find(k) for k in ("RMDir", "!insertmacro", "File ", "WriteReg") if k in sec)
     assert second_check < abort < first_change
-    assert sec.index('RMDir /r "$INSTDIR\\resources\\python"') < sec.index('File /r "${APP_FOLDER}/*"')
+    assert sec.index('RMDir /r "$INSTDIR\\resources"') < sec.index('File /r "${APP_FOLDER}/*"')
 
 
 def test_icons_point_into_the_folder_and_shortcuts_at_the_exe():

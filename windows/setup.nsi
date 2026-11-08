@@ -54,6 +54,8 @@
 ; Its program files, by name only: never a wildcard on the install root, never anything not
 ; listed. User data, logs, ffmpeg_bin, runtime (Deno) and anything unknown are not touched.
 ; The old launcher "EGM Downloader.exe" is not here: the new exe is written over it.
+; electron goes first and launch.py last: launch.py is what marks this layout, so a run cut short
+; between two steps leaves a folder that is still seen as this layout, and the next run finishes it.
 !macro EGM_REMOVE_OLD_LAYOUT
   RMDir /r "$INSTDIR\electron"
   RMDir /r "$INSTDIR\node_bin"
@@ -61,7 +63,6 @@
   RMDir /r "$INSTDIR\templates"
   RMDir /r "$INSTDIR\static"
   RMDir /r "$INSTDIR\languages"
-  Delete "$INSTDIR\launch.py"
   Delete "$INSTDIR\launch.vbs"
   Delete "$INSTDIR\launch.bat"
   Delete "$INSTDIR\rcedit-x64.exe"
@@ -70,6 +71,7 @@
   Delete "$INSTDIR\embedded-python-setup.log"
   Delete "$INSTDIR\patchnotes.txt"
   Delete "$INSTDIR\app.py"
+  Delete "$INSTDIR\launch.py"
 !macroend
 
 ; ── Metadata ─────────────────────────────────────────────────
@@ -416,16 +418,22 @@ Section "Install"
   ${EndIf}
 
   ; ── What is installed here already: decided by files, never by version ──
-  ${If} ${FileExists} "$INSTDIR\resources\app.asar"
-    ; This layout (upgrade or repair): the bundled Python is replaced as a whole, so no
-    ; package files of an earlier version stay next to the new ones. The rest is overwritten.
-    RMDir /r "$INSTDIR\resources\python"
-  ${ElseIf} ${FileExists} "$INSTDIR\launch.py"
-  ${AndIf} ${FileExists} "$INSTDIR\electron\*.*"
+  ; Two independent checks, the old layout first: a folder holding both is cleaned of the old
+  ; files and then gets the new install.
+  ${If} ${FileExists} "$INSTDIR\launch.py"
     ; The v1.5.0 to v1.5.2.3 layout: remove its program files by name (the old launcher is
     ; overwritten below). Settings, history, logs, ffmpeg and Deno stay; the user's system
-    ; Python and its packages are never touched.
+    ; Python and its packages are never touched. launch.py alone marks it: the macro removes it
+    ; last, so a folder whose cleanup was cut short is still found here.
     !insertmacro EGM_REMOVE_OLD_LAYOUT
+  ${EndIf}
+  ${If} ${FileExists} "$INSTDIR\resources\app.asar"
+    ; This layout (upgrade or repair): resources (the app, app.asar, the bundled Python) and
+    ; locales hold only this app's files and are replaced as a whole, so no file of an earlier
+    ; version stays next to the new ones. User data lives in the install folder itself (the shell
+    ; hands app.py that folder in EGM_INSTALL_DIR), never in these two. The rest is overwritten.
+    RMDir /r "$INSTDIR\resources"
+    RMDir /r "$INSTDIR\locales"
   ${EndIf}
   ; Anything else (a fresh install, a folder of something unknown): nothing is deleted.
 
