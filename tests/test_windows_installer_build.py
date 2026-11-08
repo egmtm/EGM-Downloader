@@ -177,17 +177,60 @@ def test_phase_one_builds_the_folder_and_stops_for_both_signatures():
 def test_continue_verifies_both_exes_and_never_rebuilds_the_signed_folder():
     sh = read_source("windows/BUILD.sh")
     resume = sh[sh.index("# ── Resuming after signing"):]
-    signed = resume[resume.index("SIGNED_FILES=("):resume.index(")", resume.index("SIGNED_FILES=("))]
+    phase2 = resume[resume.index("# ── Phase 2"):resume.index("# ── Phase 3")]
+    signed = phase2[phase2.index("SIGNED_FILES=("):phase2.index(")", phase2.index("SIGNED_FILES=("))]
     assert '"$WIN_DIR/EGM Downloader.exe"' in signed
     assert '"$REPO_ROOT/dist/win-unpacked/EGM Downloader.exe"' in signed
-    loop = resume[resume.index('for SIGNED in "${SIGNED_FILES[@]}"; do\n        SIGNED_SIZE'):]
-    assert loop.index("osslsigncode verify") < loop.index("exit 1") < loop.index("done")
+    assert phase2.index('verify_signed "${SIGNED_FILES[@]}"') < phase2.index("makensis")
+    # the check itself: a failed verification exits the build
+    fn = resume[resume.index("verify_signed() {"):resume.index("\n}\n", resume.index("verify_signed() {"))]
+    assert fn.index("osslsigncode verify") < fn.index("exit 1")
     # after the stop nothing rebuilds or edits the exe: the signed bytes go into the installer
     commands = "\n".join(l for l in resume.splitlines() if not l.lstrip().startswith("#"))
     for tool in ("electron-builder", "build-folder.sh", "exe_strings.js", "rcedit", "resedit"):
         assert tool not in commands, tool
     assert resume.index("osslsigncode verify") < resume.index("makensis")
     assert '-DAPP_FOLDER="$REPO_ROOT/dist/win-unpacked"' in resume
+
+
+def test_continue_stops_after_makensis_and_finish_packages_the_signed_installer():
+    """The third stop: egm-setup.exe is signed between --continue and --finish, so the zip, its
+    hash and the feed describe the signed installer. Before this, the zip and the feed were made
+    from the unsigned installer and nothing ever checked the signature put on it afterwards."""
+    sh = read_source("windows/BUILD.sh")
+    assert "--finish" in sh[:sh.index("set -e")], "the third phase is documented in the header"
+    resume = sh[sh.index("# ── Resuming after signing"):]
+    phase2 = resume[resume.index("# ── Phase 2"):resume.index("# ── Phase 3")]
+    phase3 = resume[resume.index("# ── Phase 3"):]
+    assert phase2.index("makensis") < phase2.index("STOP — egm-setup.exe built, not yet signed") < phase2.index("exit 0")
+    assert "--finish" in phase2[phase2.index("STOP — egm-setup.exe built"):], "the banner names the next command"
+    assert "Packaging EGMd.zip" not in phase2 and "gen-update-json.py" not in phase2
+    signed = phase3[phase3.index("SIGNED_FILES=("):phase3.index(")", phase3.index("SIGNED_FILES=("))]
+    assert '"$REPO_ROOT/dist/egm-setup.exe"' in signed
+    assert '"$WIN_DIR/EGM Downloader.exe"' in signed, "the portable zip packs the launcher in this phase"
+    assert phase3.index('verify_signed "${SIGNED_FILES[@]}"') < phase3.index("Packaging EGMd.zip")
+    assert "makensis" not in phase3
+    done = phase3[phase3.index("WINDOWS BUILD DONE!"):]
+    assert "sign-manifest.py" in done and "NOT signed" in done, "the final banner says the feeds are unsigned"
+
+
+def test_the_phase_one_banner_names_continue_and_the_mode_line_knows_all_three_phases():
+    sh = read_source("windows/BUILD.sh")
+    phase1 = sh[sh.index("STOP — launcher compiled, not yet signed"):sh.index("\n    exit 0\nfi\n")]
+    assert "bash windows/BUILD.sh --continue" in phase1
+    mode = sh[sh.index('if [ "$FINISH" -eq 1 ]; then\n    echo "   Mode:'):]
+    mode = mode[:mode.index("\nfi\n")]
+    assert "--finish" in mode and "--continue" in mode and "phase 1" in mode
+
+
+def test_an_unknown_argument_is_refused_before_anything_runs(tmp_path):
+    """A mistyped --finish would otherwise start phase 1 and throw the signed files away."""
+    import subprocess
+    r = subprocess.run(["bash", str(ROOT / "windows" / "BUILD.sh"), "--finsh"], capture_output=True, text=True,
+                       cwd=tmp_path, timeout=60)
+    assert r.returncode == 1
+    assert "Unknown argument" in r.stdout + r.stderr and "--finsh" in r.stdout + r.stderr
+    assert "Cleaning" not in r.stdout and "Compiling" not in r.stdout
 
 
 def test_the_signed_folder_survives_the_clean_step_on_continue():

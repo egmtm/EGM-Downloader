@@ -11,22 +11,22 @@
 #   - Node.js with npm (electron-builder packages the installer's Electron)
 #   - curl and tar
 #   - osslsigncode (optional but recommended: sudo apt install osslsigncode)
-#     — lets --continue verify the two exes are actually signed before they get
-#     baked into the installer, instead of just trusting a flag was passed.
+#     — lets --continue and --finish verify that the exes are actually signed
+#     before they get baked in, instead of just trusting a flag was passed.
 #
 # The installer edition ships Electron, Python and its packages inside the app
 # folder (windows/installer/build-folder.sh builds it as dist/win-unpacked). The
 # portable edition is unchanged: launcher, launch.py, and everything else
 # downloaded on first launch.
 #
-# TWO-PHASE BUILD (added for EGM's Windows code-signing question, v1.3.2+):
+# THREE PHASE BUILD (added for EGM's Windows code-signing question, v1.3.2+):
 # Previously this script compiled "EGM Downloader.exe" (the native launcher)
 # and immediately packed the UNSIGNED copy into egm-setup.exe via NSIS. EGM
 # could then only sign the outer installer wrapper afterward — the launcher
 # actually running on a user's machine post-install was never signed, since
 # it was already sealed inside the installer by the time signing happened.
 #
-# Fixed by splitting the build into two stops:
+# Fixed by splitting the build into three stops:
 #   1. bash windows/BUILD.sh              — compiles the launcher (portable)
 #      and builds the installer folder (dist/win-unpacked), then STOPS.
 #      -> EGM signs the two files named "EGM Downloader.exe" now:
@@ -35,21 +35,30 @@
 #   2. bash windows/BUILD.sh --continue   — skips recompiling and rebuilding
 #      (electron-builder never runs again, so the signed bytes reach the
 #      installer unchanged), verifies BOTH are actually signed if osslsigncode
-#      is available, then proceeds through NSIS + portable packaging. EGM still
-#      signs egm-setup.exe afterward, same as before.
-#   To sign more files later, add them to SIGNED_FILES below.
+#      is available, builds egm-setup.exe with NSIS, then STOPS again.
+#      -> EGM signs dist/egm-setup.exe now.
+#   3. bash windows/BUILD.sh --finish     — verifies egm-setup.exe the same
+#      way (and the launcher again, which the portable zip packs here), then
+#      makes EGMd.zip, its SHA-256 and size, egm-version.json, EGMd-portable.zip
+#      and egm-portable-version.json. The feeds come out UNSIGNED: sign them
+#      with scripts/sign-manifest.py before uploading anything.
+#   To sign more files later, add them to the SIGNED_FILES lists below.
 #
 # Stopping by default (no flag) is deliberate: a forgotten flag fails safe
-# (nothing gets packaged) rather than failing silent (an unsigned launcher
-# quietly ships). --continue is the one thing that has to be typed on
-# purpose.
+# (nothing gets packaged) rather than failing silent (an unsigned exe
+# quietly ships). --continue and --finish have to be typed on purpose, and
+# any other argument is refused: a mistyped flag would otherwise start
+# phase 1 and throw the signed files away.
 
 set -e
 
 RESUME=0
+FINISH=0
 for arg in "$@"; do
     case "$arg" in
         --continue) RESUME=1 ;;
+        --finish)   RESUME=1; FINISH=1 ;;
+        *) echo "❌ Unknown argument: $arg (run with nothing, --continue or --finish)"; exit 1 ;;
     esac
 done
 
@@ -64,10 +73,12 @@ echo "║  EGM Downloader — Windows Build       ║"
 echo "╚════════════════════════════════════════╝"
 echo ""
 echo "   Repo root: $REPO_ROOT"
-if [ "$RESUME" -eq 1 ]; then
-    echo "   Mode: --continue (resuming after launcher signing)"
+if [ "$FINISH" -eq 1 ]; then
+    echo "   Mode: --finish (resuming after egm-setup.exe was signed)"
+elif [ "$RESUME" -eq 1 ]; then
+    echo "   Mode: --continue (resuming after the two exes were signed)"
 else
-    echo "   Mode: phase 1 (will stop after compiling the launcher for signing)"
+    echo "   Mode: phase 1 (will stop after compiling the launcher and building the installer folder, for signing)"
 fi
 echo ""
 
@@ -117,9 +128,9 @@ echo "   ✓ makensis: $(makensis -VERSION)"
 echo "   ✓ Python:   $(python3 --version)"
 echo "   ✓ mingw-w64: $(x86_64-w64-mingw32-gcc --version | head -1)"
 if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
-    echo "   ✓ osslsigncode: available (both signatures will be verified on --continue)"
+    echo "   ✓ osslsigncode: available (the signatures are verified on --continue and --finish)"
 else
-    echo "   ⚠ osslsigncode: not found — --continue will skip signature verification and"
+    echo "   ⚠ osslsigncode: not found — --continue and --finish will skip signature verification and"
     echo "     ask for manual confirmation instead (sudo apt install osslsigncode to enable it)"
 fi
 echo ""
@@ -198,77 +209,112 @@ if [ "$RESUME" -eq 0 ]; then
 fi
 
 # ── Resuming after signing: verify, don't just trust ─────────────────────────
-# Every exe in this list must be signed before it is packaged in: the portable
-# launcher and the installer's Electron (both named EGM Downloader.exe). To sign
-# more files later (the bundled python.exe, say), add them here.
-SIGNED_FILES=(
-    "$WIN_DIR/EGM Downloader.exe"
-    "$REPO_ROOT/dist/win-unpacked/EGM Downloader.exe"
-)
-for SIGNED in "${SIGNED_FILES[@]}"; do
-    if [ ! -f "$SIGNED" ]; then
-        echo "❌ $SIGNED not found — run without --continue first to build it."
-        exit 1
+verify_signed() {
+    # Every file given must carry a valid signature; otherwise the build stops here (or, with
+    # no osslsigncode, after an explicit confirmation).
+    if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
+        for SIGNED in "$@"; do
+            SIGNED_SIZE=$(stat -c %s "$SIGNED")
+            if osslsigncode verify -in "$SIGNED" -ignore-timestamp > /tmp/osslsigncode_out.txt 2>&1; then
+                echo "   ✓ Signature verified — ${SIGNED#"$REPO_ROOT"/} ($SIGNED_SIZE bytes)"
+            else
+                echo "   ❌ No valid signature found on ${SIGNED#"$REPO_ROOT"/}:"
+                sed 's/^/     /' /tmp/osslsigncode_out.txt
+                echo ""
+                echo "   Sign it before continuing — packaging an unsigned exe is exactly the"
+                echo "   gap this build's stops exist to close."
+                rm -f /tmp/osslsigncode_out.txt
+                exit 1
+            fi
+        done
+        rm -f /tmp/osslsigncode_out.txt
+    else
+        echo "   ⚠ osslsigncode not installed — can't verify automatically."
+        for SIGNED in "$@"; do
+            echo "     ${SIGNED#"$REPO_ROOT"/}"
+        done
+        read -r -p "   Have you signed every file above? [y/N] " CONFIRM
+        if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
+            echo "   Aborting — sign them first, or install osslsigncode for automatic checks."
+            exit 1
+        fi
+        echo "   ✓ Manual confirmation received"
     fi
-done
-echo "🔒 Verifying the exes are actually signed before packaging them in..."
-if [ "$HAVE_OSSLSIGNCODE" -eq 1 ]; then
+    echo ""
+}
+
+if [ "$FINISH" -eq 0 ]; then
+    # ── Phase 2: the two exes were signed ────────────────────────────────────
+    # Every exe in this list must be signed before it is packaged in: the portable
+    # launcher and the installer's Electron (both named EGM Downloader.exe). To sign
+    # more files later (the bundled python.exe, say), add them here.
+    SIGNED_FILES=(
+        "$WIN_DIR/EGM Downloader.exe"
+        "$REPO_ROOT/dist/win-unpacked/EGM Downloader.exe"
+    )
     for SIGNED in "${SIGNED_FILES[@]}"; do
-        SIGNED_SIZE=$(stat -c %s "$SIGNED")
-        if osslsigncode verify -in "$SIGNED" -ignore-timestamp > /tmp/osslsigncode_out.txt 2>&1; then
-            echo "   ✓ Signature verified — ${SIGNED#"$REPO_ROOT"/} ($SIGNED_SIZE bytes)"
-        else
-            echo "   ❌ No valid signature found on ${SIGNED#"$REPO_ROOT"/}:"
-            sed 's/^/     /' /tmp/osslsigncode_out.txt
-            echo ""
-            echo "   Sign it before continuing — packaging an unsigned exe into the"
-            echo "   installer is exactly the gap this two-phase build exists to close."
-            rm -f /tmp/osslsigncode_out.txt
+        if [ ! -f "$SIGNED" ]; then
+            echo "❌ $SIGNED not found — run without --continue first to build it."
             exit 1
         fi
     done
-    rm -f /tmp/osslsigncode_out.txt
-else
-    echo "   ⚠ osslsigncode not installed — can't verify automatically."
-    for SIGNED in "${SIGNED_FILES[@]}"; do
-        echo "     ${SIGNED#"$REPO_ROOT"/}"
-    done
-    read -r -p "   Have you signed every file above? [y/N] " CONFIRM
-    if [ "$CONFIRM" != "y" ] && [ "$CONFIRM" != "Y" ]; then
-        echo "   Aborting — sign them first, or install osslsigncode for automatic checks."
+    echo "🔒 Verifying the exes are actually signed before packaging them in..."
+    verify_signed "${SIGNED_FILES[@]}"
+
+    # ── The folder is the one phase 1 built ──────────────────────────────────
+    # Only its exe may have changed (signed above). Anything else, such as settings, history, logs
+    # or __pycache__ written by starting the exe from dist/win-unpacked, would ship to every user.
+    echo "📋 Checking the installer folder against phase 1's manifest..."
+    python3 "$WIN_DIR/installer/folder_manifest.py" check "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"
+    echo ""
+
+    # ── Compile NSIS installer ───────────────────────────────────────────────
+    echo "🔨 Compiling NSIS installer (egm-setup.exe)..."
+    # The uninstaller's list of the folder's top level files and folders, read from the folder itself
+    python3 "$WIN_DIR/installer/uninstall_list.py" "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked-files.nsh"
+    makensis -V2 \
+        -DVERSION="$VERSION" \
+        -DBUILD="$BUILD_NUM" \
+        -DREPO_ROOT="$REPO_ROOT" \
+        -DAPP_FOLDER="$REPO_ROOT/dist/win-unpacked" \
+        -DAPP_FOLDER_LIST="$REPO_ROOT/dist/win-unpacked-files.nsh" \
+        -DOUTFILE="$REPO_ROOT/dist/egm-setup.exe" \
+        "$WIN_DIR/setup.nsi"
+
+    if [ ! -f "$REPO_ROOT/dist/egm-setup.exe" ]; then
+        echo "❌ NSIS compilation failed — egm-setup.exe not produced"
         exit 1
     fi
-    echo "   ✓ Manual confirmation received"
+    SETUP_SIZE=$(du -h "$REPO_ROOT/dist/egm-setup.exe" | cut -f1)
+    echo "   ✓ egm-setup.exe built ($SETUP_SIZE)"
+    echo ""
+    echo "╔════════════════════════════════════════════════════════════╗"
+    echo "║  STOP — egm-setup.exe built, not yet signed                ║"
+    echo "╚════════════════════════════════════════════════════════════╝"
+    echo ""
+    echo "   Commit: $HEAD_LINE"
+    echo ""
+    echo "   → Sign dist/egm-setup.exe now."
+    echo "   → Then run:  bash windows/BUILD.sh --finish"
+    echo ""
+    exit 0
 fi
-echo ""
 
-# ── The folder is the one phase 1 built ──────────────────────────────────────
-# Only its exe may have changed (signed above). Anything else, such as settings, history, logs or
-# __pycache__ written by starting the exe from dist/win-unpacked, would ship to every user.
-echo "📋 Checking the installer folder against phase 1's manifest..."
-python3 "$WIN_DIR/installer/folder_manifest.py" check "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked.sha256"
-echo ""
-
-# ── Compile NSIS installer ───────────────────────────────────────────────────
-echo "🔨 Compiling NSIS installer (egm-setup.exe)..."
-# The uninstaller's list of the folder's top level files and folders, read from the folder itself
-python3 "$WIN_DIR/installer/uninstall_list.py" "$REPO_ROOT/dist/win-unpacked" "$REPO_ROOT/dist/win-unpacked-files.nsh"
-makensis -V2 \
-    -DVERSION="$VERSION" \
-    -DBUILD="$BUILD_NUM" \
-    -DREPO_ROOT="$REPO_ROOT" \
-    -DAPP_FOLDER="$REPO_ROOT/dist/win-unpacked" \
-    -DAPP_FOLDER_LIST="$REPO_ROOT/dist/win-unpacked-files.nsh" \
-    -DOUTFILE="$REPO_ROOT/dist/egm-setup.exe" \
-    "$WIN_DIR/setup.nsi"
-
-if [ ! -f "$REPO_ROOT/dist/egm-setup.exe" ]; then
-    echo "❌ NSIS compilation failed — egm-setup.exe not produced"
-    exit 1
-fi
-SETUP_SIZE=$(du -h "$REPO_ROOT/dist/egm-setup.exe" | cut -f1)
-echo "   ✓ egm-setup.exe built ($SETUP_SIZE)"
-echo ""
+# ── Phase 3: egm-setup.exe was signed ────────────────────────────────────────
+# What this phase packages is verified here, so the bytes zipped and hashed are the ones checked:
+# the signed installer (EGMd.zip) and the signed launcher (the portable zip).
+SIGNED_FILES=(
+    "$REPO_ROOT/dist/egm-setup.exe"
+    "$WIN_DIR/EGM Downloader.exe"
+)
+for SIGNED in "${SIGNED_FILES[@]}"; do
+    if [ ! -f "$SIGNED" ]; then
+        echo "❌ $SIGNED not found — run --continue first to build it (and phase 1 before that)."
+        exit 1
+    fi
+done
+echo "🔒 Verifying the installer is signed before it is zipped and hashed..."
+verify_signed "${SIGNED_FILES[@]}"
 
 # ── Package into zip ─────────────────────────────────────────────────────────
 echo "📦 Packaging EGMd.zip..."
@@ -565,6 +611,10 @@ echo "║      ✅  WINDOWS BUILD DONE!           ║"
 echo "╚════════════════════════════════════════╝"
 echo ""
 echo "   Commit: $HEAD_LINE"
+echo ""
+echo "   The feeds are NOT signed yet. Sign them before uploading anything:"
+echo "   → python3 scripts/sign-manifest.py dist/egm-version.json <private key>"
+echo "   → python3 scripts/sign-manifest.py dist/egm-portable-version.json <private key>"
 echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMd.zip"
