@@ -101,7 +101,8 @@ def test_a_migration_cut_short_after_any_step_is_finished_by_the_next_run(cut):
 PORTABLE = {"EGM Downloader.exe", "launch.py", ".portable", "app.py", "instructions.txt", "templates/index.html",
             "electron/package.json", "data/egm_settings.json", "python/python.exe"}
 FOREIGN = {"notes.txt", "photos/a.jpg"}
-MARKERS = ["EGM Downloader.exe", "resources/app.asar", "launch.py", "electron/main.js"]
+MARKERS = ["EGM Downloader.exe", "resources/app.asar", "launch.py", "electron/main.js",
+           "egm_settings.json", "ffmpeg_bin/ffmpeg.exe"]   # the last two: what an uninstall keeps
 
 
 @pytest.mark.parametrize("name, contents", [
@@ -159,3 +160,27 @@ def test_the_v0_99_files_are_removed_only_after_the_check():
     sec = section("Install")
     for name in ("README.md", "requirements.txt", "EGM Downloader.vbs"):
         assert sec.index("$(EGM_FOLDER_NOT_OURS)") < sec.index(f'Delete "$INSTDIR\\{name}"') < sec.index("File /r"), name
+
+
+# ── what an uninstall leaves is ours ──────────────────────────────────────────
+
+def _uninstalled(answers):
+    """The folder an install, some use and an uninstall with `answers` leave behind."""
+    paths = folder(NEW, DATA)
+    body = expand(section("Uninstall"), extra={"EGM_REMOVE_APP_FOLDER": "\n".join(
+        f'RMDir /r "$INSTDIR\\{d}"' if d in ("resources", "locales") else f'Delete "$INSTDIR\\{d}"'
+        for d in tops(folder(NEW)) - {"uninstall.exe", "instructions.txt", "LICENSE"})})
+    Run(paths, silent=False, answers=answers).run(body)
+    return paths
+
+
+@pytest.mark.parametrize("answers", [["IDNO", "IDNO"], ["IDYES", "IDNO"], ["IDNO", "IDYES"]])
+def test_a_later_install_goes_into_the_folder_an_uninstall_left(answers):
+    """Keeping the data (the default, and what /S does) or the components must not turn the folder
+    into one that is not ours: the next install goes into it and finds what was kept."""
+    paths = _uninstalled(answers)
+    assert paths and not tops(paths) & {"EGM Downloader.exe", "resources", "launch.py", "electron"}, sorted(paths)
+    kept = set(paths)
+    r = install(paths)
+    assert r.outcome == "writes", (answers, sorted(paths))
+    assert paths == kept
