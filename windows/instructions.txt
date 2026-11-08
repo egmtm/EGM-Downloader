@@ -6,11 +6,9 @@ https://egerena.com/apps/egm.html
 REQUIREMENTS
 ─────────────
   • Windows 10 or 11 (64-bit)
-  • Python 3.11 or newer
-      Download: https://www.python.org/downloads/
-      IMPORTANT: During install, check "Add Python to PATH"
 
-  Everything else (Node.js, Electron, ffmpeg, Deno) is downloaded
+  Nothing else to install: EGM Downloader brings its own Python and
+  everything the app runs on. Two tools (ffmpeg and Deno) are downloaded
   automatically on first launch — no manual setup required.
 
 
@@ -25,11 +23,11 @@ INSTALLATION
 
 FIRST LAUNCH
 ─────────────
-  The first time you run the app, it will download required components:
+  The first time you run the app, it downloads two tools in the
+  background (one time only):
 
-    • Node.js + Electron  ~190 MB  (one time only)
-    • ffmpeg              ~185 MB  (one time only, background)
-    • Deno                ~40 MB   (one time only, background)
+    • ffmpeg   (merges and converts video and audio)
+    • Deno     (a JavaScript runtime some downloads need)
 
   This may take a few minutes depending on your connection speed.
   Subsequent launches are near-instant.
@@ -38,11 +36,14 @@ FIRST LAUNCH
 UPDATING
 ─────────
   To update yt-dlp or ffmpeg (recommended periodically):
-    Open the app → expand "Update Plugins" → click "Check for Updates"
+    Open the app → Advanced → Plugins → click "Check for Updates",
+    then "Install Updates"
 
   To update EGM Downloader itself:
     Download the latest egm-setup.exe from https://egerena.com/apps/egm.html
     Run it over your existing install — your settings are preserved.
+    Installing over an older version (v1.5.0 or newer) also keeps your
+    history, logs and the downloaded ffmpeg and Deno.
 
 
 UNINSTALLING
@@ -50,31 +51,31 @@ UNINSTALLING
   Open Windows Settings → Apps → search "EGM Downloader" → Uninstall
   Or run uninstall.exe in your install folder.
 
+  The uninstaller asks two questions: whether to also remove the
+  downloaded tools (ffmpeg and Deno), and whether to also remove your
+  data (settings, download history, cookies, logs). Answer Yes to both
+  to leave nothing behind.
+
   Your download folder and its contents are never deleted by the
   uninstaller — only the application files are removed.
 
 
 TROUBLESHOOTING
 ────────────────
-  "Python not found" on launch
-      → Install Python from python.org and check "Add to PATH"
-      → Restart your PC after installing Python
+  "Python could not start" on launch
+      → The Python that comes with EGM Downloader could not start.
+        Antivirus software may have blocked or removed one of its files.
+      → If your antivirus quarantined a file of EGM Downloader, restore
+        it, then reinstall EGM Downloader: run egm-setup.exe again
+        (choose Repair if it asks) — your settings are preserved
 
   Downloads fail or show errors
       → Open Update Plugins and update yt-dlp to the latest version
       → For age-restricted content, use the Site Cookies feature
 
-  App won't start after update
-      → Delete the electron\node_modules folder inside your install
-        directory, then relaunch — it will reinstall automatically
-
   Need more detail about a problem
       → The log file is egm_debug.log, saved in your install directory
         (egm_debug.log.old is the previous one)
-      → For a detailed startup error, open a command prompt in your
-        install directory and run these two commands:
-            set EGM_SILENT=1
-            python launch.py
 
 
 SUPPORT
