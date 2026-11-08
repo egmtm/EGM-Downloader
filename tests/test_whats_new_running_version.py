@@ -205,7 +205,10 @@ def test_the_three_copies_of_the_reader_are_identical_apart_from_the_platform_ta
 # ── The file has to be next to app.py in every package ─────────────────────────
 
 def test_windows_installer_portable_and_update_zip_ship_patchnotes():
-    assert 'File "${REPO_ROOT}/patchnotes.txt"' in read_source("windows/setup.nsi")
+    # The installer installs the installer folder as a whole; its resources/app is built from the
+    # app files list (the folder build checks it), which has patchnotes.txt next to app.py
+    assert 'File /r "${APP_FOLDER}/*"' in read_source("windows/setup.nsi")
+    assert 'done < "$WIN_DIR/app-files.txt"' in read_source("windows/installer/build-folder.sh")
     sh = read_source("windows/BUILD.sh")
     zip_lines = [l for l in sh.splitlines() if "app.py" in l and "requirements.txt" in l and "patchnotes.txt" in l]
     assert zip_lines, "the update zip no longer lists patchnotes.txt"

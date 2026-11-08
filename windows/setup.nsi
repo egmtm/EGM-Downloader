@@ -6,11 +6,18 @@
 ;    -DVERSION=0.93
 ;    -DBUILD=94
 ;    -DREPO_ROOT=/path/to/EGM-Downloader     (absolute, no trailing slash)
+;    -DAPP_FOLDER=/path/to/dist/win-unpacked (the installer folder: Electron,
+;                                             Python and the app, signed exe)
+;    -DAPP_FOLDER_LIST=/path/to/dist/win-unpacked-files.nsh
+;                                            (windows/installer/uninstall_list.py
+;                                             writes it from APP_FOLDER)
 ;    -DOUTFILE=/path/to/dist/egm-setup.exe   (absolute output path)
 ;
-;  Compile (from repo root):
+;  Compile (from repo root), after windows/BUILD.sh built and the exe was signed:
 ;    makensis -DVERSION=0.93 -DBUILD=94 \
 ;             -DREPO_ROOT="$(pwd)" \
+;             -DAPP_FOLDER="$(pwd)/dist/win-unpacked" \
+;             -DAPP_FOLDER_LIST="$(pwd)/dist/win-unpacked-files.nsh" \
 ;             -DOUTFILE="$(pwd)/dist/egm-setup.exe" \
 ;             windows/setup.nsi
 ; ============================================================
@@ -32,6 +39,38 @@
 !ifndef OUTFILE
   !error "OUTFILE must be passed via -DOUTFILE="
 !endif
+!ifndef APP_FOLDER
+  !error "APP_FOLDER must be passed via -DAPP_FOLDER="
+!endif
+!ifndef APP_FOLDER_LIST
+  !error "APP_FOLDER_LIST must be passed via -DAPP_FOLDER_LIST="
+!endif
+
+; EGM_REMOVE_APP_FOLDER: one Delete per top level file of APP_FOLDER, one RMDir /r per top level
+; folder (resources, locales). Generated at build time, so it follows the Electron version.
+!include "${APP_FOLDER_LIST}"
+
+; ── The installed layout of v1.5.0 to v1.5.2.3 (launcher + launch.py + downloaded Electron) ──
+; Its program files, by name only: never a wildcard on the install root, never anything not
+; listed. User data, logs, ffmpeg_bin, runtime (Deno) and anything unknown are not touched.
+; The old launcher "EGM Downloader.exe" is not here: the new exe is written over it.
+!macro EGM_REMOVE_OLD_LAYOUT
+  RMDir /r "$INSTDIR\electron"
+  RMDir /r "$INSTDIR\node_bin"
+  RMDir /r "$INSTDIR\__pycache__"
+  RMDir /r "$INSTDIR\templates"
+  RMDir /r "$INSTDIR\static"
+  RMDir /r "$INSTDIR\languages"
+  Delete "$INSTDIR\launch.py"
+  Delete "$INSTDIR\launch.vbs"
+  Delete "$INSTDIR\launch.bat"
+  Delete "$INSTDIR\rcedit-x64.exe"
+  Delete "$INSTDIR\rcedit_tmp.exe"
+  Delete "$INSTDIR\.electron-update"
+  Delete "$INSTDIR\embedded-python-setup.log"
+  Delete "$INSTDIR\patchnotes.txt"
+  Delete "$INSTDIR\app.py"
+!macroend
 
 ; ── Metadata ─────────────────────────────────────────────────
 !define APPNAME    "EGM Downloader"
@@ -265,7 +304,7 @@ FunctionEnd
 Function FinishPage_CreateDesktopShortcut
   CreateShortCut "$DESKTOP\EGM Downloader.lnk" \
     "$INSTDIR\EGM Downloader.exe" "" \
-    "$INSTDIR\static\icon.ico" 0
+    "$INSTDIR\resources\app\static\icon.ico" 0
 FunctionEnd
 
 ; ── Launch app from finish page — uses ShellExecute to avoid CMD flash ────────
@@ -316,108 +355,51 @@ Section "Install"
   ;    detect with tasklist piped to find: find's exit code is 0 only when the
   ;    image name appears in tasklist's output. We match the IMAGE NAME (not
   ;    tasklist's "no tasks" line, which is localized), so this is locale-robust.
-  ;    Both the launcher and the renamed Electron runtime run as
-  ;    "EGM Downloader.exe", so this one image name covers the whole app. ──
-  check_running:
-    nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq ${APPNAME}.exe" /NH | find /I "${APPNAME}.exe"'
-    Pop $0   ; process exit code (= find's: 0 = running, 1 = not running)
-    Pop $1   ; captured stdout (unused)
-    ${If} $0 == 0
-      MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
-        "$(EGM_APP_RUNNING)" \
-        /SD IDOK IDOK kill_running
-      Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
-      kill_running:
-        ; Same image name as the uninstaller's kill; /T also takes child processes.
-        nsExec::Exec 'taskkill /F /T /IM "${APPNAME}.exe"'
-        Sleep 1000
-        Goto check_running   ; re-verify it actually closed before we write files
-    ${EndIf}
+  ;    The old launcher, its renamed Electron runtime and the new Electron exe
+  ;    all run as "EGM Downloader.exe", so this one image name covers the app. ──
+  nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq ${APPNAME}.exe" /NH | find /I "${APPNAME}.exe"'
+  Pop $0   ; process exit code (= find's: 0 = running, 1 = not running)
+  Pop $1   ; captured stdout (unused)
+  ${If} $0 == 0
+    MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
+      "$(EGM_APP_RUNNING)" \
+      /SD IDOK IDOK kill_running
+    Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
+    kill_running:
+      ; Same image name as the uninstaller's kill; /T also takes child processes.
+      nsExec::Exec 'taskkill /F /T /IM "${APPNAME}.exe"'
+      Sleep 1000
+      ; Check again: if it still runs, stop here, before anything is deleted or copied.
+      nsExec::ExecToStack 'cmd /c tasklist /FI "IMAGENAME eq ${APPNAME}.exe" /NH | find /I "${APPNAME}.exe"'
+      Pop $0
+      Pop $1
+      ${If} $0 == 0
+        MessageBox MB_OK|MB_ICONSTOP \
+          "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again." \
+          /SD IDOK
+        Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
+      ${EndIf}
+  ${EndIf}
 
+  ; ── What is installed here already: decided by files, never by version ──
+  ${If} ${FileExists} "$INSTDIR\resources\app.asar"
+    ; This layout (upgrade or repair): the bundled Python is replaced as a whole, so no
+    ; package files of an earlier version stay next to the new ones. The rest is overwritten.
+    RMDir /r "$INSTDIR\resources\python"
+  ${ElseIf} ${FileExists} "$INSTDIR\launch.py"
+  ${AndIf} ${FileExists} "$INSTDIR\electron\*.*"
+    ; The v1.5.0 to v1.5.2.3 layout: remove its program files by name (the old launcher is
+    ; overwritten below). Settings, history, logs, ffmpeg and Deno stay; the user's system
+    ; Python and its packages are never touched.
+    !insertmacro EGM_REMOVE_OLD_LAYOUT
+  ${EndIf}
+  ; Anything else (a fresh install, a folder of something unknown): nothing is deleted.
+
+  ; ── The app: Electron, the bundled Python with its packages, and the app files ──
   SetOutPath "$INSTDIR"
-
-  ; ── Root files ──
-  ; Pre-v0.99.11 installs launched via launch.vbs/launch.bat — the compiled
-  ; EXE replaced them (Build 119) but upgrades never cleaned them up.
-  Delete "$INSTDIR\launch.vbs"
-  Delete "$INSTDIR\launch.bat"
-
-  File "${REPO_ROOT}/windows/EGM Downloader.exe"
-  File "${REPO_ROOT}/windows/launch.py"
+  File /r "${APP_FOLDER}/*"
   File "${REPO_ROOT}/windows/instructions.txt"
-  File "${REPO_ROOT}/app.py"
-  File "${REPO_ROOT}/patchnotes.txt"
   File "${REPO_ROOT}/LICENSE"
-
-  ; ── templates\ ──
-  SetOutPath "$INSTDIR\templates"
-  File "${REPO_ROOT}/templates/index.html"
-  File "${REPO_ROOT}/templates/index_styles.html"
-  File "${REPO_ROOT}/templates/index_scripts.html"
-  File "${REPO_ROOT}/templates/console.html"
-  File "${REPO_ROOT}/templates/history.html"
-  File "${REPO_ROOT}/templates/themes.html"
-  File "${REPO_ROOT}/templates/theme_styles.html"
-  File "${REPO_ROOT}/templates/theme_data.html"
-  File "${REPO_ROOT}/templates/theme_validator.html"
-  File "${REPO_ROOT}/templates/i18n.html"
-  File "${REPO_ROOT}/templates/subscriptions.html"
-
-  ; ── templates\js\ ──
-  SetOutPath "$INSTDIR\templates\js"
-  File "${REPO_ROOT}/templates/js/_core.html"
-  File "${REPO_ROOT}/templates/js/_settings.html"
-  File "${REPO_ROOT}/templates/js/_download.html"
-  File "${REPO_ROOT}/templates/js/_bulk.html"
-  File "${REPO_ROOT}/templates/js/_nav_history.html"
-  File "${REPO_ROOT}/templates/js/_theme.html"
-  File "${REPO_ROOT}/templates/js/_quality.html"
-  File "${REPO_ROOT}/templates/js/_creator.html"
-  File "${REPO_ROOT}/templates/js/_card_order.html"
-
-  ; ── languages\ ──
-  SetOutPath "$INSTDIR\languages"
-  File "${REPO_ROOT}/languages/ar.json"
-  File "${REPO_ROOT}/languages/de.json"
-  File "${REPO_ROOT}/languages/en.json"
-  File "${REPO_ROOT}/languages/es.json"
-  File "${REPO_ROOT}/languages/fr.json"
-  File "${REPO_ROOT}/languages/it.json"
-  File "${REPO_ROOT}/languages/ja.json"
-  File "${REPO_ROOT}/languages/nl.json"
-  File "${REPO_ROOT}/languages/pt.json"
-  File "${REPO_ROOT}/languages/ru.json"
-
-  ; ── static\ ──
-  SetOutPath "$INSTDIR\static"
-  File "${REPO_ROOT}/static/icon.ico"
-  File "${REPO_ROOT}/static/icon-512.png"
-  File "${REPO_ROOT}/static/icon-256.png"
-  File "${REPO_ROOT}/static/icon-128.png"
-  File "${REPO_ROOT}/static/icon-64.png"
-  File "${REPO_ROOT}/static/icon-32.png"
-  File "${REPO_ROOT}/static/icon-16.png"
-  File "${REPO_ROOT}/static/badge-1.png"
-  File "${REPO_ROOT}/static/badge-2.png"
-  File "${REPO_ROOT}/static/badge-3.png"
-  File "${REPO_ROOT}/static/badge-4.png"
-  File "${REPO_ROOT}/static/badge-5.png"
-  File "${REPO_ROOT}/static/badge-6.png"
-  File "${REPO_ROOT}/static/badge-7.png"
-  File "${REPO_ROOT}/static/badge-8.png"
-  File "${REPO_ROOT}/static/badge-9.png"
-  File "${REPO_ROOT}/static/badge-9plus.png"
-
-  ; ── electron\ ──
-  SetOutPath "$INSTDIR\electron"
-  File "${REPO_ROOT}/windows/electron/main.js"
-  File "${REPO_ROOT}/windows/electron/preload.js"
-  File "${REPO_ROOT}/windows/electron/splash.html"
-  File "${REPO_ROOT}/windows/electron/package.json"
-  File "${REPO_ROOT}/windows/electron/package-lock.json"
-
-  ; Reset path back to install dir for the rest
-  SetOutPath "$INSTDIR"
 
   ; ── Registry: app info ──
   ; One-time language hand-off: the app reads, validates against its own
@@ -434,17 +416,15 @@ Section "Install"
   WriteRegStr HKCU "${REGKEY}" "InstallPath" "$INSTDIR"
 
   ; Taskbar/notification display name for the app's AppUserModelID (must match
-  ; app.setAppUserModelId in electron/main.js). Without it, Windows falls back
-  ; to the Electron runtime's internal FileDescription ("Electron") in the
-  ; taskbar right-click menu — the runtime downloads at first run, so its
-  ; version resources are not ours to patch.
+  ; app.setAppUserModelId in electron/main.js). Without it, Windows can fall back
+  ; to the exe's internal FileDescription in the taskbar right-click menu.
   WriteRegStr HKCU "Software\Classes\AppUserModelId\com.egerena.egm-downloader" "DisplayName" "EGM Downloader"
-  WriteRegStr HKCU "Software\Classes\AppUserModelId\com.egerena.egm-downloader" "IconUri" "$INSTDIR\static\icon.ico"
+  WriteRegStr HKCU "Software\Classes\AppUserModelId\com.egerena.egm-downloader" "IconUri" "$INSTDIR\resources\app\static\icon.ico"
 
   ; ── Registry: Add/Remove Programs ──
   WriteRegStr HKCU "${UNINSTREG}" "DisplayName"     "${APPNAME}"
   WriteRegStr HKCU "${UNINSTREG}" "DisplayVersion"  "${VERSION}"
-  WriteRegStr HKCU "${UNINSTREG}" "DisplayIcon"     "$INSTDIR\static\icon.ico"
+  WriteRegStr HKCU "${UNINSTREG}" "DisplayIcon"     "$INSTDIR\resources\app\static\icon.ico"
   WriteRegStr HKCU "${UNINSTREG}" "Publisher"       "${PUBLISHER}"
   WriteRegStr HKCU "${UNINSTREG}" "URLInfoAbout"    "${APPURL}"
   WriteRegStr HKCU "${UNINSTREG}" "InstallLocation" "$INSTDIR"
@@ -455,7 +435,7 @@ Section "Install"
   ; ── Start Menu shortcuts ──
   CreateDirectory "$SMPROGRAMS\${APPNAME}"
   CreateShortcut  "$SMPROGRAMS\${APPNAME}\${APPNAME}.lnk" \
-                  "$INSTDIR\EGM Downloader.exe" "" "$INSTDIR\static\icon.ico"
+                  "$INSTDIR\EGM Downloader.exe" "" "$INSTDIR\resources\app\static\icon.ico"
   CreateShortcut  "$SMPROGRAMS\${APPNAME}\Uninstall ${APPNAME}.lnk" \
                   "$INSTDIR\uninstall.exe"
 
@@ -474,51 +454,32 @@ FunctionEnd
 
 Section "Uninstall"
   ; ── Close the app if it's still running, so files aren't locked ──
-  ; Both the launcher and the renamed Electron runtime use this image name.
   nsExec::Exec 'taskkill /F /T /IM "EGM Downloader.exe"'
   Sleep 500
 
-  ; ── Remove app files ──
-  Delete "$INSTDIR\EGM Downloader.exe"
-  Delete "$INSTDIR\launch.py"
-  Delete "$INSTDIR\launch.vbs"
-  Delete "$INSTDIR\launch.bat"
+  ; ── Remove app files: exactly what the installer wrote ──
+  ; The folder's top level files and its resources\ and locales\ folders (generated list).
+  ; resources\ goes as a whole, with the __pycache__ folders Python writes there at runtime.
+  !insertmacro EGM_REMOVE_APP_FOLDER
   Delete "$INSTDIR\instructions.txt"
-  Delete "$INSTDIR\app.py"
-  Delete "$INSTDIR\rcedit-x64.exe"
-  Delete "$INSTDIR\patchnotes.txt"
   Delete "$INSTDIR\LICENSE"
   Delete "$INSTDIR\first-run-language.txt"
-
-  RMDir /r "$INSTDIR\templates"
-  RMDir /r "$INSTDIR\static"
-  RMDir /r "$INSTDIR\languages"
-
-  ; Electron app files (but preserve node_modules unless user opts in below)
-  Delete "$INSTDIR\electron\main.js"
-  Delete "$INSTDIR\electron\preload.js"
-  Delete "$INSTDIR\electron\splash.html"
-  Delete "$INSTDIR\electron\package.json"
-  Delete "$INSTDIR\electron\package-lock.json"
-  Delete "$INSTDIR\electron\.launcher.lock"
-
-  ; Python __pycache__ (created at runtime)
-  RMDir /r "$INSTDIR\__pycache__"
+  ; The Reinstall Electron marker the app may have written, and anything an earlier
+  ; layout left behind (an older installer run over this one, say).
+  Delete "$INSTDIR\.electron-update"
+  !insertmacro EGM_REMOVE_OLD_LAYOUT
 
   Delete "$INSTDIR\uninstall.exe"
 
   ; ── Prompt 1: downloaded RUNTIME COMPONENTS only (no user data here) ──
   MessageBox MB_YESNO|MB_ICONQUESTION \
-    "Also remove downloaded components (Node.js, Electron, ffmpeg, Deno)?$\r$\n$\r$\n\
-This will free ~350 MB but means re-downloading on next install.$\r$\n\
-Choose No to keep them for faster reinstall." \
+    "Also remove the downloaded components (ffmpeg and Deno)?$\r$\n$\r$\n\
+The app downloads them again on its first launch after a new install.$\r$\n\
+Choose No to keep them for a faster reinstall." \
     /SD IDNO IDNO skip_components
 
-  RMDir /r "$INSTDIR\node_bin"
-  RMDir /r "$INSTDIR\python"
   RMDir /r "$INSTDIR\runtime"
   RMDir /r "$INSTDIR\ffmpeg_bin"
-  RMDir /r "$INSTDIR\electron\node_modules"
 
   skip_components:
 
@@ -532,6 +493,15 @@ Choose No to keep them for a faster setup on next install." \
   Delete "$INSTDIR\egm_history.json"
   Delete "$INSTDIR\egm_subscriptions.json"
   Delete "$INSTDIR\cookies.txt"
+  ; Log files beside the app, and the temporary files of a write cut short
+  Delete "$INSTDIR\egm_debug.log"
+  Delete "$INSTDIR\egm_debug.log.old"
+  Delete "$INSTDIR\egm_error.log"
+  Delete "$INSTDIR\egm_settings.json.tmp"
+  Delete "$INSTDIR\egm_history.json.tmp"
+  Delete "$INSTDIR\egm_subscriptions.json.tmp"
+  Delete "$INSTDIR\cookies.txt.tmp"
+  Delete "$INSTDIR\egm_settings.json.*.tmp"
   RMDir /r "$INSTDIR\thumbnails"
   RMDir /r "$INSTDIR\data"
   RMDir /r "$INSTDIR\logs"
@@ -541,8 +511,7 @@ Choose No to keep them for a faster setup on next install." \
 
   skip_userdata:
 
-  ; ── Remove now-empty install dirs (no-op if components/data were kept) ──
-  RMDir "$INSTDIR\electron"
+  ; ── Remove the install folder if it is empty now (kept components or data keep it) ──
   RMDir "$INSTDIR"
 
   ; ── Start Menu + Desktop shortcuts ──
