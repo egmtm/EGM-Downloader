@@ -110,6 +110,24 @@ echo "📚 Installing Python dependencies..."
 # a package in the host's user site (~/.local) counts as "already installed" and is left out of the AppImage.
 PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$LINUX_DIR/requirements.txt" 2>/dev/null || \
 PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
+# yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
+# names (a == requirement in its metadata), and requirements.txt asks for >=0.8.0, which takes the newest
+# release. Install the named version so the bundle ships a pair, as the Windows launcher and Update
+# Plugins do. A yt-dlp that names none keeps the GitHub fallback; a failed read or install stops the build.
+EJS_PIN=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
+import importlib.metadata as m, re
+for line in m.requires("yt-dlp") or []:
+    hit = re.match(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*[\x27\"]default[\x27\"]\s*$", line)
+    if hit:
+        print(hit.group(1))
+        break
+')
+if [ -n "$EJS_PIN" ]; then
+    PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet "yt-dlp-ejs==$EJS_PIN"
+    echo "   ✓ yt-dlp-ejs $EJS_PIN (the version yt-dlp names)"
+else
+    echo "   ⚠ yt-dlp names no yt-dlp-ejs version, so it will download its solver script when needed"
+fi
 echo "   ✓ Dependencies installed"
 echo ""
 
