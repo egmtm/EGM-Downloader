@@ -19,6 +19,20 @@ echo ""
 echo "   Repo root: $REPO_ROOT"
 echo ""
 
+# ── The checkout must be committed ───────────────────────────────────────────
+# Every build comes from a commit, so a build can be traced to one: a change that is not
+# committed (a modified or staged file, or an untracked file that is not ignored) stops it here.
+cd "$REPO_ROOT"
+HEAD_LINE=$(git log -1 --format='%H %s')
+DIRTY=$(git status --porcelain)
+if [ -n "$DIRTY" ]; then
+    echo "❌ The checkout has uncommitted changes. Commit (or stash) them first: the build must come from a commit."
+    echo "$DIRTY" | sed 's/^/     /'
+    exit 1
+fi
+echo "   Commit: $HEAD_LINE"
+echo ""
+
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 echo "📋 Checking prerequisites..."
 if ! command -v python3 &> /dev/null; then
@@ -305,6 +319,8 @@ echo ""
 echo "╔════════════════════════════════════╗"
 echo "║        ✅  MAC BUILD DONE!         ║"
 echo "╚════════════════════════════════════╝"
+echo ""
+echo "   Commit: $HEAD_LINE"
 echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMdM.zip"

@@ -1,10 +1,13 @@
-"""The Windows and Linux builds come from a commit, and never make one.
+"""The Windows, Linux and Mac builds come from a commit, and never make one.
 
 windows/BUILD.sh and linux/BUILD.sh used to end by committing whatever tracked change the checkout
 had and pushing it to main, before the installer and the feeds were signed. That step is gone.
 Instead every phase starts by refusing a checkout with uncommitted work (a modified or staged file,
 or an untracked file that is not ignored), and prints the commit it builds, at the start and in the
 banner it ends with, so a build can be traced to one commit.
+
+mac/BUILD.sh never committed anything; it gets the same check and the same commit line so that its build can be
+traced too.
 
 The check is cut out of each script and run against a throwaway repository."""
 import os
@@ -15,7 +18,7 @@ import pytest
 
 from conftest import read_source
 
-SCRIPTS = ["windows/BUILD.sh", "linux/BUILD.sh"]
+SCRIPTS = ["windows/BUILD.sh", "linux/BUILD.sh", "mac/BUILD.sh"]
 
 
 def _commands(rel):
