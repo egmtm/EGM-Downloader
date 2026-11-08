@@ -659,6 +659,8 @@ Choose No to keep them for a faster setup on next install." \
   RMDir /r "$INSTDIR\electron-data"
   ; Installed-build Electron userData (package.json "name" = egm-downloader)
   RMDir /r "$APPDATA\egm-downloader"
+  ; The folder is recorded until its data goes (see Registry below)
+  DeleteRegValue HKCU "${REGKEY}" "InstallPath"
 
   skip_userdata:
 
@@ -673,6 +675,11 @@ Choose No to keep them for a faster setup on next install." \
 
   ; ── Registry ──
   DeleteRegKey HKCU "Software\Classes\AppUserModelId\com.egerena.egm-downloader"
-  DeleteRegKey HKCU "${REGKEY}"
+  ; InstallPath stays when the data stays (it went with the data above): a later install then
+  ; finds the folder, a custom one too, and the settings and history in it.
+  DeleteRegValue HKCU "${REGKEY}" "Version"
+  DeleteRegValue HKCU "${REGKEY}" "Language"
+  DeleteRegValue HKCU "${REGKEY}" "Build"
+  DeleteRegKey /ifempty HKCU "${REGKEY}"
   DeleteRegKey HKCU "${UNINSTREG}"
 SectionEnd

@@ -2,10 +2,12 @@
 
 * "Already installed", No: the installer runs the uninstaller in place (_?=) and waits, so the user
   answers its questions; after an uninstall that ran to its end it removes uninstall.exe and the
-  folder if nothing else is left in it. A cancelled uninstall leaves the install as it was."""
+  folder if nothing else is left in it. A cancelled uninstall leaves the install as it was.
+* An uninstall that keeps the data keeps the InstallPath value, so a later install finds the folder
+  (a custom one too) and the data in it; the other values and the key go."""
 import pytest
 
-from nsis_model import Run, function, statements
+from nsis_model import Run, expand, function, section, statements
 
 INSTALLED = {"$INSTDIR/uninstall.exe", "$INSTDIR/egm_settings.json"}
 
@@ -39,3 +41,28 @@ def test_yes_repairs_and_cancel_quits():
         r = Run(set(INSTALLED), silent=False, answers=[answer],
                 regs={"$PreviousVersion": "9.9.9.9", "$PreviousInstDir": "$INSTDIR"}).run(statements(function("WelcomePage_Pre")))
         assert r.outcome == outcome and not r.execs, answer
+
+
+# ── the recorded folder ───────────────────────────────────────────────────────
+
+APP_KEY = "Software\\EGM Downloader"
+REGISTRY = {f"{APP_KEY}/{v}" for v in ("Version", "Language", "Build", "InstallPath")}
+
+
+def _uninstall(silent, answers):
+    registry = set(REGISTRY)
+    paths = {"$INSTDIR/EGM Downloader.exe", "$INSTDIR/egm_settings.json", "$INSTDIR/ffmpeg_bin/ffmpeg.exe"}
+    body = expand(section("Uninstall"), extra={"EGM_REMOVE_APP_FOLDER": 'Delete "$INSTDIR\\EGM Downloader.exe"'})
+    Run(paths, silent=silent, answers=answers, registry=registry).run(body)
+    return registry
+
+
+@pytest.mark.parametrize("silent, answers, kept", [
+    (True, [], {f"{APP_KEY}/InstallPath"}),                       # /S keeps the data
+    (False, ["IDNO", "IDNO"], {f"{APP_KEY}/InstallPath"}),
+    (False, ["IDYES", "IDNO"], {f"{APP_KEY}/InstallPath"}),       # components go, data stays
+    (False, ["IDNO", "IDYES"], set()),                            # the data goes
+    (False, ["IDYES", "IDYES"], set()),
+])
+def test_install_path_stays_exactly_when_the_data_stays(silent, answers, kept):
+    assert _uninstall(silent, answers) == kept

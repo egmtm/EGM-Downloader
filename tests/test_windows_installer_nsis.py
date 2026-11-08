@@ -241,8 +241,10 @@ def test_yes_to_both_prompts_leaves_nothing(tmp_path):
     for d in ("$INSTDIR", "$SMPROGRAMS/EGM Downloader"):
         assert d in removed_dirs, d
     unsec = _section("Uninstall")
-    for key in ('"Software\\Classes\\AppUserModelId\\com.egerena.egm-downloader"', '"${REGKEY}"', '"${UNINSTREG}"'):
+    for key in ('"Software\\Classes\\AppUserModelId\\com.egerena.egm-downloader"', '"${UNINSTREG}"'):
         assert f"DeleteRegKey HKCU {key}" in unsec, key
+    # the app's own key goes value by value: InstallPath stays with kept data (test_windows_installer_uninstall_details.py)
+    assert 'DeleteRegKey /ifempty HKCU "${REGKEY}"' in unsec
 
 
 @pytest.mark.parametrize("components, data, stays", [
