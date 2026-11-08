@@ -1145,8 +1145,17 @@ DOWNLOAD_STALL_TIMEOUT = 60
 def _limit_stalled_downloads(seconds=DOWNLOAD_STALL_TIMEOUT):
     socket.setdefaulttimeout(seconds)
 
+def _send_our_user_agent():
+    """Every request the launcher makes (the Python, Node.js and rcedit downloads, the signal to a running
+    app) says EGM-Downloader, as the app's own requests do, instead of Python-urllib/<version>.
+    urlretrieve takes no headers, so the agent is set on the opener every urllib call goes through."""
+    opener = urllib.request.build_opener()
+    opener.addheaders = [("User-Agent", "EGM-Downloader")]
+    urllib.request.install_opener(opener)
+
 if __name__ == "__main__":
     _limit_stalled_downloads()
+    _send_our_user_agent()
     # If we are relaunching to reinstall Electron (Advanced -> Reinstall Electron
     # -> "Restart now"), the outgoing instance may still be shutting down. Skip the
     # already-running early-exit in that case, so a transient signal to the dying

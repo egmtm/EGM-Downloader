@@ -2879,7 +2879,8 @@ def _get_mutagen_version() -> str:
 
 def _get_latest_mutagen_version() -> str:
     try:
-        with _safe_urlopen("https://pypi.org/pypi/mutagen/json", HTTP_TIMEOUT_SHORT) as r:
+        req = urllib.request.Request("https://pypi.org/pypi/mutagen/json", headers={"User-Agent": "EGM-Downloader"})
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read())["info"]["version"]
     except Exception:
         return "unknown"
@@ -2919,7 +2920,8 @@ _CURL_CFFI_CEILING = (0, 18, 0)
 def _get_latest_optlibs_versions() -> dict:
     def _one(lib):
         try:
-            with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
+            req = urllib.request.Request(f"https://pypi.org/pypi/{lib}/json", headers={"User-Agent": "EGM-Downloader"})
+            with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
                 data = json.loads(r.read())
             if lib == "curl-cffi":
                 # Report the latest version actually installable within
@@ -3221,7 +3223,8 @@ def _run_deno_install():
         # Stream download with progress logging every 5 MB
         downloaded = 0
         chunk = 1024 * 256  # 256 KB chunks
-        with _safe_urlopen(url, HTTP_TIMEOUT_LONG) as resp, open(tmp, "wb") as f:
+        req = urllib.request.Request(url, headers={"User-Agent": "EGM-Downloader"})
+        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as resp, open(tmp, "wb") as f:
             total = int(resp.headers.get("Content-Length", 0))
             next_report = 5 * 1024 * 1024  # report every 5 MB
             while True:
