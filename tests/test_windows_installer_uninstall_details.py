@@ -66,3 +66,21 @@ def _uninstall(silent, answers):
 ])
 def test_install_path_stays_exactly_when_the_data_stays(silent, answers, kept):
     assert _uninstall(silent, answers) == kept
+
+
+# ── Add/Remove Programs ───────────────────────────────────────────────────────
+
+def test_add_remove_programs_gets_the_size_and_a_quiet_uninstall():
+    sec = section("Install")
+    assert sec.startswith('Section "Install" SecInstall\n')
+    s = statements(sec)
+    size = s.index("SectionGetSize ${SecInstall} $0")
+    assert s[size + 1] == 'WriteRegDWORD HKCU "${UNINSTREG}" "EstimatedSize" $0'
+    assert """WriteRegStr HKCU "${UNINSTREG}" "QuietUninstallString" '"$INSTDIR\\uninstall.exe" /S'""" in s
+    assert s.index("""WriteRegStr HKCU "${UNINSTREG}" "UninstallString" '"$INSTDIR\\uninstall.exe"'""") < size
+
+
+def test_the_quiet_uninstall_keeps_what_the_user_owns():
+    """QuietUninstallString runs /S: both questions take their default, No (keep)."""
+    registry = _uninstall(True, [])
+    assert registry == {f"{APP_KEY}/InstallPath"}

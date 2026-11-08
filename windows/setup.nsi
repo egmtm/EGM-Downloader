@@ -451,7 +451,7 @@ Function DirectoryPage_Pre
 FunctionEnd
 
 ; ── Install Section ──────────────────────────────────────────
-Section "Install"
+Section "Install" SecInstall
   ; ── Only into an empty folder or one of ours, checked before anything is closed or changed ──
   ; A folder of something else would get the app's files mixed into it and loses files by name
   ; below. A portable copy (launch.py with .portable) keeps its data inside and is not an install.
@@ -559,6 +559,10 @@ Section "Install"
   WriteRegStr HKCU "${UNINSTREG}" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegDWORD HKCU "${UNINSTREG}" "NoModify" 1
   WriteRegDWORD HKCU "${UNINSTREG}" "NoRepair" 1
+  ; In KB: the files of this section, counted when the installer is built
+  SectionGetSize ${SecInstall} $0
+  WriteRegDWORD HKCU "${UNINSTREG}" "EstimatedSize" $0
+  WriteRegStr HKCU "${UNINSTREG}" "QuietUninstallString" '"$INSTDIR\uninstall.exe" /S'
 
   ; ── Start Menu shortcuts ──
   CreateDirectory "$SMPROGRAMS\${APPNAME}"
