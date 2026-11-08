@@ -23,6 +23,12 @@ from flask import Flask, request, jsonify, render_template, abort
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body limit
 
+# Tools the backend starts must not look for their own updates on their own: Deno (yt-dlp runs it for
+# the YouTube solver) asks dl.deno.land at most once a day, and pip asks pypi.org for a newer pip after
+# every install. Both inherit this environment. A value the user already set is kept.
+os.environ.setdefault("DENO_NO_UPDATE_CHECK", "1")
+os.environ.setdefault("PIP_DISABLE_PIP_VERSION_CHECK", "1")
+
 # ── Defensive Host header check (DNS rebinding / CSRF protection) ─────────────
 # We bind only to 127.0.0.1, but a malicious page could still target this port
 # via a DNS-rebinding attack. Reject any request whose Host header isn't a
@@ -612,6 +618,16 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
     except Exception:
         return ""
 
+def _remove_thumbnails_of(entries):
+    """Unlink the cached thumbnail of each history entry that is no longer kept. Only a name of the
+    shape this app writes is touched (the rule the serve and delete routes use): an imported history
+    file can set `thumbnail` to a path."""
+    for e in entries:
+        name = e.get("thumbnail") if isinstance(e, dict) else None
+        if isinstance(name, str) and _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', name):
+            try: (THUMBNAILS_DIR / name).unlink(missing_ok=True)
+            except Exception: pass
+
 def _append_history(job: dict, final_path):
     try:
         size_bytes = 0
@@ -634,9 +650,10 @@ def _append_history(job: dict, final_path):
         with _history_lock:
             items = _load_history()
             items.insert(0, entry)
-            if len(items) > _HISTORY_MAX:
-                items = items[:_HISTORY_MAX]
+            dropped = items[_HISTORY_MAX:]
+            items = items[:_HISTORY_MAX]
             _save_history(items)
+            _remove_thumbnails_of(dropped)
     except Exception:
         pass
 
@@ -3240,9 +3257,9 @@ def deno_reinstall():
 
 # What's New lists the notes of the RUNNING version, read from the patchnotes.txt that ships
 # next to app.py (the same bullets and the same platform filter the signed feed carries), so
-# the list always matches the version in the heading, also offline. Only when that file is
-# missing or has no block for this version does it ask the signed feed: first its history,
-# then its latest notes if the feed is this very version. Never another version's notes.
+# the list always matches the version in the heading, also offline. That file is the only source:
+# What's New never asks the network, so it cannot reach egerena.com with the update check off or
+# in the portable. Every package ships the file; a version without a block shows no bullets.
 _PATCHNOTES_FILE = Path(__file__).parent / "patchnotes.txt"
 _PATCHNOTES_TAG  = "LINUX"
 
@@ -3266,33 +3283,10 @@ def _bundled_version_notes(version):
 
 @app.route("/api/whats-new")
 def whats_new():
-    """Return the release notes of the running version for the What's New modal.
-    Falls back to empty list gracefully — modal stays shown but with no bullets."""
-    notes = _bundled_version_notes(APP_VERSION)
-    if notes:
-        return jsonify({"version": APP_VERSION, "notes_list": notes})
-    try:
-        req = urllib.request.Request(APP_UPDATE_URL,
-                                     headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            data = json.loads(r.read())
-        # Verify signed manifest before trusting release-notes content (parity w/ Windows)
-        if not _verify_manifest(data):
-            _sec_event("whats-new: manifest signature INVALID or MISSING — notes suppressed")
-            return jsonify({"version": APP_VERSION, "notes_list": []})
-        entry = next((h for h in data.get("_history") or []
-                      if isinstance(h, dict) and h.get("version") == APP_VERSION), None)
-        if entry:
-            notes = entry.get("notes", [])
-        elif data.get("version") == APP_VERSION:
-            notes = data.get("_version_notes", [])
-        else:
-            notes = []
-        if not isinstance(notes, list):
-            notes = [str(notes)] if notes else []
-        return jsonify({"version": APP_VERSION, "notes_list": notes})
-    except Exception:
-        return jsonify({"version": APP_VERSION, "notes_list": []})
+    """Return the release notes of the running version for the What's New modal. They come from the
+    patchnotes.txt shipped next to app.py and from nowhere else: this route makes no network request.
+    A version without a block there gets an empty list, and the modal stays shown without bullets."""
+    return jsonify({"version": APP_VERSION, "notes_list": _bundled_version_notes(APP_VERSION)})
 
 @app.route("/api/check-app-update")
 def check_app_update():
@@ -3372,6 +3366,11 @@ def clear_history():
             try: f.unlink()
             except Exception: pass
     except Exception: pass
+    # The debug log lists the sites of past downloads with the time (and rotates into .old), so
+    # clearing the history clears it too.
+    for name in ("egm_debug.log", "egm_debug.log.old"):
+        try: (DATA_DIR / name).unlink(missing_ok=True)
+        except Exception: pass
     return jsonify({"ok": True})
 
 @app.route("/api/thumbnail/<filename>")

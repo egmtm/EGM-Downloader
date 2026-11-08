@@ -239,6 +239,7 @@ function createSplash() {
       nodeIntegration:  false,
       contextIsolation: true,
       sandbox:          true,
+      spellcheck:       false,
     },
   });
   const _lang = (loadSettings().language || 'en');
@@ -444,6 +445,7 @@ async function createWindow() {
       contextIsolation: true,
       nodeIntegration:  false,
       sandbox:          true,
+      spellcheck:       false,
     },
     backgroundColor: '#0b1120',
     show: false,
@@ -694,7 +696,7 @@ ipcMain.handle('open-history-window', async (event, from) => {
     ...bounds, minWidth: 600, minHeight: 420,
     title: 'Download History',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   historyWindow.loadURL(`${APP_URL}/history-page${from === 'subs' ? '?from=subs' : ''}`);
@@ -739,7 +741,7 @@ ipcMain.handle('open-themes-window', async (event) => {
     ...bounds, minWidth: 480, minHeight: 400,
     title: 'All Themes — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   themesWindow.loadURL(`${APP_URL}/themes-page`);
@@ -785,7 +787,7 @@ ipcMain.handle('open-console-window', async (event) => {
     ...bounds, minWidth: 480, minHeight: 320,
     title: 'Diagnostics — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   consoleWindow.loadURL(`${APP_URL}/console-page`);
@@ -858,7 +860,7 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
     ...bounds, minWidth: 600, minHeight: 400,
     title: 'Subscriptions — EGM Downloader',
     icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   subsWindow.loadURL(`${APP_URL}/subscriptions-page`);
