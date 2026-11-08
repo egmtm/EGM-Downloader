@@ -271,3 +271,44 @@ def test_a_refused_import_leaves_history_and_pictures_alone(backend, tmp_path, m
     r = backend.app.test_client().post("/api/history/import", json={"items": "nope"}, headers={"X-EGM-Token": backend._API_TOKEN})
     assert r.status_code == 400
     assert len(backend._load_history()) == 1 and len(list(backend.THUMBNAILS_DIR.iterdir())) == 1
+
+
+# ── A picture two entries share ───────────────────────────────────────────────────────────────
+
+def test_the_cap_keeps_a_picture_that_a_kept_entry_still_names(backend, tmp_path, monkeypatch):
+    """An imported list can name one picture twice (import neither caps nor removes duplicates): when
+    the older copy falls off the end, the newer one still shows that picture."""
+    _fake_thumbnails(backend, monkeypatch)
+    (backend.THUMBNAILS_DIR / "abc.jpg").write_bytes(b"\xff\xd8\xff")
+    _import(backend, [_listed("new", "abc.jpg"), _listed("old", "abc.jpg")])
+    monkeypatch.setattr(backend, "_HISTORY_MAX", 2)
+    _add(backend, tmp_path, 1)
+    after = backend._load_history()
+    assert [e["id"] for e in after][1:] == ["new"]
+    assert (backend.THUMBNAILS_DIR / "abc.jpg").exists(), "a kept entry lost its picture"
+
+
+def test_the_cap_still_removes_a_picture_nothing_names_any_more(backend, tmp_path, monkeypatch):
+    _fake_thumbnails(backend, monkeypatch)
+    for name in ("abc.jpg", "def.jpg"):
+        (backend.THUMBNAILS_DIR / name).write_bytes(b"\xff\xd8\xff")
+    _import(backend, [_listed("new", "abc.jpg"), _listed("old", "def.jpg")])
+    monkeypatch.setattr(backend, "_HISTORY_MAX", 2)
+    _add(backend, tmp_path, 1)
+    assert (backend.THUMBNAILS_DIR / "abc.jpg").exists() and not (backend.THUMBNAILS_DIR / "def.jpg").exists()
+
+
+@pytest.mark.parametrize("odd", [["a.jpg"], {"x": 1}, 7, None])
+def test_an_import_over_a_stored_entry_whose_thumbnail_is_not_text_still_works(backend, tmp_path, monkeypatch, odd):
+    """A hand-edited or damaged history file can hold anything in `thumbnail`: the import replaces it
+    instead of failing with 500 on every attempt."""
+    _fake_thumbnails(backend, monkeypatch)
+    _add(backend, tmp_path, 0)
+    pic = backend._load_history()[0]["thumbnail"]
+    stored = backend._load_history() + [{"id": "odd", "url": "u", "title": "t", "thumbnail": odd,
+                                         "completed_at": "2026-01-01T00:00:00Z"}]
+    backend.HISTORY_FILE.write_text(json.dumps(stored), encoding="utf-8")
+    r = _import(backend, [_listed("imported", "")])
+    assert r.status_code == 200 and r.get_json() == {"ok": True, "count": 1}
+    assert [e["id"] for e in backend._load_history()] == ["imported"]
+    assert not (backend.THUMBNAILS_DIR / pic).exists()

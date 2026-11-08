@@ -653,13 +653,15 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
     except Exception:
         return ""
 
-def _remove_thumbnails_of(entries):
-    """Unlink the cached thumbnail of each history entry that is no longer kept. Only a name of the
-    shape this app writes is touched (the rule the serve and delete routes use): an imported history
-    file can set `thumbnail` to a path."""
+def _remove_thumbnails_of(entries, keep=()):
+    """Unlink the cached thumbnail of each history entry that is no longer kept, unless an entry in
+    `keep` still names it (an imported list can name one picture twice). Only a name of the shape this
+    app writes is touched (the rule the serve and delete routes use): an imported history file can set
+    `thumbnail` to a path, or to something that is not text at all."""
+    kept = {e.get("thumbnail") for e in keep if isinstance(e, dict) and isinstance(e.get("thumbnail"), str)}
     for e in entries:
         name = e.get("thumbnail") if isinstance(e, dict) else None
-        if isinstance(name, str) and _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', name):
+        if isinstance(name, str) and name not in kept and _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', name):
             try: (THUMBNAILS_DIR / name).unlink(missing_ok=True)
             except Exception: pass
 
@@ -688,7 +690,7 @@ def _append_history(job: dict, final_path):
             dropped = items[_HISTORY_MAX:]
             items = items[:_HISTORY_MAX]
             _save_history(items)
-            _remove_thumbnails_of(dropped)
+            _remove_thumbnails_of(dropped, keep=items)
     except Exception:
         pass
 
@@ -3591,10 +3593,9 @@ def import_history():
     cleaned = [c for c in (_clean_history_entry(i) for i in items) if c]
     with _history_lock:
         # The replaced entries take their cached pictures with them, except any the new list still names.
-        kept = {c["thumbnail"] for c in cleaned if c.get("thumbnail")}
-        dropped = [e for e in _load_history() if e.get("thumbnail") not in kept]
+        replaced = _load_history()
         _save_history(cleaned)
-        _remove_thumbnails_of(dropped)
+        _remove_thumbnails_of(replaced, keep=cleaned)
     return jsonify({"ok": True, "count": len(cleaned)})
 
 @app.route("/api/logs")
