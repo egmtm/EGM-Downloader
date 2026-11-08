@@ -49,6 +49,27 @@ def failing_server():
     srv.shutdown()
 
 
+class _CutShort(BaseHTTPRequestHandler):
+    """Announces a long body and closes after a few bytes: curl exits 18 with a partial file."""
+    def do_GET(self):
+        self.send_response(200)
+        self.send_header("Content-Length", "100000")
+        self.end_headers()
+        self.wfile.write(b"x" * 10)
+
+    def log_message(self, *args):
+        pass
+
+
+@pytest.fixture
+def cut_short_server():
+    srv = HTTPServer(("127.0.0.1", 0), _CutShort)
+    t = threading.Thread(target=srv.serve_forever, daemon=True)
+    t.start()
+    yield f"http://127.0.0.1:{srv.server_address[1]}/cpython.tar.gz"
+    srv.shutdown()
+
+
 def _download_step(rel):
     """The archive download and its failure handler (the curl line and its continuation)."""
     lines = read_source(rel).splitlines()
@@ -78,3 +99,12 @@ def test_the_hash_check_stays_right_after_the_download(rel):
     i = next(k for k, l in enumerate(lines) if l.strip().startswith("HTTP=$(curl") and "python.tar.gz" in l)
     following = "\n".join(lines[i:i + 4])
     assert "does not match the pinned SHA-256" in following
+
+
+@pytest.mark.parametrize("rel", SCRIPTS)
+def test_a_download_cut_short_stops_the_build_and_leaves_no_partial_archive(rel, cut_short_server, tmp_path):
+    script = f'set -e\nPYTHON_URL="{cut_short_server}"\n{_download_step(rel)}\necho DOWNLOADED\n'
+    r = subprocess.run(["bash", "-c", script], cwd=tmp_path, capture_output=True, text=True, timeout=60)
+    out = r.stdout + r.stderr
+    assert r.returncode == 1 and "DOWNLOADED" not in out, out
+    assert not (tmp_path / "python.tar.gz").exists(), "the partial file would fail the hash check with a message about tampering"

@@ -158,14 +158,25 @@ def test_precompiled_bytecode_is_off_unless_asked_for():
     assert re.search(r'if \[ "\$PRECOMPILE" = 1 \]; then\n\s+"\$\{HOST_PYTHON311:-python3\.11\}" -I -m compileall', sh)
 
 
+def _removed_names(sh):
+    """Every path a rm or find line of the script names, with {a,b} brace lists expanded."""
+    names = []
+    for line in sh.splitlines():
+        if line.lstrip().startswith(("rm ", "find ")):
+            for tok in line.split():
+                m = re.search(r"\{([^}]*)\}", tok)
+                names += [tok.replace(m.group(0), x) for x in m.group(1).split(",")] if m else [tok]
+    return names
+
+
 def test_pips_launcher_stubs_for_this_python_stay_in_the_bundled_python():
     """Update Plugins replaces packages that declare console scripts; pip needs distlib's stubs for
     this Python (x64, so t64.exe and w64.exe: distlib's _get_launcher picks them by pointer size and
     platform). pip itself and ensurepip stay too."""
-    sh = read_source("windows/installer/build-folder.sh")
-    removed = " ".join(l for l in sh.splitlines() if l.lstrip().startswith(("rm ", "find ")))
-    for kept in ("t64.exe", "w64.exe", '"$SITE/pip"', "ensurepip", 'distlib"', "distlib/*", "distlib/t*", "distlib/w*"):
-        assert kept not in removed, kept
+    names = _removed_names(read_source("windows/installer/build-folder.sh"))
+    assert not any(n.endswith(("t64.exe", "w64.exe")) for n in names), names
+    for kept in ('"$SITE/pip"', "ensurepip", 'distlib"', "distlib/*", "distlib/t*", "distlib/w*"):
+        assert not any(kept in n for n in names), kept
 
 
 def test_the_folder_build_drops_the_pe_files_the_app_never_runs():
@@ -237,6 +248,18 @@ def test_the_phase_one_banner_names_continue_and_the_mode_line_knows_all_three_p
     mode = sh[sh.index('if [ "$FINISH" -eq 1 ]; then\n    echo "   Mode:'):]
     mode = mode[:mode.index("\nfi\n")]
     assert "--finish" in mode and "--continue" in mode and "phase 1" in mode
+
+
+@pytest.mark.parametrize("args, resume, finish", [("", 0, 0), ("--continue", 1, 0), ("--finish", 1, 1)])
+def test_each_flag_selects_its_phase(args, resume, finish):
+    """--finish is a resumed mode too: phase 1, which removes the signed files, must not run on it."""
+    import subprocess
+    sh = read_source("windows/BUILD.sh")
+    start = sh.index("RESUME=0\n")
+    block = sh[start:sh.index("\ndone\n", start) + 6]
+    r = subprocess.run(["bash", "-c", f'set -e\nset -- {args}\n{block}\necho "$RESUME $FINISH"'],
+                       capture_output=True, text=True, timeout=60)
+    assert r.returncode == 0 and r.stdout.strip() == f"{resume} {finish}", r.stdout + r.stderr
 
 
 def test_an_unknown_argument_is_refused_before_anything_runs(tmp_path):
