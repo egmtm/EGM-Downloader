@@ -3415,11 +3415,15 @@ def clear_history():
     for name in ("egm_debug.log", "egm_debug.log.old"):
         try: (DATA_DIR / name).unlink(missing_ok=True)
         except Exception: pass
-    # The Console's yt-dlp and Flask output (memory only) lists the URLs and requests of the downloads
-    # just cleared. The line counters keep counting, so a Console that is open goes on.
+    # The Console's four rings (memory only) list what the downloads just cleared did: their URLs
+    # (yt-dlp output), requests (Flask output), the same lines as the debug log file removed above
+    # (diagnostics) and converted file paths (ffmpeg output). The line counters keep counting, so a
+    # Console that is open goes on.
     with _LOG_RING_LOCK:
         _YT_RING.clear()
         _FLASK_RING.clear()
+        _LOG_RING.clear()
+        _FFMPEG_RING.clear()
     return jsonify({"ok": True})
 
 @app.route("/api/thumbnail/<filename>")

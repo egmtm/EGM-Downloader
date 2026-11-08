@@ -7,8 +7,10 @@ An independent privacy review found two places where something outlived the hist
   person with access to the PC could still read which sites were used and when.
 * Past the 500 entry cap _append_history dropped the oldest entries but not their thumbnail files,
   so thumbnails/ kept pictures of downloads that were no longer listed.
-* The Console window's yt-dlp output and Flask output rings (memory only, 1000 lines each) hold the
-  URLs and requests of past downloads, and Clear History left them until the app was closed.
+* The Console window's four rings (memory only, 1000 lines each) hold what past downloads did: the
+  yt-dlp output has their URLs, the Flask output their requests, the diagnostics ring the same lines
+  as egm_debug.log (a download starting, with the site and the time) and the ffmpeg ring the paths of
+  converted files. Clear History left all four until the app was closed.
 
 All three backends are driven through the real route and the real function, with every path
 pointed at a temporary folder (nothing of the developer's own data is touched).
@@ -108,29 +110,40 @@ def _logs(mod, **query):
     return mod.app.test_client().get("/api/logs", query_string=query, headers={"X-EGM-Token": mod._API_TOKEN}).get_json()
 
 
-def test_clear_history_empties_the_yt_dlp_and_flask_output_rings(backend):
-    backend._yt_log("[generic] Extracting URL: https://example.com/watch?v=ring-marker")
-    backend._flask_raw_log('127.0.0.1 - - "POST /api/download HTTP/1.1" 200 - ring-marker')
-    before = _logs(backend, yt=1, flask=1)
-    assert any("ring-marker" in e["m"] for e in before["yt_lines"] + before["flask_lines"])
+def _all_ring_lines(mod, **query):
+    """Every line the Console would show, across the four rings."""
+    got = _logs(mod, yt=1, flask=1, ffmpeg=1, **query)
+    return got, [e["m"] for key in ("lines", "yt_lines", "flask_lines", "ffmpeg_lines") for e in got[key]]
+
+
+def _fill_rings(mod, marker):
+    mod._yt_log(f"[generic] Extracting URL: https://example.com/watch?v={marker}")
+    mod._flask_raw_log(f'127.0.0.1 - - "POST /api/download HTTP/1.1" 200 - {marker}')
+    mod._egm_log(f"download started (video): example.com {marker}")
+    mod._ffmpeg_log(f"Input #0, mov, from 'C:\\Users\\someone\\Videos\\{marker}.mp4':")
+
+
+@pytest.mark.parametrize("ring", ["yt_lines", "flask_lines", "lines", "ffmpeg_lines"])
+def test_clear_history_empties_each_of_the_four_console_rings(backend, ring):
+    _fill_rings(backend, "ring-marker")
+    before, _ = _all_ring_lines(backend)
+    assert any("ring-marker" in e["m"] for e in before[ring]), "the test did not fill " + ring
     _clear(backend)
-    after = _logs(backend, yt=1, flask=1)
-    assert not any("ring-marker" in e["m"] for e in after["yt_lines"]), "the yt-dlp output still lists the URL"
-    assert not any("ring-marker" in e["m"] for e in after["flask_lines"]), "the Flask output still lists the request"
+    after, _ = _all_ring_lines(backend)
+    assert not any("ring-marker" in e["m"] for e in after[ring]), f"{ring} still lists a cleared download"
 
 
 def test_an_open_console_goes_on_after_the_rings_are_emptied(backend):
     """The line counters keep counting: a Console already open asks for lines newer than the last one
     it saw, so a counter that went back to 0 would hide everything until it passed that number."""
-    backend._yt_log("before")
-    backend._flask_raw_log("before")
-    seen = _logs(backend, yt=1, flask=1)
+    _fill_rings(backend, "before")
+    seen, _ = _all_ring_lines(backend)
     _clear(backend)
-    backend._yt_log("after the clear")
-    backend._flask_raw_log("after the clear")
-    later = _logs(backend, yt=1, yts=seen["yt_next"], flask=1, fs=seen["flask_next"])
-    assert "after the clear" in [e["m"] for e in later["yt_lines"]]
-    assert "after the clear" in [e["m"] for e in later["flask_lines"]]
+    _fill_rings(backend, "after-the-clear")
+    later, _ = _all_ring_lines(backend, since=seen["next"], yts=seen["yt_next"], fs=seen["flask_next"],
+                               fm=seen["ffmpeg_next"])
+    for key in ("lines", "yt_lines", "flask_lines", "ffmpeg_lines"):
+        assert any("after-the-clear" in e["m"] for e in later[key]), f"{key} stopped delivering after the clear"
 
 
 # ── Trimmed history ───────────────────────────────────────────────────────────────────────────
