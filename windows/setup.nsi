@@ -141,6 +141,7 @@ Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; ── Pages ────────────────────────────────────────────────────
 !insertmacro MUI_PAGE_WELCOME
+!define MUI_PAGE_CUSTOMFUNCTION_PRE DirectoryPage_Pre
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
@@ -401,6 +402,18 @@ Function WelcomePage_Pre
         ExecWait '"$PreviousInstDir\uninstall.exe" /S'
       ${EndIf}
       Quit
+  ${EndIf}
+FunctionEnd
+
+; ── Upgrade or repair: no folder page ─────────────────────────
+; With the app already in the folder the installer would use (the one the last install recorded,
+; or the default), the install goes there: another folder would orphan that install and start
+; without its settings and history. A portable copy there is not an install (the install refuses
+; its folder), so the page stays and another folder can be chosen.
+Function DirectoryPage_Pre
+  ${If} ${FileExists} "$INSTDIR\EGM Downloader.exe"
+  ${AndIfNot} ${FileExists} "$INSTDIR\.portable"
+    Abort
   ${EndIf}
 FunctionEnd
 
