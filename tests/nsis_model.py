@@ -200,6 +200,8 @@ class Run:
         if s == "Quit":
             self.outcome = "quit"
             return "stop"
+        if s == "Return":
+            return "stop"
         if s.startswith("MessageBox "):
             text = re.search(r'"([^"]*)"', s).group(1)
             sd = re.search(r"/SD (ID\w+)", s)

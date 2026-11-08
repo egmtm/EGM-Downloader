@@ -2,9 +2,9 @@
 windows/setup.nsi: what the installer does when nobody answers, where it installs, and what its first
 screen says.
 
-* Silent runs keep everything the user owns. The installer itself runs the uninstaller with /S (the
-  "already installed" box, No), so every uninstaller prompt must default to No and jump past what it
-  would remove. The running-app box defaults to closing the app, and the "already installed" box maps
+* Silent runs keep everything the user owns: an uninstall with /S (QuietUninstallString, scripts)
+  answers every uninstaller question with No, which jumps past what it would remove. The box
+  about the running app defaults to closing it, and the "already installed" box maps
   Yes to repair and No to uninstall.
 * One user, no admin: the installer asks for user rights, installs under %LOCALAPPDATA% (the folder
   app.py takes as "installed, not portable") and never switches to the all-users folders.
@@ -61,7 +61,9 @@ def test_every_uninstaller_prompt_defaults_to_no_and_jumps_past_what_it_removes(
         assert re.search(r'^\s*(?:RMDir /r|Delete) "\$', between, re.M), f"{label}: the prompt skips nothing"
 
 
-def test_the_installer_runs_the_uninstaller_silently_from_the_already_installed_box():
+def test_the_already_installed_box_runs_the_uninstaller_with_its_questions():
+    """No: the uninstaller runs with its own questions (not /S), and the installer waits for it
+    (tests/test_windows_installer_uninstall_details.py runs it in the model)."""
     pre = _function("WelcomePage_Pre")
     box = _message_boxes(pre)
     assert len(box) == 1
@@ -69,7 +71,7 @@ def test_the_installer_runs_the_uninstaller_silently_from_the_already_installed_
     repair = pre[pre.index("repair:"):pre.index("do_uninstall:")]
     assert "Return" in repair and "uninstall.exe" not in repair
     uninstall = pre[pre.index("do_uninstall:"):]
-    assert re.search(r"""ExecWait '"\$PreviousInstDir\\uninstall\.exe" /S'""", uninstall), uninstall
+    assert re.search(r"""ExecWait '"\$PreviousInstDir\\uninstall\.exe" _\?=\$PreviousInstDir' \$0""", uninstall), uninstall
 
 
 def test_a_silent_install_closes_a_running_app_instead_of_cancelling():

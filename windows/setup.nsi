@@ -424,7 +424,15 @@ Function WelcomePage_Pre
       Return
     do_uninstall:
       ${If} $PreviousInstDir != ""
-        ExecWait '"$PreviousInstDir\uninstall.exe" /S'
+        ; The uninstaller asks its own questions (keep ffmpeg and Deno, keep the data). _?= runs it
+        ; in place so ExecWait waits for it; from there it cannot delete itself, so uninstall.exe and
+        ; the folder, if nothing else is left in it, are removed here, and only after an uninstall
+        ; that ran to its end (0): a cancelled one leaves the install as it was, with its uninstaller.
+        ExecWait '"$PreviousInstDir\uninstall.exe" _?=$PreviousInstDir' $0
+        ${If} $0 == 0
+          Delete "$PreviousInstDir\uninstall.exe"
+          RMDir "$PreviousInstDir"
+        ${EndIf}
       ${EndIf}
       Quit
   ${EndIf}
