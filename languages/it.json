@@ -419,7 +419,7 @@
     "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Impossibile recuperare le info del video. L'URL potrebbe non essere supportato.",
     "fetch.error.url_scheme": "Sono supportati solo URL http e https.",
-    "footer.link.website": "egerena.com",
+    "footer.link.website": "egmdownloader.app",
     "footer.link.github": "GitHub",
     "footer.btn.help": "Aiuto",
     "help.title": "Aiuto",

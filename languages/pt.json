@@ -419,7 +419,7 @@
     "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Não foi possível obter informações do vídeo. A URL pode não ser compatível.",
     "fetch.error.url_scheme": "Apenas URLs http e https são suportadas.",
-    "footer.link.website": "egerena.com",
+    "footer.link.website": "egmdownloader.app",
     "footer.link.github": "GitHub",
     "footer.btn.help": "Ajuda",
     "help.title": "Ajuda",

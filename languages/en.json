@@ -419,7 +419,7 @@
     "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Could not fetch video info. The URL may be unsupported.",
     "fetch.error.url_scheme": "Only http and https URLs are supported.",
-    "footer.link.website": "egerena.com",
+    "footer.link.website": "egmdownloader.app",
     "footer.link.github": "GitHub",
     "footer.btn.help": "Help",
     "help.title": "Help",

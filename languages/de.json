@@ -419,7 +419,7 @@
     "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "Video-Informationen konnten nicht geladen werden. Die URL wird möglicherweise nicht unterstützt.",
     "fetch.error.url_scheme": "Nur http- und https-URLs werden unterstützt.",
-    "footer.link.website": "egerena.com",
+    "footer.link.website": "egmdownloader.app",
     "footer.link.github": "GitHub",
     "footer.btn.help": "Hilfe",
     "help.title": "Hilfe",

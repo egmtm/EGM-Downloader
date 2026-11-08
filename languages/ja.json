@@ -419,7 +419,7 @@
     "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "動画情報を取得できませんでした。URLがサポートされていない可能性があります。",
     "fetch.error.url_scheme": "httpおよびhttpsのURLのみサポートされています。",
-    "footer.link.website": "egerena.com",
+    "footer.link.website": "egmdownloader.app",
     "footer.link.github": "GitHub",
     "footer.btn.help": "ヘルプ",
     "help.title": "ヘルプ",

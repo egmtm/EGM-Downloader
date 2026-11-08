@@ -419,7 +419,7 @@
     "fetch.error.prefix": "Error",
     "fetch.error.no_metadata": "تعذر جلب معلومات الفيديو. قد يكون الرابط غير مدعوم.",
     "fetch.error.url_scheme": "يتم دعم روابط http و https فقط.",
-    "footer.link.website": "egerena.com",
+    "footer.link.website": "egmdownloader.app",
     "footer.link.github": "GitHub",
     "footer.btn.help": "مساعدة",
     "help.title": "مساعدة",
