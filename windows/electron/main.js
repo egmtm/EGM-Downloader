@@ -1239,9 +1239,16 @@ app.whenReady().then(async () => {
   // No Referer to anyone but the app itself. The Referrer-Policy header the backend sends covers <img>,
   // but Chromium gives CSS background images the default policy, not the page's, so the four
   // Subscriptions thumbnails drawn that way would still send http://127.0.0.1:<port>/ to the image server.
+  // The app is the origin APP_URL exactly (a prefix would also match http://127.0.0.1:8899@host/ and
+  // another port); a URL that cannot be parsed counts as foreign. Every request is answered once.
   session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
-    if (!details.url.startsWith(APP_URL)) delete details.requestHeaders['Referer'];
-    callback({ requestHeaders: details.requestHeaders });
+    try {
+      let own = false;
+      try { own = new URL(details.url).origin === APP_URL; } catch {}
+      if (!own) delete details.requestHeaders['Referer'];
+    } finally {
+      callback({ requestHeaders: details.requestHeaders });
+    }
   });
   // Content-Security-Policy: applied to all responses from Flask
   // 'unsafe-inline' for scripts/styles required because templates use inline JS/CSS.
