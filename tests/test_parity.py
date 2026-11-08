@@ -1080,7 +1080,8 @@ def test_optional_libs_consistent_across_all_sites():
     # 3. Every optional lib is in BOTH windows/launch.py pip-install lists
     #    (installer + portable embedded) — so every install path receives them.
     launch = read_source("windows/launch.py")
-    pip_blocks = re.findall(r'"pip",\s*"install"(.*?)\]', launch, re.DOTALL)
+    pip_blocks = [b for b in re.findall(r'"pip",\s*"install"(.*?)\]', launch, re.DOTALL)
+                  if "yt-dlp-ejs==" not in b]   # not the one package pin that pairs yt-dlp-ejs after them
     assert len(pip_blocks) == 2, f"expected 2 pip-install lists in launch.py, found {len(pip_blocks)}"
     for i, block in enumerate(pip_blocks):
         toks = {_norm_lib(re.split(r"[><=!~]", t)[0]) for t in re.findall(r'"([^"]+)"', block)}
@@ -1243,8 +1244,12 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
         )
 
     launch = read_source("windows/launch.py")
+    # _pair_ytdlp_ejs installs ONE package at an exact version after those lists (so it cannot move curl_cffi);
+    # it is the only pip-install site allowed besides the two bootstrap lists.
+    pin_only = [m.start() for m in re.finditer(r'"-m", "pip", "install", "-q", f"yt-dlp-ejs==\{pin\}"', launch)]
+    assert len(pin_only) == 1, "windows/launch.py: expected exactly one single-package yt-dlp-ejs pin install"
     bootstrap_installs = [
-        m.start() for m in re.finditer(r'"-m", "pip", "install"', launch)
+        m.start() for m in re.finditer(r'"-m", "pip", "install"', launch) if m.start() not in pin_only
     ]
     assert len(bootstrap_installs) == 2, (
         "windows/launch.py: expected exactly 2 pip-install bootstrap call "

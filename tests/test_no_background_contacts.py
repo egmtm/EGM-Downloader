@@ -18,6 +18,7 @@ import os
 import re
 import subprocess
 import sys
+import types
 
 import pytest
 
@@ -121,7 +122,12 @@ def launcher(monkeypatch):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     calls = []
-    monkeypatch.setattr(mod.subprocess, "run", lambda cmd, **kw: calls.append(list(cmd)))
+
+    def fake_run(cmd, **kw):
+        if "-c" not in cmd:                                    # a pip run; the pairing read of yt-dlp's metadata is not one
+            calls.append(list(cmd))
+        return types.SimpleNamespace(returncode=0, stdout="", stderr="")   # yt-dlp names no solver package here
+    monkeypatch.setattr(mod.subprocess, "run", fake_run)
     monkeypatch.setattr(mod, "_gui_msg", lambda *a, **k: None)
     mod.pip_calls = calls
     return mod

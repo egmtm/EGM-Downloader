@@ -287,6 +287,38 @@ def _pip_install(cmd, upgrading, timeout):
                      "connection and start EGM Downloader again.")
             time.sleep(8)
             raise
+    else:
+        _pair_ytdlp_ejs(cmd[0])
+
+_EJS_PIN_LINE = re.compile(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$")
+
+def _ytdlp_ejs_pin(py):
+    """The yt-dlp-ejs version the installed yt-dlp names (it pins it with ==), or None. yt-dlp takes its
+    YouTube solver script from that package only at that version. Same reading as the backend's
+    _ytdlp_ejs_pin: a child process on the interpreter pip just used, which sees the packages yt-dlp runs on."""
+    code = "import importlib.metadata as m\nprint('\\n'.join(m.requires('yt-dlp') or []))"
+    try:
+        out = subprocess.run([str(py), "-c", code], capture_output=True, text=True, timeout=30,
+                             creationflags=NO_WIN).stdout
+    except (subprocess.SubprocessError, OSError):
+        return None
+    for line in (out or "").splitlines():
+        m = _EJS_PIN_LINE.match(line)
+        if m: return m.group(1)
+    return None
+
+def _pair_ytdlp_ejs(py):
+    """After the launcher's own pip run, install the yt-dlp-ejs version the installed yt-dlp names. The
+    lists above ask for yt-dlp-ejs>=0.8.0, which takes the newest release; if that is a newer minor than
+    yt-dlp accepts, yt-dlp would fetch its solver script from GitHub until Update Plugins ran. Never
+    fatal: a yt-dlp that names none, or any failure, leaves that GitHub fallback in place."""
+    pin = _ytdlp_ejs_pin(py)
+    if not pin: return
+    try:
+        subprocess.run([str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--disable-pip-version-check"],
+                       check=True, timeout=120, creationflags=NO_WIN)
+    except (subprocess.SubprocessError, OSError) as e:
+        _py_log(f"yt-dlp-ejs {pin} could not be installed: {e}")
 
 def ensure_python_deps():
     # Keep this list in sync with requirements.txt. cryptography is REQUIRED for
