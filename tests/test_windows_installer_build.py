@@ -16,6 +16,7 @@ import json
 import re
 from pathlib import Path
 
+import pytest
 from packaging.requirements import Requirement
 from packaging.utils import canonicalize_name
 from packaging.version import Version
@@ -208,3 +209,55 @@ def test_the_installer_folder_is_built_from_the_app_files_list():
     sh = read_source("windows/installer/build-folder.sh")
     assert 'done < "$WIN_DIR/app-files.txt"' in sh
     assert 'diff -r "$STAGE/app" "$OUT/resources/app"' in sh
+
+
+# ── yt-dlp and yt-dlp-ejs stay a pair ─────────────────────────────────────────
+
+def _pair_check_script():
+    sh = read_source("windows/installer/build-folder.sh")
+    m = re.search(r"^python3 - \"\$SITE\" <<'PYEOF' \|\| exit 1\n(.*?)^PYEOF$", sh, re.S | re.M)
+    assert m, "the yt-dlp-ejs pair check is missing from build-folder.sh"
+    assert sh.index("pip install") < m.start() < sh.index('if [ "$PRECOMPILE" = 1 ]'), \
+        "the pair check must run on the installed packages"
+    return m.group(1)
+
+
+def _site(tmp_path, ytdlp_requires, ejs_version):
+    site = tmp_path / "site"
+    (site / "yt_dlp-2026.10.26.dist-info").mkdir(parents=True)
+    (site / "yt_dlp-2026.10.26.dist-info" / "METADATA").write_text(
+        "Metadata-Version: 2.4\nName: yt-dlp\nVersion: 2026.10.26\n" + ytdlp_requires, encoding="utf-8")
+    if ejs_version:
+        d = site / f"yt_dlp_ejs-{ejs_version}.dist-info"
+        d.mkdir()
+        (d / "METADATA").write_text(f"Metadata-Version: 2.4\nName: yt-dlp-ejs\nVersion: {ejs_version}\n", encoding="utf-8")
+    return site
+
+
+def _run_pair_check(tmp_path, site):
+    import subprocess
+    import sys
+    script = tmp_path / "pair.py"
+    script.write_text(_pair_check_script(), encoding="utf-8")
+    return subprocess.run([sys.executable, "-I", str(script), str(site)], capture_output=True, text=True)
+
+
+NAMES_080 = 'Requires-Dist: yt-dlp-ejs==0.8.0; extra == "default"\nRequires-Dist: yt-dlp-ejs==0.8.0; extra == "pin"\n'
+
+
+def test_the_folder_build_accepts_the_pair_yt_dlp_names(tmp_path):
+    assert _run_pair_check(tmp_path, _site(tmp_path, NAMES_080, "0.8.0")).returncode == 0
+
+
+def test_the_folder_build_stops_when_the_lock_installs_another_yt_dlp_ejs(tmp_path):
+    r = _run_pair_check(tmp_path, _site(tmp_path, NAMES_080, "0.9.0"))
+    assert r.returncode != 0 and "0.8.0" in r.stderr and "0.9.0" in r.stderr
+
+
+def test_the_folder_build_stops_when_the_lock_has_no_yt_dlp_ejs(tmp_path):
+    assert _run_pair_check(tmp_path, _site(tmp_path, NAMES_080, None)).returncode != 0
+
+
+def test_a_yt_dlp_that_names_no_yt_dlp_ejs_does_not_stop_the_build(tmp_path):
+    assert _run_pair_check(tmp_path, _site(tmp_path, "Requires-Dist: requests\n", None)).returncode == 0
+

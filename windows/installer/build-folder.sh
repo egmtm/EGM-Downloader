@@ -104,6 +104,27 @@ python3 -m pip install --quiet --disable-pip-version-check --no-index --find-lin
     --require-hashes --no-deps --no-compile "${PLAT[@]}" --target "$SITE" -r "$WIN_DIR/requirements-win-lock.txt"
 # pip wrote this machine's console scripts and man pages; the app runs "python -m yt_dlp"
 rm -rf "$SITE/bin" "$SITE/share"
+# yt-dlp loads its solver script from yt-dlp-ejs only at the exact version it names. The lock is
+# resolved without yt-dlp's extras, so a regenerated lock can pin a newer yt-dlp-ejs than yt-dlp
+# accepts: stop here instead of shipping a pair yt-dlp refuses (it would fetch the script from GitHub).
+python3 - "$SITE" <<'PYEOF' || exit 1
+import glob, os, re, sys
+site = sys.argv[1]
+def meta(name):
+    found = glob.glob(os.path.join(site, name + "-*.dist-info", "METADATA"))
+    return open(found[0], encoding="utf-8").read() if len(found) == 1 else None
+ytdlp, ejs = meta("yt_dlp"), meta("yt_dlp_ejs")
+if ytdlp is None:
+    sys.exit("   ✗ yt-dlp is not installed exactly once in site-packages")
+named = re.search(r"^Requires-Dist: yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$", ytdlp, re.M)
+if named is None:
+    print("   ⚠ yt-dlp names no yt-dlp-ejs version, so it will download its solver script when needed")
+    sys.exit(0)
+have = re.search(r"^Version: (\S+)$", ejs, re.M).group(1) if ejs else None
+if have != named.group(1):
+    sys.exit(f"   ✗ yt-dlp names yt-dlp-ejs {named.group(1)}, the lock installed {have}: fix windows/requirements-win-lock.txt")
+print(f"   ✓ yt-dlp-ejs {have} (the version yt-dlp names)")
+PYEOF
 echo "   ✓ $(ls -d "$SITE"/*.dist-info | wc -l | tr -d ' ') distributions in site-packages"
 
 if [ "$PRECOMPILE" = 1 ]; then

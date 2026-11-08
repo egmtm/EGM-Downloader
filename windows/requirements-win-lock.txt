@@ -751,5 +751,6 @@ yt-dlp==2026.10.26 \
     --hash=sha256:abe5c6b94c3b2f0560500add1c42e0a97641752743a5b65588ac2007a6e23eb6
     # via -r requirements.txt
 yt-dlp-ejs==0.8.0 \
-    --hash=sha256:79300e5fca7f937a1eeede11f0456862c1b41107ce1d726871e0207424f4bdb4
+    --hash=sha256:79300e5fca7f937a1eeede11f0456862c1b41107ce1d726871e0207424f4bdb4 \
+    --hash=sha256:d5fa1639f63b5c4af8d932495f60689d5370f1a095782c944f7f62a303eb104e
     # via -r requirements.txt
