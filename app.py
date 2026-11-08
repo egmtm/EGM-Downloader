@@ -2927,6 +2927,35 @@ def _get_latest_optlibs_versions() -> dict:
     return result
 
 
+def _ytdlp_ejs_pin():
+    """The yt-dlp-ejs version the installed yt-dlp requires (it pins it with ==), or None. yt-dlp loads
+    its YouTube solver script from that package first and refuses another version, falling back to a
+    GitHub download. Read by a child process, which sees the packages yt-dlp itself runs on."""
+    code = "import importlib.metadata as m\nprint('\\n'.join(m.requires('yt-dlp') or []))"
+    try:
+        out = _run_yt(sys.executable, "-c", code, timeout=30).stdout
+    except Exception:
+        return None
+    for line in (out or "").splitlines():
+        m = _re.match(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$", line)
+        if m:
+            return m.group(1)
+    return None
+
+def _install_ytdlp_ejs(log, failed):
+    """Install, after a yt-dlp update, the solver package that yt-dlp names, so the pair never drifts."""
+    pin = _ytdlp_ejs_pin()
+    if not pin:
+        log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
+        return
+    r = _run(sys.executable, "-m", "pip", "install", f"yt-dlp-ejs=={pin}", timeout=120)
+    if r.returncode == 0:
+        log(f"yt-dlp-ejs -> {pin}")
+    else:
+        err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+        log(f"yt-dlp-ejs update failed: {err}")
+        failed.append("yt-dlp-ejs")
+
 def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
@@ -2955,6 +2984,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
+                _install_ytdlp_ejs(log, failed)
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"yt-dlp update failed: {err}")

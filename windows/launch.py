@@ -301,7 +301,7 @@ def ensure_python_deps():
         except ImportError: pass
     _gui_msg("Installing Python packages…")
     _pip_install([sys.executable, "-m", "pip", "install", "-q",
-                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi", "yt-dlp-ejs>=0.8.0"],
                  upgrading, 300)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
@@ -529,7 +529,7 @@ def ensure_python_deps_embedded(py_exe):
         upgrading = True   # everything is there, but a floor package is old
     _gui_msg("Installing Python packages…")
     _pip_install([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi", "yt-dlp-ejs>=0.8.0"],
                  upgrading, 600)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
