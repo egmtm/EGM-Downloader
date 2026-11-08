@@ -1094,7 +1094,7 @@ def _bgutil_args() -> list:
     return []
 
 def _ytdlp(*extra, timeout=None):
-    return _run_yt(sys.executable, "-m", "yt_dlp",
+    return _run_yt(sys.executable, "-m", "yt_dlp", "--ignore-config",
                    "--remote-components", "ejs:github",
                    *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
                    *_bgutil_args(), *extra, timeout=timeout)
@@ -1683,7 +1683,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
 
     _live_sync = _live_sync_args(url) if job.get("live") else []
     job["_live_sync"] = bool(_live_sync)
-    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + _live_sync + args
+    cmd = [sys.executable, "-m", "yt_dlp", "--ignore-config", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + _live_sync + args
     try:
         # Host only, not the full URL -- a private/signed URL can carry an
         # access token in its query string, and this line lands in
@@ -2121,7 +2121,7 @@ def _live_is_still_live(job, url):
     cannot be recorded (private, members only, region...). None: could not tell
     (site or network trouble). The check runs as the job's process, so Cancel and
     Stop and save end it at once."""
-    proc = _popen_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github",
+    proc = _popen_yt(sys.executable, "-m", "yt_dlp", "--ignore-config", "--remote-components", "ejs:github",
                      *_ffmpeg_args(), *_deno_args(), *_cookies_args(), *_bgutil_args(),
                      "--no-playlist", "-j", url,
                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -2813,7 +2813,7 @@ def rename_file():
 
 # ── Update system ──────────────────────────────────────────────────────────────
 def _get_ytdlp_version():
-    try: return _run(sys.executable, "-m", "yt_dlp", "--version", timeout=10).stdout.strip()
+    try: return _run(sys.executable, "-m", "yt_dlp", "--ignore-config", "--version", timeout=10).stdout.strip()
     except Exception: return "unknown"
 
 def _get_ffmpeg_version():
@@ -3863,7 +3863,7 @@ def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
                 pass
 
         r = _run_yt(
-            sys.executable, "-m", "yt_dlp",
+            sys.executable, "-m", "yt_dlp", "--ignore-config",
             "--flat-playlist", "-j",
             "--playlist-end", "200",
             "--extractor-args", "youtubetab:approximate_date",
