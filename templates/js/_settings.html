@@ -919,13 +919,14 @@ refreshCookieCard();
           clearInterval(iv);
           if (s.done) {
             toast(i18nGet('toast.settings.deno_installed_quality') || '🦕 Deno installed — YouTube quality improved', 'ok');
-            // Refresh the update grid only if the Plugins panel is open. This is the full update check (GitHub, PyPI,
-            // the latest Deno), and with the panel closed nobody asked for it.
+            // Refresh the update grid only if the Plugins panel is open, and only from what is installed here, the same
+            // two calls the panel makes when it opens. The full update check (GitHub, PyPI, the latest Deno) is the
+            // Check button's: nobody asked for it here.
             if (updOpen) {
               try {
                 const [data, deno] = await Promise.all([
-                  fetch('/api/check-updates').then(r => r.json()),
-                  fetch('/api/deno/status?latest=1').then(r => r.json()),
+                  fetch('/api/installed-versions').then(r => r.json()),
+                  fetch('/api/deno/status').then(r => r.json()),
                 ]);
                 data.deno = deno;
                 renderUpdGrid(data);

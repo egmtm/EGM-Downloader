@@ -360,7 +360,8 @@ test("Deno install: a failed checksum shows the failure, not 'Deno installed'", 
 
 // The page installs Deno silently when it is missing. When that finishes it used to run the full plugin update
 // check (GitHub for yt-dlp and ffmpeg, PyPI for the libraries) and the latest Deno lookup with nobody having
-// clicked anything. Only a Plugins panel that is open is refreshed.
+// clicked anything. Now only a Plugins panel that is open is refreshed, and from the installed versions alone
+// (the two calls the panel makes when it opens): no update check runs unless the Check button is clicked.
 async function _firstLaunchDenoInstall(settings) {
   const asked = [];
   const { w } = await bootPage({ settings, onFetch(u) {
@@ -379,13 +380,16 @@ test("first launch Deno install: with the Plugins panel closed, no update check 
   assert.ok(asked.includes("/api/deno/install-status"), `the install never reached its end, so this checks nothing: ${asked}`);
   assert.ok(!asked.includes("/api/check-updates"), asked);
   assert.ok(!asked.includes("/api/deno/status?latest=1"), asked);
+  assert.ok(!asked.includes("/api/installed-versions"), `a closed panel was refreshed: ${asked}`);
 });
 
-test("first launch Deno install: with the Plugins panel open, the grid is refreshed", async () => {
+test("first launch Deno install: with the Plugins panel open, the grid is refreshed from the installed versions, with no update check", async () => {
   const asked = await _firstLaunchDenoInstall({ upd_open: true });
   assert.ok(asked.includes("/api/deno/install-status"), `the install never reached its end, so this checks nothing: ${asked}`);
-  assert.ok(asked.includes("/api/check-updates"), asked);
-  assert.ok(asked.includes("/api/deno/status?latest=1"), asked);
+  // an open panel loads its installed versions once at start; the refresh after the install is the second time
+  assert.equal(asked.filter((u) => u === "/api/installed-versions").length, 2, asked);
+  assert.ok(!asked.includes("/api/check-updates"), asked);
+  assert.ok(!asked.includes("/api/deno/status?latest=1"), asked);
 });
 
 test("footer update check follows the backend's build decision, not the version text", async () => {
