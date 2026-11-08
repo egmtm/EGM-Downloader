@@ -8,7 +8,8 @@ An independent privacy review found two background contacts that were easy to cl
   in Electron 45.2.3 the request is the same with spellcheck: false and with the default. What does
   stop it is giving the session no spellchecker language, so every shell does that before any window
   exists (0 requests in 3 of 3 runs), and every window also keeps spellcheck off. Nothing is lost:
-  the app's inputs already set spellcheck="false".
+  every BrowserWindow turns spellcheck off in its webPreferences; the two inputs in index.html that also set
+  spellcheck="false" are extra.
 * Deno asks dl.deno.land for a newer Deno once a day (yt-dlp runs it for the YouTube solver) and
   pip asks pypi.org for a newer pip after every install. Both inherit the backend's environment,
   so the backend sets DENO_NO_UPDATE_CHECK and PIP_DISABLE_PIP_VERSION_CHECK when it starts. A

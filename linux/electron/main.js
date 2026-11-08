@@ -918,8 +918,9 @@ ipcMain.on('send-url-to-main', (event, url) => {
 app.whenReady().then(async () => {
   // No spellchecker language, so Chromium never downloads a dictionary. Turning spellcheck off on the windows
   // does not stop that download (Electron 45.2.3 on Linux asked Google's CDN for one at the first start with
-  // it off); an empty language list does. Nothing is lost: every input already turns spellcheck off.
-  // A no-op on macOS, which uses the system spellchecker.
+  // it off); an empty language list does. Nothing is lost: every BrowserWindow turns spellcheck off in
+  // its webPreferences, so no window checks spelling anyway; the two inputs in index.html that also set
+  // spellcheck="false" are extra. On macOS the call changes nothing: it uses the system spellchecker.
   try { session.defaultSession.setSpellCheckerLanguages([]); } catch (e) { console.warn('[EGM] Could not clear the spellchecker languages:', e && e.message); }
   // No Referer to anyone but the app itself. The Referrer-Policy header the backend sends covers <img>,
   // but Chromium gives CSS background images the default policy, not the page's, so the four
