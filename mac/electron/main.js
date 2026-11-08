@@ -125,6 +125,18 @@ let mainWindow  = null;
 let splashWindow = null;
 let flaskProc   = null;
 
+// ── User agent ────────────────────────────────────────────────────────────────
+// Electron writes "<app name>/<version>" and "Electron/<version>" into Chrome's user agent, which
+// tells an image server which app (and which build) is asking. Keep only what Chrome itself sends.
+// Whatever way the name is written (escaped, with a space, the package name), it sits between
+// "(KHTML, like Gecko)" and "Chrome/".
+function cleanUserAgent(ua) {
+  return String(ua)
+    .replace(/(\(KHTML, like Gecko\)) .*? (Chrome\/)/, '$1 $2')
+    .replace(/ Electron\/\S+/, '');
+}
+app.userAgentFallback = cleanUserAgent(app.userAgentFallback);   // before any window exists
+
 // ── Fix 1: Single-instance lock ───────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {

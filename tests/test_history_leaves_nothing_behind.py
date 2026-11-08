@@ -7,6 +7,8 @@ An independent privacy review found two places where something outlived the hist
   person with access to the PC could still read which sites were used and when.
 * Past the 500 entry cap _append_history dropped the oldest entries but not their thumbnail files,
   so thumbnails/ kept pictures of downloads that were no longer listed.
+* The Console window's yt-dlp output and Flask output rings (memory only, 1000 lines each) hold the
+  URLs and requests of past downloads, and Clear History left them until the app was closed.
 
 All three backends are driven through the real route and the real function, with every path
 pointed at a temporary folder (nothing of the developer's own data is touched).
@@ -98,6 +100,37 @@ def test_the_log_starts_again_after_a_clear(backend):
     backend._egm_log("after the clear")
     text = (data / "egm_debug.log").read_text(encoding="utf-8")
     assert "after the clear" in text and "old" not in text
+
+
+# ── The Console's output rings ───────────────────────────────────────────────────────────────
+
+def _logs(mod, **query):
+    return mod.app.test_client().get("/api/logs", query_string=query, headers={"X-EGM-Token": mod._API_TOKEN}).get_json()
+
+
+def test_clear_history_empties_the_yt_dlp_and_flask_output_rings(backend):
+    backend._yt_log("[generic] Extracting URL: https://example.com/watch?v=ring-marker")
+    backend._flask_raw_log('127.0.0.1 - - "POST /api/download HTTP/1.1" 200 - ring-marker')
+    before = _logs(backend, yt=1, flask=1)
+    assert any("ring-marker" in e["m"] for e in before["yt_lines"] + before["flask_lines"])
+    _clear(backend)
+    after = _logs(backend, yt=1, flask=1)
+    assert not any("ring-marker" in e["m"] for e in after["yt_lines"]), "the yt-dlp output still lists the URL"
+    assert not any("ring-marker" in e["m"] for e in after["flask_lines"]), "the Flask output still lists the request"
+
+
+def test_an_open_console_goes_on_after_the_rings_are_emptied(backend):
+    """The line counters keep counting: a Console already open asks for lines newer than the last one
+    it saw, so a counter that went back to 0 would hide everything until it passed that number."""
+    backend._yt_log("before")
+    backend._flask_raw_log("before")
+    seen = _logs(backend, yt=1, flask=1)
+    _clear(backend)
+    backend._yt_log("after the clear")
+    backend._flask_raw_log("after the clear")
+    later = _logs(backend, yt=1, yts=seen["yt_next"], flask=1, fs=seen["flask_next"])
+    assert "after the clear" in [e["m"] for e in later["yt_lines"]]
+    assert "after the clear" in [e["m"] for e in later["flask_lines"]]
 
 
 # ── Trimmed history ───────────────────────────────────────────────────────────────────────────

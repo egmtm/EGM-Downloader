@@ -274,6 +274,14 @@ def _no_cache_html(response):
         response.headers["Expires"] = "0"
     return response
 
+@app.after_request
+def _no_referrer(response):
+    """The windows load thumbnails straight from the site being downloaded. Say no referrer on every
+    response so those requests (<img> and CSS background images alike) never tell the image server
+    which page, or which local address, they came from."""
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
 # ── Paths ──────────────────────────────────────────────────────────────────────
 BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
@@ -3546,6 +3554,11 @@ def clear_history():
     for name in ("egm_debug.log", "egm_debug.log.old"):
         try: (get_data_dir() / name).unlink(missing_ok=True)
         except Exception: pass
+    # The Console's yt-dlp and Flask output (memory only) lists the URLs and requests of the downloads
+    # just cleared. The line counters keep counting, so a Console that is open goes on.
+    with _LOG_RING_LOCK:
+        _YT_RING.clear()
+        _FLASK_RING.clear()
     return jsonify({"ok": True})
 
 @app.route("/api/thumbnail/<filename>")
