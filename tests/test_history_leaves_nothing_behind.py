@@ -7,6 +7,7 @@ An independent privacy review found two places where something outlived the hist
   person with access to the PC could still read which sites were used and when.
 * Past the 500 entry cap _append_history dropped the oldest entries but not their thumbnail files,
   so thumbnails/ kept pictures of downloads that were no longer listed.
+* Import History replaced the list but left the thumbnails of the entries it dropped.
 * The Console window's four rings (memory only, 1000 lines each) hold what past downloads did: the
   yt-dlp output has their URLs, the Flask output their requests, the diagnostics ring the same lines
   as egm_debug.log (a download starting, with the site and the time) and the ffmpeg ring the paths of
@@ -216,3 +217,57 @@ def test_a_dropped_entry_without_a_thumbnail_is_fine(backend, tmp_path, monkeypa
     _fake_thumbnails(backend, monkeypatch)
     _add(backend, tmp_path, 9)
     assert len(backend._load_history()) == 1
+
+
+# ── Imported history ──────────────────────────────────────────────────────────────────────────
+
+def _import(mod, items):
+    return mod.app.test_client().post("/api/history/import", json={"items": items}, headers={"X-EGM-Token": mod._API_TOKEN})
+
+
+def _listed(entry_id, thumbnail):
+    return {"id": entry_id, "url": "https://example.com/" + entry_id, "title": entry_id,
+            "completed_at": "2026-01-01T00:00:00Z", "thumbnail": thumbnail}
+
+
+def test_importing_a_history_removes_the_thumbnails_of_the_entries_it_drops(backend, tmp_path, monkeypatch):
+    _fake_thumbnails(backend, monkeypatch)
+    for n in range(3):
+        _add(backend, tmp_path, n)
+    old = backend._load_history()
+    assert all((backend.THUMBNAILS_DIR / e["thumbnail"]).exists() for e in old)
+    keep = old[0]                     # the imported list still names this one's picture
+    r = _import(backend, [_listed("imported", keep["thumbnail"])])
+    assert r.get_json() == {"ok": True, "count": 1}
+    assert (backend.THUMBNAILS_DIR / keep["thumbnail"]).exists(), "a picture the imported list still uses was removed"
+    for gone in old[1:]:
+        assert not (backend.THUMBNAILS_DIR / gone["thumbnail"]).exists(), "a dropped entry's picture was left behind"
+
+
+def test_importing_an_empty_list_removes_every_picture(backend, tmp_path, monkeypatch):
+    _fake_thumbnails(backend, monkeypatch)
+    for n in range(2):
+        _add(backend, tmp_path, n)
+    _import(backend, [])
+    assert list(backend.THUMBNAILS_DIR.iterdir()) == []
+
+
+def test_importing_never_removes_a_file_elsewhere_through_an_old_entrys_thumbnail_name(backend, tmp_path):
+    """Same name rule as the delete route: the old list may itself have come from an imported file."""
+    outside = backend.THUMBNAILS_DIR.parent / "cookies.txt"
+    outside.write_text("keep", encoding="utf-8")
+    absolute = tmp_path / "abs.jpg"
+    absolute.write_text("keep", encoding="utf-8")
+    evil = [{"id": f"e{i}", "url": "u", "title": "t", "thumbnail": t, "completed_at": "2026-01-01T00:00:00Z"}
+            for i, t in enumerate(["../cookies.txt", str(absolute), "..\\cookies.txt", "a/b.jpg"])]
+    backend.HISTORY_FILE.write_text(json.dumps(evil), encoding="utf-8")
+    _import(backend, [])
+    assert outside.read_text(encoding="utf-8") == "keep" and absolute.read_text(encoding="utf-8") == "keep"
+
+
+def test_a_refused_import_leaves_history_and_pictures_alone(backend, tmp_path, monkeypatch):
+    _fake_thumbnails(backend, monkeypatch)
+    _add(backend, tmp_path, 0)
+    r = backend.app.test_client().post("/api/history/import", json={"items": "nope"}, headers={"X-EGM-Token": backend._API_TOKEN})
+    assert r.status_code == 400
+    assert len(backend._load_history()) == 1 and len(list(backend.THUMBNAILS_DIR.iterdir())) == 1

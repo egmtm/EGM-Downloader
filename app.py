@@ -3616,7 +3616,11 @@ def import_history():
     # Light validation — keep only entries with the expected shape
     cleaned = [c for c in (_clean_history_entry(i) for i in items) if c]
     with _history_lock:
+        # The replaced entries take their cached pictures with them, except any the new list still names.
+        kept = {c["thumbnail"] for c in cleaned if c.get("thumbnail")}
+        dropped = [e for e in _load_history() if e.get("thumbnail") not in kept]
         _save_history(cleaned)
+        _remove_thumbnails_of(dropped)
     return jsonify({"ok": True, "count": len(cleaned)})
 
 @app.route("/api/logs")
