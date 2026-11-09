@@ -16,6 +16,7 @@ The real script runs in tests/nsis_model.py, with stand ins for PowerShell, task
 query itself runs under pwsh with a Get-CimInstance that throws."""
 import json
 import os
+import re
 import subprocess
 
 import pytest
@@ -45,10 +46,15 @@ def test_the_query_says_it_ran_only_when_wmi_answered():
     assert failed.returncode == 255
 
 
-@pytest.mark.skipif(not PWSH, reason="pwsh is not installed")
 def test_a_wmi_error_is_no_longer_hidden():
-    """-ErrorAction SilentlyContinue would turn a WMI error into an empty list: "nothing running"."""
-    assert "SilentlyContinue | Where-Object" not in _query() and "-ErrorAction Stop" in _query()
+    """-ErrorAction SilentlyContinue would turn a WMI error into an empty list: "nothing running". The text
+    of the query, read everywhere (the test above runs it, where pwsh is installed): the WMI call stops on
+    an error inside a try whose catch exits 255, and the marker is written last, after the list."""
+    q = _query()
+    assert "SilentlyContinue | Where-Object" not in q
+    assert re.search(r"try \{ \$a = @\(Get-CimInstance Win32_Process -ErrorAction Stop\) \} catch \{ exit 255 \};", q), q
+    tail = q[q.index("[Console]::Out.Write("):]
+    assert re.fullmatch(r"\[Console\]::Out\.Write\(.*\+ ' EGM_QUERY_RAN'\); exit \$p\.Count", tail), tail
 
 
 def _find(un="", **kw):
