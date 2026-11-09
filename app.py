@@ -3537,6 +3537,18 @@ def check_app_update():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+_UPDATE_BLOCK = 1024 * 1024   # the update zip is read, written and hashed in blocks of this size
+
+
+def _sha256_file(path):
+    """SHA-256 of a file, read in blocks (the update zip is over 100 MB)."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(_UPDATE_BLOCK), b""):
+            h.update(block)
+    return h.hexdigest().lower()
+
+
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
     """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe, return installer path."""
@@ -3549,6 +3561,10 @@ def download_update():
         return jsonify({"error": "No zip URL provided"}), 400
     if not expected_checksum:
         return jsonify({"error": "Checksum required for update verification"}), 400
+    # The size from the signed feed, sent by the page like the checksum: the download stops there.
+    expected_size = data.get("expected_size")
+    if not (isinstance(expected_size, int) and not isinstance(expected_size, bool) and expected_size > 0):
+        return jsonify({"error": "The update information has no download size, so the download cannot be checked. Try again later."}), 400
     # SSRF guard: only allow downloads from the official distribution server
     if not zip_url.startswith("https://egerena.com/"):
         return jsonify({"error": "Invalid update URL"}), 400
@@ -3561,13 +3577,21 @@ def download_update():
         # Download zip — LONG timeout: this is a multi-MB installer payload, not
         # a metadata call. SHORT (15s) would spuriously fail on slow connections.
         req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(zip_path, "wb") as f:
-            shutil.copyfileobj(r, f)
+        too_large = "The download is larger than the update information says. The update was stopped."
+        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
+            announced = str(r.headers.get("Content-Length") or "").strip()
+            if announced.isdigit() and int(announced) > expected_size:
+                raise RuntimeError(too_large)
+            with open(zip_path, "wb") as f:
+                got = 0
+                for block in iter(lambda: r.read(_UPDATE_BLOCK), b""):
+                    got += len(block)
+                    if got > expected_size:
+                        raise RuntimeError(too_large)
+                    f.write(block)
 
         # Verify SHA256 checksum (required — fail-closed)
-        h = hashlib.sha256()
-        h.update(zip_path.read_bytes())
-        actual_checksum = h.hexdigest().lower()
+        actual_checksum = _sha256_file(zip_path)
         if actual_checksum != expected_checksum:
             zip_path.unlink(missing_ok=True)
             return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500

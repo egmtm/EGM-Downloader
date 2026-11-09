@@ -176,7 +176,7 @@ def test_a_download_with_the_wrong_checksum_is_refused_and_removed(updater, monk
     data = _update_zip(_member(updater))
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: _Resp(data))
     r = _client_post(updater, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "00" * 32})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "00" * 32, "expected_size": len(data)})
     assert r.status_code >= 400 and "Checksum" in r.get_json()["error"]
     left = list(updater.UPDATE_TMP_DIR.iterdir()) if updater.UPDATE_TMP_DIR.exists() else []
     assert left == [], left
@@ -227,7 +227,7 @@ def short_server():
 def test_a_download_cut_short_fails_and_leaves_nothing(updater, monkeypatch, short_server):
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: urllib.request.urlopen(short_server, timeout=5))
     r = _client_post(updater, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "ab" * 32})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "ab" * 32, "expected_size": 10000})
     assert r.status_code >= 400 and r.get_json().get("error")
     left = list(updater.UPDATE_TMP_DIR.iterdir()) if updater.UPDATE_TMP_DIR.exists() else []
     assert left == [], left
@@ -240,14 +240,16 @@ def test_windows_takes_only_the_installer_out_of_a_verified_download(app_module,
     good = _update_zip("egm-setup.exe")
     monkeypatch.setattr(app_module, "_safe_urlopen", lambda req, t: _Resp(good))
     r = _client_post(app_module, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(good).hexdigest()})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(good).hexdigest(),
+                      "expected_size": len(good)})
     d = r.get_json()
     assert r.status_code == 200 and Path(d["installer_path"]) == tmp_path / "egm-update" / "egm-setup.exe"
     assert sorted(p.name for p in (tmp_path / "egm-update").iterdir()) == ["egm-setup.exe"]
     other = _update_zip("something-else.exe")
     monkeypatch.setattr(app_module, "_safe_urlopen", lambda req, t: _Resp(other))
     r = _client_post(app_module, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(other).hexdigest()})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(other).hexdigest(),
+                      "expected_size": len(other)})
     assert r.status_code >= 400 and "not found" in r.get_json()["error"]
 
 
