@@ -15,7 +15,9 @@ The file's licence texts are copied from authoritative sources. Where the long t
 /usr/share/common-licenses they are compared with those files when the machine has them (CI runs on
 Ubuntu). Information that could not be confirmed is marked "[GAP n: ...]"; GAPS lists the ones the
 session 6 report named, so a new gap shows here: the six it named are filled (from the upstream files at the
-tags the build uses), and GAPS is empty.
+tags the build uses), and GAPS is empty. A second round added the OpenSSL notice (part 5: OpenSSL 4.0.3
+inside the cryptography wheel, OpenSSL 3.5.9 inside the bundled Python), the ISC text of two curl files,
+the Chromium line of one ngtcp2 file and the Unicode licence file of the libidn2 release itself.
 """
 import json
 import os
@@ -39,7 +41,7 @@ def _text():
 
 
 def _section(text, title, next_title):
-    """The licence text between a part 5 heading and the next one (or the end)."""
+    """The licence text between a part 6 heading and the next one (or the end)."""
     start = text.index(title)
     body = text[start:text.index(next_title, start)] if next_title else text[start:]
     # skip the heading, its rule and the "(text: ...)" line, then one empty line
@@ -68,7 +70,15 @@ def test_the_notices_file_has_one_kind_of_line_end():
     "Copyright (c) 2026 curl_cffi developers", "Copyright (c) 1996 - 2026, Daniel Stenberg",
     "156c7b75ae9b8c3b3f847acf264f17594c3859fb", "Tatsuhiro Tsujikawa", "Copyright (c) 2016 ngtcp2 contributors",
     "Copyright (c) 2019 nghttp3 contributors", "libidn2-2.3.7.tar.gz",
-    "The long licence texts are in part 5.",
+    "The long licence texts are in part 6.",
+    # the second round: OpenSSL, curl's two ISC files, ngtcp2's Chromium line, libidn2's own Unicode licence file
+    "OpenSSL 4.0.3", "OpenSSL 3.5.9", "https://github.com/openssl/openssl",
+    "Copyright (c) 1998-2026 The OpenSSL Project Authors", "Copyright (c) 1995-1998 Eric A. Young, Tim J. Hudson",
+    "Copyright 1995-2026 The OpenSSL Project Authors. All Rights Reserved.",
+    "Copyright (C) 1996-2022  Internet Software Consortium.", "Copyright (c) Internet Software Consortium.",
+    "THE SOFTWARE IS PROVIDED \"AS IS\" AND INTERNET SOFTWARE CONSORTIUM\nDISCLAIMS ALL WARRANTIES",
+    "Copyright (c) 2016 The Chromium Authors. All rights reserved.",
+    "COPYING.unicode of libidn2 2.3.7:", "Copyright © 1991-2016 Unicode, Inc. All rights reserved.\nDistributed under the Terms of Use",
     "Apache License\n                           Version 2.0, January 2004",
     "GNU LESSER GENERAL PUBLIC LICENSE\n                       Version 3, 29 June 2007",
 ])
@@ -79,7 +89,8 @@ def test_the_notices_name_every_part_and_carry_its_licence(marker):
 # The hosts the file means to name: the projects' own repositories and package pages, and the places the
 # licence texts themselves point to.
 HOSTS = {"github.com", "pypi.org", "boringssl.googlesource.com", "hg.mozilla.org", "mozilla.org",
-         "www.gnu.org", "ftp.gnu.org", "fsf.org", "www.apache.org", "www.unicode.org"}
+         "www.gnu.org", "ftp.gnu.org", "fsf.org", "www.apache.org", "www.unicode.org",
+         "source.icu-project.org"}   # the last one is named by the Unicode licence text itself (libidn2's COPYING.unicode)
 
 
 def test_every_link_goes_to_a_host_the_file_means_to_name():
@@ -91,15 +102,17 @@ def test_every_link_goes_to_a_host_the_file_means_to_name():
 
 
 def test_every_part_the_text_points_to_exists():
-    """The long licence texts moved from part 4 to part 5 when yt-dlp-ejs was added: a pointer left behind
-    would send a reader to the wrong text."""
+    """The long licence texts moved from part 4 to part 5 when yt-dlp-ejs was added, and to part 6 when OpenSSL
+    got its own part: a pointer left behind would send a reader to the wrong text. A heading is a line under a
+    rule (the licence texts themselves number their own sections, "5.3. In the event ...", and must not count)."""
     text = _text()
-    pointers = set(re.findall(r"\bpart (\d+(?:\.\d+)?)\b", text))
+    pointers = set(re.findall(r"\bpart\s+(\d+(?:\.\d+)?)\b", text))   # \s: a line may break between "part" and the number
     assert pointers, "THIRD_PARTY_NOTICES.txt points to no part"
     for number in pointers:
-        assert re.search(rf"^{re.escape(number)}\.? \S", text, re.M), f"the text points to part {number}, which has no heading"
-    # part 5 holds the long texts the other parts point to
-    assert re.search(r"^5\. Licence texts$", text, re.M)
+        assert re.search(rf"^[-=]{{20,}}\n{re.escape(number)}\.? \S", text, re.M), f"the text points to part {number}, which has no heading"
+    # part 6 holds the long texts the other parts point to; part 5 is OpenSSL
+    assert re.search(r"^6\. Licence texts$", text, re.M)
+    assert re.search(r"^5\. OpenSSL$", text, re.M)
 
 
 def test_the_boringssl_revision_is_the_same_in_both_places():
@@ -115,9 +128,9 @@ def test_the_only_gaps_are_the_ones_the_report_lists():
 
 
 @pytest.mark.parametrize("title, next_title, common", [
-    ("5.1 GNU General Public License version 3", "5.2 Mozilla Public License 2.0", "GPL-3"),
-    ("5.2 Mozilla Public License 2.0", "5.3 BoringSSL licence file", "MPL-2.0"),
-    ("5.4 GNU Lesser General Public License version 3", None, "LGPL-3"),
+    ("6.1 GNU General Public License version 3", "6.2 Mozilla Public License 2.0", "GPL-3"),
+    ("6.2 Mozilla Public License 2.0", "6.3 BoringSSL licence file", "MPL-2.0"),
+    ("6.4 GNU Lesser General Public License version 3", None, "LGPL-3"),
 ])
 def test_the_long_licence_texts_are_the_authoritative_ones(title, next_title, common):
     source = COMMON / common
@@ -138,12 +151,28 @@ def _lock_version(name):
     ("curl-cffi", "curl_cffi {}"),
     ("certifi", "https://pypi.org/project/certifi/{}/"),
     ("yt-dlp-ejs", "Version:   {}"),
+    ("cryptography", "cryptography {} wheel"),   # the wheel carries OpenSSL 4.0.3 (part 5)
 ])
 def test_the_versions_named_are_the_ones_the_windows_installer_ships(package, how):
     """The Windows lock decides what the installer ships: a lock that moves on must take the
     notices with it (curl_cffi decides which libcurl-impersonate, and so which libraries, ship)."""
     assert how.format(_lock_version(package)) in _text(), \
         f"THIRD_PARTY_NOTICES.txt does not name {package} {_lock_version(package)}, the version the lock installs"
+
+
+def test_the_python_named_is_the_one_the_builds_bundle():
+    """Part 5 names the bundled Python (the release carries OpenSSL 3.5.9); the three build scripts pin the
+    same version and release, and a pin that moves must take the notice along."""
+    pins = {}
+    for rel in (BUILD_FOLDER, "mac/BUILD.sh", "linux/BUILD.sh"):
+        for name in ("PYTHON_VERSION", "PYTHON_RELEASE"):
+            m = re.search(rf'^{name}="([^"]+)"', read_source(rel), re.M)
+            assert m, f"{rel} pins no {name}"
+            pins.setdefault(name, set()).add(m.group(1))
+    assert all(len(v) == 1 for v in pins.values()), f"the build scripts pin different Pythons: {pins}"
+    version, release = (next(iter(pins[n])) for n in ("PYTHON_VERSION", "PYTHON_RELEASE"))
+    assert f"bundled Python {version} (python-build-standalone release {release})" in _text(), \
+        f"THIRD_PARTY_NOTICES.txt does not name Python {version}, release {release}, the one the builds bundle"
 
 
 def test_the_ejs_notices_are_the_ones_in_the_packages_own_script_header():
