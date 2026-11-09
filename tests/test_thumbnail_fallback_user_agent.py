@@ -274,3 +274,32 @@ def test_the_agent_read_back_is_the_one_yt_dlp_sent_for_the_download(backend, do
     assert sent and set(sent) == {sent[-1]}
     assert backend._ytdlp_user_agent(headers_file) == sent[-1]
     assert "Cookie" not in headers_file.read_text(encoding="utf-8")
+
+
+# ── gaps found by mutation (session 4's thumbnail code) ────────────────────────────────────────
+
+def test_the_backend_keeps_a_picture_of_exactly_the_cap_and_refuses_one_byte_more(backend, monkeypatch):
+    cap = backend._THUMB_CAP
+    exact = JPEG + b"\x00" * (cap - len(JPEG))
+    over = exact + b"\x00"
+    _web(monkeypatch, {"https://cdn.example/exact.jpg": (200, {"Content-Type": "image/jpeg"}, exact),
+                       "https://cdn.example/over.jpg": (200, {"Content-Type": "image/jpeg"}, over)})
+    assert backend._fetch_thumbnail("https://cdn.example/exact.jpg", UA) == exact
+    assert backend._fetch_thumbnail("https://cdn.example/over.jpg", UA) == b""
+
+
+def test_a_percent_sign_in_the_data_folder_is_doubled_for_yt_dlp(backend, downloads, tmp_path, monkeypatch):
+    """--print-to-file takes an output template, where % starts a field: a data folder named with a %
+    (a user name, a portable copy's folder) is written with %% so yt-dlp writes to that very file."""
+    runs, finished, out = downloads
+    data = tmp_path / "50%off"
+    (data / "thumbnails").mkdir(parents=True)
+    if hasattr(backend, "DATA_DIR"):
+        monkeypatch.setattr(backend, "DATA_DIR", data)
+    else:
+        monkeypatch.setattr(backend, "get_data_dir", lambda: data)
+    backend.run_download(JOB_ID, "https://video.example/v", "video", None, str(out), output_format="mkv")
+    _, target = _print_to_file(runs[0])
+    assert target == str(data / f"{JOB_ID}.headers.json").replace("%", "%%"), target
+    (job,) = finished
+    assert job["user_agent"] == UA

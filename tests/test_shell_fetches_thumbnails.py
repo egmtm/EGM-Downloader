@@ -319,3 +319,75 @@ def test_the_shell_refuses_every_address_the_backend_refuses(rel):
     public = ["8.8.8.8", "1.1.1.1", "93.184.216.34", "151.101.1.1", "11.0.0.1", "2606:4700::6810:84e5",
               "2a00:1450:4001:82a::200e", "2001:4860:4860::8888", "2001:200::1"]
     assert [a for a in public if shell[a]] == [], "a public address is refused"
+
+
+# ── gaps found by mutation (session 4's thumbnail code) ────────────────────────────────────────
+
+def test_the_picture_is_stored_only_under_the_history_lock(backend, tmp_path):
+    """_attach_thumbnail checks the entry and writes the file and the entry under _history_lock: a
+    finishing download that wrote the history file from an earlier read would lose an entry."""
+    import threading
+    entry = _finish(backend, tmp_path)
+    done = threading.Event()
+    with backend._history_lock:
+        t = threading.Thread(target=lambda: (backend._attach_thumbnail(entry, JPEG), done.set()), daemon=True)
+        t.start()
+        time.sleep(0.3)
+        assert not done.is_set(), "the picture was stored while another thread held the history lock"
+        assert list(backend.THUMBNAILS_DIR.iterdir()) == []
+    assert done.wait(5), "it never finished once the lock was free"
+    assert backend._load_history()[0]["thumbnail"] == f"{entry}.jpg"
+    assert (backend.THUMBNAILS_DIR / f"{entry}.jpg").read_bytes() == JPEG
+
+
+class _Counting(io.BytesIO):
+    """A request body without a length header (the server says the stream ends by itself, as with a
+    chunked upload), counting what the route reads."""
+    taken = 0
+
+    def read(self, n=-1):
+        data = super().read(n)
+        _Counting.taken += len(data)
+        return data
+
+    def readinto(self, buf):            # the app's request size limit wraps the stream and reads this way
+        n = super().readinto(buf)
+        _Counting.taken += n
+        return n
+
+
+def test_the_upload_reads_at_most_one_byte_past_the_cap(backend, tmp_path):
+    entry = _finish(backend, tmp_path)
+    body = JPEG + b"\x00" * (backend._THUMB_CAP * 3)
+    _Counting.taken = 0
+    r = backend.app.test_client().post(_url(entry), headers=_token(backend), environ_overrides={
+        "wsgi.input": _Counting(body), "wsgi.input_terminated": True, "CONTENT_LENGTH": ""})
+    assert r.status_code == 413
+    assert _Counting.taken == backend._THUMB_CAP + 1, f"read {_Counting.taken} bytes of a {len(body)} byte body"
+    # the refused upload hands the picture to the backend's own fetch, in a thread: let it end while the
+    # data folder is still the test's
+    assert _wait_for(lambda: backend._load_history()[0]["thumbnail"])
+
+
+@pytest.mark.parametrize("data, ext", [
+    (PNG, ".png"), (b"\x89PNG\r\n\x1a\x00" + b"\x00" * 64, ""), (b"\x89PNG" + b"\x00" * 64, ""),
+    (WEBP, ".webp"), (b"RIFF\x00\x00\x00\x00WEBX" + b"\x00" * 64, ""), (b"RIFFWEBP" + b"\x00" * 64, ""),
+    (b"RIFF\x00\x00\x00\x00\x00WEBP" + b"\x00" * 64, ""),
+    (JPEG, ".jpg"), (b"\xff\xd8\x00" + b"\x00" * 64, ""), (b"\xff\x00\xff" + b"\x00" * 64, ""), (b"\x00\xd8\xff", ""),
+])
+def test_the_picture_is_told_by_its_whole_signature(backend_module, data, ext):
+    assert backend_module._thumb_image_ext(data) == ext
+
+
+@pytest.mark.parametrize("rel", APP_FILES)
+@pytest.mark.parametrize("electron, expected", [("1", True), ("0", False), (None, False)])
+def test_the_shell_fetches_the_pictures_only_when_started_by_the_shell(rel, electron, expected, tmp_path_factory, monkeypatch):
+    if electron is None:
+        monkeypatch.delenv("EGM_ELECTRON", raising=False)
+    else:
+        monkeypatch.setenv("EGM_ELECTRON", electron)
+    assert _load(rel, tmp_path_factory)._SHELL_FETCHES_THUMBNAILS is expected
+
+
+def test_the_backend_waits_30_seconds_for_the_shell(backend_module):
+    assert backend_module._THUMB_WAIT == 30

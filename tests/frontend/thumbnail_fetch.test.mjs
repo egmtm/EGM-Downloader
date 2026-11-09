@@ -65,23 +65,24 @@ function response(req, { status = 200, headers = { "content-type": "image/jpeg" 
 
 // Name resolution as Chromium's resolver would answer it: a table, literal addresses as themselves.
 const DNS = { "cdn.example": "93.184.216.34", "img.example": "151.101.1.1", "intranet.example": "10.1.2.3",
-              "ipv6only.example": "2606:4700::6810:84e5", "router.example": "192.168.1.1", "meta.example": "169.254.169.254" };
+              "ipv6only.example": "2606:4700::6810:84e5", "router.example": "192.168.1.1", "meta.example": "169.254.169.254",
+              "mixed.example": ["93.184.216.34", "10.0.0.7"], "mixed6.example": ["fd00::7", "2606:4700::6810:84e5"] };
 
-function shell(platform, play, { appUrl = "http://127.0.0.1:8899", timers = { setTimeout, clearTimeout } } = {}) {
+function shell(platform, play, { appUrl = "http://127.0.0.1:8899", timers = { setTimeout, clearTimeout }, httpModule = http } = {}) {
   const { net, made } = fakeNet(play);
   const partitions = [];
   const partition = {
     async resolveHost(h) {
       const a = DNS[h] || (/^[\d.]+$|:/.test(h) ? h : null);
       if (!a) throw new Error("ERR_NAME_NOT_RESOLVED");
-      return { endpoints: [{ address: a, family: a.includes(":") ? "ipv6" : "ipv4" }] };
+      return { endpoints: [a].flat().map((x) => ({ address: x, family: x.includes(":") ? "ipv6" : "ipv4" })) };
     },
   };
   const ctx = {
     require: (m) => { assert.equal(m, "electron"); return { net }; },
     app: { userAgentFallback: RAW_UA },
     session: { defaultSession: { name: "default" }, fromPartition: (name, opts) => { partitions.push([name, opts]); return partition; } },
-    http, APP_URL: appUrl, EGM_TOKEN: "tok", URL, Buffer, Promise, Set, Object, String, Number, JSON, Array, parseInt,
+    http: httpModule, APP_URL: appUrl, EGM_TOKEN: "tok", URL, Buffer, Promise, Set, Object, String, Number, JSON, Array, parseInt,
     setTimeout: timers.setTimeout, clearTimeout: timers.clearTimeout,
   };
   vm.runInNewContext(blockOf(platform) + "\nthis.api = { fetchThumbnail, deliverThumbnail, noticeThumbnail, isInternalAddress };", ctx);
@@ -278,6 +279,65 @@ for (const platform of ["windows", "mac", "linux"]) {
     assert.ok(src.indexOf("session.defaultSession.webRequest.onCompleted(noticeThumbnail);") > src.indexOf("app.whenReady()"));
     const block = blockOf(platform);
     assert.ok(!/setInterval|ipcMain|contextBridge/.test(block), "no polling, and nothing handed to the pages");
+  });
+}
+
+// ── gaps found by mutation (session 4's thumbnail code) ──────────────────────────────────────────
+
+for (const platform of ["windows", "mac", "linux"]) {
+  test(`${platform}: a name that resolves to a public and an internal address is not fetched`, async () => {
+    const s = shell(platform, answer());
+    for (const url of ["https://mixed.example/x.jpg", "https://mixed6.example/x.jpg"]) {
+      assert.equal(await s.api.fetchThumbnail(url), null, url);
+    }
+    assert.equal(s.made.length, 0, "a name with any internal address was requested");
+  });
+
+  test(`${platform}: the shared address range 100.64.0.0/10 is refused, its neighbours are not`, async () => {
+    const s = shell(platform, answer());
+    for (const ip of ["100.64.0.1", "100.100.100.100", "100.127.255.254"]) {
+      assert.equal(await s.api.fetchThumbnail(`https://${ip}/x.jpg`), null, ip);
+    }
+    assert.equal(s.made.length, 0);
+    for (const ip of ["100.63.255.255", "100.128.0.1"]) {
+      assert.deepEqual(await s.api.fetchThumbnail(`https://${ip}/x.jpg`), JPEG, ip);
+    }
+  });
+
+  test(`${platform}: one byte over the cap, with no length header, is refused`, async () => {
+    const s = shell(platform, answer({ chunks: [Buffer.concat([JPEG, Buffer.alloc(CAP + 1 - JPEG.length)])] }));
+    assert.equal(await s.api.fetchThumbnail("https://cdn.example/x.jpg"), null);
+    assert.ok(s.made[0].aborted);
+  });
+
+  // A dropped error handler leaves the request open for ever: the limit makes that a failure, not a hang.
+  test(`${platform}: a network error on the picture request gives null and the backend an empty body`, { timeout: 5000 }, async (t) => {
+    const b = await backend((req, resp) => resp.end(req.method === "GET" ? JSON.stringify({ url: "https://cdn.example/x.jpg" }) : "{}"));
+    t.after(() => { b.srv.closeAllConnections(); b.srv.close(); });
+    const failing = (req, step) => { if (step === "sent") req.emit("error", new Error("net::ERR_CONNECTION_RESET")); };
+    const s = shell(platform, failing);
+    assert.equal(await s.api.fetchThumbnail("https://cdn.example/x.jpg"), null);
+    const s2 = shell(platform, failing, { appUrl: b.url });
+    await s2.api.deliverThumbnail(ENTRY);
+    assert.deepEqual(b.calls.map((c) => `${c.method} ${c.body.length}`), ["GET 0", "POST 0"]);
+  });
+
+  test(`${platform}: the shell's call to the backend gives up after the timeout`, async (t) => {
+    const b = await backend(() => {});                       // never answers
+    t.after(() => { b.srv.closeAllConnections(); b.srv.close(); });
+    const asked = [];
+    const httpModule = { ...http, request: (...a) => {
+      const req = http.request(...a);
+      const set = req.setTimeout.bind(req);
+      req.setTimeout = (ms, cb) => { asked.push(ms); return set(50, cb); };
+      return req;
+    } };
+    const s = shell(platform, answer(), { appUrl: b.url, httpModule });
+    const done = await Promise.race([s.api.deliverThumbnail(ENTRY).then(() => "done"),
+                                     new Promise((r) => setTimeout(() => r("still waiting"), 3000))]);
+    assert.equal(done, "done", "the call to a backend that does not answer was never given up");
+    assert.deepEqual(asked, [15000]);
+    assert.equal(s.made.length, 0, "nothing is fetched without the backend's answer");
   });
 }
 
