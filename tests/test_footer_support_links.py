@@ -18,6 +18,8 @@ SHIPPED = (
 
 
 def test_nothing_the_app_ships_links_to_or_names_patreon():
+    assert str(Path("templates", "index.html")) in SHIPPED and str(Path("languages", "en.json")) in SHIPPED, \
+        "the scan found no templates or no language files"
     hits = [rel for rel in SHIPPED if "patreon" in read_source(rel).lower()]
     assert hits == [], f"still mentions Patreon: {hits}"
 

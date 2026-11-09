@@ -47,7 +47,9 @@ def test_right_to_left_codes_are_allowlisted_codes():
 def test_i18n_load_takes_the_direction_from_the_code_only():
     load = I18N[I18N.index("async function i18nLoad"):I18N.index("function i18nBoot")]
     assert "setAttribute('dir', I18N_RTL.includes(code) ? 'rtl' : 'ltr')" in load
-    for path in glob.glob(os.path.join(ROOT, "templates", "**", "*.html"), recursive=True):
+    templates = glob.glob(os.path.join(ROOT, "templates", "**", "*.html"), recursive=True)
+    assert os.path.join(ROOT, "templates", "js", "_core.html") in templates, "the scan found no templates"
+    for path in templates:
         assert not re.search(r"\b_direction\b", open(path, encoding="utf-8").read()), f"{path} reads the direction from a language file"
 
 

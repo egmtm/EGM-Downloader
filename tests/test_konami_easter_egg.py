@@ -166,7 +166,9 @@ def test_locale_files_have_no_duplicate_json_keys():
 
     lang_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "languages")
     offenders = {}
-    for path in sorted(glob.glob(os.path.join(lang_dir, "*.json"))):
+    files = sorted(glob.glob(os.path.join(lang_dir, "*.json")))
+    assert len(files) >= 10 and os.path.join(lang_dir, "en.json") in files, "the scan found no language files"
+    for path in files:
         seen = []
 
         def _hook(pairs, _seen=seen):

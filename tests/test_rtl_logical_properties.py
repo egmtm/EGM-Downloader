@@ -74,6 +74,7 @@ def findings(name, text):
 def _scan():
     out = []
     files = glob.glob(os.path.join(ROOT, "templates", "*.html")) + glob.glob(os.path.join(ROOT, "templates", "js", "*.html"))
+    assert {"index_styles.html", "_core.html"} <= {os.path.basename(f) for f in files}, "the scan found no templates"
     for path in sorted(files):
         rel = os.path.relpath(path, ROOT).replace(os.sep, "/")
         text = open(path, encoding="utf-8").read()

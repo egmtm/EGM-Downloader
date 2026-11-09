@@ -1530,7 +1530,9 @@ def test_i18n_keys_exist_in_en_locale():
     keys = set(json.load(open(os.path.join(root, "languages", "en.json")))["strings"])
     bad = []
     pattern = "templates/**/*.html"
-    for p in glob.glob(os.path.join(root, pattern), recursive=True):
+    found = glob.glob(os.path.join(root, pattern), recursive=True)
+    assert os.path.join(root, "templates", "index.html") in found, "the scan found no templates"
+    for p in found:
         if p.endswith("i18n.html"):
             continue  # loader partial documents the attr format with a sample key
         src = open(p, encoding="utf-8").read()

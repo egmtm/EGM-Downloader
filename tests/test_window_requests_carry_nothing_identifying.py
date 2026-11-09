@@ -82,7 +82,9 @@ def test_api_answers_and_errors_carry_it_too(backend_module):
 
 def test_no_template_weakens_the_policy():
     """A page or an element could set its own policy and undo the header."""
-    for p in sorted(Path(ROOT, "templates").rglob("*.html")):
+    templates = sorted(Path(ROOT, "templates").rglob("*.html"))
+    assert Path(ROOT, "templates", "index.html") in templates, "the scan found no templates"
+    for p in templates:
         text = p.read_text(encoding="utf-8").lower()
         assert 'name="referrer"' not in text and "referrerpolicy" not in text, p.name
 
@@ -123,6 +125,7 @@ def test_no_template_turns_the_lookups_back_on():
     <script type="speculationrules">."""
     pages = _pages()
     assert len(pages) > 10 and all(p.is_file() for p in pages)
+    assert Path(ROOT, "templates", "index.html") in pages and Path(ROOT, "templates", "js", "_core.html") in pages
     for p in pages:
         text = p.read_text(encoding="utf-8").lower()
         assert "x-dns-prefetch-control" not in text, p.name
