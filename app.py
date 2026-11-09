@@ -3769,6 +3769,7 @@ def delete_history_entry(entry_id):
                 except Exception: pass
         items = [i for i in items if i.get("id") != entry_id]
         _save_history(items)
+        _thumb_pending.pop(entry_id, None)     # its picture is no longer waited for: nothing fetches it
     return jsonify({"ok": True})
 
 @app.route("/api/history/clear", methods=["POST"])
@@ -3896,6 +3897,8 @@ def import_history():
         replaced = _load_history()
         _save_history(cleaned)
         _remove_thumbnails_of(replaced, keep=cleaned)
+        ids = {c.get("id") for c in cleaned}
+        for k in [k for k in _thumb_pending if k not in ids]: del _thumb_pending[k]   # entries gone: their pictures are not waited for
     return jsonify({"ok": True, "count": len(cleaned)})
 
 @app.route("/api/logs")

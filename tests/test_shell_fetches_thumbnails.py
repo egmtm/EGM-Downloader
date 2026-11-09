@@ -391,3 +391,32 @@ def test_the_shell_fetches_the_pictures_only_when_started_by_the_shell(rel, elec
 
 def test_the_backend_waits_30_seconds_for_the_shell(backend_module):
     assert backend_module._THUMB_WAIT == 30
+
+
+# ── a delete or an import ends the wait ───────────────────────────────────────────────────────
+
+def _gone_from_the_wait(backend, entry):
+    """The shell is told no more (404) and nothing fetches it: neither the shell nor the backend's timer."""
+    assert backend.app.test_client().get(_url(entry), headers=_token(backend)).status_code == 404
+    assert entry not in backend._thumb_pending
+    backend._thumbnail_by_backend(entry)          # what the 30 second timer runs
+    assert backend.backend_fetches == []
+
+
+def test_deleting_the_entry_ends_the_wait_for_its_picture(backend, tmp_path):
+    entry = _finish(backend, tmp_path)
+    assert backend.app.test_client().get(_url(entry), headers=_token(backend)).status_code == 200
+    r = backend.app.test_client().delete(f"/api/history/{entry}", headers=_token(backend))
+    assert r.status_code == 200
+    _gone_from_the_wait(backend, entry)
+
+
+def test_an_import_without_the_entry_ends_the_wait_and_one_with_it_keeps_it(backend, tmp_path):
+    entry = _finish(backend, tmp_path)
+    kept = backend._load_history()
+    c = backend.app.test_client()
+    assert c.post("/api/history/import", json={"items": kept}, headers=_token(backend)).status_code == 200
+    assert c.get(_url(entry), headers=_token(backend)).status_code == 200, "an import that still has the entry keeps it waiting"
+    other = [{"id": "0" * 36, "url": "https://video.example/o", "title": "o", "completed_at": "2026-01-01T00:00:00Z"}]
+    assert c.post("/api/history/import", json={"items": other}, headers=_token(backend)).status_code == 200
+    _gone_from_the_wait(backend, entry)
