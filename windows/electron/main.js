@@ -397,15 +397,16 @@ function safeIcon(p, size) {
 
 // ── Find Python ───────────────────────────────────────────────────────────────
 // The packaged build uses only the Python it ships with, and that Python sees only its own packages:
-// no user site folder, and no PYTHONHOME or PYTHONPATH from the user's environment. Windows names are
-// not case sensitive, so any spelling of a name is dropped before the value is set.
+// no user site folder, and no PYTHON variable from the user's environment (the Pythons app.py starts
+// inherit this environment; app.py itself also runs with -E -s). Windows names are not case
+// sensitive, so any spelling of a name is dropped before the value is set.
 function withoutEnv(env, names) {
   const drop = new Set(names);
   return Object.fromEntries(Object.entries(env).filter(([k]) => !drop.has(k.toUpperCase())));
 }
 function bundledPythonEnv(env) {
   return {
-    ...withoutEnv(env, ['PYTHONHOME', 'PYTHONPATH', 'PYTHONNOUSERSITE', 'EGM_INSTALL_DIR']),
+    ...withoutEnv(env, Object.keys(env).map(k => k.toUpperCase()).filter(k => k.startsWith('PYTHON')).concat('EGM_INSTALL_DIR')),
     PYTHONNOUSERSITE: '1',
     EGM_INSTALL_DIR: INSTALL_DIR,   // app.py keeps its data and downloaded tools here
   };
@@ -513,7 +514,9 @@ async function startFlask() {
     return;
   }
   const env = { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN };
-  flaskProc = spawn(python, [appPy], {
+  // -E -s: no PYTHON variable, no user site folder, and (from -E) no PythonPath entries from the
+  // registry of a Python 3.11 installed on the machine. The bundled site-packages is not the user's.
+  flaskProc = spawn(python, PACKAGED ? ['-E', '-s', appPy] : [appPy], {
     cwd: INSTALL_DIR,
     // EGM_INSTALL_DIR moves app.py's folders, so only the packaged build may set it.
     env: PACKAGED ? bundledPythonEnv(env) : withoutEnv(env, ['EGM_INSTALL_DIR']),

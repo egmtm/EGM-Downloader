@@ -5,8 +5,12 @@ started by the launcher.
 * The layout is told by where main.js sits (inside resources\\app.asar), not by app.isPackaged, which
   is also true for the launcher's renamed Electron. Packaged: the install folder is the folder of the
   exe and the app files are in resources\\app. Launcher: both are the parent of electron\\.
-* Packaged, only the bundled Python is tried, and it runs with no user site folder and without the
-  user's PYTHONHOME and PYTHONPATH (any spelling), with EGM_INSTALL_DIR set to the install folder.
+* Packaged, only the bundled Python is tried, and it runs with no user site folder and without any
+  PYTHON variable of the user's environment (any spelling; only PYTHONNOUSERSITE=1 is set, for the
+  Pythons app.py starts), with EGM_INSTALL_DIR set to the install folder. app.py itself runs with
+  -E -s: no PYTHON variable and no user site folder, and, from -E, none of the PythonPath entries
+  in the registry of a Python 3.11 installed on the machine (getpath reads them only when the
+  environment is used).
 * Started by the launcher, an EGM_INSTALL_DIR from the environment never reaches app.py.
 * Packaged and portable, the .portable marker is looked up in the install folder.
 
@@ -77,7 +81,11 @@ def _run(tmp_path, scenario):
 
 
 USER_ENV = {"PATH": "C:\\Windows", "PythonHome": "C:\\Python311", "PYTHONPATH": "C:\\mine",
-            "pythonnousersite": "0", "EGM_INSTALL_DIR": "C:\\elsewhere"}
+            "pythonnousersite": "0", "EGM_INSTALL_DIR": "C:\\elsewhere",
+            "PYTHONSTARTUP": "C:\\mine\\start.py", "PythonUtf8": "0", "PYTHONINSPECT": "1",
+            "PYTHONSAFEPATH": "0", "PYTHONUSERBASE": "C:\\mine\\base", "PYTHONWARNINGS": "error"}
+OTHER_PYTHON_VARS = ("PYTHONHOME", "PYTHONPATH", "PYTHONSTARTUP", "PYTHONUTF8", "PYTHONINSPECT",
+                     "PYTHONSAFEPATH", "PYTHONUSERBASE", "PYTHONWARNINGS")
 INSTALL = "C:\\Users\\u\\AppData\\Local\\EGM Downloader"
 
 
@@ -113,8 +121,8 @@ def test_the_bundled_python_sees_only_its_own_packages(tmp_path):
     assert env["EGM_INSTALL_DIR"] == INSTALL
     assert env["PATH"] == "C:\\Windows"
     upper = [k.upper() for k in env]
-    assert "PYTHONHOME" not in upper and "PYTHONPATH" not in upper
-    assert upper.count("PYTHONNOUSERSITE") == 1 and upper.count("EGM_INSTALL_DIR") == 1
+    assert [k for k in upper if k.startswith("PYTHON")] == ["PYTHONNOUSERSITE"], upper
+    assert upper.count("EGM_INSTALL_DIR") == 1
 
 
 def test_packaged_only_the_bundled_python_is_tried_and_runs_the_app_from_resources(tmp_path):
@@ -124,10 +132,10 @@ def test_packaged_only_the_bundled_python_is_tried_and_runs_the_app_from_resourc
     assert out["probes"][0]["env"]["PYTHONNOUSERSITE"] == "1" and "PYTHONHOME" not in out["probes"][0]["env"]
     (proc,) = out["spawned"]
     assert proc["cmd"] == bundled
-    assert proc["args"] == [INSTALL + "\\resources\\app\\app.py"]
+    assert proc["args"] == ["-E", "-s", INSTALL + "\\resources\\app\\app.py"]
     assert proc["cwd"] == INSTALL
     assert proc["env"]["EGM_INSTALL_DIR"] == INSTALL and proc["env"]["PYTHONNOUSERSITE"] == "1"
-    assert "PythonHome" not in proc["env"] and "PYTHONPATH" not in proc["env"]
+    assert [k for k in proc["env"] if k.upper().startswith("PYTHON")] == ["PYTHONNOUSERSITE"], proc["env"]
 
 
 def test_packaged_without_its_python_nothing_else_is_started(tmp_path):
@@ -141,6 +149,7 @@ def test_started_by_the_launcher_no_install_folder_reaches_app_py(tmp_path):
     assert proc["args"] == ["C:\\EGM\\app.py"] and proc["cwd"] == "C:\\EGM"
     assert "EGM_INSTALL_DIR" not in proc["env"]
     assert proc["env"]["PythonHome"] == "C:\\Python311", "the launcher's Python keeps the user's environment"
+    assert all(k in {n.upper() for n in proc["env"]} for k in OTHER_PYTHON_VARS)
 
 
 # ── the portable marker, packaged ─────────────────────────────────────────────
