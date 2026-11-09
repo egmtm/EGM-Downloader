@@ -58,6 +58,13 @@ def _is_url_call(node):
             and isinstance(node.func.value, ast.Call) and _name(node.func.value.func) == "build_opener")
 
 
+def _nearest(assigned, name, line):
+    """Whether the last assignment to name before line (the one that reaches the call) is a Request
+    with the agent. A second request in the same function is judged by its own assignment."""
+    before = [a for a in assigned if a[1] == name and a[0] < line]
+    return bool(before) and max(before)[2]
+
+
 def _requests_without_agent(src):
     """(function, line) of every urllib call in src whose request carries no EGM-Downloader agent."""
     tree = ast.parse(src)
@@ -65,12 +72,13 @@ def _requests_without_agent(src):
     for fn in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
         if fn.name == "_safe_urlopen":
             continue                                   # the wrapper passes on what its callers give it
-        bound = {t.id for n in ast.walk(fn) if isinstance(n, ast.Assign) and _is_request_with_agent(n.value, fn.name)
-                 for t in n.targets if isinstance(t, ast.Name)}
+        # Every assignment to a name in this function: (line, name, whether it is a Request with the agent).
+        assigned = [(n.lineno, t.id, _is_request_with_agent(n.value, fn.name)) for n in ast.walk(fn)
+                    if isinstance(n, ast.Assign) for t in n.targets if isinstance(t, ast.Name)]
         for call in [n for n in ast.walk(fn) if _is_url_call(n)]:
             seen += 1
             arg = call.args[0] if call.args else None
-            ok = _is_request_with_agent(arg, fn.name) or (isinstance(arg, ast.Name) and arg.id in bound)
+            ok = _is_request_with_agent(arg, fn.name) or (isinstance(arg, ast.Name) and _nearest(assigned, arg.id, call.lineno))
             if not ok:
                 found.append((fn.name, call.lineno))
     return found, seen
@@ -81,6 +89,19 @@ def test_every_backend_request_carries_the_agent(rel):
     found, seen = _requests_without_agent(read_source(rel))
     assert seen >= 8, f"{rel}: only {seen} urllib calls found, the scan is looking at the wrong thing"
     assert found == [], f"{rel}: requests without the agent: {found}"
+
+
+def test_a_second_request_in_the_same_function_is_judged_by_its_own_assignment():
+    src = (
+        "def update():\n"
+        "    req = urllib.request.Request(a, headers={'User-Agent': 'EGM-Downloader'})\n"
+        "    with _safe_urlopen(req, 5) as r: pass\n"
+        "    req = urllib.request.Request(b)\n"
+        "    with _safe_urlopen(req, 5) as r: pass\n"
+        "    req = urllib.request.Request(c, headers={'User-Agent': 'EGM-Downloader'})\n"
+        "    urllib.request.urlopen(req)\n"
+    )
+    assert _requests_without_agent(src) == ([("update", 5)], 3)
 
 
 @pytest.mark.parametrize("rel", APP_FILES)
