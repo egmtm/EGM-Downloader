@@ -24,6 +24,7 @@ import json
 import re
 import subprocess
 import time
+import urllib.parse
 from pathlib import Path
 
 import pytest
@@ -199,10 +200,19 @@ def test_a_body_over_the_cap_sent_without_a_length_is_refused_too(backend, tmp_p
 
 @pytest.mark.parametrize("name", ["ABCDEF", "..", "x.jpg", "3f2c1a9e%2F..%2Fcookies", "a" * 65, "%2e%2e", "-" * 70])
 def test_a_bad_name_writes_nothing_anywhere(backend, tmp_path, name):
+    """A name that is not an entry id is refused by the route's own rule, whatever the wait list holds:
+    the name is planted there (the shape a lookup of the raw and the decoded path would find), so a
+    route that only looked the name up would answer the GET with 200 and fail here. The GET comes
+    first: a POST that reached the lookup would take the planted name out of the list (the store
+    refuses it again by the name rule), and a GET after it could not tell."""
     _finish(backend, tmp_path)
+    planted = {name, urllib.parse.unquote(name)}
+    for key in planted:
+        backend._thumb_pending[key] = ("https://cdn.example/vi/x/hq.jpg", UA)
     c = backend.app.test_client()
-    assert c.post(f"/api/history/{name}/thumbnail", data=JPEG, headers=_token(backend)).status_code == 404
     assert c.get(f"/api/history/{name}/thumbnail", headers=_token(backend)).status_code == 404
+    assert c.post(f"/api/history/{name}/thumbnail", data=JPEG, headers=_token(backend)).status_code == 404
+    assert planted <= set(backend._thumb_pending), "the route touched the wait list before the name rule"
     assert list(backend.THUMBNAILS_DIR.iterdir()) == []
     assert sorted(p.name for p in backend.THUMBNAILS_DIR.parent.iterdir()) == ["egm_history.json", "thumbnails"]
 

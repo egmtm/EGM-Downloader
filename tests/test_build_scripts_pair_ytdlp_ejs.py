@@ -96,7 +96,7 @@ def test_the_version_yt_dlp_names_is_installed_with_the_bundled_python(rel, tmp_
     assert r.returncode == 0 and "BUILD-GOES-ON" in r.stdout, r.stderr[-800:]
     assert [c.split("|")[0] for c in calls] == ["read", "pip"], "read the pin first, then install"
     (cmd,) = _installs(calls)
-    assert cmd.endswith("-m pip install --quiet yt-dlp-ejs==0.8.0") or "yt-dlp-ejs==0.8.0" in cmd.split()
+    assert "yt-dlp-ejs==0.8.0" in cmd.split(), cmd
     assert "0.8.0" in r.stdout, "the build log says which version was paired"
 
 

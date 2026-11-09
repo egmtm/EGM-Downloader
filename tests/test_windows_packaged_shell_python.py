@@ -86,7 +86,8 @@ def _run(tmp_path, scenario):
 USER_ENV = {"PATH": "C:\\Windows", "PythonHome": "C:\\Python311", "PYTHONPATH": "C:\\mine",
             "pythonnousersite": "0", "EGM_INSTALL_DIR": "C:\\elsewhere",
             "PYTHONSTARTUP": "C:\\mine\\start.py", "PythonUtf8": "0", "PYTHONINSPECT": "1",
-            "PYTHONSAFEPATH": "0", "PYTHONUSERBASE": "C:\\mine\\base", "PYTHONWARNINGS": "error"}
+            "PYTHONSAFEPATH": "0", "PYTHONUSERBASE": "C:\\mine\\base", "PYTHONWARNINGS": "error",
+            "egm_install_dir": "C:\\another"}   # a second spelling: Windows names are not case sensitive
 OTHER_PYTHON_VARS = ("PYTHONHOME", "PYTHONPATH", "PYTHONSTARTUP", "PYTHONUTF8", "PYTHONINSPECT",
                      "PYTHONSAFEPATH", "PYTHONUSERBASE", "PYTHONWARNINGS")
 INSTALL = "C:\\Users\\u\\AppData\\Local\\EGM Downloader"
