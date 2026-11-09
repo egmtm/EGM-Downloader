@@ -321,7 +321,7 @@ def test_ejs_remote_components_in_download_path():
     to the info path on all 3 but to the download path on Windows only."""
     for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
         source = read_source(path)
-        m = re.search(r'cmd = \[sys\.executable, "-m", "yt_dlp".*?\] \+ ', source)
+        m = re.search(r'cmd = \[(?:sys\.executable|\*_PY_CMD), "-m", "yt_dlp".*?\] \+ ', source)
         assert m, f"{name}/app.py: run_download cmd line not found"
         assert "ejs:github" in m.group(0), (
             f"{name}/app.py: run_download missing --remote-components ejs:github "
