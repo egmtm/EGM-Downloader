@@ -16,8 +16,10 @@ The file's licence texts are copied from authoritative sources. Where the long t
 Ubuntu). Information that could not be confirmed is marked "[GAP n: ...]"; GAPS lists the ones the
 session 6 report names, so a new gap, or a filled one, shows here.
 """
-import json
+import os
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 import pytest
@@ -101,3 +103,57 @@ def test_the_versions_named_are_the_ones_the_windows_installer_ships(package, ho
     notices with it (curl_cffi decides which libcurl-impersonate, and so which libraries, ship)."""
     assert how.format(_lock_version(package)) in _text(), \
         f"THIRD_PARTY_NOTICES.txt does not name {package} {_lock_version(package)}, the version the lock installs"
+
+
+# ── Windows installer: the install root ──────────────────────────────────────────────────────
+
+BUILD_FOLDER = "windows/installer/build-folder.sh"
+INSTALLER = Path(ROOT) / "windows" / "installer"
+
+
+def _copy_lines():
+    """The lines of build-folder.sh that put the notices into the folder, checked to come after the
+    folder is in place and before its manifest is written (the manifest is what --continue packages)."""
+    lines = read_source(BUILD_FOLDER).splitlines()
+    placed = next(i for i, line in enumerate(lines) if line.startswith("mv ") and line.rstrip().endswith('"$OUT"'))
+    manifest = next(i for i, line in enumerate(lines) if 'folder_manifest.py" write' in line)
+    copies = [i for i, line in enumerate(lines) if "THIRD_PARTY_NOTICES.txt" in line and not line.lstrip().startswith("#")]
+    assert copies, f"{BUILD_FOLDER} does not copy THIRD_PARTY_NOTICES.txt into the folder"
+    assert all(placed < i < manifest for i in copies), "the notices are copied before the folder exists or after its manifest"
+    return "\n".join(lines[i] for i in copies)
+
+
+def _stand_in_folder(tmp_path):
+    out = tmp_path / "win-unpacked"
+    (out / "resources").mkdir(parents=True)
+    for rel in ("EGM Downloader.exe", "LICENSE.electron.txt", "LICENSES.chromium.html", "resources/app.asar"):
+        (out / rel).write_bytes(b"x")
+    return out
+
+
+def test_the_windows_installer_folder_gets_the_notices_at_its_root(tmp_path):
+    out = _stand_in_folder(tmp_path)
+    r = subprocess.run(["bash", "-ec", _copy_lines()], env=dict(os.environ, REPO_ROOT=str(ROOT), OUT=str(out)),
+                       capture_output=True, text=True, timeout=30)
+    assert r.returncode == 0, r.stderr
+    assert (out / "THIRD_PARTY_NOTICES.txt").read_bytes() == NOTICES.read_bytes()
+    # what derives from the folder takes it along: the uninstaller's list and the folder manifest
+    nsh = tmp_path / "files.nsh"
+    subprocess.run([sys.executable, str(INSTALLER / "uninstall_list.py"), str(out), str(nsh)], check=True, capture_output=True)
+    assert 'Delete "$INSTDIR\\THIRD_PARTY_NOTICES.txt"' in nsh.read_text(encoding="utf-8")
+    man = tmp_path / "win-unpacked.sha256"
+    subprocess.run([sys.executable, str(INSTALLER / "folder_manifest.py"), "write", str(out), str(man)], check=True, capture_output=True)
+    assert "THIRD_PARTY_NOTICES.txt" in man.read_text(encoding="utf-8")
+
+
+def test_the_portable_edition_is_unchanged():
+    """windows/app-files.txt feeds the portable zip too; the notices are not in it (the portable zip
+    carries no third party package: its launcher installs them with pip on the user's machine)."""
+    assert "THIRD_PARTY_NOTICES.txt" not in read_source("windows/app-files.txt")
+
+
+def test_the_built_installer_folder_has_the_notices_if_built():
+    folder = Path(ROOT) / "dist" / "win-unpacked"
+    if not folder.is_dir():
+        pytest.skip("dist/win-unpacked is not built")
+    assert (folder / "THIRD_PARTY_NOTICES.txt").read_bytes() == NOTICES.read_bytes()

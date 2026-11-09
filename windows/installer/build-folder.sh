@@ -4,6 +4,7 @@
 #
 # Produces dist/win-unpacked:
 #   EGM Downloader.exe      Electron (renamed, icon and version strings set), NOT signed yet
+#   THIRD_PARTY_NOTICES.txt the notices the bundled parts do not carry themselves, beside Electron's
 #   resources/app.asar      main.js, preload.js, splash.html
 #   resources/app/          the app files listed in windows/app-files.txt
 #   resources/python/       CPython (python-build-standalone) with the packages of
@@ -151,6 +152,9 @@ ELECTRON_SKIP_BINARY_DOWNLOAD=1 npm ci --no-audit --no-fund --ignore-scripts --l
 python3 "$SCRIPT_DIR/stage_package.py" --electron-checksum "$STAGE/electron"
 npx --no-install electron-builder --win dir --x64 --publish never
 mv "$STAGE/electron/out/win-unpacked" "$OUT"
+# Beside Electron's LICENSE.electron.txt and LICENSES.chromium.html: the installer, its uninstall list
+# and the folder manifest below take every top level file of the folder.
+cp "$REPO_ROOT/THIRD_PARTY_NOTICES.txt" "$OUT/"
 
 echo "🏷  Exe version strings..."
 node "$SCRIPT_DIR/exe_strings.js" "$STAGE/electron" "$OUT/EGM Downloader.exe" "$VERSION" "$BUILD_NUM"
