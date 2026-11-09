@@ -94,7 +94,14 @@ function showUpdateAvailableModal(d) {
   // "Update Now" — platform-aware
   const _updPlat = window.electronAPI?.platform || 'web';
   if (_updPlat === 'win' && d.zip_url) {
-    // Windows: silent download + launch installer
+    // Windows: Update Now downloads and launches the installer. The download size from the signed
+    // feed shows first, and is sent along: the backend stops the download there.
+    if (Number.isInteger(d.size_bytes) && d.size_bytes > 0) {
+      const size = document.createElement('div');
+      size.className = 'upd-ver-row';
+      size.textContent = i18nFmt('update.available.size', _fmtSize(d.size_bytes)) || `Download size: ${_fmtSize(d.size_bytes)}`;
+      backdrop.querySelector('#_upd_notes_slot').before(size);
+    }
     const btnUpdate = document.createElement('button');
     btnUpdate.className = 'btn btn-primary';
     btnUpdate.textContent = i18nGet('update.available.btn.update') || '⬇ Update Now';
@@ -105,7 +112,8 @@ function showUpdateAvailableModal(d) {
         const dl = await fetch('/api/download-update', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
+          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || ''),
+                                 expected_size: d.size_bytes, latest_build: d.latest_build }),
         }).then(r => r.json());
         if (dl.error) { toast(dl.error, 'err'); backdrop.remove(); return; }
         toast(i18nGet('toast.installer.launching') || 'Launching installer…', 'ok');
@@ -290,7 +298,7 @@ async function _qodStep() {
   } finally { _qodBusy = false; }
 }
 
-// ── Auto-check for updates on launch (silent — only acts if update found) ─────
+// ── Auto-check for updates on launch (silent — only shows a toast if an update is found) ──
 let _autoUpdateCheckRan = false;
 async function checkForUpdatesOnLaunch() {
   if (_autoUpdateCheckRan) return;
@@ -304,25 +312,14 @@ async function checkForUpdatesOnLaunch() {
     const _plat = window.electronAPI?.platform || 'web';
 
     if (_plat === 'win' && d.zip_url) {
-      // Windows: silent background download → restart toast
-      try {
-        const dl = await fetch('/api/download-update', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ zip_url: d.zip_url, expected_checksum: (d._checksums?.sha256 || '') }),
-        }).then(r => r.json());
-        if (dl.error) return; // silent fail
-        const installerPath = dl.installer_path;
-        toastWithAction(
-          i18nFmt('update.toast.downloaded', d.latest_version) || `Update downloaded — restart to apply v${d.latest_version}`,
-          i18nGet('update.toast.btn.restart') || 'Restart now',
-          async () => {
-            const launch = await window.electronAPI.launchInstaller(installerPath);
-            if (!launch.error && !launch.cancelled) setTimeout(() => window.electronAPI.quit(), 800);
-          },
-          8000
-        );
-      } catch { /* silent */ }
+      // Windows: ask first, as on Mac and Linux. The toast's button opens the update dialog, which
+      // shows the download size; its Update Now is the consent. Nothing is downloaded before that.
+      toastWithAction(
+        i18nFmt('update.toast.available', d.latest_version) || `v${d.latest_version} is available — download to update`,
+        i18nGet('update.toast.btn.download') || 'Download',
+        () => showUpdateAvailableModal(d),
+        10000
+      );
 
     } else if (_plat === 'mac') {
       // Mac: open download page in browser, show toast — user installs manually

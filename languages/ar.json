@@ -302,6 +302,7 @@
     "update.available.btn.update": "⬇ تحديث الآن",
     "update.available.btn.download": "⬇ تحميل التحديث",
     "update.available.btn.later": "لاحقاً",
+    "update.available.size": "Download size: {0}",
     "update.uptodate.btn.close": "إغلاق",
     "update.error.btn.close": "إغلاق",
     "update.toast.downloaded": "تم تحميل التحديث — أعد التشغيل لتطبيق v{0}",

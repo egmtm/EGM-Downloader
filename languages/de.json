@@ -302,6 +302,7 @@
     "update.available.btn.update": "⬇ Jetzt aktualisieren",
     "update.available.btn.download": "⬇ Update herunterladen",
     "update.available.btn.later": "Später",
+    "update.available.size": "Download size: {0}",
     "update.uptodate.btn.close": "Schließen",
     "update.error.btn.close": "Schließen",
     "update.toast.downloaded": "Update heruntergeladen — neu starten, um v{0} anzuwenden",

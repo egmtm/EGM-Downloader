@@ -302,6 +302,7 @@
     "update.available.btn.update": "⬇ Nu bijwerken",
     "update.available.btn.download": "⬇ Update downloaden",
     "update.available.btn.later": "Later",
+    "update.available.size": "Download size: {0}",
     "update.uptodate.btn.close": "Sluiten",
     "update.error.btn.close": "Sluiten",
     "update.toast.downloaded": "Update gedownload — herstart om v{0} toe te passen",

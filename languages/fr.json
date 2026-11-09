@@ -302,6 +302,7 @@
     "update.available.btn.update": "⬇ Mettre à jour maintenant",
     "update.available.btn.download": "⬇ Télécharger la mise à jour",
     "update.available.btn.later": "Plus tard",
+    "update.available.size": "Download size: {0}",
     "update.uptodate.btn.close": "Fermer",
     "update.error.btn.close": "Fermer",
     "update.toast.downloaded": "Mise à jour téléchargée — redémarrez pour appliquer v{0}",

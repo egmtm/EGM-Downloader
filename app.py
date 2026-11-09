@@ -3516,6 +3516,10 @@ def check_app_update():
         # feed served again (lower build) is never an update, and a rebuild of the same
         # version (higher build) still is. A missing build reads as 0: not an update.
         up_to_date   = latest_build <= APP_BUILD
+        # The download size from the signed feed, for the dialog to show before Update Now; only a
+        # positive whole number is passed on.
+        size_bytes   = data.get("size_bytes")
+        size_ok      = isinstance(size_bytes, int) and not isinstance(size_bytes, bool) and size_bytes > 0
         return jsonify({
             "up_to_date":      up_to_date,
             "current_version": APP_VERSION,
@@ -3526,6 +3530,7 @@ def check_app_update():
             "download":        download,
             "zip_url":         zip_url,
             "_checksums":      data.get("_checksums"),
+            **({"size_bytes": size_bytes} if size_ok else {}),
         })
     except urllib.error.URLError:
         return jsonify({"error": "Could not reach update server"}), 503

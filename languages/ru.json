@@ -302,6 +302,7 @@
     "update.available.btn.update": "⬇ Обновить сейчас",
     "update.available.btn.download": "⬇ Скачать обновление",
     "update.available.btn.later": "Позже",
+    "update.available.size": "Download size: {0}",
     "update.uptodate.btn.close": "Закрыть",
     "update.error.btn.close": "Закрыть",
     "update.toast.downloaded": "Обновление загружено — перезапустите для применения v{0}",

@@ -302,6 +302,7 @@
     "update.available.btn.update": "⬇ Update Now",
     "update.available.btn.download": "⬇ Download Update",
     "update.available.btn.later": "Later",
+    "update.available.size": "Download size: {0}",
     "update.uptodate.btn.close": "Close",
     "update.error.btn.close": "Close",
     "update.toast.downloaded": "Update downloaded — restart to apply v{0}",
