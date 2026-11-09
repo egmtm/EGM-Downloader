@@ -305,8 +305,6 @@
     "update.available.size": "Download size: {0}",
     "update.uptodate.btn.close": "Close",
     "update.error.btn.close": "Close",
-    "update.toast.downloaded": "Update downloaded — restart to apply v{0}",
-    "update.toast.btn.restart": "Restart now",
     "update.toast.available": "v{0} is available — download to update",
     "update.toast.btn.download": "Download",
     "whatsnew.title": "🎉 What's New in {0}",
