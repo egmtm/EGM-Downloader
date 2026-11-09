@@ -274,6 +274,28 @@ LangString EGM_APP_RUNNING ${LANG_DUTCH} "EGM Downloader wordt momenteel uitgevo
 LangString EGM_APP_RUNNING ${LANG_PORTUGUESEBR} "O EGM Downloader está em execução no momento.$\r$\nFeche-o antes de continuar, ou deixe o instalador fechá-lo para você.$\r$\nOK → Fechar para mim$\r$\nCancelar → Cancelar instalação"
 LangString EGM_APP_RUNNING ${LANG_RUSSIAN} "EGM Downloader сейчас запущен.$\r$\nЗакройте его перед продолжением или позвольте установщику закрыть его за вас.$\r$\nОК → Закрыть за меня$\r$\nОтмена → Отменить установку"
 
+LangString EGM_APP_STILL_RUNNING ${LANG_ENGLISH} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_ARABIC} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_GERMAN} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_SPANISH} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_FRENCH} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_ITALIAN} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_JAPANESE} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_DUTCH} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_PORTUGUESEBR} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+LangString EGM_APP_STILL_RUNNING ${LANG_RUSSIAN} "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again."
+
+LangString EGM_INSTALL_CANCELLED ${LANG_ENGLISH} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_ARABIC} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_GERMAN} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_SPANISH} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_FRENCH} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_ITALIAN} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_JAPANESE} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_DUTCH} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_PORTUGUESEBR} "Installation cancelled — please close ${APPNAME} and run the installer again."
+LangString EGM_INSTALL_CANCELLED ${LANG_RUSSIAN} "Installation cancelled — please close ${APPNAME} and run the installer again."
+
 LangString EGM_UN_APP_RUNNING ${LANG_ENGLISH} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
 LangString EGM_UN_APP_RUNNING ${LANG_ARABIC} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
 LangString EGM_UN_APP_RUNNING ${LANG_GERMAN} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
@@ -504,7 +526,7 @@ Section "Install" SecInstall
     MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION \
       "$(EGM_APP_RUNNING)" \
       /SD IDOK IDOK kill_running
-    Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
+    Abort "$(EGM_INSTALL_CANCELLED)"
     kill_running:
       ; By process id, so only this folder's processes; /T also takes the processes they started.
       nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T $1'
@@ -513,10 +535,8 @@ Section "Install" SecInstall
       ; Check again: if it still runs, stop here, before anything is deleted or copied.
       Call EGM_FindRunning
       ${If} $0 > 0
-        MessageBox MB_OK|MB_ICONSTOP \
-          "${APPNAME} is still running and could not be closed.$\r$\nNothing was changed. Quit it from the tray icon (or end it in Task Manager), then run the installer again." \
-          /SD IDOK
-        Abort "Installation cancelled — please close ${APPNAME} and run the installer again."
+        MessageBox MB_OK|MB_ICONSTOP "$(EGM_APP_STILL_RUNNING)" /SD IDOK
+        Abort "$(EGM_INSTALL_CANCELLED)"
       ${EndIf}
   ${EndIf}
 
