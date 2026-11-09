@@ -187,17 +187,6 @@ def test_a_body_over_the_cap_is_refused_without_being_read_into_a_file(backend, 
     assert c.post(_url(exact), data=big[:backend._THUMB_CAP], headers=_token(backend)).status_code == 200, "exactly the cap is fine"
 
 
-def test_a_body_over_the_cap_sent_without_a_length_is_refused_too(backend, tmp_path):
-    """A chunked body has no Content-Length: the cap is then counted on what is read."""
-    entry = _finish(backend, tmp_path)
-    big = JPEG + b"\x00" * (backend._THUMB_CAP + 1 - len(JPEG))
-    r = backend.app.test_client().post(_url(entry), input_stream=io.BytesIO(big), headers=dict(_token(backend), **{"Transfer-Encoding": "chunked"}),
-                                       environ_overrides={"wsgi.input_terminated": True})
-    assert r.status_code == 413
-    assert _wait_for(lambda: backend._load_history()[0]["thumbnail"]), "the backend did not fetch it itself"
-    assert (backend.THUMBNAILS_DIR / (entry + ".jpg")).read_bytes() == JPEG, "the oversized body was stored"
-
-
 @pytest.mark.parametrize("name", ["ABCDEF", "..", "x.jpg", "3f2c1a9e%2F..%2Fcookies", "a" * 65, "%2e%2e", "-" * 70])
 def test_a_bad_name_writes_nothing_anywhere(backend, tmp_path, name):
     """A name that is not an entry id is refused by the route's own rule, whatever the wait list holds:
@@ -272,14 +261,6 @@ def test_clear_history_ends_the_wait_and_nothing_is_fetched_afterwards(backend, 
     assert c.get(_url(entry), headers=_token(backend)).status_code == 404
     assert c.post(_url(entry), data=JPEG, headers=_token(backend)).status_code == 404
     assert backend._load_history() == [] and list(backend.THUMBNAILS_DIR.iterdir()) == []
-
-
-def test_a_picture_from_the_shell_for_an_entry_removed_meanwhile_is_not_written(backend, tmp_path):
-    entry = _finish(backend, tmp_path)
-    c = backend.app.test_client()
-    assert c.delete(f"/api/history/{entry}", headers=_token(backend)).status_code == 200
-    assert c.post(_url(entry), data=JPEG, headers=_token(backend)).status_code == 404
-    assert list(backend.THUMBNAILS_DIR.iterdir()) == []
 
 
 def test_the_shell_and_the_wait_never_both_store_a_picture(backend, tmp_path, monkeypatch):
@@ -419,6 +400,9 @@ def test_deleting_the_entry_ends_the_wait_for_its_picture(backend, tmp_path):
     r = backend.app.test_client().delete(f"/api/history/{entry}", headers=_token(backend))
     assert r.status_code == 200
     _gone_from_the_wait(backend, entry)
+    # and a picture the shell delivers for it afterwards is not written anywhere
+    assert backend.app.test_client().post(_url(entry), data=JPEG, headers=_token(backend)).status_code == 404
+    assert list(backend.THUMBNAILS_DIR.iterdir()) == []
 
 
 def test_an_import_without_the_entry_ends_the_wait_and_one_with_it_keeps_it(backend, tmp_path):

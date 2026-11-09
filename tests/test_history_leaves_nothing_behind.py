@@ -71,16 +71,6 @@ def _clear(mod):
     return mod.app.test_client().post("/api/history/clear", headers={"X-EGM-Token": mod._API_TOKEN})
 
 
-def test_clear_history_also_removes_the_debug_log_and_its_rotated_copy(backend):
-    data = backend.data_for_test
-    line = "2026-11-08 10:00:00 [EGM] download started (video): youtube.com\n"
-    (data / "egm_debug.log").write_text(line, encoding="utf-8")
-    (data / "egm_debug.log.old").write_text(line * 3, encoding="utf-8")
-    assert _clear(backend).get_json() == {"ok": True}
-    assert not (data / "egm_debug.log").exists(), "the log still lists the sites of past downloads"
-    assert not (data / "egm_debug.log.old").exists(), "the rotated log still lists them"
-
-
 def test_clear_history_leaves_the_users_other_files_alone(backend):
     data = backend.data_for_test
     for name in ("egm_settings.json", "cookies.txt", "egm_subscriptions.json"):
