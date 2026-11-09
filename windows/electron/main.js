@@ -553,7 +553,9 @@ async function startFlask() {
     if (!app.isQuitting) {
       app.isQuitting = true;
       dropSplash();
-      dialog.showErrorBox('EGM Downloader — Startup error',
+      // Packaged, the spawn of the bundled Python itself failed (removed or blocked after findPython).
+      if (PACKAGED) dialog.showErrorBox(...BUNDLED_PYTHON_BOX);
+      else dialog.showErrorBox('EGM Downloader — Startup error',
         `Failed to start backend:\n${err.message}`);
       app.quit();
     }

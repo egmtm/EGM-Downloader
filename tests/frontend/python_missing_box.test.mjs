@@ -107,3 +107,34 @@ test("the backend counts as answered once waitForFlask has let the page load", (
   assert.match(m[0], /await waitForFlask\(\);\n\s*backendAnswered = true;/);
   assert.match(src, /\nlet backendAnswered = false;/);
 });
+
+// The bundled Python that cannot even be started (the spawn itself fails: the file is gone or not
+// runnable after findPython found it) gives the same reinstall box, packaged, after the splash is gone.
+// Started by the launcher, the box keeps the raw message.
+function errorHandler(packaged, quitting = false) {
+  const error = /  flaskProc\.on\('error'[\s\S]*?\n  \}\);\n/.exec(src);
+  const drop = /\nfunction dropSplash\(\) \{[\s\S]*?\n\}\n/.exec(src);
+  const box = /\nconst BUNDLED_PYTHON_BOX = \[[\s\S]*?\];\n/.exec(src);
+  assert.ok(error && drop, "error handler and dropSplash found");
+  const order = [];
+  const ctx = {
+    flaskProc: new EventEmitter(), PACKAGED: packaged,
+    splashWindow: { isDestroyed: () => false, destroy: () => order.push("splash destroyed") },
+    app: { isQuitting: quitting, quit: () => order.push("quit") },
+    dialog: { showErrorBox: (title, msg) => order.push({ title, msg }) },
+  };
+  vm.runInNewContext((box ? box[0] : "") + drop[0] + error[0], ctx);
+  ctx.flaskProc.emit("error", new Error("spawn C:\\EGM\\resources\\python\\python.exe EACCES"));
+  return order;
+}
+
+test("packaged: a Python that cannot be spawned shows the reinstall box, after the splash", async () => {
+  const { title, msg } = await noPython(true);
+  assert.deepEqual(errorHandler(true), ["splash destroyed", { title, msg }, "quit"]);
+});
+
+test("started by the launcher: a spawn error keeps the raw message", () => {
+  assert.deepEqual(errorHandler(false), ["splash destroyed",
+    { title: "EGM Downloader — Startup error", msg: "Failed to start backend:\nspawn C:\\EGM\\resources\\python\\python.exe EACCES" }, "quit"]);
+  assert.deepEqual(errorHandler(true, true), [], "an error while quitting shows nothing");
+});
