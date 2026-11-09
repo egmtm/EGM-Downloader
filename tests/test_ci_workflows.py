@@ -33,6 +33,17 @@ def test_the_tests_job_runs_on_the_shipped_python_and_the_next_one():
     assert 'python-version: ${{ matrix.python-version }}' in _step(text, "Set up Python")
 
 
+def test_the_tests_job_installs_the_yt_dlp_pair_of_the_windows_lock():
+    """Three tests run the real yt-dlp and yt-dlp-ejs (the user's config, the agent yt-dlp sends, the
+    ejs notices against the package header) and skip when they are not installed, which was every
+    CI run. CI installs the versions the Windows installer ships, so moving the lock moves CI."""
+    lock = read_source("windows/requirements-win-lock.txt")
+    step = _step(read_source(".github/workflows/tests.yml"), "Install dependencies")
+    for name in ("yt-dlp", "yt-dlp-ejs"):
+        locked = re.search(rf"^{re.escape(name)}==([0-9][0-9A-Za-z.]*)\b", lock, re.M).group(1)
+        assert re.search(rf"\s{re.escape(name)}=={re.escape(locked)}(\s|$)", step), f"{name}=={locked} is not installed by the Tests job"
+
+
 def test_the_lint_and_the_validator_run_on_the_shipped_python():
     for rel in (".github/workflows/lint-python.yml", ".github/workflows/validate-version.yml"):
         text = read_source(rel)
