@@ -148,7 +148,8 @@ def test_a_non_text_value_where_text_is_expected_is_a_bad_request(api):
         ("/api/subscriptions/remove", {"id": sid}, "id"),
     ]
     if hasattr(api.mod, "UPDATE_TMP_DIR"):
-        cases += [("/api/download-update", {"zip_url": "https://egerena.com/a.zip", "expected_checksum": "ab" * 32}, k)
+        cases += [("/api/download-update", {"zip_url": "https://egerena.com/a.zip", "expected_checksum": "ab" * 32,
+                                            "expected_size": 1000}, k)
                   for k in ("zip_url", "expected_checksum")]
     errors = {}
     for path, base, key in cases:

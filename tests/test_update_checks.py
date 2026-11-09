@@ -172,7 +172,6 @@ def _member(mod):
 
 
 def test_a_download_with_the_wrong_checksum_is_refused_and_removed(updater, monkeypatch):
-    import hashlib
     data = _update_zip(_member(updater))
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: _Resp(data))
     r = _client_post(updater, "/api/download-update",
@@ -180,7 +179,6 @@ def test_a_download_with_the_wrong_checksum_is_refused_and_removed(updater, monk
     assert r.status_code >= 400 and "Checksum" in r.get_json()["error"]
     left = list(updater.UPDATE_TMP_DIR.iterdir()) if updater.UPDATE_TMP_DIR.exists() else []
     assert left == [], left
-    assert hashlib.sha256(data).hexdigest() != "00" * 32
 
 
 def test_an_address_outside_the_release_host_is_refused_before_any_fetch(updater, monkeypatch):
@@ -188,8 +186,11 @@ def test_an_address_outside_the_release_host_is_refused_before_any_fetch(updater
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: fetched.append(req) or _Resp(b""))
     for url in ("https://example.invalid/x.zip", "http://egerena.com/apps/x.zip",
                 "https://egerena.com.example.invalid/x.zip"):
-        r = _client_post(updater, "/api/download-update", {"zip_url": url, "expected_checksum": "ab" * 32})
+        # The size too: on the Windows backend the size check comes first, and a body without one was
+        # refused for that reason alone, so the host guard was never reached by this test.
+        r = _client_post(updater, "/api/download-update", {"zip_url": url, "expected_checksum": "ab" * 32, "expected_size": 1000})
         assert r.status_code == 400, url
+        assert "size" not in r.get_json()["error"].lower(), (url, r.get_json())
     assert fetched == []
 
 
