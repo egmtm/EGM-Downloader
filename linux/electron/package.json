@@ -93,6 +93,10 @@
       {
         "from": "../../static/icon-512.png",
         "to": "usr/share/icons/hicolor/512x512/apps/egm-downloader.png"
+      },
+      {
+        "from": "../../THIRD_PARTY_NOTICES.txt",
+        "to": "THIRD_PARTY_NOTICES.txt"
       }
     ]
   }

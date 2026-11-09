@@ -16,6 +16,7 @@ The file's licence texts are copied from authoritative sources. Where the long t
 Ubuntu). Information that could not be confirmed is marked "[GAP n: ...]"; GAPS lists the ones the
 session 6 report names, so a new gap, or a filled one, shows here.
 """
+import json
 import os
 import re
 import subprocess
@@ -157,3 +158,22 @@ def test_the_built_installer_folder_has_the_notices_if_built():
     if not folder.is_dir():
         pytest.skip("dist/win-unpacked is not built")
     assert (folder / "THIRD_PARTY_NOTICES.txt").read_bytes() == NOTICES.read_bytes()
+
+
+# ── macOS and Linux: inside the app, beside Electron's notices ───────────────────────────────
+
+# macOS: extraResources lands in Contents/Resources, where electron-builder moves LICENSE.electron.txt
+# and LICENSES.chromium.html (they would sit outside the .app otherwise). Linux: extraFiles lands in
+# the app root, beside LICENSE.electron.txt, which is the root of the AppImage.
+SHELL_CONFIG = {"mac/electron/package.json": "extraResources", "linux/electron/package.json": "extraFiles"}
+
+
+@pytest.mark.parametrize("rel, key", sorted(SHELL_CONFIG.items()))
+def test_the_mac_and_linux_apps_carry_the_notices_beside_electrons(rel, key):
+    build = json.loads(read_source(rel))["build"]
+    entries = [e for e in build.get(key, []) if isinstance(e, dict) and e.get("from", "").endswith("THIRD_PARTY_NOTICES.txt")]
+    assert len(entries) == 1, f"{rel}: build.{key} has no single entry for THIRD_PARTY_NOTICES.txt"
+    (entry,) = entries
+    assert entry["to"] == "THIRD_PARTY_NOTICES.txt" and "filter" not in entry, entry
+    assert (Path(ROOT) / rel).parent.joinpath(entry["from"]).resolve() == NOTICES.resolve(), \
+        f"{rel}: {entry['from']} is not the repository's notices file"

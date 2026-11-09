@@ -57,6 +57,10 @@
         "filter": [
           "**/*"
         ]
+      },
+      {
+        "from": "../../THIRD_PARTY_NOTICES.txt",
+        "to": "THIRD_PARTY_NOTICES.txt"
       }
     ],
     "mac": {
