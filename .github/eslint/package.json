@@ -1,0 +1,10 @@
+{
+  "name": "egm-downloader-eslint",
+  "private": true,
+  "description": "ESLint and its config packages for the JavaScript lint workflow, pinned to exact versions",
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "eslint": "10.13.0",
+    "globals": "17.13.0"
+  }
+}

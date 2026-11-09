@@ -1,24 +1,25 @@
 name: Lint JavaScript
 
-# POLICY: Informational lint only.
-# ESLint runs with `|| true` so the workflow always succeeds regardless
-# of lint findings. The badge stays green; lint output is advisory and
-# surfaces in the workflow logs for manual review.
-# Decision rationale: solo dev workflow, avoid blocking CI on subjective
-# style preferences. To switch to lint-blocking, remove `|| true` from
-# each eslint command below.
+# ESLint checks the three shells (main.js and preload.js) and the installer's exe_strings.js with the
+# config in .github/eslint: the recommended rules, empty catch blocks allowed, CommonJS with Node's
+# globals. ESLint and its two config packages are pinned to exact versions in .github/eslint's
+# package.json and lock, installed with npm ci. Any finding fails the job.
 
 on:
   push:
     branches: [ main, testing/* ]
     paths:
-      - 'templates/**.html'
       - '**/electron/*.js'
+      - 'windows/installer/exe_strings.js'
+      - '.github/eslint/**'
+      - '.github/workflows/lint-javascript.yml'
   pull_request:
     branches: [ main, testing/* ]
     paths:
-      - 'templates/**.html'
       - '**/electron/*.js'
+      - 'windows/installer/exe_strings.js'
+      - '.github/eslint/**'
+      - '.github/workflows/lint-javascript.yml'
 
 permissions:
   contents: read
@@ -26,27 +27,20 @@ permissions:
 jobs:
   lint:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout code
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      
+
     - name: Set up Node.js
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1  # v7.1.0
       with:
         node-version: '22'
-        
+
     - name: Install ESLint
-      run: |
-        npm install -g eslint
-        
+      working-directory: .github/eslint
+      run: npm ci
+
     - name: Lint Electron JavaScript
       run: |
-        # Lint electron main process files
-        # --quiet suppresses style warnings; only critical errors surface
-        eslint --quiet windows/electron/main.js windows/electron/preload.js || true
-        eslint --quiet mac/electron/main.js mac/electron/preload.js || true
-        eslint --quiet linux/electron/main.js linux/electron/preload.js || true
-        echo ""
-        echo "Note: ESLint suggestions above are informational only"
-        echo "Manual review recommended for HTML-embedded JavaScript"
+        .github/eslint/node_modules/.bin/eslint -c .github/eslint/eslint.config.mjs windows/electron/main.js windows/electron/preload.js mac/electron/main.js mac/electron/preload.js linux/electron/main.js linux/electron/preload.js windows/installer/exe_strings.js

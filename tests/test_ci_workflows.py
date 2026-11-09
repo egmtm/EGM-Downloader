@@ -4,8 +4,18 @@
   on 3.12 only: syntax or library behaviour that 3.12 accepts and 3.11 refuses would pass CI and
   break the shipped app. The Tests job runs on 3.11 and 3.12, the lint and the validator on 3.11.
 
+* The JavaScript lint ran an unpinned ESLint with no config file, which stops at once, and "|| true"
+  hid that: the job was green while checking nothing. It now runs a pinned ESLint with the config in
+  .github/eslint over the six shell files and the installer's exe_strings.js, and a finding fails it.
+* The import order check ran with no config and "|| true". It now runs a pinned isort with the
+  repository's .isort.cfg over the same files as before, and a finding fails it.
+
 Plain text checks: the CI image has no YAML library installed for the tests."""
+import json
+import os
 import re
+
+from conftest import ROOT
 
 from conftest import read_source
 
@@ -49,4 +59,55 @@ def test_the_validator_workflow_runs_when_a_file_it_checks_changes():
     but its path filter did not list them, so a change there never ran it on its own push."""
     text = read_source(".github/workflows/validate-version.yml")
     for path in ("windows/app-files.txt", "windows/installer/**", "languages/**"):
+        assert text.count(f"- '{path}'") == 2, f"{path} must be in the push and the pull_request paths"
+
+
+ESLINT_DIR = ".github/eslint"
+ESLINT_FILES = ("windows/electron/main.js", "windows/electron/preload.js", "mac/electron/main.js",
+                "mac/electron/preload.js", "linux/electron/main.js", "linux/electron/preload.js",
+                "windows/installer/exe_strings.js")
+EXACT = re.compile(r"^\d+\.\d+\.\d+$")
+
+
+def _eslint_lines():
+    text = read_source(".github/workflows/lint-javascript.yml")
+    return text, [line.strip() for line in text.splitlines() if re.search(r"\beslint\b", line)
+                  and not line.strip().startswith("#") and "name:" not in line]
+
+
+def test_the_javascript_lint_can_fail():
+    text, lines = _eslint_lines()
+    runs = [line for line in lines if "eslint.config.mjs" in line]
+    assert runs, "no eslint command with the repository's config"
+    assert "|| true" not in text, "a lint step that cannot fail"
+    assert "npm install -g" not in text, "ESLint must come from the pinned lock, not the latest release"
+    assert re.search(r"working-directory: \.github/eslint\s+run: npm ci\b", text), "npm ci in .github/eslint"
+    for run in runs:
+        assert run.startswith(f"{ESLINT_DIR}/node_modules/.bin/eslint -c {ESLINT_DIR}/eslint.config.mjs "), run
+
+
+def test_the_javascript_lint_covers_every_shell_file_and_the_installer_script():
+    _, lines = _eslint_lines()
+    linted = {w for line in lines if "eslint.config.mjs" in line for w in line.split() if w.endswith(".js")}
+    assert linted == set(ESLINT_FILES), sorted(linted ^ set(ESLINT_FILES))
+    for rel in ESLINT_FILES:
+        assert os.path.isfile(os.path.join(ROOT, rel)), rel
+
+
+def test_the_eslint_config_and_its_exact_versions_are_in_the_repository():
+    config = read_source(f"{ESLINT_DIR}/eslint.config.mjs")
+    assert "js.configs.recommended" in config and "allowEmptyCatch: true" in config
+    pkg = json.loads(read_source(f"{ESLINT_DIR}/package.json"))
+    deps = {**pkg.get("dependencies", {}), **pkg.get("devDependencies", {})}
+    assert set(deps) == {"eslint", "@eslint/js", "globals"}, deps
+    lock = json.loads(read_source(f"{ESLINT_DIR}/package-lock.json"))
+    for name, version in deps.items():
+        assert EXACT.match(version), f"{name} {version} is not an exact version"
+        assert lock["packages"][f"node_modules/{name}"]["version"] == version, f"the lock does not hold {name} {version}"
+
+
+def test_the_javascript_lint_runs_when_what_it_checks_changes():
+    text = read_source(".github/workflows/lint-javascript.yml")
+    for path in ("**/electron/*.js", "windows/installer/exe_strings.js", ".github/eslint/**",
+                 ".github/workflows/lint-javascript.yml"):
         assert text.count(f"- '{path}'") == 2, f"{path} must be in the push and the pull_request paths"
