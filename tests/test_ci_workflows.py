@@ -23,8 +23,8 @@ from conftest import read_source
 def _step(text, name):
     """The text of one workflow step, from its name to the next step."""
     i = text.index(f"- name: {name}")
-    j = text.find("\n      - name:", i + 1)
-    return text[i:j if j != -1 else len(text)]
+    m = re.compile(r"\n\s*- name:").search(text, i + 1)
+    return text[i:m.start() if m else len(text)]
 
 
 def test_the_tests_job_runs_on_the_shipped_python_and_the_next_one():
@@ -110,4 +110,30 @@ def test_the_javascript_lint_runs_when_what_it_checks_changes():
     text = read_source(".github/workflows/lint-javascript.yml")
     for path in ("**/electron/*.js", "windows/installer/exe_strings.js", ".github/eslint/**",
                  ".github/workflows/lint-javascript.yml"):
+        assert text.count(f"- '{path}'") == 2, f"{path} must be in the push and the pull_request paths"
+
+
+
+def _isort_step():
+    return _step(read_source(".github/workflows/lint-python.yml"), "Check import sorting")
+
+
+def test_the_import_order_check_can_fail():
+    step = _isort_step()
+    assert "|| true" not in step, "an import order check that cannot fail"
+    assert "informational" not in step.lower()
+    assert re.search(r"^\s+isort --check-only --diff app\.py linux/app\.py scripts/\s*$", step, re.M), step
+
+
+def test_the_isort_config_and_its_exact_version_are_in_the_repository():
+    config = read_source(".isort.cfg")
+    assert re.search(r"^profile = black$", config, re.M) and re.search(r"^line_length = 100$", config, re.M)
+    install = _step(read_source(".github/workflows/lint-python.yml"), "Install linting tools")
+    assert re.search(r"\bisort==\d+\.\d+\.\d+\b", install), install
+    assert not re.search(r"\bisort(?!==)\b", install.replace("isort==", "")), "isort without a pinned version"
+
+
+def test_the_python_lint_runs_when_its_config_changes():
+    text = read_source(".github/workflows/lint-python.yml")
+    for path in ("**.py", ".isort.cfg", ".github/workflows/lint-python.yml"):
         assert text.count(f"- '{path}'") == 2, f"{path} must be in the push and the pull_request paths"
