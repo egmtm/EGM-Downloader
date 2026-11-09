@@ -22,6 +22,7 @@ import re
 import subprocess
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 import pytest
 
@@ -66,6 +67,20 @@ def test_the_notices_file_has_one_kind_of_line_end():
 ])
 def test_the_notices_name_every_part_and_carry_its_licence(marker):
     assert marker in _text(), f"THIRD_PARTY_NOTICES.txt has no {marker.splitlines()[0]!r}"
+
+
+# The hosts the file means to name: the projects' own repositories and package pages, and the places the
+# licence texts themselves point to.
+HOSTS = {"github.com", "pypi.org", "boringssl.googlesource.com", "hg.mozilla.org", "mozilla.org",
+         "www.gnu.org", "fsf.org", "www.apache.org", "www.unicode.org"}
+
+
+def test_every_link_goes_to_a_host_the_file_means_to_name():
+    """Three links once went to a proxy host instead of github.com: a reader would be sent somewhere
+    nobody chose. A new host has to be added to HOSTS on purpose."""
+    found = {urlparse(u).hostname for u in re.findall(r"https?://[^\s)\"<>,;]+", _text())}
+    assert found, "THIRD_PARTY_NOTICES.txt names no link at all"
+    assert found <= HOSTS, f"THIRD_PARTY_NOTICES.txt links to hosts that are not on the list: {sorted(found - HOSTS)}"
 
 
 def test_the_only_gaps_are_the_ones_the_report_lists():

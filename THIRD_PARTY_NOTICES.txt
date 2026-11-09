@@ -28,7 +28,7 @@ Licence:   GNU General Public License version 3 (the package's own classifier: "
            License v3 (GPLv3)"). The full text is in part 4.1.
 Copyright: the bgutil-ytdlp-pot-provider authors. The package names no copyright holder; it names
            its maintainers, Brainicism and grqz.
-Project:   https://gh.072103.xyz/Brainicism/bgutil-ytdlp-pot-provider (the official repository the
+Project:   https://github.com/Brainicism/bgutil-ytdlp-pot-provider (the official repository the
            package names)
 Source:    the app carries the plugin's Python source unchanged, in the bundled Python's
            site-packages (yt_dlp_plugins/extractor/getpot_bgutil.py, getpot_bgutil_http.py and
@@ -43,7 +43,7 @@ curl_cffi 0.17.0 (MIT licence, in its .dist-info folder) contains libcurl-impers
 the libcurl-impersonate 2.3.1 release (the version curl_cffi names in scripts/build.py of its source
 distribution). On Windows it is curl_cffi.libs/libcurl-impersonate-<hash>.dll; on macOS and Linux
 it is linked into curl_cffi/_wrapper.abi3.so. The versions below are the ones the shipped libraries
-report. Source: https://gh.072103.xyz/lexiforest/curl-impersonate (release v2.3.1) and the projects
+report. Source: https://github.com/lexiforest/curl-impersonate (release v2.3.1) and the projects
 named in each section.
 
 ------------------------------------------------------------------------------
@@ -371,7 +371,7 @@ one at http://mozilla.org/MPL/2.0/.
 
 Author:    Kenneth Reitz (the package names no copyright holder)
 Source:    the app carries certifi unchanged, its files in source form, in the bundled Python's
-           site-packages. Its source is at https://gh.072103.xyz/certifi/python-certifi and in its
+           site-packages. Its source is at https://github.com/certifi/python-certifi and in its
            source distribution: https://pypi.org/project/certifi/2026.10.23/
 
 ==============================================================================
