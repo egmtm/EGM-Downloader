@@ -13,7 +13,7 @@ The EGM Downloader team takes security seriously. We appreciate your efforts to 
 Instead, report security concerns through one of these methods:
 
 #### Option 1: Email (Preferred)
-Send details to: **contact@egerena.com**
+Send details to: **help@egmdownloader.app**
 
 #### Option 2: GitHub Private Vulnerability Reporting
 Use GitHub's [private vulnerability reporting feature](https://github.com/egmtm/EGM-Downloader/security/advisories/new)
@@ -110,7 +110,7 @@ If you encounter any of the following, you may have downloaded a fake or comprom
 - 🚫 Requests access to your email or social media accounts
 - 🚫 Has a different icon or branding than shown on official site
 
-**If you see any of these, DO NOT USE and report to contact@egerena.com**
+**If you see any of these, DO NOT USE and report to help@egmdownloader.app**
 
 ## Known Security Considerations
 
@@ -235,7 +235,7 @@ EGM Downloader is a tool designed for lawful purposes. Users are responsible for
 
 For any security concerns or questions about this policy:
 
-**Email:** contact@egerena.com  
+**Email:** help@egmdownloader.app  
 **GitHub:** [@egmtm](https://github.com/egmtm)
 
 ---
