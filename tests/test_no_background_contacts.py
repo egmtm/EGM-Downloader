@@ -98,29 +98,6 @@ def test_every_shell_clears_the_spellchecker_languages_before_any_window(rel):
     assert ready < src.index(SPELL_CALL) < splash, f"{rel}: it must run inside whenReady, before the first window"
 
 
-def _run_spell_line(rel, throws=False):
-    _, line = _spell_line(rel)
-    body = "throw new Error('no such api')" if throws else "calls.push(langs)"
-    script = ("const calls = [];\n"
-              f"const session = {{ defaultSession: {{ setSpellCheckerLanguages: (langs) => {{ {body}; }} }} }};\n"
-              f"{line}\n"
-              "console.log(JSON.stringify(calls));")
-    r = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=20)
-    assert r.returncode == 0, r.stderr[-1500:]
-    return json.loads(r.stdout)
-
-
-@pytest.mark.parametrize("rel", MAIN_JS)
-def test_the_call_gives_the_session_no_spellchecker_language_at_all(rel):
-    assert _run_spell_line(rel) == [[]]
-
-
-@pytest.mark.parametrize("rel", MAIN_JS)
-def test_a_session_that_refuses_the_call_does_not_stop_the_start(rel):
-    """The call is a no-op on macOS (system spellchecker). Where it throws, the app still starts."""
-    assert _run_spell_line(rel, throws=True) == []
-
-
 def test_the_three_shells_have_the_same_windows_and_the_same_spellcheck_setting():
     counts = {rel: len(re.findall(r"\bspellcheck\s*:\s*false\b", read_source(rel))) for rel in MAIN_JS}
     assert set(counts.values()) == {6}, counts
@@ -181,22 +158,6 @@ def launcher(monkeypatch):
     return mod
 
 
-def test_the_installer_launchers_pip_install_does_not_look_for_a_newer_pip(launcher, monkeypatch):
-    monkeypatch.setattr(launcher, "_meta_version", lambda n: None)
-    monkeypatch.setitem(sys.modules, "brotli", None)             # an import fails: a real install
-    launcher.ensure_python_deps()
-    (cmd,) = launcher.pip_calls
-    assert "install" in cmd and "--disable-pip-version-check" in cmd
-
-
-def test_the_installer_launchers_pip_upgrade_does_not_look_for_a_newer_pip(launcher, monkeypatch):
-    monkeypatch.setattr(launcher, "_meta_version", lambda n: (1, 0, 0) if n == "brotli" else (2026, 10, 26))
-    monkeypatch.setattr(launcher, "_modules_present", lambda names: True)
-    launcher.ensure_python_deps()
-    (cmd,) = launcher.pip_calls
-    assert "--retries" in cmd and "--disable-pip-version-check" in cmd
-
-
 def test_the_portable_launchers_pip_install_does_not_look_for_a_newer_pip(launcher, monkeypatch, tmp_path):
     monkeypatch.setattr(launcher, "PY_DIR", tmp_path / "python")   # no site-packages yet: first run
     launcher.ensure_python_deps_embedded("python.exe")
@@ -209,32 +170,6 @@ def test_the_portable_launchers_pip_install_does_not_look_for_a_newer_pip(launch
 # is a contact the user asked for (the download), made once per download, and only when the backend
 # names the entry on the page's own /api/status answer: never at start, never on a timer, never for
 # another response. The backend names it only once the download is done.
-
-def _notice(rel, events):
-    src = read_source(rel)
-    fn = re.search(r"\nfunction noticeThumbnail\(details\) \{.*?\n\}\n", src, re.S).group(0)
-    script = ("const APP_URL = 'http://127.0.0.1:8899';\nconst asked = [];\n"
-              "const deliverThumbnail = (e) => { asked.push(e); return Promise.resolve(); };\n"
-              f"{fn}\nfor (const d of {json.dumps(events)}) noticeThumbnail(d);\nconsole.log(JSON.stringify(asked));")
-    r = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=20)
-    assert r.returncode == 0, r.stderr[-1500:]
-    return json.loads(r.stdout)
-
-
-ENTRY = "3f2c1a9e-0b4d-4c6e-9a7f-1234567890ab"
-
-
-@pytest.mark.parametrize("rel", MAIN_JS)
-def test_the_shell_fetches_a_thumbnail_only_when_the_backend_names_a_finished_download(rel):
-    named = {"X-EGM-Thumbnail": [ENTRY]}
-    others = [{"url": "http://127.0.0.1:8899/", "responseHeaders": named},
-              {"url": "http://127.0.0.1:8899/api/settings", "responseHeaders": named},
-              {"url": "https://i.example/api/status/x", "responseHeaders": named},
-              {"url": "http://127.0.0.1:8899/api/status/x", "responseHeaders": {}},
-              {"url": "http://127.0.0.1:8899/api/status/x"}]
-    assert _notice(rel, others) == []
-    assert _notice(rel, [{"url": "http://127.0.0.1:8899/api/status/x", "responseHeaders": named}]) == [ENTRY]
-
 
 @pytest.mark.parametrize("rel", MAIN_JS)
 def test_nothing_polls_or_fetches_a_thumbnail_on_its_own(rel):

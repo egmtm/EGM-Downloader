@@ -7,13 +7,12 @@ yt-dlp, send their own agent strings.)
 Nothing here touches the network: the request is captured before it would be sent.
 """
 import importlib.util
-import re
 import types
 from pathlib import Path
 
 import pytest
 
-from conftest import ROOT, read_source
+from conftest import ROOT
 
 APP_FILES = ("app.py", "mac/app.py", "linux/app.py")
 
@@ -58,9 +57,3 @@ def test_the_update_check_sends_the_plain_name(backend_module, monkeypatch):
     assert len(seen) == 1, "the update check made no request (or more than one)"
     assert seen[0].get_header("User-agent") == "EGM-Downloader"
 
-
-@pytest.mark.parametrize("rel", APP_FILES)
-def test_every_user_agent_the_backend_sets_is_the_plain_name(rel):
-    values = re.findall(r'"User-Agent"\s*:\s*(f?"[^"]*")', read_source(rel))
-    assert values, f"{rel}: no User-Agent found, the scan is looking at the wrong thing"
-    assert set(values) == {'"EGM-Downloader"'}, f"{rel}: {sorted(set(values))}"

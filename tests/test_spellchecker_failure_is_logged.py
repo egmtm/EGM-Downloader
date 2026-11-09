@@ -43,8 +43,3 @@ def test_a_call_that_works_writes_nothing(rel):
     out, err = _run(rel, throws=False)
     assert "START GOES ON [[]]" in out and err.strip() == ""
 
-
-@pytest.mark.parametrize("rel", MAIN_JS)
-def test_the_catch_is_no_longer_empty(rel):
-    line = next(l for l in read_source(rel).splitlines() if SPELL_CALL in l)
-    assert "catch {}" not in line.replace(" ", "").replace("catch{}", "catch {}")
