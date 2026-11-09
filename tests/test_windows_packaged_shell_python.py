@@ -11,6 +11,9 @@ started by the launcher.
   -E -s: no PYTHON variable and no user site folder, and, from -E, none of the PythonPath entries
   in the registry of a Python 3.11 installed on the machine (getpath reads them only when the
   environment is used).
+* Packaged, the backend runs in the app folder (resources\\app), not in the install folder where
+  Electron's DLLs sit: ffmpeg, Deno and yt-dlp inherit that working folder. Started by the launcher
+  both are the same folder.
 * Started by the launcher, an EGM_INSTALL_DIR from the environment never reaches app.py.
 * Packaged and portable, the .portable marker is looked up in the install folder.
 
@@ -133,7 +136,7 @@ def test_packaged_only_the_bundled_python_is_tried_and_runs_the_app_from_resourc
     (proc,) = out["spawned"]
     assert proc["cmd"] == bundled
     assert proc["args"] == ["-E", "-s", INSTALL + "\\resources\\app\\app.py"]
-    assert proc["cwd"] == INSTALL
+    assert proc["cwd"] == INSTALL + "\\resources\\app"
     assert proc["env"]["EGM_INSTALL_DIR"] == INSTALL and proc["env"]["PYTHONNOUSERSITE"] == "1"
     assert [k for k in proc["env"] if k.upper().startswith("PYTHON")] == ["PYTHONNOUSERSITE"], proc["env"]
 

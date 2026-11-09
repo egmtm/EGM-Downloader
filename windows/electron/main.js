@@ -517,7 +517,9 @@ async function startFlask() {
   // -E -s: no PYTHON variable, no user site folder, and (from -E) no PythonPath entries from the
   // registry of a Python 3.11 installed on the machine. The bundled site-packages is not the user's.
   flaskProc = spawn(python, PACKAGED ? ['-E', '-s', appPy] : [appPy], {
-    cwd: INSTALL_DIR,
+    // The app folder, not the install folder with Electron's DLLs: ffmpeg, Deno and yt-dlp inherit
+    // it. app.py finds its files from its own path, EGM_INSTALL_DIR and get_data_dir(), not from it.
+    cwd: APP_DIR,
     // EGM_INSTALL_DIR moves app.py's folders, so only the packaged build may set it.
     env: PACKAGED ? bundledPythonEnv(env) : withoutEnv(env, ['EGM_INSTALL_DIR']),
     windowsHide: true,
