@@ -133,21 +133,20 @@ _FEED_WITH_NOTES = {"version": "3.0.0", "_version_notes": ["newer note"],
                                  {"version": "1.9.9", "notes": ["history note"]}]}
 
 
-@pytest.mark.parametrize("version,patchnotes,feed", [
-    pytest.param("1.9.9", PATCHNOTES, _FEED_WITH_NOTES, id="version-without-a-block-feed-has-its-history"),
-    pytest.param("2.0.0.1", None, {"version": "2.0.0.1", "_version_notes": ["feed note"], "_history": []},
-                 id="missing-file-feed-is-this-version"),
-    pytest.param("9.9.9", PATCHNOTES, {"version": "9.9.9", "_version_notes": ["same version note"]},
-                 id="version-without-a-block-feed-is-this-version"),
-    pytest.param("1.0.0", PATCHNOTES, _FEED_WITH_NOTES, id="never-another-versions-notes"),
-    pytest.param("9.9.9", None, {"version": "9.9.9", "_version_notes": ["forged"]}, id="unverified-feed"),
-    pytest.param("9.9.9", None, {"version": "3.0.0", "_history": "oops"}, id="malformed-history"),
+# The route reads no feed, so what the feed would say changes nothing: the cases differ only in what the
+# shipped file holds for the running version. One feed, the one that would be the most tempting to read
+# (it names this version and carries notes), is offered in every case.
+@pytest.mark.parametrize("version,patchnotes", [
+    pytest.param("1.9.9", PATCHNOTES, id="version-without-a-block"),
+    pytest.param("2.0.0.1", None, id="missing-file"),
+    pytest.param("9.9.9", None, id="missing-file-and-unknown-version"),
 ])
 def test_whats_new_never_makes_a_request_and_shows_no_bullets_it_does_not_have(plat, monkeypatch, tmp_path,
-                                                                           version, patchnotes, feed):
+                                                                           version, patchnotes):
     """The notes are in the shipped file or nowhere: no request is made, so no build reaches egerena.com
     through What's New, whatever the update setting or the portable mode says. A version the file does
     not know shows no bullets (the modal stays shown), never another version's notes."""
+    feed = {"version": version, "_version_notes": ["feed note"], "_history": _FEED_WITH_NOTES["_history"]}
     notes, fetches = _get(plat, monkeypatch, tmp_path, version, patchnotes=patchnotes, feed=feed)
     assert fetches == 0, "What's New asked the network"
     assert notes == [], notes
