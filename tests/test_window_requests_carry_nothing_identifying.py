@@ -288,7 +288,8 @@ def test_the_apps_own_requests_keep_theirs(rel):
 # A finished download's picture is fetched by the shell's main process (History thumbnails in main.js),
 # not by a window, so neither the page's policy nor the session hook above reaches it: it has to be
 # plain by itself. Run here with a stand in for Electron's net module: the request it builds carries
-# the cleaned user agent of the windows and nothing else, in a session of its own with no cookies.
+# the cleaned user agent of the windows and the Accept of an image load in the window, nothing else, in
+# a session of its own with no cookies.
 # tests/frontend/thumbnail_fetch.test.mjs runs the rest of it (HTTPS, redirects, the cap).
 
 def _thumbnail_request(rel, raw_ua):
@@ -316,7 +317,8 @@ def _thumbnail_request(rel, raw_ua):
 def test_the_shells_thumbnail_request_says_only_what_chrome_says(rel):
     raw = " ".join((PLATFORMS[rel], WEBKIT, "EGM+Downloader/1.5.2.3", CHROME.split()[0], "Electron/45.2.3", CHROME.split()[1]))
     got = _thumbnail_request(rel, raw)
-    assert got["headers"] == {"User-Agent": f"{PLATFORMS[rel]} {WEBKIT} {STOCK_CHROME}"}, got["headers"]
+    assert got["headers"] == {"User-Agent": f"{PLATFORMS[rel]} {WEBKIT} {STOCK_CHROME}",
+                              "Accept": "image/jxl,image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8"}, got["headers"]
     assert got["own"] and got["partition"] == ["egm-thumbnails", {"cache": False}], "not a session of its own, in memory"
     assert got["cookies"] is False and got["credentials"] == "omit", "the request may carry cookies"
     assert got["referrer"] == "no-referrer"

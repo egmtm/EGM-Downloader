@@ -159,6 +159,9 @@ const { net } = require('electron');
 const THUMB_CAP = 512000;
 const THUMB_TIMEOUT_MS = 15000;
 const THUMB_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+// The Accept a real <img> load in the window sends (read from Electron 45 against a local server), so the
+// picture request looks like the window's own image loads.
+const THUMB_ACCEPT = 'image/jxl,image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8';
 let thumbSession = null;
 const thumbsInFlight = new Set();
 
@@ -222,6 +225,7 @@ function requestThumbnail(url) {
     req = net.request({ url, session: thumbSession, useSessionCookies: false, credentials: 'omit',
                         referrerPolicy: 'no-referrer', redirect: 'manual' });
     req.setHeader('User-Agent', app.userAgentFallback);
+    req.setHeader('Accept', THUMB_ACCEPT);
     req.on('redirect', (status, method, to) => finish({ redirect: to }));
     req.on('response', (res) => {
       const type = String(res.headers['content-type'] || '').split(';')[0].trim().toLowerCase();

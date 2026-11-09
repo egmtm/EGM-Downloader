@@ -1,7 +1,7 @@
 // The history thumbnail request each shell's main process makes (History thumbnails in main.js), run
 // against stand ins for Electron's net module and session, in all three shells:
 //  * the request carries the window's clean Chrome user agent (the shell's own cleanUserAgent line is
-//    run first), no cookies (a session of its own, in memory, no session cookies) and no Referer;
+//    run first) and the Accept an <img> load sends, no cookies (a session of its own, in memory, no session cookies) and no Referer;
 //  * only HTTPS, never an internal address, and every redirect hop is checked before it is followed;
 //  * reading stops at the 500 KB cap, a length header over it is refused before reading, a request
 //    that does not answer is given up after the timeout, a response that is not an image is refused;
@@ -21,6 +21,9 @@ const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const source = (p) => readFileSync(join(repo, p, "electron", "main.js"), "utf8");
 const RAW_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) EGM Downloader/1.5.2.3 Chrome/156.0.8078.80 Electron/45.2.3 Safari/537.36";
 const CLEAN_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36";
+// The Accept a real <img> load in the window sends (read from Electron 45 against a local server); the
+// picture request sends the same, so it looks like the window's own image loads.
+const IMG_ACCEPT = "image/jxl,image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8";
 const JPEG = Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(60)]);
 const CAP = 512000;
 
@@ -98,7 +101,8 @@ for (const platform of ["windows", "mac", "linux"]) {
     assert.deepEqual(bytes, JPEG);
     const [req] = s.made;
     assert.equal(req.options.url, "https://cdn.example/vi/x/hq.jpg");
-    assert.deepEqual(req.headers, { "User-Agent": CLEAN_UA }, "only the user agent is set, and it is the cleaned one");
+    assert.deepEqual(req.headers, { "User-Agent": CLEAN_UA, "Accept": IMG_ACCEPT },
+                     "the cleaned user agent and an image load's Accept, and nothing else");
     assert.equal(s.ctx.app.userAgentFallback, CLEAN_UA, "one source: the value cleanUserAgent gave the windows");
     assert.equal(req.options.session, s.partition, "not the default session and its cookie jar");
     assert.equal(JSON.stringify(s.partitions), JSON.stringify([["egm-thumbnails", { cache: false }]]), "an in memory partition (no persist: prefix), made once");
@@ -146,7 +150,7 @@ for (const platform of ["windows", "mac", "linux"]) {
     assert.deepEqual(await s.api.fetchThumbnail("https://cdn.example/x.jpg"), JPEG);
     assert.deepEqual(s.made.map((r) => r.options.url), ["https://cdn.example/x.jpg", "https://img.example/1.jpg", "https://img.example/2.jpg"]);
     for (const r of s.made) {
-      assert.deepEqual(r.headers, { "User-Agent": CLEAN_UA });
+      assert.deepEqual(r.headers, { "User-Agent": CLEAN_UA, "Accept": IMG_ACCEPT });
       assert.equal(r.options.session, s.partition);
       assert.equal(r.options.useSessionCookies, false);
       assert.equal(r.follows, 0, "Chromium followed a redirect by itself");
