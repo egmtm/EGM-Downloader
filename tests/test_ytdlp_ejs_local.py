@@ -153,9 +153,16 @@ def test_yt_dlp_and_its_solver_package_are_updated_together(updater):
     assert any("yt-dlp-ejs -> 0.8.0" in l for l in st["log"]), st["log"]
 
 
-def test_linux_puts_the_solver_package_in_the_same_overlay_as_yt_dlp(updater):
-    if not hasattr(updater.mod, "PACKAGES_DIR"):
+def _linux_only(updater):
+    """Skips on the Windows and macOS backends (they install into the bundled Python itself). Decided by
+    the backend's file, not by an attribute: on the Linux backend the overlay folder must exist."""
+    if Path(updater.mod.__file__).resolve() != Path(ROOT, "linux", "app.py").resolve():
         pytest.skip("Linux only: the other backends install into the bundled Python itself")
+    assert hasattr(updater.mod, "PACKAGES_DIR"), "linux/app.py has no PACKAGES_DIR: the overlay is gone or renamed"
+
+
+def test_linux_puts_the_solver_package_in_the_same_overlay_as_yt_dlp(updater):
+    _linux_only(updater)
     updater.go()
     ejs = next(c for c in _pips(updater.calls) if "yt-dlp-ejs==0.8.0" in c)
     assert "--target" in ejs and str(updater.state["packages"]) in ejs
@@ -163,8 +170,7 @@ def test_linux_puts_the_solver_package_in_the_same_overlay_as_yt_dlp(updater):
 
 
 def test_linux_removes_the_superseded_solver_dist_info(updater):
-    if not hasattr(updater.mod, "PACKAGES_DIR"):
-        pytest.skip("Linux only")
+    _linux_only(updater)
     pk = updater.state["packages"]
     for v in ("0.7.0", "0.8.0"):
         (pk / f"yt_dlp_ejs-{v}.dist-info").mkdir()
@@ -202,8 +208,7 @@ def test_the_solver_package_is_not_touched_when_yt_dlp_is_not_updated(updater):
 def test_linux_reads_the_pin_from_the_yt_dlp_it_just_installed(updater):
     """pip --target leaves the old yt_dlp dist-info beside the new one; importlib.metadata reads whichever
     the folder lists first, so the pin could come from the old yt-dlp (each stable names another ejs)."""
-    if not hasattr(updater.mod, "PACKAGES_DIR"):
-        pytest.skip("Linux only")
+    _linux_only(updater)
     import os
     pk = updater.state["packages"]
     old, new = pk / "yt_dlp-2026.2.21.dist-info", pk / "yt_dlp-2026.10.26.dist-info"
@@ -217,8 +222,7 @@ def test_linux_reads_the_pin_from_the_yt_dlp_it_just_installed(updater):
 
 
 def test_linux_keeps_the_yt_dlp_dist_info_when_the_install_failed(updater):
-    if not hasattr(updater.mod, "PACKAGES_DIR"):
-        pytest.skip("Linux only")
+    _linux_only(updater)
     import os
     pk = updater.state["packages"]
     for name, t in (("yt_dlp-2026.2.21.dist-info", 1_700_000_000), ("yt_dlp-2026.10.26.dist-info", 1_800_000_000)):
