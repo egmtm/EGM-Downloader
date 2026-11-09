@@ -8,6 +8,7 @@ was deliberately secured has been reverted.
 import os
 import re
 import base64
+from pathlib import Path
 import json
 import pytest
 from conftest import read_source
@@ -36,10 +37,23 @@ def app_mod(tmp_path_factory):
     return mod
 
 
+def _inside(path, folder):
+    """Whether path is folder or inside it, compared as paths (a sibling such as c1.pt next to c1 is not
+    inside, and a different spelling of the same folder is)."""
+    return Path(path).resolve().is_relative_to(Path(folder).resolve())
+
+
 def test_the_data_files_these_tests_write_are_outside_the_repository(app_mod):
     root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     for name in ("SETTINGS_FILE", "HISTORY_FILE", "SUBS_FILE", "COOKIES_FILE", "THUMBNAILS_DIR"):
-        assert not str(getattr(app_mod, name)).startswith(root), name
+        assert not _inside(getattr(app_mod, name), root), name
+
+
+def test_inside_compares_paths_not_text(tmp_path):
+    root = tmp_path / "c1"
+    assert not _inside(tmp_path / "c1.pt" / "egm_settings.json", root), "a sibling folder is not inside"
+    assert _inside(root / "data" / "egm_settings.json", root)
+    assert _inside(tmp_path / "other" / ".." / "c1" / "x", root), "another spelling of a path inside"
 
 
 @pytest.fixture(scope="module")
