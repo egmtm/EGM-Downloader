@@ -17,6 +17,20 @@ os.environ.pop("EGM_INSTALL_DIR", None)
 sys.argv = ["app.py"]
 
 
+@pytest.fixture(autouse=True)
+def _no_egm_variable_left_changed():
+    """A test that leaves an EGM_ variable set, changed or removed after it ran fails, and the variable is
+    put back, so no later test runs with it. monkeypatch.setenv and delenv are undone before this check."""
+    before = {k: v for k, v in os.environ.items() if k.startswith("EGM_")}
+    yield
+    after = {k: v for k, v in os.environ.items() if k.startswith("EGM_")}
+    if after != before:
+        for k in set(after) - set(before):
+            del os.environ[k]
+        os.environ.update(before)
+        changed = sorted(k for k in set(before) | set(after) if before.get(k) != after.get(k))
+        pytest.fail(f"the test left {changed} changed; use monkeypatch.setenv or delenv", pytrace=False)
+
 
 @pytest.fixture(scope="session")
 def app_module():
