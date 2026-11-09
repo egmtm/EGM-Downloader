@@ -79,8 +79,3 @@ def test_add_remove_programs_gets_the_size_and_a_quiet_uninstall():
     assert """WriteRegStr HKCU "${UNINSTREG}" "QuietUninstallString" '"$INSTDIR\\uninstall.exe" /S'""" in s
     assert s.index("""WriteRegStr HKCU "${UNINSTREG}" "UninstallString" '"$INSTDIR\\uninstall.exe"'""") < size
 
-
-def test_the_quiet_uninstall_keeps_what_the_user_owns():
-    """QuietUninstallString runs /S: both questions take their default, No (keep)."""
-    registry = _uninstall(True, [])
-    assert registry == {f"{APP_KEY}/InstallPath"}

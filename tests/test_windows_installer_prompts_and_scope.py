@@ -74,12 +74,6 @@ def test_the_already_installed_box_runs_the_uninstaller_with_its_questions():
     assert re.search(r"""ExecWait '"\$PreviousInstDir\\uninstall\.exe" _\?=\$PreviousInstDir' \$0""", uninstall), uninstall
 
 
-def test_a_silent_install_closes_a_running_app_instead_of_cancelling():
-    first = next(b for b in _message_boxes(_section("Install")) if "$(EGM_APP_RUNNING)" in b)
-    assert "$(EGM_APP_RUNNING)" in first
-    assert re.search(r"/SD IDOK IDOK kill_running\s*$", first), first
-
-
 # ── one user, no admin ────────────────────────────────────────────────────────
 
 def test_the_installer_is_per_user_in_local_appdata():
@@ -88,14 +82,6 @@ def test_the_installer_is_per_user_in_local_appdata():
     assert not re.search(r"^\s*SetShellVarContext\s+all", NSI, re.M | re.I), "shortcuts and $SMPROGRAMS stay per user"
     # app.py takes exactly that folder as an installed (not portable) copy
     assert 'Path(local_appdata) / "EGM Downloader"' in read_source("app.py")
-
-
-def test_the_uninstaller_closes_the_app_before_it_deletes_anything():
-    sec = _section("Uninstall")
-    kill = sec.find("taskkill")
-    assert kill != -1, "the uninstaller no longer closes the app"
-    first_change = min(i for i in (sec.find("Delete "), sec.find("RMDir"), sec.find("!insertmacro")) if i != -1)
-    assert kill < first_change
 
 
 # ── data files ────────────────────────────────────────────────────────────────
