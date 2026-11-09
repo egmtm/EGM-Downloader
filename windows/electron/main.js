@@ -190,6 +190,7 @@ function debounce(fn, delay) {
 let mainWindow  = null;
 let splashWindow = null;
 let flaskProc   = null;
+let backendAnswered = false;   // this run's backend has answered once (the page loads)
 let tray        = null;
 
 // ── User agent ────────────────────────────────────────────────────────────────
@@ -427,6 +428,11 @@ function findPython() {
   return null;
 }
 
+// Packaged, the box for a bundled Python that cannot run the app: it does not start at all, or the
+// backend it starts stops before it ever answered (part of it quarantined or removed).
+const BUNDLED_PYTHON_BOX = ['Python could not start',
+  'The Python that comes with EGM Downloader could not start. Antivirus software may have blocked or removed it.\n\nReinstall EGM Downloader to restore it.'];
+
 // ── Splash window ────────────────────────────────────────────────────────────
 function createSplash() {
   splashWindow = new BrowserWindow({
@@ -498,8 +504,7 @@ async function startFlask() {
   if (!python) {
     dropSplash();
     if (PACKAGED) {
-      dialog.showErrorBox('Python could not start',
-        'The Python that comes with EGM Downloader could not start. Antivirus software may have blocked or removed it.\n\nReinstall EGM Downloader to restore it.');
+      dialog.showErrorBox(...BUNDLED_PYTHON_BOX);
     } else {
       dialog.showErrorBox('Python not found',
         'Python 3.11+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
@@ -527,6 +532,7 @@ async function startFlask() {
     if (!app.isQuitting) {
       app.isQuitting = true;
       dropSplash();
+      if (PACKAGED && !backendAnswered && code !== 3) { dialog.showErrorBox(...BUNDLED_PYTHON_BOX); app.quit(); return; }
       dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
         ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
         : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
@@ -697,6 +703,7 @@ async function createWindow() {
   // Wait for Flask to be ready, then load the page
   try {
     await waitForFlask();
+    backendAnswered = true;
     splashProgress(85, 6);   // backend answers
     // Clear Chromium's HTTP cache before loading — guarantees fresh templates
     // after an app update. Without this, stale index.html may persist across

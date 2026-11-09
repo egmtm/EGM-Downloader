@@ -3,6 +3,8 @@
 //    program on the port or a backend left over from an earlier run (they answer 404 or 403);
 //  * the backend's exit handler reports any exit while the app is not quitting (also by a signal,
 //    and code 3, the taken port), and forgets the process so before-quit does not stop its PID later.
+//    These run the launcher's layout (PACKAGED false); the packaged Windows exit before the backend
+//    ever answered has its own box, tested in python_missing_box.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -59,7 +61,7 @@ for (const platform of ["windows", "mac", "linux"]) {
     for (const [code, signal, expect] of [[null, "SIGKILL", /signal SIGKILL/], [0, null, /code 0/], [3, null, /port 8899/], [1, null, /code 1/]]) {
       const shown = [];
       const ctx = {
-        flaskProc: new EventEmitter(), PORT: 8899, splashWindow: null,
+        flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false, splashWindow: null,
         app: { isQuitting: false, quits: 0, quit() { this.quits++; } },
         dialog: { showErrorBox: (t, msg) => shown.push(msg) },
       };
@@ -71,7 +73,7 @@ for (const platform of ["windows", "mac", "linux"]) {
       assert.equal(ctx.app.quits, 1);
       assert.equal(ctx.flaskProc, null, "the exited process is still kept for before-quit to stop");
     }
-    const ctx = { flaskProc: new EventEmitter(), PORT: 8899, splashWindow: null, app: { isQuitting: true, quit() {} },
+    const ctx = { flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false, splashWindow: null, app: { isQuitting: true, quit() {} },
                   dialog: { showErrorBox: () => assert.fail("a normal quit is not a crash") } };
     vm.runInNewContext(m[0], ctx);
     ctx.flaskProc.emit("exit", 0, null);
@@ -84,7 +86,7 @@ for (const platform of ["windows", "mac", "linux"]) test(`${platform}: the alway
   m[0] = dropSplashOf(platform) + m[0];
   const order = [];
   const ctx = {
-    flaskProc: new EventEmitter(), PORT: 8899,
+    flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false,
     splashWindow: { isDestroyed: () => false, destroy: () => order.push("splash destroyed") },
     app: { isQuitting: false, quit() {} },
     dialog: { showErrorBox: () => order.push("box shown") },
@@ -96,7 +98,7 @@ for (const platform of ["windows", "mac", "linux"]) test(`${platform}: the alway
   // a splash that is already gone is left alone
   const gone = { destroyed: false };
   const ctx2 = {
-    flaskProc: new EventEmitter(), PORT: 8899,
+    flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false,
     splashWindow: { isDestroyed: () => true, destroy: () => { gone.destroyed = true; } },
     app: { isQuitting: false, quit() {} },
     dialog: { showErrorBox() {} },
