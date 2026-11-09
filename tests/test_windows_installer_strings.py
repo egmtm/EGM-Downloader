@@ -5,8 +5,9 @@
 * Escapes: inside a LangString a quote is $\\", a line break is $\\r$\\n, and $ starts nothing but
   those, ${VERSION}, ${APPNAME}, $INSTDIR or $$ (a stray $ would swallow the next word at run time).
 * The texts added for the folder check, the processor check, the running app in the uninstaller and
-  the two uninstaller questions are in all ten languages (English placeholders until the translator
-  pass); the two questions keep the English text they had when they were English only.
+  the two uninstaller questions are in all ten languages, translated (no text is an English copy),
+  with the same tokens, line breaks and arrows as the English; the two questions keep the English
+  text they had when they were English only.
 * Every message box and every Abort status text shows a LangString, with no exception."""
 import re
 
@@ -91,8 +92,10 @@ def test_the_english_finish_text_names_ffmpeg_and_deno_like_the_welcome_page():
     assert "ffmpeg and Deno" in english and "required components" not in english
     assert "ffmpeg" in _texts("EGM_WELCOME_TEXT")["ENGLISH"] and "Deno" in _texts("EGM_WELCOME_TEXT")["ENGLISH"]
     assert not re.search(r"\d", english.replace("${VERSION}", "")), "no size and no other version"
-    # the nine others wait for the translator pass, as they were
-    assert len(texts) == 9 and all(t != english for t in texts.values())
+    assert len(texts) == 9
+    for lang, text in texts.items():
+        assert "ffmpeg" in text and "Deno" in text, (lang, "the old texts said 'required components'")
+        assert not re.search(r"\d", text.replace("${VERSION}", "")), lang
 
 
 def test_the_english_finish_text_promises_no_single_download():
@@ -101,3 +104,38 @@ def test_the_english_finish_text_promises_no_single_download():
     assert _texts("EGM_FINISH_TEXT")["ENGLISH"] == (
         "EGM Downloader v${VERSION} has been installed.$\\r$\\n"
         "On first launch, ffmpeg and Deno are downloaded in the background.")
+
+
+def test_no_installer_text_is_an_english_copy():
+    for key in sorted({k for k, _, _ in LINES}):
+        texts = _texts(key)
+        english = texts.pop("ENGLISH")
+        copies = sorted(lang for lang, text in texts.items() if text == english)
+        assert copies == [], (key, copies)
+
+
+def test_every_language_keeps_the_tokens_line_breaks_and_arrows_of_the_english():
+    for key in sorted({k for k, _, _ in LINES}):
+        texts = _texts(key)
+        english = texts.pop("ENGLISH")
+        want = (sorted(re.findall(r"\$\{VERSION\}|\$\{APPNAME\}|\$INSTDIR\b", english)),
+                english.count("$\\r$\\n"), english.count("\u2192"))
+        for lang, text in texts.items():
+            arrows = text.count("\u2190" if lang == "ARABIC" else "\u2192")
+            got = (sorted(re.findall(r"\$\{VERSION\}|\$\{APPNAME\}|\$INSTDIR\b", text)), text.count("$\\r$\\n"), arrows)
+            assert got == want, (key, lang, got, want)
+
+
+def test_arabic_cancel_installation_is_not_worded_like_uninstall():
+    """In Arabic the words for 'cancel the installation' read as 'uninstall'. The only line that
+    may use them is the one whose No button does uninstall."""
+    uninstall = "\u0625\u0644\u063a\u0627\u0621 \u0627\u0644\u062a\u062b\u0628\u064a\u062a"
+    users = sorted(k for k, lang, text in LINES if lang == "ARABIC" and uninstall in text)
+    assert users == ["EGM_ALREADY_INSTALLED"], users
+
+
+def test_the_portuguese_welcome_text_names_the_button_the_installer_shows():
+    """The toolkit's own Brazilian Portuguese file labels the button Pr\u00f3ximo; the text must say the same word."""
+    last = _texts("EGM_WELCOME_TEXT")["PORTUGUESEBR"].split("$\\r$\\n")[-1]
+    assert "Pr\u00f3ximo" in last and "Avan\u00e7ar" not in last, last
+
