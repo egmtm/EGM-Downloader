@@ -219,7 +219,7 @@ LangString EGM_FINISH_TITLE ${LANG_DUTCH} "Installatie voltooid"
 LangString EGM_FINISH_TITLE ${LANG_PORTUGUESEBR} "Instalação concluída"
 LangString EGM_FINISH_TITLE ${LANG_RUSSIAN} "Установка завершена"
 
-LangString EGM_FINISH_TEXT ${LANG_ENGLISH} "EGM Downloader v${VERSION} has been installed.$\r$\nOn first launch, ffmpeg and Deno are downloaded in the background. This happens only once."
+LangString EGM_FINISH_TEXT ${LANG_ENGLISH} "EGM Downloader v${VERSION} has been installed.$\r$\nOn first launch, ffmpeg and Deno are downloaded in the background."
 LangString EGM_FINISH_TEXT ${LANG_ARABIC} "تم تثبيت EGM Downloader v${VERSION}.$\r$\nعند التشغيل الأول، سيتم تنزيل المكونات المطلوبة في الخلفية. هذه عملية تتم مرة واحدة فقط."
 LangString EGM_FINISH_TEXT ${LANG_GERMAN} "EGM Downloader v${VERSION} wurde installiert.$\r$\nBeim ersten Start werden erforderliche Komponenten im Hintergrund heruntergeladen. Dies ist ein einmaliger Vorgang."
 LangString EGM_FINISH_TEXT ${LANG_SPANISH} "EGM Downloader v${VERSION} se ha instalado.$\r$\nEn el primer inicio, los componentes necesarios se descargarán en segundo plano. Este es un proceso único."

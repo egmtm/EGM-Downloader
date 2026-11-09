@@ -79,3 +79,11 @@ def test_the_english_finish_text_names_ffmpeg_and_deno_like_the_welcome_page():
     assert not re.search(r"\d", english.replace("${VERSION}", "")), "no size and no other version"
     # the nine others wait for the translator pass, as they were
     assert len(texts) == 9 and all(t != english for t in texts.values())
+
+
+def test_the_english_finish_text_promises_no_single_download():
+    """The downloads are tried again at every launch until ffmpeg and Deno are there, so the text
+    no longer says it happens once (EGM's wording)."""
+    assert _texts("EGM_FINISH_TEXT")["ENGLISH"] == (
+        "EGM Downloader v${VERSION} has been installed.$\\r$\\n"
+        "On first launch, ffmpeg and Deno are downloaded in the background.")
