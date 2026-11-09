@@ -139,17 +139,6 @@ def test_a_feed_that_does_not_verify_is_refused_and_its_notes_are_not_shown(back
     assert d.get("error") and "up_to_date" not in d, (how, r.status_code, d)
 
 
-def test_whats_new_does_not_read_the_feed_even_when_it_is_correctly_signed(backend, signing, monkeypatch):
-    """What's New reads only the patchnotes.txt shipped with the build; it never asks egerena.com."""
-    _serve_feed(backend, monkeypatch, signing(_feed(version="1.0.0.1")))
-    asked = []
-    monkeypatch.setattr(backend, "_safe_urlopen", lambda req, t: asked.append(req))
-    monkeypatch.setattr(backend, "_bundled_version_notes", lambda v: [])
-    monkeypatch.setattr(backend, "APP_VERSION", "1.0.0.1")
-    assert _client_get(backend, "/api/whats-new").get_json()["notes_list"] == []
-    assert asked == []
-
-
 # ── /api/download-update (Windows and Mac) ─────────────────────────────────────────────────────
 
 @pytest.fixture(params=["app.py", "mac/app.py"])

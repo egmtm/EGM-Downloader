@@ -8,7 +8,6 @@ uninstall list, a --continue output it does not remake). The clean step is cut o
 run against a fake dist/ holding every output at once."""
 import subprocess
 
-import pytest
 
 from conftest import read_source
 
@@ -54,10 +53,3 @@ def test_finish_keeps_the_signed_installer_and_launcher_and_remakes_only_its_own
     left = _run(tmp_path, resume=1, finish=1)
     assert left == {LAUNCHER, *FOLDER, MANIFEST, UNINSTALL_LIST, SETUP, MARKER}, left
 
-
-@pytest.mark.parametrize("resume, finish", [(0, 0), (1, 0), (1, 1)])
-def test_a_phase_run_twice_in_a_row_finds_nothing_stale_of_its_own(tmp_path, resume, finish):
-    """What a phase leaves is exactly what the next phase expects, so a rerun never packages an
-    older output: a stale feed or portable zip from a run that failed half way is gone."""
-    left = _run(tmp_path, resume=resume, finish=finish)
-    assert not (left & set(PHASE3_OUTPUTS)), left

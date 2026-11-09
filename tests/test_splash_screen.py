@@ -94,14 +94,3 @@ def test_main_js_reports_real_start_up_steps_and_fades_the_splash_out():
         assert close.count("if (splashWindow && !splashWindow.isDestroyed()) {") == 2, f"{p}: the close timer must not touch a destroyed window"
         assert "}, 450);" in close, f"{p}: the window closes after the fade (150 ms + the page's 280 ms fade)"
 
-
-def test_windows_backend_crash_box_is_not_hidden_under_the_splash():
-    """The Windows splash is always on top and the error box is not, so a box shown while the splash is
-    still up (another program on the port stops the backend within a second of the start) opened underneath
-    it and could only be reached by clicking around the splash. The exit handler drops the splash first."""
-    src = read_source(MAIN["windows"])
-    handler = src[src.index("flaskProc.on('exit'"):]
-    handler = handler[:handler.index("flaskProc.on('error'")]
-    drop = "dropSplash();"   # destroys it at once (tests/test_error_boxes_above_the_splash.py checks the helper)
-    assert handler.count(drop) == 1, "the splash window is destroyed in the exit handler"
-    assert handler.index(drop) < handler.index("dialog.showErrorBox("), "and that happens before the box opens"

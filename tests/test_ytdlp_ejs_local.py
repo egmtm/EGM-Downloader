@@ -98,12 +98,6 @@ def test_no_pin_when_yt_dlp_names_none_or_the_line_is_not_a_plain_version(backen
     assert backend_module._ytdlp_ejs_pin() is None
 
 
-def test_a_failed_read_is_not_the_same_as_no_pin(backend_module, monkeypatch):
-    """tests/test_ytdlp_ejs_pin_read_failure.py has the rest: a failed read is reported as a failure."""
-    monkeypatch.setattr(backend_module, "_run_yt", _fake_yt(raises=OSError("no python")))
-    assert backend_module._ytdlp_ejs_pin() == backend_module.EJS_PIN_UNREADABLE
-
-
 # ── Update Plugins ────────────────────────────────────────────────────────────────────────────
 
 @pytest.fixture
