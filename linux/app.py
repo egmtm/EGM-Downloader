@@ -3564,6 +3564,10 @@ def clear_history():
                 try: f.unlink()
                 except Exception: pass
         except Exception: pass
+    # A backend killed during a download leaves yt-dlp's headers file, which can name the site. A download
+    # still running keeps its own: it reads the file when yt-dlp ends and only then leaves _active_procs.
+    with _active_procs_lock:
+        _remove_headers_files(DATA_DIR, keep=set(_active_procs))
     # The debug log lists the sites of past downloads with the time (and rotates into .old), and a
     # traceback in the error log can name one, so clearing the history clears them too. A log a thread
     # is writing can refuse the delete on Windows: one more try after a short wait, then go on.
@@ -4160,11 +4164,27 @@ def _cleanup_orphan_partials(last_folder):
     except Exception:
         pass
 
+
+def _remove_headers_files(folder, keep=()):
+    """Remove the <job id>.headers.json files yt-dlp wrote for downloads (run_download, --print-to-file)
+    that a run killed in the middle of a download left in the data folder (folder): they can name the
+    site of a download. Only the exact name this app writes (10 lowercase hex digits, the job id) directly
+    in that folder; the job ids in keep (downloads still running, which read their file when they end) stay."""
+    try:
+        for f in folder.iterdir():
+            if _re.fullmatch(r"[0-9a-f]{10}\.headers\.json", f.name) and f.name[:10] not in keep and f.is_file():
+                try: f.unlink()
+                except Exception: pass
+    except Exception:
+        pass
+
 if __name__ == "__main__":
     # An older yt-dlp or brotli left in the plugin overlay would hide the bundled one
     _prune_overlay_below_floors()
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
+    # yt-dlp's headers files of downloads a killed run left behind (no download runs yet)
+    _remove_headers_files(DATA_DIR)
 
     if os.environ.get("EGM_ELECTRON") == "1":
         threading.Thread(target=_exit_when_electron_is_gone, daemon=True, name="parent-watch").start()
