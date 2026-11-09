@@ -19,7 +19,6 @@ An independent privacy review found two background contacts that were easy to cl
   --disable-pip-version-check.
 """
 import importlib.util
-import json
 import os
 import re
 import subprocess

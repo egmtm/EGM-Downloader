@@ -102,7 +102,7 @@ PORTABLE = {"EGM Downloader.exe", "launch.py", ".portable", "app.py", "instructi
             "electron/package.json", "data/egm_settings.json", "python/python.exe"}
 FOREIGN = {"notes.txt", "photos/a.jpg"}
 MARKERS = ["EGM Downloader.exe", "resources/app.asar", "launch.py", "electron/main.js",
-           "egm_settings.json", "ffmpeg_bin/ffmpeg.exe"]   # the last two: what an uninstall keeps
+           "egm_settings.json", "ffmpeg_bin/ffmpeg.exe", "runtime/deno.exe"]   # the last three: what an uninstall keeps
 
 
 @pytest.mark.parametrize("name, contents", [

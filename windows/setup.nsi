@@ -554,7 +554,7 @@ Section "Install" SecInstall
   ; A folder of something else would get the app's files mixed into it and loses files by name
   ; below. A portable copy (launch.py with .portable) keeps its data inside and is not an install.
   ; Ours too: what an uninstall leaves when the user keeps the data (egm_settings.json, which every
-  ; run of the app writes) or the downloaded components (ffmpeg_bin).
+  ; run of the app writes) or the downloaded components (ffmpeg_bin, runtime with Deno).
   ${DirState} "$INSTDIR" $0
   ${If} ${FileExists} "$INSTDIR\launch.py"
   ${AndIf} ${FileExists} "$INSTDIR\.portable"
@@ -566,6 +566,7 @@ Section "Install" SecInstall
   ${AndIfNot} ${FileExists} "$INSTDIR\electron\main.js"
   ${AndIfNot} ${FileExists} "$INSTDIR\egm_settings.json"
   ${AndIfNot} ${FileExists} "$INSTDIR\ffmpeg_bin\*.*"
+  ${AndIfNot} ${FileExists} "$INSTDIR\runtime\*.*"
     StrCpy $0 "refuse"
   ${EndIf}
   ${If} $0 == "refuse"
