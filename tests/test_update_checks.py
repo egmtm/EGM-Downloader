@@ -3,7 +3,7 @@
 * The app's own update feed: only a feed signed with the app's key is used. The tests sign feeds
   with a throwaway key made here and put its public half in place of the app's key, so the real
   _verify_manifest runs (the other update tests replace it with a stub).
-* The Windows and Mac update download (/api/download-update): a wrong checksum, a download that
+* The Windows update download (/api/download-update): a wrong checksum, a download that
   is cut short and a foreign address all fail with nothing left behind. The cut short download
   comes from a loopback server started here.
 * ffmpeg, first run and update: a failure part way through writing the binaries must not leave
@@ -139,14 +139,13 @@ def test_a_feed_that_does_not_verify_is_refused_and_its_notes_are_not_shown(back
     assert d.get("error") and "up_to_date" not in d, (how, r.status_code, d)
 
 
-# ── /api/download-update (Windows and Mac) ─────────────────────────────────────────────────────
+# ── /api/download-update (Windows) ─────────────────────────────────────────────────────
 
-@pytest.fixture(params=["app.py", "mac/app.py"])
-def updater(request, tmp_path_factory, tmp_path, monkeypatch):
-    mod = request.getfixturevalue("app_module") if request.param == "app.py" else _load(request.param, tmp_path_factory)
-    monkeypatch.setattr(mod, "UPDATE_TMP_DIR", tmp_path / "egm-update")
-    monkeypatch.setattr(mod, "PORTABLE_MODE", False, raising=False)
-    return mod
+@pytest.fixture
+def updater(app_module, tmp_path, monkeypatch):
+    monkeypatch.setattr(app_module, "UPDATE_TMP_DIR", tmp_path / "egm-update")
+    monkeypatch.setattr(app_module, "PORTABLE_MODE", False, raising=False)
+    return app_module
 
 
 def _update_zip(member):
@@ -156,12 +155,8 @@ def _update_zip(member):
     return buf.getvalue()
 
 
-def _member(mod):
-    return "egm-setup.exe" if hasattr(mod, "PORTABLE_MODE") else "EGM Downloader.dmg"
-
-
 def test_a_download_with_the_wrong_checksum_is_refused_and_removed(updater, monkeypatch):
-    data = _update_zip(_member(updater))
+    data = _update_zip("egm-setup.exe")
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: _Resp(data))
     r = _client_post(updater, "/api/download-update",
                      {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "00" * 32, "expected_size": len(data)})

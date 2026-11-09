@@ -280,9 +280,6 @@ APP_BUILD             = 176
 APP_UPDATE_URL        = "https://egerena.com/apps/egmac-update.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMdM.zip"
 
-# ── Update temp dir — cleaned up on startup if present ───────────────────────
-UPDATE_TMP_DIR = Path(os.environ.get("TEMP", os.environ.get("TMP", "/tmp"))) / "egm-update"
-
 # Settings file: persists last used folder — lives in DATA_DIR so it
 # survives app updates (DATA_DIR is never touched when dragging a new .app).
 SETTINGS_FILE = DATA_DIR / "egm_settings.json"
@@ -3488,92 +3485,6 @@ def check_app_update():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/api/download-update", methods=["POST"])
-def download_update():
-    """Download EGMdM.zip, verify SHA256 checksum, extract the DMG, mount it, and open a Finder
-    window so the user can drag EGM Downloader to Applications in one step.
-
-    Currently only invoked from Windows — both call sites in _core.html gate on
-    platform === 'win'. Kept for cross-platform route parity (locked by
-    test_routes_identical_across_platforms) and as a ready trigger for a future
-    Mac auto-update UI; the implementation itself is complete and hardened
-    (SSRF guard, fail-closed checksum verify, zip-slip guard)."""
-    data    = request.get_json(silent=True) or {}
-    zip_url = _text(data.get("zip_url", APP_UPDATE_ZIP_URL)).strip()
-    expected_checksum = _text(data.get("expected_checksum")).strip().lower()
-    if not zip_url:
-        return jsonify({"error": "No zip URL provided"}), 400
-    if not expected_checksum:
-        return jsonify({"error": "Checksum required for update verification"}), 400
-    # SSRF guard: only allow downloads from the official distribution server
-    if not zip_url.startswith("https://egerena.com/"):
-        return jsonify({"error": "Invalid update URL"}), 400
-
-    UPDATE_TMP_DIR.mkdir(parents=True, exist_ok=True)
-    zip_path = UPDATE_TMP_DIR / "EGMdM.zip"
-    dmg_name = "EGM Downloader.dmg"
-    dmg_path = UPDATE_TMP_DIR / dmg_name
-
-    try:
-        # 1. Download update zip
-        req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(zip_path, "wb") as f:
-            shutil.copyfileobj(r, f)
-
-        # 2. Verify SHA256 checksum (required — fail-closed)
-        h = hashlib.sha256()
-        h.update(zip_path.read_bytes())
-        actual_checksum = h.hexdigest().lower()
-        if actual_checksum != expected_checksum:
-            zip_path.unlink(missing_ok=True)
-            return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
-
-        # 3. Extract DMG from zip using standard zipfile
-        with zipfile.ZipFile(zip_path, "r") as z:
-            if dmg_name not in z.namelist():
-                zip_path.unlink(missing_ok=True)
-                return jsonify({"error": f"'{dmg_name}' not found in update zip"}), 500
-            _safe_extract(z, dmg_name, UPDATE_TMP_DIR)
-
-        zip_path.unlink(missing_ok=True)
-
-        # 3. Mount the DMG (-nobrowse suppresses auto-open so we control it)
-        result = subprocess.run(
-            ["hdiutil", "attach", str(dmg_path), "-nobrowse"],
-            capture_output=True, text=True, timeout=30
-        )
-        if result.returncode != 0:
-            return jsonify({"error": f"Could not mount update: {result.stderr.strip()}"}), 500
-
-        # 4. Parse mount point from hdiutil output (tab-separated, last field)
-        mount_point = None
-        for line in result.stdout.splitlines():
-            parts = line.split("\t")
-            if len(parts) >= 3 and "/Volumes/" in parts[-1]:
-                mount_point = parts[-1].strip()
-                break
-
-        if not mount_point:
-            return jsonify({"error": "DMG mounted but volume path not found"}), 500
-
-        # 5. Open Finder showing the mounted volume — user drags to Applications
-        subprocess.Popen(["open", mount_point])
-
-        return jsonify({
-            "success":     True,
-            "mount_point": mount_point,
-            "message":     "Drag 'EGM Downloader' to your Applications folder to update.",
-        })
-
-    except subprocess.TimeoutExpired:
-        try: zip_path.unlink(missing_ok=True)
-        except Exception: pass
-        return jsonify({"error": "DMG mount timed out — please try again"}), 500
-    except Exception as e:
-        try: zip_path.unlink(missing_ok=True)
-        except Exception: pass
-        return jsonify({"error": str(e)}), 500
-
 @app.route("/api/settings/reset", methods=["POST"])
 def settings_reset():
     """Reset all settings to defaults — keeps downloads and history."""
@@ -4281,13 +4192,6 @@ def _remove_headers_files(folder, keep=()):
         pass
 
 if __name__ == "__main__":
-    # Clean up any leftover update temp files from a previous update
-    try:
-        if UPDATE_TMP_DIR.exists():
-            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
-    except Exception:
-        pass
-
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
     # yt-dlp's headers files of downloads a killed run left behind (no download runs yet)

@@ -35,9 +35,9 @@ WIN_ONLY_ROUTES = {
     "/api/show-window",       # second-instance signal — Windows launch.py only
     "/api/show-window-check", # second-instance poll   — Windows launch.py only
     "/api/electron/reinstall", # Electron reinstall marker — Windows only (Mac/Linux bundle)
+    "/api/download-update",   # the in app update (download, check, start the installer) — Windows only:
+                              # macOS and Linux open the download page and the person installs it
 }
-# Auto-update: Windows + Mac have it; Linux does not (AppImage = manual update)
-NO_LINUX_ROUTES = WIN_ONLY_ROUTES | {"/api/download-update"}
 
 
 # ── Tests ──────────────────────────────────────────────────────────────────────
@@ -81,13 +81,23 @@ def test_routes_identical_across_platforms():
         f"  Windows-only: {win_vs_mac - routes['mac']}\n"
         f"  Mac-only:     {routes['mac'] - win_vs_mac}"
     )
-    # Windows vs Linux: also remove auto-update (Linux = no auto-update by design)
-    win_vs_linux = routes["windows"] - NO_LINUX_ROUTES
+    # Windows vs Linux: the same Windows-only routes
+    win_vs_linux = routes["windows"] - WIN_ONLY_ROUTES
     assert win_vs_linux == routes["linux"], (
         f"Linux routes differ from Windows.\n"
-        f"  Windows/Mac-only: {win_vs_linux - routes['linux']}\n"
-        f"  Linux-only:       {routes['linux'] - win_vs_linux}"
+        f"  Windows-only: {win_vs_linux - routes['linux']}\n"
+        f"  Linux-only:   {routes['linux'] - win_vs_linux}"
     )
+
+
+def test_the_page_asks_for_the_in_app_update_only_on_windows():
+    """/api/download-update exists on the Windows backend only. The page's one call to it sits in the
+    branch for the Windows shell, before the branch that opens the download page on macOS and Linux."""
+    js = read_index_scripts()
+    assert js.count("/api/download-update") == 1
+    gate = js.index("if (_updPlat === 'win' && d.zip_url) {")
+    other = js.index("} else if (_updPlat === 'mac' || _updPlat === 'linux') {")
+    assert gate < js.index("/api/download-update") < other
 
 
 def test_frontend_settings_keys_accepted_by_backend():
