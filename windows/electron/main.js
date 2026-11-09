@@ -1215,11 +1215,11 @@ ipcMain.on('refocus-window', (event) => {
   // tearing down, to win the focus race.
   const refocus = () => {
     if (win.isDestroyed()) return;
-    try { win.focus(); } catch (e) {}
+    try { win.focus(); } catch {}
     try {
       const wc = win.webContents;
       if (wc && !wc.isDestroyed()) wc.focus();
-    } catch (e) {}
+    } catch {}
   };
   refocus();
   setTimeout(refocus, 60);
