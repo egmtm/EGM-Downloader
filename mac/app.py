@@ -11,6 +11,7 @@ import copy
 import threading
 import concurrent.futures
 import urllib.request
+import urllib.error
 import urllib.parse
 import zipfile
 import hashlib
@@ -610,12 +611,35 @@ def _thumb_image_ext(data) -> str:
         return ".jpg"
     return ""
 
-def _fetch_thumbnail(url: str) -> bytes:
-    """Download a thumbnail picture. Returns its bytes, or b"" when it is refused or fails. Network
-    only: the caller stores it with _attach_thumbnail, never while holding _history_lock."""
+class _ThumbRedirects(urllib.request.HTTPRedirectHandler):
+    """Each redirect of a thumbnail request is checked before it is followed: HTTPS only, and never
+    to an internal address (an allowed host could 302 to one)."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        host = urllib.parse.urlparse(newurl).hostname or ""
+        if not newurl.startswith("https://") or _is_internal_host(host):
+            _sec_event(f"Thumbnail redirect rejected (not HTTPS or internal host): {host!r}")
+            raise urllib.error.HTTPError(newurl, code, "redirect refused", headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+def _ytdlp_user_agent(headers_file) -> str:
+    """The User-Agent yt-dlp sent for a download, from the http_headers it wrote with --print-to-file
+    (the last line: a live recording that reconnects runs yt-dlp again). "" when it is not there."""
+    try:
+        lines = Path(headers_file).read_text(encoding="utf-8").splitlines()
+        ua = json.loads(lines[-1]).get("User-Agent")
+    except Exception:
+        return ""
+    return ua if isinstance(ua, str) and 0 < len(ua) <= 512 and ua.isprintable() else ""
+
+def _fetch_thumbnail(url: str, user_agent: str) -> bytes:
+    """Download a thumbnail picture, as yt-dlp did the download: with its user agent (never Python's
+    own, so nothing is fetched without one). Returns its bytes, or b"" when it is refused or fails.
+    Network only: the caller stores it with _attach_thumbnail, never while holding _history_lock."""
     if not url or not url.startswith("https://"):
         if url:
             _sec_event(f"Thumbnail URL rejected (non-HTTPS): scheme={url.split(':')[0]!r}")
+        return b""
+    if not user_agent:
         return b""
     # SSRF guard: never let a thumbnail URL point the backend at an internal host.
     _thumb_host = urllib.parse.urlparse(url).hostname or ""
@@ -624,7 +648,8 @@ def _fetch_thumbnail(url: str) -> bytes:
         return b""
     CAP = _THUMB_CAP
     try:
-        req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
+        req = urllib.request.build_opener(_ThumbRedirects).open(
+            urllib.request.Request(url, headers={"User-Agent": user_agent}), timeout=HTTP_TIMEOUT_SHORT)
         # Re-check the FINAL host after any redirects — a whitelisted host could
         # 302 to an internal address (mirrors _safe_urlopen's redirect guard).
         final_host = urllib.parse.urlparse(req.url).hostname or ""
@@ -718,7 +743,7 @@ def _append_history(job: dict, final_path):
             _remove_thumbnails_of(dropped, keep=items)
         # The picture is fetched after the entry is written and outside the lock; it is stored (and
         # named in the entry) only if the entry is still there by then.
-        data = _fetch_thumbnail(job.get("thumbnail", ""))
+        data = _fetch_thumbnail(job.get("thumbnail", ""), job.get("user_agent", ""))
         if data:
             _attach_thumbnail(entry_id, data)
     except Exception:
@@ -1650,6 +1675,10 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     _sb_categories = _clean_sponsorblock_categories(sponsorblock_categories) if sponsorblock_categories else []
     if _sb_categories:
         args += ["--sponsorblock-remove", ",".join(_sb_categories)]
+    # The headers yt-dlp sends for the download (its user agent is the one the thumbnail fetch uses
+    # if the shell cannot fetch the picture). Read after the run, removed when the job ends.
+    headers_file = DATA_DIR / f"{job_id}.headers.json"
+    args += ["--print-to-file", "before_dl:%(http_headers)j", str(headers_file).replace("%", "%%")]
     args.append(url)
 
     _live_sync = _live_sync_args(url) if job.get("live") else []
@@ -1733,6 +1762,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         stderr_thread.join()
         stderr_data = "".join(stderr_lines)
         job["proc"] = None
+        job["user_agent"] = _ytdlp_user_agent(headers_file)
 
         # Deregister — proc has exited, no longer needs to be tracked
         with _active_procs_lock:
@@ -1908,6 +1938,9 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["error"]  = str(e)
         job["error_code"] = _classify_error(str(e))
         job["_finished_at"] = time.time()
+    finally:
+        try: headers_file.unlink(missing_ok=True)
+        except Exception: pass
 
 def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
     """Live recordings only. yt-dlp writes a live stream to a single MPEG-TS

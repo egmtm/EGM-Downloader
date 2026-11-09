@@ -59,19 +59,19 @@ def test_thumbnail_rejects_http_url(app_mod):
     _fetch_thumbnail must reject http:// URLs.
     Regression guard: HTTPS-only check added v0.99.11 — must not be removed.
     """
-    result = app_mod._fetch_thumbnail("http://attacker.com/image.jpg")
+    result = app_mod._fetch_thumbnail("http://attacker.com/image.jpg", "Mozilla/5.0")
     assert result == b"", "http:// URL should be rejected (return no bytes)"
 
 
 def test_thumbnail_rejects_file_url(app_mod):
     """_fetch_thumbnail must reject file:// URLs (local file access)."""
-    result = app_mod._fetch_thumbnail("file:///etc/passwd")
+    result = app_mod._fetch_thumbnail("file:///etc/passwd", "Mozilla/5.0")
     assert result == b"", "file:// URL should be rejected"
 
 
 def test_thumbnail_rejects_empty_url(app_mod):
     """_fetch_thumbnail must handle empty string gracefully."""
-    result = app_mod._fetch_thumbnail("")
+    result = app_mod._fetch_thumbnail("", "Mozilla/5.0")
     assert result == b"", "Empty URL should return no bytes"
 
 

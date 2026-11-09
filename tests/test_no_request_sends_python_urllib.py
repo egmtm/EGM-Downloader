@@ -4,10 +4,11 @@ The update check, the ffmpeg downloads and the GitHub API calls already did. Pyt
 still sent by the Deno zip download, the PyPI version checks (mutagen, the optional libraries) and, in
 windows/launch.py, every download (the portable Python, Node.js, rcedit) and the signal to a running app.
 
-* Backends: every urllib call must be given a Request that carries the User-Agent header. Found by
-  reading the code (an AST scan), so a new call without it fails here. The one exception, marked
-  below, is _fetch_thumbnail: the history thumbnails are being reworked separately and keep
-  Python's agent until then.
+* Backends: every urllib call (urlopen, _safe_urlopen, and open on an opener from build_opener) must
+  be given a Request that carries the User-Agent header. Found by reading the code (an AST scan), so a
+  new call without it fails here. The agent is EGM-Downloader everywhere but in the history thumbnail
+  fetch, which runs only when the shell cannot fetch the picture and sends the agent yt-dlp used for
+  that download (its user_agent argument; test_thumbnail_fallback_user_agent.py checks the value).
 * windows/launch.py: urlretrieve takes no headers, so the launcher sets the agent once on the opener
   every urllib call uses, before its first request. Checked against a local server.
 * yt-dlp, pip and npm send their own agents; they are not the app's code.
@@ -27,23 +28,34 @@ APP_FILES = ("app.py", "mac/app.py", "linux/app.py")
 LAUNCH = Path(ROOT) / "windows" / "launch.py"
 AGENT = "EGM-Downloader"
 URL_CALLS = {"urlopen", "urlretrieve", "_safe_urlopen"}
-# Allowed to send Python's default agent for now, and only these: the history thumbnail fetch is being
-# moved out of the backends separately. Remove the entry when that lands.
-STILL_PYTHON_URLLIB = {"_fetch_thumbnail"}
+# The one function that sends another agent than EGM-Downloader, and the argument it sends.
+YT_DLP_AGENT = ("_fetch_thumbnail", "user_agent")
 
 
 def _name(func):
     return func.attr if isinstance(func, ast.Attribute) else getattr(func, "id", None)
 
 
-def _is_request_with_agent(node):
+def _is_request_with_agent(node, fn_name=""):
     if not (isinstance(node, ast.Call) and _name(node.func) == "Request"):
         return False
     for kw in node.keywords:
         if kw.arg == "headers" and isinstance(kw.value, ast.Dict):
-            return any(isinstance(k, ast.Constant) and k.value == "User-Agent" and isinstance(v, ast.Constant)
-                       and v.value == AGENT for k, v in zip(kw.value.keys, kw.value.values))
+            return any(isinstance(k, ast.Constant) and k.value == "User-Agent"
+                       and ((isinstance(v, ast.Constant) and v.value == AGENT)
+                            or (isinstance(v, ast.Name) and (fn_name, v.id) == YT_DLP_AGENT))
+                       for k, v in zip(kw.value.keys, kw.value.values))
     return False
+
+
+def _is_url_call(node):
+    """urlopen, urlretrieve, _safe_urlopen, or open on an opener built with build_opener."""
+    if not isinstance(node, ast.Call):
+        return False
+    if _name(node.func) in URL_CALLS:
+        return True
+    return (isinstance(node.func, ast.Attribute) and node.func.attr == "open"
+            and isinstance(node.func.value, ast.Call) and _name(node.func.value.func) == "build_opener")
 
 
 def _requests_without_agent(src):
@@ -53,12 +65,12 @@ def _requests_without_agent(src):
     for fn in [n for n in ast.walk(tree) if isinstance(n, (ast.FunctionDef, ast.AsyncFunctionDef))]:
         if fn.name == "_safe_urlopen":
             continue                                   # the wrapper passes on what its callers give it
-        bound = {t.id for n in ast.walk(fn) if isinstance(n, ast.Assign) and _is_request_with_agent(n.value)
+        bound = {t.id for n in ast.walk(fn) if isinstance(n, ast.Assign) and _is_request_with_agent(n.value, fn.name)
                  for t in n.targets if isinstance(t, ast.Name)}
-        for call in [n for n in ast.walk(fn) if isinstance(n, ast.Call) and _name(n.func) in URL_CALLS]:
+        for call in [n for n in ast.walk(fn) if _is_url_call(n)]:
             seen += 1
             arg = call.args[0] if call.args else None
-            ok = _is_request_with_agent(arg) or (isinstance(arg, ast.Name) and arg.id in bound)
+            ok = _is_request_with_agent(arg, fn.name) or (isinstance(arg, ast.Name) and arg.id in bound)
             if not ok:
                 found.append((fn.name, call.lineno))
     return found, seen
@@ -68,14 +80,16 @@ def _requests_without_agent(src):
 def test_every_backend_request_carries_the_agent(rel):
     found, seen = _requests_without_agent(read_source(rel))
     assert seen >= 8, f"{rel}: only {seen} urllib calls found, the scan is looking at the wrong thing"
-    assert {fn for fn, _ in found} <= STILL_PYTHON_URLLIB, f"{rel}: requests without the agent: {found}"
+    assert found == [], f"{rel}: requests without the agent: {found}"
 
 
 @pytest.mark.parametrize("rel", APP_FILES)
-def test_the_thumbnail_exception_is_still_needed(rel):
-    """When the thumbnail fetch stops using urllib, this fails: then drop STILL_PYTHON_URLLIB."""
-    found, _ = _requests_without_agent(read_source(rel))
-    assert {fn for fn, _ in found} == STILL_PYTHON_URLLIB
+def test_the_scan_sees_the_thumbnail_fetch(rel):
+    """The thumbnail fetch goes through an opener (its redirect handler checks each hop): the scan
+    must count it, or a later change to it would pass unseen."""
+    tree = ast.parse(read_source(rel))
+    (fn,) = [n for n in ast.walk(tree) if isinstance(n, ast.FunctionDef) and n.name == YT_DLP_AGENT[0]]
+    assert [n for n in ast.walk(fn) if _is_url_call(n)], f"{rel}: the scan does not see the thumbnail request"
 
 
 def _load(path, tmp_path_factory, prefix):
