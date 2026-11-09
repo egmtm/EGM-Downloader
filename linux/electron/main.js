@@ -333,6 +333,16 @@ app.on('second-instance', () => {
 });
 
 // ── Find Python ───────────────────────────────────────────────────────────────
+// The bundled Python (the two candidates with a full path) sees only its own packages: no user site
+// folder and no PYTHON variable from the user's environment (the Pythons app.py starts inherit this
+// environment; app.py itself also runs with -E -s). A system Python, the fallback, runs as before.
+function bundledPythonEnv(env) {
+  return {
+    ...Object.fromEntries(Object.entries(env).filter(([k]) => !k.startsWith('PYTHON'))),
+    PYTHONNOUSERSITE: '1',
+  };
+}
+
 function findPython() {
   const candidates = [
     // Bundled Python (first priority - in resources/python/bin/)
@@ -344,7 +354,7 @@ function findPython() {
   ];
   for (const c of candidates) {
     try {
-      execFileSync(c, ['--version'], { stdio: 'ignore' });
+      execFileSync(c, ['--version'], { stdio: 'ignore', ...(path.isAbsolute(c) ? { env: bundledPythonEnv(process.env) } : {}) });
       return c;
     } catch {}
   }
@@ -362,9 +372,12 @@ async function startFlask() {
     app.quit();
     return;
   }
-  flaskProc = spawn(python, [appPy], {
+  const bundled = path.isAbsolute(python);
+  const env = { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN };
+  // -E -s: no PYTHON variable and no user site folder for the backend itself.
+  flaskProc = spawn(python, bundled ? ['-E', '-s', appPy] : [appPy], {
     cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN },
+    env: bundled ? bundledPythonEnv(env) : env,
     stdio: 'inherit',
     detached: false,
   });

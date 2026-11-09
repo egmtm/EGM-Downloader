@@ -949,14 +949,14 @@ def _popen(*cmd, **kw):
 
 def _yt_env() -> dict:
     """Environment for yt-dlp subprocesses.
-    Injects bundled deno path and prepends PACKAGES_DIR to PYTHONPATH so an
-    updated yt-dlp (installed via pip --target) takes precedence over bundled."""
+    Injects bundled deno path and sets PYTHONPATH to PACKAGES_DIR alone, so an
+    updated yt-dlp (installed via pip --target) takes precedence over bundled and
+    no PYTHONPATH from the user's environment adds other packages."""
     env = os.environ.copy()
     if DENO_EXE.exists():
         env["DENO"] = str(DENO_EXE)
     if PACKAGES_DIR.exists():
-        existing = env.get("PYTHONPATH", "")
-        env["PYTHONPATH"] = str(PACKAGES_DIR) + (":" + existing if existing else "")
+        env["PYTHONPATH"] = str(PACKAGES_DIR)
     return env
 
 def _run_yt(*cmd, timeout=None, **kw):
