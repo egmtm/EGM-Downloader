@@ -31,6 +31,7 @@ from pathlib import Path
 import pytest
 
 from conftest import ROOT, read_source
+from test_window_requests_cover_every_window import _META_REFERRER
 
 APP_FILES = ("app.py", "mac/app.py", "linux/app.py")
 MAIN_JS = ("windows/electron/main.js", "mac/electron/main.js", "linux/electron/main.js")
@@ -85,8 +86,18 @@ def test_no_template_weakens_the_policy():
     templates = sorted(Path(ROOT, "templates").rglob("*.html"))
     assert Path(ROOT, "templates", "index.html") in templates, "the scan found no templates"
     for p in templates:
-        text = p.read_text(encoding="utf-8").lower()
-        assert 'name="referrer"' not in text and "referrerpolicy" not in text, p.name
+        assert not _weakens_the_policy(p.read_text(encoding="utf-8")), p.name
+
+
+def _weakens_the_policy(text):
+    """A referrer meta tag (its name attribute with or without quotes) or a referrerpolicy attribute."""
+    return bool(_META_REFERRER.search(text)) or "referrerpolicy" in text.lower()
+
+
+@pytest.mark.parametrize("snippet", ['<meta name=referrer content=unsafe-url>', '<META NAME="Referrer" CONTENT="origin">',
+                                     "<meta content=origin name='referrer'>", '<img referrerPolicy=origin src=x>'])
+def test_the_policy_scan_sees_each_spelling(snippet):
+    assert _weakens_the_policy(snippet), snippet
 
 
 # ── Link lookups ──────────────────────────────────────────────────────────────────────────────
