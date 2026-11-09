@@ -52,43 +52,43 @@ def signing_keypair():
     return private, public
 
 
-# ── _download_thumbnail — HTTPS-only enforcement ───────────────────────────────
+# ── _fetch_thumbnail — HTTPS only enforcement ──────────────────────────────────
 
 def test_thumbnail_rejects_http_url(app_mod):
     """
-    _download_thumbnail must reject http:// URLs.
+    _fetch_thumbnail must reject http:// URLs.
     Regression guard: HTTPS-only check added v0.99.11 — must not be removed.
     """
-    result = app_mod._download_thumbnail("http://attacker.com/image.jpg", "test-id")
-    assert result == "", "http:// URL should be rejected (return empty string)"
+    result = app_mod._fetch_thumbnail("http://attacker.com/image.jpg")
+    assert result == b"", "http:// URL should be rejected (return no bytes)"
 
 
 def test_thumbnail_rejects_file_url(app_mod):
-    """_download_thumbnail must reject file:// URLs (local file access)."""
-    result = app_mod._download_thumbnail("file:///etc/passwd", "test-id")
-    assert result == "", "file:// URL should be rejected"
+    """_fetch_thumbnail must reject file:// URLs (local file access)."""
+    result = app_mod._fetch_thumbnail("file:///etc/passwd")
+    assert result == b"", "file:// URL should be rejected"
 
 
 def test_thumbnail_rejects_empty_url(app_mod):
-    """_download_thumbnail must handle empty string gracefully."""
-    result = app_mod._download_thumbnail("", "test-id")
-    assert result == "", "Empty URL should return empty string"
+    """_fetch_thumbnail must handle empty string gracefully."""
+    result = app_mod._fetch_thumbnail("")
+    assert result == b"", "Empty URL should return no bytes"
 
 
 def test_thumbnail_https_url_is_attempted(app_mod):
     """
-    _download_thumbnail must NOT reject https:// URLs at the scheme-check stage.
+    _fetch_thumbnail must NOT reject https:// URLs at the scheme check stage.
     (The request itself may fail in test environment — that's fine.)
     Verifies the HTTPS check doesn't accidentally block valid URLs.
     """
     # A valid https URL should pass the scheme check and attempt the request
     # We verify this by checking the source code contains the correct guard
     source = read_source("app.py")
-    m = re.search(r'def _download_thumbnail.*?return ""', source, re.DOTALL)
-    assert m, "_download_thumbnail not found in source"
+    m = re.search(r'def _fetch_thumbnail.*?return b""', source, re.DOTALL)
+    assert m, "_fetch_thumbnail not found in source"
     func_body = m.group(0)
     assert 'startswith("https://")' in func_body, (
-        "_download_thumbnail must check for https:// prefix"
+        "_fetch_thumbnail must check for https:// prefix"
     )
 
 

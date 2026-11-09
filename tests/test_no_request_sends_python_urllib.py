@@ -6,7 +6,7 @@ windows/launch.py, every download (the portable Python, Node.js, rcedit) and the
 
 * Backends: every urllib call must be given a Request that carries the User-Agent header. Found by
   reading the code (an AST scan), so a new call without it fails here. The one exception, marked
-  below, is _download_thumbnail: the history thumbnails are being reworked separately and keep
+  below, is _fetch_thumbnail: the history thumbnails are being reworked separately and keep
   Python's agent until then.
 * windows/launch.py: urlretrieve takes no headers, so the launcher sets the agent once on the opener
   every urllib call uses, before its first request. Checked against a local server.
@@ -29,7 +29,7 @@ AGENT = "EGM-Downloader"
 URL_CALLS = {"urlopen", "urlretrieve", "_safe_urlopen"}
 # Allowed to send Python's default agent for now, and only these: the history thumbnail fetch is being
 # moved out of the backends separately. Remove the entry when that lands.
-STILL_PYTHON_URLLIB = {"_download_thumbnail"}
+STILL_PYTHON_URLLIB = {"_fetch_thumbnail"}
 
 
 def _name(func):

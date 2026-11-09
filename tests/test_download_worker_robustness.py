@@ -73,7 +73,7 @@ def rig(backend, tmp_path, monkeypatch):
     for name in ("HISTORY_FILE", "SETTINGS_FILE"):
         monkeypatch.setattr(backend, name, tmp_path / Path(getattr(backend, name)).name)
     monkeypatch.setattr(backend, "_settings_cache", {"upscale_to_quality": True})
-    monkeypatch.setattr(backend, "_download_thumbnail", lambda *a: "")
+    monkeypatch.setattr(backend, "_fetch_thumbnail", lambda *a: b"")
     monkeypatch.setattr(backend, "_detect_hw_encoder", lambda: (None, None))
     monkeypatch.setattr(backend, "_kill_proc", lambda p: None)
     job_id = "0123456789"

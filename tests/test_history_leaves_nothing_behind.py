@@ -150,11 +150,8 @@ def test_an_open_console_goes_on_after_the_rings_are_emptied(backend):
 # ── Trimmed history ───────────────────────────────────────────────────────────────────────────
 
 def _fake_thumbnails(mod, monkeypatch):
-    def fake(url, entry_id):
-        name = f"{entry_id}.jpg"
-        (mod.THUMBNAILS_DIR / name).write_bytes(b"\xff\xd8\xff")
-        return name
-    monkeypatch.setattr(mod, "_download_thumbnail", fake)
+    """Every fetch answers a JPEG; the backend stores it as <entry id>.jpg."""
+    monkeypatch.setattr(mod, "_fetch_thumbnail", lambda *a: b"\xff\xd8\xff")
 
 
 def _add(mod, tmp_path, n):

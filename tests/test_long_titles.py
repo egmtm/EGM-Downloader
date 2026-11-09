@@ -64,7 +64,7 @@ def test_a_long_title_in_any_script_finishes_with_its_title_as_the_name(backend,
     out.mkdir()
     for name in ("HISTORY_FILE", "SETTINGS_FILE"):
         monkeypatch.setattr(backend, name, tmp_path / Path(getattr(backend, name)).name)
-    monkeypatch.setattr(backend, "_download_thumbnail", lambda *a: "")
+    monkeypatch.setattr(backend, "_fetch_thumbnail", lambda *a: b"")
     job_id = "0123456789"
     monkeypatch.setattr(backend, "_popen_yt", lambda *a, **k: _FakeYtDlp(out / f"{job_id}.mp4"))
     backend.jobs[job_id] = {"status": "queued", "url": "https://example.invalid/v", "title": TITLES[script],

@@ -660,18 +660,32 @@ def _clamp_int(value, default, lo, hi):
     except (TypeError, ValueError):
         return default
 
-def _download_thumbnail(url: str, entry_id: str) -> str:
-    """Download a thumbnail image and save it locally. Returns filename or empty string."""
+_THUMB_CAP = 512_000  # 500 KB hard cap on thumbnail size
+
+def _thumb_image_ext(data) -> str:
+    """The file extension of a thumbnail picture, from its first bytes (strict magic bytes at exact
+    offsets), or "" when the bytes are not a JPEG, PNG or WebP picture."""
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png"
+    if data.startswith(b"RIFF") and len(data) >= 12 and data[8:12] == b"WEBP":
+        return ".webp"
+    if data[:3] == b"\xff\xd8\xff":
+        return ".jpg"
+    return ""
+
+def _fetch_thumbnail(url: str) -> bytes:
+    """Download a thumbnail picture. Returns its bytes, or b"" when it is refused or fails. Network
+    only: the caller stores it with _attach_thumbnail, never while holding _history_lock."""
     if not url or not url.startswith("https://"):
         if url:
             _sec_event(f"Thumbnail URL rejected (non-HTTPS): scheme={url.split(':')[0]!r}")
-        return ""
+        return b""
     # SSRF guard: never let a thumbnail URL point the backend at an internal host.
     _thumb_host = urllib.parse.urlparse(url).hostname or ""
     if _is_internal_host(_thumb_host):
         _sec_event(f"Thumbnail URL rejected (internal/unresolvable host): {_thumb_host!r}")
-        return ""
-    CAP = 512_000  # 500 KB hard cap on thumbnail size
+        return b""
+    CAP = _THUMB_CAP
     try:
         req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
         # Re-check the FINAL host after any redirects — a whitelisted host could
@@ -680,12 +694,12 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
         if _is_internal_host(final_host):
             _sec_event(f"Thumbnail redirect rejected (internal host): {final_host!r}")
             req.close()
-            return ""
+            return b""
         # Reject non-image responses before reading the body
         ctype = req.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if ctype not in ("image/jpeg", "image/png", "image/webp"):
             req.close()
-            return ""
+            return b""
         # Reject early if the server advertises a size over the cap.
         try:
             clen = int(req.headers.get("Content-Length", "0"))
@@ -693,28 +707,40 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
             clen = 0
         if clen > CAP:
             req.close()
-            return ""
+            return b""
         # Read one byte past the cap: if we get more than CAP the source lied about
         # (or omitted) its length, so reject rather than save a truncated image.
         data = req.read(CAP + 1)
         req.close()
-        if len(data) > CAP:
-            return ""
-        # Strict magic byte detection at exact offset
-        if data.startswith(b"\x89PNG\r\n\x1a\n"):
-            ext = ".png"
-        elif data.startswith(b"RIFF") and len(data) >= 12 and data[8:12] == b"WEBP":
-            ext = ".webp"
-        elif data[:3] == b"\xff\xd8\xff":
-            ext = ".jpg"
-        else:
-            return ""  # Unknown format — reject rather than mis-tag
-        fname = f"{entry_id}{ext}"
-        thumb_path = THUMBNAILS_DIR / fname
-        thumb_path.write_bytes(data)
-        return fname
+        if len(data) > CAP or not _thumb_image_ext(data):
+            return b""  # too big, or an unknown format: reject rather than mis-tag
+        return data
     except Exception:
-        return ""
+        return b""
+
+def _attach_thumbnail(entry_id: str, data: bytes) -> bool:
+    """Store a fetched picture as the thumbnail of history entry entry_id and name it in the entry.
+    The picture is checked again here: a JPEG, PNG or WebP within the size cap, stored under the one
+    name rule (entry id plus extension). The check of the entry and the write happen under
+    _history_lock, so whatever order a finishing download and Clear History (or a delete, the 500
+    entry cap, an import) run in, no entry names a picture that is gone and no picture is left
+    without its entry: an entry that is gone by now gets no file."""
+    ext = _thumb_image_ext(data) if isinstance(data, bytes) and len(data) <= _THUMB_CAP else ""
+    name = f"{entry_id}{ext}"
+    if not ext or not _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', name):
+        return False
+    with _history_lock:
+        items = _load_history()
+        entry = next((e for e in items if e.get("id") == entry_id), None)
+        if entry is None or entry.get("thumbnail"):
+            return False
+        try:
+            (THUMBNAILS_DIR / name).write_bytes(data)
+        except Exception:
+            return False
+        entry["thumbnail"] = name
+        _save_history(items)
+    return True
 
 def _remove_thumbnails_of(entries, keep=()):
     """Unlink the cached thumbnail of each history entry that is no longer kept, unless an entry in
@@ -735,7 +761,6 @@ def _append_history(job: dict, final_path):
         try: size_bytes = final_path.stat().st_size
         except Exception: pass
         entry_id = str(uuid.uuid4())
-        thumb = _download_thumbnail(job.get("thumbnail", ""), entry_id)
         entry = {
             "id":           entry_id,
             "url":          job.get("url", ""),
@@ -746,7 +771,7 @@ def _append_history(job: dict, final_path):
             "file_path":    str(final_path),
             "size_bytes":   size_bytes,
             "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "thumbnail":    thumb,
+            "thumbnail":    "",
         }
         with _history_lock:
             items = _load_history()
@@ -755,6 +780,11 @@ def _append_history(job: dict, final_path):
             items = items[:_HISTORY_MAX]
             _save_history(items)
             _remove_thumbnails_of(dropped, keep=items)
+        # The picture is fetched after the entry is written and outside the lock; it is stored (and
+        # named in the entry) only if the entry is still there by then.
+        data = _fetch_thumbnail(job.get("thumbnail", ""))
+        if data:
+            _attach_thumbnail(entry_id, data)
     except Exception:
         pass
 
@@ -1105,7 +1135,7 @@ def _safe_thumb_url(url) -> str:
     or style attribute context. Rejecting ')' is context-independent: safe
     regardless of whether the interpolation is quoted or unquoted.
     Note: only validates scheme + chars; internal-host SSRF guard is applied
-    at download time via _download_thumbnail (Phase 3)."""
+    at download time via _fetch_thumbnail (Phase 3)."""
     if not url or not isinstance(url, str):
         return ""
     url = url.strip()
@@ -3591,12 +3621,13 @@ def clear_history():
         _save_history([])
         try: HISTORY_FILE.with_name(HISTORY_FILE.name + ".unreadable").unlink(missing_ok=True)   # the kept copy of a damaged file goes too
         except Exception: pass
-    # Clear all thumbnails
-    try:
-        for f in THUMBNAILS_DIR.iterdir():
-            try: f.unlink()
-            except Exception: pass
-    except Exception: pass
+        # All thumbnails, under the same lock: a picture a finishing download stores is either in the
+        # history this clears or finds its entry gone and is not written.
+        try:
+            for f in THUMBNAILS_DIR.iterdir():
+                try: f.unlink()
+                except Exception: pass
+        except Exception: pass
     # The debug log lists the sites of past downloads with the time (and rotates into .old), and a
     # traceback in the error log can name one, so clearing the history clears them too. A log a thread
     # is writing can refuse the delete on Windows: one more try after a short wait, then go on.

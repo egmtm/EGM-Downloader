@@ -42,7 +42,7 @@ def files(backend, tmp_path, monkeypatch):
     monkeypatch.setattr(backend, "THUMBNAILS_DIR", tmp_path / "thumbnails")
     monkeypatch.setattr(backend, "_settings_cache", {})
     monkeypatch.setattr(backend, "_subs_cache", None)
-    monkeypatch.setattr(backend, "_download_thumbnail", lambda *a: "")
+    monkeypatch.setattr(backend, "_fetch_thumbnail", lambda *a: b"")
     client = backend.app.test_client()
     headers = {"X-EGM-Token": backend._API_TOKEN}
     return backend, client, headers
