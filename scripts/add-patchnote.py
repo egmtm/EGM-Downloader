@@ -48,10 +48,10 @@ Note:
     Always run bump-version.py first to ensure correct numbers.
 """
 
+import argparse
 import json
 import re
 import sys
-import argparse
 from pathlib import Path
 
 ROOT = Path(__file__).parent.parent

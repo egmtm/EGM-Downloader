@@ -1,25 +1,26 @@
-import os
-import sys
-import uuid
-import glob
-import json
-import hmac
-import subprocess
-import re as _re
-import time
-import copy
-import threading
 import concurrent.futures
-import urllib.request
+import copy
+import glob
+import hashlib
+import hmac
+import importlib.metadata
+import json
+import os
+import re as _re
+import shutil
+import subprocess
+import sys
+import threading
+import time
 import urllib.error
 import urllib.parse
+import urllib.request
+import uuid
 import zipfile
-import hashlib
-import shutil
-import importlib.metadata
 from collections import deque
 from pathlib import Path
-from flask import Flask, request, jsonify, render_template, abort
+
+from flask import Flask, abort, jsonify, render_template, request
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body limit
@@ -101,8 +102,10 @@ def _verify_manifest(data: dict) -> bool:
     """Verify the ed25519 signature on an update manifest.
     Returns True if signature is present and valid, False otherwise."""
     try:
+        import base64
+        import json as _json
+
         from cryptography.hazmat.primitives.serialization import load_pem_public_key
-        import base64, json as _json
         sig_b64 = data.get('signature', '')
         if not sig_b64:
             return False
@@ -630,7 +633,8 @@ def _is_internal_host(host: str) -> bool:
     address. Thumbnail URLs come from extractor metadata (and are accepted from
     the /api/download caller), so a hostile value could otherwise make the
     backend fetch internal services (SSRF). Fail-closed: resolution failure → internal."""
-    import socket, ipaddress
+    import ipaddress
+    import socket
     if not host:
         return True
     try:

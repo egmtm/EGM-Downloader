@@ -60,11 +60,11 @@ Next Steps:
     3. python scripts/gen-update-json.py --notes "Your changes"
 """
 
+import argparse
 import json
 import re
-import argparse
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 try:
     from zoneinfo import ZoneInfo
