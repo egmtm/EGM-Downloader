@@ -64,6 +64,17 @@ test("the dialog shows the download size before Update Now, and Update Now sends
   w.close();
 });
 
+test("a size of zero or less shows no size line", async () => {
+  for (const size_bytes of [0, -1]) {
+    const { w, d } = await launchWith({ ...UPDATE, size_bytes });
+    toastButton(d).click();
+    const modal = d.querySelector(".upd-backdrop");
+    assert.ok(modal);
+    assert.doesNotMatch(modal.textContent, /Download size/, String(size_bytes));
+    w.close();
+  }
+});
+
 test("a feed without a size shows no size line", async () => {
   const { w, d } = await launchWith({ ...UPDATE });
   toastButton(d).click();

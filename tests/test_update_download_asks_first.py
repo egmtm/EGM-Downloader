@@ -180,6 +180,15 @@ def test_a_download_of_exactly_the_size_is_taken(updater, monkeypatch):
     assert r.status_code == 200 and r.get_json()["installer_path"].endswith("egm-setup.exe"), r.get_json()
 
 
+def test_a_length_header_that_is_not_a_number_leaves_it_to_the_bytes_read(updater, monkeypatch):
+    """A Content-Length such as "abc" is not read as a size: the download goes on, capped by what arrives."""
+    data = _zip()
+    for announced in ("abc", "", "12a", "-5"):
+        monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: _Stream(data, content_length=announced))
+        r = _post(updater, _ask(data))
+        assert r.status_code == 200 and r.get_json()["installer_path"].endswith("egm-setup.exe"), (announced, r.get_json())
+
+
 def test_the_download_is_read_and_hashed_in_blocks(updater, monkeypatch):
     data = _zip(size_hint=3 * 1024 * 1024)
     stream = _Stream(data)
