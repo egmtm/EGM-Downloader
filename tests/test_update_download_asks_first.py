@@ -7,6 +7,11 @@ download is bounded by the size the signed feed gives.
   under the same per run token) and refuses without it; it refuses before reading anything when the
   server announces more, and stops as soon as the bytes read pass it, removing the partial file.
 * The downloaded file is hashed in blocks, never read whole into memory.
+* A finished download is kept across starts (EGMd.zip with a small record, EGMd.json: the build, the
+  SHA-256 and the size) and reused, without a new download, while its SHA-256, computed in blocks,
+  still equals the signed feed's. A kept download that no longer matches the feed, whose build is not
+  newer than the running app, or whose record is in any doubt is removed; so is anything else left
+  in the folder at start.
 
 The feed is signed with a throwaway key made here, whose public half replaces the app's key, so the
 real signature check runs. Nothing here contacts any outside server.
@@ -188,6 +193,7 @@ def test_the_download_is_read_and_hashed_in_blocks(updater, monkeypatch):
     assert stream.reads and all(0 < n <= 1024 * 1024 for n in stream.reads), stream.reads[:5]
 
 
+
 def test_the_hash_of_a_file_is_computed_in_blocks(app_module, tmp_path, monkeypatch):
     f = tmp_path / "big.zip"
     f.write_bytes(bytes(range(256)) * (12 * 1024))   # 3 MB
@@ -211,3 +217,134 @@ def test_the_hash_of_a_file_is_computed_in_blocks(app_module, tmp_path, monkeypa
     monkeypatch.setattr(app_module, "open", lambda *a, **k: _Recorder(real_open(*a, **k)), raising=False)
     assert app_module._sha256_file(f) == hashlib.sha256(f.read_bytes()).hexdigest()
     assert len(sizes) > 3 and all(0 < n <= 1024 * 1024 for n in sizes), sizes
+
+# ── a finished download is kept and reused ──────────────────────────────────────────────────────
+
+def _record(mod):
+    return json.loads((mod.UPDATE_TMP_DIR / "EGMd.json").read_text(encoding="utf-8"))
+
+
+def _download(mod, monkeypatch, data, **over):
+    monkeypatch.setattr(mod, "_safe_urlopen", lambda req, t: _Stream(data))
+    return _post(mod, _ask(data, **over))
+
+
+def test_a_verified_download_of_a_newer_build_is_kept_with_its_record(updater, monkeypatch):
+    data = _zip()
+    assert _download(updater, monkeypatch, data).status_code == 200
+    assert _left(updater) == ["EGMd.json", "EGMd.zip", "egm-setup.exe"]
+    assert _record(updater) == {"build": 101, "sha256": hashlib.sha256(data).hexdigest(), "size": len(data)}
+
+
+@pytest.mark.parametrize("build", [_ask.NONE, 100, 99, "101", None, True])
+def test_a_download_whose_build_is_not_known_to_be_newer_is_not_kept(updater, monkeypatch, build):
+    assert _download(updater, monkeypatch, _zip(), latest_build=build).status_code == 200
+    assert _left(updater) == ["egm-setup.exe"]
+
+
+def test_the_kept_download_is_reused_while_its_hash_equals_the_feed(updater, monkeypatch):
+    data = _zip()
+    assert _download(updater, monkeypatch, data).status_code == 200
+    (updater.UPDATE_TMP_DIR / "egm-setup.exe").unlink()
+    monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: pytest.fail("downloaded again"))
+    hashed = []
+    real = updater._sha256_file
+    monkeypatch.setattr(updater, "_sha256_file", lambda p: hashed.append(p.name) or real(p))
+    whole = []
+    real_read = pathlib.Path.read_bytes
+    monkeypatch.setattr(pathlib.Path, "read_bytes", lambda self: whole.append(self.name) or real_read(self))
+    r = _post(updater, _ask(data))
+    assert r.status_code == 200 and r.get_json()["installer_path"].endswith("egm-setup.exe"), r.get_json()
+    assert hashed == ["EGMd.zip"] and whole == [], (hashed, whole)
+    assert _left(updater) == ["EGMd.json", "EGMd.zip", "egm-setup.exe"]
+
+
+def test_a_kept_download_for_another_feed_is_replaced(updater, monkeypatch):
+    old, new = _zip(), _zip(size_hint=10)
+    assert _download(updater, monkeypatch, old).status_code == 200
+    fetched = []
+    monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: fetched.append(1) or _Stream(new))
+    assert _post(updater, _ask(new, latest_build=102)).status_code == 200
+    assert fetched == [1]
+    assert _record(updater)["sha256"] == hashlib.sha256(new).hexdigest() and _record(updater)["build"] == 102
+
+
+def test_a_kept_download_changed_on_disk_is_downloaded_again(updater, monkeypatch):
+    data = _zip()
+    assert _download(updater, monkeypatch, data).status_code == 200
+    with open(updater.UPDATE_TMP_DIR / "EGMd.zip", "r+b") as f:
+        f.seek(40)
+        f.write(b"X")
+    fetched = []
+    monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: fetched.append(1) or _Stream(data))
+    assert _post(updater, _ask(data)).status_code == 200
+    assert fetched == [1]
+    assert updater._sha256_file(updater.UPDATE_TMP_DIR / "EGMd.zip") == hashlib.sha256(data).hexdigest()
+
+
+def test_a_failed_download_leaves_no_kept_download_behind(updater, monkeypatch):
+    data = _zip()
+    assert _download(updater, monkeypatch, data).status_code == 200
+    other = _zip(size_hint=20)
+    monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: _Stream(other))
+    r = _post(updater, _ask(other, expected_checksum="00" * 32))
+    assert r.status_code >= 400
+    assert "EGMd.zip" not in _left(updater) and "EGMd.json" not in _left(updater)
+
+
+def test_the_update_check_removes_a_kept_download_the_feed_no_longer_names(updater, feed_of, monkeypatch):
+    data = _zip()
+    assert _download(updater, monkeypatch, data).status_code == 200
+    feed_of(_checksums={"sha256": hashlib.sha256(data).hexdigest()})
+    assert "EGMd.zip" in _left(updater), "the feed still names it: kept"
+    feed_of(_checksums={"sha256": "cd" * 32}, build=102)
+    assert "EGMd.zip" not in _left(updater) and "EGMd.json" not in _left(updater)
+
+
+# At start, the folder keeps only a kept download whose record is sound and names a newer build.
+
+def _start_with(mod, record, zip_bytes=b"z" * 100, extra=("egm-setup.exe", "EGMd.zip.part")):
+    d = mod.UPDATE_TMP_DIR
+    d.mkdir(parents=True)
+    if zip_bytes is not None:
+        (d / "EGMd.zip").write_bytes(zip_bytes)
+    if record is not None:
+        (d / "EGMd.json").write_text(record if isinstance(record, str) else json.dumps(record), encoding="utf-8")
+    for name in extra:
+        (d / name).write_bytes(b"x")
+    mod._tidy_update_dir()
+    return _left(mod)
+
+
+def test_at_start_a_sound_kept_download_of_a_newer_build_stays_and_nothing_else(updater):
+    assert _start_with(updater, {"build": 101, "sha256": "ab" * 32, "size": 100}) == ["EGMd.json", "EGMd.zip"]
+
+
+@pytest.mark.parametrize("record, zip_bytes", [
+    ({"build": 100, "sha256": "ab" * 32, "size": 100}, b"z" * 100),     # the running build: installed
+    ({"build": 99, "sha256": "ab" * 32, "size": 100}, b"z" * 100),      # older
+    ({"build": 101, "sha256": "ab" * 32, "size": 99}, b"z" * 100),      # the size does not match
+    ({"build": 101, "sha256": "ab" * 32, "size": 100}, None),           # no zip
+    ({"build": "101", "sha256": "ab" * 32, "size": 100}, b"z" * 100),   # not a number
+    ({"build": 101, "sha256": "nothex", "size": 100}, b"z" * 100),
+    ({"build": 101, "size": 100}, b"z" * 100),
+    ("{not json", b"z" * 100),
+    ("[]", b"z" * 100),
+    (None, b"z" * 100),                                                 # no record
+])
+def test_at_start_any_doubt_removes_the_whole_folder(updater, record, zip_bytes):
+    assert _start_with(updater, record, zip_bytes) == []
+    assert not updater.UPDATE_TMP_DIR.exists()
+
+
+def test_at_start_a_missing_folder_is_fine(updater):
+    updater._tidy_update_dir()
+    assert not updater.UPDATE_TMP_DIR.exists()
+
+
+def test_the_start_tidies_the_folder_instead_of_deleting_it_blindly(app_module):
+    import inspect
+    src = inspect.getsource(app_module)
+    main = src[src.index('if __name__ == "__main__":'):]
+    assert "_tidy_update_dir()" in main
+    assert "rmtree(UPDATE_TMP_DIR" not in main

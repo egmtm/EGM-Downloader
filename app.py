@@ -3516,6 +3516,11 @@ def check_app_update():
         # feed served again (lower build) is never an update, and a rebuild of the same
         # version (higher build) still is. A missing build reads as 0: not an update.
         up_to_date   = latest_build <= APP_BUILD
+        # A kept download the signed feed no longer names goes now, not only at the next start.
+        feed_sha     = (data.get("_checksums") or {}).get("sha256") if isinstance(data.get("_checksums"), dict) else None
+        kept         = _kept_update()
+        if kept is not None and kept["sha256"] != str(feed_sha or "").lower():
+            _drop_kept_update()
         # The download size from the signed feed, for the dialog to show before Update Now; only a
         # positive whole number is passed on.
         size_bytes   = data.get("size_bytes")
@@ -3538,6 +3543,46 @@ def check_app_update():
         return jsonify({"error": str(e)}), 500
 
 _UPDATE_BLOCK = 1024 * 1024   # the update zip is read, written and hashed in blocks of this size
+
+
+# A finished update download is kept in UPDATE_TMP_DIR across starts: EGMd.zip and its record
+# EGMd.json (the build, the SHA-256 and the size). It is reused while its SHA-256 still equals the
+# signed feed's; any doubt about it means it goes, and the update downloads again.
+def _kept_update():
+    """The record of the kept download, or None if there is none or anything about it is in doubt."""
+    try:
+        rec = json.loads((UPDATE_TMP_DIR / "EGMd.json").read_text(encoding="utf-8"))
+        build, sha, size = rec.get("build"), rec.get("sha256"), rec.get("size")
+        if (type(build) is int and build > APP_BUILD and type(size) is int and size > 0
+                and isinstance(sha, str) and _re.fullmatch(r"[0-9a-f]{64}", sha)
+                and (UPDATE_TMP_DIR / "EGMd.zip").stat().st_size == size):
+            return rec
+    except Exception:
+        pass
+    return None
+
+
+def _drop_kept_update():
+    for name in ("EGMd.zip", "EGMd.json"):
+        try: (UPDATE_TMP_DIR / name).unlink(missing_ok=True)
+        except Exception: pass
+
+
+def _tidy_update_dir():
+    """At start: a sound kept download of a newer build stays; everything else in the folder goes (an
+    installer taken out before, a partial file). Any doubt about the kept download removes it all."""
+    try:
+        if not UPDATE_TMP_DIR.exists():
+            return
+        if _kept_update() is None:
+            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
+            return
+        for p in UPDATE_TMP_DIR.iterdir():
+            if p.name not in ("EGMd.zip", "EGMd.json"):
+                if p.is_dir(): shutil.rmtree(p, ignore_errors=True)
+                else: p.unlink(missing_ok=True)
+    except Exception:
+        pass
 
 
 def _sha256_file(path):
@@ -3572,44 +3617,54 @@ def download_update():
     UPDATE_TMP_DIR.mkdir(parents=True, exist_ok=True)
     zip_path       = UPDATE_TMP_DIR / "EGMd.zip"
     installer_path = UPDATE_TMP_DIR / "egm-setup.exe"
+    latest_build   = data.get("latest_build")
 
     try:
-        # Download zip — LONG timeout: this is a multi-MB installer payload, not
-        # a metadata call. SHORT (15s) would spuriously fail on slow connections.
-        req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
-        too_large = "The download is larger than the update information says. The update was stopped."
-        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
-            announced = str(r.headers.get("Content-Length") or "").strip()
-            if announced.isdigit() and int(announced) > expected_size:
-                raise RuntimeError(too_large)
-            with open(zip_path, "wb") as f:
-                got = 0
-                for block in iter(lambda: r.read(_UPDATE_BLOCK), b""):
-                    got += len(block)
-                    if got > expected_size:
-                        raise RuntimeError(too_large)
-                    f.write(block)
+        kept = _kept_update()
+        if kept and kept["sha256"] == expected_checksum and _sha256_file(zip_path) == expected_checksum:
+            pass   # the download kept from before is the one the signed feed names: no new download
+        else:
+            _drop_kept_update()
+            # Download zip — LONG timeout: this is a multi-MB installer payload, not
+            # a metadata call. SHORT (15s) would spuriously fail on slow connections.
+            req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
+            too_large = "The download is larger than the update information says. The update was stopped."
+            with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
+                announced = str(r.headers.get("Content-Length") or "").strip()
+                if announced.isdigit() and int(announced) > expected_size:
+                    raise RuntimeError(too_large)
+                with open(zip_path, "wb") as f:
+                    got = 0
+                    for block in iter(lambda: r.read(_UPDATE_BLOCK), b""):
+                        got += len(block)
+                        if got > expected_size:
+                            raise RuntimeError(too_large)
+                        f.write(block)
 
-        # Verify SHA256 checksum (required — fail-closed)
-        actual_checksum = _sha256_file(zip_path)
-        if actual_checksum != expected_checksum:
-            zip_path.unlink(missing_ok=True)
-            return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
+            # Verify SHA256 checksum (required: anything else fails closed)
+            actual_checksum = _sha256_file(zip_path)
+            if actual_checksum != expected_checksum:
+                _drop_kept_update()
+                return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
+            # Its record: the download is kept only if the record names a newer build (checked below).
+            _atomic_write_text(UPDATE_TMP_DIR / "EGMd.json", json.dumps(
+                {"build": latest_build, "sha256": actual_checksum, "size": zip_path.stat().st_size}))
 
         # Extract egm-setup.exe using standard zipfile
         with zipfile.ZipFile(zip_path, "r") as z:
             names = z.namelist()
             if "egm-setup.exe" not in names:
-                zip_path.unlink(missing_ok=True)
+                z.close()
+                _drop_kept_update()
                 return jsonify({"error": "egm-setup.exe not found in zip"}), 500
             _safe_extract(z, "egm-setup.exe", UPDATE_TMP_DIR)
 
-        zip_path.unlink(missing_ok=True)
+        if _kept_update() is None:
+            _drop_kept_update()
         return jsonify({"success": True, "installer_path": str(installer_path)})
 
     except Exception as e:
-        try: zip_path.unlink(missing_ok=True)
-        except Exception: pass
+        _drop_kept_update()
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/settings/reset", methods=["POST"])
@@ -4383,12 +4438,8 @@ def _cleanup_orphan_partials(last_folder):
         pass
 
 if __name__ == "__main__":
-    # Clean up any leftover update temp files from a previous update
-    try:
-        if UPDATE_TMP_DIR.exists():
-            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
-    except Exception:
-        pass
+    # Clean up the update temp folder: only a finished download of a newer build stays, for reuse
+    _tidy_update_dir()
 
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
