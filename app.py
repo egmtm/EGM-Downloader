@@ -48,9 +48,12 @@ _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 #         the app's core function, so they cannot be host-restricted.
 #       - pip installs (yt-dlp/ffmpeg-deps/mutagen updates): pip talks to PyPI/CDNs
 #         on its own; not routed through _safe_urlopen.
-#       - thumbnail fetches: come from third-party metadata, so they use a separate
-#         guard (_is_internal_host below: HTTPS-only + private/loopback IP blocking)
-#         rather than this allowlist, since thumbnail CDNs are open-ended.
+#       - history pictures: in the desktop app the shell normally fetches them (Chromium, the
+#         window's own user agent, no cookies, no Referer, every redirect hop checked) and hands
+#         the bytes to the backend, which checks them again; the backend's own fetch
+#         (_fetch_thumbnail, yt-dlp's user agent) is the fallback (web mode, the shell cannot, or
+#         30 seconds pass). Both take HTTPS only, refuse internal addresses and cap a picture at
+#         500 KB instead of using this allowlist, because thumbnail hosts are open ended.
 # When adding a new maintenance host, document why it's needed alongside the entry.
 _ALLOWED_DOWNLOAD_HOSTS = {
     "api.github.com",                        # GitHub API — release metadata (BtbN ffmpeg, Deno)
