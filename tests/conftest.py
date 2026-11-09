@@ -14,6 +14,10 @@ os.environ.setdefault("EGM_SILENT", "1")
 # modules under test read and write there, so it is cleared before any of them is imported (this file
 # loads first). The tests that need it give it to their own child process.
 os.environ.pop("EGM_INSTALL_DIR", None)
+# EGM_ELECTRON=1 tells app.py it runs under the shell (the shell fetches the history pictures, the backend
+# waits 30 seconds for it); set in a developer's shell it made the history tests on app.py wait for a shell
+# that is not there. Cleared the same way; the tests that need it set it with monkeypatch.
+os.environ.pop("EGM_ELECTRON", None)
 sys.argv = ["app.py"]
 
 
