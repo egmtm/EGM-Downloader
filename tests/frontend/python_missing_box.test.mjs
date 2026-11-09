@@ -138,3 +138,31 @@ test("started by the launcher: a spawn error keeps the raw message", () => {
     { title: "EGM Downloader — Startup error", msg: "Failed to start backend:\nspawn C:\\EGM\\resources\\python\\python.exe EACCES" }, "quit"]);
   assert.deepEqual(errorHandler(true, true), [], "an error while quitting shows nothing");
 });
+
+// A spawn error is followed by the exit event or by more errors: the first one has the box and the quit, the
+// ones after it show nothing, because the error handler marks the app as quitting.
+test("a spawn error is the only box: the exit and the errors that follow it show nothing", () => {
+  const error = /  flaskProc\.on\('error'[\s\S]*?\n  \}\);\n/.exec(src);
+  const exit = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(src);
+  const drop = /\nfunction dropSplash\(\) \{[\s\S]*?\n\}\n/.exec(src);
+  const box = /\nconst BUNDLED_PYTHON_BOX = \[[\s\S]*?\];\n/.exec(src);
+  assert.ok(error && exit && drop, "error handler, exit handler and dropSplash found");
+  for (const packaged of [true, false]) {
+    const order = [];
+    const ctx = {
+      flaskProc: new EventEmitter(), PACKAGED: packaged, PORT: 8899, backendAnswered: false,
+      splashWindow: { isDestroyed: () => false, destroy: () => order.push("splash destroyed") },
+      app: { isQuitting: false, quit: () => order.push("quit") },
+      dialog: { showErrorBox: (title, msg) => order.push({ title, msg }) },
+    };
+    vm.runInNewContext((box ? box[0] : "") + drop[0] + exit[0] + error[0], ctx);
+    const proc = ctx.flaskProc;     // the exit handler sets flaskProc to null
+    proc.emit("error", new Error("spawn EACCES"));
+    const first = order.slice();
+    assert.deepEqual(first.map((x) => typeof x === "string" ? x : "box"), ["splash destroyed", "box", "quit"]);
+    assert.equal(ctx.app.isQuitting, true, "the error handler marks the app as quitting");
+    proc.emit("exit", 1, null);
+    proc.emit("error", new Error("spawn EACCES again"));
+    assert.deepEqual(order, first, "nothing more is shown or quit after the first error");
+  }
+});

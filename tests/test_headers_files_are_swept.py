@@ -102,6 +102,21 @@ def test_clear_history_keeps_the_file_of_a_running_download(backend):
     assert not (data / "bbbbbbbbbb.headers.json").exists()
 
 
+def test_clear_history_sweeps_with_the_running_jobs_lock_held(backend, monkeypatch):
+    """The list of running jobs is read, and the sweep done, while the lock that guards the list is held:
+    a download that starts or ends meanwhile cannot change the list between the two."""
+    seen = []
+    real = backend._remove_headers_files
+
+    def spy(folder, keep=()):
+        seen.append((backend._active_procs_lock.locked(), set(keep)))
+        return real(folder, keep=keep)
+    monkeypatch.setattr(backend, "_remove_headers_files", spy)
+    backend._active_procs["aaaaaaaaaa"] = object()
+    _clear(backend)
+    assert seen == [(True, {"aaaaaaaaaa"})]
+
+
 class _Proc:
     returncode = 0
 
