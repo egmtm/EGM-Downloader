@@ -2,7 +2,7 @@
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset=".github/images/banner-dark.png">
     <source media="(prefers-color-scheme: light)" srcset=".github/images/banner-light.png">
-    <img src=".github/images/banner-light.png" alt="EGM Downloader: a downloader with a wardrobe. Free, open source, no account. Windows, macOS and Linux. egm.egerena.com">
+    <img src=".github/images/banner-light.png" alt="EGM Downloader: a downloader with a wardrobe. Free, open source, no account. Windows, macOS and Linux. egmdownloader.app">
   </picture>
   
   <p>
@@ -34,7 +34,7 @@
   <a href="#-download">⬇ Downloads</a> ·
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
-  <a href="https://egerena.com/apps/egm-downloader.html">🌐 Website</a> ·
+  <a href="https://egmdownloader.app">🌐 Website</a> ·
   <a href="https://x.com/EGMDownloader">𝕏 @EGMDownloader</a> ·
   <a href="https://www.instagram.com/egmdownloader">📷 @EGMDownloader</a>
 </p>
@@ -173,7 +173,7 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 ## 📥 Download
 
 ### Windows
-🔗 **Platform page:** [windows.egerena.com](https://windows.egerena.com)
+🔗 **Platform page:** [windows.egmdownloader.app](https://windows.egmdownloader.app)
 **Latest:** v1.5.2.3  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (686 KB · ~800 MB after install)  
 **SHA256:** `4bc9142896e0c6f03aabccc5e0345bd9b09ad2efd270cad0f2970a31eb16a788`  
@@ -193,7 +193,7 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 **Auto-Update:** ❌ Manual — check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 ### macOS
-🔗 **Platform page:** [mac.egerena.com](https://mac.egerena.com)
+🔗 **Platform page:** [mac.egmdownloader.app](https://mac.egmdownloader.app)
 **Latest:** v1.5.2.3  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (145 MB · ~300 MB after install)  
 **SHA256:** `75118f34cf32f4faf588d05f12f1bd8af16659d495ee3cc5cb56804a761e8d8f`  
@@ -203,7 +203,7 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 **Auto-Update:** Built-in update checker (signed release feed); it opens the download page and you install the new version yourself
 
 ### Linux
-🔗 **Platform page:** [linux.egerena.com](https://linux.egerena.com)
+🔗 **Platform page:** [linux.egmdownloader.app](https://linux.egmdownloader.app)
 **Latest:** v1.5.2.3  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (172 MB · ~300 MB after install)  
 **SHA256:** `466fb996ac152b1c40d8c02b1a80c6282ac31b48ad2da5697cdc77d5930c4481`  
@@ -393,4 +393,4 @@ You should have received a copy of the GNU Affero General Public License along w
 - 🛠️ **Troubleshooting:** The instructions file included with each download covers the common fixes. Still stuck? Open an issue.
 - 🐦 **Updates & Announcements:** [@EGMDownloader](https://x.com/EGMDownloader) on X and [@EGMDownloader](https://www.instagram.com/egmdownloader) on Instagram
 - 📖 **Contributing:** [Read CONTRIBUTING.md](CONTRIBUTING.md)
-- 🔒 **Security Vulnerabilities:** Do not open a public issue — email contact@egerena.com or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We aim to respond within 48 hours.
+- 🔒 **Security Vulnerabilities:** Do not open a public issue — email help@egmdownloader.app or use [GitHub's private vulnerability reporting](https://github.com/egmtm/EGM-Downloader/security/advisories/new). We aim to respond within 48 hours.
