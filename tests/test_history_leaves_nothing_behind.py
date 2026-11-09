@@ -213,7 +213,12 @@ def test_a_dropped_entry_without_a_thumbnail_is_fine(backend, tmp_path, monkeypa
     backend.HISTORY_FILE.write_text(json.dumps(old), encoding="utf-8")
     _fake_thumbnails(backend, monkeypatch)
     _add(backend, tmp_path, 9)
-    assert len(backend._load_history()) == 1
+    # _append_history swallows every error, so the outcome is what shows that nothing failed: the new
+    # entry is the one kept, and its picture, fetched after the dropped entries are handled, is stored.
+    (kept,) = backend._load_history()
+    assert kept["title"] == "t9", kept
+    assert kept["thumbnail"] == kept["id"] + ".jpg", "the run stopped before the picture was stored"
+    assert sorted(p.name for p in backend.THUMBNAILS_DIR.iterdir()) == [kept["thumbnail"]]
 
 
 # ── Imported history ──────────────────────────────────────────────────────────────────────────
