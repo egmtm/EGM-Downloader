@@ -60,14 +60,14 @@ def test_only_the_processes_of_this_folder_are_found():
     ]
     code, out, err = _ask([{"ProcessId": p, "ExecutablePath": path} for p, path, _ in procs])
     want = [p for p, _, found in procs if found]
-    assert out == " ".join(f"/PID {p}" for p in want), (out, err)
+    assert out == " ".join(f"/PID {p}" for p in want) + " EGM_QUERY_RAN", (out, err)
     assert code == len(want), (code, err)
 
 
 @pytest.mark.skipif(not PWSH, reason="pwsh is not installed")
 def test_nothing_running_prints_nothing_and_exits_0():
     code, out, err = _ask([{"ProcessId": 5, "ExecutablePath": r"C:\Other\EGM Downloader.exe"}])
-    assert (code, out) == (0, ""), err
+    assert (code, out) == (0, " EGM_QUERY_RAN"), err
 
 
 def test_both_the_installer_and_the_uninstaller_have_the_query():
@@ -88,7 +88,11 @@ def test_every_program_is_called_by_its_full_path_and_nothing_is_piped():
         cmd = re.match(r"\S+\s+(.)(.*)\1", s).group(2)
         assert re.match(r'"\$(SYSDIR|PreviousInstDir)\\[^"]+\.exe"', cmd), s
         assert not re.search(r"\|\s*find\b", cmd, re.I) and "cmd /c" not in cmd.lower(), s
-    assert "/IM " not in NSI and "IMAGENAME" not in NSI, "nothing is matched by image name any more"
+    # by image name only in the fallback for when the query cannot tell (test_windows_installer_unknown_query.py)
+    assert NSI.count("/IM ") == 2 and NSI.count("IMAGENAME") == 1, "the name is used beyond the fallback"
+    for sec in (section("Install"), section("Uninstall")):
+        normal = sec[sec.index("FindRunning"):sec.index("${ElseIf} $0 < 0")]
+        assert "/IM " not in normal and "IMAGENAME" not in normal
 
 
 # ── the flow, in the model ────────────────────────────────────────────────────
@@ -120,7 +124,7 @@ def test_silent_closes_the_app_of_this_folder_without_asking_and_goes_on(run):
 def test_cancel_at_the_prompt_changes_nothing(run, prompt):
     r, paths = run(silent=False, answers=["IDCANCEL"], running={7})
     assert r.boxes[0] == (prompt, "IDCANCEL")
-    assert r.outcome == "aborted" and paths == FOLDER and not r.execs
+    assert r.outcome == "aborted" and paths == FOLDER and not any("taskkill" in c for c in r.execs)
 
 
 @pytest.mark.parametrize("run, still", [(_install, None), (_uninstall, "$(EGM_UN_APP_STILL_RUNNING)")])

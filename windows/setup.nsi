@@ -28,6 +28,9 @@
 !include "FileFunc.nsh"
 !include "x64.nsh"
 !include "WinVer.nsh"
+!include "StrFunc.nsh"
+${Using:StrFunc} StrStr
+${Using:StrFunc} UnStrStr
 
 ; ── Required defines (sanity check) ──────────────────────────
 !ifndef VERSION
@@ -296,6 +299,28 @@ LangString EGM_INSTALL_CANCELLED ${LANG_DUTCH} "Installation cancelled — pleas
 LangString EGM_INSTALL_CANCELLED ${LANG_PORTUGUESEBR} "Installation cancelled — please close ${APPNAME} and run the installer again."
 LangString EGM_INSTALL_CANCELLED ${LANG_RUSSIAN} "Installation cancelled — please close ${APPNAME} and run the installer again."
 
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_ENGLISH} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_ARABIC} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_GERMAN} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_SPANISH} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_FRENCH} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_ITALIAN} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_JAPANESE} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_DUTCH} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_PORTUGUESEBR} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+LangString EGM_APP_RUNNING_ANY_COPY ${LANG_RUSSIAN} "EGM Downloader is running, and the installer could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel installation"
+
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_ENGLISH} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_ARABIC} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_GERMAN} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_SPANISH} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_FRENCH} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_ITALIAN} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_JAPANESE} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_DUTCH} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_PORTUGUESEBR} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+LangString EGM_UN_APP_RUNNING_ANY_COPY ${LANG_RUSSIAN} "EGM Downloader is running, and the uninstaller could not tell which copy it is.$\r$\nClosing it closes every EGM Downloader running on this computer, a portable copy too.$\r$\nOK → Close them all$\r$\nCancel → Cancel uninstall"
+
 LangString EGM_UN_APP_RUNNING ${LANG_ENGLISH} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
 LangString EGM_UN_APP_RUNNING ${LANG_ARABIC} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
 LangString EGM_UN_APP_RUNNING ${LANG_GERMAN} "EGM Downloader is currently running.$\r$\nClose it before continuing, or let the uninstaller close it for you.$\r$\nOK → Close it for me$\r$\nCancel → Cancel uninstall"
@@ -414,13 +439,42 @@ FunctionEnd
 ; processes too, which Get-Process does not). The folder goes in an environment variable, so no
 ; character of a folder name can break the command, and every tool is called by its full path:
 ; a find.exe or tasklist.exe earlier on PATH (Git for Windows, MSYS) plays no part.
-; Out: $0 = how many (0 also when PowerShell could not run), $1 = "/PID n /PID m" for taskkill.
+; Out: $0 = how many, $1 = "/PID n /PID m" for taskkill; $0 = -1 when the query could not tell.
 !macro EGM_FIND_RUNNING_FUNCTION un
 Function ${un}EGM_FindRunning
   System::Call 'kernel32::SetEnvironmentVariable(t "EGM_STOP_DIR", t "$INSTDIR")i'
-  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -Command "$$ProgressPreference = 'SilentlyContinue'; $$d = $$env:EGM_STOP_DIR; $$w = @(($$d + '\EGM Downloader.exe'), ($$d + '\resources\python\python.exe'), ($$d + '\electron\node_modules\electron\dist\EGM Downloader.exe'), ($$d + '\electron\node_modules\electron\dist\electron.exe')); $$p = @(Get-CimInstance Win32_Process -ErrorAction SilentlyContinue | Where-Object { $$w -contains $$_.ExecutablePath }); [Console]::Out.Write((($$p | ForEach-Object { '/PID ' + $$_.ProcessId }) -join ' ')); exit $$p.Count"`
+  nsExec::ExecToStack `"$SYSDIR\WindowsPowerShell\v1.0\powershell.exe" -NoProfile -NonInteractive -Command "$$ProgressPreference = 'SilentlyContinue'; $$d = $$env:EGM_STOP_DIR; $$w = @(($$d + '\EGM Downloader.exe'), ($$d + '\resources\python\python.exe'), ($$d + '\electron\node_modules\electron\dist\EGM Downloader.exe'), ($$d + '\electron\node_modules\electron\dist\electron.exe')); try { $$a = @(Get-CimInstance Win32_Process -ErrorAction Stop) } catch { exit 255 }; $$p = @($$a | Where-Object { $$w -contains $$_.ExecutablePath }); [Console]::Out.Write((($$p | ForEach-Object { '/PID ' + $$_.ProcessId }) -join ' ') + ' EGM_QUERY_RAN'); exit $$p.Count"`
   Pop $0
   Pop $1
+  ; The query writes EGM_QUERY_RAN last, and only once WMI has answered. Without it (PowerShell
+  ; blocked or missing, WMI failing, "error" or "timeout" from nsExec) nothing is known, whatever the
+  ; exit code says: $0 = -1, and the caller asks by image name (EGM_FindRunningByName).
+  StrCpy $2 $1 "" -14
+  ${If} $2 == " EGM_QUERY_RAN"
+    StrCpy $1 $1 -14
+  ${Else}
+    StrCpy $0 -1
+    StrCpy $1 ""
+  ${EndIf}
+FunctionEnd
+
+; When the query could not tell: is any EGM Downloader.exe running, from any folder? tasklist by its
+; full path, as CSV without a header: the quoted name is in its output only when one runs (the "no
+; tasks" line, in any language, does not hold it). Only that name: python.exe would match other
+; people's Pythons. Out: $0 = 1 running, 0 not (also when tasklist itself fails).
+Function ${un}EGM_FindRunningByName
+  nsExec::ExecToStack '"$SYSDIR\tasklist.exe" /FI "IMAGENAME eq EGM Downloader.exe" /FO CSV /NH'
+  Pop $0
+  Pop $1
+  !if "${un}" == ""
+    ${StrStr} $2 $1 '"EGM Downloader.exe"'
+  !else
+    ${UnStrStr} $2 $1 '"EGM Downloader.exe"'
+  !endif
+  StrCpy $0 0
+  ${If} $2 != ""
+    StrCpy $0 1
+  ${EndIf}
 FunctionEnd
 !macroend
 !insertmacro EGM_FIND_RUNNING_FUNCTION ""
@@ -538,6 +592,24 @@ Section "Install" SecInstall
         MessageBox MB_OK|MB_ICONSTOP "$(EGM_APP_STILL_RUNNING)" /SD IDOK
         Abort "$(EGM_INSTALL_CANCELLED)"
       ${EndIf}
+  ${ElseIf} $0 < 0
+    ; The query could not tell (PowerShell blocked or missing, WMI failing): ask by image name. This
+    ; cannot tell this folder's copy from another one, so the box says that closing ends every copy,
+    ; and when silent nobody agreed to that: Cancel, exit code 2, nothing changed.
+    Call EGM_FindRunningByName
+    ${If} $0 > 0
+      MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "$(EGM_APP_RUNNING_ANY_COPY)" /SD IDCANCEL IDOK kill_by_name
+      Abort "$(EGM_INSTALL_CANCELLED)"
+      kill_by_name:
+        nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T /IM "EGM Downloader.exe"'
+        Pop $0
+        Sleep 1000
+        Call EGM_FindRunningByName
+        ${If} $0 > 0
+          MessageBox MB_OK|MB_ICONSTOP "$(EGM_APP_STILL_RUNNING)" /SD IDOK
+          Abort "$(EGM_INSTALL_CANCELLED)"
+        ${EndIf}
+    ${EndIf}
   ${EndIf}
 
   ; ── What is installed here already: decided by files, never by version ──
@@ -644,6 +716,22 @@ Section "Uninstall"
         MessageBox MB_OK|MB_ICONSTOP "$(EGM_UN_APP_STILL_RUNNING)" /SD IDOK
         Abort
       ${EndIf}
+  ${ElseIf} $0 < 0
+    ; The query could not tell: by image name, asking first, as the installer does
+    Call un.EGM_FindRunningByName
+    ${If} $0 > 0
+      MessageBox MB_OKCANCEL|MB_ICONEXCLAMATION "$(EGM_UN_APP_RUNNING_ANY_COPY)" /SD IDCANCEL IDOK un_kill_by_name
+      Abort
+      un_kill_by_name:
+        nsExec::Exec '"$SYSDIR\taskkill.exe" /F /T /IM "EGM Downloader.exe"'
+        Pop $0
+        Sleep 1000
+        Call un.EGM_FindRunningByName
+        ${If} $0 > 0
+          MessageBox MB_OK|MB_ICONSTOP "$(EGM_UN_APP_STILL_RUNNING)" /SD IDOK
+          Abort
+        ${EndIf}
+    ${EndIf}
   ${EndIf}
 
   ; ── Remove app files: exactly what the installer wrote ──
