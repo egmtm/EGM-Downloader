@@ -139,6 +139,7 @@ class Run:
         self.boxes, self.calls, self.execs, self.deleted = [], [], [], []
         self.outcome = "end"          # "end", "aborted", "quit" or "writes"
         self.finds = 0
+        self.killed_without_pause = False   # a taskkill ran and no Sleep of 1000 ms or more since
 
     # ── values ────────────────────────────────────────────────────────────────
     def sub(self, s):
@@ -324,13 +325,22 @@ class Run:
             if not m.group(1):
                 self.registry -= {r for r in self.registry if r.startswith(key + "/")}
             return None
-        if re.match(r"(Section|SectionEnd|Function|FunctionEnd|Sleep|DetailPrint|ReadRegStr|SectionGetSize|System::Call|CreateDirectory|"
+        m = re.match(r"Sleep\s+(\d+)$", s)
+        if m:
+            # The model has no clock: a pause only matters after a kill, where the closing processes
+            # need it before the next check, which would otherwise still see them.
+            if int(m.group(1)) >= 1000:
+                self.killed_without_pause = False
+            return None
+        if re.match(r"(Section|SectionEnd|Function|FunctionEnd|DetailPrint|ReadRegStr|SectionGetSize|System::Call|CreateDirectory|"
                     r"CreateShortcut|!insertmacro MUI_LANGDLL_DISPLAY)\b", s):
             return None
         raise AssertionError(f"statement the model does not know: {s}")
 
     def program(self, cmd):
         """What a program the script runs answers: (exit code or nsExec's "error"/"timeout", output)."""
+        if "powershell.exe" in cmd or "tasklist.exe" in cmd:
+            assert not self.killed_without_pause, f"checked again right after a taskkill, with no Sleep between: {cmd}"
         if "powershell.exe" in cmd:
             if self.ps in ("error", "timeout"):
                 return self.ps, ""
@@ -355,6 +365,7 @@ class Run:
                 assert "/IM" not in cmd, cmd
                 stop = {int(p) for p in re.findall(r"/PID (\d+)", cmd)}
             stop -= self.unkillable
+            self.killed_without_pause = True
             self.running -= stop
             self.elsewhere -= stop
             self.backend -= stop
