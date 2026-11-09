@@ -14,7 +14,8 @@ those notices; every build copies it into the app, next to Electron's own notice
 The file's licence texts are copied from authoritative sources. Where the long texts come from Debian's
 /usr/share/common-licenses they are compared with those files when the machine has them (CI runs on
 Ubuntu). Information that could not be confirmed is marked "[GAP n: ...]"; GAPS lists the ones the
-session 6 report names, so a new gap, or a filled one, shows here.
+session 6 report named, so a new gap shows here: the six it named are filled (from the upstream files at the
+tags the build uses), and GAPS is empty.
 """
 import json
 import os
@@ -30,7 +31,7 @@ from conftest import ROOT, read_source
 
 NOTICES = Path(ROOT) / "THIRD_PARTY_NOTICES.txt"
 COMMON = Path("/usr/share/common-licenses")
-GAPS = {1, 2, 3, 4, 5, 6}   # the session 6 report lists each one; fill them, then remove them here
+GAPS = set()   # numbers of the "[GAP n: ...]" markers the file may carry; none is open (the six of the session 6 report are filled)
 
 
 def _text():
@@ -38,7 +39,7 @@ def _text():
 
 
 def _section(text, title, next_title):
-    """The licence text between a part 4 heading and the next one (or the end)."""
+    """The licence text between a part 5 heading and the next one (or the end)."""
     start = text.index(title)
     body = text[start:text.index(next_title, start)] if next_title else text[start:]
     # skip the heading, its rule and the "(text: ...)" line, then one empty line
@@ -62,6 +63,12 @@ def test_the_notices_file_has_one_kind_of_line_end():
     "curl 8.23.0", "BoringSSL", "nghttp2 1.63.0", "ngtcp2 1.20.0", "nghttp3 1.15.0", "brotli 1.2.1",
     "zstd 1.5.7", "zlib 1.3.1", "c-ares 1.34.9", "libidn2 2.3.7",
     "certifi", "Mozilla Public License Version 2.0",
+    "yt-dlp-ejs", "meriyah 6.1.4", "astring 1.9.0", "ISC License",
+    # the copyright lines and the revision filled from the upstream files (the six gaps of the session 6 report)
+    "Copyright (c) 2026 curl_cffi developers", "Copyright (c) 1996 - 2026, Daniel Stenberg",
+    "156c7b75ae9b8c3b3f847acf264f17594c3859fb", "Tatsuhiro Tsujikawa", "Copyright (c) 2016 ngtcp2 contributors",
+    "Copyright (c) 2019 nghttp3 contributors", "libidn2-2.3.7.tar.gz",
+    "The long licence texts are in part 5.",
     "Apache License\n                           Version 2.0, January 2004",
     "GNU LESSER GENERAL PUBLIC LICENSE\n                       Version 3, 29 June 2007",
 ])
@@ -72,7 +79,7 @@ def test_the_notices_name_every_part_and_carry_its_licence(marker):
 # The hosts the file means to name: the projects' own repositories and package pages, and the places the
 # licence texts themselves point to.
 HOSTS = {"github.com", "pypi.org", "boringssl.googlesource.com", "hg.mozilla.org", "mozilla.org",
-         "www.gnu.org", "fsf.org", "www.apache.org", "www.unicode.org"}
+         "www.gnu.org", "ftp.gnu.org", "fsf.org", "www.apache.org", "www.unicode.org"}
 
 
 def test_every_link_goes_to_a_host_the_file_means_to_name():
@@ -83,6 +90,23 @@ def test_every_link_goes_to_a_host_the_file_means_to_name():
     assert found <= HOSTS, f"THIRD_PARTY_NOTICES.txt links to hosts that are not on the list: {sorted(found - HOSTS)}"
 
 
+def test_every_part_the_text_points_to_exists():
+    """The long licence texts moved from part 4 to part 5 when yt-dlp-ejs was added: a pointer left behind
+    would send a reader to the wrong text."""
+    text = _text()
+    pointers = set(re.findall(r"\bpart (\d+(?:\.\d+)?)\b", text))
+    assert pointers, "THIRD_PARTY_NOTICES.txt points to no part"
+    for number in pointers:
+        assert re.search(rf"^{re.escape(number)}\.? \S", text, re.M), f"the text points to part {number}, which has no heading"
+    # part 5 holds the long texts the other parts point to
+    assert re.search(r"^5\. Licence texts$", text, re.M)
+
+
+def test_the_boringssl_revision_is_the_same_in_both_places():
+    """The revision is named twice (as the revision and in the archive address); one edited alone would pass a marker check."""
+    assert _text().count("156c7b75ae9b8c3b3f847acf264f17594c3859fb") == 2
+
+
 def test_the_only_gaps_are_the_ones_the_report_lists():
     found = [int(n) for n in re.findall(r"\[GAP (\d+):", _text())]
     assert sorted(found) == sorted(GAPS), f"gaps in the file: {found}, listed: {sorted(GAPS)}"
@@ -91,9 +115,9 @@ def test_the_only_gaps_are_the_ones_the_report_lists():
 
 
 @pytest.mark.parametrize("title, next_title, common", [
-    ("4.1 GNU General Public License version 3", "4.2 Mozilla Public License 2.0", "GPL-3"),
-    ("4.2 Mozilla Public License 2.0", "4.3 BoringSSL licence file", "MPL-2.0"),
-    ("4.4 GNU Lesser General Public License version 3", None, "LGPL-3"),
+    ("5.1 GNU General Public License version 3", "5.2 Mozilla Public License 2.0", "GPL-3"),
+    ("5.2 Mozilla Public License 2.0", "5.3 BoringSSL licence file", "MPL-2.0"),
+    ("5.4 GNU Lesser General Public License version 3", None, "LGPL-3"),
 ])
 def test_the_long_licence_texts_are_the_authoritative_ones(title, next_title, common):
     source = COMMON / common
@@ -113,12 +137,28 @@ def _lock_version(name):
     ("bgutil-ytdlp-pot-provider", "Version:   {}"),
     ("curl-cffi", "curl_cffi {}"),
     ("certifi", "https://pypi.org/project/certifi/{}/"),
+    ("yt-dlp-ejs", "Version:   {}"),
 ])
 def test_the_versions_named_are_the_ones_the_windows_installer_ships(package, how):
     """The Windows lock decides what the installer ships: a lock that moves on must take the
     notices with it (curl_cffi decides which libcurl-impersonate, and so which libraries, ship)."""
     assert how.format(_lock_version(package)) in _text(), \
         f"THIRD_PARTY_NOTICES.txt does not name {package} {_lock_version(package)}, the version the lock installs"
+
+
+def test_the_ejs_notices_are_the_ones_in_the_packages_own_script_header():
+    """yt-dlp-ejs keeps the ISC and MIT notices of the two libraries it bundles in a comment at the top of
+    lib.min.js; part 4 repeats them. Compared (words only) when that package, at the version named, is installed."""
+    ejs = pytest.importorskip("yt_dlp_ejs")
+    from importlib.metadata import version
+    if version("yt-dlp-ejs") != _lock_version("yt-dlp-ejs"):
+        pytest.skip("another yt-dlp-ejs version is installed")
+    header = (Path(ejs.__file__).parent / "yt" / "solver" / "lib.min.js").read_text(encoding="utf-8").split("*/")[0]
+    body = "\n".join(re.sub(r"^\s*\* ?", "", line) for line in header.splitlines())
+    words = lambda s: " ".join(s.split())
+    for start in ("ISC License", "Copyright (c) 2015, David Bonnet"):
+        piece = body[body.index(start):].split("---")[0]
+        assert words(piece) in words(_text()), f"the {start!r} notice in part 4 differs from the header of lib.min.js"
 
 
 # ── Windows installer: the install root ──────────────────────────────────────────────────────

@@ -11,9 +11,10 @@ adds the notices those files leave out:
   2. libcurl-impersonate and the libraries built into it, which curl_cffi bundles while carrying
      only its own licence.
   3. certifi, whose package names the Mozilla Public License 2.0 without carrying its text.
+  4. yt-dlp-ejs, whose licence file holds only its own Unlicense text; the notices of the two
+     libraries bundled in its script are repeated here.
 
-The long licence texts are in part 4. A line marked GAP is information the app's maintainers could
-not yet confirm from an authoritative source; it is to be completed.
+The long licence texts are in part 5.
 
 Versions: the Windows installer installs exactly the versions named here (its locked package list).
 The macOS and Linux apps install the releases that are current when they are built; the versions
@@ -25,7 +26,7 @@ named here are the ones of this file's date.
 
 Version:   2.0.2
 Licence:   GNU General Public License version 3 (the package's own classifier: "GNU General Public
-           License v3 (GPLv3)"). The full text is in part 4.1.
+           License v3 (GPLv3)"). The full text is in part 5.1.
 Copyright: the bgutil-ytdlp-pot-provider authors. The package names no copyright holder; it names
            its maintainers, Brainicism and grqz.
 Project:   https://github.com/Brainicism/bgutil-ytdlp-pot-provider (the official repository the
@@ -49,15 +50,44 @@ named in each section.
 ------------------------------------------------------------------------------
 2.1 curl-impersonate (the changes to curl and BoringSSL that make libcurl-impersonate)
 ------------------------------------------------------------------------------
-[GAP 1: the copyright line and the licence text of curl-impersonate. They are in its repository,
-which could not be read from the machine that wrote this file.]
+Project:   https://github.com/lexiforest/curl-impersonate (release v2.3.1). Its README says it is an
+           active fork of https://github.com/lwthiker/curl-impersonate; its LICENSE file, copied here
+           unchanged, names only the copyright line below.
+Licence:   MIT (the repository's LICENSE file at release v2.3.1):
+
+MIT License
+
+Copyright (c) 2026 curl_cffi developers
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
 
 ------------------------------------------------------------------------------
 2.2 curl 8.23.0 (as "8.23.0-IMPERSONATE")
 ------------------------------------------------------------------------------
-Copyright: [GAP 2: the copyright line of curl 8.23.0 (its COPYING file). Debian's copyright file
-for curl 8.5.0 records: 1997-2022, Daniel Stenberg, <daniel@haxx.se>, et al.]
-Licence (the curl licence; text from Debian's copyright file for curl 8.5.0):
+Project:   https://github.com/curl/curl (tag curl-8_23_0, the release libcurl-impersonate 2.3.1 builds)
+Licence:   the curl licence (curl's COPYING file at that tag, copied here unchanged, with its
+           copyright line):
+
+COPYRIGHT AND PERMISSION NOTICE
+
+Copyright (c) 1996 - 2026, Daniel Stenberg, <daniel@haxx.se>, and many
+contributors, see the THANKS file.
 
 All rights reserved.
 
@@ -80,18 +110,27 @@ in this Software without prior written authorization of the copyright holder.
 ------------------------------------------------------------------------------
 2.3 BoringSSL
 ------------------------------------------------------------------------------
-Version:   [GAP 3: the BoringSSL revision that libcurl-impersonate 2.3.1 is built on; the library does
-           not record it.]
-Licence:   Apache License 2.0. BoringSSL's licence file is in part 4.3 (as Chromium reproduces it in
+Revision:  156c7b75ae9b8c3b3f847acf264f17594c3859fb (the BORINGSSL_COMMIT of the CMakeLists.txt of
+           curl-impersonate v2.3.1, which builds
+           https://github.com/google/boringssl/archive/156c7b75ae9b8c3b3f847acf264f17594c3859fb.zip
+           with its patches/boringssl.patch applied)
+Licence:   Apache License 2.0. BoringSSL's licence file is in part 5.3 (as Chromium reproduces it in
            LICENSES.chromium.html, which Electron ships).
 Project:   https://boringssl.googlesource.com/boringssl
 
 ------------------------------------------------------------------------------
 2.4 nghttp2 1.63.0
 ------------------------------------------------------------------------------
-Copyright: [GAP 4: the copyright line of nghttp2 1.63.0. Debian's copyright file for nghttp2
-1.59.0 records: 2012, 2013, 2014 Tatsuhiro Tsujikawa.]
-Licence (MIT; text from Debian's copyright file for nghttp2 1.59.0):
+Project:   https://github.com/nghttp2/nghttp2 (tag v1.63.0)
+Also:      lib/sfparse.c and lib/sfparse.h in it carry these copyright lines, under the same MIT terms
+           (their file headers): Copyright (c) 2023 sfparse contributors, Copyright (c) 2019 nghttp3
+           contributors, Copyright (c) 2015 nghttp2 contributors.
+Licence:   MIT (the COPYING file at that tag, copied here unchanged, with its copyright lines):
+
+The MIT License
+
+Copyright (c) 2012, 2014, 2015, 2016 Tatsuhiro Tsujikawa
+Copyright (c) 2012, 2014, 2015, 2016 nghttp2 contributors
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -115,9 +154,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 2.5 ngtcp2 1.20.0
 ------------------------------------------------------------------------------
-Copyright: [GAP 5: the copyright line of ngtcp2 1.20.0. Debian's copyright file for ngtcp2
-0.12.1 records: 2016-2022 ngtcp2 contributors.]
-Licence (MIT; text from Debian's copyright file for ngtcp2 0.12.1):
+Project:   https://github.com/ngtcp2/ngtcp2 (tag v1.20.0)
+Licence:   MIT (the COPYING file at that tag, copied here unchanged, with its copyright lines):
+
+The MIT License
+
+Copyright (c) 2016 ngtcp2 contributors
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -141,10 +183,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ------------------------------------------------------------------------------
 2.6 nghttp3 1.15.0
 ------------------------------------------------------------------------------
-Copyright: [GAP 6: the copyright line of nghttp3 1.15.0. Debian's copyright file for nghttp3
-0.8.0 records: 2012-2016 nghttp2 contributors, 2016-2020 ngtcp2 contributors, 2018-2020 nghttp3
-contributors.]
-Licence (MIT; text from Debian's copyright file for nghttp3 0.8.0):
+Project:   https://github.com/ngtcp2/nghttp3 (tag v1.15.0)
+Licence:   MIT (the COPYING file at that tag, copied here unchanged, with its copyright lines):
+
+The MIT License
+
+Copyright (c) 2019 nghttp3 contributors
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -299,10 +343,15 @@ SOFTWARE.
 Copyright: Copyright (C) 2011-2024 Simon Josefsson (as the shipped library records it)
 Licence:   the library is offered under the GNU Lesser General Public License version 3 or later,
            or the GNU General Public License version 2 or later (Debian's copyright file for
-           libidn2 2.3.7). The LGPL version 3 text is in part 4.4; it supplements the GPL version 3
-           text in part 4.1. Its Unicode data is under the Unicode licence below (text from
+           libidn2 2.3.7). The LGPL version 3 text is in part 5.4; it supplements the GPL version 3
+           text in part 5.1. Its Unicode data is under the Unicode licence below (text from
            Debian's copyright file for libidn2 2.3.7).
 Project:   https://www.gnu.org/software/libidn/#libidn2
+Source:    libidn2 2.3.7 is built into libcurl-impersonate from the GNU release
+           https://ftp.gnu.org/gnu/libidn/libidn2-2.3.7.tar.gz (SHA-256
+           4c21a791b610b9519b9d0e12b8097bf2f359b12f8dd92647611a929e6bfd7d64) by scripts/build-libidn2.sh
+           of https://github.com/lexiforest/curl-impersonate (tag v2.3.1), the release that curl_cffi's
+           scripts/build.py downloads. curl_cffi's own build scripts: https://github.com/lexiforest/curl_cffi
 
 For terms of use, see http://www.unicode.org/terms_of_use.html
 Copyright © 1991-2011 Unicode, Inc. All rights reserved. Distributed
@@ -344,7 +393,7 @@ written authorization of the copyright holder.
 ==============================================================================
 
 Version:   2026.10.23
-Licence:   Mozilla Public License 2.0. The full text is in part 4.2.
+Licence:   Mozilla Public License 2.0. The full text is in part 5.2.
 Covers:    certifi's code and certifi/cacert.pem, a modified version of Mozilla's bundle of root
            certificates (certdata.txt). The package's own notice:
 
@@ -375,11 +424,69 @@ Source:    the app carries certifi unchanged, its files in source form, in the b
            source distribution: https://pypi.org/project/certifi/2026.10.23/
 
 ==============================================================================
-4. Licence texts
+4. yt-dlp-ejs
+==============================================================================
+
+Version:   0.8.0
+Licence:   the package's own code is under the Unlicense (its LICENSE file, in its .dist-info folder).
+           Its script yt_dlp_ejs/yt/solver/lib.min.js bundles two libraries, whose notices are
+           repeated below (they are also in the comment at the top of that file): meriyah 6.1.4 under
+           the ISC licence and astring 1.9.0 under the MIT licence.
+Project:   https://github.com/yt-dlp/ejs
+Source:    the app carries the package unchanged, in the bundled Python's site-packages. Its source
+           distribution: https://pypi.org/project/yt-dlp-ejs/0.8.0/
+
+------------------------------------------------------------------------------
+4.1 meriyah 6.1.4 (ISC licence)
+------------------------------------------------------------------------------
+Project:   https://github.com/meriyah/meriyah
+
+ISC License
+
+Copyright (c) 2019 and later, KFlash and others.
+
+Permission to use, copy, modify, and/or distribute this software for any purpose with or without fee
+is hereby granted, provided that the above copyright notice and this permission notice appear in all
+copies.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH REGARD TO THIS
+SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE
+AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+SOFTWARE.
+
+------------------------------------------------------------------------------
+4.2 astring 1.9.0 (MIT licence)
+------------------------------------------------------------------------------
+Project:   https://github.com/davidbonnet/astring
+
+Copyright (c) 2015, David Bonnet <david@bonnet.cc>
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+
+==============================================================================
+5. Licence texts
 ==============================================================================
 
 ------------------------------------------------------------------------------
-4.1 GNU General Public License version 3
+5.1 GNU General Public License version 3
 ------------------------------------------------------------------------------
 (text: /usr/share/common-licenses/GPL-3 of Debian and Ubuntu)
 
@@ -1059,7 +1166,7 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 ------------------------------------------------------------------------------
-4.2 Mozilla Public License 2.0
+5.2 Mozilla Public License 2.0
 ------------------------------------------------------------------------------
 (text: /usr/share/common-licenses/MPL-2.0 of Debian and Ubuntu)
 
@@ -1438,7 +1545,7 @@ Exhibit B - "Incompatible With Secondary Licenses" Notice
   defined by the Mozilla Public License, v. 2.0.
 
 ------------------------------------------------------------------------------
-4.3 BoringSSL licence file
+5.3 BoringSSL licence file
 ------------------------------------------------------------------------------
 (text: the BoringSSL entry of LICENSES.chromium.html, shipped with Electron 45.2.3)
 
@@ -1681,7 +1788,7 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ------------------------------------------------------------------------------
-4.4 GNU Lesser General Public License version 3
+5.4 GNU Lesser General Public License version 3
 ------------------------------------------------------------------------------
 (text: /usr/share/common-licenses/LGPL-3 of Debian and Ubuntu)
 
