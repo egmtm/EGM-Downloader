@@ -144,6 +144,165 @@ function cleanUserAgent(ua) {
 }
 app.userAgentFallback = cleanUserAgent(app.userAgentFallback);   // before any window exists
 
+// ── History thumbnails ────────────────────────────────────────────────────────
+// The picture of a finished download is fetched here, by Chromium, and handed to the backend, which
+// checks it again and stores it (until now the backend fetched it with Python). The request carries
+// the window's clean Chrome user agent (cleanUserAgent's result, app.userAgentFallback), no cookies
+// (a session of its own, in memory, and no session cookies) and no Referer. The backend names the
+// entry in an X-EGM-Thumbnail header on the page's own /api/status poll: nothing new is polled, and the
+// page is given nothing (no IPC), so no script in a page can ask for a URL. The shell asks the backend
+// for the URL it is waiting for (with the per run token), and only that URL is fetched, with the
+// backend's guards: HTTPS only, every redirect hop checked against internal addresses before it is
+// requested, the 500 KB cap counted while reading, a 15 second timeout, an image content type. When it
+// fails, an empty body tells the backend, which then fetches the picture itself.
+const { net } = require('electron');
+const THUMB_CAP = 512000;
+const THUMB_TIMEOUT_MS = 15000;
+const THUMB_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+let thumbSession = null;
+const thumbsInFlight = new Set();
+
+// The addresses the backend's _is_internal_host refuses (private, loopback, link local, reserved,
+// multicast, unspecified), and the shared 100.64.0.0/10 range too. Anything else that is not a public
+// IPv4 address or a global IPv6 one (2000::/3 without its special and documentation ranges) counts as internal.
+function isInternalAddress(ip) {
+  const v4 = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(ip);
+  if (v4) {
+    const [a, b, c] = v4.slice(1, 4).map(Number);
+    return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 100 && b >= 64 && b < 128) ||
+      (a === 169 && b === 254) || (a === 172 && b >= 16 && b < 32) || (a === 192 && b === 168) ||
+      (a === 192 && b === 0 && (c === 0 || c === 2)) || (a === 198 && (b === 18 || b === 19)) ||
+      (a === 198 && b === 51 && c === 100) || (a === 203 && b === 0 && c === 113);
+  }
+  let s = String(ip).toLowerCase().split('%')[0];
+  const tail = /^(.*:)(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(s);   // ::ffff:1.2.3.4
+  if (tail) {
+    const n = tail.slice(2).map(Number);
+    s = tail[1] + ((n[0] << 8) | n[1]).toString(16) + ':' + ((n[2] << 8) | n[3]).toString(16);
+  }
+  const halves = s.split('::');
+  if (halves.length > 2) return true;
+  const head = halves[0] ? halves[0].split(':') : [];
+  const rest = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+  const groups = [...head, ...Array(halves.length === 2 ? Math.max(8 - head.length - rest.length, 0) : 0).fill('0'), ...rest];
+  if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return true;
+  const [g0, g1] = groups.map((g) => parseInt(g, 16));
+  return (g0 & 0xe000) !== 0x2000 || (g0 === 0x2001 && g1 < 0x200) || (g0 === 0x2001 && g1 === 0xdb8) || g0 === 0x2002 ||
+    (g0 === 0x3fff && g1 < 0x1000);
+}
+
+// Resolved by Chromium's own resolver, the one the request then uses. A name that does not resolve
+// counts as internal, as in the backend.
+async function isInternalHost(host) {
+  const h = String(host || '').replace(/^\[(.*)\]$/, '$1');
+  if (!h) return true;
+  try {
+    const { endpoints } = await thumbSession.resolveHost(h);
+    return !endpoints.length || endpoints.some((e) => isInternalAddress(e.address));
+  } catch {
+    return true;
+  }
+}
+
+// One request, no redirect followed: { bytes }, { redirect: url } or null. Electron cancels a redirect
+// that is not followed at once inside its event, and the next address is checked first (that takes a
+// name lookup), so each hop is a request of its own.
+function requestThumbnail(url) {
+  return new Promise((resolve) => {
+    let done = false;
+    let req = null;
+    const finish = (value) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { req.abort(); } catch {}
+      resolve(value);
+    };
+    const timer = setTimeout(() => finish(null), THUMB_TIMEOUT_MS);
+    req = net.request({ url, session: thumbSession, useSessionCookies: false, credentials: 'omit',
+                        referrerPolicy: 'no-referrer', redirect: 'manual' });
+    req.setHeader('User-Agent', app.userAgentFallback);
+    req.on('redirect', (status, method, to) => finish({ redirect: to }));
+    req.on('response', (res) => {
+      const type = String(res.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+      if (res.statusCode < 200 || res.statusCode > 299 || !THUMB_TYPES.includes(type) ||
+          Number(res.headers['content-length'] || 0) > THUMB_CAP) return finish(null);
+      const parts = [];
+      let size = 0;
+      res.on('data', (chunk) => {
+        size += chunk.length;
+        if (size > THUMB_CAP) return finish(null);     // stop reading at the cap, whatever the length header said
+        parts.push(chunk);
+      });
+      res.on('end', () => finish({ bytes: Buffer.concat(parts) }));
+      res.on('error', () => finish(null));
+    });
+    req.on('error', () => finish(null));
+    req.end();
+  });
+}
+
+// The picture's bytes, or null when anything is refused or fails. Every address, the first and each
+// redirect's, is checked before it is requested; at most 10 redirects, as urllib allows.
+async function fetchThumbnail(url) {
+  if (!thumbSession) thumbSession = session.fromPartition('egm-thumbnails', { cache: false });
+  let next = url;
+  for (let hop = 0; hop <= 10; hop++) {
+    let u = null;
+    try { u = new URL(next); } catch {}
+    if (!u || u.protocol !== 'https:' || await isInternalHost(u.hostname)) return null;
+    const got = await requestThumbnail(u.href);
+    if (!got) return null;
+    if (got.bytes) return got.bytes;
+    try { next = new URL(got.redirect, u).href; } catch { return null; }
+  }
+  return null;
+}
+
+function backendCall(method, pathName, body) {
+  return new Promise((resolve) => {
+    const headers = { 'X-EGM-Token': EGM_TOKEN };
+    if (body) Object.assign(headers, { 'Content-Type': 'application/octet-stream', 'Content-Length': body.length });
+    const req = http.request(APP_URL + pathName, { method, headers }, (res) => {
+      const parts = [];
+      res.on('data', (chunk) => parts.push(chunk));
+      res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(parts).toString('utf8') }));
+      res.on('error', () => resolve({ status: 0, body: '' }));
+    });
+    req.on('error', () => resolve({ status: 0, body: '' }));
+    req.setTimeout(THUMB_TIMEOUT_MS, () => req.destroy());
+    req.end(body);
+  });
+}
+
+async function deliverThumbnail(entry) {
+  if (thumbsInFlight.has(entry)) return;
+  thumbsInFlight.add(entry);
+  try {
+    const asked = await backendCall('GET', `/api/history/${entry}/thumbnail`);
+    if (asked.status !== 200) return;              // the backend is not waiting for it (any more): nothing is fetched
+    let url = '';
+    try { url = JSON.parse(asked.body).url; } catch {}
+    const bytes = await fetchThumbnail(url);
+    await backendCall('POST', `/api/history/${entry}/thumbnail`, bytes || Buffer.alloc(0));
+  } finally {
+    thumbsInFlight.delete(entry);
+  }
+}
+
+// Every finished request of the windows passes here; only the app's own /api/status answer counts.
+function noticeThumbnail(details) {
+  let ours = false;
+  try {
+    const u = new URL(details.url);
+    ours = u.origin === APP_URL && u.pathname.startsWith('/api/status/');
+  } catch {}
+  if (!ours) return;
+  const name = Object.keys(details.responseHeaders || {}).find((k) => k.toLowerCase() === 'x-egm-thumbnail');
+  const entry = name ? String(details.responseHeaders[name]) : '';
+  if (/^[a-f0-9-]{1,64}$/.test(entry)) deliverThumbnail(entry).catch(() => {});
+}
+
 // ── Single-instance lock ──────────────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) {
@@ -936,6 +1095,8 @@ app.whenReady().then(async () => {
       callback({ requestHeaders: details.requestHeaders });
     }
   });
+  // A finished download's picture (see History thumbnails above): the page's /api/status answers name it.
+  session.defaultSession.webRequest.onCompleted(noticeThumbnail);
   // Content-Security-Policy: applied to all responses from Flask
   // 'unsafe-inline' for scripts/styles required because templates use inline JS/CSS.
   // External scripts, frames, objects, plugins, non-self connections all blocked.

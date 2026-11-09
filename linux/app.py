@@ -685,6 +685,25 @@ def _attach_thumbnail(entry_id: str, data: bytes) -> bool:
         _save_history(items)
     return True
 
+# In the shell (EGM_ELECTRON) the picture of a finished download is fetched by Chromium in the shell's
+# main process: the backend lists the entry here, names it in an X-EGM-Thumbnail header on the page's
+# /api/status answer, gives the shell the URL and takes the bytes back (/api/history/<id>/thumbnail).
+# When the shell cannot fetch it, or has not delivered it after _THUMB_WAIT seconds, or there is no
+# shell, the backend fetches it itself (_fetch_thumbnail). entry id -> (url, yt-dlp's user agent),
+# under _history_lock; whoever takes an entry out of it fetches or stores that picture.
+_SHELL_FETCHES_THUMBNAILS = os.environ.get("EGM_ELECTRON") == "1"
+_THUMB_WAIT = 30
+_thumb_pending = {}
+
+def _thumbnail_by_backend(entry_id):
+    """The backend fetches the picture of entry_id itself, if it is still waited for."""
+    with _history_lock:
+        pending = _thumb_pending.pop(entry_id, None)
+    if pending:
+        data = _fetch_thumbnail(*pending)
+        if data:
+            _attach_thumbnail(entry_id, data)
+
 def _remove_thumbnails_of(entries, keep=()):
     """Unlink the cached thumbnail of each history entry that is no longer kept, unless an entry in
     `keep` still names it (an imported list can name one picture twice). Only a name of the shape this
@@ -703,6 +722,11 @@ def _append_history(job: dict, final_path):
         try: size_bytes = final_path.stat().st_size
         except Exception: pass
         entry_id = str(uuid.uuid4())
+        # HTTPS only, and the characters _safe_thumb_url allows, whoever fetches it.
+        raw = job.get("thumbnail", "")
+        url = _safe_thumb_url(raw)
+        if raw and not url.startswith("https://"):
+            _sec_event(f"Thumbnail URL rejected (non-HTTPS or unsafe characters): scheme={str(raw).split(':')[0][:16]!r}")
         entry = {
             "id":           entry_id,
             "url":          job.get("url", ""),
@@ -722,11 +746,18 @@ def _append_history(job: dict, final_path):
             items = items[:_HISTORY_MAX]
             _save_history(items)
             _remove_thumbnails_of(dropped, keep=items)
+            if url.startswith("https://"):
+                _thumb_pending[entry_id] = (url, job.get("user_agent", ""))
         # The picture is fetched after the entry is written and outside the lock; it is stored (and
         # named in the entry) only if the entry is still there by then.
-        data = _fetch_thumbnail(job.get("thumbnail", ""), job.get("user_agent", ""))
-        if data:
-            _attach_thumbnail(entry_id, data)
+        if url.startswith("https://"):
+            if _SHELL_FETCHES_THUMBNAILS:
+                job["thumb_pending"] = entry_id
+                t = threading.Timer(_THUMB_WAIT, _thumbnail_by_backend, args=(entry_id,))
+                t.daemon = True
+                t.start()
+            else:
+                _thumbnail_by_backend(entry_id)
     except Exception:
         pass
 
@@ -2560,6 +2591,7 @@ def check_status(job_id):
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
         status = job["status"]
+        thumb = job.get("thumb_pending")
         resp = {"status": status, "error": job.get("error"), "error_code": job.get("error_code"),
                 "filename": job.get("filename"), "progress": job.get("progress", 0),
                 "speed": job.get("speed", ""), "eta": job.get("eta", ""),
@@ -2576,7 +2608,10 @@ def check_status(job_id):
             jobs.pop(job_id, None)
         elif status in ("done", "error", "cancelled"):
             job["_ack"] = True   # mark — will be removed on next poll
-    return jsonify(resp)
+    out = jsonify(resp)
+    if thumb and thumb in _thumb_pending:
+        out.headers["X-EGM-Thumbnail"] = thumb   # read by the shell's main process (History thumbnails in main.js)
+    return out
 
 @app.route("/api/settings")
 def get_settings():
@@ -3515,6 +3550,7 @@ def delete_history_entry(entry_id):
 def clear_history():
     with _history_lock:
         _save_history([])
+        _thumb_pending.clear()     # nothing is fetched any more for the downloads it clears
         try: HISTORY_FILE.with_name(HISTORY_FILE.name + ".unreadable").unlink(missing_ok=True)   # the kept copy of a damaged file goes too
         except Exception: pass
         # All thumbnails, under the same lock: a picture a finishing download stores is either in the
@@ -3558,6 +3594,37 @@ def serve_thumbnail(filename):
     resp = app.response_class(thumb_path.read_bytes(), mimetype=mime)
     resp.headers["Cache-Control"] = "max-age=86400"
     return resp
+
+@app.route("/api/history/<entry_id>/thumbnail", methods=["GET", "POST"])
+def shell_thumbnail(entry_id):
+    """The shell's side of a finished download's picture (token protected, like every /api/ route but
+    /api/thumbnail/). GET: the URL to fetch, only while the backend waits for that entry's picture.
+    POST: the picture the shell fetched, at most _THUMB_CAP bytes, checked again here (a JPEG, PNG or
+    WebP by its first bytes) and stored under the name rule (entry id plus extension) by
+    _attach_thumbnail. Anything else (an empty body: the shell could not fetch it; too big; not a
+    picture) leaves it to the backend, which fetches the picture itself now."""
+    if not _re.fullmatch(r'[a-f0-9\-]{1,64}', entry_id):
+        return jsonify({"error": "Not found"}), 404
+    with _history_lock:
+        pending = _thumb_pending.get(entry_id)
+    if not pending:
+        return jsonify({"error": "Not found"}), 404
+    if request.method == "GET":
+        return jsonify({"url": pending[0]})
+    too_big = (request.content_length or 0) > _THUMB_CAP
+    data = b"" if too_big else request.stream.read(_THUMB_CAP + 1)
+    if len(data) <= _THUMB_CAP and _thumb_image_ext(data):
+        with _history_lock:
+            ours = _thumb_pending.pop(entry_id, None) is not None
+        if ours and _attach_thumbnail(entry_id, data):
+            return jsonify({"ok": True})
+        return jsonify({"error": "Not found"}), 404
+    threading.Thread(target=_thumbnail_by_backend, args=(entry_id,), daemon=True).start()
+    if too_big or len(data) > _THUMB_CAP:
+        return jsonify({"error": "Too large"}), 413
+    if data:
+        return jsonify({"error": "Not a picture"}), 400
+    return jsonify({"ok": False}), 202
 
 _HISTORY_TEXT_FIELDS = ("url", "title", "filename", "download_dir", "file_path", "completed_at")
 

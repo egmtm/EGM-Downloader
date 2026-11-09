@@ -202,3 +202,70 @@ def test_the_portable_launchers_pip_install_does_not_look_for_a_newer_pip(launch
     launcher.ensure_python_deps_embedded("python.exe")
     (cmd,) = launcher.pip_calls
     assert "install" in cmd and "--disable-pip-version-check" in cmd
+
+
+# ── History thumbnails ────────────────────────────────────────────────────────────────────────
+# The shell's main process now fetches a finished download's picture (History thumbnails in main.js). It
+# is a contact the user asked for (the download), made once per download, and only when the backend
+# names the entry on the page's own /api/status answer: never at start, never on a timer, never for
+# another response. The backend names it only once the download is done.
+
+def _notice(rel, events):
+    src = read_source(rel)
+    fn = re.search(r"\nfunction noticeThumbnail\(details\) \{.*?\n\}\n", src, re.S).group(0)
+    script = ("const APP_URL = 'http://127.0.0.1:8899';\nconst asked = [];\n"
+              "const deliverThumbnail = (e) => { asked.push(e); return Promise.resolve(); };\n"
+              f"{fn}\nfor (const d of {json.dumps(events)}) noticeThumbnail(d);\nconsole.log(JSON.stringify(asked));")
+    r = subprocess.run(["node", "-e", script], capture_output=True, text=True, timeout=20)
+    assert r.returncode == 0, r.stderr[-1500:]
+    return json.loads(r.stdout)
+
+
+ENTRY = "3f2c1a9e-0b4d-4c6e-9a7f-1234567890ab"
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_the_shell_fetches_a_thumbnail_only_when_the_backend_names_a_finished_download(rel):
+    named = {"X-EGM-Thumbnail": [ENTRY]}
+    others = [{"url": "http://127.0.0.1:8899/", "responseHeaders": named},
+              {"url": "http://127.0.0.1:8899/api/settings", "responseHeaders": named},
+              {"url": "https://i.example/api/status/x", "responseHeaders": named},
+              {"url": "http://127.0.0.1:8899/api/status/x", "responseHeaders": {}},
+              {"url": "http://127.0.0.1:8899/api/status/x"}]
+    assert _notice(rel, others) == []
+    assert _notice(rel, [{"url": "http://127.0.0.1:8899/api/status/x", "responseHeaders": named}]) == [ENTRY]
+
+
+@pytest.mark.parametrize("rel", MAIN_JS)
+def test_nothing_polls_or_fetches_a_thumbnail_on_its_own(rel):
+    """No timer in the block, and outside it nothing calls it: its one use is the onCompleted listener."""
+    src = read_source(rel)
+    block = re.search(r"\n// ── History thumbnails.*?\nfunction noticeThumbnail\(details\) \{.*?\n\}\n", src, re.S).group(0)
+    assert "setInterval" not in block
+    rest = src.replace(block, "")
+    assert not re.search(r"\b(noticeThumbnail|deliverThumbnail|fetchThumbnail)\(", rest), "the thumbnail fetch is started elsewhere"
+    assert re.findall(r".*\bnoticeThumbnail\b.*", rest) == ["  session.defaultSession.webRequest.onCompleted(noticeThumbnail);"]
+
+
+@pytest.fixture(params=APPS)
+def backend(request, tmp_path, monkeypatch, tmp_path_factory):
+    home = str(tmp_path_factory.mktemp("home"))
+    for var in ("HOME", "XDG_DATA_HOME", "XDG_CONFIG_HOME"):
+        monkeypatch.setenv(var, home)
+    spec = importlib.util.spec_from_file_location("egm_bg_thumb_" + request.param.split("/")[0], os.path.join(ROOT, request.param))
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    monkeypatch.setattr(mod, "THUMBNAILS_DIR", tmp_path / "thumbnails")
+    monkeypatch.setattr(mod, "HISTORY_FILE", tmp_path / "egm_history.json")
+    monkeypatch.setattr(mod, "_SHELL_FETCHES_THUMBNAILS", True)
+    monkeypatch.setattr(mod, "_THUMB_WAIT", 3600)
+    return mod
+
+
+def test_a_download_still_running_names_no_thumbnail(backend):
+    backend._thumb_pending["3f2c1a9e-0b4d-4c6e-9a7f-1234567890ab"] = ("https://i.example/y.jpg", "UA")   # another download's
+    backend.jobs["0123456789"] = {"status": "downloading", "url": "https://video.example/v", "title": "t",
+                                  "thumbnail": "https://i.example/x.jpg", "proc": None, "cancelled": False}
+    r = backend.app.test_client().get("/api/status/0123456789", headers={"X-EGM-Token": backend._API_TOKEN})
+    assert r.status_code == 200 and "X-EGM-Thumbnail" not in r.headers
+    backend._thumb_pending.clear()
