@@ -10,7 +10,12 @@ os.environ.setdefault("EGM_API_TOKEN", "ci-test-token-not-secret")
 # Several tests load windows/launch.py; on Windows its top level would otherwise re-run it under
 # pythonw.exe (starting the real launcher) and exit the test process.
 os.environ.setdefault("EGM_SILENT", "1")
+# EGM_INSTALL_DIR moves app.py's data and tools to another folder. Set in a developer's shell it made the
+# modules under test read and write there, so it is cleared before any of them is imported (this file
+# loads first). The tests that need it give it to their own child process.
+os.environ.pop("EGM_INSTALL_DIR", None)
 sys.argv = ["app.py"]
+
 
 
 @pytest.fixture(scope="session")
