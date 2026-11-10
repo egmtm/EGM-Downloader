@@ -1,6 +1,6 @@
 EGM Downloader — Installation & Setup Guide
 ============================================
-https://egerena.com/apps/egm.html
+https://windows.egmdownloader.app
 
 
 REQUIREMENTS
@@ -40,7 +40,7 @@ UPDATING
     then "Install Updates"
 
   To update EGM Downloader itself:
-    Download the latest egm-setup.exe from https://egerena.com/apps/egm.html
+    Download the latest egm-setup.exe from https://windows.egmdownloader.app
     Run it over your existing install — your settings are preserved.
     Installing over an older version (v1.5.0 or newer) also keeps your
     history, logs and the downloaded ffmpeg and Deno.
@@ -80,7 +80,7 @@ TROUBLESHOOTING
 
 SUPPORT
 ────────
-  https://egm.egerena.com
-  https://egerena.com/apps/egm.html
+  https://egmdownloader.app
+  https://windows.egmdownloader.app
   https://github.com/egmtm/EGM-Downloader
   https://x.com/EGMDownloader

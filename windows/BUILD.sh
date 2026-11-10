@@ -481,7 +481,7 @@ echo "$VERSION-portable-build-$BUILD_NUM" > "$PORTABLE_STAGE/.portable"
 cat > "$PORTABLE_STAGE/instructions.txt" << PORTINS
 EGM Downloader v$VERSION — Portable Edition
 ================================================================
-https://egerena.com/apps/egm.html
+https://windows.egmdownloader.app
 
 This is the portable edition. No installation required.
 Runs from any folder, USB stick, or network drive.
@@ -535,7 +535,7 @@ DIFFERENCES FROM THE INSTALLER VERSION
   • No Start Menu or Desktop shortcuts are created.
   • No entry in Windows "Add or Remove Programs".
   • Auto-update is disabled. To update:
-      1. Download the latest EGMd-portable.zip from egerena.com/apps
+      1. Download the latest EGMd-portable.zip from windows.egmdownloader.app
       2. Extract to a new folder
       3. Copy your old data\ folder into the new folder (it is hidden,
          see WHERE YOUR DATA IS STORED above)
@@ -589,8 +589,8 @@ TROUBLESHOOTING
 
 SUPPORT
 ────────
-  https://egm.egerena.com
-  https://egerena.com/apps/egm.html  •  contact@egerena.com
+  https://egmdownloader.app
+  https://windows.egmdownloader.app  •  help@egmdownloader.app
 PORTINS
 
 # Package into zip (no password — portable users don't expect one)
