@@ -11,7 +11,11 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned to 24.04 on purpose: its NSIS (3.09) is the one that builds the real installer, and the test that lists
+    # the compiled installer was written against it. ubuntu-latest moved to 26.04 (NSIS 3.10, 7-Zip 26) and that
+    # test stopped finding uninstall.exe in the listing. To be looked at after the release, or sooner if GitHub
+    # announces that the 24.04 runners are going away.
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
