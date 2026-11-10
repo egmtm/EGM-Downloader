@@ -240,6 +240,28 @@ def test_the_v0_99_files_go_from_a_folder_that_is_ours():
     assert folder(DATA) <= paths
 
 
+# What the installers of v0.98.9 to v0.99.11 themselves put in the folder (their File lines in the
+# tags): a .vbs launcher and launch.bat, and no EGM Downloader.exe yet. The exe came with v0.99.12.
+V099_AS_INSTALLED = {"EGM Downloader.vbs", "launch.bat", "launch.py", "app.py", "README.md", "requirements.txt",
+                     "patchnotes.txt", "instructions.txt", "uninstall.exe", "templates/index.html", "static/icon.ico",
+                     "electron/main.js", "electron/preload.js", "electron/package.json"}
+
+
+def test_the_folder_an_early_v0_99_installer_left_is_cleaned_through_the_recorded_path():
+    """Such a folder holds no EGM Downloader.exe, so only the install path the registry records (every
+    version wrote it) makes it strong: with the record the old program files go and the data stays;
+    without it the settings file lets the install in and nothing at all is deleted."""
+    paths = folder(V099_AS_INSTALLED, DATA)
+    r = install(paths, regs={"$PreviousInstDir": "$INSTDIR"})
+    assert r.outcome == "writes"
+    assert tops(paths) == {"instructions.txt", "uninstall.exe"} | tops(folder(DATA)), sorted(tops(paths))
+    assert folder(DATA) <= paths
+    paths = folder(V099_AS_INSTALLED, DATA)
+    before = set(paths)
+    r = install(paths)
+    assert r.outcome == "writes" and paths == before and not r.deleted, sorted(r.deleted)
+
+
 def test_the_v0_99_files_are_removed_only_after_the_check():
     sec = section("Install")
     for name in ("README.md", "requirements.txt", "EGM Downloader.vbs"):
