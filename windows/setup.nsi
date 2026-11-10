@@ -97,6 +97,7 @@ Unicode          true
 ; ── Variables ────────────────────────────────────────────────
 Var PreviousVersion
 Var PreviousInstDir
+Var FolderStrong     ; "1": the install folder holds EGM Downloader.exe or is the recorded install path
 Var SelectedLangCode ; 2-letter code handed off to the app
 
 ; ── MUI Settings ─────────────────────────────────────────────
@@ -551,22 +552,29 @@ FunctionEnd
 ; ── Install Section ──────────────────────────────────────────
 Section "Install" SecInstall
   ; ── Only into an empty folder or one of ours, checked before anything is closed or changed ──
-  ; A folder of something else would get the app's files mixed into it and loses files by name
-  ; below. A portable copy (launch.py with .portable) keeps its data inside and is not an install.
-  ; Ours too: what an uninstall leaves when the user keeps the data (egm_settings.json, which every
-  ; run of the app writes) or the downloaded components (ffmpeg_bin, runtime with Deno).
+  ; A folder of something else would get the app's files mixed into it. A portable copy (launch.py
+  ; with .portable) keeps its data inside and is not an install.
+  ; Two levels of "ours". STRONG: the folder holds EGM Downloader.exe, or it is the install path the
+  ; registry records (a Repair after antivirus removed the launcher has to keep working). Only a
+  ; strong folder may lose files: every removal below sits inside a FolderStrong check.
+  ; WEAK, enough to install into and never to delete in: what an uninstall leaves when the user keeps
+  ; the data (egm_settings.json, which every run of the app writes) or the downloaded components
+  ; (ffmpeg_bin\ffmpeg.exe and runtime\deno.exe, by name). resources\app.asar, launch.py and
+  ; electron\main.js are in other software too, so none of them is a marker.
+  StrCpy $FolderStrong "0"
+  ${If} ${FileExists} "$INSTDIR\EGM Downloader.exe"
+  ${OrIf} $INSTDIR == $PreviousInstDir
+    StrCpy $FolderStrong "1"
+  ${EndIf}
   ${DirState} "$INSTDIR" $0
   ${If} ${FileExists} "$INSTDIR\launch.py"
   ${AndIf} ${FileExists} "$INSTDIR\.portable"
     StrCpy $0 "refuse"
   ${ElseIf} $0 == 1
-  ${AndIfNot} ${FileExists} "$INSTDIR\EGM Downloader.exe"
-  ${AndIfNot} ${FileExists} "$INSTDIR\resources\app.asar"
-  ${AndIfNot} ${FileExists} "$INSTDIR\launch.py"
-  ${AndIfNot} ${FileExists} "$INSTDIR\electron\main.js"
+  ${AndIf} $FolderStrong != "1"
   ${AndIfNot} ${FileExists} "$INSTDIR\egm_settings.json"
-  ${AndIfNot} ${FileExists} "$INSTDIR\ffmpeg_bin\*.*"
-  ${AndIfNot} ${FileExists} "$INSTDIR\runtime\*.*"
+  ${AndIfNot} ${FileExists} "$INSTDIR\ffmpeg_bin\ffmpeg.exe"
+  ${AndIfNot} ${FileExists} "$INSTDIR\runtime\deno.exe"
     StrCpy $0 "refuse"
   ${EndIf}
   ${If} $0 == "refuse"
@@ -614,28 +622,33 @@ Section "Install" SecInstall
   ${EndIf}
 
   ; ── What is installed here already: decided by files, never by version ──
+  ; Nothing here runs unless the folder is STRONG (the check above): a folder that only the weak
+  ; markers let in gets the new files written over it and loses nothing, so files of an older
+  ; install can stay next to the new ones there.
   ; Two independent checks, the old layout first: a folder holding both is cleaned of the old
   ; files and then gets the new install.
-  ${If} ${FileExists} "$INSTDIR\launch.py"
-    ; The v1.5.0 to v1.5.2.3 layout: remove its program files by name (the old launcher is
-    ; overwritten below). Settings, history, logs, ffmpeg and Deno stay; the user's system
-    ; Python and its packages are never touched. launch.py alone marks it: the macro removes it
-    ; last, so a folder whose cleanup was cut short is still found here.
-    !insertmacro EGM_REMOVE_OLD_LAYOUT
+  ${If} $FolderStrong == "1"
+    ${If} ${FileExists} "$INSTDIR\launch.py"
+      ; The v1.5.0 to v1.5.2.3 layout: remove its program files by name (the old launcher is
+      ; overwritten below). Settings, history, logs, ffmpeg and Deno stay; the user's system
+      ; Python and its packages are never touched. launch.py marks it here: the macro removes it
+      ; last, so a folder whose cleanup was cut short is still found, and still strong (the old
+      ; launcher stays until the new exe is written over it).
+      !insertmacro EGM_REMOVE_OLD_LAYOUT
+    ${EndIf}
+    ${If} ${FileExists} "$INSTDIR\resources\app.asar"
+      ; This layout (upgrade or repair): resources (the app, app.asar, the bundled Python) and
+      ; locales hold only this app's files and are replaced as a whole, so no file of an earlier
+      ; version stays next to the new ones. User data lives in the install folder itself (the shell
+      ; hands app.py that folder in EGM_INSTALL_DIR), never in these two. The rest is overwritten.
+      RMDir /r "$INSTDIR\resources"
+      RMDir /r "$INSTDIR\locales"
+    ${EndIf}
+    ; Files the v0.99 installers put here and no later one removed.
+    Delete "$INSTDIR\README.md"
+    Delete "$INSTDIR\requirements.txt"
+    Delete "$INSTDIR\EGM Downloader.vbs"
   ${EndIf}
-  ${If} ${FileExists} "$INSTDIR\resources\app.asar"
-    ; This layout (upgrade or repair): resources (the app, app.asar, the bundled Python) and
-    ; locales hold only this app's files and are replaced as a whole, so no file of an earlier
-    ; version stays next to the new ones. User data lives in the install folder itself (the shell
-    ; hands app.py that folder in EGM_INSTALL_DIR), never in these two. The rest is overwritten.
-    RMDir /r "$INSTDIR\resources"
-    RMDir /r "$INSTDIR\locales"
-  ${EndIf}
-  ; Files the v0.99 installers put here and no later one removed (this folder passed the check
-  ; above, so it is one of ours).
-  Delete "$INSTDIR\README.md"
-  Delete "$INSTDIR\requirements.txt"
-  Delete "$INSTDIR\EGM Downloader.vbs"
   ; Anything else: nothing is deleted.
 
   ; ── The app: Electron, the bundled Python with its packages, and the app files ──

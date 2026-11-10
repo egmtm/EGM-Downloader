@@ -5,7 +5,13 @@ The Install section is run in tests/nsis_model.py over models of the folders an 
 * this layout (resources\\app.asar) loses resources\\ and locales\\ as a whole (upgrade or repair);
 * a folder holding both is cleaned of the old files first and then of the old resources;
 * a cleanup cut short between two steps is finished by the next run (launch.py goes last);
-* user data, ffmpeg and Deno are never touched."""
+* user data, ffmpeg and Deno are never touched;
+* a folder is ours by EGM Downloader.exe, the recorded install path, egm_settings.json or a named
+  ffmpeg or Deno file; resources\\app.asar, launch.py and electron\\main.js are in other software too;
+* only a folder with EGM Downloader.exe or the recorded path may lose files (the strong ones): a
+  folder the weaker markers let in gets the install and loses nothing."""
+import re
+
 import pytest
 
 from nsis_model import NSI, Run, expand, macro, section, statements
@@ -101,8 +107,14 @@ def test_a_migration_cut_short_after_any_step_is_finished_by_the_next_run(cut):
 PORTABLE = {"EGM Downloader.exe", "launch.py", ".portable", "app.py", "instructions.txt", "templates/index.html",
             "electron/package.json", "data/egm_settings.json", "python/python.exe"}
 FOREIGN = {"notes.txt", "photos/a.jpg"}
-MARKERS = ["EGM Downloader.exe", "resources/app.asar", "launch.py", "electron/main.js",
-           "egm_settings.json", "ffmpeg_bin/ffmpeg.exe", "runtime/deno.exe"]   # the last three: what an uninstall keeps
+ELECTRON_APP = {"SomeApp.exe", "ffmpeg.dll", "resources/app.asar", "resources/app/main.js", "locales/en-US.pak"}
+FLASK_PROJECT = {"app.py", "launch.py", "requirements.txt", "README.md", "templates/index.html",
+                 "static/style.css", "languages/en.json"}
+ELECTRON_PROJECT = {"package.json", "electron/main.js", "src/index.js"}
+# What makes a folder ours: the launcher, and what an uninstall keeps (the settings file, a named ffmpeg
+# or Deno file). The recorded install path is the other way in (below).
+MARKERS = ["EGM Downloader.exe", "egm_settings.json", "ffmpeg_bin/ffmpeg.exe", "runtime/deno.exe"]
+WEAK = MARKERS[1:]
 
 
 @pytest.mark.parametrize("name, contents", [
@@ -110,6 +122,11 @@ MARKERS = ["EGM Downloader.exe", "resources/app.asar", "launch.py", "electron/ma
     ("a 1.5.x portable copy", OLD | {".portable", "python/python.exe", "data/egm_settings.json"}),
     ("a folder of something else", FOREIGN),
     ("a folder with only a README.md", {"README.md"}),
+    ("another Electron app", ELECTRON_APP),
+    ("a Flask project", FLASK_PROJECT),
+    ("an Electron project", ELECTRON_PROJECT),
+    ("a runtime folder that holds no Deno", {"runtime/notes.txt"}),
+    ("an ffmpeg_bin folder that holds no ffmpeg", {"ffmpeg_bin/readme.txt"}),
 ])
 def test_a_folder_that_is_not_ours_is_refused_before_anything_changes(name, contents):
     for silent, answers in ((True, []), (False, ["IDOK"])):
@@ -129,6 +146,73 @@ def test_each_marker_makes_a_folder_ours(marker):
     assert folder(FOREIGN) <= paths
 
 
+FOREIGN_PROGRAM = {"launch.py", "app.py", "requirements.txt", "README.md", "templates/index.html",
+                   "static/style.css", "languages/en.json", "electron/main.js", "resources/app.asar",
+                   "resources/app/main.js", "locales/en-US.pak"}
+
+
+@pytest.mark.parametrize("weak", WEAK)
+def test_a_folder_that_only_a_weak_marker_lets_in_gets_the_install_and_loses_nothing(weak):
+    """Leftover components and a settings file can open the door but never delete: the folder also
+    holds another program's launch.py and resources\\app.asar, and every one of its files stays."""
+    paths = folder({weak}, FOREIGN_PROGRAM)
+    before = set(paths)
+    r = install(paths)
+    assert r.outcome == "writes", weak
+    assert paths == before and not r.deleted, sorted(r.deleted)
+
+
+def test_a_repair_after_antivirus_removed_the_launcher_still_replaces_resources():
+    """instructions.txt tells people to run the installer again (Repair) when antivirus took a file of
+    the app. The launcher is gone and, on a first install, there is no settings file yet: the install
+    path the registry records is what makes the folder ours, and strong."""
+    for extra in (DATA, set()):
+        paths = folder(NEW - {"EGM Downloader.exe"}, extra)
+        r = install(paths, regs={"$PreviousInstDir": "$INSTDIR"})
+        assert r.outcome == "writes"
+        assert not {p for p in paths if p.startswith(("$INSTDIR/resources/", "$INSTDIR/locales/"))}, sorted(paths)
+        assert folder(extra) <= paths
+
+
+def test_the_same_folder_without_the_recorded_path_is_not_recognised():
+    """resources\\app.asar is in every Electron app, so it is not a marker: without the launcher, the
+    settings file, a named ffmpeg or Deno file or the recorded path, the folder is refused."""
+    paths = folder(NEW - {"EGM Downloader.exe"})
+    before = set(paths)
+    r = install(paths)
+    assert r.outcome == "aborted" and paths == before and not r.deleted
+
+
+def test_a_recorded_path_that_is_another_folder_counts_for_nothing():
+    paths = folder(FLASK_PROJECT)
+    r = install(paths, regs={"$PreviousInstDir": "D:/Elsewhere"})
+    assert r.outcome == "aborted" and not r.deleted
+
+
+def test_every_delete_of_the_install_section_sits_inside_the_strong_check():
+    """No Delete, RMDir or cleanup macro before the files are written may run for a folder that is
+    not strong; a delete added later without the check fails here."""
+    body = section("Install")
+    body = body[:body.index("File /r")]
+    stack, unguarded = [], []
+    for s in statements(body):
+        m = re.match(r"\$\{(If|IfNot|ElseIf|Else|EndIf)\}\s*(.*)$", s)
+        if m:
+            kind, rest = m.groups()
+            if kind in ("If", "IfNot"):
+                stack.append(rest if kind == "If" else "not " + rest)
+            elif kind in ("ElseIf", "Else"):
+                stack[-1] = ""
+            else:
+                stack.pop()
+            continue
+        if re.match(r"(Delete|RMDir)\b", s) or s == "!insertmacro EGM_REMOVE_OLD_LAYOUT":
+            if not any(c == '$FolderStrong == "1"' for c in stack):
+                unguarded.append(s)
+    assert not unguarded, unguarded
+    assert 'RMDir /r "$INSTDIR\\resources"' in body, "no delete found, so this checks nothing"
+
+
 def test_an_empty_or_new_folder_is_installed_into():
     paths = set()
     r = install(paths)
@@ -144,7 +228,7 @@ def test_the_refusal_comes_first_in_the_install_section():
 
 # ── v0.99 leftovers ───────────────────────────────────────────────────────────
 
-V099 = {"launch.py", "launch.vbs", "app.py", "README.md", "requirements.txt", "EGM Downloader.vbs", "patchnotes.txt",
+V099 = {"EGM Downloader.exe", "launch.py", "launch.vbs", "app.py", "README.md", "requirements.txt", "EGM Downloader.vbs", "patchnotes.txt",
         "instructions.txt", "uninstall.exe", "templates/index.html", "static/icon.ico"}
 
 
