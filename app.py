@@ -3615,7 +3615,7 @@ def _sha256_file(path):
 def download_update():
     """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe, return installer path."""
     if PORTABLE_MODE:
-        return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps."}), 400
+        return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps/egm.html."}), 400
     data    = request.get_json(silent=True) or {}
     zip_url = _text(data.get("zip_url", APP_UPDATE_ZIP_URL)).strip()
     expected_checksum = _text(data.get("expected_checksum")).strip().lower()

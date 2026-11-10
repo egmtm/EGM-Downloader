@@ -135,7 +135,7 @@ function showUpdateAvailableModal(d) {
     btnDownload.className = 'btn btn-primary';
     btnDownload.textContent = i18nGet('update.available.btn.download') || '⬇ Download Update';
     btnDownload.addEventListener('click', () => {
-      window.open(d.download_url || d.zip_url || 'https://egerena.com', '_blank');
+      window.open(d.download_url || d.zip_url || (_updPlat === 'mac' ? 'https://egerena.com/apps/egmac.html' : 'https://egerena.com/apps/egml.html'), '_blank');
       backdrop.remove();
     });
     btns.appendChild(btnDownload);
@@ -326,7 +326,7 @@ async function checkForUpdatesOnLaunch() {
       toastWithAction(
         i18nFmt('update.toast.available', d.latest_version) || `v${d.latest_version} is available — download to update`,
         i18nGet('update.toast.btn.download') || 'Download',
-        () => { window.open(d.download_url || 'https://egerena.com/mac', '_blank'); },
+        () => { window.open(d.download_url || 'https://egerena.com/apps/egmac.html', '_blank'); },
         10000
       );
 
@@ -335,7 +335,7 @@ async function checkForUpdatesOnLaunch() {
       toastWithAction(
         i18nFmt('update.toast.available', d.latest_version) || `v${d.latest_version} is available — download to update`,
         i18nGet('update.toast.btn.download') || 'Download',
-        () => { window.open(d.download_url || 'https://egerena.com/linux', '_blank'); },
+        () => { window.open(d.download_url || 'https://egerena.com/apps/egml.html', '_blank'); },
         10000
       );
 
