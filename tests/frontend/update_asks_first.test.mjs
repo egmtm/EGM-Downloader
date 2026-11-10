@@ -94,3 +94,22 @@ test("Mac and Linux: the launch toast still opens the download page, and nothing
     w.close();
   }
 });
+
+// The page each backend gives its footer link (platform_url): where the person gets this platform's build.
+const PLATFORM_PAGE = { mac: "https://egerena.com/apps/egmac.html", linux: "https://egerena.com/apps/egml.html" };
+
+test("Mac and Linux: without a download link the toast and the dialog open that platform's own page", async () => {
+  for (const platform of ["mac", "linux"]) {
+    const { w, d, calls } = await launchWith({ ...UPDATE, zip_url: "", download_url: "" }, platform);
+    const opened = () => calls.filter((c) => c.url.startsWith("open:")).map((c) => c.url);
+    toastButton(d).click();
+    assert.deepEqual(opened(), ["open:" + PLATFORM_PAGE[platform]], platform + ": the toast");
+    d.getElementById("footer-update-btn").click();   // Check for Updates in the footer shows the dialog
+    await _sleep(50);
+    const btn = [...d.querySelectorAll(".upd-backdrop button")].find((b) => /Download Update/.test(b.textContent));
+    assert.ok(btn, platform + ": the dialog offers the download");
+    btn.click();
+    assert.deepEqual(opened(), ["open:" + PLATFORM_PAGE[platform], "open:" + PLATFORM_PAGE[platform]], platform + ": the dialog");
+    w.close();
+  }
+});
