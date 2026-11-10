@@ -149,7 +149,7 @@ def test_no_template_turns_the_lookups_back_on():
 
 # ── User agent ────────────────────────────────────────────────────────────────────────────────
 
-CHROME = "Chrome/156.0.8078.80 Safari/537.36"     # what Electron 45.2.3 writes
+CHROME = "Chrome/156.0.8078.96 Safari/537.36"     # what Electron 45.3.0 writes
 STOCK_CHROME = "Chrome/156.0.0.0 Safari/537.36"   # what Chrome itself sends (major version only)
 WEBKIT = "AppleWebKit/537.36 (KHTML, like Gecko)"
 PLATFORMS = {
@@ -201,9 +201,9 @@ def test_a_user_agent_without_either_token_is_left_alone(rel):
 
 @pytest.mark.parametrize("rel", MAIN_JS)
 def test_the_chrome_build_number_is_cut_to_the_major_version_like_chrome_does(rel):
-    """Stock Chrome sends Chrome/<major>.0.0.0; Electron's full build (156.0.8078.80) would tell an
+    """Stock Chrome sends Chrome/<major>.0.0.0; Electron's full build (156.0.8078.96) would tell an
     image server that this is not Chrome but an app built on a known Electron release."""
-    for full, reduced in (("Chrome/156.0.8078.80", "Chrome/156.0.0.0"), ("Chrome/99.1.22.333", "Chrome/99.0.0.0")):
+    for full, reduced in (("Chrome/156.0.8078.96", "Chrome/156.0.0.0"), ("Chrome/99.1.22.333", "Chrome/99.0.0.0")):
         ua = f"{PLATFORMS[rel]} {WEBKIT} {full} Safari/537.36"
         assert _clean_with_node(rel, [ua]) == [f"{PLATFORMS[rel]} {WEBKIT} {reduced} Safari/537.36"]
 
