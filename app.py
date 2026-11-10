@@ -3131,8 +3131,10 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             channel = _load_settings().get("yt_dlp_channel", "stable")
             if channel == "nightly":
                 log("Installing yt-dlp nightly...")
+                # --no-cache-dir: the URL never changes, so pip's cache saves nothing here, and one bad entry
+                # in the person's own pip cache ended every nightly update with "empty file" until purged.
                 r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
-                         "--force-reinstall",
+                         "--force-reinstall", "--no-cache-dir",
                          "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
                          timeout=120)
             else:

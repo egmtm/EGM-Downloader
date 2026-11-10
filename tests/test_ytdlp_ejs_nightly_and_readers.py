@@ -87,6 +87,21 @@ def test_a_nightly_update_is_followed_by_the_solver_version_it_names(nightly):
     assert st["error"] is None and st["done"] is True, st
 
 
+def test_a_pip_run_given_the_nightly_url_does_not_use_pips_cache(nightly):
+    """The Windows backend hands pip the GitHub URL itself (Mac and Linux download the archive and hand
+    pip a local file). pip keeps that download in the person's own pip cache, shared with every pip
+    they run, and one bad entry there ended every nightly update with "tarfile.ReadError: empty file"
+    until the cache was purged (seen on a Windows machine, bundled pip 26.2.2). The URL never changes
+    (it always names the newest nightly), so the cache saves nothing: pip must not read or write it."""
+    nightly.mod._run_update(True, False)
+    pips = [c for c in nightly.calls if "pip" in c]
+    ytdlp = [c for c in pips if any(a.endswith(".tar.gz") for a in c)]
+    assert ytdlp, f"the nightly install did not run, so this checks nothing: {pips}"
+    for cmd in ytdlp:
+        by_url = any("://" in a for a in cmd)
+        assert not by_url or "--no-cache-dir" in cmd, f"pip is given a URL and may use its cache: {cmd}"
+
+
 LINES = [
     "yt-dlp-ejs==0.8.0; extra == \"default\"",
     "yt-dlp-ejs==0.8.0; extra == 'default' and python_version < '3.9'",
