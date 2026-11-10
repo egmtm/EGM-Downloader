@@ -279,6 +279,7 @@ Website: https://egmdownloader.app
 Downloads: https://mac.egmdownloader.app
 GitHub: https://github.com/egmtm/EGM-Downloader
 X: https://x.com/EGMDownloader
+Instagram: https://instagram.com/egmdownloader
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   LICENSE

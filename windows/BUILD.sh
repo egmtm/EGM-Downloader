@@ -591,6 +591,7 @@ SUPPORT
 ────────
   https://egmdownloader.app
   https://windows.egmdownloader.app  •  help@egmdownloader.app
+  https://instagram.com/egmdownloader
 PORTINS
 
 # Package into zip (no password — portable users don't expect one)

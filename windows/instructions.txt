@@ -84,3 +84,4 @@ SUPPORT
   https://windows.egmdownloader.app
   https://github.com/egmtm/EGM-Downloader
   https://x.com/EGMDownloader
+  https://instagram.com/egmdownloader
