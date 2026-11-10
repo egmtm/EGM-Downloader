@@ -7,7 +7,7 @@ vTBD - TBD (TBD)
   • [WINDOWS] Security: The installer refuses a folder that is not empty and shows no sign of EGM Downloader, and the installer and uninstaller only remove old files in a folder where EGM Downloader is installed.
   • [WINDOWS] Fixed: If antivirus blocks or removes the Python that comes with the app, a message now says so and tells you to reinstall, instead of showing an error code.
   • [WINDOWS] Fixed: Every message of the installer and uninstaller is now translated in all ten languages.
-  • [WINDOWS] Changed: The installer needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on ARM, and says so if it cannot run.
+  • [WINDOWS] Changed: The installer needs 64 bit Windows on an Intel or AMD processor, and says so if it cannot run. Windows 11 on ARM also works through Windows' own x64 emulation, but it is not officially supported.
   • [WINDOWS] Changed: The installer edition starts faster.
   • [ALL] Fixed: Error messages at start up no longer open behind the splash screen.
   • [WINDOWS] Security: The installer edition's program file no longer accepts the switches and variables that made it run other scripts.
