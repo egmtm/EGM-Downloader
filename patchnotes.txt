@@ -4,29 +4,27 @@ vTBD - TBD (TBD)
   • [WINDOWS] New: The installer now brings everything the app runs on: Electron, Python and its packages. You no longer need Python installed, and the first launch only downloads ffmpeg and Deno.
   • [WINDOWS] Changed: Installing over version 1.5.0 or newer keeps your history, settings, ffmpeg and Deno, and removes the old program files.
   • [WINDOWS] Changed: The uninstaller removes exactly what the installer put there. It asks whether to also remove the downloaded ffmpeg and Deno, and whether to also remove your data. Yes to both removes the install folder, unless it holds files you added.
-  • [WINDOWS] Security: The installer refuses a folder that belongs to another program, and the installer and uninstaller only remove old files in a folder where EGM Downloader is installed.
+  • [WINDOWS] Security: The installer refuses a folder that is not empty and shows no sign of EGM Downloader, and the installer and uninstaller only remove old files in a folder where EGM Downloader is installed.
   • [WINDOWS] Fixed: If antivirus blocks or removes the Python that comes with the app, a message now says so and tells you to reinstall, instead of showing an error code.
   • [WINDOWS] Fixed: Every message of the installer and uninstaller is now translated in all ten languages.
   • [WINDOWS] Changed: The installer needs 64 bit Windows on an Intel or AMD processor, or Windows 11 on ARM, and says so if it cannot run.
   • [WINDOWS] Changed: The installer edition starts faster.
   • [ALL] Fixed: Error messages at start up no longer open behind the splash screen.
-  • [WINDOWS] Security: The app's program file can no longer be used to run other scripts.
+  • [WINDOWS] Security: The installer edition's program file no longer accepts the switches and variables that made it run other scripts.
   • [ALL] Security: The Python that comes with the app no longer reads your own Python packages or settings, so a stray file or setting there cannot change it or run code in it.
   • [WINDOWS] Changed: The update check on launch now only tells you that an update exists. The update dialog shows the download size, and nothing is downloaded until you press Update Now.
-  • [WINDOWS] Fixed: A finished update download is kept if you close the app before restarting, so it is not downloaded again.
+  • [WINDOWS] Fixed: A finished update download is kept until the update is installed, so it is not downloaded again if you cancel the installer or close the app.
   • [WINDOWS] Security: The update download stops if the file is bigger than the signed update information says.
   • [ALL] Privacy: Spellcheck is off and the app no longer downloads a spellcheck dictionary. Deno and pip no longer look for their own updates, and What's New reads only the notes that come with the app.
   • [ALL] Privacy: The app no longer tells image servers which app is asking: no app name or Electron in the user agent, only the Chrome version number a browser sends, no referrer, and no early lookups of the links on screen.
-  • [ALL] Privacy: History pictures are now fetched by the app's window the way a browser would, with no cookies and no referrer, and only over HTTPS.
-  • [ALL] Privacy: The app's own downloads and update checks now identify themselves only as EGM-Downloader.
+  • [ALL] Privacy: History pictures are now fetched the way a browser would, with no cookies and no referrer, and only over HTTPS.
+  • [ALL] Privacy: The app's own update checks and its update, ffmpeg and Deno downloads now identify themselves only as EGM-Downloader.
   • [ALL] Privacy: Clear History now also removes the debug and error logs, empties the Console and deletes leftover request files. Import History and the 500 entry limit also delete the pictures of entries that leave the list.
-  • [ALL] Privacy: yt-dlp's challenge solver now comes with the app, and Update Plugins keeps it matched to yt-dlp, so it is not downloaded while you use the app.
+  • [ALL] Privacy: yt-dlp's challenge solver now comes with the app, and Update Plugins keeps it matched to yt-dlp, so it is normally not downloaded while you use the app.
   • [ALL] Fixed: Check for Updates now offers yt-dlp again when the solver package does not match it, and Update Plugins reports it if the solver could not be updated.
-  • [ALL] Changed: The app now ignores your own yt-dlp configuration file and pip settings, so options set there, like a proxy, no longer change what the app does.
+  • [ALL] Changed: The app now ignores your own yt-dlp configuration file and pip settings, so options set there, like a proxy, no longer change what the app does, except while it builds a yt-dlp nightly.
   • [WINDOWS] Fixed: Installing yt-dlp nightly no longer fails with "empty file" when your pip cache has a damaged copy.
   • [WINDOWS] Privacy: Portable: The launcher's npm no longer sends an audit or checks for a newer npm.
-  • [MAC] Fixed: When an update has no download link, the update message opens your platform's download page instead of a page that does not exist.
-  • [LINUX] Fixed: When an update has no download link, the update message opens your platform's download page instead of a page that does not exist.
   • [WINDOWS] New: The installer folder now includes THIRD_PARTY_NOTICES.txt, with the licenses of the libraries the app bundles.
   • [MAC] New: The app now includes THIRD_PARTY_NOTICES.txt, with the licenses of the libraries it bundles.
   • [LINUX] New: The app now includes THIRD_PARTY_NOTICES.txt, with the licenses of the libraries it bundles.
