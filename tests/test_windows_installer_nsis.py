@@ -164,6 +164,9 @@ def _app_runtime_names():
     return names
 
 
+HEADERS_FILE = "0123456789.headers.json"   # the name app.py gives it: the job id, ten hex digits
+
+
 def _installed(folder):
     """Every path (relative to $INSTDIR, plus the other roots) after an install and some use."""
     files = {p.relative_to(folder).as_posix() for p in folder.rglob("*") if p.is_file()}
@@ -177,7 +180,9 @@ def _installed(folder):
               "egm_debug.log.old", "egm_settings.json.tmp", "egm_history.json.tmp",
               "egm_settings.json.4242.tmp", "data/x", "electron-data/x",
               # the copies app.py keeps of a file it could not read (_keep_unreadable_copy)
-              "egm_settings.json.unreadable", "egm_history.json.unreadable", "egm_subscriptions.json.unreadable"}
+              "egm_settings.json.unreadable", "egm_history.json.unreadable", "egm_subscriptions.json.unreadable",
+              # yt-dlp's headers file of a download that was cut short (run_download, <job id>.headers.json)
+              HEADERS_FILE}
     other = {"$APPDATA/egm-downloader/Local Storage/x", "$SMPROGRAMS/EGM Downloader/EGM Downloader.lnk",
              "$SMPROGRAMS/EGM Downloader/Uninstall EGM Downloader.lnk", "$DESKTOP/EGM Downloader.lnk"}
     return {f"$INSTDIR/{f}" for f in files} | other
@@ -260,7 +265,7 @@ def test_no_to_a_prompt_keeps_only_what_it_names(tmp_path, components, data, sta
     assert not tops & {"EGM Downloader.exe", "resources", "locales", "LICENSE", "instructions.txt", "uninstall.exe"}
     data_files = KEEP - {"ffmpeg_bin", "runtime"} | {"egm_settings.json.tmp", "egm_history.json.tmp", "egm_settings.json.4242.tmp",
                                                     "egm_settings.json.unreadable", "egm_history.json.unreadable",
-                                                    "egm_subscriptions.json.unreadable"}
+                                                    "egm_subscriptions.json.unreadable", HEADERS_FILE}
     keep_all = (set() if components else {"ffmpeg_bin", "runtime"}) | (set() if data else data_files)
     assert tops <= keep_all, tops - keep_all
     assert "$INSTDIR" not in removed_dirs
@@ -353,6 +358,22 @@ def test_the_uninstaller_removes_the_common_folder_names_only_where_this_app_is_
     guard = sec.rfind("${If}", 0, old)
     assert sec[guard:old].strip().startswith('${If} ${FileExists} "$INSTDIR\\launch.py"'), sec[guard:old]
     assert sec.index("${EndIf}", old) < sec.index("MessageBox MB_YESNO")
+
+
+def test_the_headers_file_of_a_download_cut_short_goes_with_the_data():
+    """While a download runs, yt-dlp's headers file is in the data folder, which is the install folder
+    in the installer edition. A backend that is killed leaves it (the uninstaller itself closes a
+    downloading app), and it can name the site. Left behind by an uninstall that removes the data, it
+    also keeps the folder, which the next install then refuses as not ours."""
+    src = read_source("app.py")
+    assert 'get_data_dir() / f"{job_id}.headers.json"' in src, "the headers file has another name or place now"
+    assert r'_re.fullmatch(r"[0-9a-f]{10}\.headers\.json", f.name)' in src, "the name rule of the sweep changed"
+    assert re.fullmatch(r"[0-9a-f]{10}\.headers\.json", HEADERS_FILE)
+    sec = _section("Uninstall")
+    data = sec[sec.index("skip_components:"):sec.index("skip_userdata:")]
+    patterns = re.findall(r'Delete "\$INSTDIR\\([^"\\]+)"', data)
+    assert any(fnmatch.fnmatchcase(HEADERS_FILE, p) for p in patterns), patterns
+    assert not any(fnmatch.fnmatchcase("notes.json", p) or fnmatch.fnmatchcase("my.headers.txt", p) for p in patterns)
 
 
 def test_the_unreadable_copies_go_with_the_data():

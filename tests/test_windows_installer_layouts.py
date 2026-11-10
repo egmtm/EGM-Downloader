@@ -248,9 +248,9 @@ def test_the_v0_99_files_are_removed_only_after_the_check():
 
 # ── what an uninstall leaves is ours ──────────────────────────────────────────
 
-def _uninstalled(answers):
+def _uninstalled(answers, extra=()):
     """The folder an install, some use and an uninstall with `answers` leave behind."""
-    paths = folder(NEW, DATA)
+    paths = folder(NEW, DATA, extra)
     body = expand(section("Uninstall"), extra={"EGM_REMOVE_APP_FOLDER": "\n".join(
         f'RMDir /r "$INSTDIR\\{d}"' if d in ("resources", "locales") else f'Delete "$INSTDIR\\{d}"'
         for d in tops(folder(NEW)) - {"uninstall.exe", "instructions.txt", "LICENSE"})})
@@ -268,3 +268,13 @@ def test_a_later_install_goes_into_the_folder_an_uninstall_left(answers):
     r = install(paths)
     assert r.outcome == "writes", (answers, sorted(paths))
     assert paths == kept
+
+
+def test_a_download_cut_short_before_a_full_uninstall_does_not_block_the_next_install():
+    """yt-dlp's headers file of a running download sits in the install folder. The uninstaller closes a
+    downloading app, so the file is still there when the data goes: it has to go with it, or the
+    folder stays, and the next install meets a folder that is not empty and shows no sign of ours."""
+    paths = _uninstalled(["IDYES", "IDYES"], extra={"0123456789.headers.json"})
+    assert not paths, sorted(paths)
+    r = install(paths)
+    assert r.outcome == "writes" and not r.boxes

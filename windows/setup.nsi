@@ -802,6 +802,10 @@ Section "Uninstall"
   Delete "$INSTDIR\egm_settings.json.unreadable"
   Delete "$INSTDIR\egm_history.json.unreadable"
   Delete "$INSTDIR\egm_subscriptions.json.unreadable"
+  ; The headers file yt-dlp writes while a download runs (<job id>.headers.json, the id is ten
+  ; characters). The app removes it when the download ends; a download cut short leaves it, and
+  ; the uninstaller itself closes a downloading app.
+  Delete "$INSTDIR\??????????.headers.json"
   RMDir /r "$INSTDIR\thumbnails"
   RMDir /r "$INSTDIR\data"
   RMDir /r "$INSTDIR\logs"
