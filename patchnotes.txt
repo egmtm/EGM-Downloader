@@ -28,7 +28,7 @@ vTBD - TBD (TBD)
   • [WINDOWS] New: The installer folder now includes THIRD_PARTY_NOTICES.txt, with the licenses of the libraries the app bundles.
   • [MAC] New: The app now includes THIRD_PARTY_NOTICES.txt, with the licenses of the libraries it bundles.
   • [LINUX] New: The app now includes THIRD_PARTY_NOTICES.txt, with the licenses of the libraries it bundles.
-  • [ALL] Electron runtime updated to v45.3.0.
+  • [ALL] Electron runtime updated to v45.3.1.
 
 v1.5.2.3 - SNAKE EYES PART II (11/05/2026)
 -----------------------------------------
