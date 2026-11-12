@@ -149,7 +149,7 @@ def test_no_template_turns_the_lookups_back_on():
 
 # ── User agent ────────────────────────────────────────────────────────────────────────────────
 
-CHROME = "Chrome/156.0.8078.96 Safari/537.36"     # what Electron 45.3.0 writes
+CHROME = "Chrome/156.0.8078.96 Safari/537.36"     # what Electron 45.3.1 writes
 STOCK_CHROME = "Chrome/156.0.0.0 Safari/537.36"   # what Chrome itself sends (major version only)
 WEBKIT = "AppleWebKit/537.36 (KHTML, like Gecko)"
 PLATFORMS = {
