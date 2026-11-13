@@ -268,6 +268,9 @@ def test_no_to_a_prompt_keeps_only_what_it_names(tmp_path, components, data, sta
                                                     "egm_subscriptions.json.unreadable", HEADERS_FILE}
     keep_all = (set() if components else {"ffmpeg_bin", "runtime"}) | (set() if data else data_files)
     assert tops <= keep_all, tops - keep_all
+    # and No keeps all that its question names: nothing of it goes before the question is answered
+    assert keep_all <= tops, sorted(keep_all - tops)
+    assert data or "$APPDATA/egm-downloader/Local Storage/x" in left
     assert "$INSTDIR" not in removed_dirs
 
 
