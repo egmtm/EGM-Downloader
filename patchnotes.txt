@@ -1,4 +1,4 @@
-vTBD - TBD (TBD)
+v1.5.3.2 - THE TOTAL PACKAGE (11/13/2026)
 -----------------------------------------
 
   • [WINDOWS] New: The installer now brings everything the app runs on: Electron, Python and its packages. You no longer need Python installed, and the first launch only downloads ffmpeg and Deno.
