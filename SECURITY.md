@@ -137,13 +137,15 @@ We monitor security advisories for these dependencies and release updates prompt
 
 EGM Downloader makes network requests to:
 
-- **Video hosting sites** - To download requested content
-- **egerena.com** - To check for updates (all platforms)
-- **Package managers** - To download yt-dlp and FFmpeg updates
+- **Video hosting sites** - To download what you ask for. Cookies go only to the site they belong to, and only if you added them. A YouTube download can also reach other Google hosts, such as googlevideo.com and www.google.com
+- **egerena.com** - To check for app updates. **Off by default:** it runs at launch only if you turn on *Check updates on launch*, or when you click *Check for app update* in the Advanced panel. It asks for one fixed file, with the user agent `EGM-Downloader` and nothing else: no version, no ID, no data about you or your downloads. Nothing is downloaded until you click *Update Now*
+- **PyPI and GitHub** - Plugin updates, only when you click *Check for Updates* or *Install Updates* in the Plugins panel: the latest versions of yt-dlp, ffmpeg, Deno and the optional libraries, and their downloads (ffmpeg on macOS from ffmpeg.martin-riedl.de). If the YouTube solver that matches your yt-dlp could not be installed, yt-dlp fetches it from GitHub until the next *Install Updates*
 - **Runtime downloads on the Windows portable's first run** - nodejs.org (Node.js, checked against a SHA-256 checksum built into the launcher), the npm registry and GitHub (Electron) and GitHub (its private Python, checked against a SHA-256 checksum built into the launcher). pip then installs the app's Python packages from PyPI (pypi.org and files.pythonhosted.org) into that private Python. When a newer portable needs a newer Electron, it is fetched again from the npm registry and GitHub. The Windows installer edition makes none of these downloads: like macOS and Linux it ships Electron, Python and its packages inside the app, checked at build time against the Electron lockfile, a pinned SHA-256 of the Python archive and a hashed lock of the packages
 - **First launch downloads on all platforms** - Deno from GitHub on every platform. ffmpeg from GitHub on Windows and Linux, and ffmpeg and ffprobe from ffmpeg.martin-riedl.de on macOS. Each download is checked against the publisher's SHA-256 checksum
-- **Video thumbnail CDNs** - To cache thumbnails for the download history view (HTTPS-only, 500 KB cap per image)
+- **Video thumbnail CDNs** - The window shows previews straight from the video site, and fetches the picture for your download history the same way. Both send a plain Chrome user agent (no app name, no Electron), no Referer and no cookies. If the window can't fetch a history picture, the app fetches it itself with the user agent yt-dlp used for that download. HTTPS only, and a 500 KB cap on history pictures
 - **sponsor.ajay.app** - Only when the optional SponsorBlock feature is turned on (off by default). yt-dlp looks up community submitted segment data using the first 4 characters of a hash (SHA256) of the video ID. The video ID itself is not sent, and the app makes no SponsorBlock requests of its own.
+
+Nothing else reaches out. The window downloads no spellcheck dictionary and makes no early DNS lookups of links on screen, and the app ignores your own yt-dlp configuration and your pip settings (except when it installs the yt-dlp nightly), so neither can add a proxy or change what is sent.
 
 All network activity is related to core functionality. We do not send telemetry or analytics.
 
@@ -151,24 +153,37 @@ All network activity is related to core functionality. We do not send telemetry 
 
 Thumbnail URLs come from yt-dlp metadata and point to arbitrary content delivery networks (YouTube, Vimeo, SoundCloud, etc.) — no fixed allowlist is feasible because the set of video platforms is open-ended. We deliberately allow these unrestricted hosts, with the following safeguards:
 
-- **HTTPS-only**: `http://`, `file://`, `ftp://`, and other schemes are rejected at the fetch boundary
+- **HTTPS only**: `http://`, `file://`, `ftp://`, and other schemes are rejected at the fetch boundary
+- **No internal addresses**: every address, the first and each redirect's, is checked before it is requested, and private, loopback, link local and other internal ranges are refused
+- **Nothing identifying**: the window's fetch sends a plain Chrome user agent, no Referer and no cookies, from a session of its own kept in memory; the app's fallback fetch sends only the user agent yt-dlp used
 - **Size cap**: 500 KB hard limit on any thumbnail download (prevents abuse via large files)
 - **Storage safety**: filenames are derived from `uuid.uuid4()` with whitelist-selected extensions (`.jpg`/`.png`/`.webp`); no path-traversal is possible at write time
-- **Serve-side validation**: the `/api/thumbnail/<filename>` endpoint enforces a strict regex (`^[a-f0-9\-]+\.(jpg|png|webp)$`) and serves only files that exist in the thumbnails directory
+- **Serve-side validation**: the `/api/thumbnail/<filename>` endpoint enforces a strict regex (`[a-f0-9\-]{1,64}\.(jpg|png|webp)`) and serves only files that exist in the thumbnails directory
 
 This is the same threat-model decision other download-manager apps make (e.g., Downie) when handling arbitrary video sources.
+
+### Cookies
+
+Cookies you add under *Site Cookies* are saved as `cookies.txt` in the app's data folder, in plain text like any cookies.txt:
+
+- **Windows:** the install folder (`%LOCALAPPDATA%\EGM Downloader` by default), or the `data` folder of the portable copy
+- **macOS:** `~/Library/Application Support/EGM Downloader`, readable only by your user
+- **Linux:** `~/.local/share/egm-downloader`, readable only by your user
+
+yt-dlp sends each cookie only to the site it belongs to, and the app never sends them anywhere else. Use *Unload* when you no longer need them.
 
 ### File System Access
 
 The application:
 
 - ✅ Reads/writes to the download directory you specify
-- ✅ Reads/writes configuration in app data directory
+- ✅ Reads/writes its own data folder: settings, history, thumbnails, logs and the cookies you add
 - ✅ Reads/writes temporary files during processing
+- ✅ Reads a file only when you pick it yourself (cookies, an imported history or settings)
 
 It does NOT:
 
-- ❌ Access files outside designated directories
+- ❌ Read your other files
 - ❌ Modify system files
 - ❌ Install drivers or kernel modules
 - ❌ Access webcam, microphone, or location
