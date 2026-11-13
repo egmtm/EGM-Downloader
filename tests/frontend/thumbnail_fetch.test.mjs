@@ -19,7 +19,7 @@ import { fileURLToPath } from "node:url";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const source = (p) => readFileSync(join(repo, p, "electron", "main.js"), "utf8");
-const RAW_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) EGM Downloader/1.5.2.3 Chrome/156.0.8078.96 Electron/45.3.1 Safari/537.36";
+const RAW_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) EGM Downloader/1.5.2.3 Chrome/156.0.8078.100 Electron/45.3.2 Safari/537.36";
 const CLEAN_UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/156.0.0.0 Safari/537.36";
 // The Accept a real <img> load in the window sends (read from Electron 45 against a local server); the
 // picture request sends the same, so it looks like the window's own image loads.
