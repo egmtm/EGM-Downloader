@@ -3,7 +3,7 @@
 * The app's own update feed: only a feed signed with the app's key is used. The tests sign feeds
   with a throwaway key made here and put its public half in place of the app's key, so the real
   _verify_manifest runs (the other update tests replace it with a stub).
-* The Windows and Mac update download (/api/download-update): a wrong checksum, a download that
+* The Windows update download (/api/download-update): a wrong checksum, a download that
   is cut short and a foreign address all fail with nothing left behind. The cut short download
   comes from a loopback server started here.
 * ffmpeg, first run and update: a failure part way through writing the binaries must not leave
@@ -137,27 +137,15 @@ def test_a_feed_that_does_not_verify_is_refused_and_its_notes_are_not_shown(back
     r = _client_get(backend, "/api/check-app-update")
     d = r.get_json()
     assert d.get("error") and "up_to_date" not in d, (how, r.status_code, d)
-    # What's New falls back to the feed only when the running version has no bundled notes.
-    monkeypatch.setattr(backend, "_bundled_version_notes", lambda v: [])
-    monkeypatch.setattr(backend, "APP_VERSION", "1.0.0.1")
-    assert _client_get(backend, "/api/whats-new").get_json()["notes_list"] == [], how
 
 
-def test_whats_new_shows_the_notes_of_a_correctly_signed_feed(backend, signing, monkeypatch):
-    _serve_feed(backend, monkeypatch, signing(_feed(version="1.0.0.1")))
-    monkeypatch.setattr(backend, "_bundled_version_notes", lambda v: [])
-    monkeypatch.setattr(backend, "APP_VERSION", "1.0.0.1")
-    assert _client_get(backend, "/api/whats-new").get_json()["notes_list"] == ["A fix"]
+# ── /api/download-update (Windows) ─────────────────────────────────────────────────────
 
-
-# ── /api/download-update (Windows and Mac) ─────────────────────────────────────────────────────
-
-@pytest.fixture(params=["app.py", "mac/app.py"])
-def updater(request, tmp_path_factory, tmp_path, monkeypatch):
-    mod = request.getfixturevalue("app_module") if request.param == "app.py" else _load(request.param, tmp_path_factory)
-    monkeypatch.setattr(mod, "UPDATE_TMP_DIR", tmp_path / "egm-update")
-    monkeypatch.setattr(mod, "PORTABLE_MODE", False, raising=False)
-    return mod
+@pytest.fixture
+def updater(app_module, tmp_path, monkeypatch):
+    monkeypatch.setattr(app_module, "UPDATE_TMP_DIR", tmp_path / "egm-update")
+    monkeypatch.setattr(app_module, "PORTABLE_MODE", False, raising=False)
+    return app_module
 
 
 def _update_zip(member):
@@ -167,20 +155,14 @@ def _update_zip(member):
     return buf.getvalue()
 
 
-def _member(mod):
-    return "egm-setup.exe" if hasattr(mod, "PORTABLE_MODE") else "EGM Downloader.dmg"
-
-
 def test_a_download_with_the_wrong_checksum_is_refused_and_removed(updater, monkeypatch):
-    import hashlib
-    data = _update_zip(_member(updater))
+    data = _update_zip("egm-setup.exe")
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: _Resp(data))
     r = _client_post(updater, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "00" * 32})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "00" * 32, "expected_size": len(data)})
     assert r.status_code >= 400 and "Checksum" in r.get_json()["error"]
     left = list(updater.UPDATE_TMP_DIR.iterdir()) if updater.UPDATE_TMP_DIR.exists() else []
     assert left == [], left
-    assert hashlib.sha256(data).hexdigest() != "00" * 32
 
 
 def test_an_address_outside_the_release_host_is_refused_before_any_fetch(updater, monkeypatch):
@@ -188,8 +170,11 @@ def test_an_address_outside_the_release_host_is_refused_before_any_fetch(updater
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: fetched.append(req) or _Resp(b""))
     for url in ("https://example.invalid/x.zip", "http://egerena.com/apps/x.zip",
                 "https://egerena.com.example.invalid/x.zip"):
-        r = _client_post(updater, "/api/download-update", {"zip_url": url, "expected_checksum": "ab" * 32})
+        # The size too: on the Windows backend the size check comes first, and a body without one was
+        # refused for that reason alone, so the host guard was never reached by this test.
+        r = _client_post(updater, "/api/download-update", {"zip_url": url, "expected_checksum": "ab" * 32, "expected_size": 1000})
         assert r.status_code == 400, url
+        assert "size" not in r.get_json()["error"].lower(), (url, r.get_json())
     assert fetched == []
 
 
@@ -227,7 +212,7 @@ def short_server():
 def test_a_download_cut_short_fails_and_leaves_nothing(updater, monkeypatch, short_server):
     monkeypatch.setattr(updater, "_safe_urlopen", lambda req, t: urllib.request.urlopen(short_server, timeout=5))
     r = _client_post(updater, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "ab" * 32})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": "ab" * 32, "expected_size": 10000})
     assert r.status_code >= 400 and r.get_json().get("error")
     left = list(updater.UPDATE_TMP_DIR.iterdir()) if updater.UPDATE_TMP_DIR.exists() else []
     assert left == [], left
@@ -240,14 +225,16 @@ def test_windows_takes_only_the_installer_out_of_a_verified_download(app_module,
     good = _update_zip("egm-setup.exe")
     monkeypatch.setattr(app_module, "_safe_urlopen", lambda req, t: _Resp(good))
     r = _client_post(app_module, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(good).hexdigest()})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(good).hexdigest(),
+                      "expected_size": len(good)})
     d = r.get_json()
     assert r.status_code == 200 and Path(d["installer_path"]) == tmp_path / "egm-update" / "egm-setup.exe"
     assert sorted(p.name for p in (tmp_path / "egm-update").iterdir()) == ["egm-setup.exe"]
     other = _update_zip("something-else.exe")
     monkeypatch.setattr(app_module, "_safe_urlopen", lambda req, t: _Resp(other))
     r = _client_post(app_module, "/api/download-update",
-                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(other).hexdigest()})
+                     {"zip_url": "https://egerena.com/apps/x.zip", "expected_checksum": hashlib.sha256(other).hexdigest(),
+                      "expected_size": len(other)})
     assert r.status_code >= 400 and "not found" in r.get_json()["error"]
 
 

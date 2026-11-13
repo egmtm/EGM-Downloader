@@ -438,13 +438,18 @@ def test_a_second_launcher_does_not_get_the_setup_lock(env):
 
 def test_the_uninstaller_removes_the_launcher_lock_file():
     """The lock file lives in the electron folder and stays after the launcher exits: left behind, it would
-    stop the uninstaller's last RMDir of that folder and of the install folder."""
+    stop the uninstaller's last RMDir of the install folder. The installer edition no longer has an
+    electron folder; the uninstaller removes one left by the launcher layout as a whole (with the
+    lock, node_modules.old and .electron-stage)."""
     src = LAUNCH.read_text(encoding="utf-8")
-    name = re.search(r'ELECTRON_DIR / "(\.launcher\.lock)"', src).group(1)
+    assert re.search(r'ELECTRON_DIR / "(\.launcher\.lock)"', src)
+    assert 'ELECTRON_DIR = ROOT / "electron"' in src          # the folder the uninstaller removes
     nsi = (LAUNCH.parent / "setup.nsi").read_text(encoding="utf-8")
-    delete = 'Delete "$INSTDIR\\electron\\' + name + '"'
-    assert delete in nsi
-    assert nsi.index(delete) < nsi.index('RMDir "$INSTDIR\\electron"\n')
+    old_layout = nsi[nsi.index("!macro EGM_REMOVE_OLD_LAYOUT"):]
+    old_layout = old_layout[:old_layout.index("!macroend")]
+    assert 'RMDir /r "$INSTDIR\\electron"' in old_layout
+    uninstall = nsi[nsi.index('Section "Uninstall"'):]
+    assert uninstall.index("!insertmacro EGM_REMOVE_OLD_LAYOUT") < uninstall.index('RMDir "$INSTDIR"')
 
 
 def test_the_launcher_takes_the_lock_before_any_setup_and_after_the_running_app_check():

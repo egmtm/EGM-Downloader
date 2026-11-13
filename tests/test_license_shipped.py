@@ -24,7 +24,9 @@ def test_windows_zip_and_portable_zip_include_the_license():
     sh = read_source("windows/BUILD.sh")
     assert 'zf.write(lic_path, "LICENSE")' in sh
     assert '{"egm-setup.exe", "instructions.txt", "LICENSE"}' in sh
-    assert re.search(r'cp "\$REPO_ROOT/LICENSE"\s+"\$PORTABLE_STAGE/"', sh)
+    # the portable stage copies the app files list, and LICENSE is on it
+    assert "LICENSE" in read_source("windows/app-files.txt").splitlines()
+    assert 'done < "$REPO_ROOT/windows/app-files.txt"' in sh[sh.index("# ── Build portable variant"):]
     # the build refuses to start if it is missing
     assert re.search(r"patchnotes\.txt README\.md LICENSE \\", sh)
 

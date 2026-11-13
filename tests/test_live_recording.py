@@ -42,7 +42,10 @@ def test_the_live_recording_code_is_identical_on_all_platforms():
     """About 440 lines (salvage, reconnect, join, finish) that are the same in all three backends today.
     Keep them that way: a fix made in one copy must be made in the other two. If this fails because the
     copies have to differ on purpose, that is the sign to move this code out of the three app.py files."""
-    base = _live_region("app.py")
+    # The one difference on purpose: the Windows backend starts Python with its own flags (_PY_CMD, see
+    # tests/test_children_are_isolated.py); the macOS and Linux children start without any.
+    base = _live_region("app.py").replace("*_PY_CMD,", "sys.executable,")
+    assert "_PY_CMD" not in base
     # The slice ends at the next function, so a moved or renamed neighbour could shrink it unnoticed.
     assert len(base.splitlines()) >= 400, "the live region got much smaller; check the slice in _live_region"
     for p in PLATFORM_APP_FILES[1:]:

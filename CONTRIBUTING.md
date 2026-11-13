@@ -96,7 +96,7 @@ Have an idea? Open an issue with:
 - Git
 
 **Platform-Specific:**
-- **Windows:** NSIS (for installer builds)
+- **Windows:** NSIS (makensis), mingw-w64 (the portable launcher), curl and tar, and osslsigncode (optional: verifies the signatures); the build runs on Linux, macOS or WSL
 - **macOS:** Xcode Command Line Tools
 - **Linux:** build-essential, libfuse2
 
@@ -126,9 +126,20 @@ pip install -r linux/requirements.txt
 #### Windows
 
 ```bash
-# No additional setup needed
-# Runtime dependencies download automatically on first launch
+# Phase 1: compiles the portable launcher and builds the installer folder
+# (dist/win-unpacked: Electron, the bundled Python and its packages, the app files), then stops
+bash windows/BUILD.sh
+# Sign both files named "EGM Downloader.exe": windows/ (launcher) and dist/win-unpacked/ (Electron)
+# Phase 2: verifies both signatures, then builds egm-setup.exe, EGMd.zip and EGMd-portable.zip
+bash windows/BUILD.sh --continue
 ```
+
+The installer folder is built by `windows/installer/build-folder.sh`: Electron from `windows/electron`'s
+lock through a staging package, the pinned Python (same version and release as Mac and Linux) and the
+packages of the hashed lock `windows/requirements-win-lock.txt`. Regenerate that lock after a change to
+`requirements.txt` with
+`uv pip compile requirements.txt --python-platform x86_64-pc-windows-msvc --python-version 3.11 --generate-hashes --only-binary :all: -o windows/requirements-win-lock.txt`.
+The app files both Windows editions ship are listed once, in `windows/app-files.txt`.
 
 #### macOS
 
@@ -162,7 +173,7 @@ python scripts/bump-version.py
 python scripts/add-patchnote.py "Your change 1" "Your change 2"
 
 # 3. Build your platform
-# Windows: Use your build process
+# Windows: bash windows/BUILD.sh, sign, then bash windows/BUILD.sh --continue
 # Mac: bash mac/BUILD.sh
 # Linux: bash linux/BUILD.sh
 
@@ -405,8 +416,14 @@ EGM-Downloader/
 │                              # Never edit manually!
 │
 ├── windows/                  # Windows platform
-│   ├── electron/             # Electron wrapper
-│   ├── launch.py             # Runtime bootstrapper
+│   ├── electron/             # Electron wrapper (shared by both editions)
+│   ├── installer/            # Installer folder build (Electron + Python + packages)
+│   ├── app-files.txt         # The app files both editions ship
+│   ├── requirements-win-lock.txt  # Hashed lock of the installer's Python packages
+│   ├── launch.py             # Runtime bootstrapper (portable edition)
+│   ├── launcher.c            # Portable launcher
+│   ├── setup.nsi             # Installer script (NSIS)
+│   ├── BUILD.sh              # Build script
 │   └── instructions.txt      # User instructions
 │
 ├── mac/                      # macOS platform

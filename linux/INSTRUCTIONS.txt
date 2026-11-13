@@ -1,4 +1,4 @@
-EGM Downloader v1.5.2.3 — Linux
+EGM Downloader v1.5.3.2 — Linux
 www.egerena.com
 ────────────────────────────────────────
 
@@ -45,7 +45,7 @@ Any x86_64 Linux with glibc 2.17+ should also work.
 UPDATING
 ────────────────────────────────────────
 EGM Downloader does not auto-update on Linux.
-Check egerena.com/apps/egml.html for new releases.
+Check linux.egmdownloader.app for new releases.
 
 yt-dlp and ffmpeg can be updated from inside the app:
 Settings → Update Plugins → Check for Updates
@@ -62,7 +62,8 @@ Delete both folders if you want a clean removal.
 
 SUPPORT
 ────────────────────────────────────────
-https://egm.egerena.com
-https://egerena.com/apps/egml.html
+https://egmdownloader.app
+https://linux.egmdownloader.app
 https://github.com/egmtm/EGM-Downloader
 https://x.com/EGMDownloader
+https://instagram.com/egmdownloader

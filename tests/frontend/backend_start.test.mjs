@@ -3,6 +3,8 @@
 //    program on the port or a backend left over from an earlier run (they answer 404 or 403);
 //  * the backend's exit handler reports any exit while the app is not quitting (also by a signal,
 //    and code 3, the taken port), and forgets the process so before-quit does not stop its PID later.
+//    These run the launcher's layout (PACKAGED false); the packaged Windows exit before the backend
+//    ever answered has its own box, tested in python_missing_box.test.mjs.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -14,6 +16,12 @@ import { fileURLToPath } from "node:url";
 
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const source = (p) => readFileSync(join(repo, p, "electron", "main.js"), "utf8");
+// The shells drop the splash at once before a box (a box blocks the timers closeSplash() waits on).
+function dropSplashOf(platform) {
+  const d = /\nfunction dropSplash\(\) \{[\s\S]*?\n\}\n/.exec(source(platform));
+  assert.ok(d, `${platform}: dropSplash found`);
+  return d[0];
+}
 
 function waitForFlaskOf(platform, appUrl, token) {
   const m = /function waitForFlask\([\s\S]*?\n\}\n/.exec(source(platform));
@@ -49,10 +57,11 @@ for (const platform of ["windows", "mac", "linux"]) {
   test(`${platform}: any backend exit while not quitting is reported, and the process is forgotten`, () => {
     const m = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(source(platform));
     assert.ok(m, `${platform}: exit handler found`);
+    m[0] = dropSplashOf(platform) + m[0];
     for (const [code, signal, expect] of [[null, "SIGKILL", /signal SIGKILL/], [0, null, /code 0/], [3, null, /port 8899/], [1, null, /code 1/]]) {
       const shown = [];
       const ctx = {
-        flaskProc: new EventEmitter(), PORT: 8899, splashWindow: null,
+        flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false, splashWindow: null,
         app: { isQuitting: false, quits: 0, quit() { this.quits++; } },
         dialog: { showErrorBox: (t, msg) => shown.push(msg) },
       };
@@ -64,19 +73,20 @@ for (const platform of ["windows", "mac", "linux"]) {
       assert.equal(ctx.app.quits, 1);
       assert.equal(ctx.flaskProc, null, "the exited process is still kept for before-quit to stop");
     }
-    const ctx = { flaskProc: new EventEmitter(), PORT: 8899, splashWindow: null, app: { isQuitting: true, quit() {} },
+    const ctx = { flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false, splashWindow: null, app: { isQuitting: true, quit() {} },
                   dialog: { showErrorBox: () => assert.fail("a normal quit is not a crash") } };
     vm.runInNewContext(m[0], ctx);
     ctx.flaskProc.emit("exit", 0, null);
   });
 }
 
-test("windows: the always on top splash is destroyed before the backend crash box opens", () => {
-  const m = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(source("windows"));
+for (const platform of ["windows", "mac", "linux"]) test(`${platform}: the always on top splash is destroyed before the backend crash box opens`, () => {
+  const m = /  flaskProc\.on\('exit'[\s\S]*?\n  \}\);\n/.exec(source(platform));
   assert.ok(m, "exit handler found");
+  m[0] = dropSplashOf(platform) + m[0];
   const order = [];
   const ctx = {
-    flaskProc: new EventEmitter(), PORT: 8899,
+    flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false,
     splashWindow: { isDestroyed: () => false, destroy: () => order.push("splash destroyed") },
     app: { isQuitting: false, quit() {} },
     dialog: { showErrorBox: () => order.push("box shown") },
@@ -88,7 +98,7 @@ test("windows: the always on top splash is destroyed before the backend crash bo
   // a splash that is already gone is left alone
   const gone = { destroyed: false };
   const ctx2 = {
-    flaskProc: new EventEmitter(), PORT: 8899,
+    flaskProc: new EventEmitter(), PORT: 8899, PACKAGED: false,
     splashWindow: { isDestroyed: () => true, destroy: () => { gone.destroyed = true; } },
     app: { isQuitting: false, quit() {} },
     dialog: { showErrorBox() {} },

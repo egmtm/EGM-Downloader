@@ -45,7 +45,8 @@ def test_continue_flag_gates_signature_verification():
     )
     # The verification failure path must exit non-zero -- a silent pass-
     # through here would defeat the entire point of the gate.
-    verify_block = source[source.index("osslsigncode verify"):source.index("osslsigncode verify") + 800]
+    # the check lives in verify_signed(): the failure branch of that function must exit
+    verify_block = source[source.index("osslsigncode verify"):source.index("\n}\n", source.index("osslsigncode verify"))]
     assert re.search(r"exit 1", verify_block), (
         "a failed signature verification must exit non-zero, not continue "
         "packaging an unsigned launcher"
@@ -61,26 +62,3 @@ def test_manual_fallback_when_osslsigncode_unavailable():
         "no manual confirmation prompt found for the no-osslsigncode fallback path"
     )
 
-
-def test_clean_step_preserves_launcher_on_resume():
-    """On --continue, the just-signed launcher must not be deleted by the
-    'clean old build artifacts' step -- that would destroy the one file
-    the whole point of this flow was to preserve."""
-    source = read_source("windows/BUILD.sh")
-    clean_block = source[source.index('Cleaning old Windows build artifacts'):]
-    clean_block = clean_block[:clean_block.index("Compile launcher EXE")]
-
-    m = re.search(
-        r'if \[ "\$RESUME" -eq 0 \]; then\n(.*?)\nfi',
-        clean_block, re.DOTALL,
-    )
-    assert m, (
-        "no 'if [ \"$RESUME\" -eq 0 ]; then ... fi' block found in the clean "
-        "step -- the launcher-exe cleanup must be conditional on phase 1 only"
-    )
-    assert 'rm -f "$WIN_DIR/EGM Downloader.exe"' in m.group(1), (
-        "the launcher-exe rm command must be genuinely INSIDE the RESUME-eq-0 "
-        "conditional, not just present somewhere nearby in the same block -- "
-        "otherwise --continue would delete the signed launcher it's supposed "
-        "to be packaging"
-    )

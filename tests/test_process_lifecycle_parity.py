@@ -36,7 +36,7 @@ SPAWNERS = {"_popen", "_popen_yt"}
 
 # Process starts that are never tracked and never killed: they only hand a path to the desktop
 # (Finder or the file manager) and return at once. Keyed by the function that holds them.
-FIRE_AND_FORGET = {"open_folder", "download_update"}
+FIRE_AND_FORGET = {"open_folder"}
 
 
 def _spawn_calls(path):

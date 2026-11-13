@@ -272,6 +272,10 @@ def _modules_present(names):
 def _pip_install(cmd, upgrading, timeout):
     """Run pip. A missing package is fatal, but a failed floor upgrade (offline, say) must not
     stop the start: the app runs on the old copy and the next launch tries again."""
+    # The launcher runs before the backend, so the backend's PIP_DISABLE_PIP_VERSION_CHECK does not
+    # reach this pip: say it here, or pip asks pypi.org whether a newer pip exists after the install.
+    # --isolated: no PIP_* variable and no pip.ini of the person's changes what is installed.
+    cmd = cmd + ["--isolated", "--disable-pip-version-check"]
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
         subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)
@@ -284,6 +288,48 @@ def _pip_install(cmd, upgrading, timeout):
                      "connection and start EGM Downloader again.")
             time.sleep(8)
             raise
+    else:
+        _pair_ytdlp_ejs(cmd[0], upgrading)
+
+_EJS_PIN_LINE = re.compile(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$")
+
+_EJS_PIN_UNREADABLE = "could not read"   # the read failed: not the same as a yt-dlp that names none
+
+def _ytdlp_ejs_pin(py):
+    """The yt-dlp-ejs version the installed yt-dlp names (it pins it with ==), or None. yt-dlp takes its
+    YouTube solver script from that package only at that version. Same reading as the backend's
+    _ytdlp_ejs_pin: a child process on the interpreter pip just used, which sees the packages yt-dlp runs on.
+    A child that times out, fails to start or exits non zero gives _EJS_PIN_UNREADABLE."""
+    code = "import importlib.metadata as m\nprint('\\n'.join(m.requires('yt-dlp') or []))"
+    try:
+        r = subprocess.run([str(py), "-c", code], capture_output=True, text=True, timeout=30,
+                           creationflags=NO_WIN)
+    except (subprocess.SubprocessError, OSError):
+        return _EJS_PIN_UNREADABLE
+    if r.returncode != 0:
+        return _EJS_PIN_UNREADABLE
+    out = r.stdout
+    for line in (out or "").splitlines():
+        m = _EJS_PIN_LINE.match(line)
+        if m: return m.group(1)
+    return None
+
+def _pair_ytdlp_ejs(py, upgrading=False):
+    """After the launcher's own pip run, install the yt-dlp-ejs version the installed yt-dlp names. The
+    lists above ask for yt-dlp-ejs>=0.8.0, which takes the newest release; if that is a newer minor than
+    yt-dlp accepts, yt-dlp would fetch its solver script from GitHub until Update Plugins ran. Never
+    fatal: a yt-dlp that names none, or any failure, leaves that GitHub fallback in place."""
+    pin = _ytdlp_ejs_pin(py)
+    if pin == _EJS_PIN_UNREADABLE:
+        _py_log("yt-dlp-ejs: could not read which version the installed yt-dlp names, so it was not paired")
+        return
+    if not pin: return
+    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--isolated", "--disable-pip-version-check"]
+    if upgrading: cmd += ["--retries", "1", "--timeout", "15"]      # gives up as fast as the upgrade itself
+    try:
+        subprocess.run(cmd, check=True, timeout=120, creationflags=NO_WIN)
+    except (subprocess.SubprocessError, OSError) as e:
+        _py_log(f"yt-dlp-ejs {pin} could not be installed: {e}")
 
 def ensure_python_deps():
     # Keep this list in sync with requirements.txt. cryptography is REQUIRED for
@@ -301,7 +347,7 @@ def ensure_python_deps():
         except ImportError: pass
     _gui_msg("Installing Python packages…")
     _pip_install([sys.executable, "-m", "pip", "install", "-q",
-                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi", "yt-dlp-ejs>=0.8.0"],
                  upgrading, 300)
 
 # ── Embedded Python (portable only) ───────────────────────────────────────────
@@ -368,7 +414,7 @@ def _python_has_pip(exe=None):
     """True iff the unpacked Python can run pip (it ships its own). Logs the real error to
     PY_SETUP_LOG on a failure, so "could not enable pip" is debuggable."""
     try:
-        r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--version"],
+        r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--isolated", "--version"],
                            capture_output=True, text=True, timeout=60, creationflags=NO_WIN)
         if r.returncode == 0:
             return True
@@ -525,11 +571,14 @@ def ensure_python_deps_embedded(py_exe):
         return max([v for v in found if v], default=None)
     upgrading = False
     if site_packages.is_dir() and all(_present(pkg) for pkg in required):
-        if not _deps_below_floor(_dist_version): return
-        upgrading = True   # everything is there, but a floor package is old
+        # yt_dlp_ejs is not in `required`: a folder from before it existed (a portable copy unpacked
+        # over an older one) must still start offline. It gets the same non-fatal run as an old floor
+        # package, so yt-dlp stops fetching its solver script from GitHub once the run succeeds.
+        if not _deps_below_floor(_dist_version) and _present("yt_dlp_ejs"): return
+        upgrading = True   # everything is there, but a floor package is old or the solver package is missing
     _gui_msg("Installing Python packages…")
     _pip_install([str(py_exe), "-m", "pip", "install", "-q", "--no-warn-script-location",
-                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi"],
+                  "flask", "yt-dlp>=2026.10.26", "bgutil-ytdlp-pot-provider", "mutagen", "cryptography", "curl_cffi>=0.17.0,<0.18.0", "brotli>=1.2.1", "pycryptodomex", "websockets", "certifi", "yt-dlp-ejs>=0.8.0"],
                  upgrading, 600)
 
 # ── Node.js ───────────────────────────────────────────────────────────────────
@@ -787,8 +836,13 @@ def _update_targets():
     hops = [proxy] if proxy else []
     return hops if os.environ.get("ELECTRON_GET_USE_PROXY") else hops + [github]
 
+# npm's own contacts besides the packages: the audit report (it sends the dependency tree to the
+# registry), the funding notice and the check for a newer npm. The installer build already passes
+# --no-audit --no-fund; the launcher's runs say the same through the environment.
+_NPM_QUIET = {"npm_config_audit": "false", "npm_config_fund": "false", "npm_config_update_notifier": "false"}
+
 def _npm_env(node_exe):
-    return _find_npm(node_exe), {**os.environ, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
+    return _find_npm(node_exe), {**os.environ, **_NPM_QUIET, "PATH": str(NODE_DIR) + os.pathsep + os.environ.get("PATH","")}
 
 def _npm_output(r):
     """What a finished npm run printed, as text (bytes on a real run)."""
@@ -1102,8 +1156,17 @@ DOWNLOAD_STALL_TIMEOUT = 60
 def _limit_stalled_downloads(seconds=DOWNLOAD_STALL_TIMEOUT):
     socket.setdefaulttimeout(seconds)
 
+def _send_our_user_agent():
+    """Every request the launcher makes (the Python, Node.js and rcedit downloads, the signal to a running
+    app) says EGM-Downloader, as the app's own requests do, instead of Python-urllib/<version>.
+    urlretrieve takes no headers, so the agent is set on the opener every urllib call goes through."""
+    opener = urllib.request.build_opener()
+    opener.addheaders = [("User-Agent", "EGM-Downloader")]
+    urllib.request.install_opener(opener)
+
 if __name__ == "__main__":
     _limit_stalled_downloads()
+    _send_our_user_agent()
     # If we are relaunching to reinstall Electron (Advanced -> Reinstall Electron
     # -> "Restart now"), the outgoing instance may still be shutting down. Skip the
     # already-running early-exit in that case, so a transient signal to the dying

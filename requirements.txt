@@ -61,3 +61,8 @@ brotli>=1.2.1
 pycryptodomex>=3.24.2
 websockets>=17.4
 certifi>=2026.10.23
+# yt-dlp's YouTube solver script as a package (Unlicense, MIT, ISC). yt-dlp pins this exact version
+# (2026.10.26 pins 0.8.0) and loads the script from it first; without it yt-dlp downloads the script
+# from GitHub at run time, because every call passes --remote-components ejs:github. Update Plugins
+# installs the version the updated yt-dlp names, so the pair stays together.
+yt-dlp-ejs>=0.8.0

@@ -11,6 +11,7 @@ so no dialog can open on any operating system.
 """
 import io
 import os
+import re
 import subprocess
 import sys
 import types
@@ -89,12 +90,15 @@ def test_portable_edition_still_needs_3_10(tmp_path, monkeypatch, version):
 
 
 def test_every_place_that_states_the_minimum_agrees_with_the_gate():
-    """The words users read must match what the launcher enforces. The installer says 3.11
-    (instructions file, the installer's welcome page in all ten languages, the launcher's
-    "no Python found" box and the Windows shell's own "Python not found" message); the
-    portable instructions keep 3.10 for the first launch."""
+    """The words users read must match what the launcher enforces. 3.11: the launcher's "no
+    Python found" box and the Windows shell's own "Python not found" message (shown when it is
+    started by the launcher); the portable instructions keep 3.10 for the first launch. The
+    installer edition brings its own Python, so its instructions and its welcome page (all ten
+    languages) name no Python version and promise no download size; the page names the two things
+    that are still fetched on first launch, ffmpeg and Deno."""
     instructions = (WINDOWS / "instructions.txt").read_text(encoding="utf-8")
-    assert "Python 3.11 or newer" in instructions and "3.10" not in instructions
+    assert "brings its own Python" in instructions
+    assert "3.10" not in instructions and "3.11" not in instructions and "python.org" not in instructions
 
     nsi_lines = [
         line for line in (WINDOWS / "setup.nsi").read_text(encoding="utf-8").splitlines()
@@ -102,7 +106,8 @@ def test_every_place_that_states_the_minimum_agrees_with_the_gate():
     ]
     assert len(nsi_lines) == 10, "expected one welcome text per installer language"
     for line in nsi_lines:
-        assert "3.11" in line and "3.10" not in line, line[:90]
+        assert "Python" not in line and not re.search(r"\d", line), line[:90]
+        assert "ffmpeg" in line and "Deno" in line, line[:90]
 
     launcher_c = (WINDOWS / "launcher.c").read_text(encoding="utf-8")
     assert "Python 3.11+ is required" in launcher_c and "3.10" not in launcher_c

@@ -7,6 +7,9 @@ on:
       - "templates/**"
       - "languages/**"
       - "app.py"
+      - "windows/electron/**"
+      - "mac/electron/**"
+      - "linux/electron/**"
       - "tests/frontend/**"
       - ".github/workflows/frontend-tests.yml"
   pull_request:
@@ -14,6 +17,9 @@ on:
       - "templates/**"
       - "languages/**"
       - "app.py"
+      - "windows/electron/**"
+      - "mac/electron/**"
+      - "linux/electron/**"
       - "tests/frontend/**"
 
 permissions:
@@ -42,7 +48,7 @@ jobs:
 
       - name: Install frontend test deps
         working-directory: tests/frontend
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
 
       - name: Render page
         working-directory: tests/frontend

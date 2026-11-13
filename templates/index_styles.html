@@ -909,6 +909,8 @@
     /* lint-allow-muted: supplementary-note */
     .portable-plugins-note { display: none; font-size: .68rem; color: var(--muted); margin-top: 6px; padding: 4px 8px; border-inline-start: 2px solid var(--border); }
     body.portable-mode .portable-plugins-note { display: block; }
+    /* ── Installer edition (Electron bundled) — nothing to reinstall ── */
+    body.bundled-mode #adv-electron-btn { display: none !important; }
     @keyframes sli { from { opacity:0; transform:translateX(32px); } }
     [dir=rtl] .toast { animation-name: sli-rtl; }   /* toasts sit at the left and slide in from there */
     @keyframes sli-rtl { from { opacity:0; transform:translateX(-32px); } }

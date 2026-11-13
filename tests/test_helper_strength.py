@@ -153,9 +153,10 @@ def test_an_empty_or_unresolvable_host_counts_as_internal(backend, monkeypatch):
 
 def test_a_thumbnail_on_an_internal_address_is_never_fetched(backend, monkeypatch):
     monkeypatch.setattr(backend.urllib.request, "urlopen", lambda *a, **k: pytest.fail("fetched an internal address"))
+    monkeypatch.setattr(backend.urllib.request.OpenerDirector, "open", lambda *a, **k: pytest.fail("fetched an internal address"))
     monkeypatch.setattr(backend, "_sec_event", lambda *a: None)
     for url in ("https://127.0.0.1/x.jpg", "https://10.0.0.1/x.jpg", "https://[::1]/x.jpg"):
-        assert backend._download_thumbnail(url, "e1") == ""
+        assert backend._fetch_thumbnail(url, "Mozilla/5.0") == b""
 
 
 # ── _verify_manifest ────────────────────────────────────────────────────────────────────────

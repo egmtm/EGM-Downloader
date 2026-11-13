@@ -19,6 +19,20 @@ echo ""
 echo "   Repo root: $REPO_ROOT"
 echo ""
 
+# ── The checkout must be committed ───────────────────────────────────────────
+# Every build comes from a commit, so a build can be traced to one: a change that is not
+# committed (a modified or staged file, or an untracked file that is not ignored) stops it here.
+cd "$REPO_ROOT"
+HEAD_LINE=$(git log -1 --format='%H %s')
+DIRTY=$(git status --porcelain)
+if [ -n "$DIRTY" ]; then
+    echo "❌ The checkout has uncommitted changes. Commit (or stash) them first: the build must come from a commit."
+    echo "$DIRTY" | sed 's/^/     /'
+    exit 1
+fi
+echo "   Commit: $HEAD_LINE"
+echo ""
+
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 echo "📋 Checking prerequisites..."
 if ! command -v python3 &> /dev/null; then
@@ -67,7 +81,8 @@ PYTHON_SHA256="cba3455e18516fbe8668cff2820c9b6a53447c552d612443c2b2fb60d390a908"
 if [ ! -d "$PYTHON_DIR" ]; then
     PYTHON_URL="https://github.com/astral-sh/python-build-standalone/releases/download/${PYTHON_RELEASE}/cpython-${PYTHON_VERSION}+${PYTHON_RELEASE}-aarch64-apple-darwin-install_only.tar.gz"
     echo "   Downloading from GitHub..."
-    curl -L --progress-bar "$PYTHON_URL" -o python.tar.gz
+    HTTP=$(curl -fL --progress-bar -w '%{http_code}' "$PYTHON_URL" -o python.tar.gz) \
+        || { echo "   ✗ downloading the Python archive failed (HTTP status ${HTTP:-000})"; rm -f python.tar.gz; exit 1; }
     echo "$PYTHON_SHA256  python.tar.gz" | shasum -a 256 -c - || { echo "   ✗ python.tar.gz does not match the pinned SHA-256"; rm -f python.tar.gz; exit 1; }
     echo "   Extracting..."
     mkdir -p "$PYTHON_DIR"
@@ -82,7 +97,27 @@ echo ""
 # ── Install Python deps ───────────────────────────────────────────────────────
 echo "📚 Installing Python dependencies..."
 # pip is the one inside the pinned Python above (26.2.2); it is not upgraded here
-"$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
+# PYTHONNOUSERSITE=1: pip must only see the bundled Python's own site-packages, as in the Linux build.
+# Without it a package in the host's user site counts as "already installed" and is left out of the app.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
+# yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
+# names (a == requirement in its metadata), and requirements.txt asks for >=0.8.0, which takes the newest
+# release. Install the named version so the bundle ships a pair, as the Windows launcher and Update
+# Plugins do. A yt-dlp that names none keeps the GitHub fallback; a failed read or install stops the build.
+EJS_PIN=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
+import importlib.metadata as m, re
+for line in m.requires("yt-dlp") or []:
+    hit = re.match(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*[\x27\"]default[\x27\"]\s*$", line)
+    if hit:
+        print(hit.group(1))
+        break
+')
+if [ -n "$EJS_PIN" ]; then
+    PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet "yt-dlp-ejs==$EJS_PIN"
+    echo "   ✓ yt-dlp-ejs $EJS_PIN (the version yt-dlp names)"
+else
+    echo "   ⚠ yt-dlp names no yt-dlp-ejs version, so it will download its solver script when needed"
+fi
 echo "   ✓ Dependencies installed"
 echo ""
 
@@ -177,7 +212,7 @@ cat > INSTRUCTIONS.txt << 'EOF'
   EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-VERSION: v1.5.2.3
+VERSION: v1.5.3.2
 PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
 MINIMUM MACOS: 13.0 (Ventura) or later
 
@@ -240,10 +275,11 @@ If a download is stuck or fails:
   SUPPORT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Website: https://egm.egerena.com
-Downloads: https://egerena.com/apps/egmac.html
+Website: https://egmdownloader.app
+Downloads: https://mac.egmdownloader.app
 GitHub: https://github.com/egmtm/EGM-Downloader
 X: https://x.com/EGMDownloader
+Instagram: https://instagram.com/egmdownloader
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   LICENSE
@@ -286,6 +322,8 @@ echo ""
 echo "╔════════════════════════════════════╗"
 echo "║        ✅  MAC BUILD DONE!         ║"
 echo "╚════════════════════════════════════╝"
+echo ""
+echo "   Commit: $HEAD_LINE"
 echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMdM.zip"

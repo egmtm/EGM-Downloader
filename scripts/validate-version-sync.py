@@ -34,6 +34,7 @@ Usage:
       run: python scripts/validate-version-sync.py
 """
 
+import hashlib
 import json
 import re
 import sys
@@ -295,56 +296,150 @@ def check_linux_drift_from_root():
     return errors
 
 
-def check_portable_file_list():
-    """Verify the portable build's file copy list matches the NSIS installer file list.
+# ── Windows file lists: one list of app files, both editions checked against it ──
+# windows/app-files.txt lists the app files once, as repository-relative paths. The portable stage
+# (windows/BUILD.sh) copies them next to its launcher, the installer folder build
+# (windows/installer/build-folder.sh) into resources/app. Each edition adds only its own files:
+#   portable:  the launcher exe, launch.py, instructions.txt, electron/package*.json, .portable
+#              (plus the shell files main.js, preload.js and splash.html in electron/)
+#   installer: the Electron runtime at the top of the folder, resources/app.asar (holding the shell
+#              files) and resources/python (the bundled Python)
+APP_FILES_LIST = ROOT / 'windows' / 'app-files.txt'
+PORTABLE_ONLY = {'EGM Downloader.exe', 'launch.py', 'instructions.txt',
+                 'electron/package.json', 'electron/package-lock.json', '.portable'}
+SHELL_FILES = {'main.js', 'preload.js', 'splash.html'}
+INSTALLER_RESOURCES = {'app', 'app.asar', 'python'}
 
-    Parses windows/setup.nsi for File directives and windows/BUILD.sh for the
-    portable stage cp commands — any drift means the portable zip would differ
-    from the installer in ways that are probably unintentional.
 
-    Opportunistic: skips gracefully if either file is missing or unparseable.
-    """
-    import re
+def read_app_files():
+    """The relative paths in windows/app-files.txt, in order (comments and blank lines skipped)."""
+    lines = APP_FILES_LIST.read_text(encoding='utf-8').splitlines()
+    return [l.strip() for l in lines if l.strip() and not l.lstrip().startswith('#')]
+
+
+def check_app_files_list():
+    """windows/app-files.txt: every entry a plain relative path to a file in the repo, no duplicate,
+    and nothing the app needs left out (every template, every language file)."""
+    if not APP_FILES_LIST.exists():
+        return [f"{APP_FILES_LIST.relative_to(ROOT)} is missing"]
     errors = []
+    files = read_app_files()
+    dupes = sorted({f for f in files if files.count(f) > 1})
+    if dupes:
+        errors.append(f"windows/app-files.txt lists files twice: {dupes}")
+    for f in files:
+        if f.startswith(('/', '\\')) or '..' in f.split('/') or '\\' in f:
+            errors.append(f"windows/app-files.txt: not a plain relative path: {f}")
+        elif not (ROOT / f).is_file():
+            errors.append(f"windows/app-files.txt lists a file that does not exist: {f}")
+    # Completeness: a file missing from the list is missing from both editions, which no sync
+    # check can see (that exact gap once shipped TemplateNotFound: i18n.html in a test build).
+    needed = {p.relative_to(ROOT).as_posix() for p in (ROOT / 'templates').glob('*.html')}
+    needed |= {p.relative_to(ROOT).as_posix() for p in (ROOT / 'templates' / 'js').glob('*.html')}
+    needed |= {p.relative_to(ROOT).as_posix() for p in (ROOT / 'languages').glob('*.json')}
+    needed |= {'app.py', 'patchnotes.txt', 'LICENSE'}
+    unlisted = sorted(needed - set(files))
+    if unlisted:
+        errors.append(f"In the repo but missing from windows/app-files.txt: {unlisted}")
+    return errors
 
-    nsi_path = ROOT / 'windows' / 'setup.nsi'
-    sh_path  = ROOT / 'windows' / 'BUILD.sh'
 
-    if not nsi_path.exists() or not sh_path.exists():
-        return errors  # can't check — skip silently
-
-    nsi_text = nsi_path.read_text(encoding='utf-8', errors='replace')
-    sh_text  = sh_path.read_text(encoding='utf-8', errors='replace')
-
-    # Extract filenames from NSIS: File "${REPO_ROOT}/some/path/file.ext"
-    nsi_files = set(re.findall(r'File\s+"[^"]*?[\\/]([^\\/\\"]+)"', nsi_text))
-
-    # Extract filenames from portable stage cp block
-    portable_section = sh_text
+def portable_stage_files(sh_text):
+    """The relative paths the portable stage of windows/BUILD.sh produces, read from its cp lines,
+    its loop over windows/app-files.txt and the files it writes itself."""
     start = sh_text.find('# ── Build portable variant')
-    end   = sh_text.find('# ── Push to GitHub', start) if start != -1 else -1
-    if start != -1 and end != -1:
-        portable_section = sh_text[start:end]
+    end = sh_text.find('# Package into zip (no password', start)
+    if start == -1 or end == -1:
+        return None
+    section = sh_text[start:end]
+    out = set()
+    for src, dest in re.findall(r'^cp "\$REPO_ROOT/([^"]+)"\s+"\$PORTABLE_STAGE/([^"]*)"', section, re.M):
+        out.add(dest + src.rsplit('/', 1)[-1] if dest == '' or dest.endswith('/') else dest)
+    if re.search(r'^done < "\$REPO_ROOT/windows/app-files\.txt"', section, re.M):
+        out |= set(read_app_files())
+    out |= set(re.findall(r'> "\$PORTABLE_STAGE/([^"]+)"', section))
+    return out
 
-    sh_files = set(re.findall(r'cp\s+"[^"]*?[\\/]([^\\/\\"]+)"\s+".*?PORTABLE_STAGE', portable_section))
 
-    missing_from_portable = nsi_files - sh_files - {'egm-setup.exe'}  # installer-only, not in portable
-    extra_in_portable     = sh_files  - nsi_files
+def portable_files_wanted():
+    """Every relative path the portable zip must hold: the app files plus the portable edition's own."""
+    return set(read_app_files()) | PORTABLE_ONLY | {f'electron/{n}' for n in SHELL_FILES}
 
-    if missing_from_portable:
-        errors.append(f"Portable build missing files that NSIS installs: {sorted(missing_from_portable)}")
-    if extra_in_portable:
-        errors.append(f"Portable build includes files not in NSIS installer: {sorted(extra_in_portable)}")
 
-    # Completeness: every template that exists in the repo must be shipped by
-    # the installer. Sync alone can't catch a file missing from BOTH lists
-    # (that exact gap shipped TemplateNotFound: i18n.html in a v1.3 test build).
-    repo_templates = {f.name for f in (ROOT / 'templates').glob('*.html')}
-    repo_templates |= {f.name for f in (ROOT / 'templates' / 'js').glob('*.html')}
-    unshipped = repo_templates - nsi_files
-    if unshipped:
-        errors.append(f"Templates in repo but missing from NSIS installer: {sorted(unshipped)}")
+def check_portable_stage():
+    """The portable stage of windows/BUILD.sh copies exactly the app files plus its own files."""
+    sh_path = ROOT / 'windows' / 'BUILD.sh'
+    if not sh_path.exists() or not APP_FILES_LIST.exists():
+        return []
+    have = portable_stage_files(sh_path.read_text(encoding='utf-8', errors='replace'))
+    if have is None:
+        return ["windows/BUILD.sh: the portable stage section was not found"]
+    want = portable_files_wanted()
+    errors = []
+    if want - have:
+        errors.append(f"Portable stage is missing: {sorted(want - have)}")
+    if have - want:
+        errors.append(f"Portable stage has files that are neither app files nor portable-only: {sorted(have - want)}")
+    return errors
 
+
+def check_portable_zip_contents():
+    """The built portable zip (dist/EGMd-portable.zip), when there is one: its members are exactly
+    the portable stage's files. check_portable_stage reads the script; this reads what it wrote."""
+    zip_path = ROOT / 'dist' / 'EGMd-portable.zip'
+    if not zip_path.is_file():
+        return []
+    import zipfile
+    with zipfile.ZipFile(zip_path) as zf:
+        have = {n for n in zf.namelist() if not n.endswith('/')}
+    want = portable_files_wanted()
+    errors = []
+    if want - have:
+        errors.append(f"dist/EGMd-portable.zip is missing: {sorted(want - have)}")
+    if have - want:
+        errors.append(f"dist/EGMd-portable.zip holds files that are neither app files nor portable-only: {sorted(have - want)}")
+    return errors
+
+
+def _asar_files(path):
+    """File names in an asar archive's header (top level only: the shell keeps no folders there)."""
+    import struct
+    with open(path, 'rb') as f:
+        head = f.read(16)
+        size = struct.unpack('<I', head[12:16])[0]
+        header = json.loads(f.read(size).decode('utf-8'))
+    return set(header.get('files', {}))
+
+
+def check_installer_folder(folder=None):
+    """The built installer folder (dist/win-unpacked), when there is one: resources/app holds exactly
+    the app files, app.asar the shell files, resources holds nothing else but the bundled Python,
+    and the exe is at the top. File sets only: a folder built before a later edit is not an error."""
+    folder = Path(folder) if folder else ROOT / 'dist' / 'win-unpacked'
+    if not folder.is_dir():
+        return []
+    errors = []
+    res = folder / 'resources'
+    if not (folder / 'EGM Downloader.exe').is_file():
+        errors.append(f"{folder.name}: EGM Downloader.exe is not at the top of the folder")
+    if not res.is_dir():
+        return errors + [f"{folder.name}: no resources folder"]
+    extra = sorted(p.name for p in res.iterdir())
+    if set(extra) != INSTALLER_RESOURCES:
+        errors.append(f"{folder.name}/resources holds {extra}, expected {sorted(INSTALLER_RESOURCES)}")
+    app = res / 'app'
+    if app.is_dir():
+        have = {p.relative_to(app).as_posix() for p in app.rglob('*') if p.is_file() and '__pycache__' not in p.parts}
+        want = set(read_app_files())
+        if have != want:
+            errors.append(f"{folder.name}/resources/app differs from windows/app-files.txt: "
+                          f"missing {sorted(want - have)}, extra {sorted(have - want)}")
+    if (res / 'app.asar').is_file():
+        inside = _asar_files(res / 'app.asar')
+        if inside != SHELL_FILES | {'package.json'}:
+            errors.append(f"{folder.name}/resources/app.asar holds {sorted(inside)}, expected the shell files and package.json")
+    if not (res / 'python' / 'python.exe').is_file():
+        errors.append(f"{folder.name}/resources/python has no python.exe")
     return errors
 
 
@@ -406,8 +501,10 @@ FEED_REQUIRED_KEYS = [
     'version', 'build', 'label', 'downloadUrl', 'zip',
 ]
 
+_WINDOWS_BANNED = ['mac update', 'macos', 'darwin', 'appimage', '.dmg', '.deb', '.rpm', 'snap install']
 FEED_BANNED_TERMS = {
-    'egm-version.json':     ['mac update', 'macos', 'darwin', 'appimage', '.dmg', '.deb', '.rpm', 'snap install'],
+    'egm-version.json':          _WINDOWS_BANNED,
+    'egm-portable-version.json': _WINDOWS_BANNED,
     'egmac-update.json':    ['windows', 'win32', 'nsis', '.msi', 'appimage', 'apt-get', 'yum', 'snap install'],
     'egmlinux-update.json': ['windows', 'win32', '.exe', 'mac update', 'macos', 'darwin', '.dmg'],
 }
@@ -683,6 +780,49 @@ def check_feed_size_bytes():
     return errors
 
 
+# The archive each feed describes. gen-update-json.py writes the feed from the zip's SHA-256 and
+# size, so with the zip in dist/ the feed must carry exactly those; a stale or hand edited feed
+# would send the app a hash it can never match (and, for size_bytes, a wrong download size).
+FEED_ZIP = {
+    'egm-version.json':          'EGMd.zip',
+    'egm-portable-version.json': 'EGMd-portable.zip',
+    'egmac-update.json':         'EGMdM.zip',
+    'egmlinux-update.json':      'EGMdL.zip',
+}
+
+
+def _sha256_of(path):
+    h = hashlib.sha256()
+    with open(path, 'rb') as f:
+        for chunk in iter(lambda: f.read(1 << 20), b''):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def check_feed_matches_zip():
+    """When a zip is in dist/, its feed's _checksums.sha256 and size_bytes must be the zip's own.
+    No zip (CI, which only writes placeholder feeds): nothing is checked."""
+    errors = []
+    for name, zip_name in FEED_ZIP.items():
+        zip_path = ROOT / 'dist' / zip_name
+        if not zip_path.is_file():
+            continue
+        d = _load_feed(name)
+        if d is None:
+            errors.append(f"dist/{zip_name} is present but dist/{name} is missing or unreadable")
+            continue
+        cs = d.get('_checksums')
+        sha = cs.get('sha256') if isinstance(cs, dict) else None
+        actual = _sha256_of(zip_path)
+        if sha != actual:
+            errors.append(f"dist/{name}: _checksums.sha256 is {sha!r} but dist/{zip_name} hashes to {actual}")
+        size = d.get('size_bytes')
+        actual_size = zip_path.stat().st_size
+        if not isinstance(size, int) or isinstance(size, bool) or size <= 0 or size != actual_size:
+            errors.append(f"dist/{name}: size_bytes is {size!r} but dist/{zip_name} is {actual_size} bytes")
+    return errors
+
+
 def check_feed_cross_consistency(v, b):
     """Every present feed must agree with version.json on BOTH version and build.
     This makes all four feeds consistent with each other (covers the case where the
@@ -747,9 +887,17 @@ def main():
         print(f"   Checking {label}...")
         all_errors.extend(fn())
 
-    # ── Item 5: Portable file list drift check ────────────────────────────────
-    print("   Checking portable file list sync with NSIS installer...")
-    all_errors.extend(check_portable_file_list())
+    # ── Item 5: Windows file lists (portable stage, installer folder) ──────────
+    print("   Checking windows/app-files.txt...")
+    all_errors.extend(check_app_files_list())
+    print("   Checking the portable stage against the app files...")
+    all_errors.extend(check_portable_stage())
+    print("   Checking the installer folder (dist/win-unpacked, if built)...")
+    all_errors.extend(check_installer_folder())
+    print("   Checking the portable zip (dist/EGMd-portable.zip, if built)...")
+    all_errors.extend(check_portable_zip_contents())
+    print("   Checking the feeds against the zips in dist/ (if built)...")
+    all_errors.extend(check_feed_matches_zip())
 
     # ── Item 6: Linux/Mac copies drift check ──────────────────────────────────
     # linux/requirements.txt should track root/requirements.txt. Mac uses root

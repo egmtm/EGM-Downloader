@@ -59,10 +59,12 @@ def test_index_module_ids_resolve():
     """Every same-document getElementById in templates/js/* must exist in
     index.html or be created dynamically by a module."""
     available = _defined_ids(read_source("templates/index.html"))
-    for path in glob.glob(os.path.join(ROOT, "templates", "js", "*.html")):
+    modules = sorted(glob.glob(os.path.join(ROOT, "templates", "js", "*.html")))
+    assert os.path.join(ROOT, "templates", "js", "_core.html") in modules, "the scan found no modules"
+    for path in modules:
         available |= _defined_ids(open(path, encoding="utf-8").read())
     dead = []
-    for path in sorted(glob.glob(os.path.join(ROOT, "templates", "js", "*.html"))):
+    for path in modules:
         rel = os.path.relpath(path, ROOT)
         src = open(path, encoding="utf-8").read()
         for line, el_id in _referenced_ids(src):

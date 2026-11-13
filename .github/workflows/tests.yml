@@ -11,26 +11,42 @@ permissions:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    # Pinned to 24.04 on purpose: its NSIS (3.09) is the one that builds the real installer, and the test that lists
+    # the compiled installer was written against it. ubuntu-latest moved to 26.04 (NSIS 3.10, 7-Zip 26) and that
+    # test stopped finding uninstall.exe in the listing. To be looked at after the release, or sooner if GitHub
+    # announces that the 24.04 runners are going away.
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        # 3.11 is the Python every edition ships; 3.12 is the next one
+        python-version: ["3.11", "3.12"]
 
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          # The tags too: the installer test compares its 1.5.x list with what v1.5.2.3 installed
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0  # v7.1.0
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        # yt-dlp and yt-dlp-ejs at the Windows lock's versions: three tests run the real packages
+        # (the user's yt-dlp config, the agent yt-dlp sends, the notices against the package header)
+        # and skipped on every CI run without them. tests/test_ci_workflows.py keeps them equal to the lock.
         run: |
-          pip install flask mutagen cryptography pytest
+          pip install flask mutagen cryptography pytest yt-dlp==2026.10.26 yt-dlp-ejs==0.8.0
 
-      - name: Install ffmpeg
-        # The ffmpeg tests skip silently when ffmpeg or ffprobe is missing.
+      - name: Install ffmpeg, NSIS and 7-Zip
+        # The ffmpeg tests skip silently when ffmpeg or ffprobe is missing, and the installer
+        # compile test when makensis or 7z is.
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ffmpeg
+          sudo apt-get install -y --no-install-recommends ffmpeg nsis p7zip-full
 
       - name: Lint CSS — --muted discipline
         run: bash scripts/lint-css-muted.sh
@@ -50,7 +66,7 @@ jobs:
       - name: Run tests
         run: |
           cd tests
-          python -m pytest -v --tb=short
+          python -m pytest -v --tb=short -rs
         env:
           EGM_API_TOKEN: ci-test-token-not-secret
 

@@ -134,7 +134,9 @@ def test_new_colour_functions_sit_behind_supports(tree):
     """A value that needs contrast-color() or relative colour syntax and holds var() cannot fall back to an
     earlier declaration, so it has to be inside an @supports block (with a fixed colour outside it)."""
     found = []
-    for path in sorted((ROOT / tree).glob("*.html")) + sorted((ROOT / tree / "js").glob("*.html")):
+    paths = sorted((ROOT / tree).glob("*.html")) + sorted((ROOT / tree / "js").glob("*.html"))
+    assert {"index_styles.html", "theme_styles.html", "_core.html"} <= {p.name for p in paths}, "the scan found no templates"
+    for path in paths:
         css = re.sub(r"/\*.*?\*/", "", path.read_text(encoding="utf-8"), flags=re.S)
         rest = _outside_supports(css)
         for m in re.finditer(r"contrast-color\(|\b(?:color|oklch|oklab|lch|lab|rgb|rgba|hsl|hsla|hwb)\(\s*from\b", rest):

@@ -5,18 +5,20 @@ The heading shows the running version, but the list used to come from the signed
 only ever carries the latest release. A test build, an older install, a machine that was offline
 and, on Linux and Mac, every user of an older version, saw another version's notes under the
 wrong heading. The notes now come from the patchnotes.txt shipped next to app.py (the same
-bullets and platform filter the feed is built from), and only then from the signed feed: its
-history entry for this version, or its latest notes when the feed is this very version. Never
-another version's notes.
+bullets and platform filter the feed is built from) and from nowhere else: the route makes no
+network request, so a build with the update check off, and the portable, never reach egerena.com
+through it (an independent privacy review found that path). A version without a block in the file
+shows no bullets. Never another version's notes.
 
-All three backends are driven through their real route with a fake patchnotes file and a fake
-feed. Nothing is fetched.
+All three backends are driven through their real route with a fake patchnotes file. Nothing is
+fetched, and a fetch of any kind fails the test.
 """
 import importlib.util
 import io
 import json
 import re
 import sys
+import urllib.request
 from pathlib import Path
 
 import pytest
@@ -86,14 +88,15 @@ class _Resp(io.BytesIO):
 
 
 def _get(plat, monkeypatch, tmp_path, version, patchnotes=PATCHNOTES, feed=None, verified=True):
-    """Call the real route. Returns (notes_list, number of feed fetches)."""
+    """Call the real route. Returns (notes_list, number of requests made). The feed is offered
+    through every door the route could use; the count must stay 0."""
     app, _tag, _name = plat
     pn = tmp_path / "patchnotes.txt"
     if patchnotes is not None:
         pn.write_text(patchnotes, encoding="utf-8")
     fetches = []
 
-    def fake_urlopen(req, timeout):
+    def fake_urlopen(req, *a, **k):
         fetches.append(req)
         return _Resp(json.dumps(feed if feed is not None else {}).encode())
 
@@ -101,6 +104,7 @@ def _get(plat, monkeypatch, tmp_path, version, patchnotes=PATCHNOTES, feed=None,
     monkeypatch.setattr(app, "_PATCHNOTES_FILE", pn)
     monkeypatch.setattr(app, "_verify_manifest", lambda d: verified)
     monkeypatch.setattr(app, "_safe_urlopen", fake_urlopen)
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
     r = app.app.test_client().get("/api/whats-new", headers={"X-EGM-Token": app._API_TOKEN}).get_json()
     assert r["version"] == version
     return r["notes_list"], len(fetches)
@@ -124,43 +128,36 @@ def test_draft_block_bullets_never_show_under_a_real_version(plat, monkeypatch, 
         assert not any("draft" in n for n in notes), (version, notes)
 
 
-def test_version_without_a_block_uses_its_entry_in_the_feed_history(plat, monkeypatch, tmp_path):
-    feed = {"version": "3.0.0", "_version_notes": ["newer note"],
-            "_history": [{"version": "3.0.0", "notes": ["newer note"]},
-                         {"version": "1.9.9", "notes": ["history note"]}]}
-    notes, fetches = _get(plat, monkeypatch, tmp_path, "1.9.9", feed=feed)
-    assert notes == ["history note"] and fetches == 1
+_FEED_WITH_NOTES = {"version": "3.0.0", "_version_notes": ["newer note"],
+                    "_history": [{"version": "3.0.0", "notes": ["newer note"]},
+                                 {"version": "1.9.9", "notes": ["history note"]}]}
 
 
-def test_missing_file_falls_back_to_the_feed(plat, monkeypatch, tmp_path):
-    feed = {"version": "2.0.0.1", "_version_notes": ["feed note"], "_history": []}
-    notes, fetches = _get(plat, monkeypatch, tmp_path, "2.0.0.1", patchnotes=None, feed=feed)
-    assert notes == ["feed note"] and fetches == 1
+# The route reads no feed, so what the feed would say changes nothing: the cases differ only in what the
+# shipped file holds for the running version. One feed, the one that would be the most tempting to read
+# (it names this version and carries notes), is offered in every case.
+@pytest.mark.parametrize("version,patchnotes", [
+    pytest.param("1.9.9", PATCHNOTES, id="version-without-a-block"),
+    pytest.param("2.0.0.1", None, id="missing-file"),
+    pytest.param("9.9.9", None, id="missing-file-and-unknown-version"),
+])
+def test_whats_new_never_makes_a_request_and_shows_no_bullets_it_does_not_have(plat, monkeypatch, tmp_path,
+                                                                           version, patchnotes):
+    """The notes are in the shipped file or nowhere: no request is made, so no build reaches egerena.com
+    through What's New, whatever the update setting or the portable mode says. A version the file does
+    not know shows no bullets (the modal stays shown), never another version's notes."""
+    feed = {"version": version, "_version_notes": ["feed note"], "_history": _FEED_WITH_NOTES["_history"]}
+    notes, fetches = _get(plat, monkeypatch, tmp_path, version, patchnotes=patchnotes, feed=feed)
+    assert fetches == 0, "What's New asked the network"
+    assert notes == [], notes
 
 
-def test_latest_feed_notes_only_when_the_feed_is_this_version(plat, monkeypatch, tmp_path):
-    same = {"version": "9.9.9", "_version_notes": ["same version note"]}
-    assert _get(plat, monkeypatch, tmp_path, "9.9.9", feed=same)[0] == ["same version note"]
-
-
-def test_never_another_versions_notes_under_the_running_heading(plat, monkeypatch, tmp_path):
-    # The old bug: the running version is not in the file or in the feed's history, and the
-    # feed's latest notes (another version) used to be shown under its heading.
-    feed = {"version": "3.0.0", "_version_notes": ["newer note"],
-            "_history": [{"version": "3.0.0", "notes": ["newer note"]}]}
-    notes, fetches = _get(plat, monkeypatch, tmp_path, "1.0.0", feed=feed)
-    assert notes == [] and fetches == 1
-
-
-def test_unverified_feed_is_never_trusted(plat, monkeypatch, tmp_path):
-    feed = {"version": "9.9.9", "_version_notes": ["forged"], "_history": [{"version": "9.9.9", "notes": ["forged"]}]}
-    assert _get(plat, monkeypatch, tmp_path, "9.9.9", patchnotes=None, feed=feed, verified=False)[0] == []
-
-
-@pytest.mark.parametrize("history", ["oops", {"version": "9.9.9"}, [None, 5, "x"], None])
-def test_a_malformed_history_does_not_break_the_route(plat, monkeypatch, tmp_path, history):
-    feed = {"version": "3.0.0", "_version_notes": ["newer note"], "_history": history}
-    assert _get(plat, monkeypatch, tmp_path, "9.9.9", patchnotes=None, feed=feed)[0] == []
+def test_the_route_has_no_network_code_left(plat):
+    app = plat[0]
+    import inspect
+    body = inspect.getsource(app.whats_new)
+    for word in ("urlopen", "APP_UPDATE_URL", "_verify_manifest", "urllib"):
+        assert word not in body, word
 
 
 @pytest.mark.parametrize("path,tag,name", APPS, ids=[a[1] for a in APPS])
@@ -207,11 +204,16 @@ def test_the_three_copies_of_the_reader_are_identical_apart_from_the_platform_ta
 # ── The file has to be next to app.py in every package ─────────────────────────
 
 def test_windows_installer_portable_and_update_zip_ship_patchnotes():
-    assert 'File "${REPO_ROOT}/patchnotes.txt"' in read_source("windows/setup.nsi")
+    # The installer installs the installer folder as a whole; its resources/app is built from the
+    # app files list (the folder build checks it), which has patchnotes.txt next to app.py
+    assert 'File /r "${APP_FOLDER}/*"' in read_source("windows/setup.nsi")
+    assert 'done < "$WIN_DIR/app-files.txt"' in read_source("windows/installer/build-folder.sh")
     sh = read_source("windows/BUILD.sh")
     zip_lines = [l for l in sh.splitlines() if "app.py" in l and "requirements.txt" in l and "patchnotes.txt" in l]
     assert zip_lines, "the update zip no longer lists patchnotes.txt"
-    assert re.search(r'cp "\$REPO_ROOT/patchnotes\.txt"\s+"\$PORTABLE_STAGE/"', sh), "the portable no longer gets patchnotes.txt"
+    # The portable stage copies the app files list, and patchnotes.txt is on it (next to app.py)
+    assert "patchnotes.txt" in read_source("windows/app-files.txt").splitlines(), "the portable no longer gets patchnotes.txt"
+    assert 'done < "$REPO_ROOT/windows/app-files.txt"' in sh
 
 
 @pytest.mark.parametrize("platform", ["linux", "mac"])

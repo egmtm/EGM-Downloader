@@ -59,11 +59,10 @@ def _direct_codes_from_source(path):
     return set(re.findall(r'\["error_code"\]\s*=\s*"([a-z0-9_]+)"', path.read_text(encoding="utf-8")))
 
 
-def test_classifier_codes_all_platforms():
+def test_classifier_codes_all_platforms(monkeypatch):
     """Every representative sample resolves to its expected code on every
     platform, and an unknown error resolves to None (raw-text path)."""
-    import os
-    os.environ.setdefault("EGM_DEV_MODE", "1")
+    monkeypatch.setenv("EGM_DEV_MODE", "1")
     for name, path in PLATFORMS:
         mod = _load_module(path)
         for code, raw in SAMPLES.items():
@@ -101,15 +100,14 @@ def test_error_map_identical_across_platforms():
     )
 
 
-def test_bot_pattern_matches_whole_word_only():
+def test_bot_pattern_matches_whole_word_only(monkeypatch):
     """'bot' in the login pattern must be word-bounded. Unanchored, it
     matched as a substring of unrelated error text ('robots.txt', 'both',
     'sabotage'...) and -- because classification is first-match-wins and
     login sits first -- shadowed every later, correct class for that text.
     Found in delta review #4 by pairwise shadow analysis, not sample
     testing (the samples all happened to avoid the substring)."""
-    import os
-    os.environ.setdefault("EGM_DEV_MODE", "1")
+    monkeypatch.setenv("EGM_DEV_MODE", "1")
     for name, path in PLATFORMS:
         mod = _load_module(path)
         assert mod._classify_error("Sign in to confirm you're not a bot") == "login", name

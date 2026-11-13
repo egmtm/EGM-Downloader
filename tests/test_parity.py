@@ -35,9 +35,9 @@ WIN_ONLY_ROUTES = {
     "/api/show-window",       # second-instance signal — Windows launch.py only
     "/api/show-window-check", # second-instance poll   — Windows launch.py only
     "/api/electron/reinstall", # Electron reinstall marker — Windows only (Mac/Linux bundle)
+    "/api/download-update",   # the in app update (download, check, start the installer) — Windows only:
+                              # macOS and Linux open the download page and the person installs it
 }
-# Auto-update: Windows + Mac have it; Linux does not (AppImage = manual update)
-NO_LINUX_ROUTES = WIN_ONLY_ROUTES | {"/api/download-update"}
 
 
 # ── Tests ──────────────────────────────────────────────────────────────────────
@@ -81,13 +81,23 @@ def test_routes_identical_across_platforms():
         f"  Windows-only: {win_vs_mac - routes['mac']}\n"
         f"  Mac-only:     {routes['mac'] - win_vs_mac}"
     )
-    # Windows vs Linux: also remove auto-update (Linux = no auto-update by design)
-    win_vs_linux = routes["windows"] - NO_LINUX_ROUTES
+    # Windows vs Linux: the same Windows-only routes
+    win_vs_linux = routes["windows"] - WIN_ONLY_ROUTES
     assert win_vs_linux == routes["linux"], (
         f"Linux routes differ from Windows.\n"
-        f"  Windows/Mac-only: {win_vs_linux - routes['linux']}\n"
-        f"  Linux-only:       {routes['linux'] - win_vs_linux}"
+        f"  Windows-only: {win_vs_linux - routes['linux']}\n"
+        f"  Linux-only:   {routes['linux'] - win_vs_linux}"
     )
+
+
+def test_the_page_asks_for_the_in_app_update_only_on_windows():
+    """/api/download-update exists on the Windows backend only. The page's one call to it sits in the
+    branch for the Windows shell, before the branch that opens the download page on macOS and Linux."""
+    js = read_index_scripts()
+    assert js.count("/api/download-update") == 1
+    gate = js.index("if (_updPlat === 'win' && d.zip_url) {")
+    other = js.index("} else if (_updPlat === 'mac' || _updPlat === 'linux') {")
+    assert gate < js.index("/api/download-update") < other
 
 
 def test_frontend_settings_keys_accepted_by_backend():
@@ -321,7 +331,7 @@ def test_ejs_remote_components_in_download_path():
     to the info path on all 3 but to the download path on Windows only."""
     for name, path in zip(PLATFORM_NAMES, PLATFORM_APP_FILES):
         source = read_source(path)
-        m = re.search(r'cmd = \[sys\.executable, "-m", "yt_dlp".*?\] \+ ', source)
+        m = re.search(r'cmd = \[(?:sys\.executable|\*_PY_CMD), "-m", "yt_dlp".*?\] \+ ', source)
         assert m, f"{name}/app.py: run_download cmd line not found"
         assert "ejs:github" in m.group(0), (
             f"{name}/app.py: run_download missing --remote-components ejs:github "
@@ -1080,7 +1090,8 @@ def test_optional_libs_consistent_across_all_sites():
     # 3. Every optional lib is in BOTH windows/launch.py pip-install lists
     #    (installer + portable embedded) — so every install path receives them.
     launch = read_source("windows/launch.py")
-    pip_blocks = re.findall(r'"pip",\s*"install"(.*?)\]', launch, re.DOTALL)
+    pip_blocks = [b for b in re.findall(r'"pip",\s*"install"(.*?)\]', launch, re.DOTALL)
+                  if "yt-dlp-ejs==" not in b]   # not the one package pin that pairs yt-dlp-ejs after them
     assert len(pip_blocks) == 2, f"expected 2 pip-install lists in launch.py, found {len(pip_blocks)}"
     for i, block in enumerate(pip_blocks):
         toks = {_norm_lib(re.split(r"[><=!~]", t)[0]) for t in re.findall(r'"([^"]+)"', block)}
@@ -1243,8 +1254,12 @@ def test_curl_cffi_ceiling_also_enforced_on_every_live_update_path():
         )
 
     launch = read_source("windows/launch.py")
+    # _pair_ytdlp_ejs installs ONE package at an exact version after those lists (so it cannot move curl_cffi);
+    # it is the only pip-install site allowed besides the two bootstrap lists.
+    pin_only = [m.start() for m in re.finditer(r'"-m", "pip", "install", "-q", f"yt-dlp-ejs==\{pin\}"', launch)]
+    assert len(pin_only) == 1, "windows/launch.py: expected exactly one single-package yt-dlp-ejs pin install"
     bootstrap_installs = [
-        m.start() for m in re.finditer(r'"-m", "pip", "install"', launch)
+        m.start() for m in re.finditer(r'"-m", "pip", "install"', launch) if m.start() not in pin_only
     ]
     assert len(bootstrap_installs) == 2, (
         "windows/launch.py: expected exactly 2 pip-install bootstrap call "
@@ -1525,7 +1540,9 @@ def test_i18n_keys_exist_in_en_locale():
     keys = set(json.load(open(os.path.join(root, "languages", "en.json")))["strings"])
     bad = []
     pattern = "templates/**/*.html"
-    for p in glob.glob(os.path.join(root, pattern), recursive=True):
+    found = glob.glob(os.path.join(root, pattern), recursive=True)
+    assert os.path.join(root, "templates", "index.html") in found, "the scan found no templates"
+    for p in found:
         if p.endswith("i18n.html"):
             continue  # loader partial documents the attr format with a sample key
         src = open(p, encoding="utf-8").read()

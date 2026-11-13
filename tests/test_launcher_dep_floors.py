@@ -12,6 +12,7 @@ import importlib.util
 import re
 import subprocess
 import sys
+import types
 from pathlib import Path
 
 import pytest
@@ -40,6 +41,8 @@ def pip(mod, monkeypatch):
     p.calls = []
 
     def fake_run(cmd, **kw):
+        if "-c" in cmd:      # the read of yt-dlp's metadata that pairs yt-dlp-ejs after a pip run: yt-dlp names none here
+            return types.SimpleNamespace(returncode=0, stdout="", stderr="")
         p.calls.append((cmd, kw))
         if p.fail:
             raise subprocess.CalledProcessError(1, cmd)
@@ -170,6 +173,7 @@ def _site_packages(tmp_path, brotli, ytdlp, curl="0.17.0"):
     for pkg in REQUIRED:
         (sp / pkg).mkdir()
     (sp / "brotli.py").write_text("")                       # brotli is a single module file
+    (sp / "yt_dlp_ejs").mkdir()                              # the solver package (its absence is a non-fatal run)
     if brotli:
         (sp / f"Brotli-{brotli}.dist-info").mkdir()         # older wheels used a capital B
     if ytdlp:

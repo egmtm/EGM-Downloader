@@ -230,7 +230,7 @@ def test_a_verified_archive_is_unpacked_pip_is_checked_and_the_download_is_clean
     # pip is checked in the stage folder, before the new Python becomes python\, and the
     # stage folder is gone once it has been moved into place
     stage = launch._py_stage_dir()
-    assert [str(stage / "python.exe"), "-m", "pip", "--version"] in calls
+    assert [str(stage / "python.exe"), "-m", "pip", "--isolated", "--version"] in calls
     assert not stage.exists()
 
 

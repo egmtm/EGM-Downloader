@@ -185,6 +185,12 @@ EXTRA = {
     },
 }
 
+# New keys waiting for the translator pass: English in the nine other files until then. The pass
+# translates them and takes them out of this set; a key here that is no longer an English copy in
+# any language fails, so the set cannot rot.
+AWAITING_TRANSLATION = set()
+
+
 
 def test_every_language_file_has_exactly_the_english_keys():
     problems = []
@@ -217,7 +223,7 @@ def _identical(code):
 def test_no_value_is_an_english_copy_unless_it_is_on_the_allowlist():
     problems = []
     for code in OTHERS:
-        copies = sorted(_identical(code) - COMMON - EXTRA.get(code, set()))
+        copies = sorted(_identical(code) - COMMON - EXTRA.get(code, set()) - AWAITING_TRANSLATION)
         if copies:
             problems.append(f"{code}: {copies}")
     assert not problems, (
@@ -234,9 +240,11 @@ def test_the_allowlist_has_no_stale_entries():
             problems.append(f"{code}: {stale}")
     gone = sorted(COMMON - set(EN))
     translated_everywhere = sorted(key for key in COMMON if not any(key in _identical(code) for code in OTHERS))
-    assert not problems and not gone and not translated_everywhere, (
+    waited = sorted(key for key in AWAITING_TRANSLATION if not any(key in _identical(code) for code in OTHERS))
+    assert not problems and not gone and not translated_everywhere and not waited, (
         f"remove from the allowlist: EXTRA {problems}; COMMON keys not in en.json {gone}; "
-        f"COMMON keys translated in every language {translated_everywhere}")
+        f"COMMON keys translated in every language {translated_everywhere}; "
+        f"AWAITING_TRANSLATION keys translated (or gone) {waited}")
 
 
 

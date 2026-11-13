@@ -1,27 +1,35 @@
-import os
-import sys
-import uuid
-import glob
-import json
-import hmac
-import subprocess
-import re as _re
-import time
-import copy
-import threading
 import concurrent.futures
-import urllib.request
-import urllib.parse
-import zipfile
+import copy
+import glob
 import hashlib
-import shutil
+import hmac
 import importlib.metadata
+import json
+import os
+import re as _re
+import shutil
+import subprocess
+import sys
+import threading
+import time
+import urllib.error
+import urllib.parse
+import urllib.request
+import uuid
+import zipfile
 from collections import deque
 from pathlib import Path
-from flask import Flask, request, jsonify, render_template, abort
+
+from flask import Flask, abort, jsonify, render_template, request
 
 app = Flask(__name__)
 app.config["MAX_CONTENT_LENGTH"] = 2 * 1024 * 1024  # 2 MB global request body limit
+
+# Tools the backend starts must not look for their own updates on their own: Deno (yt-dlp runs it for
+# the YouTube solver) asks dl.deno.land at most once a day, and pip asks pypi.org for a newer pip after
+# every install. Both inherit this environment. A value the user already set is kept.
+os.environ.setdefault("DENO_NO_UPDATE_CHECK", "1")
+os.environ.setdefault("PIP_DISABLE_PIP_VERSION_CHECK", "1")
 
 # ── Defensive Host header check (DNS rebinding / CSRF protection) ─────────────
 # We bind only to 127.0.0.1, but a malicious page could still target this port
@@ -40,9 +48,12 @@ _ALLOWED_HOSTS = {"127.0.0.1", "localhost", "[::1]"}
 #         the app's core function, so they cannot be host-restricted.
 #       - pip installs (yt-dlp/ffmpeg-deps/mutagen updates): pip talks to PyPI/CDNs
 #         on its own; not routed through _safe_urlopen.
-#       - thumbnail fetches: come from third-party metadata, so they use a separate
-#         guard (_is_internal_host below: HTTPS-only + private/loopback IP blocking)
-#         rather than this allowlist, since thumbnail CDNs are open-ended.
+#       - history pictures: in the desktop app the shell normally fetches them (Chromium, the
+#         window's own user agent, no cookies, no Referer, every redirect hop checked) and hands
+#         the bytes to the backend, which checks them again; the backend's own fetch
+#         (_fetch_thumbnail, yt-dlp's user agent) is the fallback (web mode, the shell cannot, or
+#         30 seconds pass). Both take HTTPS only, refuse internal addresses and cap a picture at
+#         500 KB instead of using this allowlist, because thumbnail hosts are open ended.
 # When adding a new maintenance host, document why it's needed alongside the entry.
 _ALLOWED_DOWNLOAD_HOSTS = {
     "api.github.com",                        # GitHub API — release metadata (BtbN ffmpeg, Deno)
@@ -94,8 +105,10 @@ def _verify_manifest(data: dict) -> bool:
     """Verify the ed25519 signature on an update manifest.
     Returns True if signature is present and valid, False otherwise."""
     try:
+        import base64
+        import json as _json
+
         from cryptography.hazmat.primitives.serialization import load_pem_public_key
-        import base64, json as _json
         sig_b64 = data.get('signature', '')
         if not sig_b64:
             return False
@@ -268,8 +281,29 @@ def _no_cache_html(response):
         response.headers["Expires"] = "0"
     return response
 
+@app.after_request
+def _no_referrer(response):
+    """The windows load thumbnails straight from the site being downloaded. Say no referrer on every
+    response so those requests (<img> and CSS background images alike) never tell the image server
+    which page, or which local address, they came from."""
+    response.headers["Referrer-Policy"] = "no-referrer"
+    return response
+
+@app.after_request
+def _no_dns_prefetch(response):
+    """Chromium looks up the host of a link before it is clicked, when the pointer reaches it or when a
+    link is added to the page. The windows show links to X, the cookies extension pages and the like, so
+    left alone they would tell the DNS server about sites the person never asked for. Off on every response."""
+    response.headers["X-DNS-Prefetch-Control"] = "off"
+    return response
+
 # ── Paths ──────────────────────────────────────────────────────────────────────
-BASE_DIR   = Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
+# The packaged build keeps this file in resources\app and its shell passes the install folder (the
+# folder of the exe) in EGM_INSTALL_DIR: everything kept beside the app (settings, history, data,
+# ffmpeg_bin, runtime, the .portable marker, first-run-language.txt) goes there. Unset: beside app.py.
+_INSTALL_DIR_ENV = os.environ.get("EGM_INSTALL_DIR")
+INSTALL_DIR = Path(_INSTALL_DIR_ENV) if _INSTALL_DIR_ENV else Path(__file__).parent
+BASE_DIR   = INSTALL_DIR if _INSTALL_DIR_ENV else Path(sys.executable).parent if getattr(sys, "frozen", False) else Path(__file__).parent
 FFMPEG_DIR = BASE_DIR / "ffmpeg_bin"
 
 # ── Portable mode detection ────────────────────────────────────────────────────
@@ -281,7 +315,7 @@ def is_portable():
       2. If running from %LOCALAPPDATA%\\EGM Downloader → installed (not portable).
       3. Otherwise → installed (defensive default).
     """
-    app_dir = Path(__file__).parent.resolve()
+    app_dir = INSTALL_DIR.resolve()
     if (app_dir / ".portable").exists():
         return True
     if sys.platform == "win32":
@@ -305,14 +339,14 @@ def get_data_dir() -> Path:
     Installed builds use the standard BASE_DIR (beside app.py inside $INSTDIR).
     """
     if PORTABLE_MODE:
-        d = Path(__file__).parent.resolve() / "data"
+        d = INSTALL_DIR.resolve() / "data"
         d.mkdir(exist_ok=True)
         return d
     return BASE_DIR
 
 # ── App version — keep in sync with index.html build stamp ───────────────────
-APP_VERSION           = "1.5.2.3"
-APP_BUILD             = 176
+APP_VERSION           = "1.5.3.2"
+APP_BUILD             = 177
 APP_UPDATE_URL        = "https://egerena.com/apps/egm-version.json"
 APP_UPDATE_ZIP_URL    = "https://egerena.com/apps/EGMd.zip"
 
@@ -548,7 +582,7 @@ def _read_installer_language():
     app.py. Contents are validated against SUPPORTED_LANGUAGES before being
     trusted; the file is deleted after any read attempt (valid or not)."""
     try:
-        p = Path(__file__).parent / "first-run-language.txt"
+        p = INSTALL_DIR / "first-run-language.txt"
         if not p.is_file():
             return None
         code = p.read_text(encoding="utf-8").strip().lower()
@@ -602,7 +636,8 @@ def _is_internal_host(host: str) -> bool:
     address. Thumbnail URLs come from extractor metadata (and are accepted from
     the /api/download caller), so a hostile value could otherwise make the
     backend fetch internal services (SSRF). Fail-closed: resolution failure → internal."""
-    import socket, ipaddress
+    import ipaddress
+    import socket
     if not host:
         return True
     try:
@@ -633,32 +668,70 @@ def _clamp_int(value, default, lo, hi):
     except (TypeError, ValueError):
         return default
 
-def _download_thumbnail(url: str, entry_id: str) -> str:
-    """Download a thumbnail image and save it locally. Returns filename or empty string."""
+_THUMB_CAP = 512_000  # 500 KB hard cap on thumbnail size
+
+def _thumb_image_ext(data) -> str:
+    """The file extension of a thumbnail picture, from its first bytes (strict magic bytes at exact
+    offsets), or "" when the bytes are not a JPEG, PNG or WebP picture."""
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return ".png"
+    if data.startswith(b"RIFF") and len(data) >= 12 and data[8:12] == b"WEBP":
+        return ".webp"
+    if data[:3] == b"\xff\xd8\xff":
+        return ".jpg"
+    return ""
+
+class _ThumbRedirects(urllib.request.HTTPRedirectHandler):
+    """Each redirect of a thumbnail request is checked before it is followed: HTTPS only, and never
+    to an internal address (an allowed host could 302 to one)."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        host = urllib.parse.urlparse(newurl).hostname or ""
+        if not newurl.startswith("https://") or _is_internal_host(host):
+            _sec_event(f"Thumbnail redirect rejected (not HTTPS or internal host): {host!r}")
+            raise urllib.error.HTTPError(newurl, code, "redirect refused", headers, fp)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+def _ytdlp_user_agent(headers_file) -> str:
+    """The User-Agent yt-dlp sent for a download, from the http_headers it wrote with --print-to-file
+    (the last line: a live recording that reconnects runs yt-dlp again). "" when it is not there."""
+    try:
+        lines = Path(headers_file).read_text(encoding="utf-8").splitlines()
+        ua = json.loads(lines[-1]).get("User-Agent")
+    except Exception:
+        return ""
+    return ua if isinstance(ua, str) and 0 < len(ua) <= 512 and ua.isprintable() else ""
+
+def _fetch_thumbnail(url: str, user_agent: str) -> bytes:
+    """Download a thumbnail picture, as yt-dlp did the download: with its user agent (never Python's
+    own, so nothing is fetched without one). Returns its bytes, or b"" when it is refused or fails.
+    Network only: the caller stores it with _attach_thumbnail, never while holding _history_lock."""
     if not url or not url.startswith("https://"):
         if url:
             _sec_event(f"Thumbnail URL rejected (non-HTTPS): scheme={url.split(':')[0]!r}")
-        return ""
+        return b""
+    if not user_agent:
+        return b""
     # SSRF guard: never let a thumbnail URL point the backend at an internal host.
     _thumb_host = urllib.parse.urlparse(url).hostname or ""
     if _is_internal_host(_thumb_host):
         _sec_event(f"Thumbnail URL rejected (internal/unresolvable host): {_thumb_host!r}")
-        return ""
-    CAP = 512_000  # 500 KB hard cap on thumbnail size
+        return b""
+    CAP = _THUMB_CAP
     try:
-        req = urllib.request.urlopen(url, timeout=HTTP_TIMEOUT_SHORT)
+        req = urllib.request.build_opener(_ThumbRedirects).open(
+            urllib.request.Request(url, headers={"User-Agent": user_agent}), timeout=HTTP_TIMEOUT_SHORT)
         # Re-check the FINAL host after any redirects — a whitelisted host could
         # 302 to an internal address (mirrors _safe_urlopen's redirect guard).
         final_host = urllib.parse.urlparse(req.url).hostname or ""
         if _is_internal_host(final_host):
             _sec_event(f"Thumbnail redirect rejected (internal host): {final_host!r}")
             req.close()
-            return ""
+            return b""
         # Reject non-image responses before reading the body
         ctype = req.headers.get("Content-Type", "").split(";")[0].strip().lower()
         if ctype not in ("image/jpeg", "image/png", "image/webp"):
             req.close()
-            return ""
+            return b""
         # Reject early if the server advertises a size over the cap.
         try:
             clen = int(req.headers.get("Content-Length", "0"))
@@ -666,28 +739,71 @@ def _download_thumbnail(url: str, entry_id: str) -> str:
             clen = 0
         if clen > CAP:
             req.close()
-            return ""
+            return b""
         # Read one byte past the cap: if we get more than CAP the source lied about
         # (or omitted) its length, so reject rather than save a truncated image.
         data = req.read(CAP + 1)
         req.close()
-        if len(data) > CAP:
-            return ""
-        # Strict magic byte detection at exact offset
-        if data.startswith(b"\x89PNG\r\n\x1a\n"):
-            ext = ".png"
-        elif data.startswith(b"RIFF") and len(data) >= 12 and data[8:12] == b"WEBP":
-            ext = ".webp"
-        elif data[:3] == b"\xff\xd8\xff":
-            ext = ".jpg"
-        else:
-            return ""  # Unknown format — reject rather than mis-tag
-        fname = f"{entry_id}{ext}"
-        thumb_path = THUMBNAILS_DIR / fname
-        thumb_path.write_bytes(data)
-        return fname
+        if len(data) > CAP or not _thumb_image_ext(data):
+            return b""  # too big, or an unknown format: reject rather than mis-tag
+        return data
     except Exception:
-        return ""
+        return b""
+
+def _attach_thumbnail(entry_id: str, data: bytes) -> bool:
+    """Store a fetched picture as the thumbnail of history entry entry_id and name it in the entry.
+    The picture is checked again here: a JPEG, PNG or WebP within the size cap, stored under the one
+    name rule (entry id plus extension). The check of the entry and the write happen under
+    _history_lock, so whatever order a finishing download and Clear History (or a delete, the 500
+    entry cap, an import) run in, no entry names a picture that is gone and no picture is left
+    without its entry: an entry that is gone by now gets no file."""
+    ext = _thumb_image_ext(data) if isinstance(data, bytes) and len(data) <= _THUMB_CAP else ""
+    name = f"{entry_id}{ext}"
+    if not ext or not _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', name):
+        return False
+    with _history_lock:
+        items = _load_history()
+        entry = next((e for e in items if e.get("id") == entry_id), None)
+        if entry is None or entry.get("thumbnail"):
+            return False
+        try:
+            (THUMBNAILS_DIR / name).write_bytes(data)
+        except Exception:
+            return False
+        entry["thumbnail"] = name
+        _save_history(items)
+    return True
+
+# In the shell (EGM_ELECTRON) the picture of a finished download is fetched by Chromium in the shell's
+# main process: the backend lists the entry here, names it in an X-EGM-Thumbnail header on the page's
+# /api/status answer, gives the shell the URL and takes the bytes back (/api/history/<id>/thumbnail).
+# When the shell cannot fetch it, or has not delivered it after _THUMB_WAIT seconds, or there is no
+# shell, the backend fetches it itself (_fetch_thumbnail). entry id -> (url, yt-dlp's user agent),
+# under _history_lock; whoever takes an entry out of it fetches or stores that picture.
+_SHELL_FETCHES_THUMBNAILS = os.environ.get("EGM_ELECTRON") == "1"
+_THUMB_WAIT = 30
+_thumb_pending = {}
+
+def _thumbnail_by_backend(entry_id):
+    """The backend fetches the picture of entry_id itself, if it is still waited for."""
+    with _history_lock:
+        pending = _thumb_pending.pop(entry_id, None)
+    if pending:
+        data = _fetch_thumbnail(*pending)
+        if data:
+            _attach_thumbnail(entry_id, data)
+
+def _remove_thumbnails_of(entries, keep=()):
+    """Unlink the cached thumbnail of each history entry that is no longer kept, unless an entry in
+    `keep` still names it (an imported list can name one picture twice). Only a name of the shape this
+    app writes is touched (the rule the serve and delete routes use): an imported history file can set
+    `thumbnail` to a path, or to something that is not text at all."""
+    kept = {e.get("thumbnail") for e in keep if isinstance(e, dict) and isinstance(e.get("thumbnail"), str)}
+    for e in entries:
+        name = e.get("thumbnail") if isinstance(e, dict) else None
+        if isinstance(name, str) and name not in kept and _re.fullmatch(r'[a-f0-9\-]{1,64}\.(jpg|png|webp)', name):
+            try: (THUMBNAILS_DIR / name).unlink(missing_ok=True)
+            except Exception: pass
 
 def _append_history(job: dict, final_path):
     """Append a completed download to history JSON. Newest-first, capped at _HISTORY_MAX."""
@@ -696,7 +812,11 @@ def _append_history(job: dict, final_path):
         try: size_bytes = final_path.stat().st_size
         except Exception: pass
         entry_id = str(uuid.uuid4())
-        thumb = _download_thumbnail(job.get("thumbnail", ""), entry_id)
+        # HTTPS only, and the characters _safe_thumb_url allows, whoever fetches it.
+        raw = job.get("thumbnail", "")
+        url = _safe_thumb_url(raw)
+        if raw and not url.startswith("https://"):
+            _sec_event(f"Thumbnail URL rejected (non-HTTPS or unsafe characters): scheme={str(raw).split(':')[0][:16]!r}")
         entry = {
             "id":           entry_id,
             "url":          job.get("url", ""),
@@ -707,14 +827,27 @@ def _append_history(job: dict, final_path):
             "file_path":    str(final_path),
             "size_bytes":   size_bytes,
             "completed_at": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-            "thumbnail":    thumb,
+            "thumbnail":    "",
         }
         with _history_lock:
             items = _load_history()
             items.insert(0, entry)
-            if len(items) > _HISTORY_MAX:
-                items = items[:_HISTORY_MAX]
+            dropped = items[_HISTORY_MAX:]
+            items = items[:_HISTORY_MAX]
             _save_history(items)
+            _remove_thumbnails_of(dropped, keep=items)
+            if url.startswith("https://"):
+                _thumb_pending[entry_id] = (url, job.get("user_agent", ""))
+        # The picture is fetched after the entry is written and outside the lock; it is stored (and
+        # named in the entry) only if the entry is still there by then.
+        if url.startswith("https://"):
+            if _SHELL_FETCHES_THUMBNAILS:
+                job["thumb_pending"] = entry_id
+                t = threading.Timer(_THUMB_WAIT, _thumbnail_by_backend, args=(entry_id,))
+                t.daemon = True
+                t.start()
+            else:
+                _thumbnail_by_backend(entry_id)
     except Exception:
         pass
 
@@ -906,6 +1039,14 @@ def _kill_proc(proc: subprocess.Popen) -> None:
     except Exception:
         pass
 
+# ── The Pythons this backend starts (yt-dlp, pip, the small -c checks) ─────────
+# Started the way the backend itself was. Packaged, the shell starts it with python -E -s: no PYTHON
+# variable, no user site folder and, on Windows, none of the PythonPath registry entries of an installed
+# Python 3.11. -E is not inherited, and -E alone would open the user site folder again (it ignores
+# PYTHONNOUSERSITE), so a backend started with -E gives its own Pythons -E -s too. From source and in the
+# tests the backend runs without -E and the command lines stay as they were. Every command starts here.
+_PY_CMD = [sys.executable, "-E", "-s"] if sys.flags.ignore_environment else [sys.executable]
+
 # ── No console window on Windows ──────────────────────────────────────────────
 _NO_WINDOW = 0x08000000 if sys.platform == "win32" else 0
 
@@ -1054,7 +1195,7 @@ def _bgutil_args() -> list:
     return []
 
 def _ytdlp(*extra, timeout=None):
-    return _run_yt(sys.executable, "-m", "yt_dlp",
+    return _run_yt(*_PY_CMD, "-m", "yt_dlp", "--ignore-config",
                    "--remote-components", "ejs:github",
                    *_ffmpeg_args(), *_deno_args(), *_cookies_args(),
                    *_bgutil_args(), *extra, timeout=timeout)
@@ -1065,7 +1206,7 @@ def _safe_thumb_url(url) -> str:
     or style attribute context. Rejecting ')' is context-independent: safe
     regardless of whether the interpolation is quoted or unquoted.
     Note: only validates scheme + chars; internal-host SSRF guard is applied
-    at download time via _download_thumbnail (Phase 3)."""
+    at download time via _fetch_thumbnail (Phase 3)."""
     if not url or not isinstance(url, str):
         return ""
     url = url.strip()
@@ -1639,11 +1780,15 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
     _sb_categories = _clean_sponsorblock_categories(sponsorblock_categories) if sponsorblock_categories else []
     if _sb_categories:
         args += ["--sponsorblock-remove", ",".join(_sb_categories)]
+    # The headers yt-dlp sends for the download (its user agent is the one the thumbnail fetch uses
+    # if the shell cannot fetch the picture). Read after the run, removed when the job ends.
+    headers_file = get_data_dir() / f"{job_id}.headers.json"
+    args += ["--print-to-file", "before_dl:%(http_headers)j", str(headers_file).replace("%", "%%")]
     args.append(url)
 
     _live_sync = _live_sync_args(url) if job.get("live") else []
     job["_live_sync"] = bool(_live_sync)
-    cmd = [sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + _live_sync + args
+    cmd = [*_PY_CMD, "-m", "yt_dlp", "--ignore-config", "--remote-components", "ejs:github"] + _ffmpeg_args() + _deno_args() + _cookies_args() + _bgutil_args() + _live_sync + args
     try:
         # Host only, not the full URL -- a private/signed URL can carry an
         # access token in its query string, and this line lands in
@@ -1721,6 +1866,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         stderr_thread.join()
         stderr_data = "".join(stderr_lines)
         job["proc"] = None
+        job["user_agent"] = _ytdlp_user_agent(headers_file)
 
         # Deregister — proc has exited, no longer needs to be tracked
         with _active_procs_lock:
@@ -1896,6 +2042,9 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         job["error"]  = str(e)
         job["error_code"] = _classify_error(str(e))
         job["_finished_at"] = time.time()
+    finally:
+        try: headers_file.unlink(missing_ok=True)
+        except Exception: pass
 
 def _salvage_live_part(job_id, out_dir, ffmpeg, want_ext, audio_only=False):
     """Live recordings only. yt-dlp writes a live stream to a single MPEG-TS
@@ -2081,7 +2230,7 @@ def _live_is_still_live(job, url):
     cannot be recorded (private, members only, region...). None: could not tell
     (site or network trouble). The check runs as the job's process, so Cancel and
     Stop and save end it at once."""
-    proc = _popen_yt(sys.executable, "-m", "yt_dlp", "--remote-components", "ejs:github",
+    proc = _popen_yt(*_PY_CMD, "-m", "yt_dlp", "--ignore-config", "--remote-components", "ejs:github",
                      *_ffmpeg_args(), *_deno_args(), *_cookies_args(), *_bgutil_args(),
                      "--no-playlist", "-j", url,
                      stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -2567,6 +2716,7 @@ def check_status(job_id):
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
         status = job["status"]
+        thumb = job.get("thumb_pending")
         resp = {"status": status, "error": job.get("error"), "error_code": job.get("error_code"),
                 "filename": job.get("filename"), "progress": job.get("progress", 0),
                 "speed": job.get("speed", ""), "eta": job.get("eta", ""),
@@ -2583,7 +2733,10 @@ def check_status(job_id):
             jobs.pop(job_id, None)
         elif status in ("done", "error", "cancelled"):
             job["_ack"] = True   # mark — will be removed on next poll
-    return jsonify(resp)
+    out = jsonify(resp)
+    if thumb and thumb in _thumb_pending:
+        out.headers["X-EGM-Thumbnail"] = thumb   # read by the shell's main process (History thumbnails in main.js)
+    return out
 
 @app.route("/api/settings")
 def get_settings():
@@ -2773,7 +2926,7 @@ def rename_file():
 
 # ── Update system ──────────────────────────────────────────────────────────────
 def _get_ytdlp_version():
-    try: return _run(sys.executable, "-m", "yt_dlp", "--version", timeout=10).stdout.strip()
+    try: return _run(*_PY_CMD, "-m", "yt_dlp", "--ignore-config", "--version", timeout=10).stdout.strip()
     except Exception: return "unknown"
 
 def _get_ffmpeg_version():
@@ -2839,7 +2992,8 @@ def _get_mutagen_version() -> str:
 
 def _get_latest_mutagen_version() -> str:
     try:
-        with _safe_urlopen("https://pypi.org/pypi/mutagen/json", HTTP_TIMEOUT_SHORT) as r:
+        req = urllib.request.Request("https://pypi.org/pypi/mutagen/json", headers={"User-Agent": "EGM-Downloader"})
+        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
             return json.loads(r.read())["info"]["version"]
     except Exception:
         return "unknown"
@@ -2879,7 +3033,8 @@ _CURL_CFFI_CEILING = (0, 18, 0)
 def _get_latest_optlibs_versions() -> dict:
     def _one(lib):
         try:
-            with _safe_urlopen(f"https://pypi.org/pypi/{lib}/json", HTTP_TIMEOUT_SHORT) as r:
+            req = urllib.request.Request(f"https://pypi.org/pypi/{lib}/json", headers={"User-Agent": "EGM-Downloader"})
+            with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
                 data = json.loads(r.read())
             if lib == "curl-cffi":
                 # Report the latest version actually installable within
@@ -2910,6 +3065,62 @@ def _get_latest_optlibs_versions() -> dict:
     return result
 
 
+# What _ytdlp_ejs_pin returns when the read itself failed: a failure to report, not a yt-dlp without one
+EJS_PIN_UNREADABLE = "could not read"
+
+def _ytdlp_ejs_pin():
+    """The yt-dlp-ejs version the installed yt-dlp requires (it pins it with ==), or None. yt-dlp loads
+    its YouTube solver script from that package first and refuses another version, falling back to a
+    GitHub download. Read by a child process, which sees the packages yt-dlp itself runs on. A child
+    that times out, fails to start or exits non zero gives EJS_PIN_UNREADABLE."""
+    code = "import importlib.metadata as m\nprint('\\n'.join(m.requires('yt-dlp') or []))"
+    try:
+        r = _run_yt(*_PY_CMD, "-c", code, timeout=30)
+    except Exception:
+        return EJS_PIN_UNREADABLE
+    if r.returncode != 0:
+        return EJS_PIN_UNREADABLE
+    out = r.stdout
+    for line in (out or "").splitlines():
+        m = _re.match(r"\s*yt-dlp-ejs==([0-9][0-9A-Za-z.]*)\s*;\s*extra\s*==\s*['\"]default['\"]\s*$", line)
+        if m:
+            return m.group(1)
+    return None
+
+def _ytdlp_ejs_paired():
+    """False only when the installed yt-dlp names a yt-dlp-ejs version and another one (or none) is
+    installed, read the same way as the pin, without the network. Check for Updates then offers yt-dlp
+    again, and Update Plugins pairs the solver after it. A yt-dlp that names none, or a failed read: True."""
+    pin = _ytdlp_ejs_pin()
+    if pin in (None, EJS_PIN_UNREADABLE):
+        return True
+    code = ("import importlib.metadata as m\n"
+            "try: print(m.version('yt-dlp-ejs'))\n"
+            "except m.PackageNotFoundError: print('')")
+    try:
+        r = _run_yt(*_PY_CMD, "-c", code, timeout=30)
+    except Exception:
+        return True
+    return r.returncode != 0 or r.stdout.strip() == pin
+
+def _install_ytdlp_ejs(log, failed):
+    """Install, after a yt-dlp update, the solver package that yt-dlp names, so the pair never drifts."""
+    pin = _ytdlp_ejs_pin()
+    if pin == EJS_PIN_UNREADABLE:
+        log("yt-dlp-ejs: could not read which solver version this yt-dlp needs")
+        failed.append("yt-dlp-ejs")
+        return
+    if not pin:
+        log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
+        return
+    r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}", timeout=120)
+    if r.returncode == 0:
+        log(f"yt-dlp-ejs -> {pin}")
+    else:
+        err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
+        log(f"yt-dlp-ejs update failed: {err}")
+        failed.append("yt-dlp-ejs")
+
 def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
     global update_status
     update_status = {"running": True, "log": [], "done": False, "error": None}
@@ -2920,24 +3131,27 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             channel = _load_settings().get("yt_dlp_channel", "stable")
             if channel == "nightly":
                 log("Installing yt-dlp nightly...")
-                r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
-                         "--force-reinstall",
+                # --no-cache-dir: the URL never changes, so pip's cache saves nothing here, and one bad entry
+                # in the person's own pip cache ended every nightly update with "empty file" until purged.
+                r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
+                         "--force-reinstall", "--no-cache-dir",
                          "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
                          timeout=120)
             else:
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
                     log(f"Installing yt-dlp stable {latest_ver}...")
-                    r = _run(sys.executable, "-m", "pip", "install",
+                    r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                              f"yt-dlp=={latest_ver}", "--force-reinstall",
                              timeout=120)
                 else:
                     log("Installing yt-dlp stable (latest)...")
-                    r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+                    r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                              "--force-reinstall", "yt-dlp", timeout=120)
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
+                _install_ytdlp_ejs(log, failed)
             else:
                 err = (r.stderr.strip().splitlines() or ["unknown error"])[-1]
                 log(f"yt-dlp update failed: {err}")
@@ -2977,7 +3191,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
         if do_mutagen:
             log("Updating mutagen...")
-            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+            r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                      "mutagen", "--break-system-packages", timeout=60)
             if r.returncode == 0:
                 log(f"mutagen -> {_get_mutagen_version()}")
@@ -2987,7 +3201,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
                 failed.append("mutagen")
         if do_optlibs:
             log("Updating optional libraries...")
-            r = _run(sys.executable, "-m", "pip", "install", "--upgrade",
+            r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      "--break-system-packages", timeout=120)
             if r.returncode == 0:
@@ -3025,7 +3239,7 @@ def check_updates():
     settings = _load_settings()
     ytdlp_ch  = settings.get("yt_dlp_channel", "stable")
     ffmpeg_ch = settings.get("ffmpeg_channel", "stable")
-    ytdlp_ok   = cy != "unknown" and cy == ly
+    ytdlp_ok   = cy != "unknown" and cy == ly and _ytdlp_ejs_paired()
     mutagen_ok = cm != "not installed" and lm != "unknown" and cm == lm
     optlibs_updates = sum(
         1 for lib in oc
@@ -3151,7 +3365,8 @@ def _run_deno_install():
         # Stream download with progress logging every 5 MB
         downloaded = 0
         chunk = 1024 * 256  # 256 KB chunks
-        with _safe_urlopen(url, HTTP_TIMEOUT_LONG) as resp, open(tmp, "wb") as f:
+        req = urllib.request.Request(url, headers={"User-Agent": "EGM-Downloader"})
+        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as resp, open(tmp, "wb") as f:
             total = int(resp.headers.get("Content-Length", 0))
             next_report = 5 * 1024 * 1024  # report every 5 MB
             while True:
@@ -3240,18 +3455,21 @@ def installed_versions():
 
 @app.route("/api/portable-status")
 def portable_status():
-    """Return whether the app is running in portable mode and its data directory."""
+    """Return whether the app is running in portable mode and its data directory, and whether it is
+    the installer edition that ships Electron and Python inside the app folder (bundled). Bundled,
+    nothing reads the Reinstall Electron marker, so the page hides that button."""
     return jsonify({
         "portable": PORTABLE_MODE,
+        "bundled": bool(_INSTALL_DIR_ENV) and not PORTABLE_MODE,
         "data_dir": str(get_data_dir()),
     })
 
 
 # What's New lists the notes of the RUNNING version, read from the patchnotes.txt that ships
 # next to app.py (the same bullets and the same platform filter the signed feed carries), so
-# the list always matches the version in the heading, also offline. Only when that file is
-# missing or has no block for this version does it ask the signed feed: first its history,
-# then its latest notes if the feed is this very version. Never another version's notes.
+# the list always matches the version in the heading, also offline. That file is the only source:
+# What's New never asks the network, so it cannot reach egerena.com with the update check off or
+# in the portable. Every package ships the file; a version without a block shows no bullets.
 _PATCHNOTES_FILE = Path(__file__).parent / "patchnotes.txt"
 _PATCHNOTES_TAG  = "WINDOWS"
 
@@ -3275,35 +3493,10 @@ def _bundled_version_notes(version):
 
 @app.route("/api/whats-new")
 def whats_new():
-    """Return the release notes of the running version for the What's New modal.
-    Falls back to empty list gracefully — modal stays shown but with no bullets."""
-    notes = _bundled_version_notes(APP_VERSION)
-    if notes:
-        return jsonify({"version": APP_VERSION, "notes_list": notes})
-    try:
-        req = urllib.request.Request(APP_UPDATE_URL,
-                                     headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_SHORT) as r:
-            data = json.loads(r.read())
-        # Verify the signed manifest before trusting any of its content — keeps the
-        # trust model consistent with /api/check-app-update. On failure, fall back to
-        # showing no notes rather than rendering unverified feed data.
-        if not _verify_manifest(data):
-            _sec_event("whats-new: manifest signature INVALID or MISSING — notes suppressed")
-            return jsonify({"version": APP_VERSION, "notes_list": []})
-        entry = next((h for h in data.get("_history") or []
-                      if isinstance(h, dict) and h.get("version") == APP_VERSION), None)
-        if entry:
-            notes = entry.get("notes", [])
-        elif data.get("version") == APP_VERSION:
-            notes = data.get("_version_notes", [])
-        else:
-            notes = []
-        if not isinstance(notes, list):
-            notes = [str(notes)] if notes else []
-        return jsonify({"version": APP_VERSION, "notes_list": notes})
-    except Exception:
-        return jsonify({"version": APP_VERSION, "notes_list": []})
+    """Return the release notes of the running version for the What's New modal. They come from the
+    patchnotes.txt shipped next to app.py and from nowhere else: this route makes no network request.
+    A version without a block there gets an empty list, and the modal stays shown without bullets."""
+    return jsonify({"version": APP_VERSION, "notes_list": _bundled_version_notes(APP_VERSION)})
 
 @app.route("/api/check-app-update")
 def check_app_update():
@@ -3340,6 +3533,15 @@ def check_app_update():
         # feed served again (lower build) is never an update, and a rebuild of the same
         # version (higher build) still is. A missing build reads as 0: not an update.
         up_to_date   = latest_build <= APP_BUILD
+        # A kept download the signed feed no longer names goes now, not only at the next start.
+        feed_sha     = (data.get("_checksums") or {}).get("sha256") if isinstance(data.get("_checksums"), dict) else None
+        kept         = _kept_update()
+        if kept is not None and kept["sha256"] != str(feed_sha or "").lower():
+            _drop_kept_update()
+        # The download size from the signed feed, for the dialog to show before Update Now; only a
+        # positive whole number is passed on.
+        size_bytes   = data.get("size_bytes")
+        size_ok      = isinstance(size_bytes, int) and not isinstance(size_bytes, bool) and size_bytes > 0
         return jsonify({
             "up_to_date":      up_to_date,
             "current_version": APP_VERSION,
@@ -3350,17 +3552,70 @@ def check_app_update():
             "download":        download,
             "zip_url":         zip_url,
             "_checksums":      data.get("_checksums"),
+            **({"size_bytes": size_bytes} if size_ok else {}),
         })
     except urllib.error.URLError:
         return jsonify({"error": "Could not reach update server"}), 503
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+_UPDATE_BLOCK = 1024 * 1024   # the update zip is read, written and hashed in blocks of this size
+
+
+# A finished update download is kept in UPDATE_TMP_DIR across starts: EGMd.zip and its record
+# EGMd.json (the build, the SHA-256 and the size). It is reused while its SHA-256 still equals the
+# signed feed's; any doubt about it means it goes, and the update downloads again.
+def _kept_update():
+    """The record of the kept download, or None if there is none or anything about it is in doubt."""
+    try:
+        rec = json.loads((UPDATE_TMP_DIR / "EGMd.json").read_text(encoding="utf-8"))
+        build, sha, size = rec.get("build"), rec.get("sha256"), rec.get("size")
+        if (type(build) is int and build > APP_BUILD and type(size) is int and size > 0
+                and isinstance(sha, str) and _re.fullmatch(r"[0-9a-f]{64}", sha)
+                and (UPDATE_TMP_DIR / "EGMd.zip").stat().st_size == size):
+            return rec
+    except Exception:
+        pass
+    return None
+
+
+def _drop_kept_update():
+    for name in ("EGMd.zip", "EGMd.json"):
+        try: (UPDATE_TMP_DIR / name).unlink(missing_ok=True)
+        except Exception: pass
+
+
+def _tidy_update_dir():
+    """At start: a sound kept download of a newer build stays; everything else in the folder goes (an
+    installer taken out before, a partial file). Any doubt about the kept download removes it all."""
+    try:
+        if not UPDATE_TMP_DIR.exists():
+            return
+        if _kept_update() is None:
+            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
+            return
+        for p in UPDATE_TMP_DIR.iterdir():
+            if p.name not in ("EGMd.zip", "EGMd.json"):
+                if p.is_dir(): shutil.rmtree(p, ignore_errors=True)
+                else: p.unlink(missing_ok=True)
+    except Exception:
+        pass
+
+
+def _sha256_file(path):
+    """SHA-256 of a file, read in blocks (the update zip is over 100 MB)."""
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for block in iter(lambda: f.read(_UPDATE_BLOCK), b""):
+            h.update(block)
+    return h.hexdigest().lower()
+
+
 @app.route("/api/download-update", methods=["POST"])
 def download_update():
     """Download EGMd.zip, verify SHA256 checksum, extract egm-setup.exe, return installer path."""
     if PORTABLE_MODE:
-        return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps."}), 400
+        return jsonify({"error": "Auto-update is disabled in portable mode. Download the latest portable zip from egerena.com/apps/egm.html."}), 400
     data    = request.get_json(silent=True) or {}
     zip_url = _text(data.get("zip_url", APP_UPDATE_ZIP_URL)).strip()
     expected_checksum = _text(data.get("expected_checksum")).strip().lower()
@@ -3368,6 +3623,10 @@ def download_update():
         return jsonify({"error": "No zip URL provided"}), 400
     if not expected_checksum:
         return jsonify({"error": "Checksum required for update verification"}), 400
+    # The size from the signed feed, sent by the page like the checksum: the download stops there.
+    expected_size = data.get("expected_size")
+    if not (isinstance(expected_size, int) and not isinstance(expected_size, bool) and expected_size > 0):
+        return jsonify({"error": "The update information has no download size, so the download cannot be checked. Try again later."}), 400
     # SSRF guard: only allow downloads from the official distribution server
     if not zip_url.startswith("https://egerena.com/"):
         return jsonify({"error": "Invalid update URL"}), 400
@@ -3375,36 +3634,54 @@ def download_update():
     UPDATE_TMP_DIR.mkdir(parents=True, exist_ok=True)
     zip_path       = UPDATE_TMP_DIR / "EGMd.zip"
     installer_path = UPDATE_TMP_DIR / "egm-setup.exe"
+    latest_build   = data.get("latest_build")
 
     try:
-        # Download zip — LONG timeout: this is a multi-MB installer payload, not
-        # a metadata call. SHORT (15s) would spuriously fail on slow connections.
-        req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
-        with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r, open(zip_path, "wb") as f:
-            shutil.copyfileobj(r, f)
+        kept = _kept_update()
+        if kept and kept["sha256"] == expected_checksum and _sha256_file(zip_path) == expected_checksum:
+            pass   # the download kept from before is the one the signed feed names: no new download
+        else:
+            _drop_kept_update()
+            # Download zip — LONG timeout: this is a multi-MB installer payload, not
+            # a metadata call. SHORT (15s) would spuriously fail on slow connections.
+            req = urllib.request.Request(zip_url, headers={"User-Agent": "EGM-Downloader"})
+            too_large = "The download is larger than the update information says. The update was stopped."
+            with _safe_urlopen(req, HTTP_TIMEOUT_LONG) as r:
+                announced = str(r.headers.get("Content-Length") or "").strip()
+                if announced.isdigit() and int(announced) > expected_size:
+                    raise RuntimeError(too_large)
+                with open(zip_path, "wb") as f:
+                    got = 0
+                    for block in iter(lambda: r.read(_UPDATE_BLOCK), b""):
+                        got += len(block)
+                        if got > expected_size:
+                            raise RuntimeError(too_large)
+                        f.write(block)
 
-        # Verify SHA256 checksum (required — fail-closed)
-        h = hashlib.sha256()
-        h.update(zip_path.read_bytes())
-        actual_checksum = h.hexdigest().lower()
-        if actual_checksum != expected_checksum:
-            zip_path.unlink(missing_ok=True)
-            return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
+            # Verify SHA256 checksum (required: anything else fails closed)
+            actual_checksum = _sha256_file(zip_path)
+            if actual_checksum != expected_checksum:
+                _drop_kept_update()
+                return jsonify({"error": "Checksum verification failed — download may be corrupted or tampered. Please try again."}), 500
+            # Its record: the download is kept only if the record names a newer build (checked below).
+            _atomic_write_text(UPDATE_TMP_DIR / "EGMd.json", json.dumps(
+                {"build": latest_build, "sha256": actual_checksum, "size": zip_path.stat().st_size}))
 
         # Extract egm-setup.exe using standard zipfile
         with zipfile.ZipFile(zip_path, "r") as z:
             names = z.namelist()
             if "egm-setup.exe" not in names:
-                zip_path.unlink(missing_ok=True)
+                z.close()
+                _drop_kept_update()
                 return jsonify({"error": "egm-setup.exe not found in zip"}), 500
             _safe_extract(z, "egm-setup.exe", UPDATE_TMP_DIR)
 
-        zip_path.unlink(missing_ok=True)
+        if _kept_update() is None:
+            _drop_kept_update()
         return jsonify({"success": True, "installer_path": str(installer_path)})
 
     except Exception as e:
-        try: zip_path.unlink(missing_ok=True)
-        except Exception: pass
+        _drop_kept_update()
         return jsonify({"error": str(e)}), 500
 
 @app.route("/api/settings/reset", methods=["POST"])
@@ -3505,20 +3782,46 @@ def delete_history_entry(entry_id):
                 except Exception: pass
         items = [i for i in items if i.get("id") != entry_id]
         _save_history(items)
+        _thumb_pending.pop(entry_id, None)     # its picture is no longer waited for: nothing fetches it
     return jsonify({"ok": True})
 
 @app.route("/api/history/clear", methods=["POST"])
 def clear_history():
     with _history_lock:
         _save_history([])
+        _thumb_pending.clear()     # nothing is fetched any more for the downloads it clears
         try: HISTORY_FILE.with_name(HISTORY_FILE.name + ".unreadable").unlink(missing_ok=True)   # the kept copy of a damaged file goes too
         except Exception: pass
-    # Clear all thumbnails
-    try:
-        for f in THUMBNAILS_DIR.iterdir():
-            try: f.unlink()
-            except Exception: pass
-    except Exception: pass
+        # All thumbnails, under the same lock: a picture a finishing download stores is either in the
+        # history this clears or finds its entry gone and is not written.
+        try:
+            for f in THUMBNAILS_DIR.iterdir():
+                try: f.unlink()
+                except Exception: pass
+        except Exception: pass
+    # A backend killed during a download leaves yt-dlp's headers file, which can name the site. A download
+    # still running keeps its own: it reads the file when yt-dlp ends and only then leaves _active_procs.
+    with _active_procs_lock:
+        _remove_headers_files(get_data_dir(), keep=set(_active_procs))
+    # The debug log lists the sites of past downloads with the time (and rotates into .old), and a
+    # traceback in the error log can name one, so clearing the history clears them too. A log a thread
+    # is writing can refuse the delete on Windows: one more try after a short wait, then go on.
+    for name in ("egm_debug.log", "egm_debug.log.old", "egm_error.log"):
+        for attempt in (1, 2):
+            try:
+                (get_data_dir() / name).unlink(missing_ok=True)
+                break
+            except Exception:
+                if attempt == 1: time.sleep(0.2)
+    # The Console's four rings (memory only) list what the downloads just cleared did: their URLs
+    # (yt-dlp output), requests (Flask output), the same lines as the debug log file removed above
+    # (diagnostics) and converted file paths (ffmpeg output). The line counters keep counting, so a
+    # Console that is open goes on.
+    with _LOG_RING_LOCK:
+        _YT_RING.clear()
+        _FLASK_RING.clear()
+        _LOG_RING.clear()
+        _FFMPEG_RING.clear()
     return jsonify({"ok": True})
 
 @app.route("/api/thumbnail/<filename>")
@@ -3536,6 +3839,37 @@ def serve_thumbnail(filename):
     resp = app.response_class(thumb_path.read_bytes(), mimetype=mime)
     resp.headers["Cache-Control"] = "max-age=86400"
     return resp
+
+@app.route("/api/history/<entry_id>/thumbnail", methods=["GET", "POST"])
+def shell_thumbnail(entry_id):
+    """The shell's side of a finished download's picture (token protected, like every /api/ route but
+    /api/thumbnail/). GET: the URL to fetch, only while the backend waits for that entry's picture.
+    POST: the picture the shell fetched, at most _THUMB_CAP bytes, checked again here (a JPEG, PNG or
+    WebP by its first bytes) and stored under the name rule (entry id plus extension) by
+    _attach_thumbnail. Anything else (an empty body: the shell could not fetch it; too big; not a
+    picture) leaves it to the backend, which fetches the picture itself now."""
+    if not _re.fullmatch(r'[a-f0-9\-]{1,64}', entry_id):
+        return jsonify({"error": "Not found"}), 404
+    with _history_lock:
+        pending = _thumb_pending.get(entry_id)
+    if not pending:
+        return jsonify({"error": "Not found"}), 404
+    if request.method == "GET":
+        return jsonify({"url": pending[0]})
+    too_big = (request.content_length or 0) > _THUMB_CAP
+    data = b"" if too_big else request.stream.read(_THUMB_CAP + 1)
+    if len(data) <= _THUMB_CAP and _thumb_image_ext(data):
+        with _history_lock:
+            ours = _thumb_pending.pop(entry_id, None) is not None
+        if ours and _attach_thumbnail(entry_id, data):
+            return jsonify({"ok": True})
+        return jsonify({"error": "Not found"}), 404
+    threading.Thread(target=_thumbnail_by_backend, args=(entry_id,), daemon=True).start()
+    if too_big or len(data) > _THUMB_CAP:
+        return jsonify({"error": "Too large"}), 413
+    if data:
+        return jsonify({"error": "Not a picture"}), 400
+    return jsonify({"ok": False}), 202
 
 _HISTORY_TEXT_FIELDS = ("url", "title", "filename", "download_dir", "file_path", "completed_at")
 
@@ -3572,7 +3906,12 @@ def import_history():
     # Light validation — keep only entries with the expected shape
     cleaned = [c for c in (_clean_history_entry(i) for i in items) if c]
     with _history_lock:
+        # The replaced entries take their cached pictures with them, except any the new list still names.
+        replaced = _load_history()
         _save_history(cleaned)
+        _remove_thumbnails_of(replaced, keep=cleaned)
+        ids = {c.get("id") for c in cleaned}
+        for k in [k for k in _thumb_pending if k not in ids]: del _thumb_pending[k]   # entries gone: their pictures are not waited for
     return jsonify({"ok": True, "count": len(cleaned)})
 
 @app.route("/api/logs")
@@ -3763,7 +4102,7 @@ def _run_subfetch(fetch_id, sub_id, url, force, need_meta):
                 pass
 
         r = _run_yt(
-            sys.executable, "-m", "yt_dlp",
+            *_PY_CMD, "-m", "yt_dlp", "--ignore-config",
             "--flat-playlist", "-j",
             "--playlist-end", "200",
             "--extractor-args", "youtubetab:approximate_date",
@@ -4122,16 +4461,28 @@ def _cleanup_orphan_partials(last_folder):
     except Exception:
         pass
 
-if __name__ == "__main__":
-    # Clean up any leftover update temp files from a previous update
+
+def _remove_headers_files(folder, keep=()):
+    """Remove the <job id>.headers.json files yt-dlp wrote for downloads (run_download, --print-to-file)
+    that a run killed in the middle of a download left in the data folder (folder): they can name the
+    site of a download. Only the exact name this app writes (10 lowercase hex digits, the job id) directly
+    in that folder; the job ids in keep (downloads still running, which read their file when they end) stay."""
     try:
-        if UPDATE_TMP_DIR.exists():
-            shutil.rmtree(UPDATE_TMP_DIR, ignore_errors=True)
+        for f in folder.iterdir():
+            if _re.fullmatch(r"[0-9a-f]{10}\.headers\.json", f.name) and f.name[:10] not in keep and f.is_file():
+                try: f.unlink()
+                except Exception: pass
     except Exception:
         pass
 
+if __name__ == "__main__":
+    # Clean up the update temp folder: only a finished download of a newer build stays, for reuse
+    _tidy_update_dir()
+
     # Clean up any orphaned .part and .ytdl files left by a crashed session
     _cleanup_orphan_partials(_load_settings().get("last_folder", ""))
+    # yt-dlp's headers files of downloads a killed run left behind (no download runs yet)
+    _remove_headers_files(get_data_dir())
 
     if os.environ.get("EGM_ELECTRON") == "1":
         threading.Thread(target=_exit_when_electron_is_gone, daemon=True, name="parent-watch").start()

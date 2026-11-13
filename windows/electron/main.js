@@ -23,14 +23,14 @@ if (process.platform === 'win32') {
 // Everything the user owns sits in <root>\data, the folder app.py already uses, so copying
 // that one folder when updating carries it all over. Earlier versions kept Electron's data in
 // <root>\electron-data: it is moved in on the first start, and used where it is if it cannot be.
-const _portableMarker = path.join(__dirname, '..', '.portable');
+const _portableMarker = path.join(installDir(), '.portable');
 const _isPortable = fs.existsSync(_portableMarker);
 // Anchor to the install folder (parent of electron/), NOT process.cwd().
 // cwd depends on how the process was launched and is not guaranteed to be the
 // portable root; using __dirname makes this deterministic.
-const _dataRoot = _isPortable ? path.join(__dirname, '..', 'data') : path.join(__dirname, '..');
+const _dataRoot = _isPortable ? path.join(installDir(), 'data') : installDir();
 if (_isPortable) {
-  const _oldUserData = path.join(__dirname, '..', 'electron-data');
+  const _oldUserData = path.join(installDir(), 'electron-data');
   let _userData = path.join(_dataRoot, 'electron-data');
   try {
     fs.mkdirSync(_dataRoot, { recursive: true });
@@ -46,7 +46,7 @@ const SETTINGS_FILE = path.join(_dataRoot, 'egm_settings.json');
 // Portable, one time: earlier versions kept the window position in a root egm_settings.json.
 if (_isPortable) {
   try {
-    const _oldSettings = path.join(__dirname, '..', 'egm_settings.json');
+    const _oldSettings = path.join(installDir(), 'egm_settings.json');
     if (fs.existsSync(_oldSettings)) {
       const _old = JSON.parse(fs.readFileSync(_oldSettings, 'utf8'));
       const _now = loadSettings();
@@ -59,6 +59,20 @@ if (_isPortable) {
     }
   } catch {}
 }
+
+// ── Folders ───────────────────────────────────────────────────────────────────
+// Started by the launcher, this file is in <install>\electron and the app files are in <install>.
+// The packaged build (Electron, Python and the app in one folder) keeps this file inside
+// resources\app.asar, the backend, languages and icons in resources\app, and the exe at the top of
+// the install folder. Not app.isPackaged: that only looks at the exe's name, and the launcher
+// renames electron.exe to "EGM Downloader.exe", so it is already true for the launcher's Electron.
+// Function declarations, so the portable set up above can use them before this point.
+function packagedLayout() { return path.basename(__dirname).toLowerCase() === 'app.asar'; }
+function installDir()     { return packagedLayout() ? path.dirname(process.execPath) : path.join(__dirname, '..'); }
+function appFilesDir()    { return packagedLayout() ? path.join(process.resourcesPath, 'app') : path.join(__dirname, '..'); }
+const PACKAGED    = packagedLayout();
+const INSTALL_DIR = installDir();
+const APP_DIR     = appFilesDir();
 
 // ── Window hardening: route external links to default browser, block navigation ─
 function hardenWindow(win) {
@@ -176,7 +190,185 @@ function debounce(fn, delay) {
 let mainWindow  = null;
 let splashWindow = null;
 let flaskProc   = null;
+let backendAnswered = false;   // this run's backend has answered once (the page loads)
 let tray        = null;
+
+// ── User agent ────────────────────────────────────────────────────────────────
+// Electron writes "<app name>/<version>" and "Electron/<version>" into Chrome's user agent, which
+// tells an image server which app (and which build) is asking. Keep only what Chrome itself sends.
+// Whatever way the name is written (escaped, with a space, the package name), it sits between
+// "(KHTML, like Gecko)" and "Chrome/". Chrome itself sends only its major version (Chrome/156.0.0.0);
+// the full build number Electron writes would still single out this app among Chrome users.
+function cleanUserAgent(ua) {
+  return String(ua)
+    .replace(/(\(KHTML, like Gecko\)) .*? (Chrome\/)/, '$1 $2')
+    .replace(/ Electron\/\S+/, '')
+    .replace(/ Chrome\/(\d+)\.\d+\.\d+\.\d+/, ' Chrome/$1.0.0.0');
+}
+app.userAgentFallback = cleanUserAgent(app.userAgentFallback);   // before any window exists
+
+// ── History thumbnails ────────────────────────────────────────────────────────
+// The picture of a finished download is fetched here, by Chromium, and handed to the backend, which
+// checks it again and stores it (until now the backend fetched it with Python). The request carries
+// the window's clean Chrome user agent (cleanUserAgent's result, app.userAgentFallback), no cookies
+// (a session of its own, in memory, and no session cookies) and no Referer. The backend names the
+// entry in an X-EGM-Thumbnail header on the page's own /api/status poll: nothing new is polled, and the
+// page is given nothing (no IPC), so no script in a page can ask for a URL. The shell asks the backend
+// for the URL it is waiting for (with the per run token), and only that URL is fetched, with the
+// backend's guards: HTTPS only, every redirect hop checked against internal addresses before it is
+// requested, the 500 KB cap counted while reading, a 15 second timeout, an image content type. When it
+// fails, an empty body tells the backend, which then fetches the picture itself.
+const { net } = require('electron');
+const THUMB_CAP = 512000;
+const THUMB_TIMEOUT_MS = 15000;
+const THUMB_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+// The Accept a real <img> load in the window sends (read from Electron 45 against a local server), so the
+// picture request looks like the window's own image loads.
+const THUMB_ACCEPT = 'image/jxl,image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8';
+let thumbSession = null;
+const thumbsInFlight = new Set();
+
+// The addresses the backend's _is_internal_host refuses (private, loopback, link local, reserved,
+// multicast, unspecified), and the shared 100.64.0.0/10 range too. Anything else that is not a public
+// IPv4 address or a global IPv6 one (2000::/3 without its special and documentation ranges) counts as internal.
+function isInternalAddress(ip) {
+  const v4 = /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(ip);
+  if (v4) {
+    const [a, b, c] = v4.slice(1, 4).map(Number);
+    return a === 0 || a === 10 || a === 127 || a >= 224 || (a === 100 && b >= 64 && b < 128) ||
+      (a === 169 && b === 254) || (a === 172 && b >= 16 && b < 32) || (a === 192 && b === 168) ||
+      (a === 192 && b === 0 && (c === 0 || c === 2)) || (a === 198 && (b === 18 || b === 19)) ||
+      (a === 198 && b === 51 && c === 100) || (a === 203 && b === 0 && c === 113);
+  }
+  let s = String(ip).toLowerCase().split('%')[0];
+  const tail = /^(.*:)(\d+)\.(\d+)\.(\d+)\.(\d+)$/.exec(s);   // ::ffff:1.2.3.4
+  if (tail) {
+    const n = tail.slice(2).map(Number);
+    s = tail[1] + ((n[0] << 8) | n[1]).toString(16) + ':' + ((n[2] << 8) | n[3]).toString(16);
+  }
+  const halves = s.split('::');
+  if (halves.length > 2) return true;
+  const head = halves[0] ? halves[0].split(':') : [];
+  const rest = halves.length === 2 && halves[1] ? halves[1].split(':') : [];
+  const groups = [...head, ...Array(halves.length === 2 ? Math.max(8 - head.length - rest.length, 0) : 0).fill('0'), ...rest];
+  if (groups.length !== 8 || groups.some((g) => !/^[0-9a-f]{1,4}$/.test(g))) return true;
+  const [g0, g1] = groups.map((g) => parseInt(g, 16));
+  return (g0 & 0xe000) !== 0x2000 || (g0 === 0x2001 && g1 < 0x200) || (g0 === 0x2001 && g1 === 0xdb8) || g0 === 0x2002 ||
+    (g0 === 0x3fff && g1 < 0x1000);
+}
+
+// Resolved by Chromium's own resolver, the one the request then uses. A name that does not resolve
+// counts as internal, as in the backend.
+async function isInternalHost(host) {
+  const h = String(host || '').replace(/^\[(.*)\]$/, '$1');
+  if (!h) return true;
+  try {
+    const { endpoints } = await thumbSession.resolveHost(h);
+    return !endpoints.length || endpoints.some((e) => isInternalAddress(e.address));
+  } catch {
+    return true;
+  }
+}
+
+// One request, no redirect followed: { bytes }, { redirect: url } or null. Electron cancels a redirect
+// that is not followed at once inside its event, and the next address is checked first (that takes a
+// name lookup), so each hop is a request of its own.
+function requestThumbnail(url) {
+  return new Promise((resolve) => {
+    let done = false;
+    let req = null;
+    const finish = (value) => {
+      if (done) return;
+      done = true;
+      clearTimeout(timer);
+      try { req.abort(); } catch {}
+      resolve(value);
+    };
+    const timer = setTimeout(() => finish(null), THUMB_TIMEOUT_MS);
+    req = net.request({ url, session: thumbSession, useSessionCookies: false, credentials: 'omit',
+                        referrerPolicy: 'no-referrer', redirect: 'manual' });
+    req.setHeader('User-Agent', app.userAgentFallback);
+    req.setHeader('Accept', THUMB_ACCEPT);
+    req.on('redirect', (status, method, to) => finish({ redirect: to }));
+    req.on('response', (res) => {
+      const type = String(res.headers['content-type'] || '').split(';')[0].trim().toLowerCase();
+      if (res.statusCode < 200 || res.statusCode > 299 || !THUMB_TYPES.includes(type) ||
+          Number(res.headers['content-length'] || 0) > THUMB_CAP) return finish(null);
+      const parts = [];
+      let size = 0;
+      res.on('data', (chunk) => {
+        size += chunk.length;
+        if (size > THUMB_CAP) return finish(null);     // stop reading at the cap, whatever the length header said
+        parts.push(chunk);
+      });
+      res.on('end', () => finish({ bytes: Buffer.concat(parts) }));
+      res.on('error', () => finish(null));
+    });
+    req.on('error', () => finish(null));
+    req.end();
+  });
+}
+
+// The picture's bytes, or null when anything is refused or fails. Every address, the first and each
+// redirect's, is checked before it is requested; at most 10 redirects, as urllib allows.
+async function fetchThumbnail(url) {
+  if (!thumbSession) thumbSession = session.fromPartition('egm-thumbnails', { cache: false });
+  let next = url;
+  for (let hop = 0; hop <= 10; hop++) {
+    let u = null;
+    try { u = new URL(next); } catch {}
+    if (!u || u.protocol !== 'https:' || await isInternalHost(u.hostname)) return null;
+    const got = await requestThumbnail(u.href);
+    if (!got) return null;
+    if (got.bytes) return got.bytes;
+    try { next = new URL(got.redirect, u).href; } catch { return null; }
+  }
+  return null;
+}
+
+function backendCall(method, pathName, body) {
+  return new Promise((resolve) => {
+    const headers = { 'X-EGM-Token': EGM_TOKEN };
+    if (body) Object.assign(headers, { 'Content-Type': 'application/octet-stream', 'Content-Length': body.length });
+    const req = http.request(APP_URL + pathName, { method, headers }, (res) => {
+      const parts = [];
+      res.on('data', (chunk) => parts.push(chunk));
+      res.on('end', () => resolve({ status: res.statusCode, body: Buffer.concat(parts).toString('utf8') }));
+      res.on('error', () => resolve({ status: 0, body: '' }));
+    });
+    req.on('error', () => resolve({ status: 0, body: '' }));
+    req.setTimeout(THUMB_TIMEOUT_MS, () => req.destroy());
+    req.end(body);
+  });
+}
+
+async function deliverThumbnail(entry) {
+  if (thumbsInFlight.has(entry)) return;
+  thumbsInFlight.add(entry);
+  try {
+    const asked = await backendCall('GET', `/api/history/${entry}/thumbnail`);
+    if (asked.status !== 200) return;              // the backend is not waiting for it (any more): nothing is fetched
+    let url = '';
+    try { url = JSON.parse(asked.body).url; } catch {}
+    const bytes = await fetchThumbnail(url);
+    await backendCall('POST', `/api/history/${entry}/thumbnail`, bytes || Buffer.alloc(0));
+  } finally {
+    thumbsInFlight.delete(entry);
+  }
+}
+
+// Every finished request of the windows passes here; only the app's own /api/status answer counts.
+function noticeThumbnail(details) {
+  let ours = false;
+  try {
+    const u = new URL(details.url);
+    ours = u.origin === APP_URL && u.pathname.startsWith('/api/status/');
+  } catch {}
+  if (!ours) return;
+  const name = Object.keys(details.responseHeaders || {}).find((k) => k.toLowerCase() === 'x-egm-thumbnail');
+  const entry = name ? String(details.responseHeaders[name]) : '';
+  if (/^[a-f0-9-]{1,64}$/.test(entry)) deliverThumbnail(entry).catch(() => {});
+}
 
 // ── Fix 1: Single-instance lock ───────────────────────────────────────────────
 const gotLock = app.requestSingleInstanceLock();
@@ -208,8 +400,24 @@ function safeIcon(p, size) {
 }
 
 // ── Find Python ───────────────────────────────────────────────────────────────
+// The packaged build uses only the Python it ships with, and that Python sees only its own packages:
+// no user site folder, and no PYTHON variable from the user's environment (the Pythons app.py starts
+// inherit this environment; app.py itself also runs with -E -s). Windows names are not case
+// sensitive, so any spelling of a name is dropped before the value is set.
+function withoutEnv(env, names) {
+  const drop = new Set(names);
+  return Object.fromEntries(Object.entries(env).filter(([k]) => !drop.has(k.toUpperCase())));
+}
+function bundledPythonEnv(env) {
+  return {
+    ...withoutEnv(env, Object.keys(env).map(k => k.toUpperCase()).filter(k => k.startsWith('PYTHON')).concat('EGM_INSTALL_DIR')),
+    PYTHONNOUSERSITE: '1',
+    EGM_INSTALL_DIR: INSTALL_DIR,   // app.py keeps its data and downloaded tools here
+  };
+}
+
 function findPython() {
-  const candidates = [
+  const candidates = PACKAGED ? [path.join(process.resourcesPath, 'python', 'python.exe')] : [
     path.join(process.resourcesPath, 'python', 'python.exe'),
     path.join(__dirname, '..', 'python', 'python.exe'),
     'python',
@@ -218,12 +426,17 @@ function findPython() {
   for (const c of candidates) {
     try {
       // execFileSync passes args as a real argv array — no shell string to quote/escape.
-      execFileSync(c, ['--version'], { stdio: 'ignore', windowsHide: true });
+      execFileSync(c, ['--version'], { stdio: 'ignore', windowsHide: true, ...(PACKAGED ? { env: bundledPythonEnv(process.env) } : {}) });
       return c;
     } catch {}
   }
   return null;
 }
+
+// Packaged, the box for a bundled Python that cannot run the app: it does not start at all, or the
+// backend it starts stops before it ever answered (part of it quarantined or removed).
+const BUNDLED_PYTHON_BOX = ['Python could not start',
+  'The Python that comes with EGM Downloader could not start. Antivirus software may have blocked or removed it.\n\nReinstall EGM Downloader to restore it.'];
 
 // ── Splash window ────────────────────────────────────────────────────────────
 function createSplash() {
@@ -239,6 +452,7 @@ function createSplash() {
       nodeIntegration:  false,
       contextIsolation: true,
       sandbox:          true,
+      spellcheck:       false,
     },
   });
   const _lang = (loadSettings().language || 'en');
@@ -281,21 +495,37 @@ function closeSplash() {
   }
 }
 
+// A box blocks the main process, so the timers closeSplash() waits on never run, and the splash is
+// always on top: a box opened while it is up sits under it, out of reach. Drop it at once instead.
+function dropSplash() {
+  if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }
+}
+
 // ── Start Flask ───────────────────────────────────────────────────────────────
 async function startFlask() {
   const python = findPython();
-  const appPy  = path.join(__dirname, '..', 'app.py');
+  const appPy  = path.join(APP_DIR, 'app.py');
 
   if (!python) {
-    closeSplash();
-    dialog.showErrorBox('Python not found',
-      'Python 3.11+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
+    dropSplash();
+    if (PACKAGED) {
+      dialog.showErrorBox(...BUNDLED_PYTHON_BOX);
+    } else {
+      dialog.showErrorBox('Python not found',
+        'Python 3.11+ is required.\n\nDownload from python.org and check "Add Python to PATH" during install.');
+    }
     app.quit();
     return;
   }
-  flaskProc = spawn(python, [appPy], {
-    cwd: path.join(__dirname, '..'),
-    env: { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN },
+  const env = { ...process.env, PORT: String(PORT), HOST, EGM_ELECTRON: '1', EGM_API_TOKEN: EGM_TOKEN };
+  // -E -s: no PYTHON variable, no user site folder, and (from -E) no PythonPath entries from the
+  // registry of a Python 3.11 installed on the machine. The bundled site-packages is not the user's.
+  flaskProc = spawn(python, PACKAGED ? ['-E', '-s', appPy] : [appPy], {
+    // The app folder, not the install folder with Electron's DLLs: ffmpeg, Deno and yt-dlp inherit
+    // it. app.py finds its files from its own path, EGM_INSTALL_DIR and get_data_dir(), not from it.
+    cwd: APP_DIR,
+    // EGM_INSTALL_DIR moves app.py's folders, so only the packaged build may set it.
+    env: PACKAGED ? bundledPythonEnv(env) : withoutEnv(env, ['EGM_INSTALL_DIR']),
     windowsHide: true,
     stdio: 'ignore',
     detached: false,
@@ -310,8 +540,8 @@ async function startFlask() {
     flaskProc = null;
     if (!app.isQuitting) {
       app.isQuitting = true;
-      // The splash is always on top, so a box opened under it can't be reached: drop it first.
-      if (splashWindow && !splashWindow.isDestroyed()) { splashWindow.destroy(); splashWindow = null; }
+      dropSplash();
+      if (PACKAGED && !backendAnswered && code !== 3) { dialog.showErrorBox(...BUNDLED_PYTHON_BOX); app.quit(); return; }
       dialog.showErrorBox('EGM Downloader — Backend crashed', code === 3
         ? `Another program is using port ${PORT}, so the backend could not start.\n\nClose that program (or wait for an earlier EGM Downloader to finish closing) and start the app again.`
         : `The backend stopped unexpectedly (${signal ? 'signal ' + signal : 'code ' + code}).\n\nPlease restart the app.`);
@@ -322,8 +552,10 @@ async function startFlask() {
   flaskProc.on('error', (err) => {
     if (!app.isQuitting) {
       app.isQuitting = true;
-      closeSplash();
-      dialog.showErrorBox('EGM Downloader — Startup error',
+      dropSplash();
+      // Packaged, the spawn of the bundled Python itself failed (removed or blocked after findPython).
+      if (PACKAGED) dialog.showErrorBox(...BUNDLED_PYTHON_BOX);
+      else dialog.showErrorBox('EGM Downloader — Startup error',
         `Failed to start backend:\n${err.message}`);
       app.quit();
     }
@@ -375,7 +607,7 @@ function shellStrings() {
     const lang = _shellLang || (loadSettings().language || 'en');   // this used to call a helper that does not exist, so the tray was always English
     if (!/^[a-z]{2}$/.test(lang)) return { ...SHELL_FALLBACK };
     const raw = JSON.parse(fs.readFileSync(
-      path.join(__dirname, '..', 'languages', `${lang}.json`), 'utf8')).strings || {};
+      path.join(APP_DIR, 'languages', `${lang}.json`), 'utf8')).strings || {};
     const out = {};
     for (const k of Object.keys(KEYS)) out[k] = raw[KEYS[k]] || SHELL_FALLBACK[k];
     return out;
@@ -408,7 +640,7 @@ function buildTrayMenu() {
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, '..', 'static', 'icon-64.png');
+  const iconPath = path.join(APP_DIR, 'static', 'icon-64.png');
   tray = new Tray(safeIcon(iconPath, 16));
   tray.setToolTip('EGM Downloader');
   tray.setContextMenu(buildTrayMenu());
@@ -424,7 +656,7 @@ function createTray() {
 
 // ── Create window ─────────────────────────────────────────────────────────────
 async function createWindow() {
-  const winIconPath = path.join(__dirname, '..', 'static', 'icon.ico');
+  const winIconPath = path.join(APP_DIR, 'static', 'icon.ico');
   const winIconOpts = fs.existsSync(winIconPath) ? { icon: winIconPath } : {};
 
   // Load saved window state — use saved dimensions or defaults
@@ -444,6 +676,7 @@ async function createWindow() {
       contextIsolation: true,
       nodeIntegration:  false,
       sandbox:          true,
+      spellcheck:       false,
     },
     backgroundColor: '#0b1120',
     show: false,
@@ -481,6 +714,7 @@ async function createWindow() {
   // Wait for Flask to be ready, then load the page
   try {
     await waitForFlask();
+    backendAnswered = true;
     splashProgress(85, 6);   // backend answers
     // Clear Chromium's HTTP cache before loading — guarantees fresh templates
     // after an app update. Without this, stale index.html may persist across
@@ -489,7 +723,7 @@ async function createWindow() {
     mainWindow.loadURL(APP_URL);
     hardenWindow(mainWindow);
   } catch (e) {
-    closeSplash();
+    dropSplash();
     dialog.showErrorBox('EGM Downloader — Startup error', e.message);
     app.quit();
   }
@@ -544,7 +778,7 @@ ipcMain.handle('quit-app', (event, opts) => {
     // not only in before-quit, where "Keep open" would leave it waiting to fire at the next quit.
     if (!subsDownloadsAllowQuit()) return { cancelled: true };
     try {
-      const launcher = path.join(__dirname, '..', 'EGM Downloader.exe');
+      const launcher = path.join(INSTALL_DIR, 'EGM Downloader.exe');
       if (fs.existsSync(launcher)) app.relaunch({ execPath: launcher });
       else app.relaunch();
     } catch { try { app.relaunch(); } catch {} }
@@ -693,8 +927,8 @@ ipcMain.handle('open-history-window', async (event, from) => {
   historyWindow = new BrowserWindow({
     ...bounds, minWidth: 600, minHeight: 420,
     title: 'Download History',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   historyWindow.loadURL(`${APP_URL}/history-page${from === 'subs' ? '?from=subs' : ''}`);
@@ -738,8 +972,8 @@ ipcMain.handle('open-themes-window', async (event) => {
   themesWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 400,
     title: 'All Themes — EGM Downloader',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   themesWindow.loadURL(`${APP_URL}/themes-page`);
@@ -784,8 +1018,8 @@ ipcMain.handle('open-console-window', async (event) => {
   consoleWindow = new BrowserWindow({
     ...bounds, minWidth: 480, minHeight: 320,
     title: 'Diagnostics — EGM Downloader',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   consoleWindow.loadURL(`${APP_URL}/console-page`);
@@ -857,8 +1091,8 @@ ipcMain.handle('open-subscriptions-window', async (event) => {
   subsWindow = new BrowserWindow({
     ...bounds, minWidth: 600, minHeight: 400,
     title: 'Subscriptions — EGM Downloader',
-    icon: path.join(__dirname, '..', 'static', 'icon-64.png'),
-    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, preload: path.join(__dirname, 'preload.js') },
+    icon: path.join(APP_DIR, 'static', 'icon-64.png'),
+    webPreferences: { nodeIntegration: false, contextIsolation: true, sandbox: true, spellcheck: false, preload: path.join(__dirname, 'preload.js') },
     autoHideMenuBar: true,
   });
   subsWindow.loadURL(`${APP_URL}/subscriptions-page`);
@@ -919,7 +1153,7 @@ const _activityBySender = new Map();   // BrowserWindow -> {active, progress}
 function _badgeIconForCount(n) {
   if (n <= 0) return null;
   const name = n > 9 ? '9plus' : String(n);
-  return safeIcon(path.join(__dirname, '..', 'static', `badge-${name}.png`), 32);
+  return safeIcon(path.join(APP_DIR, 'static', `badge-${name}.png`), 32);
 }
 
 function _applyAggregateActivity() {
@@ -987,11 +1221,11 @@ ipcMain.on('refocus-window', (event) => {
   // tearing down, to win the focus race.
   const refocus = () => {
     if (win.isDestroyed()) return;
-    try { win.focus(); } catch (e) {}
+    try { win.focus(); } catch {}
     try {
       const wc = win.webContents;
       if (wc && !wc.isDestroyed()) wc.focus();
-    } catch (e) {}
+    } catch {}
   };
   refocus();
   setTimeout(refocus, 60);
@@ -1065,9 +1299,9 @@ ipcMain.on('send-url-to-main', (event, url) => {
 ipcMain.handle('create-shortcut', async (event) => {
   try {
     if (!isTrustedSender(event)) return { error: 'Untrusted sender' };
-    const lnkTarget = path.join(__dirname, '..', 'EGM Downloader.exe');
-    const workDir   = path.join(__dirname, '..');
-    const iconPath  = path.join(__dirname, '..', 'static', 'icon.ico');
+    const lnkTarget = path.join(INSTALL_DIR, 'EGM Downloader.exe');
+    const workDir   = INSTALL_DIR;
+    const iconPath  = path.join(APP_DIR, 'static', 'icon.ico');
     const tmpVbs    = path.join(os.tmpdir(), `egm_sc_${Date.now()}.vbs`);
 
     // Check if shortcut already exists on Desktop
@@ -1156,18 +1390,46 @@ app.whenReady().then(async () => {
   // runtime's internal FileDescription and shows "Electron".
   try {
     const lnkOpts = {
-      target: path.join(__dirname, '..', 'EGM Downloader.exe'),
-      cwd: path.join(__dirname, '..'),
-      icon: path.join(__dirname, '..', 'static', 'icon.ico'),
+      target: path.join(INSTALL_DIR, 'EGM Downloader.exe'),
+      cwd: INSTALL_DIR,
+      icon: path.join(APP_DIR, 'static', 'icon.ico'),
       iconIndex: 0,
       appUserModelId: 'com.egerena.egm-downloader',
     };
+    // Packaged: 'update' would also point the shortcuts at this exe. Only stamp the ones that already
+    // open it, so a copy run from another folder never takes over an installed app's shortcuts.
+    const opensThisExe = (lnk) => {
+      try { return path.resolve(shell.readShortcutLink(lnk).target).toLowerCase() === path.resolve(lnkOpts.target).toLowerCase(); }
+      catch { return false; }
+    };
     const smLnk = path.join(app.getPath('appData'),
       'Microsoft', 'Windows', 'Start Menu', 'Programs', 'EGM Downloader', 'EGM Downloader.lnk');
-    shell.writeShortcutLink(smLnk, 'update', lnkOpts);
+    if (!PACKAGED || opensThisExe(smLnk)) shell.writeShortcutLink(smLnk, 'update', lnkOpts);
     const deskLnk = path.join(app.getPath('desktop'), 'EGM Downloader.lnk');
-    shell.writeShortcutLink(deskLnk, 'update', lnkOpts);
+    if (!PACKAGED || opensThisExe(deskLnk)) shell.writeShortcutLink(deskLnk, 'update', lnkOpts);
   } catch {}
+  // No spellchecker language, so Chromium never downloads a dictionary. Turning spellcheck off on the windows
+  // does not stop that download (Electron 45.2.3 on Linux asked Google's CDN for one at the first start with
+  // it off); an empty language list does. Nothing is lost: every BrowserWindow turns spellcheck off in
+  // its webPreferences, so no window checks spelling anyway; the two inputs in index.html that also set
+  // spellcheck="false" are extra. On macOS the call changes nothing: it uses the system spellchecker.
+  try { session.defaultSession.setSpellCheckerLanguages([]); } catch (e) { console.warn('[EGM] Could not clear the spellchecker languages:', e && e.message); }
+  // No Referer to anyone but the app itself. The Referrer-Policy header the backend sends covers <img>,
+  // but Chromium gives CSS background images the default policy, not the page's, so the four
+  // Subscriptions thumbnails drawn that way would still send http://127.0.0.1:<port>/ to the image server.
+  // The app is the origin APP_URL exactly (a prefix would also match http://127.0.0.1:8899@host/ and
+  // another port); a URL that cannot be parsed counts as foreign. Every request is answered once.
+  session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+    try {
+      let own = false;
+      try { own = new URL(details.url).origin === APP_URL; } catch {}
+      if (!own) delete details.requestHeaders['Referer'];
+    } finally {
+      callback({ requestHeaders: details.requestHeaders });
+    }
+  });
+  // A finished download's picture (see History thumbnails above): the page's /api/status answers name it.
+  session.defaultSession.webRequest.onCompleted(noticeThumbnail);
   // Content-Security-Policy: applied to all responses from Flask
   // 'unsafe-inline' for scripts/styles required because templates use inline JS/CSS.
   // External scripts, frames, objects, plugins, non-self connections all blocked.
