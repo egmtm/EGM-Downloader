@@ -22,13 +22,21 @@ echo ""
 # ── The checkout must be committed ───────────────────────────────────────────
 # Every build comes from a commit, so a build can be traced to one: a change that is not
 # committed (a modified or staged file, or an untracked file that is not ignored) stops it here.
+# The Mac build is also run from the source zip, which has no git folder: only a folder that is
+# itself the top of a git checkout is checked (a zip unpacked inside some other repository is not
+# one, and that repository's commit and changes are not this build's). Without a checkout there
+# is no commit to record, and the banner says so.
 cd "$REPO_ROOT"
-HEAD_LINE=$(git log -1 --format='%H %s')
-DIRTY=$(git status --porcelain)
-if [ -n "$DIRTY" ]; then
-    echo "❌ The checkout has uncommitted changes. Commit (or stash) them first: the build must come from a commit."
-    echo "$DIRTY" | sed 's/^/     /'
-    exit 1
+if PREFIX=$(git rev-parse --show-prefix 2>/dev/null) && [ -z "$PREFIX" ]; then
+    HEAD_LINE=$(git log -1 --format='%H %s')
+    DIRTY=$(git status --porcelain)
+    if [ -n "$DIRTY" ]; then
+        echo "❌ The checkout has uncommitted changes. Commit (or stash) them first: the build must come from a commit."
+        echo "$DIRTY" | sed 's/^/     /'
+        exit 1
+    fi
+else
+    HEAD_LINE="not recorded (this folder is not a git checkout, so it is a source zip)"
 fi
 echo "   Commit: $HEAD_LINE"
 echo ""
