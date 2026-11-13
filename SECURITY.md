@@ -91,6 +91,14 @@ We provide security updates for the latest stable release only. Users on older v
 - ✅ **Use antivirus software** - Keep your system protected
 - ✅ **Review permissions** - Understand what access the application requests
 
+### Official sites
+
+These are the official addresses of EGM Downloader:
+
+- **Websites:** [egerena.com](https://egerena.com), [egmdownloader.app](https://egmdownloader.app) and [egmdownloader.com](https://egmdownloader.com). The last two both lead to the EGM Downloader page on egerena.com.
+- **Source code:** the GitHub repository at https://github.com/egmtm/EGM-Downloader ([repo.egmdownloader.app](https://repo.egmdownloader.app) leads there).
+- **Downloads** come only from egerena.com and from the release pages of this repository, which link to egerena.com. Any other site offering EGM Downloader is not ours.
+
 ### What EGM Downloader Does NOT Do
 
 - ❌ We never ask for passwords (except your own ZIP password if you set one)

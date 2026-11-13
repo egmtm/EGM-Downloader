@@ -35,6 +35,7 @@
   <a href="#screenshots">📸 Screenshots</a> ·
   <a href="#system-requirements">📋 Requirements</a> ·
   <a href="https://egmdownloader.app">🌐 Website</a> ·
+  <a href="https://videos.egmdownloader.app">🎬 Videos</a> ·
   <a href="https://x.com/EGMDownloader">𝕏 @EGMDownloader</a> ·
   <a href="https://www.instagram.com/egmdownloader">📷 @EGMDownloader</a>
 </p>
@@ -82,11 +83,9 @@ A side by side look at one well known alternative, using details you can check y
 
 <a id="screenshots"></a>
 
-## 🖼️ Screenshots and videos
+## 🖼️ Screenshots
 
-https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
-
-> 📸 *Screenshots of v1.5.2.3, SNAKE EYES PART II. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.3.2, THE TOTAL PACKAGE. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -95,12 +94,12 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI in Arabic, Marrakech theme"/></a>
-      <br/><sub><b>Main UI</b> (Arabic, Marrakech theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Dreamcast theme"/></a>
+      <br/><sub><b>Main UI</b> (Dreamcast theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Teal Abyss theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Teal Abyss theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Evergreen theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Evergreen theme)</sub>
     </td>
   </tr>
 </table>
@@ -108,25 +107,12 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/12-card-order.png"><img src="screenshots/12-card-order.png" width="308" alt="Main window with the Settings panel moved above the links card, The Grid theme"/></a>
-      <br/><sub><b>Card Order</b> (The Grid theme)</sub>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Blast Processing theme"/></a>
+      <br/><sub><b>Live Streams</b> (Blast Processing theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/13-card-drag.png"><img src="screenshots/13-card-drag.png" width="308" alt="Dragging the Settings panel up over the links card by its handle, Stop Motion theme"/></a>
-      <br/><sub><b>Card Order, Dragging</b> (Stop Motion theme)</sub>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Neon Noir theme"/></a>
-      <br/><sub><b>Live Streams</b> (Neon Noir theme)</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Event Horizon theme"/></a>
-      <br/><sub><b>Live Stream Reconnecting</b> (Event Horizon theme)</sub>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, 2049 theme"/></a>
+      <br/><sub><b>Live Stream Reconnecting</b> (2049 theme)</sub>
     </td>
   </tr>
 </table>
@@ -134,25 +120,12 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Odd Cab theme"/></a>
-      <br/><sub><b>Quit When Done</b> (Odd Cab theme)</sub>
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Fogbank theme"/></a>
+      <br/><sub><b>Quit When Done</b> (Fogbank theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Mako Reactor theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Mako Reactor theme)</sub>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Haze theme"/></a>
-      <br/><sub><b>All Themes</b> (Haze theme)</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Peach Slate"/></a>
-      <br/><sub><b>Theme Creator</b> (custom Peach Slate theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Obsidian theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Obsidian theme)</sub>
     </td>
   </tr>
 </table>
@@ -160,12 +133,25 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Dark World theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Dark World theme)</sub>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Windows 95 theme"/></a>
+      <br/><sub><b>All Themes</b> (Windows 95 theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Liminal theme"/></a>
-      <br/><sub><b>Download History</b> (Liminal theme)</sub>
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Plum Harbor"/></a>
+      <br/><sub><b>Theme Creator</b> (custom Plum Harbor theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Amethyst theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Amethyst theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Seafoam theme"/></a>
+      <br/><sub><b>Download History</b> (Seafoam theme)</sub>
     </td>
   </tr>
 </table>
@@ -175,17 +161,17 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 ### Windows
 🔗 **Platform page:** [windows.egmdownloader.app](https://windows.egmdownloader.app)
 **Latest:** v1.5.3.2  
-**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (686 KB · ~800 MB after install)  
-**SHA256:** `4bc9142896e0c6f03aabccc5e0345bd9b09ad2efd270cad0f2970a31eb16a788`  
+**Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (122 MB · ~800 MB after install)  
+**SHA256:** `7297253db8884dedd34f7b6e0b17011d79792c88d509d5572452768805d82426`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
-**Requirements:** Windows 10/11 (64-bit). Nothing else: Electron and Python come with the installer  
+**Requirements:** Windows 10/11 (64-bit), on an Intel or AMD processor. Windows 11 on ARM also works through Windows' own x64 emulation, but it is not officially supported. Nothing else: Electron and Python come with the installer  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
 **Latest:** v1.5.3.2  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (701 KB · ~1 GB after first run)  
-**SHA256:** `99d675389c4e03e074fccea299b02f03eec3d2c4f1052e101097eb3804e35c9c`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (716 KB · ~1 GB after first run)  
+**SHA256:** `2fccde57927d9b2abe161a2895a9026200e6f5b0e458f11887b9362a4d542077`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -196,7 +182,7 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 🔗 **Platform page:** [mac.egmdownloader.app](https://mac.egmdownloader.app)
 **Latest:** v1.5.3.2  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (145 MB · ~300 MB after install)  
-**SHA256:** `75118f34cf32f4faf588d05f12f1bd8af16659d495ee3cc5cb56804a761e8d8f`  
+**SHA256:** `2075c7be09d2ec123aba8fb17f460c28a9a02e38db020317b81a4201fb183760`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -206,7 +192,7 @@ https://github.com/user-attachments/assets/a058ec0e-2677-4a2a-9202-3aab1e83c8e5
 🔗 **Platform page:** [linux.egmdownloader.app](https://linux.egmdownloader.app)
 **Latest:** v1.5.3.2  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (172 MB · ~300 MB after install)  
-**SHA256:** `466fb996ac152b1c40d8c02b1a80c6282ac31b48ad2da5697cdc77d5930c4481`  
+**SHA256:** `b5c11124efa8e973f553b5dd432a68c7c1603d63dbb978f8de35e64bf46e6400`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
@@ -231,7 +217,7 @@ Every download comes from egerena.com. The GitHub release pages carry the notes 
 
 ### ⚙️ System Requirements
 
-**Windows:** Windows 10/11 (64-bit) · ~1 GB disk space · Internet on first launch
+**Windows:** Windows 10/11 (64-bit), on an Intel or AMD processor (Windows 11 on ARM also works through Windows' own x64 emulation, but it is not officially supported) · ~1 GB disk space · Internet on first launch
 
 **macOS:** macOS 13.0+ (Ventura) · Apple Silicon (M1–M5) · ~300 MB disk space · Internet on first launch (ffmpeg and Deno download)
 
