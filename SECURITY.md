@@ -105,7 +105,7 @@ These are the official addresses of EGM Downloader:
 - ❌ We never collect personal information
 - ❌ We never send your download history to any server
 - ❌ We never execute arbitrary code from downloaded videos
-- ❌ We never access files outside the download directory
+- ❌ We never read your other files
 
 ### Red Flags (Potential Scams)
 
