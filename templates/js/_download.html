@@ -624,6 +624,9 @@ function localizeError(d) {
   return (d && d.error) || i18nGet('download.error.generic') || 'Download failed.';
 }
 
+// How long a finished card stays before it fades away
+const DONE_CARD_MS = 5000, DONE_CARD_NOTED_MS = 15000;
+
 function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   // Helper to hide bulk buttons once nothing is actionable anymore
   const recheckBulkVisibility = () => {
@@ -643,19 +646,33 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     } else {
       toast(i18nFmt('download.saved', d.filename) || ('Saved: ' + d.filename), 'ok');
     }
-    // Auto-remove the card — history panel is canonical record, toast is feedback
+    // The card stays a moment reading Done, then fades away: History is the record, the toast is
+    // feedback. A live recording that saved with a note (ended early, a gap, parts, ended while paused)
+    // keeps the note on the card for 15 s, every other download stays 5 s. A done card is not active:
+    // closing the app does not ask about it, and nothing brings it back on the next start.
     const card = stEl ? stEl.closest('.vcard') : null;
-    if (card) {
-      card.style.transition = 'opacity .25s ease, transform .25s ease, margin .25s ease, max-height .3s ease, padding .25s ease';
-      card.style.opacity = '0';
-      card.style.transform = document.documentElement.dir === 'rtl' ? 'translateX(-8px)' : 'translateX(8px)';   // slides toward the end side
-      setTimeout(() => {
-        card.remove();
-        items = items.filter(i => i.id !== item.id);
-        if (items.length <= 1) setDlAllVisible(false);
-      }, 250);
-    } else {
+    const drop = () => {
       items = items.filter(i => i.id !== item.id);
+      if (items.length <= 1) setDlAllVisible(false);
+    };
+    if (card) {
+      setBadge(stEl, 'done', i18nGet('card.status.done') || '✓ Done');
+      const noted = !!(item.info?.is_live && d.warning);
+      if (noted) {
+        const note = document.createElement('div');
+        note.className = 'vnote';
+        note.textContent = (d.warning_key && i18nGet(d.warning_key)) || d.warning;
+        stEl.parentNode.insertAdjacentElement('afterend', note);
+      }
+      setTimeout(() => {
+        if (!card.isConnected) { drop(); return; }      // removed by hand meanwhile
+        card.style.transition = 'opacity .8s ease, transform .8s ease';
+        card.style.opacity = '0';
+        card.style.transform = document.documentElement.dir === 'rtl' ? 'translateX(-8px)' : 'translateX(8px)';   // slides toward the end side
+        setTimeout(() => { card.remove(); drop(); }, 800);
+      }, noted ? DONE_CARD_NOTED_MS : DONE_CARD_MS);
+    } else {
+      drop();
     }
     // Refresh mini history panel so new entry appears immediately
     if (typeof loadHistoryPanel === 'function') loadHistoryPanel();
