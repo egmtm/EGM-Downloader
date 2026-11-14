@@ -1058,6 +1058,17 @@ def _run(*cmd, timeout=None, **kw):
 def _popen(*cmd, **kw):
     return subprocess.Popen(list(cmd), creationflags=_NO_WINDOW, **kw)
 
+def _pip_env() -> dict:
+    """Environment for every pip run: none of the person's PIP_ variables, no pip config file and
+    no pip cache. --isolated covers the pip we start, but a source build (the yt-dlp nightly) starts
+    a second pip for its build requirements without --isolated or --no-cache-dir. That pip inherits
+    this environment, so it reads none of them either."""
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith("PIP_")}
+    env["PIP_CONFIG_FILE"] = os.devnull
+    env["PIP_NO_CACHE_DIR"] = "1"
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    return env
+
 def _yt_env() -> dict:
     """Environment for yt-dlp subprocesses.
     Injects the bundled deno.exe path so bgutil-ytdlp-pot-provider can find it.
@@ -3113,7 +3124,7 @@ def _install_ytdlp_ejs(log, failed):
     if not pin:
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
-    r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}", timeout=120)
+    r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}", timeout=120, env=_pip_env())
     if r.returncode == 0:
         log(f"yt-dlp-ejs -> {pin}")
     else:
@@ -3136,18 +3147,18 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
                 r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                          "--force-reinstall", "--no-cache-dir",
                          "https://github.com/yt-dlp/yt-dlp-nightly-builds/releases/latest/download/yt-dlp.tar.gz",
-                         timeout=120)
+                         timeout=120, env=_pip_env())
             else:
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
                     log(f"Installing yt-dlp stable {latest_ver}...")
                     r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                              f"yt-dlp=={latest_ver}", "--force-reinstall",
-                             timeout=120)
+                             timeout=120, env=_pip_env())
                 else:
                     log("Installing yt-dlp stable (latest)...")
                     r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
-                             "--force-reinstall", "yt-dlp", timeout=120)
+                             "--force-reinstall", "yt-dlp", timeout=120, env=_pip_env())
             v = _get_ytdlp_version()
             if r.returncode == 0:
                 log(f"yt-dlp -> {v}")
@@ -3192,7 +3203,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
         if do_mutagen:
             log("Updating mutagen...")
             r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
-                     "mutagen", "--break-system-packages", timeout=60)
+                     "mutagen", "--break-system-packages", timeout=60, env=_pip_env())
             if r.returncode == 0:
                 log(f"mutagen -> {_get_mutagen_version()}")
             else:
@@ -3203,7 +3214,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_mutagen=False, do_optlibs=False):
             log("Updating optional libraries...")
             r = _run(*_PY_CMD, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
-                     "--break-system-packages", timeout=120)
+                     "--break-system-packages", timeout=120, env=_pip_env())
             if r.returncode == 0:
                 vers = _get_optlibs_versions()
                 log("optional libs -> " + ", ".join(f"{k} {v}" for k, v in vers.items()))

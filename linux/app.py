@@ -947,6 +947,17 @@ def _run(*cmd, timeout=None, **kw):
 def _popen(*cmd, **kw):
     return subprocess.Popen(list(cmd), **kw)
 
+def _pip_env() -> dict:
+    """Environment for every pip run: none of the person's PIP_ variables, no pip config file and
+    no pip cache. --isolated covers the pip we start, but a source build (the yt-dlp nightly) starts
+    a second pip for its build requirements without --isolated or --no-cache-dir. That pip inherits
+    this environment, so it reads none of them either."""
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith("PIP_")}
+    env["PIP_CONFIG_FILE"] = os.devnull
+    env["PIP_NO_CACHE_DIR"] = "1"
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    return env
+
 def _yt_env() -> dict:
     """Environment for yt-dlp subprocesses.
     Injects bundled deno path and sets PYTHONPATH to PACKAGES_DIR alone, so an
@@ -2919,7 +2930,7 @@ def _install_ytdlp_ejs(log, failed):
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
     r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}",
-             "--target", str(PACKAGES_DIR), "--upgrade", "--force-reinstall", timeout=120)
+             "--target", str(PACKAGES_DIR), "--upgrade", "--force-reinstall", timeout=120, env=_pip_env())
     if r.returncode == 0:
         for di in PACKAGES_DIR.glob("yt_dlp_ejs-*.dist-info"):
             if di.name != f"yt_dlp_ejs-{pin}.dist-info":
@@ -2956,7 +2967,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     return
                 r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                          str(tmp_tar), "--target", str(PACKAGES_DIR),
-                         "--upgrade", "--force-reinstall", timeout=120)
+                         "--upgrade", "--force-reinstall", timeout=120, env=_pip_env())
                 try: tmp_tar.unlink(missing_ok=True)
                 except Exception: pass
             else:
@@ -2965,11 +2976,11 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     log(f"Installing yt-dlp stable {latest_ver}...")
                     r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
                              f"yt-dlp=={latest_ver}", "--target", str(PACKAGES_DIR),
-                             "--upgrade", timeout=120)
+                             "--upgrade", timeout=120, env=_pip_env())
                 else:
                     log("Installing yt-dlp stable (latest)...")
                     r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "yt-dlp",
-                             "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
+                             "--target", str(PACKAGES_DIR), "--upgrade", timeout=120, env=_pip_env())
             if r.returncode == 0:
                 _prune_superseded_ytdlp_dist_info()
             v = _get_ytdlp_version()
@@ -3027,7 +3038,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             # yt-dlp path above uses it) — without it the overlay never updates.
             r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade", "--force-reinstall",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
-                     "--target", str(PACKAGES_DIR), timeout=300)
+                     "--target", str(PACKAGES_DIR), timeout=300, env=_pip_env())
             if r.returncode == 0:
                 vers = _get_optlibs_versions()
                 # prune superseded dist-infos (pip --target cannot uninstall)

@@ -80,13 +80,15 @@ def backend_module(request, tmp_path_factory):
     return _load(request.param, tmp_path_factory)
 
 
-def _update_plugins_pips(m, tmp_path, monkeypatch):
+def _update_plugins_pips(m, tmp_path, monkeypatch, envs=None):
     pips = []
 
     def run(*cmd, **kw):
         cmd = [str(c) for c in cmd]
         if "pip" in cmd:
             pips.append(cmd)
+            if envs is not None:
+                envs.append(kw.get("env"))
         return types.SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(m, "_run", run)
