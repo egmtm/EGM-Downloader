@@ -145,7 +145,7 @@ EGM Downloader makes network requests to:
 - **Video thumbnail CDNs** - The window shows previews straight from the video site, and fetches the picture for your download history the same way. Both send a plain Chrome user agent (no app name, no Electron), no Referer and no cookies. If the window can't fetch a history picture, the app fetches it itself with the user agent yt-dlp used for that download. HTTPS only, and a 500 KB cap on history pictures
 - **sponsor.ajay.app** - Only when the optional SponsorBlock feature is turned on (off by default). yt-dlp looks up community submitted segment data using the first 4 characters of a hash (SHA256) of the video ID. The video ID itself is not sent, and the app makes no SponsorBlock requests of its own.
 
-Nothing else reaches out. The window downloads no spellcheck dictionary and makes no early DNS lookups of links on screen, and the app ignores your own yt-dlp configuration and your pip settings (except when it installs the yt-dlp nightly), so neither can add a proxy or change what is sent.
+Nothing else reaches out. The window downloads no spellcheck dictionary and makes no early DNS lookups of links on screen, and the app ignores your own yt-dlp configuration and your pip settings, so neither can add a proxy or change what is sent.
 
 All network activity is related to core functionality. We do not send telemetry or analytics.
 
