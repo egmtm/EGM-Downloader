@@ -99,6 +99,24 @@ def _check_app_py(rel_path, expected_version, expected_build):
 # Shared / Windows checks
 # --------------------------------------------------------------------------
 
+def check_patchnotes_header(v):
+    """The top block of patchnotes.txt is the one What's New shows, and only when its header
+    carries the app's exact version. A well formed header with a wrong number still gives full
+    feeds, so nothing else catches it. Before the release is cut the block is 'vTBD - ...'."""
+    errors = []
+    rel = "patchnotes.txt"
+    content = _read_or_miss(ROOT / rel, rel, errors)
+    if content is None:
+        return errors
+    first = next((line.rstrip() for line in content.splitlines() if line.strip()), "")
+    if re.match(r'vTBD\s+-\s', first):
+        return errors
+    if not re.fullmatch(r'v' + re.escape(v) + r' - \S.* \(\d{2}/\d{2}/\d{4}\)', first):
+        errors.append(f"{rel}: the first header is '{first}', expected 'v{v} - NAME (MM/DD/YYYY)', "
+                      f"or 'vTBD - ...' while the release is not cut")
+    return errors
+
+
 def check_root_app_py(v, b):
     return _check_app_py("app.py", v, b)
 
@@ -881,6 +899,7 @@ def main():
         ("mac/app.py",                          lambda: check_mac_app_py(v, b)),
         ("mac/electron/package.json",           lambda: check_mac_package_json(v)),
         ("mac/BUILD.sh",                        lambda: check_mac_build_sh(v)),
+        ("patchnotes.txt",                      lambda: check_patchnotes_header(v)),
     ]
 
     for label, fn in checks:
