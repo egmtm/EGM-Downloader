@@ -269,6 +269,17 @@ def _modules_present(names):
         return all(importlib.util.find_spec(n) for n in names)
     except (ImportError, ValueError): return False
 
+def _pip_env():
+    """Environment for every pip run: none of the person's PIP_ variables, no pip config file and
+    no pip cache. --isolated covers the pip we start, but a source build starts a second pip for its
+    build requirements without --isolated or --no-cache-dir. That pip inherits this environment, so
+    it reads none of them either. The same helper as the backends'."""
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith("PIP_")}
+    env["PIP_CONFIG_FILE"] = os.devnull
+    env["PIP_NO_CACHE_DIR"] = "1"
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    return env
+
 def _pip_install(cmd, upgrading, timeout):
     """Run pip. A missing package is fatal, but a failed floor upgrade (offline, say) must not
     stop the start: the app runs on the old copy and the next launch tries again."""
@@ -278,7 +289,7 @@ def _pip_install(cmd, upgrading, timeout):
     cmd = cmd + ["--isolated", "--disable-pip-version-check"]
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
-        subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)
+        subprocess.run(cmd, check=not upgrading, timeout=timeout, env=_pip_env(), creationflags=NO_WIN)
     except (subprocess.SubprocessError, OSError) as e:
         if not upgrading:
             # Fatal, but say so: the error used to end the launcher with no message at all (the
@@ -327,7 +338,7 @@ def _pair_ytdlp_ejs(py, upgrading=False):
     cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--isolated", "--disable-pip-version-check"]
     if upgrading: cmd += ["--retries", "1", "--timeout", "15"]      # gives up as fast as the upgrade itself
     try:
-        subprocess.run(cmd, check=True, timeout=120, creationflags=NO_WIN)
+        subprocess.run(cmd, check=True, timeout=120, env=_pip_env(), creationflags=NO_WIN)
     except (subprocess.SubprocessError, OSError) as e:
         _py_log(f"yt-dlp-ejs {pin} could not be installed: {e}")
 
@@ -415,7 +426,7 @@ def _python_has_pip(exe=None):
     PY_SETUP_LOG on a failure, so "could not enable pip" is debuggable."""
     try:
         r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--isolated", "--version"],
-                           capture_output=True, text=True, timeout=60, creationflags=NO_WIN)
+                           capture_output=True, text=True, timeout=60, env=_pip_env(), creationflags=NO_WIN)
         if r.returncode == 0:
             return True
         _py_log("pip --version failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"

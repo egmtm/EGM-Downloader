@@ -21,6 +21,7 @@ import zipfile
 import pytest
 
 from conftest import read_source
+from test_launcher_pairs_ytdlp_ejs import _first_install, _repair, launcher  # noqa: F401  (launcher is a fixture)
 from test_pip_runs_isolated import APP_FILES, _pip_calls, _update_plugins_pips, backend_module  # noqa: F401
 
 
@@ -32,6 +33,35 @@ def _helper_source(rel):
 
 def test_the_helper_is_the_same_on_the_three_platforms():
     assert _helper_source("mac/app.py") == _helper_source("app.py") == _helper_source("linux/app.py")
+
+
+def test_the_launcher_helper_does_what_the_backends_does():
+    body = lambda rel: _helper_source(rel).split('"""')[-1]     # the code after the docstring
+    assert body("windows/launch.py") == body("app.py").replace("def _pip_env() -> dict:", "def _pip_env():")
+
+
+def test_every_launcher_function_that_runs_pip_passes_the_clean_environment():
+    src = read_source("windows/launch.py")
+    pip_lines = {line for line, _, _ in _pip_calls(src)}
+    funcs = [f for f in ast.walk(ast.parse(src)) if isinstance(f, ast.FunctionDef)
+             and (f.name == "_pip_install" or any(f.lineno <= n <= f.end_lineno for n in pip_lines))]
+    runs = [(f.name, c) for f in funcs for c in ast.walk(f) if isinstance(c, ast.Call)
+            and isinstance(c.func, ast.Attribute) and c.func.attr == "run"]
+    assert len(runs) >= 3, [n for n, _ in runs]
+    for name, call in runs:
+        env = [k.value for k in call.keywords if k.arg == "env"]
+        assert env and getattr(env[0].func, "id", None) == "_pip_env", f"{name}:{call.lineno} runs pip without env=_pip_env()"
+
+
+def test_the_launchers_pip_runs_get_the_clean_environment(launcher, monkeypatch):
+    monkeypatch.setenv("PIP_PROXY", "http://127.0.0.1:9")
+    _first_install(launcher, monkeypatch)
+    _repair(launcher, monkeypatch)
+    pips = [(c, e) for c, e in zip(launcher.calls, launcher.envs) if "pip" in c]
+    assert len(pips) >= 4, launcher.calls
+    for cmd, env in pips:
+        assert env is not None and "PIP_PROXY" not in env, cmd
+        assert env["PIP_CONFIG_FILE"] == os.devnull and env["PIP_NO_CACHE_DIR"] == "1", cmd
 
 
 @pytest.mark.parametrize("rel", APP_FILES)

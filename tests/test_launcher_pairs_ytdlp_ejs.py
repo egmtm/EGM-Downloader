@@ -33,6 +33,7 @@ def launcher(monkeypatch):
     mod = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(mod)
     mod.calls = []
+    mod.envs = []                 # the env each call got, in the same order as calls
     mod.requires = NAMED          # what the installed yt-dlp's metadata says
     mod.fail = {}                 # "read" / "pair" / "main": an exception to raise there
     mod.logged = []
@@ -40,6 +41,7 @@ def launcher(monkeypatch):
     def fake_run(cmd, **kw):
         cmd = list(cmd)
         mod.calls.append(cmd)
+        mod.envs.append(kw.get("env"))
         kind = "read" if "-c" in cmd else "pair" if f"yt-dlp-ejs=={_pinned(cmd)}" in cmd and _pinned(cmd) else "main"
         if kind in mod.fail:
             raise mod.fail[kind]
