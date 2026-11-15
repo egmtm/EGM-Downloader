@@ -169,8 +169,7 @@ We use a unified version management system. **Never manually edit version number
 # 1. Bump build number (required before EVERY build)
 python scripts/bump-version.py
 
-# 2. Add patch notes
-python scripts/add-patchnote.py "Your change 1" "Your change 2"
+# 2. Write your notes in the top block of patchnotes.txt (vTBD - TBD (TBD) between releases)
 
 # 3. Build your platform
 # Windows: bash windows/BUILD.sh, sign, then bash windows/BUILD.sh --continue
@@ -199,10 +198,9 @@ python scripts/bump-version.py --dry-run
 All scripts are in `scripts/` directory:
 
 - **bump-version.py** - Increment build/version, sync all files
-- **add-patchnote.py** - Add entries to patchnotes.txt
 - **gen-update-json.py** - Generate platform update JSONs
 
-`bump-version.py`, `add-patchnote.py` and `gen-update-json.py` take `--help`; the other scripts
+`bump-version.py` and `gen-update-json.py` take `--help`; the other scripts
 explain their arguments in the docstring at the top of the file. `check-node-pin.py` always
 contacts the Node.js release server.
 
@@ -408,8 +406,7 @@ EGM-Downloader/
 ├── scripts/                  # Build automation
 │   ├── bump-version.py       # Version management
 │   ├── validate-version-sync.py # Version sync validator (CI)
-│   ├── gen-update-json.py    # Update JSON generator
-│   └── add-patchnote.py      # Changelog helper
+│   └── gen-update-json.py    # Update JSON generator
 ├── tests/                    # Automated test suite
 │
 ├── version.json              # SINGLE SOURCE OF TRUTH
