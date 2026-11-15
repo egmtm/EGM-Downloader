@@ -977,9 +977,9 @@ def _popen(*cmd, **kw):
 
 def _pip_env() -> dict:
     """Environment for every pip run: none of the person's PIP_ variables, no pip config file and
-    no pip cache. --isolated covers the pip we start, but a source build (the yt-dlp nightly) starts
-    a second pip for its build requirements without --isolated or --no-cache-dir. That pip inherits
-    this environment, so it reads none of them either."""
+    no pip cache. --isolated and --no-cache-dir cover the pip we start, but a source build (the
+    yt-dlp nightly) starts a second pip for its build requirements without either flag. That pip
+    inherits this environment, so it reads none of them either."""
     env = {k: v for k, v in os.environ.items() if not k.upper().startswith("PIP_")}
     env["PIP_CONFIG_FILE"] = os.devnull
     env["PIP_NO_CACHE_DIR"] = "1"
@@ -3063,7 +3063,7 @@ def _install_ytdlp_ejs(log, failed):
     if not pin:
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
-    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}", timeout=120, env=_pip_env())
+    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir", f"yt-dlp-ejs=={pin}", timeout=120, env=_pip_env())
     if r.returncode == 0:
         log(f"yt-dlp-ejs -> {pin}")
     else:
@@ -3093,7 +3093,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     except Exception: pass
                     update_status["error"] = f"yt-dlp nightly download failed: {e}"
                     return
-                r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
+                r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir",
                          str(tmp_tar), "--upgrade", "--force-reinstall", timeout=120, env=_pip_env())
                 try: tmp_tar.unlink(missing_ok=True)
                 except Exception: pass
@@ -3101,12 +3101,12 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
                     log(f"Installing yt-dlp stable {latest_ver}...")
-                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir",
                              f"yt-dlp=={latest_ver}", "--force-reinstall",
                              timeout=120, env=_pip_env())
                 else:
                     log("Installing yt-dlp stable (latest)...")
-                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir", "--upgrade",
                              "--force-reinstall", "yt-dlp", timeout=120, env=_pip_env())
             v = _get_ytdlp_version()
             if r.returncode == 0:
@@ -3173,7 +3173,7 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             log(f"ffmpeg -> {_get_ffmpeg_version()}")
         if do_optlibs:
             log("Updating optional libraries...")
-            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade",
+            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir", "--upgrade",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
                      timeout=180, env=_pip_env())
             if r.returncode == 0:

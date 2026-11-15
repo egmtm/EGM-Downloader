@@ -271,9 +271,9 @@ def _modules_present(names):
 
 def _pip_env():
     """Environment for every pip run: none of the person's PIP_ variables, no pip config file and
-    no pip cache. --isolated covers the pip we start, but a source build starts a second pip for its
-    build requirements without --isolated or --no-cache-dir. That pip inherits this environment, so
-    it reads none of them either. The same helper as the backends'."""
+    no pip cache. --isolated and --no-cache-dir cover the pip we start, but a source build starts a
+    second pip for its build requirements without either flag. That pip inherits this environment,
+    so it reads none of them either. The same helper as the backends'."""
     env = {k: v for k, v in os.environ.items() if not k.upper().startswith("PIP_")}
     env["PIP_CONFIG_FILE"] = os.devnull
     env["PIP_NO_CACHE_DIR"] = "1"
@@ -286,7 +286,8 @@ def _pip_install(cmd, upgrading, timeout):
     # The launcher runs before the backend, so the backend's PIP_DISABLE_PIP_VERSION_CHECK does not
     # reach this pip: say it here, or pip asks pypi.org whether a newer pip exists after the install.
     # --isolated: no PIP_* variable and no pip.ini of the person's changes what is installed.
-    cmd = cmd + ["--isolated", "--disable-pip-version-check"]
+    # --no-cache-dir: nothing is read from or written to the person's pip cache.
+    cmd = cmd + ["--isolated", "--disable-pip-version-check", "--no-cache-dir"]
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
         subprocess.run(cmd, check=not upgrading, timeout=timeout, env=_pip_env(), creationflags=NO_WIN)
@@ -335,7 +336,8 @@ def _pair_ytdlp_ejs(py, upgrading=False):
         _py_log("yt-dlp-ejs: could not read which version the installed yt-dlp names, so it was not paired")
         return
     if not pin: return
-    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--isolated", "--disable-pip-version-check"]
+    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--isolated", "--disable-pip-version-check",
+           "--no-cache-dir"]
     if upgrading: cmd += ["--retries", "1", "--timeout", "15"]      # gives up as fast as the upgrade itself
     try:
         subprocess.run(cmd, check=True, timeout=120, env=_pip_env(), creationflags=NO_WIN)

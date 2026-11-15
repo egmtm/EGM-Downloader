@@ -167,3 +167,35 @@ def test_a_source_build_no_longer_reads_the_persons_pip_settings(kind, app_modul
         "the person's setting should reach the second pip without the clean environment"
     after = _install(app_module._pip_env(), tmp_path, wheels, src)
     assert after.returncode == 0, after.stdout + after.stderr
+
+
+# ── No pip cache, also for the pip we start ──────────────────────────────────────────────────────
+# --isolated ignores the PIP_ variables, PIP_NO_CACHE_DIR of _pip_env() included, so the pip we start
+# still used the person's pip cache. Every install run now says --no-cache-dir itself (EGM, Nov 14).
+
+@pytest.mark.parametrize("rel", APP_FILES)
+def test_every_backend_pip_run_skips_the_pip_cache(rel):
+    calls = _pip_calls(read_source(rel))
+    assert len(calls) >= 5, f"{rel}: only {len(calls)} pip runs found"
+    for line, vals, _ in calls:
+        assert "--no-cache-dir" in vals, f"{rel}:{line} runs pip with the person's pip cache"
+
+
+def test_the_runs_update_plugins_builds_skip_the_pip_cache_for_pip_itself(backend_module, tmp_path, monkeypatch):
+    from pip._internal.cli.main_parser import parse_command
+    from pip._internal.commands import create_command
+    pips = _update_plugins_pips(backend_module, tmp_path, monkeypatch)
+    assert len(pips) >= 3, pips
+    for cmd in pips:
+        name, cmd_args = parse_command(cmd[cmd.index("pip") + 1:])
+        opts, _ = create_command(name, isolated=("--isolated" in cmd_args)).parse_args(cmd_args)
+        assert opts.cache_dir is False, cmd
+
+
+def test_the_launchers_pip_installs_skip_the_pip_cache(launcher, monkeypatch):
+    _first_install(launcher, monkeypatch)
+    _repair(launcher, monkeypatch)
+    installs = [c for c in launcher.calls if "pip" in c and "install" in c]
+    assert len(installs) >= 4, launcher.calls
+    for cmd in installs:
+        assert "--no-cache-dir" in cmd, cmd
