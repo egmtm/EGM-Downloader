@@ -163,35 +163,32 @@ chmod +x BUILD.sh
 
 We use a unified version management system. **Never manually edit version numbers!**
 
-### Standard Build Workflow
+### Building and Checking Your Change
 
 ```bash
-# 1. Bump build number (required before EVERY build)
-python scripts/bump-version.py
-
-# 2. Write your notes in the top block of patchnotes.txt (vTBD - TBD (TBD) between releases)
-
-# 3. Build your platform
-# Windows: bash windows/BUILD.sh, sign, then bash windows/BUILD.sh --continue
+# 1. Build your platform to test
+# Windows: bash windows/BUILD.sh (builds the installer folder, dist/win-unpacked, then stops:
+# the steps after it need signed files and are done by the maintainer)
 # Mac: bash mac/BUILD.sh
 # Linux: bash linux/BUILD.sh
 
-# 4. Generate update JSONs
-python scripts/gen-update-json.py --notes "Your change 1; Your change 2"
+# 2. Before a pull request, run the checks
+python3 scripts/validate-version-sync.py
+# pytest is not in requirements.txt, so install it once
+pip install pytest
+cd tests
+python3 -m pytest
 ```
 
-### Version Bumping
+The tests are described under Automated Tests below.
 
-```bash
-# Increment build number only (most common)
-python scripts/bump-version.py
+A change that users will notice gets a line in the top block of `patchnotes.txt` (the block headed `vTBD - TBD (TBD)`). Write it like the lines already there: a platform tag (`[ALL]`, `[WINDOWS]`, `[MAC]` or `[LINUX]`), then `New:`, `Changed:` or `Fixed:`, then what is different for the person using the app, in plain words:
 
-# Increment version string (e.g., v0.98 → v0.99)
-python scripts/bump-version.py --version 0.99
-
-# Preview changes without writing
-python scripts/bump-version.py --dry-run
 ```
+  • [ALL] Fixed: what is different for the person using the app, in plain words.
+```
+
+Version numbers, update files and signing are done by the maintainer when a release is cut, so a pull request does not run `bump-version.py` or `gen-update-json.py`.
 
 ### Utility Scripts
 
