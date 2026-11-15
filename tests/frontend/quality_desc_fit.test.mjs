@@ -75,3 +75,19 @@ test("a resize while a popup is open fits it again; a closed popup is left alone
   assert.ok(parseFloat(a[0].style.fontSize) < 12 && a[0].scrollWidth <= a[0].clientWidth);
   assert.equal(v[0].style.fontSize, "", "the closed video popup was not touched");
 });
+
+// The fit can only see a line that does not fit when the text column of the row may be narrower than its
+// text (min-width: 0 in index_styles.html). Without that rule the column grows with a nowrap line, nothing
+// is made smaller, and the text runs out of its row (measured in Chromium). jsdom has no layout, so this
+// reads the rule from the page's own styles.
+test("the text column of every row in both popups may be narrower than its text, which the fit depends on", async () => {
+  const { w, d } = await bootPage();
+  for (const id of ["audio-quality-modal", "video-quality-modal"]) {
+    const descs = [...d.querySelectorAll(`#${id} .quality-desc`)];
+    assert.ok(descs.length >= 7, `${id}: ${descs.length} descriptions`);
+    for (const el of descs) {
+      assert.ok(el.parentNode.parentNode.classList.contains("quality-option"), `${id}: "${el.textContent}" sits in a column of its row`);
+      assert.equal(parseFloat(w.getComputedStyle(el.parentNode).minWidth), 0, `${id}: the column of "${el.textContent}"`);
+    }
+  }
+});
