@@ -195,3 +195,33 @@ def test_a_pause_during_the_last_allowed_reconnect_still_pauses_instead_of_endin
     monkeypatch.setattr(app_module, "_run_live_attempt", attempt)
     assert rig.run(rc=1) == "saved"
     assert len(rig.attempts) == cap + 1 and "live_reconnecting" not in rig.attempts[-1][3], "the resumed run happened"
+
+
+def test_a_pause_before_the_resumed_run_recorded_anything_still_pauses(app_module, monkeypatch, tmp_path):
+    # Resume, then Pause again while the new run is still starting: it has recorded nothing. Then Resume.
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, False], captures=[None, "j_r2.mp4"])
+    real, left = rig.attempt, []
+    def attempt(job, *a):
+        real(job, *a)
+        if len(rig.attempts) == 1:
+            (tmp_path / "j_r2.mp4.part").write_bytes(b"cut")        # what the killed run left
+            job.update(pause_req=True, resume_req=True)
+        else:
+            left.append(sorted(p.name for p in tmp_path.iterdir()))
+        return 1
+    monkeypatch.setattr(app_module, "_run_live_attempt", attempt)
+    rig.job.update(pause_req=True, resume_req=True)                 # paused during the first run
+    assert rig.run(rc=1) == "saved"
+    assert len(rig.attempts) == 2, "the recording was paused and resumed, not ended"
+    assert left == [[]], "the run that recorded nothing left no file for the next run to trip over"
+    assert "j_r2." in rig.attempts[1][0][2], "the next run takes the name of the run that recorded nothing"
+    assert all("live_reconnecting" not in a[3] for a in rig.attempts)
+    assert rig.joined == [[str(tmp_path / "j.mp4"), str(tmp_path / "j_r2.mp4")]]
+    assert rig.job["warning_key"] == "download.warning.live_paused"
+
+
+def test_a_run_that_recorded_nothing_without_a_pause_still_ends_the_recording(app_module, monkeypatch, tmp_path):
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True], captures=[None])
+    rig.job.update(pause_req=True, resume_req=True)
+    assert rig.run(rc=1) == "saved"
+    assert len(rig.attempts) == 1 and rig.joined == [] and rig.job.get("status") != "paused"

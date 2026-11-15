@@ -2364,7 +2364,14 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         _live_run_ended(job)
         seg = _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only)
         if not seg:
-            break
+            if not job.get("pause_req"):
+                break
+            # Pause pressed before this run recorded anything: it still pauses. The next run uses this
+            # run's name again, so what it left goes first.
+            for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{sid}.*")):
+                try: os.remove(p)
+                except OSError: pass
+            continue
         segs.append(seg)
         recorded = _live_hms_to_s(job.get("live_time") or "00:00:00") - base_s
         if recorded < _LIVE_RECOVERED_S and ffmpeg:
