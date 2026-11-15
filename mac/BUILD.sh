@@ -25,11 +25,15 @@ echo ""
 # The Mac build is also run from the source zip, which has no git folder: only a folder that is
 # itself the top of a git checkout is checked (a zip unpacked inside some other repository is not
 # one, and that repository's commit and changes are not this build's). Without a checkout there
-# is no commit to record, and the banner says so.
+# is no commit to record, and the banner says so. A checkout is told by its .git, not by asking
+# git: when git cannot read a checkout (git missing, a damaged .git, the folder's owner), the
+# build stops instead of passing for a source zip.
 cd "$REPO_ROOT"
-if PREFIX=$(git rev-parse --show-prefix 2>/dev/null) && [ -z "$PREFIX" ]; then
-    HEAD_LINE=$(git log -1 --format='%H %s')
-    DIRTY=$(git status --porcelain)
+if [ -e "$REPO_ROOT/.git" ]; then
+    if ! HEAD_LINE=$(git log -1 --format='%H %s') || ! DIRTY=$(git status --porcelain); then
+        echo "❌ This folder is a git checkout, but git could not read it. Fix git first: the build must come from a commit."
+        exit 1
+    fi
     if [ -n "$DIRTY" ]; then
         echo "❌ The checkout has uncommitted changes. Commit (or stash) them first: the build must come from a commit."
         echo "$DIRTY" | sed 's/^/     /'
