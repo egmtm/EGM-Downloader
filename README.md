@@ -289,7 +289,7 @@ Big thanks to [@averygan](https://github.com/averygan) for ReClip, you sparked t
 
 ## 🤖 AI Disclosure
 
-EGM Downloader is built by one developer working with AI tools. They help with code, tests, documentation, translations and design assets. Everything that ships is reviewed and approved by a human, and the full source is open for anyone to inspect.
+EGM Downloader is AI assisted, but it's organized and directed by me: I plan it, decide what goes in and approve every release. The full source is open for anyone to inspect.
 
 ---
 
