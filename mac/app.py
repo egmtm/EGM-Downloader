@@ -2388,6 +2388,7 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
             continue
         unknown = 0
         manual, resumed = resumed, False
+        job.pop("resume_req", None)   # a second Resume press that came after the first was taken is not a Resume for the next pause
         job.pop("_live_check", None)
         job["status"] = "downloading"
         job.pop("progress", None)   # a run that ended cleanly printed 100 %, and the card would read Converting

@@ -5,6 +5,8 @@ running (status "paused", time and size kept) until Resume, Stop and save or Can
 whether the stream is still live and records from what is live now; if it is over, the recording is
 saved with its own note. Manual pauses are not reconnects: they never count against the reconnect cap.
 Pause shows only while the card reads Recording, not while it reconnects."""
+import threading
+
 import pytest
 
 from conftest import PLATFORM_APP_FILES, read_source
@@ -225,3 +227,30 @@ def test_a_run_that_recorded_nothing_without_a_pause_still_ends_the_recording(ap
     rig.job.update(pause_req=True, resume_req=True)
     assert rig.run(rc=1) == "saved"
     assert len(rig.attempts) == 1 and rig.joined == [] and rig.job.get("status") != "paused"
+
+
+def test_a_second_resume_press_does_not_resume_the_next_pause_on_its_own(app_module, monkeypatch, tmp_path):
+    # Resume pressed twice: the second press can land after the first was taken, while the card still read Paused.
+    rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, True, False], captures=["j_r2.mp4", "j_r3.mp4"])
+    real_probe, real_attempt, waited = rig.probe, rig.attempt, []
+    def probe(job, url):
+        if rig.probes == 0:
+            job["resume_req"] = True                       # the late second press
+        return real_probe(job, url)
+    def attempt(job, *a):
+        real_attempt(job, *a)
+        job["pause_req"] = True                            # Pause again in the new run, and no Resume this time
+        return 1
+    me, real_sleep = threading.current_thread(), app_module.time.sleep
+    def sleep(secs):                                       # the pause is waiting for the user: Stop and save
+        if threading.current_thread() is not me or rig.job.get("status") != "paused":
+            return real_sleep(secs)                        # some other wait of the app, not the pause
+        waited.append(rig.job.get("status"))
+        rig.job["stop_keep"] = True
+    monkeypatch.setattr(app_module, "_live_is_still_live", probe)
+    monkeypatch.setattr(app_module, "_run_live_attempt", attempt)
+    monkeypatch.setattr(app_module.time, "sleep", sleep)
+    rig.job.update(pause_req=True, resume_req=True)        # paused in the first run, Resume pressed
+    assert rig.run(rc=1) == "saved"
+    assert waited == ["paused"], "the second pause waited for the user"
+    assert len(rig.attempts) == 1, "nothing was recorded again without a Resume"
