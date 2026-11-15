@@ -12,12 +12,12 @@ import { fileURLToPath } from "node:url";
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const source = (p) => readFileSync(join(repo, p, "electron", "main.js"), "utf8");
 
-function rig(platform, { live = ["job1"], choice = 0, backendDown = false, lang = "en", strings = {}, savesAfter = 1 } = {}) {
+function rig(platform, { live = ["job1"], choice = 0, backendDown = false, lang = "en", strings = {}, savesAfter = 1, subsActive = false } = {}) {
   const src = source(platform);
   const block = src.slice(src.indexOf("const LIVE_QUIT_FALLBACK"), src.indexOf("app.on('before-quit'"));
   const subs = /function confirmCloseWithDownloads\([\s\S]*?\n\}\n/.exec(src)[0] + /function subsDownloadsAllowQuit\([\s\S]*?\n\}\n/.exec(src)[0];
   const handler = /app\.on\('before-quit', \(event\) => \{[\s\S]*?\n\}\);\n/.exec(src)[0];
-  const log = { posts: [], gets: 0, asked: [], shutdown: 0, quits: 0, prevented: 0, focus: [] };
+  const log = { posts: [], gets: 0, asked: [], subsAsked: 0, shutdown: 0, quits: 0, prevented: 0, focus: [] };
   let left = [...live], getsAfterPost = 0, posted = false;
   // the shell's own backendCall (it never throws: status 0 when the backend does not answer)
   const backendCall = async (method, path) => {
@@ -41,11 +41,12 @@ function rig(platform, { live = ["job1"], choice = 0, backendDown = false, lang 
     fs: { readFileSync: () => JSON.stringify({ strings }) },
     dialog: {
       showMessageBox(...a) { const o = a[a.length - 1]; log.asked.push(o); return Promise.resolve({ response: choice }); },
-      showMessageBoxSync() { return 0; },
+      showMessageBoxSync() { log.subsAsked++; return 0; },      // the Subscriptions question: Close anyway
     },
     mainWindow, flaskProc: { pid: 1 },
     app: { isQuitting: true, on(n, fn) { handlers[n] = fn; }, quit() { log.quits++; } },
-    subsWindow: null, subsActiveDownloads: false, subsForceClose: false,
+    subsWindow: subsActive ? { isDestroyed: () => false, isMinimized: () => false, show() {}, focus() {} } : null,
+    subsActiveDownloads: subsActive, subsForceClose: false,
     _psbId: null, powerSaveBlocker: { stop() {} }, tray: null,
     setTimeout: (fn) => { fn(); return 0; }, execSync() {}, process: { kill() {} },
     Date, Promise, JSON, Object, encodeURIComponent,
@@ -122,6 +123,20 @@ for (const platform of ["windows", "mac", "linux"]) {
     assert.equal(r.answered(), false, "the next quit asks again");
     assert.equal(r.log.shutdown, 0);
   });
+
+  test(`${platform}: Close anyway for Subscriptions, then Keep open for the recording: the next quit asks about Subscriptions again`, async () => {
+    const r = rig(platform, { live: ["a"], choice: 2, subsActive: true });
+    r.quit();
+    await tick(); await tick(); await tick();
+    assert.equal(r.log.subsAsked, 1);
+    assert.equal(r.log.asked.length, 1);
+    assert.equal(r.log.quits, 0);
+    assert.equal(r.ctx.subsForceClose, false, "the app stays open, so the Subscriptions window asks again when it is closed");
+    r.quit();
+    await tick(); await tick(); await tick();
+    assert.equal(r.log.subsAsked, 2, "and so does the next quit");
+    assert.equal(r.log.shutdown, 0);
+  });
 }
 
 for (const platform of ["mac", "linux"]) {
@@ -142,3 +157,35 @@ test("windows: the update installer and Restart now ask about live recordings be
     assert.match(h, /liveRecordingsAllowQuit\(\)/, name);
   }
 });
+
+// Windows: the update installer and Restart now ask the Subscriptions question first, then the live one.
+// Keep open on the live one takes the Close anyway back, or nothing would ask about Subscriptions again.
+for (const [name, arg] of [["launch-installer", "/tmp/egm-update/egm-setup.exe"], ["quit-app", { relaunch: true }]]) {
+  test(`windows: ${name}, Close anyway for Subscriptions then Keep open for the recording, leaves the Subscriptions question armed`, async () => {
+    const src = source("windows");
+    const subs = /function confirmCloseWithDownloads\([\s\S]*?\n\}\n/.exec(src)[0] + /function subsDownloadsAllowQuit\([\s\S]*?\n\}\n/.exec(src)[0];
+    const handler = new RegExp(`ipcMain\\.handle\\('${name}', [\\s\\S]*?\\n\\}\\);\\n`).exec(src)[0];
+    const log = { subsAsked: 0, relaunch: 0, quit: 0, spawned: 0 };
+    const handlers = {};
+    const ctx = {
+      ipcMain: { handle(n, fn) { handlers[n] = fn; } }, isTrustedSender: () => true,
+      BrowserWindow: { fromWebContents: () => null }, _activityBySender: new Map(),
+      app: { isQuitting: false, relaunch() { log.relaunch++; }, quit() { log.quit++; } },
+      path: { join: (...p) => p.join("/"), resolve: (p) => p }, fs: { existsSync: () => true },
+      EXPECTED_INSTALLER: "/tmp/egm-update/egm-setup.exe", INSTALL_DIR: "/app",
+      spawn() { log.spawned++; return { unref() {} }; },
+      flaskProc: { pid: 1 },
+      subsWindow: { isDestroyed: () => false, isMinimized: () => false, show() {}, focus() {} },
+      subsActiveDownloads: true, subsForceClose: false,
+      dialog: { showMessageBoxSync() { log.subsAsked++; return 0; } },
+      liveRecordingsAllowQuit: async () => false, _liveQuitAnswered: false,
+    };
+    vm.runInNewContext(subs + handler, ctx);
+    const answer = JSON.parse(JSON.stringify(await handlers[name]({ sender: {} }, arg)));
+    assert.deepEqual(answer, { cancelled: true });
+    assert.equal(log.subsAsked, 1);
+    assert.deepEqual([log.spawned, log.relaunch, log.quit], [0, 0, 0]);
+    assert.equal(ctx.subsForceClose, false);
+    assert.equal(ctx._liveQuitAnswered, false);
+  });
+}

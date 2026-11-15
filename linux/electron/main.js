@@ -1222,7 +1222,8 @@ app.on('before-quit', (event) => {
   if (!_liveQuitAnswered && flaskProc) {
     event.preventDefault();
     const goOn = () => { _liveQuitAnswered = true; app.isQuitting = true; app.quit(); };
-    liveRecordingsAllowQuit().then((go) => { if (go) goOn(); else app.isQuitting = false; }, goOn);
+    // Keep open: the quit is off, so a Close anyway given to the Subscriptions question just before is off too
+    liveRecordingsAllowQuit().then((go) => { if (go) goOn(); else { app.isQuitting = false; subsForceClose = false; } }, goOn);
     return;
   }
   app.isQuitting = true;

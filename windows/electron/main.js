@@ -742,7 +742,7 @@ ipcMain.handle('launch-installer', async (event, installerPath) => {
     // The installer closes the app: ask about Subscriptions downloads before it starts, not after.
     if (!subsDownloadsAllowQuit()) return { cancelled: true };
     // And about a live recording: saved or discarded before the installer can close the app
-    if (!(await liveRecordingsAllowQuit())) return { cancelled: true };
+    if (!(await liveRecordingsAllowQuit())) { subsForceClose = false; return { cancelled: true }; }
     _liveQuitAnswered = true;
     // Spawn installer detached so it outlives Electron
     // spawn is already imported at the top of this file
@@ -782,7 +782,7 @@ ipcMain.handle('quit-app', (event, opts) => {
     if (!subsDownloadsAllowQuit()) return { cancelled: true };
     // The same for a live recording, answered before the relaunch is queued (Keep open must not leave it waiting)
     return liveRecordingsAllowQuit().then((go) => {
-      if (!go) return { cancelled: true };
+      if (!go) { subsForceClose = false; return { cancelled: true }; }
       _liveQuitAnswered = true;
       try {
         const launcher = path.join(INSTALL_DIR, 'EGM Downloader.exe');
@@ -1547,7 +1547,8 @@ app.on('before-quit', (event) => {
   if (!_liveQuitAnswered && flaskProc) {
     event.preventDefault();
     const goOn = () => { _liveQuitAnswered = true; app.isQuitting = true; app.quit(); };
-    liveRecordingsAllowQuit().then((go) => { if (go) goOn(); else app.isQuitting = false; }, goOn);
+    // Keep open: the quit is off, so a Close anyway given to the Subscriptions question just before is off too
+    liveRecordingsAllowQuit().then((go) => { if (go) goOn(); else { app.isQuitting = false; subsForceClose = false; } }, goOn);
     return;
   }
   app.isQuitting = true;
