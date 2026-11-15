@@ -189,7 +189,7 @@ EXTRA = {
 # New keys waiting for the translator pass: English in the nine other files until then. The pass
 # translates them and takes them out of this set; a key here that is no longer an English copy in
 # any language fails, so the set cannot rot.
-AWAITING_TRANSLATION = set()
+AWAITING_TRANSLATION = {"audio.option.128.desc", "audio.option.192.desc", "audio.option.320.desc"}
 
 
 
@@ -252,7 +252,8 @@ def test_the_allowlist_has_no_stale_entries():
 # Keys that replaced English text written straight into a template, with how many places read each.
 # Without the template reading the key, ten files carry a translation that never shows (the other
 # direction is covered by test_i18n_keys_exist_in_en_locale).
-READ_IN_TEMPLATES = {"card.status.eta": 2, "subscriptions.title_short": 1, "subscriptions.detail.videos_total": 1,
+READ_IN_TEMPLATES = {"audio.option.128.desc": 1, "audio.option.192.desc": 1, "audio.option.320.desc": 1,
+                     "card.status.eta": 2, "subscriptions.title_short": 1, "subscriptions.detail.videos_total": 1,
                      "url.btn.download_all_videos": 1, "url.btn.download_all_audio": 1, "bulk.btn.cancel_all": 1,
                      "themes.filter.all": 1, "url.btn.paste_fetch": 2,
                      "subscriptions.detail.fetching": 1, "subscriptions.label.unknown": 2, "toast.plugins.error_prefix": 3,
