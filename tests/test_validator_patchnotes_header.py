@@ -61,4 +61,39 @@ def test_a_missing_file_is_an_error(val, tmp_path, monkeypatch):
 def test_the_repository_passes_and_main_runs_the_check(val):
     version = val.load_version()["version"]
     assert val.check_patchnotes_header(version) == []
-    assert "check_patchnotes_header(v)" in Path(val.__file__).read_text(encoding="utf-8").split("def main():")[1]
+    assert "check_patchnotes_header(v, b)" in Path(val.__file__).read_text(encoding="utf-8").split("def main():")[1]
+
+
+# Once the build is bumped past the last released build, the release is being cut: 'vTBD' is refused
+# (review of 32190d3c; EGM, Nov 14). The header goes into the bump commit.
+
+def _tbd_errors(val, tmp_path, monkeypatch, build, last="177\n"):
+    monkeypatch.setattr(val, "ROOT", tmp_path)
+    (tmp_path / "patchnotes.txt").write_text("vTBD - TBD (TBD)\n-----\n\n  • [ALL] Fixed: a thing.\n", encoding="utf-8")
+    if last is not None:
+        (tmp_path / "scripts").mkdir()
+        (tmp_path / "scripts" / "last-released-build.txt").write_text(last, encoding="utf-8")
+    return val.check_patchnotes_header(V, build)
+
+
+def test_tbd_passes_while_the_build_is_the_last_released_one(val, tmp_path, monkeypatch):
+    assert _tbd_errors(val, tmp_path, monkeypatch, 177) == []
+
+
+def test_tbd_fails_once_the_build_is_bumped(val, tmp_path, monkeypatch):
+    errors = _tbd_errors(val, tmp_path, monkeypatch, 178)
+    assert len(errors) == 1 and "vTBD - TBD (TBD)" in errors[0] and "build 178" in errors[0] and "177" in errors[0]
+    assert f"v{V} - NAME (MM/DD/YYYY)" in errors[0]
+
+
+@pytest.mark.parametrize("last", [None, "not a number\n"])
+def test_tbd_passes_when_there_is_no_last_released_build_to_compare(val, tmp_path, monkeypatch, last):
+    assert _tbd_errors(val, tmp_path, monkeypatch, 178, last=last) == []
+
+
+def test_main_passes_the_build_to_the_header_check(val, tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(val, "check_patchnotes_header", lambda *a: calls.append(a) or [])
+    val.main()
+    version = val.load_version()
+    assert calls == [(version["version"], version["build"])]
