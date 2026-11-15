@@ -107,6 +107,7 @@ EXTRA = {
         "advanced.section.interface",
         "advanced.section.plugins",
         "app.tagline.sites",
+        "card.btn.pause",
         "card.format.audio",
         "card.label.format",
         "console.title",
@@ -188,10 +189,7 @@ EXTRA = {
 # New keys waiting for the translator pass: English in the nine other files until then. The pass
 # translates them and takes them out of this set; a key here that is no longer an English copy in
 # any language fails, so the set cannot rot.
-AWAITING_TRANSLATION = {"card.status.paused", "card.btn.pause", "card.btn.resume",
-                        "download.warning.live_paused", "download.warning.live_ended_paused",
-                        "quit.live.title", "quit.live.message", "quit.live.detail", "quit.live.save",
-                        "quit.live.discard", "quit.live.keep"}
+AWAITING_TRANSLATION = set()
 
 
 
