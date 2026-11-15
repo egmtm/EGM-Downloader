@@ -126,13 +126,12 @@ pip install -r linux/requirements.txt
 #### Windows
 
 ```bash
-# Phase 1: compiles the portable launcher and builds the installer folder
+# Compiles the portable launcher and builds the installer folder
 # (dist/win-unpacked: Electron, the bundled Python and its packages, the app files), then stops
 bash windows/BUILD.sh
-# Sign both files named "EGM Downloader.exe": windows/ (launcher) and dist/win-unpacked/ (Electron)
-# Phase 2: verifies both signatures, then builds egm-setup.exe, EGMd.zip and EGMd-portable.zip
-bash windows/BUILD.sh --continue
 ```
+
+It stops there on purpose. The steps after it need signed files: they check the signatures, then build the installer and the zips. The maintainer does them when a release is cut; they are described at the top of `windows/BUILD.sh`.
 
 The installer folder is built by `windows/installer/build-folder.sh`: Electron from `windows/electron`'s
 lock through a staging package, the pinned Python (same version and release as Mac and Linux) and the
