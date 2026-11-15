@@ -189,7 +189,9 @@ EXTRA = {
 # translates them and takes them out of this set; a key here that is no longer an English copy in
 # any language fails, so the set cannot rot.
 AWAITING_TRANSLATION = {"card.status.paused", "card.btn.pause", "card.btn.resume",
-                        "download.warning.live_paused", "download.warning.live_ended_paused"}
+                        "download.warning.live_paused", "download.warning.live_ended_paused",
+                        "quit.live.title", "quit.live.message", "quit.live.detail", "quit.live.save",
+                        "quit.live.discard", "quit.live.keep"}
 
 
 
