@@ -1,3 +1,26 @@
+// ── Quality popups: a description that would wrap is made a little smaller until it fits on one line,
+// never below QUALITY_DESC_MIN_PX; one that still does not fit wraps at its normal size. Runs when a
+// popup opens (it needs the layout) and when the window is resized while one is open.
+const QUALITY_DESC_MIN_PX = 10;
+function fitQualityDescs(modal) {
+  for (const el of modal.querySelectorAll('.quality-desc')) {
+    el.style.fontSize = '';
+    el.style.whiteSpace = 'nowrap';
+    let size = parseFloat(getComputedStyle(el).fontSize);
+    while (el.scrollWidth > el.clientWidth && size > QUALITY_DESC_MIN_PX) {
+      size = Math.max(QUALITY_DESC_MIN_PX, size - 0.25);
+      el.style.fontSize = size + 'px';
+    }
+    if (el.scrollWidth > el.clientWidth) { el.style.fontSize = ''; el.style.whiteSpace = ''; }
+  }
+}
+window.addEventListener('resize', () => {
+  for (const id of ['audio-quality-modal', 'video-quality-modal']) {
+    const m = document.getElementById(id);
+    if (m && m.style.display === 'flex') fitQualityDescs(m);
+  }
+});
+
 // ── Audio quality popup ───────────────────────────────────────────────────────
 let _selectedAudioQuality = '320';
 
@@ -20,6 +43,7 @@ let _selectedAudioQuality = '320';
   // Override dl-all-audio-btn to show quality picker first
   document.getElementById('dl-all-audio-btn').addEventListener('click', () => {
     modal.style.display = 'flex';
+    fitQualityDescs(modal);
   });
 
   confirm.addEventListener('click', () => {
@@ -82,6 +106,7 @@ function showVideoQualityModal() {
   const best = modal.querySelector('[data-vquality="best"]');
   if (best) best.classList.add('selected');
   modal.style.display = 'flex';
+  fitQualityDescs(modal);
 }
 function videoQualityBgClick(e) {
   // Outside-click intentionally disabled — Cancel is the only dismiss path
