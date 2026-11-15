@@ -55,7 +55,8 @@ Important:
 
 Next Steps:
     After running this script:
-    1. python scripts/add-patchnote.py "Your changes here"
+    1. Set the first header of patchnotes.txt to vX.X.X - NAME (MM/DD/YYYY), by hand, in the
+       same commit as the bump (the validator refuses vTBD once the build is bumped)
     2. Build your platform(s)
     3. python scripts/gen-update-json.py --notes "Your changes"
 """
