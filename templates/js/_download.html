@@ -35,8 +35,12 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
           items = items.filter(i => i !== pItem);
         } else if (!info2.error) {
           pItem.info = info2;
-          renderCard(el, pItem);
-          updateQueueArrows();   // renderCard rebuilds the card — visibility resets
+          // A card whose download is already done reads Done until it fades away: a rebuild would show
+          // Ready and a Download button again, and the card would leave in the middle of that download.
+          if (pItem.status !== 'done') {
+            renderCard(el, pItem);
+            updateQueueArrows();   // renderCard rebuilds the card — visibility resets
+          }
         } else {
           // /api/info failed for this entry — show the localized error card
           // instead of leaving the stub spinning forever. This is the path
