@@ -91,3 +91,29 @@ test("the text column of every row in both popups may be narrower than its text,
     }
   }
 });
+
+test("a size that does not start on a quarter of a pixel still never goes below 10px", async () => {
+  const { w, d } = await bootPage();
+  const [el] = model(w, "audio-quality-modal", [0]);
+  const START = 12.6;                              // a theme or a system font size can give any starting size
+  const real = w.getComputedStyle.bind(w);
+  w.getComputedStyle = (e, ...rest) => e === el ? { fontSize: el.style.fontSize || `${START}px` } : real(e, ...rest);
+  Object.defineProperty(el, "scrollWidth", { configurable: true, get: () => {
+    const line = Math.ceil(251 * parseFloat(el.style.fontSize || START) / START);   // fits from about 10.04px down
+    return el.style.whiteSpace === "nowrap" ? line : Math.min(line, BOX);
+  } });
+  d.getElementById("dl-all-audio-btn").click();
+  assert.equal(parseFloat(el.style.fontSize), 10, "the last step stops at the floor, not a quarter below it");
+  assert.equal(el.style.whiteSpace, "nowrap");
+  assert.ok(el.scrollWidth <= el.clientWidth);
+});
+
+test("a resize while the video popup is open fits it again", async () => {
+  const { w } = await bootPage();
+  const v = model(w, "video-quality-modal", [150]);
+  w.showVideoQualityModal();
+  assert.equal(v[0].style.fontSize, "");
+  Object.defineProperty(v[0], "clientWidth", { configurable: true, get: () => 140 });   // the window got narrower
+  w.dispatchEvent(new w.Event("resize"));
+  assert.ok(parseFloat(v[0].style.fontSize) < 12 && v[0].scrollWidth <= v[0].clientWidth);
+});
