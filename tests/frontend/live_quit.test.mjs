@@ -12,12 +12,12 @@ import { fileURLToPath } from "node:url";
 const repo = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const source = (p) => readFileSync(join(repo, p, "electron", "main.js"), "utf8");
 
-function rig(platform, { live = ["job1"], choice = 0, backendDown = false, lang = "en", strings = {}, savesAfter = 1, subsActive = false } = {}) {
+function rig(platform, { live = ["job1"], choice = 0, backendDown = false, lang = "en", strings = {}, savesAfter = 1, subsActive = false, hold = false, slowWait = false } = {}) {
   const src = source(platform);
   const block = src.slice(src.indexOf("const LIVE_QUIT_FALLBACK"), src.indexOf("app.on('before-quit'"));
   const subs = /function confirmCloseWithDownloads\([\s\S]*?\n\}\n/.exec(src)[0] + /function subsDownloadsAllowQuit\([\s\S]*?\n\}\n/.exec(src)[0];
   const handler = /app\.on\('before-quit', \(event\) => \{[\s\S]*?\n\}\);\n/.exec(src)[0];
-  const log = { posts: [], gets: 0, asked: [], subsAsked: 0, shutdown: 0, quits: 0, prevented: 0, focus: [] };
+  const log = { posts: [], gets: 0, asked: [], subsAsked: 0, shutdown: 0, quits: 0, prevented: 0, focus: [], open: [] };
   let left = [...live], getsAfterPost = 0, posted = false;
   // the shell's own backendCall (it never throws: status 0 when the backend does not answer)
   const backendCall = async (method, path) => {
@@ -40,7 +40,11 @@ function rig(platform, { live = ["job1"], choice = 0, backendDown = false, lang 
     path: { join: (...p) => p.join("/") },
     fs: { readFileSync: () => JSON.stringify({ strings }) },
     dialog: {
-      showMessageBox(...a) { const o = a[a.length - 1]; log.asked.push(o); return Promise.resolve({ response: choice }); },
+      showMessageBox(...a) {
+        const o = a[a.length - 1]; log.asked.push(o);
+        if (hold) return new Promise((answer) => log.open.push(answer));     // stays open until the test answers it
+        return Promise.resolve({ response: choice });
+      },
       showMessageBoxSync() { log.subsAsked++; return 0; },      // the Subscriptions question: Close anyway
     },
     mainWindow, flaskProc: { pid: 1 },
@@ -48,7 +52,8 @@ function rig(platform, { live = ["job1"], choice = 0, backendDown = false, lang 
     subsWindow: subsActive ? { isDestroyed: () => false, isMinimized: () => false, show() {}, focus() {} } : null,
     subsActiveDownloads: subsActive, subsForceClose: false,
     _psbId: null, powerSaveBlocker: { stop() {} }, tray: null,
-    setTimeout: (fn) => { fn(); return 0; }, execSync() {}, process: { kill() {} },
+    // the half second between two checks of the save: at once, or one turn of the event loop (slowWait)
+    setTimeout: (fn) => { if (slowWait) setImmediate(fn); else fn(); return 0; }, execSync() {}, process: { kill() {} },
     Date, Promise, JSON, Object, encodeURIComponent,
   };
   vm.runInNewContext(block + subs + handler + "\nthis.__allow = liveRecordingsAllowQuit; this.__answered = () => _liveQuitAnswered;", ctx);
@@ -157,6 +162,38 @@ test("windows: the update installer and Restart now ask about live recordings be
     assert.match(h, /liveRecordingsAllowQuit\(\)/, name);
   }
 });
+
+for (const platform of ["windows", "mac", "linux"]) {
+  test(`${platform}: a second quit while the question is open does not ask a second time, and both follow the one answer`, async () => {
+    const r = rig(platform, { live: ["a"], hold: true });
+    r.quit(); await tick(); await tick();
+    r.quit(); await tick(); await tick();          // the tray Quit or the quit shortcut again, with the question still open
+    assert.equal(r.log.asked.length, 1, "one question");
+    assert.equal(r.log.prevented, 2, "both quits wait for it");
+    r.log.open[0]({ response: 2 });                // Keep open
+    await tick(); await tick(); await tick();
+    assert.equal(r.log.quits, 0);
+    assert.equal(r.ctx.app.isQuitting, false);
+    assert.deepEqual(r.log.posts, []);
+    r.quit(); await tick(); await tick();          // a later quit asks again
+    assert.equal(r.log.asked.length, 2);
+  });
+
+  test(`${platform}: a second quit while the recordings are being saved does not ask again`, async () => {
+    const r = rig(platform, { live: ["a"], hold: true, savesAfter: 4, slowWait: true });
+    r.quit(); await tick(); await tick();
+    r.log.open[0]({ response: 0 });                // Save and quit
+    await tick();                                  // the save has started, the wait is running
+    assert.deepEqual(r.log.posts, ["/api/stop/a"]);
+    assert.equal(r.log.quits, 0, "still saving");
+    r.quit();
+    for (let i = 0; i < 12; i++) await tick();
+    assert.equal(r.log.asked.length, 1, "the save in progress answers the second quit");
+    assert.deepEqual(r.log.posts, ["/api/stop/a"]);
+    assert.ok(r.log.quits >= 1, "the quit goes ahead once the recording is saved");
+    assert.equal(r.answered(), true);
+  });
+}
 
 // Windows: the update installer and Restart now ask the Subscriptions question first, then the live one.
 // Keep open on the live one takes the Close anyway back, or nothing would ask about Subscriptions again.

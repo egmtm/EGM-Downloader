@@ -1510,8 +1510,16 @@ async function liveJobs() {
   try { return JSON.parse(r.body).jobs || []; } catch { return null; }
 }
 
+// One question at a time: a quit asked for again while the question is open, or while the recordings are
+// being saved, gets the answer of the first one instead of a second question.
+let _liveQuitAsking = null;
+function liveRecordingsAllowQuit() {
+  if (!_liveQuitAsking) _liveQuitAsking = askAboutLiveRecordings().finally(() => { _liveQuitAsking = null; });
+  return _liveQuitAsking;
+}
+
 // true when the quit may go on (nothing live, saved, discarded, or the backend does not answer)
-async function liveRecordingsAllowQuit() {
+async function askAboutLiveRecordings() {
   if (!flaskProc) return true;
   const live = await liveJobs();
   if (!live || !live.length) return true;
