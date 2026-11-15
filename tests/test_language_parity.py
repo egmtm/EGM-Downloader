@@ -189,7 +189,7 @@ EXTRA = {
 # New keys waiting for the translator pass: English in the nine other files until then. The pass
 # translates them and takes them out of this set; a key here that is no longer an English copy in
 # any language fails, so the set cannot rot.
-AWAITING_TRANSLATION = {"audio.option.128.desc", "audio.option.192.desc", "audio.option.320.desc"}
+AWAITING_TRANSLATION = set()
 
 
 
