@@ -669,6 +669,11 @@
     @supports (color: contrast-color(red)) { .btn-green { color: contrast-color(var(--green)); } }
     .btn-green:hover:not(:disabled) { filter: brightness(1.1); }
     .btn-sm { padding: 5px 12px; font-size: .78rem; }
+    .btn-pause { background: transparent; color: var(--yellow); border: 1px solid var(--yellow); }
+    .btn-pause:hover:not(:disabled) { background: rgba(245,158,11,.1); }
+    .btn-resume { background: var(--yellow); color: var(--btn-on-accent); }
+    @supports (color: contrast-color(red)) { .btn-resume { color: contrast-color(var(--yellow)); } }
+    .btn-resume:hover:not(:disabled) { filter: brightness(1.1); }
     .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
 
     /* ── Settings ── */

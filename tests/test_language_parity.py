@@ -188,7 +188,8 @@ EXTRA = {
 # New keys waiting for the translator pass: English in the nine other files until then. The pass
 # translates them and takes them out of this set; a key here that is no longer an English copy in
 # any language fails, so the set cannot rot.
-AWAITING_TRANSLATION = set()
+AWAITING_TRANSLATION = {"card.status.paused", "card.btn.pause", "card.btn.resume",
+                        "download.warning.live_paused", "download.warning.live_ended_paused"}
 
 
 
