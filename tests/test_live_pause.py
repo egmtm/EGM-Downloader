@@ -28,6 +28,16 @@ def _pausing_attempt(rig, resume=True, then=None):
     return attempt
 
 
+def _pressed_while_paused(app_module, monkeypatch, rig, **flags):
+    """What the user presses while the card reads Paused: the flags arrive at the first wait of the pause itself."""
+    me, real_sleep = threading.current_thread(), app_module.time.sleep
+    def sleep(secs):
+        if threading.current_thread() is not me or rig.job.get("status") != "paused":
+            return real_sleep(secs)                        # some other wait of the app, not the pause
+        rig.job.update(flags)
+    monkeypatch.setattr(app_module.time, "sleep", sleep)
+
+
 def test_a_pause_after_the_first_run_then_resume_records_again_and_joins_with_the_pause_note(app_module, monkeypatch, tmp_path):
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True, False], captures=["j_r2.mp4"])
     rig.job.update(pause_req=True, resume_req=True)
@@ -57,14 +67,16 @@ def test_the_stream_ended_while_paused_after_several_pieces_keeps_that_note_afte
 
 def test_stop_and_save_while_paused_saves_without_asking_or_recording_again(app_module, monkeypatch, tmp_path):
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True], captures=["j_r2.mp4"])
-    rig.job.update(pause_req=True, stop_keep=True)
+    rig.job.update(pause_req=True)
+    _pressed_while_paused(app_module, monkeypatch, rig, stop_keep=True)
     assert rig.run(rc=1) == "saved"
     assert rig.probes == 0 and rig.attempts == [] and "warning_key" not in rig.job
 
 
 def test_cancel_while_paused_discards_the_recording(app_module, monkeypatch, tmp_path):
     rig = _Rig(app_module, monkeypatch, tmp_path, lives=[True], captures=["j_r2.mp4"])
-    rig.job.update(pause_req=True, cancelled=True)
+    rig.job.update(pause_req=True)
+    _pressed_while_paused(app_module, monkeypatch, rig, cancelled=True)
     assert rig.run(rc=1) == "cancelled"
     assert rig.probes == 0 and rig.attempts == [] and rig.joined == []
 
