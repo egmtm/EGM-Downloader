@@ -66,3 +66,32 @@ def test_dv_and_hlg_do_not_displace_the_sdr_row_on_every_backend(backend):
         result = backend._build_formats(fmts)
         assert any(r["id"] == "sdr" and not r.get("hdr") for r in result), result
         assert all(r.get("hdr") is True for r in result if r["id"] in ("dv", "hlg")), result
+
+
+def test_the_footer_setting_is_on_until_turned_off_and_is_kept_as_a_flag_on_every_backend(backend, tmp_path, monkeypatch):
+    # Advanced > Interface: the Footer switch. Shown by default; only an explicit save turns it off.
+    monkeypatch.setattr(backend, "SETTINGS_FILE", tmp_path / "egm_settings.json")
+    monkeypatch.setattr(backend, "_settings_cache", {})
+    headers = {"X-EGM-Token": backend._API_TOKEN}
+    with backend.app.test_client() as client:
+        assert client.get("/api/settings", headers=headers).get_json()["show_footer"] is True
+        client.post("/api/settings/save", json={"show_footer": 0}, headers=headers)
+        assert client.get("/api/settings", headers=headers).get_json()["show_footer"] is False
+        client.post("/api/settings/save", json={"show_footer": "yes"}, headers=headers)
+        assert client.get("/api/settings", headers=headers).get_json()["show_footer"] is True
+
+
+def test_a_hidden_footer_comes_back_hidden_after_export_reset_and_import_on_every_backend(backend, tmp_path, monkeypatch):
+    # Export writes what /api/settings returns; Import posts that object back to /api/settings/save
+    # (templates/js/_quality.html). The footer switch must survive the round trip.
+    monkeypatch.setattr(backend, "SETTINGS_FILE", tmp_path / "egm_settings.json")
+    monkeypatch.setattr(backend, "_settings_cache", {})
+    headers = {"X-EGM-Token": backend._API_TOKEN}
+    with backend.app.test_client() as client:
+        client.post("/api/settings/save", json={"show_footer": False}, headers=headers)
+        exported = client.get("/api/settings", headers=headers).get_json()
+        assert exported["show_footer"] is False
+        client.post("/api/settings/reset", headers=headers)
+        assert client.get("/api/settings", headers=headers).get_json()["show_footer"] is True, "reset shows it again"
+        client.post("/api/settings/save", json=exported, headers=headers)
+        assert client.get("/api/settings", headers=headers).get_json()["show_footer"] is False

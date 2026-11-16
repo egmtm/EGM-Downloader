@@ -2798,6 +2798,7 @@ def get_settings():
         "language":                _get_language_setting(s),
         "show_language_selector":  s.get("show_language_selector", True),
         "show_settings_panel":     s.get("show_settings_panel", True),
+        "show_footer":             s.get("show_footer", True),
         "upscale_to_quality":      s.get("upscale_to_quality", False),
         "sponsorblock_enabled":    s.get("sponsorblock_enabled", False),
         "sponsorblock_categories": s.get("sponsorblock_categories", list(SPONSORBLOCK_CATEGORIES)),
@@ -2823,7 +2824,7 @@ def save_settings():
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
                "favorite_themes", "random_theme_on_launch", "random_theme_scope",
-               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality",
+               "language", "show_language_selector", "show_settings_panel", "show_footer", "upscale_to_quality",
                "sponsorblock_enabled", "sponsorblock_categories"}
     if "last_folder" in data:
         folder = data["last_folder"]
@@ -2865,6 +2866,8 @@ def save_settings():
         data["show_language_selector"] = bool(data["show_language_selector"])
     if "show_settings_panel" in data:
         data["show_settings_panel"] = bool(data["show_settings_panel"])
+    if "show_footer" in data:
+        data["show_footer"] = bool(data["show_footer"])
     if "upscale_to_quality" in data:
         data["upscale_to_quality"] = bool(data["upscale_to_quality"])
     if "sponsorblock_enabled" in data:

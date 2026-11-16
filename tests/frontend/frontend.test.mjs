@@ -107,6 +107,52 @@ test("persisted hidden settings panel stays hidden on boot", async () => {
   assert.equal(d.getElementById("show-settings-panel-chk").checked, false);
 });
 
+// Advanced > Interface: the Footer switch hides everything in the footer except the language
+// selector, which keeps its own switch (EGM, Nov 16). Shown by default, turned off only after a confirm.
+const footerParts = (w, d) => [...d.querySelector("footer").children].map(c => [c.id || c.textContent.trim().slice(0, 12), w.getComputedStyle(c).display !== "none"]);
+
+test("hide-footer flow: confirm modal, cancel keeps, confirm hides everything but the language selector and saves", async () => {
+  const { w, d, saved } = await bootPage();
+  const chk = d.getElementById("show-footer-chk");
+  assert.equal(chk.checked, true, "on by default");
+  assert.ok(footerParts(w, d).every(([, shown], i) => i === 0 || shown), "footer shown");
+
+  chk.checked = false; chk.dispatchEvent(new w.Event("change"));
+  assert.equal(d.getElementById("hide-footer-modal").style.display, "flex", "modal shown");
+  assert.equal(chk.checked, true, "checkbox reverted until confirmed");
+  d.getElementById("hide-footer-cancel-btn").click();
+  assert.equal(d.querySelector("footer").classList.contains("footer-hidden"), false, "cancel keeps the footer");
+  assert.deepEqual(saved.filter(s => "show_footer" in s), [], "nothing saved on cancel");
+
+  chk.checked = false; chk.dispatchEvent(new w.Event("change"));
+  d.getElementById("hide-footer-confirm-btn").click();
+  assert.equal(chk.checked, false);
+  const parts = footerParts(w, d);
+  assert.deepEqual(parts.filter(([, shown]) => shown).map(([id]) => id), ["lang-row"], "only the language selector row may still show");
+  assert.equal(d.getElementById("lang-row").style.display, "", "the selector keeps following its own switch");
+  assert.deepEqual(saved.filter(s => "show_footer" in s), [{ show_footer: false }], "persisted");
+
+  chk.checked = true; chk.dispatchEvent(new w.Event("change"));
+  assert.ok(footerParts(w, d).every(([, shown]) => shown), "turning it back on needs no confirm");
+  assert.deepEqual(saved.filter(s => "show_footer" in s).at(-1), { show_footer: true });
+});
+
+test("persisted hidden footer stays hidden on boot, and the two switches stay independent", async () => {
+  const { w, d } = await bootPage({ settings: { show_footer: false } });
+  assert.equal(d.getElementById("show-footer-chk").checked, false);
+  assert.deepEqual(footerParts(w, d).filter(([, shown]) => shown).map(([id]) => id), ["lang-row"]);
+  const b = await bootPage({ settings: { show_footer: false, show_language_selector: false } });
+  assert.deepEqual(footerParts(b.w, b.d).filter(([, shown]) => shown), [], "both off: nothing of the footer shows");
+  const c = await bootPage({ settings: { show_language_selector: false } });
+  assert.deepEqual(footerParts(c.w, c.d).filter(([, shown]) => !shown).map(([id]) => id), ["lang-row"], "selector off alone hides only the selector");
+});
+
+test("the Interface switches sit in one strip in the order Settings, Language selector, Footer", async () => {
+  const { d } = await bootPage();
+  const strip = d.querySelector(".adv-iface-strip");
+  assert.deepEqual([...strip.querySelectorAll("input.sw")].map(i => i.id), ["show-settings-panel-chk", "show-lang-selector-chk", "show-footer-chk"]);
+});
+
 test("converting badge: encoder + percentage when present, indeterminate otherwise", async () => {
   const { w, d } = await bootPage();
   const stEl = d.createElement("span");

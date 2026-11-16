@@ -978,6 +978,9 @@ document.addEventListener('i18n:ready', e => {
   if (spWrap && s.show_settings_panel === false) spWrap.style.display = 'none';
   const spChk = document.getElementById('show-settings-panel-chk');
   if (spChk) spChk.checked = s.show_settings_panel !== false;
+  if (s.show_footer === false) document.querySelector('footer')?.classList.add('footer-hidden');
+  const ftChk = document.getElementById('show-footer-chk');
+  if (ftChk) ftChk.checked = s.show_footer !== false;
 });
 
 document.getElementById('lang-select').addEventListener('change', async function() {
@@ -1029,4 +1032,24 @@ document.getElementById('hide-settings-confirm-btn').addEventListener('click', (
   document.getElementById('show-settings-panel-chk').checked = false;
   document.getElementById('settings-panel-wrap').style.display = 'none';
   post('/api/settings/save', { show_settings_panel: false });
+});
+
+// The footer switch hides everything in the footer except the language selector, which keeps its own switch.
+document.getElementById('show-footer-chk').addEventListener('change', function() {
+  if (this.checked) {
+    document.querySelector('footer').classList.remove('footer-hidden');
+    post('/api/settings/save', { show_footer: true });
+  } else {
+    this.checked = true;  // revert until confirmed
+    document.getElementById('hide-footer-modal').style.display = 'flex';
+  }
+});
+document.getElementById('hide-footer-cancel-btn').addEventListener('click', () => {
+  document.getElementById('hide-footer-modal').style.display = 'none';
+});
+document.getElementById('hide-footer-confirm-btn').addEventListener('click', () => {
+  document.getElementById('hide-footer-modal').style.display = 'none';
+  document.getElementById('show-footer-chk').checked = false;
+  document.querySelector('footer').classList.add('footer-hidden');
+  post('/api/settings/save', { show_footer: false });
 });

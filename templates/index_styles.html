@@ -343,7 +343,7 @@
     /* ── Hamburger panel ── */
     #hamburger-panel {
       display: none; position: absolute; inset-inline-end: 0; top: 42px;
-      width: 400px; background: var(--surf); border: 1px solid var(--border2);
+      width: 380px; background: var(--surf); border: 1px solid var(--border2);
       border-radius: var(--r); box-shadow: 0 8px 24px rgba(0,0,0,.35);
       z-index: 1000; overflow: hidden;
     }
@@ -847,6 +847,13 @@
     .ver-info { font-size: .72rem; color: var(--text2); display: flex; flex-direction: column; gap: 2px; }
     .adv-chan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
     .adv-chan-grid .adv-port-wrap { margin-bottom: 0; }
+    /* Advanced > Interface: the three show/hide switches in one box, thin lines between them */
+    .adv-iface-strip { display: flex; background: var(--surf2); border: 1px solid var(--border); border-radius: 7px; overflow: hidden; }
+    .adv-iface-strip .adv-port-wrap { flex: 1 1 auto; min-width: 0; gap: 5px; padding: 0 8px; border: none; border-radius: 0; background: transparent; }
+    .adv-iface-strip .adv-port-wrap + .adv-port-wrap { border-inline-start: 1px solid var(--border); }
+    /* "Footer" off: everything in the footer goes except the language selector, which has its own switch */
+    footer .footer-links { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
+    footer.footer-hidden > :not(#lang-row) { display: none; }
     .sw-wrap { display: flex; align-items: center; gap: 7px; font-size: .77rem; color: var(--text2); cursor: pointer; user-select: none; }
     input.sw[type=checkbox] { appearance: none; width: 32px; height: 17px; background: var(--border2); border-radius: 999px; cursor: pointer; transition: background var(--ease); position: relative; flex-shrink: 0; }
     input.sw[type=checkbox]::after { content:''; position:absolute; top:2px; inset-inline-start:2px; width:13px; height:13px; background:var(--btn-primary-text); border-radius:50%; transition:inset-inline-start var(--ease); }

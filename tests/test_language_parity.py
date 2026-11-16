@@ -104,7 +104,6 @@ EXTRA = {
     },
     "fr": {
         "advanced.channel.stable",
-        "advanced.section.interface",
         "advanced.section.plugins",
         "app.tagline.sites",
         "card.btn.pause",
@@ -135,6 +134,7 @@ EXTRA = {
         "card.format.audio",
         "card.format.video",
         "creator.live_badge",
+        "footer.toggle.label",
         "history.filter.audio",
         "history.filter.video",
         "quality.section.standard",
@@ -144,7 +144,6 @@ EXTRA = {
         "themes.cat.sneakers",
     },
     "nl": {
-        "advanced.section.interface",
         "advanced.section.plugins",
         "app.tagline.sites",
         "card.badge.live",
@@ -174,7 +173,6 @@ EXTRA = {
         "update.available.btn.later",
     },
     "pt": {
-        "advanced.section.interface",
         "advanced.section.plugins",
         "app.tagline.sites",
         "panel.history.downloads",
