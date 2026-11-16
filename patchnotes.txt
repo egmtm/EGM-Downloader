@@ -5,6 +5,8 @@ vTBD - TBD (TBD)
   • [ALL] New: Quitting during a live recording asks whether to save it, discard it, or keep the app open.
   • [ALL] Changed: A finished download stays on screen for a moment, then fades away. A live recording that saved with a note keeps it on screen for 15 seconds.
   • [ALL] Fixed: Update Plugins now ignores your pip settings and pip cache at every step, including when it builds the yt-dlp nightly.
+  • [ALL] Fixed: The MP3 descriptions in the Audio Quality list now show in your language.
+  • [ALL] Changed: In the quality lists, a long description gets a little smaller to stay on one line.
 
 v1.5.3.2 - THE TOTAL PACKAGE (11/13/2026)
 -----------------------------------------
