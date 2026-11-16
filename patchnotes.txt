@@ -7,6 +7,8 @@ vTBD - TBD (TBD)
   • [ALL] Fixed: Update Plugins now ignores your pip settings and pip cache at every step, including when it builds the yt-dlp nightly.
   • [ALL] Fixed: The MP3 descriptions in the Audio Quality list now show in your language.
   • [ALL] Changed: In the quality lists, a long description gets a little smaller to stay on one line.
+  • [ALL] New: A switch in Advanced hides the footer. The language selector keeps its own switch.
+  • [ALL] Changed: The Advanced panel is a little narrower, and its Interface switches sit side by side.
   • [MAC] Fixed: Live recordings work again. With ffmpeg 9 they stopped with "ffmpeg exited with code 251".
   • [WINDOWS] Security: Portable: When the app has to download its own Node.js, it now downloads 24.22.3, a security release. A Node.js 22.12 or newer that is already there is kept.
   • [ALL] Electron runtime updated to v45.3.3.
