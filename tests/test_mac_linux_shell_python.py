@@ -171,3 +171,27 @@ def test_no_backend_reads_a_python_variable(rel):
     src = read_source(rel)
     reads = re.findall(r"""environ(?:\.get)?[\[(]\s*["'](PYTHON\w*)""", src) + re.findall(r"""getenv\(\s*["'](PYTHON\w*)""", src)
     assert reads == [], reads
+
+
+def _load_mac(tmp_path, monkeypatch):
+    import importlib.util
+    monkeypatch.setenv("HOME", str(tmp_path))
+    spec = importlib.util.spec_from_file_location("egm_mac_python_env", ROOT / "mac" / "app.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
+
+
+def test_mac_yt_dlp_and_its_ffmpeg_get_certifis_list(tmp_path, monkeypatch):
+    # ffmpeg 9 checks certificates by default and the Mac build has no list of its own: a live
+    # recording failed with "certificate verify failed" (EGM, Nov 16). Its OpenSSL reads SSL_CERT_FILE.
+    import types
+    mod = _load_mac(tmp_path, monkeypatch)
+    monkeypatch.setitem(sys.modules, "certifi", types.SimpleNamespace(where=lambda: "/bundled/certifi/cacert.pem"))
+    monkeypatch.delenv("SSL_CERT_FILE", raising=False)
+    assert mod._yt_env()["SSL_CERT_FILE"] == "/bundled/certifi/cacert.pem"
+    monkeypatch.setenv("SSL_CERT_FILE", "/home/u/corp.pem")
+    assert mod._yt_env()["SSL_CERT_FILE"] == "/home/u/corp.pem", "a value the user set is kept"
+    monkeypatch.delenv("SSL_CERT_FILE")
+    monkeypatch.setitem(sys.modules, "certifi", None)   # import fails
+    assert "SSL_CERT_FILE" not in mod._yt_env(), "without certifi the environment is left as it was"

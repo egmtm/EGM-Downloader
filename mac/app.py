@@ -994,6 +994,14 @@ def _yt_env() -> dict:
     env = os.environ.copy()
     if DENO_EXE.exists():
         env["DENO"] = str(DENO_EXE)
+    # ffmpeg 9 checks certificates by default, and the Mac build finds no list of its own, so a live
+    # recording (ffmpeg reads the stream itself) failed with "certificate verify failed". Its OpenSSL
+    # reads SSL_CERT_FILE: give it certifi's list. A value the user set is kept.
+    try:
+        import certifi
+        env.setdefault("SSL_CERT_FILE", certifi.where())
+    except Exception:
+        pass
     return env
 
 def _run_yt(*cmd, timeout=None, **kw):
