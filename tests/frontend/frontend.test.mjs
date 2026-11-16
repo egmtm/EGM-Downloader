@@ -153,6 +153,17 @@ test("the Interface switches sit in one strip in the order Settings, Language se
   assert.deepEqual([...strip.querySelectorAll("input.sw")].map(i => i.id), ["show-settings-panel-chk", "show-lang-selector-chk", "show-footer-chk"]);
 });
 
+test("the footer link row keeps the layout it had when the style was written on the element", async () => {
+  // The row's display moved from an inline style to the class .footer-links so the Footer switch can
+  // hide it. Without that rule the links lose their centred, wrapping row with 6px between them.
+  const { w, d } = await bootPage();
+  const row = d.querySelector("footer .footer-links");
+  assert.ok(row.contains(d.getElementById("footer-version-pill")) && row.contains(d.getElementById("footer-help-btn")), "the row that holds the links");
+  assert.equal(row.getAttribute("style"), null, "no inline style on the row: an inline display would beat the hide rule");
+  const cs = w.getComputedStyle(row);
+  assert.deepEqual([cs.display, cs.alignItems, cs.justifyContent, cs.gap, cs.flexWrap], ["flex", "center", "center", "6px", "wrap"]);
+});
+
 test("converting badge: encoder + percentage when present, indeterminate otherwise", async () => {
   const { w, d } = await bootPage();
   const stEl = d.createElement("span");
