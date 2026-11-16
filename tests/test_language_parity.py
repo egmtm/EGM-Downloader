@@ -260,7 +260,9 @@ READ_IN_TEMPLATES = {"audio.option.128.desc": 1, "audio.option.192.desc": 1, "au
                      "toast.bulk.done_videos": 1, "toast.bulk.done_audio": 1, "toast.bulk.done_mixed": 1,
                      "themes.section.style": 1, "themes.section.vibe": 1, "themes.section.pop_culture": 1,
                      "themes.section.heritage": 1, "themes.section.other": 1,
-                     "themes.filter.imported": 1, "themes.filter.seasonal": 1}
+                     "themes.filter.imported": 1, "themes.filter.seasonal": 1,
+                     # The Footer switch and its confirm box (new texts, listed so a lost hook is seen too).
+                     "footer.toggle.label": 1, "footer.modal.hide.title": 1, "footer.modal.hide.body": 1}
 
 
 def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():
