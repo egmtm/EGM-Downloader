@@ -67,18 +67,6 @@
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - ⏱️ **Quit When Done** - Close the app automatically once every download has finished, from the main window or the Subscriptions queue. A 30 second countdown appears in the middle of the window and stops with Cancel or Esc. It won't close if a download failed or was cancelled.
 
-## 🔍 How EGM Downloader compares
-
-A side by side look at one well known alternative, using details you can check yourself on its official pages and in our source. Last checked November 1, 2026.
-
-| | EGM Downloader | [4K Video Downloader+](https://www.4kdownload.com/products/videodownloader-42) |
-|---|---|---|
-| **Price** | Free. No paid tier, no license key | Free plan "with quantity limitations". Paid plans from $15/year ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
-| **Source code** | Public under AGPL-3.0 ([LICENSE](LICENSE)) | Proprietary. Terms: "We reserve all our rights over our Proprietary Materials." These include "software, scripts, source code" ([terms, section 3](https://www.4kdownload.com/agreement/videodownloader)) |
-| **Videos behind a login** | Included. Import cookies from your browser, they stay on your machine | Premium: "private content download is a premium feature" ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
-| **What the app sends out** | No analytics or tracking code. It connects to the sites you download from, plus a short list of hosts for updates and its tools (GitHub, PyPI, egerena.com and an ffmpeg mirror), listed in the [source](app.py). The Windows portable also installs its runtimes on first run: Node.js (nodejs.org), Electron (npm registry and GitHub, fetched again when an app update needs a newer one) and its private Python (GitHub), listed in [windows/launch.py](windows/launch.py). The Windows installer, like macOS and Linux, brings Electron and Python with it. | Terms: "we may collect and use anonymous technical data and related information, including but not limited to technical information about your device, system and application software, and peripherals, that is gathered periodically to facilitate the provision of updates to the Application." ([terms, section 9](https://www.4kdownload.com/agreement/videodownloader)) |
-| **Platforms** | Windows 10/11 (the portable zip needs Python 3.10+ for its first launch), macOS 13+ (Apple Silicon only), Linux AppImage | Windows 11, macOS 12+, Ubuntu 22.04+ (GNOME only) ([product page](https://www.4kdownload.com/products/videodownloader-42)) |
-
 ---
 
 <a id="screenshots"></a>
