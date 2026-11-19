@@ -49,7 +49,7 @@
 - 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ➕ **Add While Downloading** - Paste more links while downloads are running. New videos join the list and the current run, Clear keeps the downloads in progress, and one progress bar with Cancel All covers everything.
-- 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. "Stop and save" keeps what was captured, and a recording that fails partway is saved instead of lost. If the stream drops, it reconnects on its own (up to 5 times in a row) and joins the pieces into one file, with a notice when a few seconds may be missing or repeated.
+- 🔴 **Live Stream Recording** - Live streams show a LIVE tag with recording time and size. Pause and Resume leave the paused time out and join the pieces into one file. "Stop and save" keeps what was captured, and a recording that fails partway is saved instead of lost. Quitting during a recording asks whether to save it, discard it, or keep the app open. If the stream drops, it reconnects on its own (up to 5 times in a row) and joins the pieces into one file, with a notice when a few seconds may be missing or repeated.
 - 📡 **Subscriptions** - Save channels and playlists, auto-fetch new videos, and download with per-channel settings and a live download queue
 - 🚫 **SponsorBlock** - Optionally cut sponsor reads, self promotion, intros and outros out of downloaded YouTube videos, using the community [SponsorBlock](https://sponsor.ajay.app/) database. Off by default; choose categories globally or per subscription.
 - 🔤 **Subtitles & Metadata** - Embed subtitles and rich metadata (thumbnail, chapters, title/artist/date) directly into video files
@@ -63,7 +63,7 @@
 - 💼 **Settings Export / Import** - Back up and restore your settings and subscriptions, including each subscription's own folder, format, quality, auto fetch and SponsorBlock settings
 - 🔄 **Updates** - Built-in update checker that only trusts a signed release feed (on Windows the app also downloads the update and checks its SHA256 before installing; on Mac and Linux it opens the download page), plus in app updates for yt-dlp, ffmpeg, and optional libraries without reinstalling
 - 💼 **Windows Portable** - Run from any folder or USB drive, no installer and no registry. Downloads its own private Python on first run.
-- 📋 **Diagnostics** - Live log viewer in the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting
+- 📋 **Diagnostics** - Live log viewer in the footer and the Subscriptions window, with optional raw yt-dlp output and export to file for troubleshooting. The footer can be hidden with a switch in Advanced.
 - 🧹 **Smart Cleanup** - Automatic removal of temporary files and failed downloads
 - ⏱️ **Quit When Done** - Close the app automatically once every download has finished, from the main window or the Subscriptions queue. A 30 second countdown appears in the middle of the window and stops with Cancel or Esc. It won't close if a download failed or was cancelled.
 
@@ -73,7 +73,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.5.3.2, THE TOTAL PACKAGE. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.4.1, RAW FEED: RELOADED. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -82,12 +82,12 @@
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Dreamcast theme"/></a>
-      <br/><sub><b>Main UI</b> (Dreamcast theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Saffron theme"/></a>
+      <br/><sub><b>Main UI</b> (Saffron theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Evergreen theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Evergreen theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Mermaid theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Mermaid theme)</sub>
     </td>
   </tr>
 </table>
@@ -95,25 +95,12 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Blast Processing theme"/></a>
-      <br/><sub><b>Live Streams</b> (Blast Processing theme)</sub>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Lisbon theme"/></a>
+      <br/><sub><b>Live Streams</b> (Lisbon theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, 2049 theme"/></a>
-      <br/><sub><b>Live Stream Reconnecting</b> (2049 theme)</sub>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Fogbank theme"/></a>
-      <br/><sub><b>Quit When Done</b> (Fogbank theme)</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Obsidian theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Obsidian theme)</sub>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Honey theme"/></a>
+      <br/><sub><b>Live Stream Reconnecting</b> (Honey theme)</sub>
     </td>
   </tr>
 </table>
@@ -121,12 +108,12 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Windows 95 theme"/></a>
-      <br/><sub><b>All Themes</b> (Windows 95 theme)</sub>
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Mac OS 9 theme"/></a>
+      <br/><sub><b>Quit When Done</b> (Mac OS 9 theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Plum Harbor"/></a>
-      <br/><sub><b>Theme Creator</b> (custom Plum Harbor theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Andromeda theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Andromeda theme)</sub>
     </td>
   </tr>
 </table>
@@ -134,12 +121,25 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Amethyst theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Amethyst theme)</sub>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Y2K theme"/></a>
+      <br/><sub><b>All Themes</b> (Y2K theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Seafoam theme"/></a>
-      <br/><sub><b>Download History</b> (Seafoam theme)</sub>
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Juniper Dusk"/></a>
+      <br/><sub><b>Theme Creator</b> (custom Juniper Dusk theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Tiedye theme"/></a>
+      <br/><sub><b>Subscriptions</b> (Tiedye theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Amsterdam theme"/></a>
+      <br/><sub><b>Download History</b> (Amsterdam theme)</sub>
     </td>
   </tr>
 </table>
@@ -150,7 +150,7 @@
 🔗 **Platform page:** [windows.egmdownloader.app](https://windows.egmdownloader.app)
 **Latest:** v1.5.4.1  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (122 MB · ~800 MB after install)  
-**SHA256:** `7297253db8884dedd34f7b6e0b17011d79792c88d509d5572452768805d82426`  
+**SHA256:** `5d0c2efd2620ad47e94df4d13ecd3200c690793f339773cdd9d984059a246a89`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit), on an Intel or AMD processor. Windows 11 on ARM also works through Windows' own x64 emulation, but it is not officially supported. Nothing else: Electron and Python come with the installer  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -158,8 +158,8 @@
 
 ### Windows Portable
 **Latest:** v1.5.4.1  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (716 KB · ~1 GB after first run)  
-**SHA256:** `2fccde57927d9b2abe161a2895a9026200e6f5b0e458f11887b9362a4d542077`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (724 KB · ~1 GB after first run)  
+**SHA256:** `1e4a8a3c3cdabed4a726d625dc56f0f71ff36e71992ee77561a7e05fdfbf09b2`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -170,7 +170,7 @@
 🔗 **Platform page:** [mac.egmdownloader.app](https://mac.egmdownloader.app)
 **Latest:** v1.5.4.1  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (145 MB · ~300 MB after install)  
-**SHA256:** `2075c7be09d2ec123aba8fb17f460c28a9a02e38db020317b81a4201fb183760`  
+**SHA256:** `37ac23d36bf0e359e673511a43310043cc243d6f8e6510005159f4f60884712c`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -180,7 +180,7 @@
 🔗 **Platform page:** [linux.egmdownloader.app](https://linux.egmdownloader.app)
 **Latest:** v1.5.4.1  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (172 MB · ~300 MB after install)  
-**SHA256:** `b5c11124efa8e973f553b5dd432a68c7c1603d63dbb978f8de35e64bf46e6400`  
+**SHA256:** `2d9749b10c47f38f7f723ec3d85df6abc6797624603a78cc277a5594ebad4831`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
 **Format:** AppImage (Universal)  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
