@@ -11,7 +11,7 @@ vTBD - TBD (TBD)
   • [ALL] Changed: The History, Themes and Advanced panel is a little narrower. In Advanced, the Interface switches share one row and have shorter names.
   • [MAC] Fixed: Live recordings work again. With ffmpeg 9 they stopped with "ffmpeg exited with code 251".
   • [WINDOWS] Security: Portable: When the app has to download its own Node.js, it now downloads 24.22.3, a security release. A Node.js 22.12 or newer that is already there is kept.
-  • [ALL] Electron runtime updated to v45.3.4.
+  • [ALL] Electron runtime updated to v45.4.1, with backported ANGLE, Chromium, Dawn, FFmpeg, PDFium and V8 security fixes.
 
 v1.5.3.2 - THE TOTAL PACKAGE (11/13/2026)
 -----------------------------------------
