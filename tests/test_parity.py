@@ -1557,6 +1557,24 @@ def test_i18n_keys_exist_in_en_locale():
     assert not bad, f"templates reference keys missing from en.json: {bad}"
 
 
+def test_each_electron_lockfile_carries_the_version_of_its_package_json():
+    """The bump script writes the app version into the three electron/package.json files. The two
+    version fields at the top of each package-lock.json are edited by hand, and nothing else read
+    them: with all three left at the previous version the validator and every test passed."""
+    import json as _json
+    import os as _os
+
+    root = _os.path.dirname(_os.path.dirname(__file__))
+    for plat in ("windows", "mac", "linux"):
+        pkg = _json.load(open(_os.path.join(root, plat, "electron", "package.json"), encoding="utf-8"))
+        lock = _json.load(open(_os.path.join(root, plat, "electron", "package-lock.json"), encoding="utf-8"))
+        tops = (lock.get("version"), lock.get("packages", {}).get("", {}).get("version"))
+        assert tops == (pkg["version"], pkg["version"]), (
+            f"{plat}/electron/package-lock.json says {tops} in its two top version fields, "
+            f"package.json says {pkg['version']}: write the same version in both fields of the lockfile"
+        )
+
+
 def test_electron_runtime_version_is_identical_across_all_three_platforms():
     """The Electron runtime is declared in SIX hand-edited places -- a
     package.json range and a package-lock.json pin for each of Windows, Mac and
