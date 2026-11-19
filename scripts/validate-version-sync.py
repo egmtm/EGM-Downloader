@@ -99,6 +99,41 @@ def _check_app_py(rel_path, expected_version, expected_build):
 # Shared / Windows checks
 # --------------------------------------------------------------------------
 
+def check_patchnotes_header(v, b=None):
+    """The top block of patchnotes.txt is the one What's New shows, and only when its header
+    carries the app's exact version. A well formed header with a wrong number still gives full
+    feeds, so nothing else catches it. Before the release is cut the block is 'vTBD - ...'.
+    Once the build is bumped past the last released build (scripts/last-released-build.txt) the
+    release is being cut, and 'vTBD' is refused: the feeds skip that block and would carry the
+    previous release's notes, and What's New would be empty."""
+    errors = []
+    rel = "patchnotes.txt"
+    content = _read_or_miss(ROOT / rel, rel, errors)
+    if content is None:
+        return errors
+    first = next((line.rstrip() for line in content.splitlines() if line.strip()), "")
+    if re.match(r'vTBD\s+-\s', first):
+        last = _last_released_build()
+        if b is not None and last is not None and int(b) > last:
+            errors.append(f"{rel}: the first header is still '{first}', but build {b} is past the last "
+                          f"released build {last}: write 'v{v} - NAME (MM/DD/YYYY)' in the bump commit")
+        return errors
+    if not re.fullmatch(r'v' + re.escape(v) + r' - \S.* \(\d{2}/\d{2}/\d{4}\)', first):
+        errors.append(f"{rel}: the first header is '{first}', expected 'v{v} - NAME (MM/DD/YYYY)', "
+                      f"or 'vTBD - ...' while the release is not cut")
+    return errors
+
+
+def _last_released_build():
+    """The build number in scripts/last-released-build.txt, or None (no file, or not a number:
+    check_feed_build_monotonic reports that one)."""
+    path = ROOT / 'scripts' / 'last-released-build.txt'
+    try:
+        return int(path.read_text(encoding='utf-8').split()[0])
+    except (OSError, ValueError, IndexError):
+        return None
+
+
 def check_root_app_py(v, b):
     return _check_app_py("app.py", v, b)
 
@@ -881,6 +916,7 @@ def main():
         ("mac/app.py",                          lambda: check_mac_app_py(v, b)),
         ("mac/electron/package.json",           lambda: check_mac_package_json(v)),
         ("mac/BUILD.sh",                        lambda: check_mac_build_sh(v)),
+        ("patchnotes.txt",                      lambda: check_patchnotes_header(v, b)),
     ]
 
     for label, fn in checks:

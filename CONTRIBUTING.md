@@ -126,13 +126,12 @@ pip install -r linux/requirements.txt
 #### Windows
 
 ```bash
-# Phase 1: compiles the portable launcher and builds the installer folder
+# Compiles the portable launcher and builds the installer folder
 # (dist/win-unpacked: Electron, the bundled Python and its packages, the app files), then stops
 bash windows/BUILD.sh
-# Sign both files named "EGM Downloader.exe": windows/ (launcher) and dist/win-unpacked/ (Electron)
-# Phase 2: verifies both signatures, then builds egm-setup.exe, EGMd.zip and EGMd-portable.zip
-bash windows/BUILD.sh --continue
 ```
+
+It stops there on purpose. The steps after it need signed files: they check the signatures, then build the installer and the zips. The maintainer does them when a release is cut; they are described at the top of `windows/BUILD.sh`.
 
 The installer folder is built by `windows/installer/build-folder.sh`: Electron from `windows/electron`'s
 lock through a staging package, the pinned Python (same version and release as Mac and Linux) and the
@@ -163,46 +162,41 @@ chmod +x BUILD.sh
 
 We use a unified version management system. **Never manually edit version numbers!**
 
-### Standard Build Workflow
+### Building and Checking Your Change
 
 ```bash
-# 1. Bump build number (required before EVERY build)
-python scripts/bump-version.py
-
-# 2. Add patch notes
-python scripts/add-patchnote.py "Your change 1" "Your change 2"
-
-# 3. Build your platform
-# Windows: bash windows/BUILD.sh, sign, then bash windows/BUILD.sh --continue
+# 1. Build your platform to test
+# Windows: bash windows/BUILD.sh (builds the installer folder, dist/win-unpacked, then stops:
+# the steps after it need signed files and are done by the maintainer)
 # Mac: bash mac/BUILD.sh
 # Linux: bash linux/BUILD.sh
 
-# 4. Generate update JSONs
-python scripts/gen-update-json.py --notes "Your change 1; Your change 2"
+# 2. Before a pull request, run the checks
+python3 scripts/validate-version-sync.py
+# pytest is not in requirements.txt, so install it once
+pip install pytest
+cd tests
+python3 -m pytest
 ```
 
-### Version Bumping
+The tests are described under Automated Tests below.
 
-```bash
-# Increment build number only (most common)
-python scripts/bump-version.py
+A change that users will notice gets a line in the top block of `patchnotes.txt` (the block headed `vTBD - TBD (TBD)`). Write it like the lines already there: a platform tag (`[ALL]`, `[WINDOWS]`, `[MAC]` or `[LINUX]`), then `New:`, `Changed:` or `Fixed:`, then what is different for the person using the app, in plain words:
 
-# Increment version string (e.g., v0.98 → v0.99)
-python scripts/bump-version.py --version 0.99
-
-# Preview changes without writing
-python scripts/bump-version.py --dry-run
 ```
+  • [ALL] Fixed: what is different for the person using the app, in plain words.
+```
+
+Version numbers, update files and signing are done by the maintainer when a release is cut, so a pull request does not run `bump-version.py` or `gen-update-json.py`.
 
 ### Utility Scripts
 
 All scripts are in `scripts/` directory:
 
 - **bump-version.py** - Increment build/version, sync all files
-- **add-patchnote.py** - Add entries to patchnotes.txt
 - **gen-update-json.py** - Generate platform update JSONs
 
-`bump-version.py`, `add-patchnote.py` and `gen-update-json.py` take `--help`; the other scripts
+`bump-version.py` and `gen-update-json.py` take `--help`; the other scripts
 explain their arguments in the docstring at the top of the file. `check-node-pin.py` always
 contacts the Node.js release server.
 
@@ -408,8 +402,7 @@ EGM-Downloader/
 ├── scripts/                  # Build automation
 │   ├── bump-version.py       # Version management
 │   ├── validate-version-sync.py # Version sync validator (CI)
-│   ├── gen-update-json.py    # Update JSON generator
-│   └── add-patchnote.py      # Changelog helper
+│   └── gen-update-json.py    # Update JSON generator
 ├── tests/                    # Automated test suite
 │
 ├── version.json              # SINGLE SOURCE OF TRUTH

@@ -46,6 +46,7 @@ function rig(platform, { active, force = false, choice = 1, quitting = false, wi
     flaskProc: backend ? { pid: 4242 } : null,
     http, require: () => http, HOST: "127.0.0.1", PORT: 8899, EGM_TOKEN: "tok",
     setTimeout() { log.timers++; }, execSync() {}, process: { kill() {} },
+    _liveQuitAnswered: true,   // the live recording question has its own tests (live_quit.test.mjs)
   };
   vm.runInNewContext(helper[0] + handler[0], ctx);
   const event = { preventDefault() { log.prevented++; } };
@@ -130,6 +131,7 @@ function winHandlerRig(name, { active, choice }) {
     flaskProc: { pid: 4242 },
     subsWindow: subsWin([]), subsActiveDownloads: active, subsForceClose: false,
     dialog: { showMessageBoxSync() { log.asked++; return choice; } },
+    liveRecordingsAllowQuit: async () => true, _liveQuitAnswered: false,   // no live recording here (live_quit.test.mjs)
   };
   vm.runInNewContext(helpers(src, "windows") + handler[0], ctx);
   // The handlers answer with objects from the vm context: compare them as plain JSON.

@@ -35,8 +35,12 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
           items = items.filter(i => i !== pItem);
         } else if (!info2.error) {
           pItem.info = info2;
-          renderCard(el, pItem);
-          updateQueueArrows();   // renderCard rebuilds the card — visibility resets
+          // A card whose download is already done reads Done until it fades away: a rebuild would show
+          // Ready and a Download button again, and the card would leave in the middle of that download.
+          if (pItem.status !== 'done') {
+            renderCard(el, pItem);
+            updateQueueArrows();   // renderCard rebuilds the card — visibility resets
+          }
         } else {
           // /api/info failed for this entry — show the localized error card
           // instead of leaving the stub spinning forever. This is the path
@@ -543,10 +547,43 @@ function addStopSave(item, n, cancelBtn) {
     try { const r = await fetch(`/api/stop/${item.jobId}`, { method: 'POST' }); if (!r.ok) b.disabled = false; }
     catch { b.disabled = false; }
   };
+  // Pause and Resume sit before Stop and save; which one shows follows the job (setLivePauseButtons)
+  for (const [kind, label, fallback] of [['pause', 'card.btn.pause', 'Pause'], ['resume', 'card.btn.resume', 'Resume']]) {
+    let p = document.getElementById(`${kind}${n}`);
+    if (!p) {
+      p = document.createElement('button');
+      p.id = `${kind}${n}`;
+      p.className = `btn btn-sm btn-${kind}`;
+      p.textContent = (kind === 'pause' ? '❚❚ ' : '▶ ') + (i18nGet(label) || fallback);
+      b.parentNode.insertBefore(p, b);
+    }
+    p.style.display = 'none';
+    p.disabled = false;
+    p.onclick = async () => {
+      if (!item.jobId) return;
+      p.disabled = true;
+      try { const r = await fetch(`/api/${kind}/${item.jobId}`, { method: 'POST' }); if (!r.ok) p.disabled = false; }
+      catch { p.disabled = false; }
+    };
+  }
 }
 function hideStopSave(item) {
-  const b = document.getElementById(`stop${item.id}`);
-  if (b) b.style.display = 'none';
+  for (const id of [`stop${item.id}`, `pause${item.id}`, `resume${item.id}`]) {
+    const b = document.getElementById(id);
+    if (b) b.style.display = 'none';
+  }
+}
+// Pause only while the card reads Recording (not while it reconnects or converts), Resume only while paused
+function setLivePauseButtons(stEl, d) {
+  const n = stEl && stEl.id ? stEl.id.slice(2) : null;
+  const pause = n !== null ? document.getElementById(`pause${n}`) : null;
+  const resume = n !== null ? document.getElementById(`resume${n}`) : null;
+  if (!pause || !resume) return;
+  const recording = d.status === 'downloading' && !!d.live_time && !d.live_reconnecting && !(d.progress >= 100);
+  if (recording && pause.style.display === 'none') pause.disabled = false;
+  if (d.status === 'paused' && resume.style.display === 'none') resume.disabled = false;
+  pause.style.display = recording ? '' : 'none';
+  resume.style.display = d.status === 'paused' ? '' : 'none';
 }
 
 async function cancelDownload(item, n) {
@@ -602,6 +639,12 @@ function applyJobProgress(d, stEl, progEl) {
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.add('indeterminate'); pi.style.width = ''; }
     if (progEl) progEl.style.display = '';
+  } else if (d.status === 'paused') {
+    // Paused by the user: nothing records, the time and size stay where they stopped
+    setBadge(stEl, 'wait', (i18nGet('card.status.paused') || 'Paused') + (d.live_time ? ` · ${d.live_time}` : '') + (d.live_size ? ` · ${d.live_size}` : ''));
+    const pi = progEl ? progEl.querySelector('.prog-inner') : null;
+    if (pi) { pi.classList.remove('indeterminate'); pi.style.width = '0'; }
+    if (progEl) progEl.style.display = '';
   } else if (d.status === 'downloading' && d.progress > 0) {
     const spd = d.speed ? ` · ${d.speed}` : '';
     const eta = d.eta ? ` · ${i18nFmt('card.status.eta', d.eta) || 'ETA ' + d.eta}` : '';
@@ -609,6 +652,7 @@ function applyJobProgress(d, stEl, progEl) {
     const pi = progEl ? progEl.querySelector('.prog-inner') : null;
     if (pi) { pi.classList.remove('indeterminate'); pi.style.width = Math.round(d.progress) + '%'; }
   }
+  setLivePauseButtons(stEl, d);
 }
 
 
@@ -623,6 +667,9 @@ function localizeError(d) {
   }
   return (d && d.error) || i18nGet('download.error.generic') || 'Download failed.';
 }
+
+// How long a finished card stays before it fades away
+const DONE_CARD_MS = 5000, DONE_CARD_NOTED_MS = 15000;
 
 function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
   // Helper to hide bulk buttons once nothing is actionable anymore
@@ -643,19 +690,33 @@ function applyJobDone(d, item, stEl, dlBtn, progEl, cancelBtn) {
     } else {
       toast(i18nFmt('download.saved', d.filename) || ('Saved: ' + d.filename), 'ok');
     }
-    // Auto-remove the card — history panel is canonical record, toast is feedback
+    // The card stays a moment reading Done, then fades away: History is the record, the toast is
+    // feedback. A live recording that saved with a note (ended early, a gap, parts, ended while paused)
+    // keeps the note on the card for 15 s, every other download stays 5 s. A done card is not active:
+    // closing the app does not ask about it, and nothing brings it back on the next start.
     const card = stEl ? stEl.closest('.vcard') : null;
-    if (card) {
-      card.style.transition = 'opacity .25s ease, transform .25s ease, margin .25s ease, max-height .3s ease, padding .25s ease';
-      card.style.opacity = '0';
-      card.style.transform = document.documentElement.dir === 'rtl' ? 'translateX(-8px)' : 'translateX(8px)';   // slides toward the end side
-      setTimeout(() => {
-        card.remove();
-        items = items.filter(i => i.id !== item.id);
-        if (items.length <= 1) setDlAllVisible(false);
-      }, 250);
-    } else {
+    const drop = () => {
       items = items.filter(i => i.id !== item.id);
+      if (items.length <= 1) setDlAllVisible(false);
+    };
+    if (card) {
+      setBadge(stEl, 'done', i18nGet('card.status.done') || '✓ Done');
+      const noted = !!(item.info?.is_live && d.warning);
+      if (noted) {
+        const note = document.createElement('div');
+        note.className = 'vnote';
+        note.textContent = (d.warning_key && i18nGet(d.warning_key)) || d.warning;
+        stEl.parentNode.insertAdjacentElement('afterend', note);
+      }
+      setTimeout(() => {
+        if (!card.isConnected) { drop(); return; }      // removed by hand meanwhile
+        card.style.transition = 'opacity .8s ease, transform .8s ease';
+        card.style.opacity = '0';
+        card.style.transform = document.documentElement.dir === 'rtl' ? 'translateX(-8px)' : 'translateX(8px)';   // slides toward the end side
+        setTimeout(() => { card.remove(); drop(); }, 800);
+      }, noted ? DONE_CARD_NOTED_MS : DONE_CARD_MS);
+    } else {
+      drop();
     }
     // Refresh mini history panel so new entry appears immediately
     if (typeof loadHistoryPanel === 'function') loadHistoryPanel();

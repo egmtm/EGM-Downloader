@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>EGM Downloader v1.5.3.2</title>
+  <title>EGM Downloader v1.5.4.1</title>
   <style>
 {% include 'index_styles.html' %}  </style>
 </head>
@@ -2124,20 +2124,24 @@
           <button class="adv-btn-full" id="adv-import-btn" data-i18n-attr="title:tooltip.import_settings" title="Import settings from a file to restore your preferences">
             <span class="adv-btn-icon blue"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></svg></span><span data-i18n="advanced.btn.import_settings">Import settings</span>
           </button></div>
-          <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.interface">Interface</span></div>
-          <div class="adv-chan-grid"><div class="adv-port-wrap" data-i18n-attr="title:lang.toggle.subtitle" title="Hides the selector from the footer — can be re-enabled here">
-            <span class="adv-port-label" data-i18n="lang.toggle.label">Show language selector</span>
+          <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.interface">Interface (show/hide)</span></div>
+          <div class="adv-iface-strip"><div class="adv-port-wrap" data-i18n-attr="title:settings.toggle.subtitle" title="Hides the whole settings panel, including Site Cookies — can be re-enabled here">
+            <span class="adv-port-label" data-i18n="settings.toggle.label">Settings</span>
+            <input type="checkbox" class="sw" id="show-settings-panel-chk" style="margin-inline-start:auto" checked>
+          </div>
+          <div class="adv-port-wrap" data-i18n-attr="title:lang.toggle.subtitle" title="Hides the selector from the footer — can be re-enabled here">
+            <span class="adv-port-label" data-i18n="lang.toggle.label">Language selector</span>
             <input type="checkbox" class="sw" id="show-lang-selector-chk" style="margin-inline-start:auto" checked>
           </div>
-          <div class="adv-port-wrap" data-i18n-attr="title:settings.toggle.subtitle" title="Hides the whole settings panel, including Site Cookies — can be re-enabled here">
-            <span class="adv-port-label" data-i18n="settings.toggle.label">Show settings panel</span>
-            <input type="checkbox" class="sw" id="show-settings-panel-chk" style="margin-inline-start:auto" checked>
+          <div class="adv-port-wrap" data-i18n-attr="title:footer.toggle.subtitle" title="Hides the footer, including Diagnostics and Help. You can turn it back on here. The language selector keeps its own switch.">
+            <span class="adv-port-label" data-i18n="footer.toggle.label">Footer</span>
+            <input type="checkbox" class="sw" id="show-footer-chk" style="margin-inline-start:auto" checked>
           </div></div>
           <!-- Channels -->
           <div class="adv-divider"><span class="adv-divider-label" data-i18n="advanced.section.channels">Channels</span></div>
           <div class="adv-chan-grid"><div class="adv-port-wrap" data-i18n-attr="title:tooltip.ytdlp_channel" title="yt-dlp update channel — Nightly brings frequent improvements but may introduce regressions">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
-            <span class="adv-port-label" data-i18n="advanced.label.ytdlp_channel">yt-dlp channel</span>
+            <span class="adv-port-label">yt-dlp</span>
             <select id="adv-ytdlp-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-inline-start:auto;outline:none;cursor:pointer">
               <option value="stable" data-i18n="advanced.channel.stable">Stable</option>
               <option value="nightly" data-i18n="advanced.channel.nightly">Nightly</option>
@@ -2145,7 +2149,7 @@
           </div>
           <div class="adv-port-wrap" id="adv-ffmpeg-channel-wrap" data-i18n-attr="title:tooltip.ffmpeg_channel" title="ffmpeg update channel — Nightly uses git master, Stable uses the latest release branch">
             <span class="adv-btn-icon teal"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 6l8 0"/><path d="M16 6l4 0"/><path d="M6 12a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M4 12l2 0"/><path d="M10 12l10 0"/></svg></span>
-            <span class="adv-port-label" data-i18n="advanced.label.ffmpeg_channel">ffmpeg channel</span>
+            <span class="adv-port-label">ffmpeg</span>
             <select id="adv-ffmpeg-channel" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-inline-start:auto;outline:none;cursor:pointer">
               <option value="stable" data-i18n="advanced.channel.stable">Stable</option>
               <option value="nightly" data-i18n="advanced.channel.nightly">Nightly</option>
@@ -2371,8 +2375,8 @@
   <div id="lang-row" style="text-align:center;margin-bottom:7px;display:none">
     <select id="lang-select" data-i18n-attr="title:lang.selector.tooltip" title="Language" style="font-size:.68rem;color:var(--text);border:1px solid var(--acc-dim);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;outline:none;font-family:inherit;text-align:center"></select>
   </div>
-  <div style="display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap">
-    <button id="footer-version-pill" data-i18n-attr="title:footer.btn.whatsnew" title="What's New" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">v1.5.3.2</button>
+  <div class="footer-links">
+    <button id="footer-version-pill" data-i18n-attr="title:footer.btn.whatsnew" title="What's New" style="font-size:.68rem;color:var(--text2);border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf);cursor:pointer;font-family:inherit">v1.5.4.1</button>
     <a href="{{ platform_url }}" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.website">egmdownloader.app</a>
     <a href="https://github.com/egmtm/EGM-Downloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)" data-i18n="footer.link.github">GitHub</a>
     <a href="https://x.com/EGMDownloader" target="_blank" rel="noopener" style="font-size:.68rem;color:var(--text2);text-decoration:none;border:1px solid var(--border);border-radius:20px;padding:1px 9px;background:var(--surf)">@EGMDownloader</a>
@@ -2397,13 +2401,13 @@
         <div style="flex:1;height:1px;background:var(--border)"></div>
       </div>
       <div class="quality-option" data-quality="128">
-        <div><div class="quality-label">128 kbps MP3</div><div class="quality-desc">Small files · streaming quality</div></div>
+        <div><div class="quality-label">128 kbps MP3</div><div class="quality-desc" data-i18n="audio.option.128.desc">Small files · streaming quality</div></div>
       </div>
       <div class="quality-option" data-quality="192">
-        <div><div class="quality-label">192 kbps MP3</div><div class="quality-desc">Good balance · most use cases</div></div>
+        <div><div class="quality-label">192 kbps MP3</div><div class="quality-desc" data-i18n="audio.option.192.desc">Good balance · most use cases</div></div>
       </div>
       <div class="quality-option selected" data-quality="320">
-        <div><div class="quality-label">320 kbps MP3</div><div class="quality-desc">CD quality · recommended</div></div>
+        <div><div class="quality-label">320 kbps MP3</div><div class="quality-desc" data-i18n="audio.option.320.desc">CD quality · recommended</div></div>
       </div>
       <div class="quality-option" data-quality="flac">
         <div><div class="quality-label">FLAC</div><div class="quality-desc" data-i18n="audio.option.flac.desc">Lossless · largest files</div></div>
@@ -2550,9 +2554,20 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="hide-footer-modal" style="display:none" onclick="if(event.target===this)this.style.display='none'">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:360px;width:90%">
+    <h3 style="margin-top:0" data-i18n="footer.modal.hide.title">Hide footer?</h3>
+    <p style="font-size:.8rem;color:var(--text2)" data-i18n="footer.modal.hide.body">The footer will no longer appear, including What's New, Diagnostics and Help. You can always turn it back on here in Advanced. The language selector keeps its own switch.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="hide-footer-cancel-btn" data-i18n="quality.btn.cancel">Cancel</button>
+      <button class="btn btn-primary" id="hide-footer-confirm-btn" data-i18n="lang.modal.hide.confirm">Hide it</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-backdrop" id="whats-new-modal" style="display:none">
   <div class="modal" id="whats-new-modal-inner">
-    <h3 id="whats-new-heading"><span id="whats-new-title-before"></span><span dir="ltr" id="whats-new-version">v1.5.3.2</span><span id="whats-new-title-after"></span></h3>
+    <h3 id="whats-new-heading"><span id="whats-new-title-before"></span><span dir="ltr" id="whats-new-version">v1.5.4.1</span><span id="whats-new-title-after"></span></h3>
     <ul class="whats-new-list" id="whats-new-list">
       <!-- lint-allow-muted: loading-state -->
       <li id="whats-new-loading" data-i18n="whatsnew.loading" style="list-style:none;color:var(--muted);font-style:italic">Loading release notes…</li>

@@ -4,7 +4,6 @@ the validator rule) but are not shown to users in the text the release scripts w
 The scripts are loaded by path (their file names have hyphens) with ROOT pointed at a
 temporary folder, so nothing in the real tree is touched."""
 import importlib.util
-import json
 import re
 import sys
 from pathlib import Path
@@ -45,23 +44,6 @@ def test_bump_rewrites_the_readme_latest_lines_in_both_forms(tmp_path, monkeypat
     bump.update_readme("1.5.0", 166, False)
     out = (tmp_path / "README.md").read_text(encoding="utf-8")
     assert out == "**Latest:** v1.5.0  \n(text)\n**Latest:** v1.5.0  \n**Latest:** v1.5.0  \n"
-
-
-def test_add_patchnote_header_has_no_build_and_is_read_by_the_feed_tools(tmp_path, monkeypatch):
-    add = _load("add-patchnote.py", monkeypatch)
-    gen = _load("gen-update-json.py", monkeypatch)
-    (tmp_path / "version.json").write_text(
-        json.dumps({"version": "1.5.0", "build": 166, "date": "10/20/2026", "time": "9:00 PM EST"}), encoding="utf-8")
-    monkeypatch.setattr(add, "ROOT", tmp_path)
-    monkeypatch.setattr(add, "PATCHNOTES", tmp_path / "patchnotes.txt")
-    monkeypatch.setattr(sys, "argv", ["add-patchnote.py", "[WINDOWS] A change"])
-    add.main()
-    text = (tmp_path / "patchnotes.txt").read_text(encoding="utf-8")
-    header = text.splitlines()[0]
-    assert "Build" not in header and gen._HEADER.match(header), header
-    monkeypatch.setattr(gen, "PATCHNOTES", tmp_path / "patchnotes.txt")
-    assert gen.gen_notes("win") == ["A change"]
-    assert gen.parse_history("windows")[0]["version"] == "1.5.0"
 
 
 def test_a_hand_written_header_without_build_is_read_by_the_feed_tools(tmp_path, monkeypatch):

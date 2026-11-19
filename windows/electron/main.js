@@ -741,6 +741,9 @@ ipcMain.handle('launch-installer', async (event, installerPath) => {
     if (!fs.existsSync(installerPath)) return { error: 'Installer not found: ' + installerPath };
     // The installer closes the app: ask about Subscriptions downloads before it starts, not after.
     if (!subsDownloadsAllowQuit()) return { cancelled: true };
+    // And about a live recording: saved or discarded before the installer can close the app
+    if (!(await liveRecordingsAllowQuit())) { subsForceClose = false; return { cancelled: true }; }
+    _liveQuitAnswered = true;
     // Spawn installer detached so it outlives Electron
     // spawn is already imported at the top of this file
     const child = spawn(installerPath, [], {
@@ -777,11 +780,19 @@ ipcMain.handle('quit-app', (event, opts) => {
     // A queued relaunch cannot be taken back: ask about Subscriptions downloads before queueing it,
     // not only in before-quit, where "Keep open" would leave it waiting to fire at the next quit.
     if (!subsDownloadsAllowQuit()) return { cancelled: true };
-    try {
-      const launcher = path.join(INSTALL_DIR, 'EGM Downloader.exe');
-      if (fs.existsSync(launcher)) app.relaunch({ execPath: launcher });
-      else app.relaunch();
-    } catch { try { app.relaunch(); } catch {} }
+    // The same for a live recording, answered before the relaunch is queued (Keep open must not leave it waiting)
+    return liveRecordingsAllowQuit().then((go) => {
+      if (!go) { subsForceClose = false; return { cancelled: true }; }
+      _liveQuitAnswered = true;
+      try {
+        const launcher = path.join(INSTALL_DIR, 'EGM Downloader.exe');
+        if (fs.existsSync(launcher)) app.relaunch({ execPath: launcher });
+        else app.relaunch();
+      } catch { try { app.relaunch(); } catch {} }
+      app.isQuitting = true;
+      app.quit();
+      return { success: true };
+    }, () => ({ cancelled: true }));
   }
   app.isQuitting = true;
   app.quit();
@@ -1466,6 +1477,70 @@ app.on('window-all-closed', () => {
   if (app.isQuitting) app.quit();
 });
 
+const LIVE_LANG_DIR = path.join(APP_DIR, 'languages');
+// ── Quitting with a live recording running or paused (EGM, Oct 22 and Nov 14) ────
+// Asked once per quit, after the Subscriptions question and while the backend still runs: save
+// what was recorded (Stop and save each, then wait until they are saved, at most 5 minutes, then
+// quit anyway, which only cleans up), discard it (Cancel each), or keep the app open. The text comes
+// from the language files, English when a file or a key is missing.
+const LIVE_QUIT_FALLBACK = {
+  title: 'Live recording in progress',
+  message: 'A live recording is still running or paused.',
+  detail: 'Save what was recorded before the app closes, discard it, or keep the app open. Saving can take a few minutes for a long recording.',
+  save: 'Save and quit', discard: 'Discard and quit', keep: 'Keep open',
+};
+const LIVE_SAVE_WAIT_MS = 5 * 60 * 1000;
+let _liveQuitAnswered = false;   // this quit was asked about; before-quit runs again when it goes ahead
+
+function liveQuitStrings() {
+  try {
+    const lang = _shellLang || (loadSettings().language || 'en');
+    if (!/^[a-z]{2}$/.test(lang)) return { ...LIVE_QUIT_FALLBACK };
+    const raw = JSON.parse(fs.readFileSync(path.join(LIVE_LANG_DIR, `${lang}.json`), 'utf8')).strings || {};
+    const out = {};
+    for (const k of Object.keys(LIVE_QUIT_FALLBACK)) out[k] = raw[`quit.live.${k}`] || LIVE_QUIT_FALLBACK[k];
+    return out;
+  } catch { return { ...LIVE_QUIT_FALLBACK }; }
+}
+
+// The live recordings the backend has (recording, paused or being saved); null when it does not answer
+async function liveJobs() {
+  const r = await backendCall('GET', '/api/live-jobs');
+  if (r.status !== 200) return null;
+  try { return JSON.parse(r.body).jobs || []; } catch { return null; }
+}
+
+// One question at a time: a quit asked for again while the question is open, or while the recordings are
+// being saved, gets the answer of the first one instead of a second question.
+let _liveQuitAsking = null;
+function liveRecordingsAllowQuit() {
+  if (!_liveQuitAsking) _liveQuitAsking = askAboutLiveRecordings().finally(() => { _liveQuitAsking = null; });
+  return _liveQuitAsking;
+}
+
+// true when the quit may go on (nothing live, saved, discarded, or the backend does not answer)
+async function askAboutLiveRecordings() {
+  if (!flaskProc) return true;
+  const live = await liveJobs();
+  if (!live || !live.length) return true;
+  const t = liveQuitStrings();
+  const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
+  if (parent) { if (parent.isMinimized()) parent.restore(); parent.show(); parent.focus(); }
+  const opts = { type: 'warning', buttons: [t.save, t.discard, t.keep], defaultId: 0, cancelId: 2, noLink: true,
+                 title: t.title, message: t.message, detail: t.detail };
+  const { response } = await (parent ? dialog.showMessageBox(parent, opts) : dialog.showMessageBox(opts));
+  if (response !== 0 && response !== 1) return false;
+  const route = response === 0 ? '/api/stop/' : '/api/cancel/';
+  for (const j of live) await backendCall('POST', route + encodeURIComponent(j.id));
+  const end = Date.now() + LIVE_SAVE_WAIT_MS;
+  while (Date.now() < end) {
+    await new Promise((r) => setTimeout(r, 500));
+    const still = await liveJobs();
+    if (!still || !still.length) break;
+  }
+  return true;
+}
+
 // Single cleanup point for every quit path (X button, tray Quit, crash)
 app.on('before-quit', (event) => {
   // Ask first, while the backend still runs: "Keep open" has to leave the app and its downloads as
@@ -1473,6 +1548,15 @@ app.on('before-quit', (event) => {
   if (!subsDownloadsAllowQuit()) {
     event.preventDefault();
     app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
+    _liveQuitAnswered = false;
+    return;
+  }
+  // Then the live recordings: the answer comes back later, so hold this quit and quit again after it
+  if (!_liveQuitAnswered && flaskProc) {
+    event.preventDefault();
+    const goOn = () => { _liveQuitAnswered = true; app.isQuitting = true; app.quit(); };
+    // Keep open: the quit is off, so a Close anyway given to the Subscriptions question just before is off too
+    liveRecordingsAllowQuit().then((go) => { if (go) goOn(); else { app.isQuitting = false; subsForceClose = false; } }, goOn);
     return;
   }
   app.isQuitting = true;

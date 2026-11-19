@@ -179,3 +179,26 @@ def test_every_banner_the_script_ends_with_prints_the_commit(rel):
     assert banners, f"{rel}: no stop or done banner found"
     for i in banners:
         assert any(l_is_commit_echo(l) for l in lines[i:i + 8]), f"{rel}:{i + 1}: the banner does not print the commit"
+
+
+# A checkout is told by its .git, not by asking git (review of 32190d3c): when git cannot read a real
+# checkout, the Mac build stops instead of passing it for a source zip with "Commit: not recorded".
+
+def test_the_mac_build_stops_when_git_cannot_read_a_damaged_checkout(work):
+    shutil.rmtree(work / ".git")
+    (work / ".git").write_text("gitdir: /nowhere/at/all\n")
+    (work / "tracked.txt").write_text("an uncommitted change\n")
+    r = _run("mac/BUILD.sh", work)
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "git could not read it" in r.stdout, r.stdout
+    assert "Commit:" not in r.stdout
+
+
+def test_the_mac_build_stops_in_a_checkout_when_git_is_missing(work, tmp_path):
+    tools = tmp_path / "tools"                                 # bash only: no git on this PATH
+    tools.mkdir()
+    (tools / "bash").symlink_to(shutil.which("bash"))
+    r = _run("mac/BUILD.sh", work, PATH=str(tools))
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert "git could not read it" in r.stdout, r.stdout
+    assert "Commit:" not in r.stdout

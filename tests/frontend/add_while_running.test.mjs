@@ -815,7 +815,7 @@ test("a new download after the bar ended starts a fresh count from zero", async 
   t.finish("j1"); await t.tick(); await t.tick();
   assert.ok(!barShown(t));
   await t.fetchLinks(B);
-  await hand(t, t.ev("items[0].id"));            // B is a new card with a new id
+  await hand(t, t.ev(`items.find(i => i.url === ${JSON.stringify(B)}).id`));   // B is a new card with a new id (A's done card may still be fading)
   assert.ok(barShown(t));
   assert.match(barText(t), /^Downloading: 0 \/ 1 done {2}\(1 active\)/);
 });
@@ -884,13 +884,30 @@ test("a running card removed with the red X leaves the count", async () => {
   assert.match(barText(t), /^Downloading: 0 \/ 1 done {2}\(1 active\)/);
 });
 
-test("a download that finished and left the list on its own still counts as done", async () => {
+test("the info of a card that arrives after its download is done does not rebuild the card", async () => {
+  const t = await boot();
+  t.ctl.holdInfo = true;
+  await t.fetchLinks(A);                         // a stub card: its own info request is held
+  t.all(); await settle();                       // the run asks for the info itself, held too
+  t.ctl.held[1](); await settle(200);            // the run's answer comes first: the download starts
+  assert.deepEqual(t.log.download, [A]);
+  t.finish("j1"); await t.tick(); await t.tick();
+  const card = t.card(0);
+  assert.equal(t.d.getElementById("st0").textContent.trim(), en.strings["card.status.done"]);
+  t.ctl.held[0](); await settle(200);            // now the card's own info lands, while the card still reads Done
+  assert.equal(t.card(0), card);
+  assert.equal(t.d.getElementById("st0").textContent.trim(), en.strings["card.status.done"], "still Done, not Ready again");
+  assert.equal(t.d.getElementById("dl0").style.display, "none", "no Download button comes back on a card that is about to leave");
+  assert.equal(t.ev("items[0].status"), "done");
+});
+
+test("a download that finished, and is leaving the list on its own, counts as done", async () => {
   const t = await boot();
   await t.fetchLinks(`${A}\n${B}`);
   await hand(t, 0);
   await hand(t, 1);
   t.finish("j1"); await t.tick(); await t.tick();
-  assert.equal(t.ev("items.length"), 1, "A's card is gone");
+  assert.equal(t.ev("items[0].status"), "done", "A's card reads Done for a moment before it fades away");
   assert.match(barText(t), /^Downloading: 1 \/ 2 done {2}\(1 active\)/);
 });
 

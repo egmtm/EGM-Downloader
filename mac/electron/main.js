@@ -543,8 +543,15 @@ async function createWindow() {
   mainWindow.on('resize', debouncedSave);
   mainWindow.on('move',   debouncedSave);
 
-  // Save state on close
-  mainWindow.on('close', () => {
+  // Save state on close. Closing the window quits the app here, so a live recording is asked about
+  // first (liveRecordingsAllowQuit); Keep open leaves the window and the recording as they were.
+  mainWindow.on('close', (e) => {
+    if (!_liveQuitAnswered && flaskProc) {
+      e.preventDefault();
+      const closeNow = () => { _liveQuitAnswered = true; if (mainWindow && !mainWindow.isDestroyed()) mainWindow.close(); };
+      liveRecordingsAllowQuit().then((go) => { if (go) closeNow(); }, closeNow);
+      return;
+    }
     saveWindowState();
       // Close secondary windows — they shouldn't outlive main
       if (themesWindow && !themesWindow.isDestroyed()) themesWindow.close();
@@ -992,8 +999,7 @@ const VALID_THEME_RE = /^[a-z0-9-]+$/;
 ipcMain.on('set-language', (event, lang) => {
   if (!isTrustedSender(event)) return;
   if (typeof lang !== 'string' || !/^[a-z]{2}$/.test(lang)) return;
-  // No localized shell surfaces on this platform yet (no tray);
-  // handler exists for bridge parity and future shell strings.
+  _shellLang = lang;   // the quit question about live recordings is the one shell string here (no tray)
 });
 
 ipcMain.on('set-theme', (event, theme) => {
@@ -1101,6 +1107,71 @@ app.on('window-all-closed', () => {
   app.quit();
 });
 
+const LIVE_LANG_DIR = path.join(__dirname, '..', 'app', 'languages');
+let _shellLang = null;
+// ── Quitting with a live recording running or paused (EGM, Oct 22 and Nov 14) ────
+// Asked once per quit, after the Subscriptions question and while the backend still runs: save
+// what was recorded (Stop and save each, then wait until they are saved, at most 5 minutes, then
+// quit anyway, which only cleans up), discard it (Cancel each), or keep the app open. The text comes
+// from the language files, English when a file or a key is missing.
+const LIVE_QUIT_FALLBACK = {
+  title: 'Live recording in progress',
+  message: 'A live recording is still running or paused.',
+  detail: 'Save what was recorded before the app closes, discard it, or keep the app open. Saving can take a few minutes for a long recording.',
+  save: 'Save and quit', discard: 'Discard and quit', keep: 'Keep open',
+};
+const LIVE_SAVE_WAIT_MS = 5 * 60 * 1000;
+let _liveQuitAnswered = false;   // this quit was asked about; before-quit runs again when it goes ahead
+
+function liveQuitStrings() {
+  try {
+    const lang = _shellLang || (loadSettings().language || 'en');
+    if (!/^[a-z]{2}$/.test(lang)) return { ...LIVE_QUIT_FALLBACK };
+    const raw = JSON.parse(fs.readFileSync(path.join(LIVE_LANG_DIR, `${lang}.json`), 'utf8')).strings || {};
+    const out = {};
+    for (const k of Object.keys(LIVE_QUIT_FALLBACK)) out[k] = raw[`quit.live.${k}`] || LIVE_QUIT_FALLBACK[k];
+    return out;
+  } catch { return { ...LIVE_QUIT_FALLBACK }; }
+}
+
+// The live recordings the backend has (recording, paused or being saved); null when it does not answer
+async function liveJobs() {
+  const r = await backendCall('GET', '/api/live-jobs');
+  if (r.status !== 200) return null;
+  try { return JSON.parse(r.body).jobs || []; } catch { return null; }
+}
+
+// One question at a time: a quit asked for again while the question is open, or while the recordings are
+// being saved, gets the answer of the first one instead of a second question.
+let _liveQuitAsking = null;
+function liveRecordingsAllowQuit() {
+  if (!_liveQuitAsking) _liveQuitAsking = askAboutLiveRecordings().finally(() => { _liveQuitAsking = null; });
+  return _liveQuitAsking;
+}
+
+// true when the quit may go on (nothing live, saved, discarded, or the backend does not answer)
+async function askAboutLiveRecordings() {
+  if (!flaskProc) return true;
+  const live = await liveJobs();
+  if (!live || !live.length) return true;
+  const t = liveQuitStrings();
+  const parent = mainWindow && !mainWindow.isDestroyed() ? mainWindow : null;
+  if (parent) { if (parent.isMinimized()) parent.restore(); parent.show(); parent.focus(); }
+  const opts = { type: 'warning', buttons: [t.save, t.discard, t.keep], defaultId: 0, cancelId: 2, noLink: true,
+                 title: t.title, message: t.message, detail: t.detail };
+  const { response } = await (parent ? dialog.showMessageBox(parent, opts) : dialog.showMessageBox(opts));
+  if (response !== 0 && response !== 1) return false;
+  const route = response === 0 ? '/api/stop/' : '/api/cancel/';
+  for (const j of live) await backendCall('POST', route + encodeURIComponent(j.id));
+  const end = Date.now() + LIVE_SAVE_WAIT_MS;
+  while (Date.now() < end) {
+    await new Promise((r) => setTimeout(r, 500));
+    const still = await liveJobs();
+    if (!still || !still.length) break;
+  }
+  return true;
+}
+
 // Fix 3: single cleanup point for every quit path (X, crash)
 app.on('before-quit', (event) => {
   // Ask first, while the backend still runs: "Keep open" has to leave the app and its downloads as
@@ -1108,6 +1179,15 @@ app.on('before-quit', (event) => {
   if (!subsDownloadsAllowQuit()) {
     event.preventDefault();
     app.isQuitting = false;    // the tray Quit and the quit IPC set it before calling app.quit()
+    _liveQuitAnswered = false;
+    return;
+  }
+  // Then the live recordings: the answer comes back later, so hold this quit and quit again after it
+  if (!_liveQuitAnswered && flaskProc) {
+    event.preventDefault();
+    const goOn = () => { _liveQuitAnswered = true; app.isQuitting = true; app.quit(); };
+    // Keep open: the quit is off, so a Close anyway given to the Subscriptions question just before is off too
+    liveRecordingsAllowQuit().then((go) => { if (go) goOn(); else { app.isQuitting = false; subsForceClose = false; } }, goOn);
     return;
   }
   app.isQuitting = true;

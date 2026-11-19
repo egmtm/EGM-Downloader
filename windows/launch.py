@@ -97,7 +97,7 @@ ROOT         = Path(__file__).parent.resolve()
 NODE_DIR     = ROOT / "node_bin"
 ELECTRON_DIR = ROOT / "electron"
 NODE_MIN     = (22, 12, 0)  # minimum Node.js version (Electron's installer, @electron/get 5, needs 22.12+)
-NODE_VERSION = "24.22.2"    # version to download if not found / outdated (Node 24 LTS)
+NODE_VERSION = "24.22.3"    # version to download if not found / outdated (Node 24 LTS)
 NODE_ZIP_NAME = f"node-v{NODE_VERSION}-win-x64.zip"
 NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
 # PINNED SHA-256 of the exact zip above, keyed by the Node version it was taken from
@@ -109,7 +109,7 @@ NODE_ZIP_URL = f"https://nodejs.org/dist/v{NODE_VERSION}/{NODE_ZIP_NAME}"
 # Then check it against nodejs.org (a mistyped pin is not caught by the tests):
 #   python3 scripts/check-node-pin.py --download
 NODE_ZIP_SHA256 = {
-    "24.22.2": "ca1bff5d8ead13c9f2ea404a176db46bd430704d5b5113734049fa365e7799e2",
+    "24.22.3": "e612af99f626ab415ea225af6bce5c971feb448cb5cae250bb1c3fa50c5f7d9f",
 }
 NODE_ZIP_DIR = f"node-v{NODE_VERSION}-win-x64"
 NODE_EXE     = NODE_DIR / "node.exe"
@@ -269,16 +269,28 @@ def _modules_present(names):
         return all(importlib.util.find_spec(n) for n in names)
     except (ImportError, ValueError): return False
 
+def _pip_env():
+    """Environment for every pip run: none of the person's PIP_ variables, no pip config file and
+    no pip cache. --isolated and --no-cache-dir cover the pip we start, but a source build starts a
+    second pip for its build requirements without either flag. That pip inherits this environment,
+    so it reads none of them either. The same helper as the backends'."""
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith("PIP_")}
+    env["PIP_CONFIG_FILE"] = os.devnull
+    env["PIP_NO_CACHE_DIR"] = "1"
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    return env
+
 def _pip_install(cmd, upgrading, timeout):
     """Run pip. A missing package is fatal, but a failed floor upgrade (offline, say) must not
     stop the start: the app runs on the old copy and the next launch tries again."""
     # The launcher runs before the backend, so the backend's PIP_DISABLE_PIP_VERSION_CHECK does not
     # reach this pip: say it here, or pip asks pypi.org whether a newer pip exists after the install.
     # --isolated: no PIP_* variable and no pip.ini of the person's changes what is installed.
-    cmd = cmd + ["--isolated", "--disable-pip-version-check"]
+    # --no-cache-dir: nothing is read from or written to the person's pip cache.
+    cmd = cmd + ["--isolated", "--disable-pip-version-check", "--no-cache-dir"]
     if upgrading: cmd = cmd + ["--retries", "1", "--timeout", "15"]
     try:
-        subprocess.run(cmd, check=not upgrading, timeout=timeout, creationflags=NO_WIN)
+        subprocess.run(cmd, check=not upgrading, timeout=timeout, env=_pip_env(), creationflags=NO_WIN)
     except (subprocess.SubprocessError, OSError) as e:
         if not upgrading:
             # Fatal, but say so: the error used to end the launcher with no message at all (the
@@ -324,10 +336,11 @@ def _pair_ytdlp_ejs(py, upgrading=False):
         _py_log("yt-dlp-ejs: could not read which version the installed yt-dlp names, so it was not paired")
         return
     if not pin: return
-    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--isolated", "--disable-pip-version-check"]
+    cmd = [str(py), "-m", "pip", "install", "-q", f"yt-dlp-ejs=={pin}", "--isolated", "--disable-pip-version-check",
+           "--no-cache-dir"]
     if upgrading: cmd += ["--retries", "1", "--timeout", "15"]      # gives up as fast as the upgrade itself
     try:
-        subprocess.run(cmd, check=True, timeout=120, creationflags=NO_WIN)
+        subprocess.run(cmd, check=True, timeout=120, env=_pip_env(), creationflags=NO_WIN)
     except (subprocess.SubprocessError, OSError) as e:
         _py_log(f"yt-dlp-ejs {pin} could not be installed: {e}")
 
@@ -415,7 +428,7 @@ def _python_has_pip(exe=None):
     PY_SETUP_LOG on a failure, so "could not enable pip" is debuggable."""
     try:
         r = subprocess.run([str(exe or PY_EXE), "-m", "pip", "--isolated", "--version"],
-                           capture_output=True, text=True, timeout=60, creationflags=NO_WIN)
+                           capture_output=True, text=True, timeout=60, env=_pip_env(), creationflags=NO_WIN)
         if r.returncode == 0:
             return True
         _py_log("pip --version failed (rc=%s)\nSTDOUT:\n%s\nSTDERR:\n%s"

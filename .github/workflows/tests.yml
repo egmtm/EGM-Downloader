@@ -12,9 +12,11 @@ permissions:
 jobs:
   test:
     # Pinned to 24.04 on purpose: its NSIS (3.09) is the one that builds the real installer, and the test that lists
-    # the compiled installer was written against it. ubuntu-latest moved to 26.04 (NSIS 3.10, 7-Zip 26) and that
-    # test stopped finding uninstall.exe in the listing. To be looked at after the release, or sooner if GitHub
-    # announces that the 24.04 runners are going away.
+    # the compiled installer was written against it. On 26.04 (NSIS 3.10, 7-Zip 26.00) that test stops finding
+    # uninstall.exe. Checked on both runners, each listing with 7-Zip 23.01 and 26.00: an installer built with NSIS
+    # 3.09 lists uninstall.exe with both, one built with NSIS 3.10 lists it with neither and 7-Zip reports
+    # "BadCmd=13". So NSIS 3.10 writes the uninstaller with a command 7-Zip cannot read; 7-Zip 26.00 is fine.
+    # Look again if GitHub announces that the 24.04 runners are going away.
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false

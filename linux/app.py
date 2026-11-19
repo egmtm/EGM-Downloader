@@ -266,8 +266,8 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 FFMPEG_DIR    = DATA_DIR / "ffmpeg_bin"
 
 # ── App version ───────────────────────────────────────────────────────────────
-APP_VERSION           = "1.5.3.2"
-APP_BUILD             = 177
+APP_VERSION           = "1.5.4.1"
+APP_BUILD             = 178
 APP_UPDATE_URL = "https://egerena.com/apps/egmlinux-update.json"
 
 # Settings and cookies: writable user data under DATA_DIR
@@ -946,6 +946,17 @@ def _run(*cmd, timeout=None, **kw):
 
 def _popen(*cmd, **kw):
     return subprocess.Popen(list(cmd), **kw)
+
+def _pip_env() -> dict:
+    """Environment for every pip run: none of the person's PIP_ variables, no pip config file and
+    no pip cache. --isolated and --no-cache-dir cover the pip we start, but a source build (the
+    yt-dlp nightly) starts a second pip for its build requirements without either flag. That pip
+    inherits this environment, so it reads none of them either."""
+    env = {k: v for k, v in os.environ.items() if not k.upper().startswith("PIP_")}
+    env["PIP_CONFIG_FILE"] = os.devnull
+    env["PIP_NO_CACHE_DIR"] = "1"
+    env["PIP_DISABLE_PIP_VERSION_CHECK"] = "1"
+    return env
 
 def _yt_env() -> dict:
     """Environment for yt-dlp subprocesses.
@@ -2148,7 +2159,7 @@ def _run_live_attempt(job, job_id, cmd, base_s, base_kib):
     job["proc"] = proc
     with _active_procs_lock:
         _active_procs[job_id] = proc
-    if job.get("cancelled") or job.get("stop_keep"):
+    if job.get("cancelled") or job.get("stop_keep") or job.get("pause_req"):
         _kill_proc(proc)   # pressed in the instant before the process existed
 
     clock = _live_clock(base_s)
@@ -2280,6 +2291,21 @@ def _live_run_ended(job):
     job.pop("progress", None)
     job["_live_check"] = True
 
+def _live_pause(job):
+    """Paused by the user (/api/pause): the run has ended and its piece is kept. No process runs; the
+    card reads Paused with the time and size so far. Waits for Resume, Stop and save or Cancel. True
+    for Resume (the card reads Converting again while the stream is checked), False otherwise."""
+    job["status"] = "paused"; job["speed"] = ""; job["eta"] = ""
+    job.pop("progress", None); job.pop("_live_check", None); job.pop("live_reconnecting", None)
+    _egm_log("live recording paused")
+    while not (job.get("resume_req") or job.get("cancelled") or job.get("stop_keep")):
+        time.sleep(0.25)
+    resumed = bool(job.pop("resume_req", None)) and not (job.get("cancelled") or job.get("stop_keep"))
+    _live_run_ended(job)
+    if resumed:
+        _egm_log("live recording resumed")
+    return resumed
+
 def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, audio_only, rc):
     """After the first yt-dlp run of a live job has ended (any exit code): keep what was
     captured and, when the stream is still live and the user did not stop it, record
@@ -2290,12 +2316,25 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
     first = _live_collect(job_id, out_dir, ffmpeg, want_ext, audio_only)
     segs = [first] if first else []
     attempts = unknown = 0
+    resumed = paused = reconnected = ended_paused = False
+    # A pause the user asked for (/api/pause) ends the run like a cut, but the loop waits for Resume
+    # instead of reconnecting. Resumed runs are not reconnects: they never count against the cap.
     while (segs and not job.get("stop_keep") and not job.get("cancelled")
-           and attempts < _LIVE_MAX_RETRIES):
-        if not _live_wait(job, 2 if unknown == 0 else _LIVE_UNKNOWN_WAITS[unknown - 1]):
+           and (attempts < _LIVE_MAX_RETRIES or job.get("pause_req"))):
+        if job.pop("pause_req", None):
+            if not _live_pause(job):
+                break
+            resumed = paused = True
+            unknown = 0
+        elif not resumed and not _live_wait(job, 2 if unknown == 0 else _LIVE_UNKNOWN_WAITS[unknown - 1]):
+            break
+        elif resumed and unknown and not _live_wait(job, _LIVE_UNKNOWN_WAITS[unknown - 1]):
             break
         state = _live_is_still_live(job, url)
-        if job.get("cancelled") or job.get("stop_keep") or state is False:
+        if job.get("cancelled") or job.get("stop_keep"):
+            break
+        if state is False:
+            ended_paused = resumed      # the stream ended while the recording was paused
             break
         if state is None:
             unknown += 1
@@ -2303,12 +2342,19 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
                 break
             continue
         unknown = 0
-        attempts += 1
+        manual, resumed = resumed, False
+        job.pop("resume_req", None)   # a second Resume press that came after the first was taken is not a Resume for the next pause
         job.pop("_live_check", None)
         job["status"] = "downloading"
         job.pop("progress", None)   # a run that ended cleanly printed 100 %, and the card would read Converting
-        job["live_reconnecting"] = attempts
-        job["live_retries_max"] = _LIVE_MAX_RETRIES
+        if manual:
+            job.pop("live_reconnecting", None)
+            job.pop("live_retries_max", None)
+        else:
+            attempts += 1
+            reconnected = True
+            job["live_reconnecting"] = attempts
+            job["live_retries_max"] = _LIVE_MAX_RETRIES
         sid = f"{job_id}_r{len(segs) + 1}"   # attempts can start over, so it cannot name the piece
         cmd2 = [str(Path(out_dir) / f"{sid}.%(ext)s") if c == out_tmpl else c for c in cmd]
         base_s = _live_hms_to_s(job.get("live_time") or "00:00:00")
@@ -2319,7 +2365,14 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         _live_run_ended(job)
         seg = _live_collect(sid, out_dir, ffmpeg, want_ext, audio_only)
         if not seg:
-            break
+            if not job.get("pause_req"):
+                break
+            # Pause pressed before this run recorded anything: it still pauses. The next run uses this
+            # run's name again, so what it left goes first.
+            for p in glob.glob(os.path.join(glob.escape(str(out_dir)), f"{sid}.*")):
+                try: os.remove(p)
+                except OSError: pass
+            continue
         segs.append(seg)
         recorded = _live_hms_to_s(job.get("live_time") or "00:00:00") - base_s
         if recorded < _LIVE_RECOVERED_S and ffmpeg:
@@ -2330,7 +2383,8 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
             if piece > recorded:
                 recorded = piece
                 job["live_time"] = _live_s_to_hms(base_s + piece)   # the next piece counts on from here
-        _egm_log(f"live piece {len(segs)}: {recorded}s recorded after reconnect {attempts}/{_LIVE_MAX_RETRIES}")
+        _egm_log(f"live piece {len(segs)}: {recorded}s recorded after resume" if manual else
+                 f"live piece {len(segs)}: {recorded}s recorded after reconnect {attempts}/{_LIVE_MAX_RETRIES}")
         if recorded >= _LIVE_RECOVERED_S:
             attempts = 0
             job.pop("live_reconnecting", None)   # only a stats line clears it otherwise: a run that printed none kept the old count on the card
@@ -2346,14 +2400,23 @@ def _live_finish(job, job_id, out_dir, cmd, out_tmpl, url, ffmpeg, want_ext, aud
         job.pop("progress", None)
         for n, s in enumerate(segs, 1):
             _live_av_note(ffmpeg, f"piece {n}", s)
-        if _live_join(job_id, out_dir, segs, ffmpeg):
-            job["warning"] = "The stream was interrupted and reconnected. A few seconds may be missing or repeated."
-            job["warning_key"] = "download.warning.live_gap"
-        else:
+        if not _live_join(job_id, out_dir, segs, ffmpeg):
             _live_keep_parts(job, job_id, out_dir, segs)
             job["warning"] = "The recording could not be joined into one file, so it was saved in separate parts."
             job["warning_key"] = "download.warning.live_parts"
-    elif rc != 0 and not job.get("stop_keep"):
+        elif ended_paused:
+            job["warning"] = "The stream ended while paused. Saved what was recorded."
+            job["warning_key"] = "download.warning.live_ended_paused"
+        elif reconnected:
+            job["warning"] = "The stream was interrupted and reconnected. A few seconds may be missing or repeated."
+            job["warning_key"] = "download.warning.live_gap"
+        else:
+            job["warning"] = "The recording was paused. The paused time is not in the file."
+            job["warning_key"] = "download.warning.live_paused"
+    elif ended_paused:
+        job["warning"] = "The stream ended while paused. Saved what was recorded."
+        job["warning_key"] = "download.warning.live_ended_paused"
+    elif rc != 0 and not job.get("stop_keep") and not paused:
         job["warning"] = "The recording ended early. Saved what was captured."
         job["warning_key"] = "download.warning.live_partial"
     # Whatever is left of the retry runs ({job_id}_r2.mp4.part, the thumbnail an audio
@@ -2559,7 +2622,7 @@ def cancel_download(job_id):
     with _jobs_lock:
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
-        if job.get("status") not in ("downloading", "queued", "converting"):
+        if job.get("status") not in ("downloading", "queued", "converting", "paused"):
             return jsonify({"error": "Not downloading"}), 400
         job["cancelled"] = True
         proc = job.get("proc")
@@ -2581,13 +2644,50 @@ def stop_and_keep(job_id):
         job = jobs.get(job_id)
         if not job: return jsonify({"error": "Job not found"}), 404
         status = job.get("status")
-        if not job.get("live") or not (status == "downloading" or (status == "converting" and job.get("_live_check"))):
+        if not job.get("live") or not (status in ("downloading", "paused") or (status == "converting" and job.get("_live_check"))):
             return jsonify({"error": "Not a live recording in progress"}), 400
         job["stop_keep"] = True
         proc = job.get("proc")
     if proc:
         _kill_proc(proc)
     return jsonify({"success": True})
+
+@app.route("/api/pause/<job_id>", methods=["POST"])
+def pause_live(job_id):
+    """Live recordings only, while they record (not while they reconnect): end the run and keep its
+    piece, like Stop and save, but the worker then waits with no process running until Resume, Stop
+    and save or Cancel (_live_pause). The time while paused is not recorded."""
+    with _jobs_lock:
+        job = jobs.get(job_id)
+        if not job: return jsonify({"error": "Job not found"}), 404
+        if (not job.get("live") or job.get("status") != "downloading" or not job.get("live_time")
+                or job.get("live_reconnecting") or job.get("pause_req")
+                or job.get("stop_keep") or job.get("cancelled")):
+            return jsonify({"error": "Not a live recording that can be paused"}), 400
+        job["pause_req"] = True
+        proc = job.get("proc")
+    if proc:
+        _kill_proc(proc)
+    return jsonify({"success": True})
+
+@app.route("/api/resume/<job_id>", methods=["POST"])
+def resume_live(job_id):
+    """A paused live recording: check the stream is still live, then record from what is live now."""
+    with _jobs_lock:
+        job = jobs.get(job_id)
+        if not job: return jsonify({"error": "Job not found"}), 404
+        if job.get("status") != "paused" or job.get("stop_keep") or job.get("cancelled"):
+            return jsonify({"error": "Not a paused recording"}), 400
+        job["resume_req"] = True
+    return jsonify({"success": True})
+
+@app.route("/api/live-jobs")
+def live_jobs():
+    """The live recordings that are recording, paused or being saved, for the shell's quit question."""
+    with _jobs_lock:
+        out = [{"id": k, "status": j.get("status")} for k, j in jobs.items()
+               if j.get("live") and j.get("status") in ("downloading", "converting", "paused")]
+    return jsonify({"jobs": out})
 
 @app.route("/api/status/<job_id>")
 def check_status(job_id):
@@ -2645,6 +2745,7 @@ def get_settings():
         "language":                _get_language_setting(s),
         "show_language_selector":  s.get("show_language_selector", True),
         "show_settings_panel":     s.get("show_settings_panel", True),
+        "show_footer":             s.get("show_footer", True),
         "upscale_to_quality":      s.get("upscale_to_quality", False),
         "sponsorblock_enabled":    s.get("sponsorblock_enabled", False),
         "sponsorblock_categories": s.get("sponsorblock_categories", list(SPONSORBLOCK_CATEGORIES)),
@@ -2670,7 +2771,7 @@ def save_settings():
                "default_audio_format", "default_video_format",
                "yt_dlp_channel", "ffmpeg_channel",
                "favorite_themes", "random_theme_on_launch", "random_theme_scope",
-               "language", "show_language_selector", "show_settings_panel", "upscale_to_quality",
+               "language", "show_language_selector", "show_settings_panel", "show_footer", "upscale_to_quality",
                "sponsorblock_enabled", "sponsorblock_categories"}
     if "last_folder" in data:
         folder = data["last_folder"]
@@ -2712,6 +2813,8 @@ def save_settings():
         data["show_language_selector"] = bool(data["show_language_selector"])
     if "show_settings_panel" in data:
         data["show_settings_panel"] = bool(data["show_settings_panel"])
+    if "show_footer" in data:
+        data["show_footer"] = bool(data["show_footer"])
     if "upscale_to_quality" in data:
         data["upscale_to_quality"] = bool(data["upscale_to_quality"])
     if "sponsorblock_enabled" in data:
@@ -2918,8 +3021,8 @@ def _install_ytdlp_ejs(log, failed):
     if not pin:
         log("yt-dlp-ejs: this yt-dlp names no solver package, so it downloads the script when needed")
         return
-    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", f"yt-dlp-ejs=={pin}",
-             "--target", str(PACKAGES_DIR), "--upgrade", "--force-reinstall", timeout=120)
+    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir", f"yt-dlp-ejs=={pin}",
+             "--target", str(PACKAGES_DIR), "--upgrade", "--force-reinstall", timeout=120, env=_pip_env())
     if r.returncode == 0:
         for di in PACKAGES_DIR.glob("yt_dlp_ejs-*.dist-info"):
             if di.name != f"yt_dlp_ejs-{pin}.dist-info":
@@ -2954,22 +3057,22 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
                     except Exception: pass
                     update_status["error"] = f"yt-dlp nightly download failed: {e}"
                     return
-                r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
+                r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir",
                          str(tmp_tar), "--target", str(PACKAGES_DIR),
-                         "--upgrade", "--force-reinstall", timeout=120)
+                         "--upgrade", "--force-reinstall", timeout=120, env=_pip_env())
                 try: tmp_tar.unlink(missing_ok=True)
                 except Exception: pass
             else:
                 latest_ver = _get_latest_ytdlp_version("stable")
                 if latest_ver and latest_ver != "unknown":
                     log(f"Installing yt-dlp stable {latest_ver}...")
-                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check",
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir",
                              f"yt-dlp=={latest_ver}", "--target", str(PACKAGES_DIR),
-                             "--upgrade", timeout=120)
+                             "--upgrade", timeout=120, env=_pip_env())
                 else:
                     log("Installing yt-dlp stable (latest)...")
-                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "yt-dlp",
-                             "--target", str(PACKAGES_DIR), "--upgrade", timeout=120)
+                    r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir", "yt-dlp",
+                             "--target", str(PACKAGES_DIR), "--upgrade", timeout=120, env=_pip_env())
             if r.returncode == 0:
                 _prune_superseded_ytdlp_dist_info()
             v = _get_ytdlp_version()
@@ -3025,9 +3128,9 @@ def _run_update(do_ytdlp, do_ffmpeg, do_optlibs=False):
             # --force-reinstall: with --target, pip judges "already satisfied"
             # against the running env, not the target dir (same reason the
             # yt-dlp path above uses it) — without it the overlay never updates.
-            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--upgrade", "--force-reinstall",
+            r = _run(sys.executable, "-m", "pip", "install", "--isolated", "--disable-pip-version-check", "--no-cache-dir", "--upgrade", "--force-reinstall",
                      "curl-cffi<0.18.0", "brotli", "pycryptodomex", "websockets", "certifi",
-                     "--target", str(PACKAGES_DIR), timeout=300)
+                     "--target", str(PACKAGES_DIR), timeout=300, env=_pip_env())
             if r.returncode == 0:
                 vers = _get_optlibs_versions()
                 # prune superseded dist-infos (pip --target cannot uninstall)

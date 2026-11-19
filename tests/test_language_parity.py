@@ -104,9 +104,9 @@ EXTRA = {
     },
     "fr": {
         "advanced.channel.stable",
-        "advanced.section.interface",
         "advanced.section.plugins",
         "app.tagline.sites",
+        "card.btn.pause",
         "card.format.audio",
         "card.label.format",
         "console.title",
@@ -134,6 +134,7 @@ EXTRA = {
         "card.format.audio",
         "card.format.video",
         "creator.live_badge",
+        "footer.toggle.label",
         "history.filter.audio",
         "history.filter.video",
         "quality.section.standard",
@@ -143,7 +144,6 @@ EXTRA = {
         "themes.cat.sneakers",
     },
     "nl": {
-        "advanced.section.interface",
         "advanced.section.plugins",
         "app.tagline.sites",
         "card.badge.live",
@@ -173,7 +173,6 @@ EXTRA = {
         "update.available.btn.later",
     },
     "pt": {
-        "advanced.section.interface",
         "advanced.section.plugins",
         "app.tagline.sites",
         "panel.history.downloads",
@@ -251,7 +250,8 @@ def test_the_allowlist_has_no_stale_entries():
 # Keys that replaced English text written straight into a template, with how many places read each.
 # Without the template reading the key, ten files carry a translation that never shows (the other
 # direction is covered by test_i18n_keys_exist_in_en_locale).
-READ_IN_TEMPLATES = {"card.status.eta": 2, "subscriptions.title_short": 1, "subscriptions.detail.videos_total": 1,
+READ_IN_TEMPLATES = {"audio.option.128.desc": 1, "audio.option.192.desc": 1, "audio.option.320.desc": 1,
+                     "card.status.eta": 2, "subscriptions.title_short": 1, "subscriptions.detail.videos_total": 1,
                      "url.btn.download_all_videos": 1, "url.btn.download_all_audio": 1, "bulk.btn.cancel_all": 1,
                      "themes.filter.all": 1, "url.btn.paste_fetch": 2,
                      "subscriptions.detail.fetching": 1, "subscriptions.label.unknown": 2, "toast.plugins.error_prefix": 3,
@@ -260,7 +260,9 @@ READ_IN_TEMPLATES = {"card.status.eta": 2, "subscriptions.title_short": 1, "subs
                      "toast.bulk.done_videos": 1, "toast.bulk.done_audio": 1, "toast.bulk.done_mixed": 1,
                      "themes.section.style": 1, "themes.section.vibe": 1, "themes.section.pop_culture": 1,
                      "themes.section.heritage": 1, "themes.section.other": 1,
-                     "themes.filter.imported": 1, "themes.filter.seasonal": 1}
+                     "themes.filter.imported": 1, "themes.filter.seasonal": 1,
+                     # The Footer switch and its confirm box (new texts, listed so a lost hook is seen too).
+                     "footer.toggle.label": 1, "footer.modal.hide.title": 1, "footer.modal.hide.body": 1}
 
 
 def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():

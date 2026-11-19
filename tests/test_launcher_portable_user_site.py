@@ -56,10 +56,12 @@ def test_the_setting_is_made_once_in_the_portable_branch_before_anything_is_star
 
 
 def test_the_processes_that_matter_inherit_the_environment():
-    # none of these passes a custom env=, so the setting reaches the pip steps; Electron's env is
-    # built from os.environ, and the backend inherits Electron's
+    # none of these passes a custom env= other than _pip_env(), which is os.environ without the
+    # person's PIP_ variables, so the setting reaches the pip steps; Electron's env is built from
+    # os.environ, and the backend inherits Electron's
     for name in ("_py_version", "_python_has_pip", "_pip_install"):
-        assert "env=" not in _function(name), name
+        assert "env=" not in _function(name).replace("env=_pip_env()", ""), name
+    assert "for k, v in os.environ.items() if not k.upper().startswith(\"PIP_\")" in _function("_pip_env")
     assert 'env = {**os.environ, "PATH"' in _function("launch_electron")
 
 
