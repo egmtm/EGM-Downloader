@@ -217,9 +217,9 @@ We currently **do not** have a formal bug bounty program. However:
 
 We'd like to thank the following individuals for responsibly disclosing security issues:
 
-**[kta1kri](https://github.com/kta1kri)** (November 2026): reported a security issue in version 1.5.2.1. Our own independent security review had already found the same issue and the fix was in place, and the report was valid and independently confirmed it. Fixed in version 1.5.2.2. Thank you!
+**[kta1kri](https://github.com/kta1kri)** (November 2026): reported a stored cross site scripting issue in version 1.5.2.1, where the thumbnail of an imported history entry was shown in the page without escaping. Our own independent security review had already found the same issue and the fix was in place, and the report was valid and independently confirmed it. Fixed in version 1.5.2.2: imported history entries are checked when they are imported, and the thumbnail is encoded when it is shown. Thank you!
 
-**[Ibnu76](https://github.com/Ibnu76)** (November 2026): reported the same security issue in version 1.5.2.1. Our own independent security review had already found it and the fix was in place, and the report was valid and independently confirmed it. Fixed in version 1.5.2.2. Thank you!
+**[Ibnu76](https://github.com/Ibnu76)** (November 2026): reported the same stored cross site scripting issue in version 1.5.2.1, where the thumbnail of an imported history entry was shown in the page without escaping. Our own independent security review had already found it and the fix was in place, and the report was valid and independently confirmed it. Fixed in version 1.5.2.2: imported history entries are checked when they are imported, and the thumbnail is encoded when it is shown. Thank you!
 
 ---
 
