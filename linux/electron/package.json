@@ -4,6 +4,7 @@
   "description": "EGM Downloader \u2014 download videos from 1000+ sites",
   "main": "main.js",
   "author": "www.egerena.com",
+  "homepage": "https://egmdownloader.app",
   "license": "AGPL-3.0",
   "scripts": {
     "start": "electron .",
@@ -79,12 +80,28 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "../../static/icon-512.png",
       "category": "Network",
       "executableName": "egm-downloader",
-      "artifactName": "EGM Downloader.AppImage"
+      "artifactName": "EGM Downloader.AppImage",
+      "maintainer": "EGM Downloader <help@egmdownloader.app>"
+    },
+    "deb": {
+      "artifactName": "EGMdL.deb",
+      "packageCategory": "net",
+      "synopsis": "download videos from 1000+ sites",
+      "fpm": [
+        "--version=1.5.4.1",
+        "../../LICENSE=/usr/share/doc/egm-downloader/copyright"
+      ]
     },
     "electronLanguages": [
       "en-US"
