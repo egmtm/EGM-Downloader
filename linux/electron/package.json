@@ -103,6 +103,7 @@
         "../../LICENSE=/usr/share/doc/egm-downloader/copyright"
       ]
     },
+    "publish": null,
     "electronLanguages": [
       "en-US"
     ],

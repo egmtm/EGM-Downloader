@@ -93,6 +93,15 @@ def test_the_deb_keeps_electron_builders_dependency_list():
     assert "depends" not in deb and "recommends" not in deb
 
 
+def test_electron_builder_never_assumes_a_publish_target():
+    """With GH_TOKEN or GITHUB_TOKEN set, electron-builder assumed a GitHub publish target and stopped
+    while preparing update data for the AppImage. An explicit null publish setting switches that off.
+    The app has no updater of its own in the shell, and the built files are the same with it."""
+    build = _pkg()["build"]
+    assert "publish" in build
+    assert build["publish"] is None
+
+
 # ── the AppImage settings are as they were ───────────────────────────────────
 
 def test_the_appimage_settings_are_untouched():
