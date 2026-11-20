@@ -195,6 +195,8 @@ def test_the_deb_text_is_plain_ascii_and_the_appimage_keeps_its_description():
     deb = pkg["build"]["deb"]
     for text in (deb["description"], deb["synopsis"]):
         assert text.isascii() and "'" not in text and '"' not in text
+    # lintian wants each line of the long description under 80 characters, with its leading spaces
+    assert all(len(line) + 2 <= 80 for line in deb["description"].split("\n"))
     assert "description" not in pkg["build"]["linux"]
     assert "description" not in pkg["build"].get("appImage", {})
     assert pkg["description"] == "EGM Downloader — download videos from 1000+ sites"

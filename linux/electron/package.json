@@ -98,7 +98,7 @@
       "artifactName": "EGMdL.deb",
       "packageCategory": "net",
       "synopsis": "download videos from 1000+ sites",
-      "description": "Free, open source video and audio downloader for 1000+ sites. Multi-platform native desktop apps, built on yt-dlp. No terminal, no account, zero telemetry.",
+      "description": "Free, open source video and audio downloader for 1000+ sites.\nMulti-platform native desktop apps, built on yt-dlp.\nNo terminal, no account, zero telemetry.",
       "fpm": [
         "--version=1.5.4.1",
         "../../LICENSE=/usr/share/doc/egm-downloader/copyright"
