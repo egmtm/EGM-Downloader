@@ -30,6 +30,7 @@ Then try launching again.
 The same app is also offered as EGMdL.deb, a separate download for
 64-bit Debian, Ubuntu and distributions built on them.
 
+If you are updating, close EGM Downloader first.
 Install it, or update to a newer one (the new file installs over the old):
 
    sudo apt install ./EGMdL.deb
