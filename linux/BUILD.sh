@@ -167,6 +167,20 @@ rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
 # bin/python3.11 has the interpreter built in; this second 55 MB copy is only for programs that embed Python
 rm -f "$PYTHON_DIR/lib/libpython3.11.so"* "$PYTHON_DIR/lib/libpython3.so"
 
+# pip wrote console scripts into bin/ (yt-dlp, flask, the mutagen tools and others), and each one
+# starts with this machine's build folder. The app runs "python -m yt_dlp" and Update Plugins runs
+# "python -m pip", so they go: only files whose first line names the build folder, never python3.
+# The folder is matched as written and with any symlink resolved, whichever pip wrote.
+PY_REAL="$(cd "$PYTHON_DIR" && pwd -P)"
+REMOVED=0
+for f in "$PYTHON_DIR"/bin/*; do
+    if [ -f "$f" ] && head -n 1 "$f" | grep -qF -e "#!$PYTHON_DIR/" -e "#!$PY_REAL/"; then
+        rm -f "$f"
+        REMOVED=$((REMOVED + 1))
+    fi
+done
+echo "   ✓ $REMOVED console scripts with the build folder in them removed"
+
 # DO NOT bulk-strip .dist-info directories — werkzeug calls
 # importlib.metadata.version('werkzeug') at server startup; flask 3.x and many
 # other packages do similar metadata lookups. Stripping their .dist-info breaks
