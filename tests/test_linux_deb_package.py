@@ -185,3 +185,16 @@ def test_bump_dry_run_leaves_the_file_alone(tmp_path, monkeypatch):
     text = (tmp_path / "linux" / "electron" / "package.json").read_text()
     bump.update_linux_package_json("1.5.4.2", True)
     assert (tmp_path / "linux" / "electron" / "package.json").read_text() == text
+
+
+def test_the_deb_text_is_plain_ascii_and_the_appimage_keeps_its_description():
+    # apt hands PackageKit the long description converted to the daemon's character set, and with no
+    # UTF-8 locale every character outside ASCII comes out as "?", so App Center showed the dash as "??".
+    # electron-builder also turns ' and " into curly quotes. The AppImage reads the top description.
+    pkg = _pkg()
+    deb = pkg["build"]["deb"]
+    for text in (deb["description"], deb["synopsis"]):
+        assert text.isascii() and "'" not in text and '"' not in text
+    assert "description" not in pkg["build"]["linux"]
+    assert "description" not in pkg["build"].get("appImage", {})
+    assert pkg["description"] == "EGM Downloader — download videos from 1000+ sites"
