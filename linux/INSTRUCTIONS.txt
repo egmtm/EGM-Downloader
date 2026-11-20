@@ -25,6 +25,31 @@ If the app doesn't launch on Ubuntu 22.04 or newer, install libfuse2:
 Then try launching again.
 
 
+.DEB PACKAGE (DEBIAN, UBUNTU AND RELATIVES)
+────────────────────────────────────────
+The same app is also offered as EGMdL.deb, a separate download for
+64-bit Debian, Ubuntu and distributions built on them.
+
+If you are updating, close EGM Downloader first.
+Install it, or update to a newer one (the new file installs over the old):
+
+   sudo apt install ./EGMdL.deb
+
+Then open "EGM Downloader" from the applications menu, or run:
+
+   egm-downloader
+
+The .deb needs no libfuse2. It uses the same settings and history folder
+as the AppImage, so you can move from one to the other and keep everything.
+
+To remove it:
+
+   sudo apt remove egm-downloader
+
+Removing the package leaves your settings and history in place
+(see UNINSTALLING for the two folders).
+
+
 COMPATIBLE DISTRIBUTIONS
 ────────────────────────────────────────
 Ubuntu 20.04, 22.04, 24.04, 26.04

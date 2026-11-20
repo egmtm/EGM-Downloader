@@ -2,7 +2,7 @@
 # EGM Downloader — Linux x64 Build Script
 # Run from repo root: bash linux/BUILD.sh
 # Or from the linux/ directory: bash BUILD.sh
-# Produces: dist/EGMdL.zip + dist/egmlinux-update.json
+# Produces: dist/EGMdL.zip + dist/EGMdL.deb + dist/egmlinux-update.json
 
 set -e
 
@@ -199,11 +199,13 @@ find "$SITE" -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
 echo "   ✓ Python bundle stripped"
 echo ""
 
-# ── Build Electron AppImage ───────────────────────────────────────────────────
-echo "🔨 Building Electron AppImage..."
+# ── Build Electron AppImage and .deb ──────────────────────────────────────────
+# One electron-builder run packs the app once and makes both files from that one folder,
+# so the AppImage and the .deb hold the same app.
+echo "🔨 Building Electron AppImage and .deb..."
 cd "$ELECTRON_DIR"
-node ./node_modules/.bin/electron-builder --linux AppImage --x64 --publish never
-echo "   ✓ AppImage built"
+node ./node_modules/.bin/electron-builder --linux AppImage deb --x64 --publish never
+echo "   ✓ AppImage and .deb built"
 echo ""
 
 # ── Package into zip ──────────────────────────────────────────────────────────
@@ -224,6 +226,21 @@ zip -r "$REPO_ROOT/dist/EGMdL.zip" "$(basename "$APPIMAGE")"
 cd "$LINUX_DIR"
 zip -j "$REPO_ROOT/dist/EGMdL.zip" "$LINUX_DIR/INSTRUCTIONS.txt" "$REPO_ROOT/LICENSE"
 echo "   ✓ dist/EGMdL.zip created (AppImage + INSTRUCTIONS.txt + LICENSE)"
+echo ""
+
+# ── Copy the .deb ─────────────────────────────────────────────────────────────
+# The .deb ships as it is (no zip): `apt install ./EGMdL.deb` takes the file itself.
+echo "📦 Copying EGMdL.deb..."
+DEB="$ELECTRON_DIR/dist/EGMdL.deb"
+if [ ! -f "$DEB" ]; then
+    echo "❌ No EGMdL.deb found in linux/electron/dist/"
+    exit 1
+fi
+rm -f "$REPO_ROOT/dist/EGMdL.deb"
+cp "$DEB" "$REPO_ROOT/dist/EGMdL.deb"
+echo "   ✓ dist/EGMdL.deb created"
+echo "   ✓ SHA256: $(sha256sum "$REPO_ROOT/dist/EGMdL.deb" | cut -d' ' -f1)"
+echo "   ✓ size: $(stat -c %s "$REPO_ROOT/dist/EGMdL.deb") bytes"
 echo ""
 
 # ── Compute SHA256 checksum ───────────────────────────────────────────────────
@@ -284,5 +301,6 @@ echo "   Commit: $HEAD_LINE"
 echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMdL.zip"
+echo "   → dist/EGMdL.deb"
 echo "   → dist/egmlinux-update.json"
 echo ""
