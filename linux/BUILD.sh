@@ -185,12 +185,13 @@ rm -f "$PYTHON_DIR/lib/libpython3.11.so"* "$PYTHON_DIR/lib/libpython3.so"
 
 # pip wrote console scripts into bin/ (yt-dlp, flask, the mutagen tools and others), and each one
 # starts with this machine's build folder. The app runs "python -m yt_dlp" and Update Plugins runs
-# "python -m pip", so they go: only files whose first line names the build folder, never python3.
-# The folder is matched as written and with any symlink resolved, whichever pip wrote.
+# "python -m pip", so they go: only files that start by naming the build folder, never python3.
+# pip names it on the first line, or on the second (after #!/bin/sh) when the folder has a space
+# in it or is too long for a first line. Matched as written and with any symlink resolved.
 PY_REAL="$(cd "$PYTHON_DIR" && pwd -P)"
 REMOVED=0
 for f in "$PYTHON_DIR"/bin/*; do
-    if [ -f "$f" ] && head -n 1 "$f" | grep -qF -e "#!$PYTHON_DIR/" -e "#!$PY_REAL/"; then
+    if [ -f "$f" ] && head -n 2 "$f" | grep -qF -e "#!$PYTHON_DIR/" -e "#!$PY_REAL/" -e "'''exec' \"$PYTHON_DIR/" -e "'''exec' \"$PY_REAL/"; then
         rm -f "$f"
         REMOVED=$((REMOVED + 1))
     fi

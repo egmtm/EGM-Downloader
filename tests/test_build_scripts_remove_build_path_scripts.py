@@ -68,3 +68,16 @@ def test_a_build_folder_reached_through_a_symlink_is_matched_too(tmp_path):
     _run(tmp_path / "link" / "python")
     assert not (b / "yt-dlp").exists() and not (b / "flask").exists()
     assert (b / "python3.11").exists() and (b / "pip3").exists()
+
+
+def test_scripts_that_name_the_build_folder_on_their_second_line_are_removed_too(tmp_path):
+    """A build folder with a space in it, or one too long for a first line: pip starts the script with
+    #!/bin/sh and names the folder on the second line. pip's own launchers have the same shape without
+    the folder, and stay."""
+    py = tmp_path / "build folder" / "python"
+    b = _make_bin(py, py)
+    for name in ("yt-dlp", "flask"):
+        (b / name).write_text(f"#!/bin/sh\n'''exec' \"{py}/bin/python3\" \"$0\" \"$@\"\n' '''\nimport sys\n")
+    out = _run(py)
+    assert sorted(p.name for p in b.iterdir()) == ["notes", "other", "pip3", "python3", "python3.11"]
+    assert "2 console scripts" in out.stdout
