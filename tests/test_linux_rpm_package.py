@@ -222,6 +222,14 @@ def test_the_rest_of_the_rpm_remove_script_is_electron_builders_own():
         assert installed.read_text(encoding="utf-8") == original
 
 
+def test_the_copy_is_from_the_electron_builder_version_the_build_installs():
+    """The comparison above runs only where npm install has run. Here the lock names the version the
+    build installs: when it moves, compare its templates/linux/after-remove.tpl with the copy, then
+    update the copy, the hash and this version."""
+    lock = json.loads((PKG.parent / "package-lock.json").read_text(encoding="utf-8"))
+    assert lock["packages"]["node_modules/app-builder-lib"]["version"] == "26.18.0"
+
+
 def test_the_remove_script_is_not_packed_into_the_app():
     files = _pkg()["build"]["files"]
     assert not any("build" in f or "tpl" in f for f in files if not f.startswith("!"))
