@@ -478,7 +478,7 @@ written authorization of the copyright holder.
 3. certifi
 ==============================================================================
 
-Version:   2026.10.23
+Version:   2026.11.20
 Licence:   Mozilla Public License 2.0. The full text is in part 6.2.
 Covers:    certifi's code and certifi/cacert.pem, a modified version of Mozilla's bundle of root
            certificates (certdata.txt). The package's own notice:
@@ -507,7 +507,7 @@ one at http://mozilla.org/MPL/2.0/.
 Author:    Kenneth Reitz (the package names no copyright holder)
 Source:    the app carries certifi unchanged, its files in source form, in the bundled Python's
            site-packages. Its source is at https://github.com/certifi/python-certifi and in its
-           source distribution: https://pypi.org/project/certifi/2026.10.23/
+           source distribution: https://pypi.org/project/certifi/2026.11.20/
 
 ==============================================================================
 4. yt-dlp-ejs
