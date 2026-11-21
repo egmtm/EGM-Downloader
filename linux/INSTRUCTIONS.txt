@@ -39,6 +39,13 @@ Then open "EGM Downloader" from the applications menu, or run:
 
    egm-downloader
 
+If the app doesn't open, start it from a terminal without Chromium's
+sandbox, and let us know (see SUPPORT):
+
+   egm-downloader --no-sandbox
+
+Or use the AppImage from EGMdL.zip instead (see INSTALLATION).
+
 The .deb needs no libfuse2. It uses the same settings and history folder
 as the AppImage, so you can move from one to the other and keep everything.
 
@@ -73,6 +80,13 @@ Check the file against the SHA256 on the download page before installing.
 Then open "EGM Downloader" from the applications menu, or run:
 
    egm-downloader
+
+If the app doesn't open, start it from a terminal without Chromium's
+sandbox, and let us know (see SUPPORT):
+
+   egm-downloader --no-sandbox
+
+Or use the AppImage from EGMdL.zip instead (see INSTALLATION).
 
 The .rpm needs no FUSE. It uses the same settings and history folder
 as the AppImage, so you can move from one to the other and keep everything.
