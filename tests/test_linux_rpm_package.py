@@ -89,7 +89,7 @@ def test_rpm_name_group_summary_and_description():
     # without its own name the .rpm would take linux.artifactName and be called "EGM Downloader.AppImage"
     assert rpm["artifactName"] == "EGMdL.rpm"
     assert rpm["packageCategory"] == "Applications/Internet"
-    assert rpm["synopsis"] == "download videos from 1000+ sites"
+    assert rpm["synopsis"] == "Download videos from 1000+ sites"
     assert rpm["description"] == DESCRIPTION
     # the same words as the .deb
     assert rpm["synopsis"] == pkg["build"]["deb"]["synopsis"]
@@ -241,7 +241,7 @@ def test_the_deb_settings_are_untouched():
     assert deb == {
         "artifactName": "EGMdL.deb",
         "packageCategory": "net",
-        "synopsis": "download videos from 1000+ sites",
+        "synopsis": "Download videos from 1000+ sites",
         "description": DESCRIPTION,
         "fpm": [f"--version={_app_version()}", LICENSE_IN_DEB],
     }

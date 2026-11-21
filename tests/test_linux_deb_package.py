@@ -76,7 +76,7 @@ def test_deb_name_section_and_short_description():
     # without its own name the .deb would take linux.artifactName and be called "EGM Downloader.AppImage"
     assert deb["artifactName"] == "EGMdL.deb"
     assert deb["packageCategory"] == "net"
-    assert deb["synopsis"] == "download videos from 1000+ sites"
+    assert deb["synopsis"] == "Download videos from 1000+ sites"
     assert _pkg()["license"] == "AGPL-3.0"
 
 
