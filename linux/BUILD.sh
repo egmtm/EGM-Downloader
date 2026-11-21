@@ -36,7 +36,7 @@ echo ""
 
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 echo "📋 Checking prerequisites..."
-for cmd in python3 node curl rpmbuild; do
+for cmd in python3 node curl rpmbuild objdump; do
     if ! command -v "$cmd" &> /dev/null; then
         echo "❌ $cmd not found!"
         case "$cmd" in
@@ -44,6 +44,7 @@ for cmd in python3 node curl rpmbuild; do
             node)    echo "   Install: sudo apt install nodejs npm" ;;
             curl)    echo "   Install: sudo apt install curl" ;;
             rpmbuild) echo "   Install: sudo apt install rpm   (the .rpm is made with rpmbuild)" ;;
+            objdump) echo "   Install: sudo apt install binutils   (objdump reads the glibc each binary needs)" ;;
         esac
         exit 1
     fi
@@ -128,7 +129,9 @@ LOCK="$LINUX_DIR/requirements-linux-lock.txt"
 # The packages come from the hashed lock for this platform (uv pip compile, the command is on its second
 # line): pip installs exactly those versions and stops if a file does not match its hash, so every build
 # of a commit bundles the same packages. Regenerate all three locks when requirements.txt changes.
-PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet --require-hashes --no-deps --only-binary :all: -r "$LOCK"
+# PYTHONPATH: pip reads linux/pip_glibc_floor/_manylinux.py and takes each package's wheel for glibc 2.17,
+# the level the lock is resolved for, not the newest one this machine accepts (see that file).
+PYTHONNOUSERSITE=1 PYTHONPATH="$LINUX_DIR/pip_glibc_floor" "$PYTHON_DIR/bin/python3" -m pip install --quiet --require-hashes --no-deps --only-binary :all: -r "$LOCK"
 # yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
 # names (a == requirement in its metadata). The lock is resolved without yt-dlp's extras, so a regenerated
 # lock can pin a yt-dlp-ejs that yt-dlp refuses: stop here instead of shipping that pair, as the Windows
@@ -219,6 +222,32 @@ echo "🔨 Building Electron AppImage, .deb and .rpm..."
 cd "$ELECTRON_DIR"
 node ./node_modules/.bin/electron-builder --linux AppImage deb rpm --x64 --publish never
 echo "   ✓ AppImage, .deb and .rpm built"
+echo ""
+
+# ── glibc floor ───────────────────────────────────────────────────────────────
+# No file of the packed app (the one folder all three are made from) may need a newer glibc than
+# Electron's own binary: on a system Electron runs on, that file would fail to load. cryptography's
+# newest wheel did that once, and the update check stopped working on older systems.
+echo "🔎 Checking the glibc each binary needs..."
+UNPACKED="$ELECTRON_DIR/dist/linux-unpacked"
+glibc_needed() { objdump -T "$1" 2>/dev/null | grep -o 'GLIBC_[0-9][0-9.]*' | sed 's/^GLIBC_//' | sort -V | tail -n 1; }
+FLOOR=$(glibc_needed "$UNPACKED/egm-downloader-bin")
+if [ -z "$FLOOR" ]; then
+    echo "   ✗ could not read the glibc version Electron's binary needs"
+    exit 1
+fi
+TOO_NEW=0
+while IFS= read -r -d '' f; do
+    need=$(glibc_needed "$f")
+    if [ -n "$need" ] && [ "$(printf '%s\n%s\n' "$FLOOR" "$need" | sort -V | tail -n 1)" != "$FLOOR" ]; then
+        echo "   ✗ ${f#"$UNPACKED"/} needs glibc $need, Electron needs $FLOOR"
+        TOO_NEW=$((TOO_NEW + 1))
+    fi
+done < <(find "$UNPACKED" -type f -print0)
+if [ "$TOO_NEW" != 0 ]; then
+    exit 1
+fi
+echo "   ✓ No file needs a newer glibc than Electron's $FLOOR"
 echo ""
 
 # ── Package into zip ──────────────────────────────────────────────────────────

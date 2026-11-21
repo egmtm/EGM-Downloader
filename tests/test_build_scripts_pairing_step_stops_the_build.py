@@ -42,6 +42,6 @@ def test_the_lock_installs_into_the_bundled_python_itself(rel):
     installs = [l for l in _code_lines(read_source(rel)) if "pip install" in l]
     assert len(installs) == 1, installs
     (line,) = installs
-    assert line.startswith('PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install '), line
+    assert re.match(r'PYTHONNOUSERSITE=1 (PYTHONPATH="[^"]+" )?"\$PYTHON_DIR/bin/python3" -m pip install ', line), line
     for flag in ("--target", "--prefix", "--root", "--user", "-t "):
         assert flag not in line, f"{rel}: {line}"

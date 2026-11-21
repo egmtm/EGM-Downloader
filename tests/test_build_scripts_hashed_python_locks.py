@@ -74,7 +74,8 @@ def test_the_build_installs_only_hashed_binary_wheels_from_its_lock(plat):
     lock_var = re.findall(r'^LOCK="\$(?:LINUX|MAC)_DIR/([^"]+)"$', sh, re.M)
     assert lock_var == [rel.split("/")[1]], lock_var
     installs = [l.strip() for l in sh.splitlines() if "pip install" in l and not l.strip().startswith("#")]
-    assert installs == ['PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet '
+    floor = ' PYTHONPATH="$LINUX_DIR/pip_glibc_floor"' if plat == "linux" else ""
+    assert installs == [f'PYTHONNOUSERSITE=1{floor} "$PYTHON_DIR/bin/python3" -m pip install --quiet '
                         '--require-hashes --no-deps --only-binary :all: -r "$LOCK"'], installs
 
 

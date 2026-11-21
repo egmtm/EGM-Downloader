@@ -20,7 +20,7 @@ def test_every_pip_run_of_the_build_ignores_the_user_site(rel):
     runs = [l.strip() for l in read_source(rel).splitlines() if PIP_RUN.search(l)]
     assert runs, f"{rel}: the pip runs were not found"
     for line in runs:
-        assert line.startswith('PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip'), f"{rel}: {line}"
+        assert re.match(r'PYTHONNOUSERSITE=1 (PYTHONPATH="[^"]+" )?"\$PYTHON_DIR/bin/python3" -m pip', line), f"{rel}: {line}"
 
 
 def test_the_mac_pairing_reads_ignore_it_too(tmp_path):
