@@ -9,9 +9,18 @@ const crypto = require('crypto');
 // ── Sandbox: AppImages cannot set SUID on chrome-sandbox — off inside one ─────
 // Safe here because we only load a local Flask server (127.0.0.1), never
 // arbitrary web content. No remote code execution risk.
-// Only inside an AppImage (its runtime sets APPIMAGE): the .deb and the .rpm install with root
-// rights, so their sandbox can work and stays on.
-if (process.env.APPIMAGE) app.commandLine.appendSwitch('no-sandbox');
+// Only inside an AppImage: its runtime sets APPIMAGE and APPDIR (the AppImage's own folder), and the
+// app's binary is in APPDIR, both paths resolved. A stray APPIMAGE or APPDIR inherited from another
+// AppImage does not count. The .deb and the .rpm install with root rights, so their sandbox works.
+function insideAppImage(env, execPath) {
+  if (!env.APPIMAGE) return false;
+  try {
+    return path.dirname(fs.realpathSync(execPath)) === fs.realpathSync(env.APPDIR);
+  } catch {
+    return false;
+  }
+}
+if (insideAppImage(process.env, process.execPath)) app.commandLine.appendSwitch('no-sandbox');
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const PORT    = 8899;
