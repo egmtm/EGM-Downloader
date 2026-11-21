@@ -124,12 +124,15 @@ echo "📚 Installing Python dependencies..."
 # pip is the one inside the pinned Python above (26.2.2); it is not upgraded here
 # PYTHONNOUSERSITE=1: pip must only see the bundled Python's own site-packages. Without it
 # a package in the host's user site (~/.local) counts as "already installed" and is left out of the AppImage.
-PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$LINUX_DIR/requirements.txt" 2>/dev/null || \
-PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
+LOCK="$LINUX_DIR/requirements-linux-lock.txt"
+# The packages come from the hashed lock for this platform (uv pip compile, the command is on its second
+# line): pip installs exactly those versions and stops if a file does not match its hash, so every build
+# of a commit bundles the same packages. Regenerate all three locks when requirements.txt changes.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet --require-hashes --no-deps --only-binary :all: -r "$LOCK"
 # yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
-# names (a == requirement in its metadata), and requirements.txt asks for >=0.8.0, which takes the newest
-# release. Install the named version so the bundle ships a pair, as the Windows launcher and Update
-# Plugins do. A yt-dlp that names none keeps the GitHub fallback; a failed read or install stops the build.
+# names (a == requirement in its metadata). The lock is resolved without yt-dlp's extras, so a regenerated
+# lock can pin a yt-dlp-ejs that yt-dlp refuses: stop here instead of shipping that pair, as the Windows
+# build does. A yt-dlp that names none keeps the GitHub fallback; a failed read stops the build.
 EJS_PIN=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
 import importlib.metadata as m, re
 for line in m.requires("yt-dlp") or []:
@@ -138,11 +141,20 @@ for line in m.requires("yt-dlp") or []:
         print(hit.group(1))
         break
 ')
-if [ -n "$EJS_PIN" ]; then
-    PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet "yt-dlp-ejs==$EJS_PIN"
-    echo "   ✓ yt-dlp-ejs $EJS_PIN (the version yt-dlp names)"
-else
+EJS_HAVE=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
+import importlib.metadata as m
+try:
+    print(m.version("yt-dlp-ejs"))
+except m.PackageNotFoundError:
+    pass
+')
+if [ -z "$EJS_PIN" ]; then
     echo "   ⚠ yt-dlp names no yt-dlp-ejs version, so it will download its solver script when needed"
+elif [ "$EJS_HAVE" != "$EJS_PIN" ]; then
+    echo "   ✗ yt-dlp names yt-dlp-ejs $EJS_PIN, the lock installed ${EJS_HAVE:-none}: regenerate $LOCK"
+    exit 1
+else
+    echo "   ✓ yt-dlp-ejs $EJS_HAVE (the version yt-dlp names)"
 fi
 echo "   ✓ Dependencies installed"
 echo ""
