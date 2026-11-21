@@ -50,10 +50,10 @@ Removing the package leaves your settings and history in place
 (see UNINSTALLING for the two folders).
 
 
-.RPM PACKAGE (FEDORA, OPENSUSE AND RELATIVES)
+.RPM PACKAGE (FEDORA AND OPENSUSE)
 ────────────────────────────────────────
 The same app is also offered as EGMdL.rpm, a separate download for
-64-bit Fedora, openSUSE and distributions built on them.
+64-bit Fedora 45, openSUSE Tumbleweed and openSUSE Leap 16.1.
 
 If you are updating, close EGM Downloader first.
 Install it, or update to a newer one (the new file installs over the old).
