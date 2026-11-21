@@ -86,6 +86,12 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "../../static/icon-512.png",
@@ -103,6 +109,25 @@
         "--version=1.5.4.1",
         "../../LICENSE=/usr/share/doc/egm-downloader/copyright"
       ]
+    },
+    "rpm": {
+      "artifactName": "EGMdL.rpm",
+      "packageCategory": "Applications/Internet",
+      "synopsis": "download videos from 1000+ sites",
+      "description": "Free, open source video and audio downloader for 1000+ sites.\nMulti-platform native desktop apps, built on yt-dlp.\nNo terminal, no account, zero telemetry.",
+      "fpm": [
+        "--version=1.5.4.1",
+        "--license=AGPL-3.0-or-later",
+        "--rpm-rpmbuild-define=_build_id_links none",
+        "--rpm-rpmbuild-define=_buildhost egmdownloader.app",
+        "--rpm-auto-add-directories",
+        "--rpm-auto-add-exclude-directories=/usr/share/icons/hicolor",
+        "--rpm-auto-add-exclude-directories=/usr/share/icons/hicolor/512x512",
+        "--rpm-auto-add-exclude-directories=/usr/share/icons/hicolor/512x512/apps",
+        "--rpm-auto-add-exclude-directories=/usr/share/licenses",
+        "../../LICENSE=/usr/share/licenses/egm-downloader/LICENSE"
+      ],
+      "afterRemove": "build/rpm-after-remove.tpl"
     },
     "publish": null,
     "electronLanguages": [

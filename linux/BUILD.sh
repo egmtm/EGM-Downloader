@@ -2,7 +2,7 @@
 # EGM Downloader — Linux x64 Build Script
 # Run from repo root: bash linux/BUILD.sh
 # Or from the linux/ directory: bash BUILD.sh
-# Produces: dist/EGMdL.zip + dist/EGMdL.deb + dist/egmlinux-update.json
+# Produces: dist/EGMdL.zip + dist/EGMdL.deb + dist/EGMdL.rpm + dist/egmlinux-update.json
 
 set -e
 
@@ -36,13 +36,14 @@ echo ""
 
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 echo "📋 Checking prerequisites..."
-for cmd in python3 node curl; do
+for cmd in python3 node curl rpmbuild; do
     if ! command -v "$cmd" &> /dev/null; then
         echo "❌ $cmd not found!"
         case "$cmd" in
             python3) echo "   Install: sudo apt install python3" ;;
             node)    echo "   Install: sudo apt install nodejs npm" ;;
             curl)    echo "   Install: sudo apt install curl" ;;
+            rpmbuild) echo "   Install: sudo apt install rpm   (the .rpm is made with rpmbuild)" ;;
         esac
         exit 1
     fi
@@ -199,13 +200,13 @@ find "$SITE" -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
 echo "   ✓ Python bundle stripped"
 echo ""
 
-# ── Build Electron AppImage and .deb ──────────────────────────────────────────
-# One electron-builder run packs the app once and makes both files from that one folder,
-# so the AppImage and the .deb hold the same app.
-echo "🔨 Building Electron AppImage and .deb..."
+# ── Build Electron AppImage, .deb and .rpm ────────────────────────────────────
+# One electron-builder run packs the app once and makes the three files from that one folder,
+# so the AppImage, the .deb and the .rpm hold the same app.
+echo "🔨 Building Electron AppImage, .deb and .rpm..."
 cd "$ELECTRON_DIR"
-node ./node_modules/.bin/electron-builder --linux AppImage deb --x64 --publish never
-echo "   ✓ AppImage and .deb built"
+node ./node_modules/.bin/electron-builder --linux AppImage deb rpm --x64 --publish never
+echo "   ✓ AppImage, .deb and .rpm built"
 echo ""
 
 # ── Package into zip ──────────────────────────────────────────────────────────
@@ -241,6 +242,21 @@ cp "$DEB" "$REPO_ROOT/dist/EGMdL.deb"
 echo "   ✓ dist/EGMdL.deb created"
 echo "   ✓ SHA256: $(sha256sum "$REPO_ROOT/dist/EGMdL.deb" | cut -d' ' -f1)"
 echo "   ✓ size: $(stat -c %s "$REPO_ROOT/dist/EGMdL.deb") bytes"
+echo ""
+
+# ── Copy the .rpm ─────────────────────────────────────────────────────────────
+# The .rpm ships as it is (no zip): `dnf install ./EGMdL.rpm` takes the file itself.
+echo "📦 Copying EGMdL.rpm..."
+RPM="$ELECTRON_DIR/dist/EGMdL.rpm"
+if [ ! -f "$RPM" ]; then
+    echo "❌ No EGMdL.rpm found in linux/electron/dist/"
+    exit 1
+fi
+rm -f "$REPO_ROOT/dist/EGMdL.rpm"
+cp "$RPM" "$REPO_ROOT/dist/EGMdL.rpm"
+echo "   ✓ dist/EGMdL.rpm created"
+echo "   ✓ SHA256: $(sha256sum "$REPO_ROOT/dist/EGMdL.rpm" | cut -d' ' -f1)"
+echo "   ✓ size: $(stat -c %s "$REPO_ROOT/dist/EGMdL.rpm") bytes"
 echo ""
 
 # ── Compute SHA256 checksum ───────────────────────────────────────────────────
@@ -302,5 +318,6 @@ echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMdL.zip"
 echo "   → dist/EGMdL.deb"
+echo "   → dist/EGMdL.rpm"
 echo "   → dist/egmlinux-update.json"
 echo ""
