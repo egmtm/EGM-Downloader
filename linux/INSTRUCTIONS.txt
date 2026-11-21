@@ -50,6 +50,42 @@ Removing the package leaves your settings and history in place
 (see UNINSTALLING for the two folders).
 
 
+.RPM PACKAGE (FEDORA AND OPENSUSE)
+────────────────────────────────────────
+The same app is also offered as EGMdL.rpm, a separate download for
+64-bit Fedora 45, openSUSE Tumbleweed and openSUSE Leap 16.1.
+
+If you are updating, close EGM Downloader first.
+Install it, or update to a newer one (the new file installs over the old).
+
+On Fedora:
+
+   sudo dnf install ./EGMdL.rpm
+
+On openSUSE:
+
+   sudo zypper install --allow-unsigned-rpm ./EGMdL.rpm
+
+The package is not signed. dnf says that it skipped the signature check.
+zypper stops at an unsigned file unless --allow-unsigned-rpm is given.
+Check the file against the SHA256 on the download page before installing.
+
+Then open "EGM Downloader" from the applications menu, or run:
+
+   egm-downloader
+
+The .rpm needs no FUSE. It uses the same settings and history folder
+as the AppImage, so you can move from one to the other and keep everything.
+
+To remove it:
+
+   sudo dnf remove egm-downloader         (Fedora)
+   sudo zypper remove egm-downloader      (openSUSE)
+
+Removing the package leaves your settings and history in place
+(see UNINSTALLING for the two folders).
+
+
 COMPATIBLE DISTRIBUTIONS
 ────────────────────────────────────────
 Ubuntu 20.04, 22.04, 24.04, 26.04

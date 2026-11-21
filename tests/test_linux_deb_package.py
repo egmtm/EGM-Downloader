@@ -1,4 +1,5 @@
-"""Linux ships two files from one build: the AppImage (inside EGMdL.zip) and EGMdL.deb. Both are made by
+"""Linux ships the AppImage (inside EGMdL.zip) and EGMdL.deb from one build (and EGMdL.rpm, which has its
+own tests in test_linux_rpm_package.py). All are made by
 one electron-builder run from the same packed folder, so they hold the same app. These tests keep the
 .deb settings from drifting, keep the AppImage settings as they were, and keep the .deb version equal to
 the full app version (dpkg and apt compare versions, and linux/electron/package.json carries only the
@@ -34,17 +35,18 @@ def _app_version():
     return json.loads((ROOT / "version.json").read_text(encoding="utf-8"))["version"]
 
 
-# ── the two targets ──────────────────────────────────────────────────────────
+# ── the targets ──────────────────────────────────────────────────────────────
 
-def test_linux_builds_the_appimage_and_the_deb_for_x64_only():
+def test_linux_builds_the_appimage_the_deb_and_the_rpm_for_x64_only():
     targets = _pkg()["build"]["linux"]["target"]
-    assert targets == [{"target": "AppImage", "arch": ["x64"]}, {"target": "deb", "arch": ["x64"]}]
+    assert targets == [{"target": "AppImage", "arch": ["x64"]}, {"target": "deb", "arch": ["x64"]},
+                       {"target": "rpm", "arch": ["x64"]}]
 
 
-def test_the_build_script_makes_both_files_in_one_electron_builder_run():
+def test_the_build_script_makes_all_files_in_one_electron_builder_run():
     lines = [l.strip() for l in BUILD_SH.read_text(encoding="utf-8").splitlines()]
     runs = [l for l in lines if "electron-builder" in l and not l.startswith("#")]
-    assert runs == ["node ./node_modules/.bin/electron-builder --linux AppImage deb --x64 --publish never"], runs
+    assert runs == ["node ./node_modules/.bin/electron-builder --linux AppImage deb rpm --x64 --publish never"], runs
 
 
 def test_the_build_script_puts_the_zip_and_the_deb_in_dist():
@@ -74,7 +76,7 @@ def test_deb_name_section_and_short_description():
     # without its own name the .deb would take linux.artifactName and be called "EGM Downloader.AppImage"
     assert deb["artifactName"] == "EGMdL.deb"
     assert deb["packageCategory"] == "net"
-    assert deb["synopsis"] == "download videos from 1000+ sites"
+    assert deb["synopsis"] == "Download videos from 1000+ sites"
     assert _pkg()["license"] == "AGPL-3.0"
 
 
@@ -130,7 +132,8 @@ def test_the_deb_version_is_the_full_app_version():
 def _write_linux_pkg(tmp_path, version, fpm):
     d = tmp_path / "linux" / "electron"
     d.mkdir(parents=True, exist_ok=True)
-    (d / "package.json").write_text(json.dumps({"version": version, "build": {"deb": {"fpm": fpm}}}))
+    # the .rpm block is given the same list, so what these tests see is the .deb's
+    (d / "package.json").write_text(json.dumps({"version": version, "build": {"deb": {"fpm": fpm}, "rpm": {"fpm": fpm}}}))
 
 
 @pytest.mark.parametrize("full", ["1.5.4.1", "1.5.4.2", "1.6", "1.5.1.3.1"])
