@@ -116,6 +116,9 @@ LOCK="$MAC_DIR/requirements-mac-lock.txt"
 # line): pip installs exactly those versions and stops if a file does not match its hash, so every build
 # of a commit bundles the same packages. Regenerate all three locks when requirements.txt changes.
 PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet --require-hashes --no-deps --only-binary :all: -r "$LOCK"
+# --no-deps installs only what the lock lists, so pip check makes sure the lock is complete: a
+# package another one needs but the lock lacks stops the build here instead of shipping.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip check
 # yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
 # names (a == requirement in its metadata). The lock is resolved without yt-dlp's extras, so a regenerated
 # lock can pin a yt-dlp-ejs that yt-dlp refuses: stop here instead of shipping that pair, as the Windows

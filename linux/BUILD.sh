@@ -132,6 +132,9 @@ LOCK="$LINUX_DIR/requirements-linux-lock.txt"
 # PYTHONPATH: pip reads linux/pip_glibc_floor/_manylinux.py and takes each package's wheel for glibc 2.17,
 # the level the lock is resolved for, not the newest one this machine accepts (see that file).
 PYTHONNOUSERSITE=1 PYTHONPATH="$LINUX_DIR/pip_glibc_floor" "$PYTHON_DIR/bin/python3" -m pip install --quiet --require-hashes --no-deps --only-binary :all: -r "$LOCK"
+# --no-deps installs only what the lock lists, so pip check makes sure the lock is complete: a
+# package another one needs but the lock lacks stops the build here instead of shipping.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip check
 # yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
 # names (a == requirement in its metadata). The lock is resolved without yt-dlp's extras, so a regenerated
 # lock can pin a yt-dlp-ejs that yt-dlp refuses: stop here instead of shipping that pair, as the Windows

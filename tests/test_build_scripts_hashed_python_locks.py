@@ -86,3 +86,18 @@ def test_the_build_never_installs_from_requirements_txt_or_falls_back(plat):
     pip_lines = [l for l in code if " -m pip " in l]
     assert not [l for l in pip_lines if "requirements.txt" in l], pip_lines
     assert not [l for l in pip_lines if "||" in l or l.rstrip().endswith("\\")], "a failed install must stop the build"
+
+
+CHECK = 'PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip check'
+
+
+@pytest.mark.parametrize("plat", ["linux", "mac"])
+def test_pip_check_runs_right_after_the_locked_install(plat):
+    """--no-deps installs only what the lock lists: pip check stops the build when the lock lacks a
+    package another one needs."""
+    code = [l.strip() for l in read_source(LOCKS[plat][2]).splitlines() if l.strip() and not l.strip().startswith("#")]
+    at = next(i for i, l in enumerate(code) if "--require-hashes" in l)
+    assert code[at + 1] == CHECK, code[at + 1]
+    assert code.count(CHECK) == 1
+    assert code[0] == "set -e", "the script stops on the first failing command, pip check included"
+
