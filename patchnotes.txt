@@ -3,7 +3,7 @@ vTBD - TBD (TBD)
 
   • [LINUX] New: EGM Downloader is now also offered as a .deb package for 64 bit Debian, Ubuntu and distributions built on them. It needs no libfuse2 and shares your settings and history with the AppImage.
   • [LINUX] New: EGM Downloader is now also offered as an .rpm package for 64 bit Fedora and openSUSE. It needs no FUSE and shares your settings and history with the AppImage and the .deb.
-  • [LINUX] Security: The .deb and .rpm packages run the app's interface in Chromium's sandbox, as the other platforms do. The AppImage keeps running without it, because an AppImage cannot use it.
+  • [LINUX] Security: The .deb and .rpm packages run the app's interface in Chromium's sandbox, as the other platforms do. The AppImage keeps running without it, as before.
 
 v1.5.4.1 - RAW FEED: RELOADED (11/18/2026)
 -----------------------------------------
