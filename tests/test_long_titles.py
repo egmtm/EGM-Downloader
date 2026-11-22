@@ -106,10 +106,10 @@ def test_a_conversion_whose_last_step_fails_keeps_the_original_file(backend, tmp
     original.write_bytes(b"original video")
     monkeypatch.setattr(backend, "_run", lambda *a, **k: __import__("subprocess").CompletedProcess([], 0, "vp9\n", ""))
 
-    def fake_encode(job_id, job, ffmpeg, src, dst, level, ffprobe=None):
+    def fake_encode(job_id, job, ffmpeg, src, dst, level, ffprobe=None, codec="h264"):
         Path(dst).write_bytes(b"converted video")
         return True
-    monkeypatch.setattr(backend, "_run_h264_encode", fake_encode)
+    monkeypatch.setattr(backend, "_run_video_encode", fake_encode)
     real_rename, real_replace = backend.os.rename, backend.os.replace
 
     def locked(src, dst, *a, **k):
@@ -124,7 +124,7 @@ def test_a_conversion_whose_last_step_fails_keeps_the_original_file(backend, tmp
         return locked(src, dst, *a, **k)
     monkeypatch.setattr(backend.os, "replace", locked_replace)
     job = {"status": "downloading"}
-    result = backend._ensure_h264("j1", original, job)
+    result = backend._ensure_codec("j1", original, job)
     assert Path(result).read_bytes() == b"original video"
     assert not (tmp_path / "clip.mp4.h264.mp4").exists()
 

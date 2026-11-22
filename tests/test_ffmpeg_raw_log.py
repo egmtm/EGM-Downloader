@@ -1,7 +1,7 @@
 """Raw ffmpeg stderr capture guards.
 
 Adds a fourth ring alongside the diagnostic (_LOG_RING), yt-dlp (_YT_RING),
-and Flask (_FLASK_RING) rings: raw stderr from _run_h264_encode's directly
+and Flask (_FLASK_RING) rings: raw stderr from _run_video_encode's directly
 -spawned ffmpeg process. Deliberately scoped to that process only -- not
 yt-dlp's internal postprocessing ffmpeg (its output arrives on yt-dlp's own
 stderr, not cleanly separable), and not the short capture_output=True probe
@@ -90,7 +90,7 @@ def test_h264_encode_pipes_stderr_instead_of_discarding_it():
     of Unix process groups), so it's correctly absent there."""
     for p in PLATFORM_APP_FILES:
         src = read_source(p)
-        i = src.index("def _run_h264_encode")
+        i = src.index("def _run_video_encode")
         j = src.index("def ", i + 10)
         block = src[i:j]
         assert "stderr=subprocess.PIPE" in block, (
@@ -115,7 +115,7 @@ def test_pump_encode_progress_stdout_reading_is_unaffected():
     have flipped the process into text mode."""
     for p in PLATFORM_APP_FILES:
         src = read_source(p)
-        i = src.index("def _run_h264_encode")
+        i = src.index("def _run_video_encode")
         j = src.index("def ", i + 10)
         block = src[i:j]
         popen_m = re.search(r"proc = _popen\(\*cmd,.*?\)\n", block, re.DOTALL)
@@ -327,7 +327,7 @@ def test_drain_thread_is_actually_started_before_proc_wait():
     """
     for p in PLATFORM_APP_FILES:
         src = read_source(p)
-        i = src.index("def _run_h264_encode")
+        i = src.index("def _run_video_encode")
         j = src.index("def ", i + 10)
         block = src[i:j]
         code = "\n".join(
@@ -349,7 +349,7 @@ def test_drain_thread_is_actually_started_before_proc_wait():
         drain_at = _thread_start_index("_drain_ffmpeg_stderr")
         assert drain_at is not None, (
             f"{p}: no real threading.Thread(target=_drain_ffmpeg_stderr...).start() "
-            f"call in _run_h264_encode -- piping stderr without draining it "
+            f"call in _run_video_encode -- piping stderr without draining it "
             f"deadlocks the encode once the pipe buffer fills"
         )
 

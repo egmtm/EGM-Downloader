@@ -380,7 +380,7 @@ _FFMPEG_SEQ = 0
 def _ffmpeg_log(line):
     """Raw ffmpeg stderr ring, mirroring _YT_RING/_FLASK_RING's shape and
     locking exactly. Memory-only -- ffmpeg stderr can echo local file
-    paths. Scoped to _run_h264_encode's directly-spawned ffmpeg process
+    paths. Scoped to _run_video_encode's directly-spawned ffmpeg process
     only (not yt-dlp's internal postprocessing ffmpeg, and not the short
     synchronous probe calls). Displayed only when the console's ffmpeg
     toggle is on."""
@@ -1348,8 +1348,11 @@ def _run_download_slot(job_id, *rest):
         _download_sem.release()
 
 
-# ── Hardware-accelerated H.264 encode (auto-detect, safe fallback) ───────────
-_HW_ENCODER_CACHE = None
+# ── Hardware-accelerated H.264 / H.265 encode (auto-detect, safe fallback) ───
+# One entry per codec ("h264", "hevc"): a GPU can encode H.264 and not HEVC
+# (older NVENC generations), so an HEVC probe or encode that fails must not
+# take the H.264 encoder down with it.
+_HW_ENCODER_CACHE = {}
 
 def _log_hw_probe_failure(name, text):
     """Routes a failed hardware-encoder probe's output into the ffmpeg ring
@@ -1366,17 +1369,24 @@ def _log_hw_probe_failure(name, text):
         if line:
             _ffmpeg_log(f"[hw-probe:{name}] {line}")
 
-def _detect_hw_encoder():
-    """Probe hardware H.264 encoders with a tiny test encode and cache the winner.
-    Presence in `ffmpeg -encoders` is NOT enough — the probe proves the GPU and
-    driver actually work. Anything failing the probe falls back to libx264."""
-    global _HW_ENCODER_CACHE
-    if _HW_ENCODER_CACHE is not None:
-        return _HW_ENCODER_CACHE
+def _detect_hw_encoder(codec="h264"):
+    """Probe the hardware encoders for `codec` ("h264" or "hevc") with a tiny test
+    encode and cache the winner. Presence in `ffmpeg -encoders` is NOT enough — the
+    probe proves the GPU and driver actually work. Anything failing the probe falls
+    back to the software encoder (libx264 / libx265)."""
+    cached = _HW_ENCODER_CACHE.get(codec)
+    if cached is not None:
+        return cached
     ffmpeg = FFMPEG_DIR / "ffmpeg"
-    candidates = [
-        ("h264_videotoolbox", ["-c:v", "h264_videotoolbox", "-q:v", "60"]),
-    ]
+    candidates = {
+        "h264": [
+            ("h264_videotoolbox", ["-c:v", "h264_videotoolbox", "-q:v", "60"]),
+        ],
+        # Same settings as H.264, on each encoder's HEVC version.
+        "hevc": [
+            ("hevc_videotoolbox", ["-c:v", "hevc_videotoolbox", "-q:v", "60"]),
+        ],
+    }[codec]
     for name, args in candidates:
         try:
             r = _run(str(ffmpeg), "-v", "error",
@@ -1384,13 +1394,13 @@ def _detect_hw_encoder():
                      *args, "-frames:v", "3", "-f", "null", "-", timeout=20)
             if r.returncode == 0:
                 _egm_log(f"hardware encoder available: {name}")
-                _HW_ENCODER_CACHE = (name, list(args))
-                return _HW_ENCODER_CACHE
+                _HW_ENCODER_CACHE[codec] = (name, list(args))
+                return _HW_ENCODER_CACHE[codec]
             _log_hw_probe_failure(name, r.stderr)
         except Exception as e:
             _log_hw_probe_failure(name, str(e))
-    _HW_ENCODER_CACHE = (None, None)
-    return _HW_ENCODER_CACHE
+    _HW_ENCODER_CACHE[codec] = (None, None)
+    return _HW_ENCODER_CACHE[codec]
 
 
 # Cap concurrent hardware encodes. Consumer NVENC drivers hard-limit concurrent
@@ -1398,7 +1408,8 @@ def _detect_hw_encoder():
 # also degrade under heavy parallelism. With up to 24 concurrent jobs, sessions
 # beyond the cap would fail at init and demote the cache -- turning one busy
 # burst into CPU-only encodes until restart. "Busy" is not "broken": jobs that
-# can't get a slot use libx264 for that one encode and leave the cache alone.
+# can't get a slot use the software encoder for that one encode and leave the
+# cache alone. One cap for both codecs: H.264 and HEVC sessions share the GPU.
 _HW_ENCODE_SLOTS = threading.BoundedSemaphore(2)
 
 
@@ -1449,28 +1460,35 @@ def _pump_encode_progress(proc, job, duration_s):
         pass
 
 
-def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=None):
-    """Shared encode step for the H.264/upscale passes: hardware encoder when one
-    probes healthy, automatic libx264 retry (and cache demotion) if it fails."""
-    global _HW_ENCODER_CACHE
-    sw = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
-          "-profile:v", "high", "-level", level]
-    hw_name, hw_args = _detect_hw_encoder()
+def _run_video_encode(job_id, job, ffmpeg, in_path, tmp, level=None, vf=None, ffprobe=None, codec="h264"):
+    """Shared encode step for the H.264/H.265/upscale passes: hardware encoder when one
+    probes healthy for `codec`, automatic software retry (libx264 / libx265) and cache
+    demotion if it fails. H.265 output is tagged hvc1, which Apple players need."""
+    if codec == "hevc":
+        sw_name = "libx265"
+        sw = ["-c:v", "libx265", "-preset", "veryfast", "-crf", "28"]
+        tag = ["-tag:v", "hvc1"]
+    else:
+        sw_name = "libx264"
+        sw = ["-c:v", "libx264", "-preset", "veryfast", "-crf", "20",
+              "-profile:v", "high", "-level", level]
+        tag = []
+    hw_name, hw_args = _detect_hw_encoder(codec)
     # Non-blocking: over-cap jobs take the software path this once,
     # without demoting the cache -- the GPU is busy, not broken.
     hw_slot = bool(hw_name) and _HW_ENCODE_SLOTS.acquire(blocking=False)
     duration_s = _media_duration_s(ffprobe, in_path) if ffprobe else None
     try:
-        for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [("libx264", sw)]:
+        for attempt, codec_args in ([(hw_name, hw_args)] if (hw_name and hw_slot) else []) + [(sw_name, sw)]:
             if job.get("cancelled"):      # pressed while ffprobe or the previous attempt ran
                 return False
             job["encoder"] = attempt   # surfaced in the converting badge
             cmd = [str(ffmpeg), "-y", "-i", in_path, "-map", "0:v:0", "-map", "0:a:0?"]
             if vf:
                 cmd += ["-vf", vf]
-            cmd += codec_args + ["-pix_fmt", "yuv420p",
-                                 "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
-                                 "-progress", "pipe:1", "-nostats", tmp]
+            cmd += codec_args + tag + ["-pix_fmt", "yuv420p",
+                                       "-c:a", "aac", "-b:a", "192k", "-movflags", "+faststart",
+                                       "-progress", "pipe:1", "-nostats", tmp]
             proc = _popen(*cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           # Own process group: cancel goes through _kill_proc -> os.killpg;
                           # without a new session this ffmpeg shares the app's own group and
@@ -1500,9 +1518,9 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
                 return True
             try: os.remove(tmp)
             except Exception: pass
-            if attempt != "libx264":
-                _egm_log(f"{attempt} encode failed — retrying with libx264")
-                _HW_ENCODER_CACHE = (None, None)   # stop offering a broken encoder
+            if attempt != sw_name:
+                _egm_log(f"{attempt} encode failed — retrying with {sw_name}")
+                _HW_ENCODER_CACHE[codec] = (None, None)   # stop offering a broken encoder
             else:
                 return False
         return False
@@ -1511,26 +1529,54 @@ def _run_h264_encode(job_id, job, ffmpeg, in_path, tmp, level, vf=None, ffprobe=
         if hw_slot:
             _HW_ENCODE_SLOTS.release()
 
-def _ensure_h264(job_id, path, job):
-    """Universal MP4 (Max compatibility): if the downloaded video is not already H.264,
-    transcode it to H.264 (High@4.0, yuv420p) + AAC with +faststart so it plays on any
-    device. Already-H.264 files are returned untouched (no re-encode, no quality loss).
-    Defensive — on any failure it returns the original file, so a download is never lost."""
+def _tag_hvc1(ffmpeg, path):
+    """Sets an H.265 MP4's video tag to hvc1 with a stream copy (no reencode): Apple
+    players do not open HEVC tagged hev1. Keeps every track and leaves data streams
+    out, like the live recording cut. On any failure the file stays as it was."""
+    tmp = f"{path}.hvc1.mp4"
+    try:
+        res = _run(str(ffmpeg), "-v", "error", "-y", "-i", path, "-map", "0", "-dn",
+                   "-c", "copy", "-tag:v:0", "hvc1", "-movflags", "+faststart", tmp,
+                   timeout=600 + os.path.getsize(path) // (2 * 1024 * 1024))
+        if res.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
+            os.replace(tmp, path)
+            return True
+    except Exception:
+        pass
+    try: os.remove(tmp)
+    except OSError: pass
+    return False
+
+def _ensure_codec(job_id, path, job, codec="h264"):
+    """Universal MP4: "MP4 · H.264" (Max compatibility, codec "h264") and "MP4 · H.265"
+    (codec "hevc"). If the downloaded video is not already in that codec, transcode it
+    (yuv420p) + AAC with +faststart; H.264 is High@4.0 so it plays on any device. Files
+    already in the codec are not reencoded (no quality loss); an H.265 file tagged hev1
+    only gets its tag set to hvc1 by a stream copy. Defensive — on any failure it
+    returns the original file, so a download is never lost."""
     path = str(path)
+    hevc = (codec == "hevc")
     try:
         ffprobe = FFMPEG_DIR / "ffprobe"
         ffmpeg  = FFMPEG_DIR / "ffmpeg"
         if not ffprobe.exists() or not ffmpeg.exists():
             return path
         r = _run(str(ffprobe), "-v", "error", "-select_streams", "v:0",
-                 "-show_entries", "stream=codec_name", "-of",
-                 "default=nw=1:nk=1", path, timeout=30)
-        vcodec = (r.stdout or "").strip().lower()
-        if not vcodec or vcodec in ("h264", "avc1", "avc"):
+                 "-show_entries", "stream=codec_name,codec_tag_string", "-of",
+                 "csv=p=0", path, timeout=30)
+        vcodec, _, vtag = (r.stdout or "").strip().lower().partition(",")
+        if not vcodec:
+            return path
+        if hevc and vcodec == "hevc":
+            if vtag != "hvc1":
+                _tag_hvc1(ffmpeg, path)
+            return path                                       # already H.265 — skip
+        if not hevc and vcodec in ("h264", "avc1", "avc"):
             return path                                       # already H.264 — skip
         job["status"] = "converting"; job["speed"] = ""; job.pop("progress", None)
-        tmp = f"{path}.h264.mp4"
-        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.0", ffprobe=ffprobe):
+        tmp = f"{path}.h265.mp4" if hevc else f"{path}.h264.mp4"
+        if _run_video_encode(job_id, job, ffmpeg, path, tmp, None if hevc else "4.0",
+                             ffprobe=ffprobe, codec=codec):
             try:
                 # One step: the original stays until the converted copy takes its place, so a
                 # failure here (a scanner holding the new file) keeps the download.
@@ -1543,18 +1589,23 @@ def _ensure_h264(job_id, path, job):
         except OSError: pass
         if job.get("cancelled"):
             return path
-        job["warning"] = "The H.264 conversion failed, so the video was saved in its original codec."
-        job["warning_key"] = "download.warning.source_codec"
+        if hevc:
+            job["warning"] = "The H.265 conversion failed, so the video was saved in its original codec."
+            job["warning_key"] = "download.warning.source_codec_h265"
+        else:
+            job["warning"] = "The H.264 conversion failed, so the video was saved in its original codec."
+            job["warning_key"] = "download.warning.source_codec"
         return path
     except Exception:
         return path
 
 
-def _upscale_to_preset(job_id, path, job, target):
+def _upscale_to_preset(job_id, path, job, target, codec="h264"):
     """Opt-in "Upscale to selected quality": if the finished video's SHORT side is
     below the selected preset, scale it up proportionally (short side == preset)
-    and encode H.264 High + AAC, +faststart. At/above target -> untouched.
-    Defensive like _ensure_h264 — any failure returns the original file."""
+    and encode H.264 High (H.265 when the output is MP4 · H.265) + AAC, +faststart.
+    At/above target -> untouched.
+    Defensive like _ensure_codec — any failure returns the original file."""
     path = str(path)
     try:
         ffprobe = FFMPEG_DIR / "ffprobe"
@@ -1574,7 +1625,8 @@ def _upscale_to_preset(job_id, path, job, target):
         # short side -> N, long side proportional (even): portrait vs landscape aware
         vf = "scale='if(gt(iw,ih),-2,%d)':'if(gt(iw,ih),%d,-2)'" % (n, n)
         tmp = path + ".up.mp4"
-        if _run_h264_encode(job_id, job, ffmpeg, path, tmp, "4.2", vf=vf, ffprobe=ffprobe):
+        if _run_video_encode(job_id, job, ffmpeg, path, tmp, None if codec == "hevc" else "4.2",
+                             vf=vf, ffprobe=ffprobe, codec=codec):
             os.replace(tmp, path)
         return path
     except Exception:
@@ -1678,11 +1730,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         # backoff (1s, 2s, 3s, 4s, 5s) survives ~90s throttle windows gracefully.
         args += ["--retries", "25", "--fragment-retries", "25",
                  "--socket-timeout", "30", "--retry-sleep", "linear=1::5"]
-        # Universal MP4 (Max compatibility): prefer an H.264 (avc1) video + AAC (m4a)
-        # audio stream so the common case needs no re-encode at all. Falls back to the
-        # best available; the post-download _ensure_h264 step transcodes only if the
-        # result still is not H.264 (e.g. an AV1-only source).
-        compat = (output_format == "mp4_h264")
+        # Universal MP4 (MP4 · H.264 and MP4 · H.265): prefer a video stream already in
+        # the codec (avc1, or hvc1/hev1) + AAC (m4a) audio so the common case needs no
+        # re-encode at all. Falls back to the best available; the post-download
+        # _ensure_codec step transcodes only if the result still is not in the codec
+        # (e.g. an AV1-only source).
+        compat = output_format in ("mp4_h264", "mp4_h265")
+        want = "vcodec~='^(hvc1|hev1)'" if output_format == "mp4_h265" else "vcodec^=avc1"
         if format_id:
             args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"]
         elif compat:
@@ -1693,9 +1747,9 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             if video_height and video_height != 0:
                 args += ["-S", f"res:{video_height}"]
             args += ["-f",
-                     "bestvideo[vcodec^=avc1]+bestaudio[acodec^=mp4a]/"
-                     "bestvideo[vcodec^=avc1]+bestaudio/"
-                     "best[vcodec^=avc1]/"
+                     f"bestvideo[{want}]+bestaudio[acodec^=mp4a]/"
+                     f"bestvideo[{want}]+bestaudio/"
+                     f"best[{want}]/"
                      "bestvideo+bestaudio/best"]
         elif video_height and video_height != 0:
             args += ["-S", f"res:{video_height}", "-f", "bestvideo+bestaudio/best"]
@@ -1930,10 +1984,11 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 try: os.remove(f)
                 except Exception: pass
 
-        # Universal MP4: ensure the final video stream is H.264 (transcode only if it is
-        # not — an already-H.264 file is left untouched). Defensive: never loses the file.
-        if format_choice != "audio" and output_format == "mp4_h264" and str(chosen).lower().endswith(".mp4"):
-            chosen = _ensure_h264(job_id, chosen, job)
+        # Universal MP4: ensure the final video stream is H.264 or H.265 (transcode only if
+        # it is not — a file already in the codec is not reencoded). Defensive: never loses the file.
+        target_codec = "hevc" if output_format == "mp4_h265" else "h264"
+        if format_choice != "audio" and output_format in ("mp4_h264", "mp4_h265") and str(chosen).lower().endswith(".mp4"):
+            chosen = _ensure_codec(job_id, chosen, job, target_codec)
 
         # Opt-in upscale to the selected preset (fixed presets only — "Best
         # available" has no target). Runs after the H.264 pass; adds at most one
@@ -1942,7 +1997,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
                 and not job.get("cancelled")
                 and _load_settings().get("upscale_to_quality", False)
                 and str(chosen).lower().endswith(".mp4")):
-            chosen = _upscale_to_preset(job_id, chosen, job, video_height)
+            chosen = _upscale_to_preset(job_id, chosen, job, video_height, target_codec)
 
         if job.get("cancelled"):
             # Cancelled during a conversion pass — remove the job's files
@@ -2881,7 +2936,7 @@ def save_settings():
 _SETTING_FLAGS = ("settings_open", "upd_open", "ck_open", "quit_on_done", "window_maximized",
                   "check_updates_on_launch", "subtitles", "embed_metadata")
 _SETTING_CHOICES = {
-    "output_format":        ("mp4_h264", "mp4", "mkv"),
+    "output_format":        ("mp4_h264", "mp4_h265", "mp4", "mkv"),
     "default_audio_format": ("320", "192", "128", "flac", "m4a_256", "opus_192", "opus_128"),
     "yt_dlp_channel":       ("stable", "nightly"),
     "ffmpeg_channel":       ("stable", "nightly"),

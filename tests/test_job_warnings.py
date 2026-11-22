@@ -63,11 +63,11 @@ def _fake_tools(tmp_path, codec):
 
 def _run_ensure_h264(app_module, monkeypatch, tmp_path, codec, encode_ok):
     monkeypatch.setattr(app_module, "FFMPEG_DIR", _fake_tools(tmp_path, codec))
-    monkeypatch.setattr(app_module, "_run_h264_encode", lambda *a, **k: encode_ok)
+    monkeypatch.setattr(app_module, "_run_video_encode", lambda *a, **k: encode_ok)
     video = tmp_path / "v.mp4"
     video.write_bytes(b"not really a video")
     job = {"status": "downloading"}
-    out = app_module._ensure_h264("jw", str(video), job)
+    out = app_module._ensure_codec("jw", str(video), job)
     return out, job
 
 
