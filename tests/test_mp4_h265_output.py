@@ -135,6 +135,18 @@ def test_a_file_already_in_hevc_is_not_reencoded(tools, probe):
     assert calls["tag"] == ([] if "hvc1" in probe else ["v.mp4"]), "only hev1 gets the tag copy"
 
 
+@pytest.mark.parametrize("probe,copied", [("hevc,dvh1\n", False), ("hevc,dvhe\n", False), ("hevc,dvh1,\n", False),
+                                          ("hevc,[0][0][0][0]\n", True), ("hevc,[27][0][0][0]\n", True)])
+def test_dolby_vision_keeps_its_tag_and_other_hevc_tags_get_hvc1(tools, probe, copied):
+    """dvh1 and dvhe are the tags of Dolby Vision: the tag copy leaves them alone. Every other tag that is
+    not hvc1 still gets the copy, which also turns Matroska or MPEG-TS data under an .mp4 name into a real MP4."""
+    backend, video, calls, probe_says = tools
+    probe_says(probe)
+    job = {"status": "downloading"}
+    assert backend._ensure_codec("j", str(video), job, "hevc") == str(video)
+    assert calls["encode"] == [] and calls["tag"] == (["v.mp4"] if copied else [])
+
+
 @pytest.mark.parametrize("probe,copied", [("hevc,hvc1,\n", False), ("hevc,hev1,\n", True)])
 def test_side_data_on_the_stream_does_not_hide_the_tag(tools, probe, copied):
     """ffprobe ends its csv line with one more comma when the video stream carries side data (a

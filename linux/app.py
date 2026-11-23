@@ -1531,7 +1531,8 @@ def _ensure_codec(job_id, path, job, codec="h264"):
         if not vcodec:
             return path
         if hevc and vcodec == "hevc":
-            if vtag != "hvc1":
+            # dvh1 and dvhe are Dolby Vision's tags: retagging them hvc1 would hide that signal.
+            if vtag != "hvc1" and not vtag.startswith("dv"):
                 _tag_hvc1(ffmpeg, path)
             return path                                       # already H.265 — skip
         if not hevc and vcodec in ("h264", "avc1", "avc"):
