@@ -1525,6 +1525,9 @@ def _ensure_codec(job_id, path, job, codec="h264"):
                  "-show_entries", "stream=codec_name,codec_tag_string", "-of",
                  "csv=p=0", path, timeout=30)
         vcodec, _, vtag = (r.stdout or "").strip().lower().partition(",")
+        # The tag is the second field alone: ffprobe ends the line with one more comma when the
+        # stream carries side data (a rotation), and "hvc1," must still read as hvc1.
+        vtag = vtag.partition(",")[0]
         if not vcodec:
             return path
         if hevc and vcodec == "hevc":

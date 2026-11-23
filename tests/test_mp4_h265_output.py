@@ -127,6 +127,17 @@ def test_a_file_already_in_hevc_is_not_reencoded(tools, probe):
     assert calls["tag"] == ([] if "hvc1" in probe else ["v.mp4"]), "only hev1 gets the tag copy"
 
 
+@pytest.mark.parametrize("probe,copied", [("hevc,hvc1,\n", False), ("hevc,hev1,\n", True)])
+def test_side_data_on_the_stream_does_not_hide_the_tag(tools, probe, copied):
+    """ffprobe ends its csv line with one more comma when the video stream carries side data (a
+    rotation, for example): "hevc,hvc1,". The tag is the second field, so that file is left alone."""
+    backend, video, calls, probe_says = tools
+    probe_says(probe)
+    job = {"status": "downloading"}
+    assert backend._ensure_codec("j", str(video), job, "hevc") == str(video)
+    assert calls["encode"] == [] and calls["tag"] == (["v.mp4"] if copied else [])
+
+
 @pytest.mark.parametrize("probe", ["av1,av01\n", "vp9,vp09\n", "h264,avc1\n"])
 def test_anything_else_is_encoded_to_hevc(tools, probe):
     backend, video, calls, probe_says = tools
@@ -367,6 +378,31 @@ def test_real_hev1_file_is_retagged_without_reencoding_and_keeps_its_tracks(back
     assert _probe(src, "stream=codec_type,codec_name", "") == streams_before, "every track is kept"
     assert "encoder" not in job and job["status"] == "downloading"
     assert sorted(p.name for p in tmp_path.iterdir()) == ["clip.mp4", "cover.jpg", "realff"]
+
+
+@needs_x265
+def test_real_hvc1_file_with_a_rotation_is_left_alone(backend, tmp_path, monkeypatch):
+    """A phone recording served as it is: HEVC tagged hvc1, with a rotation. The rotation is side
+    data, and ffprobe then prints "hevc,hvc1," (FFmpeg 6 to 8). The file must not be copied again."""
+    _real_tools(backend, tmp_path, monkeypatch)
+    flat, src = tmp_path / "flat.mp4", tmp_path / "clip.mp4"
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=160x90:rate=10", "-t", "1",
+                    "-c:v", "libx265", "-tag:v", "hvc1", "-x265-params", "log-level=error", str(flat)], check=True)
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-display_rotation", "90", "-i", str(flat), "-c", "copy",
+                    "-tag:v", "hvc1", str(src)], check=True)
+    flat.unlink()
+    shown = subprocess.run([FFPROBE, "-v", "error", "-select_streams", "v:0", "-show_streams", str(src)],
+                           capture_output=True, text=True, check=True).stdout
+    assert "rotation=" in shown, "the test file has no rotation"
+    copies = []
+    tag_copy = backend._tag_hvc1
+    monkeypatch.setattr(backend, "_tag_hvc1", lambda ffmpeg, p: copies.append(p) or tag_copy(ffmpeg, p))
+    before = src.read_bytes()
+    job = {"status": "downloading"}
+    assert backend._ensure_codec("j", str(src), job, "hevc") == str(src)
+    assert copies == [] and src.read_bytes() == before, "a file already tagged hvc1 was copied again"
+    assert "encoder" not in job and job["status"] == "downloading"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["clip.mp4", "realff"]
 
 
 @needs_x265
