@@ -57,6 +57,12 @@ def _exe(backend):
     return ".exe" if Path(backend.__file__).resolve() == ROOT / "app.py" else ""
 
 
+# The stream choice run_download sends for MP4 · H.265.
+HEVC_CHAIN = ("bestvideo[vcodec~='^(hvc1|hev1|hevc|h265)']+bestaudio[acodec^=mp4a]/"
+              "bestvideo[vcodec~='^(hvc1|hev1|hevc|h265)']+bestaudio/"
+              "best[vcodec~='^(hvc1|hev1|hevc|h265)']/bestvideo+bestaudio/best")
+
+
 # ── wiring ────────────────────────────────────────────────────────────────────
 
 def test_the_option_sits_right_under_h264():
@@ -348,9 +354,7 @@ def test_a_download_asks_for_hevc_then_encodes_and_upscales_in_hevc(backend, tmp
         backend.jobs.pop(job_id, None)
     cmd = yt_cmds[0]
     fmt = cmd[cmd.index("-f") + 1]
-    assert fmt == ("bestvideo[vcodec~='^(hvc1|hev1)']+bestaudio[acodec^=mp4a]/"
-                   "bestvideo[vcodec~='^(hvc1|hev1)']+bestaudio/"
-                   "best[vcodec~='^(hvc1|hev1)']/bestvideo+bestaudio/best"), fmt
+    assert fmt == HEVC_CHAIN, fmt
     assert cmd[cmd.index("--remux-video") + 1] == "mp4"
     assert [e[1] for e in encodes] == ["libx265", "libx265"], f"codec pass then Upscale, both HEVC: {encodes}"
     assert encodes[0][0].endswith(".h265.mp4") and encodes[1][0].endswith(".up.mp4"), encodes
@@ -359,9 +363,7 @@ def test_a_download_asks_for_hevc_then_encodes_and_upscales_in_hevc(backend, tmp
 
 def test_yt_dlp_picks_hevc_when_offered_and_the_best_stream_when_not():
     yt_dlp = pytest.importorskip("yt_dlp")
-    chain = ("bestvideo[vcodec~='^(hvc1|hev1)']+bestaudio[acodec^=mp4a]/"
-             "bestvideo[vcodec~='^(hvc1|hev1)']+bestaudio/"
-             "best[vcodec~='^(hvc1|hev1)']/bestvideo+bestaudio/best")
+    chain = HEVC_CHAIN
 
     def f(fid, vcodec, acodec, h, tbr):
         return {"format_id": fid, "url": "https://x.invalid/" + fid, "ext": "mp4", "vcodec": vcodec,
@@ -373,6 +375,9 @@ def test_yt_dlp_picks_hevc_when_offered_and_the_best_stream_when_not():
         "hvc+140": [av1, f("hvc", "hvc1.1.6.L120.90", "none", 1080, 3000), f("avc", "avc1.640028", "none", 1080, 4000)],
         "hev+140": [av1, f("hev", "hev1.1.6.L120.90", "none", 1080, 3000)],
         "av1+251": [av1, f("avc", "avc1.640028", "none", 720, 1500)],
+        # a few extractors name HEVC hevc or h265; a VP9 stream of the same height would win the fallback
+        "h265+140": [f("vp9", "vp09.00.40.08", "none", 1080, 2500), f("h265", "h265", "none", 1080, 3000)],
+        "hevc+140": [f("vp9", "vp09.00.40.08", "none", 1080, 2500), f("hevc", "hevc", "none", 1080, 3000)],
     }
     for expect, video in cases.items():
         ydl = yt_dlp.YoutubeDL({"quiet": True, "format": chain, "simulate": True})

@@ -1734,12 +1734,13 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
         args += ["--retries", "25", "--fragment-retries", "25",
                  "--socket-timeout", "30", "--retry-sleep", "linear=1::5"]
         # Universal MP4 (MP4 · H.264 and MP4 · H.265): prefer a video stream already in
-        # the codec (avc1, or hvc1/hev1) + AAC (m4a) audio so the common case needs no
+        # the codec (avc1, or HEVC) + AAC (m4a) audio so the common case needs no
         # re-encode at all. Falls back to the best available; the post-download
         # _ensure_codec step transcodes only if the result still is not in the codec
         # (e.g. an AV1-only source).
         compat = output_format in ("mp4_h264", "mp4_h265")
-        want = "vcodec~='^(hvc1|hev1)'" if output_format == "mp4_h265" else "vcodec^=avc1"
+        # HEVC is named hvc1 or hev1 in manifests; a few extractors set hevc or h265.
+        want = "vcodec~='^(hvc1|hev1|hevc|h265)'" if output_format == "mp4_h265" else "vcodec^=avc1"
         if format_id:
             args += ["-f", f"{format_id}+bestaudio/{format_id}/bestvideo+bestaudio/best"]
         elif compat:
