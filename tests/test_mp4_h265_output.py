@@ -76,9 +76,11 @@ def test_the_backend_accepts_the_setting(path):
 def test_hevc_encoders_are_the_h264_ones_with_the_same_settings(path):
     src = read_source(path)
     block = re.search(r'candidates = \{\n(.*?)\n    \}\[codec\]', src, re.S).group(1)
-    h264 = re.findall(r'\("(h264_\w+)", (\[.*?\])\)', block)
-    hevc = re.findall(r'\("(hevc_\w+)", (\[.*?\])\)', block)
+    h264 = re.findall(r'\("(h264_\w+)",\s+(\[.*?\])\)', block)
+    hevc = re.findall(r'\("(hevc_\w+)",\s+(\[.*?\])\)', block)
     assert h264, f"{path}: no H.264 hardware encoders found"
+    # every encoder line is read: the Windows list lines its entries up with more than one space
+    assert len(h264) + len(hevc) == len(re.findall(r'^\s*\("', block, re.M)), (path, h264, hevc)
     assert [(n.replace("h264_", "hevc_"), a.replace("h264_", "hevc_")) for n, a in h264] == hevc, (path, h264, hevc)
 
 
