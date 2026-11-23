@@ -240,6 +240,17 @@ def test_a_failed_tag_copy_writes_one_debug_log_line(backend, tmp_path, monkeypa
         assert lines == [f"hvc1 tag copy failed ({why}), the file keeps its tag"], lines
 
 
+@pytest.mark.parametrize("probe", ["640,360\n", "640,360,\n"])
+def test_upscale_reads_the_size_when_the_stream_carries_side_data(tools, probe):
+    """ffprobe ends its csv line with one more comma when the video stream carries side data (a rotation,
+    for example): "640,360,". Width and height are the first two fields, so that video is upscaled too."""
+    backend, video, calls, probe_says = tools
+    probe_says(probe)
+    job = {"status": "downloading"}
+    assert backend._upscale_to_preset("j", str(video), job, 1080, "hevc") == str(video)
+    assert calls["encode"] == [("v.mp4.up.mp4", None, "hevc")] and video.read_bytes() == b"converted"
+
+
 # ── the hardware cache is per codec ───────────────────────────────────────────
 
 def test_a_failed_hevc_gpu_encode_keeps_the_h264_encoder(backend, monkeypatch, tmp_path):
@@ -534,6 +545,22 @@ def test_real_hvc1_file_with_a_rotation_is_left_alone(backend, tmp_path, monkeyp
     assert copies == [] and src.read_bytes() == before, "a file already tagged hvc1 was copied again"
     assert "encoder" not in job and job["status"] == "downloading"
     assert sorted(p.name for p in tmp_path.iterdir()) == ["clip.mp4", "realff"]
+
+
+@needs_x265
+def test_real_rotated_video_is_upscaled(backend, tmp_path, monkeypatch):
+    """A phone recording with a rotation: ffprobe prints "160,90," for its size (FFmpeg 6 to 8)."""
+    _real_tools(backend, tmp_path, monkeypatch)
+    flat, src = tmp_path / "flat.mp4", tmp_path / "small.mp4"
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=160x90:rate=10", "-t", "1",
+                    "-c:v", "libx265", "-tag:v", "hvc1", "-x265-params", "log-level=error", str(flat)], check=True)
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-display_rotation", "90", "-i", str(flat), "-c", "copy",
+                    "-tag:v", "hvc1", str(src)], check=True)
+    flat.unlink()
+    assert _probe(src, "stream=width,height").startswith("160,90"), "the test file has no rotation side data"
+    backend._upscale_to_preset("j", str(src), {"status": "downloading"}, 360, "hevc")
+    # ffmpeg applies the rotation when it encodes, so the upscaled file stands upright: 360 wide, 640 high
+    assert _probe(src, "stream=codec_name,codec_tag_string,width,height") == "hevc,hvc1,360,640"
 
 
 @needs_x265

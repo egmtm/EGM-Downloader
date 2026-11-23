@@ -1581,7 +1581,9 @@ def _upscale_to_preset(job_id, path, job, target, codec="h264"):
             return path
         r = _run(str(ffprobe), "-v", "error", "-select_streams", "v:0",
                  "-show_entries", "stream=width,height", "-of", "csv=p=0", path, timeout=30)
-        parts = (r.stdout or "").strip().split(",")
+        # Width and height are the first two fields alone: ffprobe ends the line with one more comma
+        # when the stream carries side data (a rotation), and that video must still be upscaled.
+        parts = (r.stdout or "").strip().split(",")[:2]
         if len(parts) != 2:
             return path
         w, h = int(parts[0]), int(parts[1])
