@@ -1424,7 +1424,7 @@ def _log_hw_probe_failure(name, text):
     """Routes a failed hardware-encoder probe's output into the ffmpeg ring
     (visible under the Diagnostics ffmpeg toggle) instead of discarding it.
     Previously the probe's stderr went nowhere -- when hardware encoding
-    silently fails and the app falls back to libx264, this was the single
+    silently fails and the app falls back to libx264 or libx265, this was the single
     most useful diagnostic for a hardware-encoding support case, and it was
     unavailable. Prefixed per-candidate so multiple probe failures in one
     session stay distinguishable."""
@@ -2071,7 +2071,7 @@ def run_download(job_id, url, format_choice, format_id, download_dir, audio_code
             chosen = _ensure_codec(job_id, chosen, job, target_codec)
 
         # Opt-in upscale to the selected preset (fixed presets only — "Best
-        # available" has no target). Runs after the H.264 pass; adds at most one
+        # available" has no target). Runs after the H.264 or H.265 pass; adds at most one
         # extra encode, and only when the user opted in and the source is small.
         if (format_choice != "audio" and video_height and int(video_height or 0) != 0
                 and not job.get("cancelled")
