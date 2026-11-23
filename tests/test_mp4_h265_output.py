@@ -223,6 +223,39 @@ def test_the_hardware_probe_tries_the_hevc_encoders_for_hevc(backend, monkeypatc
         backend._HW_ENCODER_CACHE.clear()
 
 
+def test_each_codec_keeps_its_own_probe_result(backend, monkeypatch):
+    """A probe that works is kept under its own codec and not run again. One that fails is kept as
+    well, so a GPU without HEVC is not probed before every encode."""
+    tried = []
+
+    def fake_run(*cmd, **k):
+        tried.append(cmd[cmd.index("-c:v") + 1])
+        return subprocess.CompletedProcess(list(cmd), 0 if works else 1, "", "" if works else "no device")
+    monkeypatch.setattr(backend, "_run", fake_run)
+    try:
+        works = True
+        backend._HW_ENCODER_CACHE.clear()
+        hevc = backend._detect_hw_encoder("hevc")
+        h264 = backend._detect_hw_encoder("h264")
+        assert hevc[0].startswith("hevc_") and hevc[1][:2] == ["-c:v", hevc[0]], hevc
+        assert h264[0].startswith("h264_") and h264[1][:2] == ["-c:v", h264[0]], h264
+        assert backend._HW_ENCODER_CACHE == {"hevc": hevc, "h264": h264}
+        assert tried == [hevc[0], h264[0]], "the first encoder of each list answered, one probe each"
+        assert backend._detect_hw_encoder("hevc") == hevc and backend._detect_hw_encoder("h264") == h264
+        assert len(tried) == 2, "a kept result is not probed again"
+
+        works = False
+        backend._HW_ENCODER_CACHE.clear()
+        tried.clear()
+        assert backend._detect_hw_encoder("hevc") == (None, None)
+        assert backend._HW_ENCODER_CACHE == {"hevc": (None, None)}, "the failed HEVC probe says nothing about H.264"
+        asked = len(tried)
+        assert asked and backend._detect_hw_encoder("hevc") == (None, None) and len(tried) == asked, \
+            "a failed probe is kept too"
+    finally:
+        backend._HW_ENCODER_CACHE.clear()
+
+
 # ── the download: stream choice, codec pass and Upscale ───────────────────────
 
 class _Proc:
