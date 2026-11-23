@@ -442,6 +442,35 @@ def test_real_hev1_file_is_retagged_without_reencoding_and_keeps_its_tracks(back
 
 
 @needs_x265
+def test_real_hev1_file_with_chapters_keeps_them_and_gains_no_track(backend, tmp_path, monkeypatch):
+    """The app embeds chapters in its videos. ffmpeg reads the chapter track of an MP4 as a data stream
+    too. The tag copy leaves data streams out and writes the chapters anew; with the data streams left
+    in, the old chapter track came along as one more data track under a wrong name."""
+    _real_tools(backend, tmp_path, monkeypatch)
+    src, meta = tmp_path / "clip.mp4", tmp_path / "chapters.txt"
+    # chapters of a second each: with shorter ones ffmpeg does not carry the old track along
+    meta.write_text(";FFMETADATA1\ntitle=T\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=0\nEND=1000\ntitle=One\n"
+                    "[CHAPTER]\nTIMEBASE=1/1000\nSTART=1000\nEND=2000\ntitle=Two\n", encoding="utf-8")
+    subprocess.run([FFMPEG, "-v", "error", "-y", "-f", "lavfi", "-i", "testsrc=size=160x90:rate=10",
+                    "-f", "lavfi", "-i", "sine=frequency=440", "-i", str(meta), "-t", "2", "-map", "0", "-map", "1",
+                    "-map_metadata", "2", "-map_chapters", "2", "-c:v", "libx265", "-tag:v", "hev1", "-c:a", "aac",
+                    "-x265-params", "log-level=error", str(src)], check=True)
+    meta.unlink()
+
+    def chapters(p):
+        r = subprocess.run([FFPROBE, "-v", "error", "-show_entries", "chapter=start_time,end_time:chapter_tags=title",
+                            "-of", "csv=p=0", str(p)], capture_output=True, text=True, check=True)
+        return r.stdout.split()
+    streams_before, chapters_before = _probe(src, "stream=codec_type,codec_name", ""), chapters(src)
+    assert len(chapters_before) == 2 and "data" in streams_before, "the test file has no chapter track"
+    backend._ensure_codec("j", str(src), {"status": "downloading"}, "hevc")
+    assert _probe(src, "stream=codec_name,codec_tag_string") == "hevc,hvc1"
+    assert chapters(src) == chapters_before, "the chapters changed"
+    assert _probe(src, "stream=codec_type,codec_name", "") == streams_before, "the copy added or lost a track"
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["clip.mp4", "realff"]
+
+
+@needs_x265
 def test_real_hvc1_file_with_a_rotation_is_left_alone(backend, tmp_path, monkeypatch):
     """A phone recording served as it is: HEVC tagged hvc1, with a rotation. The rotation is side
     data, and ffprobe then prints "hevc,hvc1," (FFmpeg 6 to 8). The file must not be copied again."""
