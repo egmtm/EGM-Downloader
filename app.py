@@ -1605,6 +1605,7 @@ def _tag_hvc1(ffmpeg, path):
     players do not open HEVC tagged hev1. Keeps every track and leaves data streams
     out, like the live recording cut. On any failure the file stays as it was."""
     tmp = f"{path}.hvc1.mp4"
+    why = ""
     try:
         res = _run(str(ffmpeg), "-v", "error", "-y", "-i", path, "-map", "0", "-dn",
                    "-c", "copy", "-tag:v:0", "hvc1", "-movflags", "+faststart", tmp,
@@ -1612,10 +1613,12 @@ def _tag_hvc1(ffmpeg, path):
         if res.returncode == 0 and os.path.exists(tmp) and os.path.getsize(tmp) > 0:
             os.replace(tmp, path)
             return True
-    except Exception:
-        pass
+        why = f"ffmpeg exit {res.returncode}" if res.returncode else "empty output"
+    except Exception as e:
+        why = type(e).__name__
     try: os.remove(tmp)
     except OSError: pass
+    _egm_log(f"hvc1 tag copy failed ({why}), the file keeps its tag")
     return False
 
 def _ensure_codec(job_id, path, job, codec="h264"):

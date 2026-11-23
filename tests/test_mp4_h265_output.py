@@ -216,6 +216,30 @@ def test_a_failed_tag_copy_keeps_the_download_and_leaves_no_temp_file(backend, t
     assert [p.name for p in tmp_path.iterdir()] == ["v.mp4"], "the unfinished copy is still there"
 
 
+@pytest.mark.parametrize("how,why", [("fails", "ffmpeg exit 1"), ("times out", "TimeoutExpired"),
+                                     ("writes nothing", "empty output"), ("works", None)])
+def test_a_failed_tag_copy_writes_one_debug_log_line(backend, tmp_path, monkeypatch, how, why):
+    """A failed tag copy only matters on Apple players, so the person is not told; one line in the debug
+    log lets a support case see it. A copy that works writes no line."""
+    video = tmp_path / "v.mp4"
+    video.write_bytes(b"the download")
+
+    def fake_run(*cmd, timeout=None, **k):
+        out = Path(cmd[-1])
+        if how == "times out":
+            raise subprocess.TimeoutExpired(list(cmd), timeout)
+        out.write_bytes(b"" if how == "writes nothing" else b"copy")
+        return subprocess.CompletedProcess(list(cmd), 1 if how == "fails" else 0, "", "")
+    monkeypatch.setattr(backend, "_run", fake_run)
+    lines = []
+    monkeypatch.setattr(backend, "_egm_log", lines.append)
+    assert backend._tag_hvc1("ffmpeg", str(video)) is (why is None)
+    if why is None:
+        assert lines == []
+    else:
+        assert lines == [f"hvc1 tag copy failed ({why}), the file keeps its tag"], lines
+
+
 # ── the hardware cache is per codec ───────────────────────────────────────────
 
 def test_a_failed_hevc_gpu_encode_keeps_the_h264_encoder(backend, monkeypatch, tmp_path):
