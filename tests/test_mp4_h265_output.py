@@ -172,6 +172,32 @@ def test_a_failed_hevc_encode_keeps_the_file_and_says_h265(tools):
     assert job["warning_key"] == "download.warning.source_codec_h265" and "H.265" in job["warning"]
 
 
+@pytest.mark.parametrize("how", ["ffmpeg fails", "ffmpeg is stopped by the timeout", "ffmpeg writes an empty file"])
+def test_a_failed_tag_copy_keeps_the_download_and_leaves_no_temp_file(backend, tmp_path, monkeypatch, how):
+    """The tag copy only helps Apple players. When ffmpeg fails, runs into the timeout or writes
+    nothing, the download stays exactly as it was and the unfinished copy is removed."""
+    video = tmp_path / "v.mp4"
+    video.write_bytes(b"the download")
+    runs = []
+
+    def fake_run(*cmd, timeout=None, **k):
+        out = Path(cmd[-1])
+        runs.append((out.name, timeout))
+        if how == "ffmpeg writes an empty file":
+            out.write_bytes(b"")
+            return subprocess.CompletedProcess(list(cmd), 0, "", "")
+        out.write_bytes(b"half a copy")
+        if how == "ffmpeg is stopped by the timeout":
+            raise subprocess.TimeoutExpired(list(cmd), timeout)
+        return subprocess.CompletedProcess(list(cmd), 1, "", "No space left on device")
+    monkeypatch.setattr(backend, "_run", fake_run)
+    assert backend._tag_hvc1("ffmpeg", str(video)) is False
+    assert [name for name, _ in runs] == ["v.mp4.hvc1.mp4"], "one copy, into its own file"
+    assert runs[0][1] and runs[0][1] >= 600, "the copy runs with a timeout"
+    assert video.read_bytes() == b"the download"
+    assert [p.name for p in tmp_path.iterdir()] == ["v.mp4"], "the unfinished copy is still there"
+
+
 # ── the hardware cache is per codec ───────────────────────────────────────────
 
 def test_a_failed_hevc_gpu_encode_keeps_the_h264_encoder(backend, monkeypatch, tmp_path):
