@@ -109,7 +109,7 @@
     "quit.live.discard": "Не сохранять и выйти",
     "quit.live.keep": "Не закрывать",
     "download.warning.source_codec": "Не удалось преобразовать видео в H.264, поэтому оно сохранено в исходном кодеке.",
-    "download.warning.source_codec_h265": "The H.265 conversion failed, so the video was saved in its original codec.",
+    "download.warning.source_codec_h265": "Не удалось преобразовать видео в H.265, поэтому оно сохранено в исходном кодеке.",
     "card.status.queued": "В очереди",
     "card.status.downloading": "Загрузка…",
     "card.status.eta": "Осталось {0}",

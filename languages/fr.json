@@ -109,7 +109,7 @@
     "quit.live.discard": "Abandonner et quitter",
     "quit.live.keep": "Laisser ouverte",
     "download.warning.source_codec": "La conversion en H.264 a échoué, donc la vidéo a été enregistrée avec son codec d'origine.",
-    "download.warning.source_codec_h265": "The H.265 conversion failed, so the video was saved in its original codec.",
+    "download.warning.source_codec_h265": "La conversion en H.265 a échoué, donc la vidéo a été enregistrée avec son codec d'origine.",
     "card.status.queued": "En attente",
     "card.status.downloading": "Téléchargement…",
     "card.status.eta": "Reste {0}",

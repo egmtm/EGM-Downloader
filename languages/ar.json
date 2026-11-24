@@ -109,7 +109,7 @@
     "quit.live.discard": "تجاهل وإنهاء",
     "quit.live.keep": "عدم الإغلاق",
     "download.warning.source_codec": "فشل التحويل إلى H.264، لذا تم حفظ الفيديو بترميزه الأصلي.",
-    "download.warning.source_codec_h265": "The H.265 conversion failed, so the video was saved in its original codec.",
+    "download.warning.source_codec_h265": "فشل التحويل إلى H.265، لذا تم حفظ الفيديو بترميزه الأصلي.",
     "card.status.queued": "في الانتظار",
     "card.status.downloading": "جاري التحميل…",
     "card.status.eta": "المتبقي {0}",

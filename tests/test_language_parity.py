@@ -40,6 +40,7 @@ COMMON = {
     "app.subtitle.more_sites",
     "app.title",
     "card.format.video.h264",
+    "card.format.video.h265",
     "console.toggle.ffmpeg.label",
     "console.toggle.flask.label",
     "console.toggle.ytdlp.label",
@@ -187,10 +188,7 @@ EXTRA = {
 # New keys waiting for the translator pass: English in the nine other files until then. The pass
 # translates them and takes them out of this set; a key here that is no longer an English copy in
 # any language fails, so the set cannot rot.
-AWAITING_TRANSLATION = {
-    "card.format.video.h265",
-    "download.warning.source_codec_h265",
-}
+AWAITING_TRANSLATION = set()
 
 
 

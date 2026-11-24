@@ -109,7 +109,7 @@
     "quit.live.discard": "Verwerfen und beenden",
     "quit.live.keep": "Offen lassen",
     "download.warning.source_codec": "Die Konvertierung in H.264 ist fehlgeschlagen, daher wurde das Video im ursprünglichen Codec gespeichert.",
-    "download.warning.source_codec_h265": "The H.265 conversion failed, so the video was saved in its original codec.",
+    "download.warning.source_codec_h265": "Die Konvertierung in H.265 ist fehlgeschlagen, daher wurde das Video im ursprünglichen Codec gespeichert.",
     "card.status.queued": "In Warteschlange",
     "card.status.downloading": "Wird heruntergeladen…",
     "card.status.eta": "Noch {0}",

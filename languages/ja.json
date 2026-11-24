@@ -109,7 +109,7 @@
     "quit.live.discard": "破棄して終了",
     "quit.live.keep": "開いたままにする",
     "download.warning.source_codec": "H.264 への変換に失敗したため、動画は元のコーデックのまま保存されました。",
-    "download.warning.source_codec_h265": "The H.265 conversion failed, so the video was saved in its original codec.",
+    "download.warning.source_codec_h265": "H.265 への変換に失敗したため、動画は元のコーデックのまま保存されました。",
     "card.status.queued": "待機中",
     "card.status.downloading": "ダウンロード中…",
     "card.status.eta": "残り {0}",

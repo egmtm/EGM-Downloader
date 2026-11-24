@@ -109,7 +109,7 @@
     "quit.live.discard": "Weggooien en afsluiten",
     "quit.live.keep": "Open laten",
     "download.warning.source_codec": "De conversie naar H.264 is mislukt, daarom is de video opgeslagen met de oorspronkelijke codec.",
-    "download.warning.source_codec_h265": "The H.265 conversion failed, so the video was saved in its original codec.",
+    "download.warning.source_codec_h265": "De conversie naar H.265 is mislukt, daarom is de video opgeslagen met de oorspronkelijke codec.",
     "card.status.queued": "In wachtrij",
     "card.status.downloading": "Downloaden…",
     "card.status.eta": "Nog {0}",
