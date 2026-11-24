@@ -12,7 +12,7 @@
     "electron-builder": "^26.18.0"
   },
   "dependencies": {
-    "electron": "45.4.1"
+    "electron": "45.5.0"
   },
   "build": {
     "appId": "com.egerena.egm-downloader"
