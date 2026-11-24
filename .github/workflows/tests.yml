@@ -41,7 +41,7 @@ jobs:
         # (the user's yt-dlp config, the agent yt-dlp sends, the notices against the package header)
         # and skipped on every CI run without them. tests/test_ci_workflows.py keeps them equal to the lock.
         run: |
-          pip install flask mutagen cryptography pytest yt-dlp==2026.10.26 yt-dlp-ejs==0.8.0
+          pip install flask mutagen cryptography pytest yt-dlp==2026.11.23 yt-dlp-ejs==0.8.0
 
       - name: Install ffmpeg, NSIS and 7-Zip
         # The ffmpeg tests skip silently when ffmpeg or ffprobe is missing, and the installer
