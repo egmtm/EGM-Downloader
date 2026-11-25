@@ -83,3 +83,20 @@ test("Download all on a plain file link does not ask for the info again", async 
   assert.equal(t.log.download.length, 1);
   assert.equal(t.log.download[0].format_id, null);
 });
+
+test("the answer Download all gets for a stub counts too: a later Download on that card does not ask again", async () => {
+  const t = await boot();
+  t.w.eval(`(() => { const el = makeCardEl(); document.getElementById('results').appendChild(el);
+    const it = addItem(${JSON.stringify(URL)}, { title: 'stub', formats: [], audio_formats: [] }); renderCard(el, it); })()`);
+  t.w.eval("downloadAll('video', null, null)");
+  await settle(400);
+  assert.equal(t.log.info, 1, "Download all asks once for a stub");
+  assert.equal(t.log.download.length, 1, "then starts it");
+  // The person cancels that download and presses the card's own Download
+  t.w.eval("cancelDownload(items[0], 0)");
+  await settle(100);
+  assert.equal(t.w.eval("items[0].status"), "cancelled");
+  await pressDownload(t);
+  assert.equal(t.log.info, 1, `the card's Download asked for the info ${t.log.info - 1} more times`);
+  assert.equal(t.log.download.length, 2, "and the download starts again");
+});
