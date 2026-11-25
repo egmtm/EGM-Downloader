@@ -6,7 +6,9 @@ async function fetchSingle(url, ph) {
   const info = await post('/api/info', { url });
   if (fetchAbort) { ph.remove(); return; }
   if (info.error) { const er = new Error(info.error); er.i18nKey = info.error_key; throw er; }
-  renderCard(ph, addItem(url, info));
+  const item = addItem(url, info);
+  item.infoLoaded = true;   // the backend's full answer, even when it has no quality lists
+  renderCard(ph, item);
   updateQueueArrows();
 }
 
@@ -35,6 +37,7 @@ function fetchPlaylistEntries(entries, pendingInfo, finishFetch) {
           items = items.filter(i => i !== pItem);
         } else if (!info2.error) {
           pItem.info = info2;
+          pItem.infoLoaded = true;   // a plain file link answers with no quality lists: loaded, not loading
           // A card whose download is already done reads Done until it fades away: a rebuild would show
           // Ready and a Download button again, and the card would leave in the middle of that download.
           if (pItem.status !== 'done') {
@@ -257,7 +260,7 @@ function renderCard(el, item) {
             <option value="opus_128">OPUS 128 kbps</option>
           </select>
         </div>
-        ${!hasQ ? `<div class="qual-group" id="lqg${n}"><span class="qual-label">&nbsp;</span>
+        ${!hasQ && !item.infoLoaded ? `<div class="qual-group" id="lqg${n}"><span class="qual-label">&nbsp;</span>
           <span class="badge b-dl" style="font-size:.7rem"><span class="spinner"></span></span></div>` : ''}
       </div>
       <div class="vcontrols">
@@ -421,8 +424,9 @@ async function startDl(item, n) {
     return;
   }
 
-  // Lazy fetch for playlist stubs
-  if (!item.info.formats?.length && !item.info.audio_formats?.length) {
+  // Lazy fetch for playlist stubs. A link the backend has already answered is not asked again: a plain
+  // file link has no quality lists at all, and is downloaded as the link serves it.
+  if (!item.infoLoaded && !item.info.formats?.length && !item.info.audio_formats?.length) {
     const stEl = document.getElementById(`st${n}`);
     const dlBtn = document.getElementById(`dl${n}`);
     setBadge(stEl, 'dl', i18nGet('card.status.fetching_quality') || 'Fetching quality…'); dlBtn.disabled = true;
@@ -430,6 +434,7 @@ async function startDl(item, n) {
       const i2 = await post('/api/info', { url: item.url });
       if (i2.error) throw new Error(i2.error);
       item.info = i2;
+      item.infoLoaded = true;
       const card = dlBtn?.closest?.('.vcard');
       if (card) renderCard(card, item);
       updateQueueArrows();

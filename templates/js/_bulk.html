@@ -101,12 +101,12 @@ function createBulkRun(mode, byCard) {
     if (!stEl || !dlBtn) { done++; active--; updateBulkTxt(); return; }
 
     // Lazy-fetch info if needed
-    if (!item.info.formats?.length && !item.info.audio_formats?.length) {
+    if (!item.infoLoaded && !item.info.formats?.length && !item.info.audio_formats?.length) {
       setBadge(stEl, 'dl', i18nGet('card.status.fetching_short') || 'Fetching...'); dlBtn.disabled = true;
       loading.add(item);
       try {
         const i2 = await post('/api/info', { url: item.url });
-        if (!i2.error) item.info = i2;
+        if (!i2.error) { item.info = i2; item.infoLoaded = true; }
       } catch {}
       loading.delete(item);
       // cleared, removed or cancelled while its info loaded
