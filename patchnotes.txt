@@ -6,6 +6,7 @@ vTBD - TBD (TBD)
   • [LINUX] Security: The .deb and .rpm packages run the app's interface in Chromium's sandbox, as the other platforms do. The AppImage keeps running without it, as before.
   • [ALL] New: MP4 · H.265 video output, under MP4 · H.264 in the Video list. A video that is already H.265 is kept as it is; any other video is converted after the download, on your GPU when one is available. Without a GPU the conversion is slow, so it is not recommended.
   • [ALL] Fixed: Upscale now works on videos recorded with a rotation, like many phone videos, which it skipped without a word.
+  • [ALL] Fixed: A direct link to a video file no longer keeps showing Fetching quality. It is downloaded as the link serves it.
   • [ALL] Updated: yt-dlp 2026.11.23 now comes with the app.
 
 v1.5.4.1 - RAW FEED: RELOADED (11/18/2026)
