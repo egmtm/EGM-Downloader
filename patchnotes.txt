@@ -8,6 +8,7 @@ vTBD - TBD (TBD)
   • [ALL] Fixed: Upscale now works on videos recorded with a rotation, like many phone videos, which it skipped without a word.
   • [ALL] Fixed: A direct link to a video file no longer keeps showing Fetching quality. It is downloaded as the link serves it.
   • [ALL] Updated: yt-dlp 2026.11.23 now comes with the app.
+  • [ALL] Updated to Electron version 45.5.0.
 
 v1.5.4.1 - RAW FEED: RELOADED (11/18/2026)
 -----------------------------------------
