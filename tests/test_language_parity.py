@@ -317,3 +317,14 @@ def test_no_translation_contains_markup():
     markup = {f"{code}.json: {key}": value for code, strings in LOCALES.items()
               for key, value in strings.items() if "<" in value or ">" in value}
     assert not markup, f"these translations contain < or >: {markup}"
+
+
+def test_the_h265_notice_is_the_h264_notice_with_only_the_codec_changed():
+    """The two conversion notices say the same thing about two codecs. In every language the H.265
+    notice is the H.264 notice with the codec name changed, so one that names the other codec, or
+    drifts from its twin, fails."""
+    wrong = [code for code, strings in LOCALES.items()
+             if strings["download.warning.source_codec"].count("H.264") != 1
+             or strings["download.warning.source_codec_h265"]
+             != strings["download.warning.source_codec"].replace("H.264", "H.265")]
+    assert not wrong, f"the H.265 notice is not the H.264 notice with the codec changed: {wrong}"
