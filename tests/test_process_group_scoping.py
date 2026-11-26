@@ -16,8 +16,8 @@ after a reviewer asked whether one existed.
 
 Scope: any function whose result is registered in _active_procs (i.e. is a
 process _kill_proc can be called against) must spawn its subprocess with
-start_new_session=True on Mac/Linux. Currently that's _ensure_h264 and
-_upscale_to_preset. If a third such function is ever added, it needs the
+start_new_session=True on Mac/Linux. Currently that's the shared encode step
+_run_video_encode, used by _ensure_codec and _upscale_to_preset. If a third such function is ever added, it needs the
 same audit -- this test only knows about the two names below; a genuinely
 general guard would need to trace _active_procs assignments themselves,
 which is more machinery than this bug class has earned so far.
@@ -31,7 +31,7 @@ from conftest import read_source
 # Functions whose tracked subprocess must be session-isolated on Mac/Linux.
 # Add here (and audit start_new_session at every _popen call inside it)
 # whenever a new function's proc gets assigned into _active_procs.
-GUARDED_FUNCTIONS = ("_run_h264_encode",)
+GUARDED_FUNCTIONS = ("_run_video_encode",)
 
 
 def _function_body(source: str, func_name: str) -> str:

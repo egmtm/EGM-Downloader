@@ -111,11 +111,18 @@ echo "📚 Installing Python dependencies..."
 # pip is the one inside the pinned Python above (26.2.2); it is not upgraded here
 # PYTHONNOUSERSITE=1: pip must only see the bundled Python's own site-packages, as in the Linux build.
 # Without it a package in the host's user site counts as "already installed" and is left out of the app.
-PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
+LOCK="$MAC_DIR/requirements-mac-lock.txt"
+# The packages come from the hashed lock for this platform (uv pip compile, the command is on its second
+# line): pip installs exactly those versions and stops if a file does not match its hash, so every build
+# of a commit bundles the same packages. Regenerate all three locks when requirements.txt changes.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet --require-hashes --no-deps --only-binary :all: -r "$LOCK"
+# --no-deps installs only what the lock lists, so pip check makes sure the lock is complete: a
+# package another one needs but the lock lacks stops the build here instead of shipping.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip check
 # yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
-# names (a == requirement in its metadata), and requirements.txt asks for >=0.8.0, which takes the newest
-# release. Install the named version so the bundle ships a pair, as the Windows launcher and Update
-# Plugins do. A yt-dlp that names none keeps the GitHub fallback; a failed read or install stops the build.
+# names (a == requirement in its metadata). The lock is resolved without yt-dlp's extras, so a regenerated
+# lock can pin a yt-dlp-ejs that yt-dlp refuses: stop here instead of shipping that pair, as the Windows
+# build does. A yt-dlp that names none keeps the GitHub fallback; a failed read stops the build.
 EJS_PIN=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
 import importlib.metadata as m, re
 for line in m.requires("yt-dlp") or []:
@@ -124,11 +131,20 @@ for line in m.requires("yt-dlp") or []:
         print(hit.group(1))
         break
 ')
-if [ -n "$EJS_PIN" ]; then
-    PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet "yt-dlp-ejs==$EJS_PIN"
-    echo "   ✓ yt-dlp-ejs $EJS_PIN (the version yt-dlp names)"
-else
+EJS_HAVE=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
+import importlib.metadata as m
+try:
+    print(m.version("yt-dlp-ejs"))
+except m.PackageNotFoundError:
+    pass
+')
+if [ -z "$EJS_PIN" ]; then
     echo "   ⚠ yt-dlp names no yt-dlp-ejs version, so it will download its solver script when needed"
+elif [ "$EJS_HAVE" != "$EJS_PIN" ]; then
+    echo "   ✗ yt-dlp names yt-dlp-ejs $EJS_PIN, the lock installed ${EJS_HAVE:-none}: regenerate $LOCK"
+    exit 1
+else
+    echo "   ✓ yt-dlp-ejs $EJS_HAVE (the version yt-dlp names)"
 fi
 echo "   ✓ Dependencies installed"
 echo ""
@@ -153,6 +169,21 @@ rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
 
 # bin/python3.11 has the interpreter built in; this second 17 MB copy is only for programs that embed Python
 rm -f "$PYTHON_DIR/lib/libpython3.11.dylib"
+
+# pip wrote console scripts into bin/ (yt-dlp, flask, the mutagen tools and others), and each one
+# starts with this machine's build folder. The app runs "python -m yt_dlp" and Update Plugins runs
+# "python -m pip", so they go: only files that start by naming the build folder, never python3.
+# pip names it on the first line, or on the second (after #!/bin/sh) when the folder has a space
+# in it or is too long for a first line. Matched as written and with any symlink resolved.
+PY_REAL="$(cd "$PYTHON_DIR" && pwd -P)"
+REMOVED=0
+for f in "$PYTHON_DIR"/bin/*; do
+    if [ -f "$f" ] && head -n 2 "$f" | grep -qF -e "#!$PYTHON_DIR/" -e "#!$PY_REAL/" -e "'''exec' \"$PYTHON_DIR/" -e "'''exec' \"$PY_REAL/"; then
+        rm -f "$f"
+        REMOVED=$((REMOVED + 1))
+    fi
+done
+echo "   ✓ $REMOVED console scripts with the build folder in them removed"
 
 # DO NOT bulk-strip .dist-info directories — werkzeug calls
 # importlib.metadata.version('werkzeug') at server startup; flask 3.x and many
@@ -224,7 +255,7 @@ cat > INSTRUCTIONS.txt << 'EOF'
   EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-VERSION: v1.5.4.1
+VERSION: v1.5.5.0
 PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
 MINIMUM MACOS: 13.0 (Ventura) or later
 

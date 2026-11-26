@@ -40,7 +40,7 @@ def test_busy_slot_does_not_demote_hw_encoder_cache(app_module, monkeypatch, tmp
     """The core regression: run more concurrent jobs than there are slots,
     confirm the ones that lose the race take the software path WITHOUT
     touching the shared cache -- busy, not broken."""
-    app_module._HW_ENCODER_CACHE = ("fake_hw", ["-c:v", "fake_hw"])
+    app_module._HW_ENCODER_CACHE = {"h264": ("fake_hw", ["-c:v", "fake_hw"])}
 
     class FakeProc:
         def __init__(self, *a, **kw):
@@ -79,7 +79,7 @@ def test_busy_slot_does_not_demote_hw_encoder_cache(app_module, monkeypatch, tmp
     results = []
     def run_job(i):
         job = {}
-        r = app_module._run_h264_encode(f"job{i}", job, app_module.FFMPEG_DIR / "ffmpeg",
+        r = app_module._run_video_encode(f"job{i}", job, app_module.FFMPEG_DIR / "ffmpeg",
                                           "/fake/in.mp4", "/fake/tmp.mp4", "4.0")
         results.append(r)
 
@@ -89,7 +89,7 @@ def test_busy_slot_does_not_demote_hw_encoder_cache(app_module, monkeypatch, tmp
 
     assert all(results), "every job should succeed (falls back to software when busy)"
     assert max(max_concurrent) == 2, f"more than 2 concurrent hardware slots were held: {max(max_concurrent)}"
-    assert app_module._HW_ENCODER_CACHE[0] == "fake_hw", (
+    assert app_module._HW_ENCODER_CACHE["h264"][0] == "fake_hw", (
         "cache was demoted by a merely-busy job -- this is the exact 'busy treated "
         "as broken' regression the slot cap exists to prevent"
     )
@@ -97,7 +97,7 @@ def test_busy_slot_does_not_demote_hw_encoder_cache(app_module, monkeypatch, tmp
 
 
 def test_cancellation_releases_the_slot(app_module, monkeypatch):
-    app_module._HW_ENCODER_CACHE = ("fake_hw", ["-c:v", "fake_hw"])
+    app_module._HW_ENCODER_CACHE = {"h264": ("fake_hw", ["-c:v", "fake_hw"])}
 
     class CancelProc:
         def __init__(self, *a, **kw):
@@ -111,7 +111,7 @@ def test_cancellation_releases_the_slot(app_module, monkeypatch):
     monkeypatch.setattr(os, "remove", lambda p: None)
 
     job = {"cancelled": True}
-    r = app_module._run_h264_encode("j1", job, app_module.FFMPEG_DIR / "ffmpeg",
+    r = app_module._run_video_encode("j1", job, app_module.FFMPEG_DIR / "ffmpeg",
                                       "/in.mp4", "/tmp.mp4", "4.0")
     assert r is False
 
@@ -128,7 +128,7 @@ def test_cancellation_releases_the_slot(app_module, monkeypatch):
 def test_genuine_hardware_failure_still_demotes_cache(app_module, monkeypatch):
     """Contrast case: a job that DID hold a slot and genuinely failed should
     still demote the cache and recover via libx264 -- only 'busy' is exempt."""
-    app_module._HW_ENCODER_CACHE = ("fake_hw", ["-c:v", "fake_hw"])
+    app_module._HW_ENCODER_CACHE = {"h264": ("fake_hw", ["-c:v", "fake_hw"])}
     call_count = [0]
 
     class FailThenSucceed:
@@ -145,10 +145,10 @@ def test_genuine_hardware_failure_still_demotes_cache(app_module, monkeypatch):
     monkeypatch.setattr(os, "rename", lambda a, b: None)
 
     job = {}
-    r = app_module._run_h264_encode("j2", job, app_module.FFMPEG_DIR / "ffmpeg",
+    r = app_module._run_video_encode("j2", job, app_module.FFMPEG_DIR / "ffmpeg",
                                       "/in.mp4", "/tmp.mp4", "4.0")
     assert r is True, "job should recover via libx264 after a genuine hw failure"
-    assert app_module._HW_ENCODER_CACHE == (None, None), (
+    assert app_module._HW_ENCODER_CACHE["h264"] == (None, None), (
         "a genuine failure (by a job that held a slot) must still demote the cache"
     )
 

@@ -2,7 +2,7 @@
 # EGM Downloader — Linux x64 Build Script
 # Run from repo root: bash linux/BUILD.sh
 # Or from the linux/ directory: bash BUILD.sh
-# Produces: dist/EGMdL.zip + dist/egmlinux-update.json
+# Produces: dist/EGMdL.zip + dist/EGMdL.deb + dist/EGMdL.rpm + dist/egmlinux-update.json
 
 set -e
 
@@ -36,13 +36,15 @@ echo ""
 
 # ── Prerequisites ─────────────────────────────────────────────────────────────
 echo "📋 Checking prerequisites..."
-for cmd in python3 node curl; do
+for cmd in python3 node curl rpmbuild objdump; do
     if ! command -v "$cmd" &> /dev/null; then
         echo "❌ $cmd not found!"
         case "$cmd" in
             python3) echo "   Install: sudo apt install python3" ;;
             node)    echo "   Install: sudo apt install nodejs npm" ;;
             curl)    echo "   Install: sudo apt install curl" ;;
+            rpmbuild) echo "   Install: sudo apt install rpm   (the .rpm is made with rpmbuild)" ;;
+            objdump) echo "   Install: sudo apt install binutils   (objdump reads the glibc each binary needs)" ;;
         esac
         exit 1
     fi
@@ -123,12 +125,20 @@ echo "📚 Installing Python dependencies..."
 # pip is the one inside the pinned Python above (26.2.2); it is not upgraded here
 # PYTHONNOUSERSITE=1: pip must only see the bundled Python's own site-packages. Without it
 # a package in the host's user site (~/.local) counts as "already installed" and is left out of the AppImage.
-PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$LINUX_DIR/requirements.txt" 2>/dev/null || \
-PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet -r "$REPO_ROOT/requirements.txt"
+LOCK="$LINUX_DIR/requirements-linux-lock.txt"
+# The packages come from the hashed lock for this platform (uv pip compile, the command is on its second
+# line): pip installs exactly those versions and stops if a file does not match its hash, so every build
+# of a commit bundles the same packages. Regenerate all three locks when requirements.txt changes.
+# PYTHONPATH: pip reads linux/pip_glibc_floor/_manylinux.py and takes each package's wheel for glibc 2.17,
+# the level the lock is resolved for, not the newest one this machine accepts (see that file).
+PYTHONNOUSERSITE=1 PYTHONPATH="$LINUX_DIR/pip_glibc_floor" "$PYTHON_DIR/bin/python3" -m pip install --quiet --require-hashes --no-deps --only-binary :all: -r "$LOCK"
+# --no-deps installs only what the lock lists, so pip check makes sure the lock is complete: a
+# package another one needs but the lock lacks stops the build here instead of shipping.
+PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip check
 # yt-dlp-ejs: yt-dlp loads its YouTube solver script from this package only at the exact version it
-# names (a == requirement in its metadata), and requirements.txt asks for >=0.8.0, which takes the newest
-# release. Install the named version so the bundle ships a pair, as the Windows launcher and Update
-# Plugins do. A yt-dlp that names none keeps the GitHub fallback; a failed read or install stops the build.
+# names (a == requirement in its metadata). The lock is resolved without yt-dlp's extras, so a regenerated
+# lock can pin a yt-dlp-ejs that yt-dlp refuses: stop here instead of shipping that pair, as the Windows
+# build does. A yt-dlp that names none keeps the GitHub fallback; a failed read stops the build.
 EJS_PIN=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
 import importlib.metadata as m, re
 for line in m.requires("yt-dlp") or []:
@@ -137,11 +147,20 @@ for line in m.requires("yt-dlp") or []:
         print(hit.group(1))
         break
 ')
-if [ -n "$EJS_PIN" ]; then
-    PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -m pip install --quiet "yt-dlp-ejs==$EJS_PIN"
-    echo "   ✓ yt-dlp-ejs $EJS_PIN (the version yt-dlp names)"
-else
+EJS_HAVE=$(PYTHONNOUSERSITE=1 "$PYTHON_DIR/bin/python3" -c '
+import importlib.metadata as m
+try:
+    print(m.version("yt-dlp-ejs"))
+except m.PackageNotFoundError:
+    pass
+')
+if [ -z "$EJS_PIN" ]; then
     echo "   ⚠ yt-dlp names no yt-dlp-ejs version, so it will download its solver script when needed"
+elif [ "$EJS_HAVE" != "$EJS_PIN" ]; then
+    echo "   ✗ yt-dlp names yt-dlp-ejs $EJS_PIN, the lock installed ${EJS_HAVE:-none}: regenerate $LOCK"
+    exit 1
+else
+    echo "   ✓ yt-dlp-ejs $EJS_HAVE (the version yt-dlp names)"
 fi
 echo "   ✓ Dependencies installed"
 echo ""
@@ -167,6 +186,21 @@ rm -rf "$PYTHON_DIR/lib/python3.11/turtle.py"
 # bin/python3.11 has the interpreter built in; this second 55 MB copy is only for programs that embed Python
 rm -f "$PYTHON_DIR/lib/libpython3.11.so"* "$PYTHON_DIR/lib/libpython3.so"
 
+# pip wrote console scripts into bin/ (yt-dlp, flask, the mutagen tools and others), and each one
+# starts with this machine's build folder. The app runs "python -m yt_dlp" and Update Plugins runs
+# "python -m pip", so they go: only files that start by naming the build folder, never python3.
+# pip names it on the first line, or on the second (after #!/bin/sh) when the folder has a space
+# in it or is too long for a first line. Matched as written and with any symlink resolved.
+PY_REAL="$(cd "$PYTHON_DIR" && pwd -P)"
+REMOVED=0
+for f in "$PYTHON_DIR"/bin/*; do
+    if [ -f "$f" ] && head -n 2 "$f" | grep -qF -e "#!$PYTHON_DIR/" -e "#!$PY_REAL/" -e "'''exec' \"$PYTHON_DIR/" -e "'''exec' \"$PY_REAL/"; then
+        rm -f "$f"
+        REMOVED=$((REMOVED + 1))
+    fi
+done
+echo "   ✓ $REMOVED console scripts with the build folder in them removed"
+
 # DO NOT bulk-strip .dist-info directories — werkzeug calls
 # importlib.metadata.version('werkzeug') at server startup; flask 3.x and many
 # other packages do similar metadata lookups. Stripping their .dist-info breaks
@@ -185,11 +219,39 @@ find "$SITE" -type d -name "tests" -exec rm -rf {} + 2>/dev/null || true
 echo "   ✓ Python bundle stripped"
 echo ""
 
-# ── Build Electron AppImage ───────────────────────────────────────────────────
-echo "🔨 Building Electron AppImage..."
+# ── Build Electron AppImage, .deb and .rpm ────────────────────────────────────
+# One electron-builder run packs the app once and makes the three files from that one folder,
+# so the AppImage, the .deb and the .rpm hold the same app.
+echo "🔨 Building Electron AppImage, .deb and .rpm..."
 cd "$ELECTRON_DIR"
-node ./node_modules/.bin/electron-builder --linux AppImage --x64 --publish never
-echo "   ✓ AppImage built"
+node ./node_modules/.bin/electron-builder --linux AppImage deb rpm --x64 --publish never
+echo "   ✓ AppImage, .deb and .rpm built"
+echo ""
+
+# ── glibc floor ───────────────────────────────────────────────────────────────
+# No file of the packed app (the one folder all three are made from) may need a newer glibc than
+# Electron's own binary: on a system Electron runs on, that file would fail to load. cryptography's
+# newest wheel did that once, and the update check stopped working on older systems.
+echo "🔎 Checking the glibc each binary needs..."
+UNPACKED="$ELECTRON_DIR/dist/linux-unpacked"
+glibc_needed() { objdump -T "$1" 2>/dev/null | grep -o 'GLIBC_[0-9][0-9.]*' | sed 's/^GLIBC_//' | sort -V | tail -n 1; }
+FLOOR=$(glibc_needed "$UNPACKED/egm-downloader-bin")
+if [ -z "$FLOOR" ]; then
+    echo "   ✗ could not read the glibc version Electron's binary needs"
+    exit 1
+fi
+TOO_NEW=0
+while IFS= read -r -d '' f; do
+    need=$(glibc_needed "$f")
+    if [ -n "$need" ] && [ "$(printf '%s\n%s\n' "$FLOOR" "$need" | sort -V | tail -n 1)" != "$FLOOR" ]; then
+        echo "   ✗ ${f#"$UNPACKED"/} needs glibc $need, Electron needs $FLOOR"
+        TOO_NEW=$((TOO_NEW + 1))
+    fi
+done < <(find "$UNPACKED" -type f -print0)
+if [ "$TOO_NEW" != 0 ]; then
+    exit 1
+fi
+echo "   ✓ No file needs a newer glibc than Electron's $FLOOR"
 echo ""
 
 # ── Package into zip ──────────────────────────────────────────────────────────
@@ -210,6 +272,36 @@ zip -r "$REPO_ROOT/dist/EGMdL.zip" "$(basename "$APPIMAGE")"
 cd "$LINUX_DIR"
 zip -j "$REPO_ROOT/dist/EGMdL.zip" "$LINUX_DIR/INSTRUCTIONS.txt" "$REPO_ROOT/LICENSE"
 echo "   ✓ dist/EGMdL.zip created (AppImage + INSTRUCTIONS.txt + LICENSE)"
+echo ""
+
+# ── Copy the .deb ─────────────────────────────────────────────────────────────
+# The .deb ships as it is (no zip): `apt install ./EGMdL.deb` takes the file itself.
+echo "📦 Copying EGMdL.deb..."
+DEB="$ELECTRON_DIR/dist/EGMdL.deb"
+if [ ! -f "$DEB" ]; then
+    echo "❌ No EGMdL.deb found in linux/electron/dist/"
+    exit 1
+fi
+rm -f "$REPO_ROOT/dist/EGMdL.deb"
+cp "$DEB" "$REPO_ROOT/dist/EGMdL.deb"
+echo "   ✓ dist/EGMdL.deb created"
+echo "   ✓ SHA256: $(sha256sum "$REPO_ROOT/dist/EGMdL.deb" | cut -d' ' -f1)"
+echo "   ✓ size: $(stat -c %s "$REPO_ROOT/dist/EGMdL.deb") bytes"
+echo ""
+
+# ── Copy the .rpm ─────────────────────────────────────────────────────────────
+# The .rpm ships as it is (no zip): `dnf install ./EGMdL.rpm` takes the file itself.
+echo "📦 Copying EGMdL.rpm..."
+RPM="$ELECTRON_DIR/dist/EGMdL.rpm"
+if [ ! -f "$RPM" ]; then
+    echo "❌ No EGMdL.rpm found in linux/electron/dist/"
+    exit 1
+fi
+rm -f "$REPO_ROOT/dist/EGMdL.rpm"
+cp "$RPM" "$REPO_ROOT/dist/EGMdL.rpm"
+echo "   ✓ dist/EGMdL.rpm created"
+echo "   ✓ SHA256: $(sha256sum "$REPO_ROOT/dist/EGMdL.rpm" | cut -d' ' -f1)"
+echo "   ✓ size: $(stat -c %s "$REPO_ROOT/dist/EGMdL.rpm") bytes"
 echo ""
 
 # ── Compute SHA256 checksum ───────────────────────────────────────────────────
@@ -270,5 +362,7 @@ echo "   Commit: $HEAD_LINE"
 echo ""
 echo "   Upload to egerena.com/apps/:"
 echo "   → dist/EGMdL.zip"
+echo "   → dist/EGMdL.deb"
+echo "   → dist/EGMdL.rpm"
 echo "   → dist/egmlinux-update.json"
 echo ""

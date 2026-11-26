@@ -14,7 +14,8 @@ consistent across the codebase. It checks that version.json matches:
 
   Linux:
     - linux/app.py (APP_VERSION, APP_BUILD)
-    - linux/electron/package.json (version == the first three numbers of the app version)
+    - linux/electron/package.json (version == the first three numbers of the app version,
+      build.deb.fpm and build.rpm.fpm carry --version=<the full app version> for the .deb and the .rpm)
     - linux/INSTRUCTIONS.txt (header)
 
   Mac:
@@ -227,6 +228,15 @@ def check_linux_package_json(v):
     expected = semver3(v)
     if data.get("version") != expected:
         errors.append(f"{rel}: version is '{data.get('version')}', expected '{expected}'")
+    # The .deb and the .rpm get the full app version through build.deb.fpm and build.rpm.fpm
+    # (dpkg, apt, rpm, dnf and zypper compare versions).
+    build = data.get("build")
+    if isinstance(build, dict):
+        for target in ("deb", "rpm"):
+            fpm = (build.get(target) or {}).get("fpm") or []
+            got = [a for a in fpm if a.startswith("--version")]
+            if got != [f"--version={v}"]:
+                errors.append(f"{rel}: build.{target}.fpm has {got}, expected ['--version={v}']")
     return errors
 
 

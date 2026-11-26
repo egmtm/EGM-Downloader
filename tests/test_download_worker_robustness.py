@@ -74,7 +74,7 @@ def rig(backend, tmp_path, monkeypatch):
         monkeypatch.setattr(backend, name, tmp_path / Path(getattr(backend, name)).name)
     monkeypatch.setattr(backend, "_settings_cache", {"upscale_to_quality": True})
     monkeypatch.setattr(backend, "_fetch_thumbnail", lambda *a: b"")
-    monkeypatch.setattr(backend, "_detect_hw_encoder", lambda: (None, None))
+    monkeypatch.setattr(backend, "_detect_hw_encoder", lambda codec="h264": (None, None))
     monkeypatch.setattr(backend, "_kill_proc", lambda p: None)
     job_id = "0123456789"
     job = {"status": "queued", "url": "https://example.invalid/v", "title": "T", "proc": None,

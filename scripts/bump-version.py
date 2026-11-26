@@ -14,7 +14,9 @@ This script is the single source of truth for version management. It updates:
 
   Linux:
     - linux/app.py                       (APP_VERSION, APP_BUILD)
-    - linux/electron/package.json        (version, first three numbers of the app version)
+    - linux/electron/package.json        (version, first three numbers of the app version;
+                                          the .deb and .rpm versions in build.deb.fpm and
+                                          build.rpm.fpm, the full app version)
     - linux/INSTRUCTIONS.txt             (header line)
 
   Mac:
@@ -226,11 +228,36 @@ def update_linux_app_py(v, b, dry_run):
           rf'\g<1>{b}', dry_run)
 
 
+def set_package_version(data, target, v):
+    """Write --version=<v> into build.<target>.fpm, in place of the one already there."""
+    block = data.setdefault("build", {}).setdefault(target, {})
+    fpm = block.get("fpm", [])
+    if any(a.startswith("--version") for a in fpm):
+        block["fpm"] = [f"--version={v}" if a.startswith("--version") else a for a in fpm]
+    else:
+        block["fpm"] = [f"--version={v}"] + fpm
+
+
+def set_deb_version(data, v):
+    set_package_version(data, "deb", v)
+
+
+def set_rpm_version(data, v):
+    set_package_version(data, "rpm", v)
+
+
 def update_linux_package_json(v, dry_run):
     # Mac & Linux electron package.json use "X.Y.Z" semver (extra ".0" suffix).
     path = ROOT / "linux" / "electron" / "package.json"
     patch_json(path, f"linux/electron/package.json -> version {semver3(v)}",
                lambda d: d.__setitem__("version", semver3(v)), dry_run)
+    # The .deb carries the full app version: dpkg and apt compare versions, and two releases
+    # that share their first three numbers would otherwise be the same version to them.
+    patch_json(path, f"linux/electron/package.json -> build.deb.fpm --version={v}",
+               lambda d: set_deb_version(d, v), dry_run)
+    # The .rpm the same way: rpm, dnf and zypper compare versions too.
+    patch_json(path, f"linux/electron/package.json -> build.rpm.fpm --version={v}",
+               lambda d: set_rpm_version(d, v), dry_run)
 
 
 def update_linux_instructions(v, dry_run):

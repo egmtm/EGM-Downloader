@@ -912,7 +912,7 @@ def test_universal_mp4_h264_wired():
         src = read_source(path)
         assert "mp4_h264" in src, f"{name}/app.py does not handle the mp4_h264 output format"
         assert "vcodec^=avc1" in src, f"{name}/app.py does not prefer H.264 (avc1) at selection"
-        assert "def _ensure_h264" in src, f"{name}/app.py missing the conditional H.264 transcode"
+        assert "def _ensure_codec" in src, f"{name}/app.py missing the conditional H.264 or H.265 transcode"
         assert "libx264" in src, f"{name}/app.py transcode does not target libx264"
 
 

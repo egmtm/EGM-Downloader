@@ -1,9 +1,8 @@
 """The Mac and Linux builds stop when the yt-dlp-ejs pairing step fails, and pair in the bundle itself.
 
 test_build_scripts_pair_ytdlp_ejs.py runs the step with its own "set -e" in front, so the step stopping
-the build there proved nothing about the script: the step has no "|| exit" of its own and relies on the
-script's set -e. And its check of the install command accepted any command that named the version, so an
-install into some other folder (one the bundled Python never reads) passed too.
+the build there proved nothing about the script: a failed read relies on the script's set -e. And the
+packages must go into the bundled Python itself, not some other folder it never reads.
 """
 import re
 
@@ -30,12 +29,19 @@ def test_errexit_is_on_from_the_top_and_never_turned_off_before_the_step(rel):
 
 
 @pytest.mark.parametrize("rel", SCRIPTS)
-def test_the_step_installs_into_the_bundled_python_itself(rel):
+def test_the_step_installs_nothing_and_stops_the_build_on_a_wrong_pair(rel):
     m = re.search(r"^# yt-dlp-ejs: .*?^fi$", read_source(rel), re.S | re.M)
     assert m, rel
-    installs = [l for l in _code_lines(m.group(0)) if "pip install" in l]
+    code = _code_lines(m.group(0))
+    assert not [l for l in code if "pip" in l], f"{rel}: the pairing step only checks, the lock installs"
+    assert "exit 1" in code, f"{rel}: a wrong pair must stop the build"
+
+
+@pytest.mark.parametrize("rel", SCRIPTS)
+def test_the_lock_installs_into_the_bundled_python_itself(rel):
+    installs = [l for l in _code_lines(read_source(rel)) if "pip install" in l]
     assert len(installs) == 1, installs
     (line,) = installs
-    assert re.search(r'"\$PYTHON_DIR/bin/python3" -m pip install --quiet "yt-dlp-ejs==\$EJS_PIN"$', line), line
+    assert re.match(r'PYTHONNOUSERSITE=1 (PYTHONPATH="[^"]+" )?"\$PYTHON_DIR/bin/python3" -m pip install ', line), line
     for flag in ("--target", "--prefix", "--root", "--user", "-t "):
         assert flag not in line, f"{rel}: {line}"

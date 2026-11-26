@@ -1,3 +1,17 @@
+v1.5.5.0 - SUDO, PLEASE (11/26/2026)
+-----------------------------------------
+
+  • [LINUX] New: EGM Downloader is now also offered as a .deb package for 64 bit Debian, Ubuntu and distributions built on them. It needs no libfuse2 and shares your settings and history with the AppImage.
+  • [LINUX] New: EGM Downloader is now also offered as an .rpm package for 64 bit Fedora and openSUSE. It needs no FUSE and shares your settings and history with the AppImage and the .deb.
+  • [LINUX] Security: The .deb and .rpm packages run the app's interface in Chromium's sandbox, as the other platforms do. The AppImage keeps running without it, as before.
+  • [ALL] New: MP4 · H.265 video output, under MP4 · H.264 in the Video list. A video that is already H.265 is kept as it is; any other video is converted after the download, on a supported GPU when there is one. Without one the conversion is slow, so it is not recommended.
+  • [ALL] Fixed: Upscale now works on videos recorded with a rotation, like many phone videos, which it skipped without a word.
+  • [ALL] Fixed: A direct link to a video file no longer keeps showing Fetching quality. It has no quality choices and is downloaded in your chosen format.
+  • [WINDOWS] Updated: The installer now brings yt-dlp 2026.11.23.
+  • [MAC] Updated: yt-dlp 2026.11.23 now comes with the app.
+  • [LINUX] Updated: yt-dlp 2026.11.23 now comes with the app.
+  • [ALL] Updated to Electron version 45.5.0.
+
 v1.5.4.1 - RAW FEED: RELOADED (11/18/2026)
 -----------------------------------------
 

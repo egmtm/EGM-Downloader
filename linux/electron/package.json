@@ -1,9 +1,10 @@
 {
   "name": "egm-downloader",
-  "version": "1.5.4",
+  "version": "1.5.5",
   "description": "EGM Downloader \u2014 download videos from 1000+ sites",
   "main": "main.js",
   "author": "www.egerena.com",
+  "homepage": "https://egmdownloader.app",
   "license": "AGPL-3.0",
   "scripts": {
     "start": "electron .",
@@ -11,7 +12,7 @@
     "pack": "electron-builder --dir"
   },
   "devDependencies": {
-    "electron": "45.4.1",
+    "electron": "45.5.0",
     "electron-builder": "^26.18.0"
   },
   "build": {
@@ -79,13 +80,56 @@
           "arch": [
             "x64"
           ]
+        },
+        {
+          "target": "deb",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "rpm",
+          "arch": [
+            "x64"
+          ]
         }
       ],
       "icon": "../../static/icon-512.png",
       "category": "Network",
       "executableName": "egm-downloader",
-      "artifactName": "EGM Downloader.AppImage"
+      "artifactName": "EGM Downloader.AppImage",
+      "maintainer": "EGM Downloader <help@egmdownloader.app>"
     },
+    "deb": {
+      "artifactName": "EGMdL.deb",
+      "packageCategory": "net",
+      "synopsis": "Download videos from 1000+ sites",
+      "description": "Free, open source video and audio downloader for 1000+ sites.\nMulti-platform native desktop apps, built on yt-dlp.\nNo terminal, no account, zero telemetry.",
+      "fpm": [
+        "--version=1.5.5.0",
+        "../../LICENSE=/usr/share/doc/egm-downloader/copyright"
+      ]
+    },
+    "rpm": {
+      "artifactName": "EGMdL.rpm",
+      "packageCategory": "Applications/Internet",
+      "synopsis": "Download videos from 1000+ sites",
+      "description": "Free, open source video and audio downloader for 1000+ sites.\nMulti-platform native desktop apps, built on yt-dlp.\nNo terminal, no account, zero telemetry.",
+      "fpm": [
+        "--version=1.5.5.0",
+        "--license=AGPL-3.0-or-later",
+        "--rpm-rpmbuild-define=_build_id_links none",
+        "--rpm-rpmbuild-define=_buildhost egmdownloader.app",
+        "--rpm-auto-add-directories",
+        "--rpm-auto-add-exclude-directories=/usr/share/icons/hicolor",
+        "--rpm-auto-add-exclude-directories=/usr/share/icons/hicolor/512x512",
+        "--rpm-auto-add-exclude-directories=/usr/share/icons/hicolor/512x512/apps",
+        "--rpm-auto-add-exclude-directories=/usr/share/licenses",
+        "../../LICENSE=/usr/share/licenses/egm-downloader/LICENSE"
+      ],
+      "afterRemove": "build/rpm-after-remove.tpl"
+    },
+    "publish": null,
     "electronLanguages": [
       "en-US"
     ],
