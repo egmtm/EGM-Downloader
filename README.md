@@ -19,7 +19,7 @@
     <img src="https://img.shields.io/badge/Windows-Code_Signed-0078D6?logo=windows&logoColor=white" alt="Windows Code Signed"/>
     <img src="https://img.shields.io/badge/macOS-Ventura+-000000?logo=apple&logoColor=white" alt="macOS"/>
     <img src="https://img.shields.io/badge/macOS-Notarized-000000?logo=apple&logoColor=white" alt="macOS Notarized"/>
-    <img src="https://img.shields.io/badge/Linux-AppImage-FCC624?logo=linux&logoColor=black" alt="Linux"/>
+    <img src="https://img.shields.io/badge/Linux-AppImage%2C_.deb%2C_.rpm-FCC624?logo=linux&logoColor=black" alt="Linux"/>
   </p>
 
   <p><strong>A powerful, multi-platform video and audio downloader for 1000+ websites.</strong></p>
@@ -45,7 +45,7 @@
 - 🌐 **1000+ Supported Sites** - Download from YouTube, TikTok, Instagram, Twitter, Vimeo, and more
 - 🔒 **Privacy First** - Runs entirely on your machine. No account required, no cloud processing, no analytics, and no usage tracking. Site cookies are handled locally and never pass through our servers.
 - 🖥️ **Cross-Platform** - Native apps for Windows, macOS, and Linux
-- 🎬 **Video & Audio Downloads** - MP4, MKV, or MP4 H.264 (max compatibility) video up to 8K; MP3 (up to 320 kbps), M4A, OPUS, or FLAC audio
+- 🎬 **Video & Audio Downloads** - MP4, MKV, MP4 H.264 (max compatibility), or MP4 H.265 video up to 8K; MP3 (up to 320 kbps), M4A, OPUS, or FLAC audio
 - 🌈 **HDR Downloads** - Videos with HDR10, HDR10+, HLG, or Dolby Vision show as a separate option per resolution; saves as MKV to preserve HDR data untouched
 - 📋 **Playlist Support** - Download entire playlists with one click
 - ➕ **Add While Downloading** - Paste more links while downloads are running. New videos join the list and the current run, Clear keeps the downloads in progress, and one progress bar with Cancel All covers everything.
@@ -73,7 +73,7 @@
 
 ## 🖼️ Screenshots
 
-> 📸 *Screenshots of v1.5.4.1, RAW FEED: RELOADED. The UI is identical across Windows, macOS, and Linux.*
+> 📸 *Screenshots of v1.5.5.0, SUDO, PLEASE. The UI is identical across Windows, macOS, and Linux.*
 
 <table>
   <tr>
@@ -82,12 +82,12 @@
       <br/><sub><b>Splash Screen</b></sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Saffron theme"/></a>
-      <br/><sub><b>Main UI</b> (Saffron theme)</sub>
+      <a href="screenshots/02-main-ui.png"><img src="screenshots/02-main-ui.png" width="260" alt="Main UI, Kyoto theme"/></a>
+      <br/><sub><b>Main UI</b> (Kyoto theme)</sub>
     </td>
     <td align="center" width="33%">
-      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Mermaid theme"/></a>
-      <br/><sub><b>Advanced Panel</b> (Mermaid theme)</sub>
+      <a href="screenshots/03-advanced-panel.png"><img src="screenshots/03-advanced-panel.png" width="260" alt="Advanced Panel, Downpour theme"/></a>
+      <br/><sub><b>Advanced Panel</b> (Downpour theme)</sub>
     </td>
   </tr>
 </table>
@@ -95,25 +95,12 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Lisbon theme"/></a>
-      <br/><sub><b>Live Streams</b> (Lisbon theme)</sub>
+      <a href="screenshots/08-live-streams.png"><img src="screenshots/08-live-streams.png" width="271" alt="Live streams recording and a download running, Zion theme"/></a>
+      <br/><sub><b>Live Streams</b> (Zion theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, Honey theme"/></a>
-      <br/><sub><b>Live Stream Reconnecting</b> (Honey theme)</sub>
-    </td>
-  </tr>
-</table>
-
-<table>
-  <tr>
-    <td align="center" width="50%">
-      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, Mac OS 9 theme"/></a>
-      <br/><sub><b>Quit When Done</b> (Mac OS 9 theme)</sub>
-    </td>
-    <td align="center" width="50%">
-      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Andromeda theme"/></a>
-      <br/><sub><b>Advanced Panel, Plugins</b> (Andromeda theme)</sub>
+      <a href="screenshots/09-live-reconnecting.png"><img src="screenshots/09-live-reconnecting.png" width="371" alt="A live stream reconnecting, PS1 Gray theme"/></a>
+      <br/><sub><b>Live Stream Reconnecting</b> (PS1 Gray theme)</sub>
     </td>
   </tr>
 </table>
@@ -121,12 +108,12 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Y2K theme"/></a>
-      <br/><sub><b>All Themes</b> (Y2K theme)</sub>
+      <a href="screenshots/10-quit-when-done.png"><img src="screenshots/10-quit-when-done.png" width="308" alt="Quit when done countdown, HAL theme"/></a>
+      <br/><sub><b>Quit When Done</b> (HAL theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Juniper Dusk"/></a>
-      <br/><sub><b>Theme Creator</b> (custom Juniper Dusk theme)</sub>
+      <a href="screenshots/06-advanced-plugins.png"><img src="screenshots/06-advanced-plugins.png" width="308" alt="Advanced Panel with the plugins list, Olympus theme"/></a>
+      <br/><sub><b>Advanced Panel, Plugins</b> (Olympus theme)</sub>
     </td>
   </tr>
 </table>
@@ -134,12 +121,25 @@
 <table>
   <tr>
     <td align="center" width="50%">
-      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, Tiedye theme"/></a>
-      <br/><sub><b>Subscriptions</b> (Tiedye theme)</sub>
+      <a href="screenshots/04-all-themes.png"><img src="screenshots/04-all-themes.png" width="459" alt="All Themes, Bitten theme"/></a>
+      <br/><sub><b>All Themes</b> (Bitten theme)</sub>
     </td>
     <td align="center" width="50%">
-      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Amsterdam theme"/></a>
-      <br/><sub><b>Download History</b> (Amsterdam theme)</sub>
+      <a href="screenshots/11-theme-creator.png"><img src="screenshots/11-theme-creator.png" width="320" alt="Theme Creator with a custom theme, Salt Flat"/></a>
+      <br/><sub><b>Theme Creator</b> (custom Salt Flat theme)</sub>
+    </td>
+  </tr>
+</table>
+
+<table>
+  <tr>
+    <td align="center" width="50%">
+      <a href="screenshots/05-subscriptions.png"><img src="screenshots/05-subscriptions.png" width="444" alt="Subscriptions, VHS theme"/></a>
+      <br/><sub><b>Subscriptions</b> (VHS theme)</sub>
+    </td>
+    <td align="center" width="50%">
+      <a href="screenshots/07-download-history.png"><img src="screenshots/07-download-history.png" width="334" alt="Download History, Sirocco theme"/></a>
+      <br/><sub><b>Download History</b> (Sirocco theme)</sub>
     </td>
   </tr>
 </table>
@@ -150,7 +150,7 @@
 🔗 **Platform page:** [windows.egmdownloader.app](https://windows.egmdownloader.app)
 **Latest:** v1.5.5.0  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (122 MB · ~800 MB after install)  
-**SHA256:** `5d0c2efd2620ad47e94df4d13ecd3200c690793f339773cdd9d984059a246a89`  
+**SHA256:** `dce0853cebac7d213f55985c5ddac7d07cc878532e24a6c5710597609d11320d`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
 **Requirements:** Windows 10/11 (64-bit), on an Intel or AMD processor. Windows 11 on ARM also works through Windows' own x64 emulation, but it is not officially supported. Nothing else: Electron and Python come with the installer  
 **Code Signed:** Installer is signed with an IV code signing certificate. SmartScreen may show a warning on first run until the certificate builds reputation.
@@ -158,8 +158,8 @@
 
 ### Windows Portable
 **Latest:** v1.5.5.0  
-**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (724 KB · ~1 GB after first run)  
-**SHA256:** `1e4a8a3c3cdabed4a726d625dc56f0f71ff36e71992ee77561a7e05fdfbf09b2`  
+**Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (726 KB · ~1 GB after first run)  
+**SHA256:** `12f047ed6d485c5649526897208082f90a7fd19083a13abd7e8ae68377ea28e6`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
 **Requirements:** Windows 10/11 (64-bit) · **Python 3.10+** — install from [python.org](https://www.python.org/downloads/) and tick “Add Python to PATH”  
 **No installer, no registry** — runs from any folder or USB drive (system Python 3.10+ is used only to bootstrap; the app then downloads a private Python and runs on that. Node, Electron, ffmpeg & Deno are fetched on first run, and a newer Electron after an app update that needs one)  
@@ -170,7 +170,7 @@
 🔗 **Platform page:** [mac.egmdownloader.app](https://mac.egmdownloader.app)
 **Latest:** v1.5.5.0  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (145 MB · ~300 MB after install)  
-**SHA256:** `37ac23d36bf0e359e673511a43310043cc243d6f8e6510005159f4f60884712c`  
+**SHA256:** `757e411467cc69153fca42fcb683bd7419a3eff2868dce5323a1a8d60e22034d`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
 **Requirements:** macOS 13.0 (Ventura) or later · Apple Silicon (M1–M5) only  
 **Signed & Notarized:** This build is Apple notarized — runs without Gatekeeper warnings
@@ -180,11 +180,18 @@
 🔗 **Platform page:** [linux.egmdownloader.app](https://linux.egmdownloader.app)
 **Latest:** v1.5.5.0  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (172 MB · ~300 MB after install)  
-**SHA256:** `2d9749b10c47f38f7f723ec3d85df6abc6797624603a78cc277a5594ebad4831`  
+**SHA256:** `0958999e46a3b0d88b9b20922f3737bf33453a106a3994645e01811d42071c2d`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  
-**Format:** AppImage (Universal)  
+**Download (.deb):** [EGMdL.deb](https://egerena.com/apps/EGMdL.deb) (138 MB)  
+**SHA256 (.deb):** `3f0d367f8bcfbe6f11d715ba6e02e09edbde3552d0f8e7081289cf1b0f856fe8`  
+**Install (.deb):** `sudo apt install ./EGMdL.deb`, then open "EGM Downloader" from the applications menu.  
+**Download (.rpm):** [EGMdL.rpm](https://egerena.com/apps/EGMdL.rpm) (123 MB)  
+**SHA256 (.rpm):** `ea09947d68229362cc0768638e0877be1f16ff1d8e258c982ff2bef1fd158ae3`  
+**Install (.rpm):** `sudo dnf install ./EGMdL.rpm` on Fedora or `sudo zypper install --allow-unsigned-rpm ./EGMdL.rpm` on openSUSE, then open "EGM Downloader" from the applications menu.  
+**Format:** AppImage (Universal), .deb (Debian, Ubuntu and distributions built on them) and .rpm (tested on Fedora 45, openSUSE Tumbleweed and openSUSE Leap 16.1)  
+**Not signed:** The .deb and .rpm are not signed, so your system may warn that the package comes from a third party. Check the file against its SHA256 before installing.  
 **Supported Distros:** Ubuntu 20.04+, Mint 20+, Pop!_OS, Fedora 39+, Arch, and more
-**Auto-Update:** Built-in update checker (signed release feed); it opens the download page and you replace the AppImage yourself, or check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
+**Auto-Update:** Built-in update checker (signed release feed); it opens the download page, and you replace the AppImage or install the new package yourself, or check the [releases page](https://github.com/egmtm/EGM-Downloader/releases)
 
 **First launch:** The Windows installer, macOS and Linux bundle Electron and Python inside the package, which is why their file sizes are larger, and download ffmpeg in the background on first launch. The Windows portable downloads its runtime components (Node.js, Electron, a private Python, ffmpeg) into its own folder on first launch. Electron alone is about 250 MB, so its first launch download is several hundred MB. When a newer portable needs a newer Electron, the new one is downloaded next to the current one and only switched in once it works. If the download fails or you are offline, a point update keeps the current Electron and tries again at the next launch. On all platforms the app also downloads Deno (a JavaScript runtime that improves YouTube quality) in the background.
 
@@ -196,8 +203,10 @@
 | `EGMd-portable.zip` (Windows portable) | `EGM Downloader.exe`, `instructions.txt`, `LICENSE`, `patchnotes.txt`, the `languages` folder, and the app's own files (`app.py`, `launch.py`, `.portable`, and the `electron`, `static` and `templates` folders), which are hidden after the first run to keep the folder tidy | `EGM Downloader.exe` |
 | `EGMdM.zip` (macOS) | `EGM Downloader.dmg`, `INSTRUCTIONS.txt`, `LICENSE` | `EGM Downloader.dmg` |
 | `EGMdL.zip` (Linux) | `EGM Downloader.AppImage`, `INSTRUCTIONS.txt`, `LICENSE` | `EGM Downloader.AppImage` |
+| `EGMdL.deb` (Linux, Debian and Ubuntu) | the package itself, not zipped | `sudo apt install ./EGMdL.deb` |
+| `EGMdL.rpm` (Linux, Fedora and openSUSE) | the package itself, not zipped | `sudo dnf install ./EGMdL.rpm` |
 
-Every download comes from egerena.com. The GitHub release pages carry the notes and link there. Check your zip against the SHA256 listed above.
+Every download comes from egerena.com. The GitHub release pages carry the notes and link there. Check your download against the SHA256 listed above.
 
 ---
 
@@ -209,9 +218,9 @@ Every download comes from egerena.com. The GitHub release pages carry the notes 
 
 **macOS:** macOS 13.0+ (Ventura) · Apple Silicon (M1–M5) · ~300 MB disk space · Internet on first launch (ffmpeg and Deno download)
 
-**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support · Internet on first launch (ffmpeg and Deno download)
+**Linux:** 64-bit distribution · ~300 MB disk space · FUSE support (AppImage only) · Internet on first launch (ffmpeg and Deno download)
 Supported: Ubuntu 20.04/22.04/24.04/26.04, Mint 20/21/22, Pop!_OS 22.04, Zorin 16/17, elementary 7, Debian 11/12, KDE Neon, Fedora 39/40/41, openSUSE Leap 15.5/Tumbleweed, Rocky/AlmaLinux 9, Arch, Manjaro, EndeavourOS
-> Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`
+> The AppImage on Ubuntu 22.04+ may require `libfuse2`: `sudo apt install libfuse2`. The .deb and .rpm need no FUSE.
 
 ---
 
@@ -260,9 +269,9 @@ ReClip is the starting point, and it is intentionally small. Here is what this p
 
 | | [ReClip](https://github.com/averygan/reclip), where it started | EGM Downloader today |
 |---|---|---|
-| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG or AppImage and open it. The Windows installer, macOS and Linux bundle Electron and Python and fetch ffmpeg and Deno on first launch; the Windows portable zip needs Python 3.10+ for its first launch |
+| **Setup** | Install yt-dlp and ffmpeg, clone the repo and run `./reclip.sh`, or build the Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Download the installer, portable zip, DMG, AppImage, .deb or .rpm and open or install it. The Windows installer, macOS and Linux bundle Electron and Python and fetch ffmpeg and Deno on first launch; the Windows portable zip needs Python 3.10+ for its first launch |
 | **How you use it** | A local web server you start yourself, then open `localhost:8899` in a browser ([Quick Start](https://github.com/averygan/reclip#quick-start)) | A native desktop app window, nothing to start |
-| **Platforms** | Install commands for Homebrew or apt, or a Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Windows 10/11, macOS 13+ (Apple Silicon), Linux AppImage |
+| **Platforms** | Install commands for Homebrew or apt, or a Docker image ([Quick Start](https://github.com/averygan/reclip#quick-start)) | Windows 10/11, macOS 13+ (Apple Silicon), Linux AppImage, .deb and .rpm |
 | **Formats and quality** | MP4 video or MP3 audio, resolution picker ([Features](https://github.com/averygan/reclip#features)) | MP4, MKV or H.264 MP4 video; MP3, M4A, OPUS or FLAC audio; up to 8K, HDR kept as MKV |
 | **Login required content** | Not built in ([source](https://github.com/averygan/reclip/blob/main/app.py)) | Import cookies from Chrome, Edge, Brave or Firefox, kept on your machine |
 | **Subtitles and metadata** | Not built in ([source](https://github.com/averygan/reclip/blob/main/app.py)) | Embed subtitles, thumbnail, chapters and metadata |

@@ -98,7 +98,7 @@ Have an idea? Open an issue with:
 **Platform-Specific:**
 - **Windows:** NSIS (makensis), mingw-w64 (the portable launcher), curl and tar, and osslsigncode (optional: verifies the signatures); the build runs on Linux, macOS or WSL
 - **macOS:** Xcode Command Line Tools
-- **Linux:** build-essential, libfuse2
+- **Linux:** build-essential, libfuse2, rpm (for `rpmbuild`) and binutils (for `objdump`, the glibc check); `linux/BUILD.sh` stops without them
 
 ### Clone and Setup
 
@@ -135,9 +135,18 @@ It stops there on purpose. The steps after it need signed files: they check the 
 
 The installer folder is built by `windows/installer/build-folder.sh`: Electron from `windows/electron`'s
 lock through a staging package, the pinned Python (same version and release as Mac and Linux) and the
-packages of the hashed lock `windows/requirements-win-lock.txt`. Regenerate that lock after a change to
-`requirements.txt` with
-`uv pip compile requirements.txt --python-platform x86_64-pc-windows-msvc --python-version 3.11 --generate-hashes --only-binary :all: -o windows/requirements-win-lock.txt`.
+packages of the hashed lock `windows/requirements-win-lock.txt`. The Mac and Linux builds install from
+hashed locks too: `mac/requirements-mac-lock.txt` and `linux/requirements-linux-lock.txt`. After a change to
+`requirements.txt`, regenerate all three from the repository root (needs `uv`):
+
+```bash
+uv pip compile requirements.txt --python-platform x86_64-pc-windows-msvc --python-version 3.11 --generate-hashes --only-binary :all: > windows/requirements-win-lock.txt
+uv pip compile requirements.txt --python-platform x86_64-manylinux_2_17 --python-version 3.11 --generate-hashes --only-binary :all: > linux/requirements-linux-lock.txt
+uv pip compile requirements.txt --python-platform aarch64-apple-darwin --python-version 3.11 --generate-hashes --only-binary :all: > mac/requirements-mac-lock.txt
+```
+
+Keep the `>`: uv's `-o` writes a different second line, and `test_the_lock_is_for_its_platform_and_every_pin_is_hashed` rejects it.
+
 The app files both Windows editions ship are listed once, in `windows/app-files.txt`.
 
 #### macOS
@@ -421,12 +430,14 @@ EGM-Downloader/
 │
 ├── mac/                      # macOS platform
 │   ├── electron/             # Electron wrapper + builder config
+│   ├── requirements-mac-lock.txt  # Hashed lock of the app's Python packages
 │   ├── BUILD.sh              # Build script
 │   └── BUILD_NOTES.txt       # Build documentation
 │
 └── linux/                    # Linux platform
     ├── app.py                # Linux-specific backend
     ├── electron/             # Electron wrapper + builder config
+    ├── requirements-linux-lock.txt  # Hashed lock of the app's Python packages
     ├── BUILD.sh              # Build script
     └── INSTRUCTIONS.txt      # User instructions
 ```
@@ -440,7 +451,7 @@ EGM-Downloader/
 - `requirements.txt` - Python dependencies
 
 **Linux-Specific:**
-- `linux/app.py` - Linux-specific backend, AppImage paths
+- `linux/app.py` - Linux-specific backend, AppImage paths; the same backend also runs from the .deb and .rpm (installed under `/opt`)
 - `linux/requirements.txt` - Linux-specific dependencies
 
 > **Why does Linux have its own `app.py`?** The AppImage distribution model requires a self-contained package (Electron and Python are bundled inside it, and ffmpeg and Deno are downloaded on first launch) and different path resolution. These constraints make a shared backend impractical, so Linux maintains its own copy with platform-specific adaptations. The UI is shared: `linux/electron/package.json` packages the root `templates/` next to `linux/app.py`, as Mac does.

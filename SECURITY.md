@@ -231,18 +231,17 @@ EGM Downloader runs on Windows, macOS, and Linux. Each platform has slightly dif
 
 The Electron renderer process runs in an OS-level sandbox. If a renderer process is compromised (e.g., via a Chromium vulnerability), the sandbox prevents the compromised process from reading arbitrary files, writing arbitrary files, or making arbitrary network connections.
 
-### Linux — Limited sandbox (AppImage limitation)
+### Linux AppImage — Limited sandbox
 
-The Linux build ships as an AppImage. AppImage cannot set SUID on the `chrome-sandbox` helper binary, so the OS-level sandbox layer is disabled (`--no-sandbox` flag is set at startup). Other security layers remain active:
+The `.deb` and `.rpm` packages run the app's interface in Chromium's sandbox, as the Windows and macOS builds do. The AppImage keeps it off. AppImage cannot set SUID on the `chrome-sandbox` helper binary, so for the AppImage the OS-level sandbox layer is disabled (`--no-sandbox` flag is set at startup, and only inside a real AppImage). Other security layers remain active:
 
+- Context isolation is on, and the window has no Node integration
 - Navigation handlers prevent in-window navigation to external URLs
 - Content-Security-Policy enforced via Electron session
 - Token authentication on all API calls
 - Checksum verification on all downloaded binaries
 
-We're tracking this gap. Two paths forward:
-- Ship `.deb` / Flatpak alongside AppImage (sandbox works in both) — not yet scheduled; revisit when Linux usage volume justifies the added packaging and maintenance work
-- Continue documenting honestly until then
+If the sandbox cannot start on a system, the window of a `.deb` or `.rpm` install does not open. `egm-downloader --no-sandbox` starts it without the sandbox (see `linux/INSTRUCTIONS.txt`). That turns this layer off, as in the AppImage, so a compromised renderer process is no longer held back by the OS. The other layers above stay active.
 
 ---
 
