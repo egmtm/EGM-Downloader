@@ -148,7 +148,7 @@
 
 ### Windows
 🔗 **Platform page:** [windows.egmdownloader.app](https://windows.egmdownloader.app)
-**Latest:** v1.5.4.1  
+**Latest:** v1.5.5.0  
 **Download:** [EGMd.zip](https://egerena.com/apps/EGMd.zip) (122 MB · ~800 MB after install)  
 **SHA256:** `5d0c2efd2620ad47e94df4d13ecd3200c690793f339773cdd9d984059a246a89`  
 **Install:** Extract `EGMd.zip`, run `egm-setup.exe` and follow the installer. Then paste a video URL, fetch the info, and click Download.  
@@ -157,7 +157,7 @@
 **Auto-Update:** ✅ Built-in update checker with SHA256 verification
 
 ### Windows Portable
-**Latest:** v1.5.4.1  
+**Latest:** v1.5.5.0  
 **Download:** [EGMd-portable.zip](https://egerena.com/apps/EGMd-portable.zip) (724 KB · ~1 GB after first run)  
 **SHA256:** `1e4a8a3c3cdabed4a726d625dc56f0f71ff36e71992ee77561a7e05fdfbf09b2`  
 **Install:** Extract `EGMd-portable.zip` and run `EGM Downloader.exe`. Settings and data stay in the same folder, so you can take it anywhere.  
@@ -168,7 +168,7 @@
 
 ### macOS
 🔗 **Platform page:** [mac.egmdownloader.app](https://mac.egmdownloader.app)
-**Latest:** v1.5.4.1  
+**Latest:** v1.5.5.0  
 **Download:** [EGMdM.zip](https://egerena.com/apps/EGMdM.zip) (145 MB · ~300 MB after install)  
 **SHA256:** `37ac23d36bf0e359e673511a43310043cc243d6f8e6510005159f4f60884712c`  
 **Install:** Extract `EGMdM.zip`, open the `.dmg`, drag "EGM Downloader" to Applications, and launch it.  
@@ -178,7 +178,7 @@
 
 ### Linux
 🔗 **Platform page:** [linux.egmdownloader.app](https://linux.egmdownloader.app)
-**Latest:** v1.5.4.1  
+**Latest:** v1.5.5.0  
 **Download:** [EGMdL.zip](https://egerena.com/apps/EGMdL.zip) (172 MB · ~300 MB after install)  
 **SHA256:** `2d9749b10c47f38f7f723ec3d85df6abc6797624603a78cc277a5594ebad4831`  
 **Install:** Extract `EGMdL.zip`, make it executable with `chmod +x "EGM Downloader.AppImage"`, then double-click to launch (or run it from a terminal).  

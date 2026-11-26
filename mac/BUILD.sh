@@ -255,7 +255,7 @@ cat > INSTRUCTIONS.txt << 'EOF'
   EGM DOWNLOADER FOR MACOS - INSTALLATION INSTRUCTIONS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-VERSION: v1.5.4.1
+VERSION: v1.5.5.0
 PLATFORM: macOS (Apple Silicon - M1/M2/M3/M4/M5)
 MINIMUM MACOS: 13.0 (Ventura) or later
 

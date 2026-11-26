@@ -1,4 +1,4 @@
-vTBD - TBD (TBD)
+v1.5.5.0 - SUDO, PLEASE (11/26/2026)
 -----------------------------------------
 
   • [LINUX] New: EGM Downloader is now also offered as a .deb package for 64 bit Debian, Ubuntu and distributions built on them. It needs no libfuse2 and shares your settings and history with the AppImage.
