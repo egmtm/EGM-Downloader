@@ -91,6 +91,8 @@ body.face-v2 .vcard .dur{font-size:.6rem;padding:1px 4px}
 body.face-v2 .vbody{padding-block:0;padding-inline:0 26px;display:flex;flex-direction:row;flex-wrap:wrap;gap:5px 12px;align-items:center;align-content:center}
 body.face-v2 .vtitle{flex:0 0 100%;font-size:.88rem}
 body.face-v2 .vmeta{flex:0 0 100%;font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* a link that could not be fetched shows its whole error message in that line: there it wraps, as in Classic */
+body.face-v2 .fetch-err .vmeta{white-space:normal;overflow:visible}
 body.face-v2 .qual-panel{flex:0 1 auto;background:none;border:none;padding:0;gap:8px;flex-wrap:wrap;align-items:center}
 body.face-v2 .vcontrols{flex:1 1 auto;margin:0;flex-wrap:wrap;justify-content:flex-end;gap:6px}
 body.face-v2 .qual-label{display:none}
