@@ -32,12 +32,14 @@ ALLOWED = {
         "centred with left: 50% and translate(-50%), the same in both directions",
     ("templates/subscriptions.html", ".quit-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 20001; display: flex; flex-direction: column; align-items: center; gap: 14px; min-width: min(300px, 86vw); padding: 22px 28px; background: var(--surf); border: 1px solid var(--border2); border-radius: 12px; box-shadow: var(--modal-shadow); color: var(--text); font-size: .95rem; font-weight: 600; text-align: center; animation: quit-card-in .18s ease; }"):
         "centred with left: 50% and translate(-50%), the same in both directions",
+    ("templates/face_v2_styles.html", "body.face-v2 .url-wrap::before{content:'\\203A';position:absolute;left:13px;top:8px;color:var(--acc);font:700 1.25rem/1.4 ui-monospace,Consolas,monospace;z-index:1}"):
+        "the v2 input bar is left to right in every language (URLs), so its prompt glyph sits at the left",
     ("templates/subscriptions.html", "menu.style.left = Math.round(left) + 'px';"):
         "the context menu and the kebab menu are placed by a left offset the line above computes from the page direction",
 }
 
 # Files that are plain CSS, included inside a <style> element.
-CSS_FILES = {"index_styles.html", "theme_styles.html"}
+CSS_FILES = {"index_styles.html", "theme_styles.html", "face_v2_styles.html"}
 
 # CSS is case-insensitive, so every pattern is too.
 PHYSICAL = re.compile(

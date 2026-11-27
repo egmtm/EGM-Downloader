@@ -11,6 +11,7 @@ patchnotes.txt
 LICENSE
 templates/index.html
 templates/index_styles.html
+templates/face_v2_styles.html
 templates/index_scripts.html
 templates/console.html
 templates/history.html
