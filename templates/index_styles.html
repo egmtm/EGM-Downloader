@@ -529,6 +529,7 @@
                   badge's left edge to land on the card's left border. */
     .logo { width: 76px; height: 76px; flex-shrink: 0; justify-self: start; margin-inline-start: -28px; }
     .logo img { width: 100%; height: 100%; border-radius: 8px; object-fit: cover; }
+    .logo svg { width: 76px; height: 76px; border-radius: 10px; }
     .header-text { text-align: center; }
     .header-text svg { direction: ltr; }   /* the wordmark keeps its letter order */
     /* nav grid (last header child) → card's right border edge */
@@ -538,6 +539,8 @@
       color: var(--acc);
     }
     header p { font-size: .85rem; color: var(--text2); margin-top: 3px; line-height: 1.6; }
+    .header-tagline { font-size: .65rem; font-weight: 400; letter-spacing: 2.5px; color: var(--text2); margin-top: 4px; text-transform: uppercase; }
+    #nav-buttons { display: grid; grid-template-columns: auto auto; gap: 3px; }
 
     /* ── Card ── */
     /* ── Scrollbar theming ── */
@@ -676,6 +679,9 @@
     @supports (color: contrast-color(red)) { .btn-resume { color: contrast-color(var(--yellow)); } }
     .btn-resume:hover:not(:disabled) { filter: brightness(1.1); }
     .row { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; align-items: center; }
+    #fetch-btn { display: inline-flex; align-items: center; gap: 5px; height: 28px; }
+    #clear-btn { height: 28px; }
+    #bulk-actions { gap: 8px; margin-top: 8px; }   /* shown and hidden by its inline display (_bulk.html) */
 
     /* ── Settings ── */
     .opt-label { font-size: .68rem; color: var(--text2); text-transform: uppercase; letter-spacing: .08em; font-weight: 700; margin-bottom: 6px; display: block; }
@@ -785,6 +791,11 @@
     .set-vsep { width: 1px; height: 28px; background: var(--border); flex-shrink: 0; }
     .set-cookie-links { display: flex; gap: 5px; flex-wrap: wrap; justify-content: center; width: 100%; }
     .set-cookie-area { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+    .set-cookie-box { align-items: center; }
+    .set-cookie-box .set-divider { width: 60%; }
+    .set-cookie-line { display: flex; justify-content: center; width: 100%; }
+    .set-cookie-chromium { margin-bottom: 5px; }
+    .set-cookie-status { margin-bottom: 6px; }
     .set-cookie-actions { align-items: center; }
     .set-cookie-actions-loaded { width: 100%; justify-content: space-between; align-items: center; gap: 5px; }
     .set-toggles { display: flex; flex-wrap: nowrap; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; padding: 10px 0 10px; border-top: 1px solid var(--border); }
@@ -795,6 +806,7 @@
        shared .set-toggles wrapper, hiding these collapses the row to just the main
        checkbox on the left -- flexbox needs no "between" when there's only one item. */
     #sponsorblock-row .sb-category.sb-hidden { display: none; }
+    #sponsorblock-row { background: var(--surf2); border: 1px solid var(--border); border-radius: var(--rs); padding: 8px 12px; margin-top: 8px; }
 
     .vcontrols { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; margin-top: auto; }
 
@@ -854,6 +866,8 @@
     /* "Footer" off: everything in the footer goes except the language selector, which has its own switch */
     footer .footer-links { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: wrap; }
     footer.footer-hidden > :not(#lang-row) { display: none; }
+    #lang-row { text-align: center; margin-bottom: 7px; }   /* shown and hidden by its inline display (_settings.html) */
+    .footer-support { margin-top: 7px; text-align: center; }
     .sw-wrap { display: flex; align-items: center; gap: 7px; font-size: .77rem; color: var(--text2); cursor: pointer; user-select: none; }
     input.sw[type=checkbox] { appearance: none; width: 32px; height: 17px; background: var(--border2); border-radius: 999px; cursor: pointer; transition: background var(--ease); position: relative; flex-shrink: 0; }
     input.sw[type=checkbox]::after { content:''; position:absolute; top:2px; inset-inline-start:2px; width:13px; height:13px; background:var(--btn-primary-text); border-radius:50%; transition:inset-inline-start var(--ease); }
