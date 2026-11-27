@@ -993,6 +993,13 @@
     /* A direction change is not an animation. i18nLoad adds html.dir-switching around it: the closed panel moves to
        the other side and its offset changes sign, so with transitions on it would sweep across the window. */
     html.dir-switching *, html.dir-switching *::before, html.dir-switching *::after { transition: none !important; }
+    /* A Face switch (applyFace in js/_face.html) is drawn as a view transition. html.face-switching is on only while
+       it runs. The page's own transitions are off, so every part is captured as it will stay, and the parts that
+       change place each get a name, so the browser moves and resizes them instead of fading the whole window.
+       Only the first 8 cards of the queue are named: every name costs a capture, and a queue can hold hundreds
+       (measured: 1000 named cards freeze the window for seconds). The rest of the queue fades with the page. */
+    html.face-switching *, html.face-switching *::before, html.face-switching *::after { transition: none !important; }
+    html.face-switching :is(.logo, .header-text, .nav-btn, #hamburger-panel, #urls-card, #settings-panel-wrap, #bulk-bar, .vcard:nth-child(-n+8), footer) { view-transition-name: match-element; }
     body.creator-panel-open #creator-panel { transform: translateX(0); }
     body.creator-panel-open { padding-inline-end: 356px; }
     body.creator-panel-open #scroll-top, body.creator-panel-open #toasts { inset-inline-end: 362px; }

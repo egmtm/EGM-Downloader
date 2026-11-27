@@ -1,0 +1,270 @@
+// The Face of the main window (egm_face): v2 by default, Classic on request. Read before the page is
+// drawn, switched with no reload, independent of the theme. jsdom has no layout and no view
+// transitions, so how the switch looks is not covered here; what it does to the page and the storage is.
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { bootPage } from "./harness.mjs";
+
+const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Boots the page with egm_face set to `stored` (or absent), collecting uncaught errors.
+async function boot(stored, opts = {}) {
+  const errors = [];
+  const page = await bootPage({
+    ...opts,
+    prep(w) {
+      w.addEventListener("error", (e) => errors.push(e.message));
+      if (stored !== undefined) w.localStorage.setItem("egm_face", stored);
+      if (opts.prep) opts.prep(w);
+    },
+  });
+  // the names live in one place in the page; the tests read them from there
+  const { FACE_KEY: KEY, FACE_CLASS: CLS } = page.w;
+  return { ...page, errors, KEY, CLS, isV2: () => page.d.body.classList.contains(CLS) };
+}
+
+test("the names are the placeholders, and each is written once in the page's scripts", async () => {
+  const { w, d, KEY, CLS } = await boot(undefined);
+  assert.equal(KEY, "egm_face");
+  assert.equal(CLS, "face-v2");
+  const scripts = [...d.querySelectorAll("script")].map((s) => s.textContent).join("\n");
+  for (const name of [KEY, CLS]) {
+    assert.equal(scripts.split(`'${name}'`).length - 1 + scripts.split(`"${name}"`).length - 1, 1, `${name} is a constant in one place`);
+  }
+  w.close();
+});
+
+test("no key gives v2, classic gives Classic, v2 gives v2, and nothing is written at load", async () => {
+  for (const [stored, v2] of [[undefined, true], ["classic", false], ["v2", true]]) {
+    const { w, d, errors, KEY, isV2 } = await boot(stored);
+    assert.equal(isV2(), v2, `stored ${stored}`);
+    assert.equal(w.faceNow(), v2 ? "v2" : "classic");
+    assert.equal(w.localStorage.getItem(KEY), stored === undefined ? null : stored, "the key is as it was");
+    assert.equal(d.getElementById("face-select").value, v2 ? "v2" : "classic", "the dropdown shows it");
+    assert.deepEqual(errors, []);
+    w.close();
+  }
+});
+
+// One value per kind of bad input: other case, spaces, the class itself, markup, JSON, the empty string.
+const BAD = ["Classic", "CLASSIC", " classic", "classic ", "v1", "face-v2", "classic face-v2", "<img src=x onerror=alert(1)>", '"classic"', "null", "0", ""];
+
+test("a bad stored value gives v2, throws nothing and is left as it was", async () => {
+  for (const bad of BAD) {
+    const { w, d, errors, KEY, CLS, isV2 } = await boot(bad);
+    assert.equal(isV2(), true, JSON.stringify(bad));
+    assert.equal(d.body.className.split(/\s+/).filter(Boolean).join(" "), CLS, `only the Face class is on body: ${JSON.stringify(bad)}`);
+    assert.equal(w.localStorage.getItem(KEY), bad, "not rewritten at load");
+    assert.equal(d.querySelectorAll("img[src=x]").length, 0);
+    assert.deepEqual(errors, [], JSON.stringify(bad));
+    w.close();
+  }
+});
+
+test("storage that cannot be read gives v2 and throws nothing", async () => {
+  const { w } = await boot("classic");
+  const real = w.Storage.prototype.getItem;
+  w.Storage.prototype.getItem = () => { throw new Error("storage is off"); };
+  try { assert.equal(w.faceStored(), "v2"); } finally { w.Storage.prototype.getItem = real; }
+  assert.equal(w.faceStored(), "classic");
+  w.close();
+});
+
+test("the boot script is the first thing in body, before anything that is drawn", async () => {
+  const { w, d } = await boot(undefined);
+  const first = d.body.firstElementChild;
+  assert.equal(first.tagName, "SCRIPT");
+  assert.match(first.textContent, /faceBoot\(\);/);
+  assert.equal(first.nextElementSibling.tagName, "HEADER");
+  w.close();
+});
+
+test("applyFace changes the class, stores the value and updates the dropdown, with no reload", async () => {
+  const { dom, w, d, errors, KEY, isV2 } = await boot(undefined);
+  const jsdomErrors = [];
+  dom.virtualConsole.on("jsdomError", (e) => jsdomErrors.push(e.message));   // a reload or a navigation is reported here
+  const fetched = [];
+  const realFetch = w.fetch;
+  w.fetch = (u, o) => { fetched.push(u); return realFetch(u, o); };
+  const timers = [];
+  const realTimeout = w.setTimeout;
+  w.setTimeout = (fn, ms) => { timers.push(String(fn)); return realTimeout(fn, ms); };
+  w.__kept = { n: 1 };
+  const urls = d.getElementById("urls");
+  urls.value = "https://example.com/a";
+  const href = w.location.href;
+
+  w.applyFace("classic");
+  assert.equal(isV2(), false);
+  assert.equal(w.localStorage.getItem(KEY), "classic");
+  assert.equal(d.getElementById("face-select").value, "classic");
+  assert.equal(d.documentElement.classList.contains("face-switching"), false, "the switching mark is gone");
+
+  w.applyFace("v2");
+  assert.equal(isV2(), true);
+  assert.equal(w.localStorage.getItem(KEY), "v2", "v2 is stored as a value, not as no key");
+  assert.equal(d.getElementById("face-select").value, "v2");
+
+  await wait(50);
+  assert.deepEqual(w.__kept, { n: 1 }, "the page is the same page");
+  assert.equal(d.getElementById("urls"), urls, "the same elements");
+  assert.equal(urls.value, "https://example.com/a", "what was typed stays");
+  assert.equal(w.location.href, href);
+  assert.deepEqual(fetched, [], "the switch asks the backend nothing");
+  assert.equal(timers.some((t) => t.includes("reload")), false, "no reload is scheduled");
+  assert.deepEqual(jsdomErrors, []);
+  assert.deepEqual(errors, []);
+  w.close();
+});
+
+test("applyFace takes only classic as Classic: anything else is v2, and it never throws", async () => {
+  const { w, errors, KEY, CLS, d, isV2 } = await boot("classic");
+  for (const bad of [undefined, null, 5, {}, [], ...BAD]) {
+    w.applyFace("classic");
+    w.applyFace(bad);
+    assert.equal(isV2(), true, JSON.stringify(bad));
+    assert.equal(w.localStorage.getItem(KEY), "v2", `stored as v2: ${JSON.stringify(bad)}`);
+    assert.equal(d.body.className.split(/\s+/).filter(Boolean).join(" "), CLS);
+  }
+  assert.deepEqual(errors, []);
+  w.close();
+});
+
+test("the same Face again changes nothing and starts no transition", async () => {
+  const { w, d, isV2 } = await boot(undefined);
+  let started = 0;
+  d.startViewTransition = (fn) => { started++; fn(); return { ready: Promise.resolve(), finished: Promise.resolve() }; };
+  w.applyFace("v2");
+  assert.equal(started, 0);
+  assert.equal(isV2(), true);
+  assert.equal(d.documentElement.classList.contains("face-switching"), false);
+  w.close();
+});
+
+// A stand in for the browser's view transition: it runs the callback later, as the browser does
+// (after it has captured the old look), and lets the test end the transition.
+function fakeTransitions(d) {
+  const made = [];
+  d.startViewTransition = (fn) => {
+    const t = { fn, ran: false };
+    t.ready = new Promise((res, rej) => { t.skip = () => rej(new Error("skipped")); t.go = res; });
+    t.finished = new Promise((res) => { t.end = res; });
+    t.run = () => { if (!t.ran) { t.ran = true; fn(); } };
+    made.push(t);
+    return t;
+  };
+  return made;
+}
+
+test("with motion allowed the switch runs as a view transition, and the mark stays until it has finished", async () => {
+  const { w, d, errors, KEY, isV2 } = await boot(undefined);
+  const made = fakeTransitions(d);
+  w.applyFace("classic");
+  assert.equal(made.length, 1, "one transition is started");
+  assert.equal(w.localStorage.getItem(KEY), "classic", "the choice is stored at once");
+  assert.equal(isV2(), true, "the class changes inside the transition, after the old look is captured");
+  assert.equal(d.documentElement.classList.contains("face-switching"), true);
+  made[0].run();
+  assert.equal(isV2(), false);
+  assert.equal(d.documentElement.classList.contains("face-switching"), true, "still on while it is drawn");
+  made[0].go(); made[0].end();
+  await wait(0);
+  assert.equal(d.documentElement.classList.contains("face-switching"), false);
+  assert.deepEqual(errors, []);
+  w.close();
+});
+
+test("with reduced motion on the switch is instant: no view transition is started", async () => {
+  const { w, d, isV2 } = await boot(undefined, {
+    prep(w) { w.matchMedia = (q) => ({ matches: /prefers-reduced-motion:\s*reduce/.test(q), addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {} }); },
+  });
+  const made = fakeTransitions(d);
+  w.applyFace("classic");
+  assert.equal(made.length, 0);
+  assert.equal(isV2(), false, "changed in the same call");
+  assert.equal(d.documentElement.classList.contains("face-switching"), false);
+  w.applyFace("v2");
+  assert.equal(made.length, 0);
+  assert.equal(isV2(), true);
+  w.close();
+});
+
+test("a second choice before the first one is drawn wins, and the page ends on what is stored", async () => {
+  const { w, d, KEY, isV2 } = await boot(undefined);
+  const made = fakeTransitions(d);
+  w.applyFace("classic");          // started, its callback has not run yet
+  w.applyFace("v2");               // the person changes their mind
+  assert.equal(w.localStorage.getItem(KEY), "v2");
+  made.forEach((t) => t.run());
+  assert.equal(isV2(), true, "the page shows the last choice");
+  assert.equal(d.getElementById("face-select").value, "v2");
+  made.forEach((t) => { t.go(); t.end(); });
+  await wait(0);
+  assert.equal(d.documentElement.classList.contains("face-switching"), false);
+
+  // and when the first one is already drawn, the second starts its own transition; the first one ending does not take the mark off early
+  w.applyFace("classic"); made.at(-1).run();
+  const first = made.at(-1);
+  w.applyFace("v2");
+  assert.notEqual(made.at(-1), first, "a new transition");
+  first.go(); first.end();
+  await wait(0);
+  assert.equal(d.documentElement.classList.contains("face-switching"), true, "the newer switch keeps the mark");
+  made.at(-1).run(); made.at(-1).go(); made.at(-1).end();
+  await wait(0);
+  assert.equal(isV2(), true);
+  assert.equal(d.documentElement.classList.contains("face-switching"), false);
+  w.close();
+});
+
+test("a transition the browser skips still switches, takes the mark off and leaves no unhandled rejection", async () => {
+  const { w, d, isV2 } = await boot(undefined);
+  const unhandled = [];
+  const onUnhandled = (reason) => unhandled.push(String(reason));
+  process.on("unhandledRejection", onUnhandled);
+  try {
+    const made = fakeTransitions(d);
+    w.applyFace("classic");
+    made[0].run(); made[0].skip(); made[0].end();
+    await wait(20);
+    assert.equal(isV2(), false);
+    assert.equal(d.documentElement.classList.contains("face-switching"), false);
+    assert.deepEqual(unhandled, []);
+  } finally { process.off("unhandledRejection", onUnhandled); }
+  w.close();
+});
+
+test("a theme change keeps the Face, and a Face change keeps the theme", async () => {
+  const { w, d, errors, CLS } = await boot(undefined);
+  const classes = () => [...d.body.classList].sort().join(" ");
+  w.applyTheme("eclipse");
+  assert.equal(classes(), ["eclipse", CLS].sort().join(" "), "v2 survives a theme change");
+  w.applyFace("classic");
+  assert.equal(classes(), "eclipse", "the theme survives a Face change");
+  w.applyTheme("ghost");
+  assert.equal(classes(), "ghost", "Classic survives a theme change");
+  w.applyFace("v2");
+  assert.equal(classes(), [CLS, "ghost"].sort().join(" "));
+  w.applyTheme("void");
+  assert.equal(classes(), CLS, "the default theme is no class, the Face stays");
+  assert.equal(w.localStorage.getItem("egm-theme"), "void");
+  assert.deepEqual(errors, []);
+  w.close();
+});
+
+test("the Face dropdown is the first control of the Themes tab, above Create theme, and choosing switches", async () => {
+  const { w, d, KEY, isV2 } = await boot(undefined);
+  const tab = d.getElementById("hpanel-themes");
+  const sel = d.getElementById("face-select");
+  assert.ok(tab.contains(sel));
+  assert.ok(sel.compareDocumentPosition(d.getElementById("theme-create-btn")) & w.Node.DOCUMENT_POSITION_FOLLOWING, "above Create theme");
+  assert.equal(tab.querySelector("select, button, input"), sel, "the first control in the tab");
+  assert.deepEqual([...sel.options].map((o) => o.value), ["v2", "classic"]);
+  sel.value = "classic"; sel.dispatchEvent(new w.Event("change"));
+  assert.equal(isV2(), false);
+  assert.equal(w.localStorage.getItem(KEY), "classic");
+  sel.value = "v2"; sel.dispatchEvent(new w.Event("change"));
+  assert.equal(isV2(), true);
+  assert.equal(w.localStorage.getItem(KEY), "v2");
+  w.close();
+});

@@ -141,6 +141,13 @@
 
 })(); // ── End theme picker IIFE ───────────────────────────────────────────────
 
+// ── Face dropdown, at the top of the Themes tab. The switch itself is applyFace (_face.html). ──
+(function() {
+  const sel = document.getElementById('face-select');
+  sel.value = faceNow();
+  sel.addEventListener('change', () => applyFace(sel.value));
+})();
+
 // ── Subscriptions button ─────────────────────────────────────────────────────
 document.getElementById('subs-btn').addEventListener('click', (e) => {
   e.currentTarget.blur();

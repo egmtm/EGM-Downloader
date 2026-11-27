@@ -1,0 +1,55 @@
+// ── Face: which layout the main window shows ─────────────────────────────────
+// Two Faces: v2, the default, and Classic. v2 is the class FACE_CLASS on body, styled by
+// face_v2_styles.html; Classic is that class absent. index.html runs this inline as the first
+// thing in body, so the class is there before anything is drawn. FACE_KEY holds 'v2' or
+// 'classic'; no key means v2. The value can come from an imported file, so it is only ever
+// compared with 'classic': anything else is v2, and it never reaches the page as a class.
+var FACE_KEY = 'egm_face';
+var FACE_CLASS = 'face-v2';
+
+// 'classic' only for exactly that stored value; 'v2' for no key, any other value or no storage
+function faceStored() {
+  try { return localStorage.getItem(FACE_KEY) === 'classic' ? 'classic' : 'v2'; } catch { return 'v2'; }
+}
+
+// The Face the page shows now
+function faceNow() {
+  return document.body.classList.contains(FACE_CLASS) ? 'v2' : 'classic';
+}
+
+// Shows the stored Face. Nothing is written.
+function faceBoot() {
+  document.body.classList.toggle(FACE_CLASS, faceStored() === 'v2');
+}
+faceBoot();
+
+// Stores the choice and switches to it with no reload: the one thing that changes on the page is
+// the class on body, so a running download or recording, its card and its polling are not touched.
+// The change is drawn as a view transition (the browser fades and moves the parts named in
+// index_styles.html from the old layout to the new one). With reduced motion on, or without that
+// API, the class simply changes. html.face-switching turns the page's own CSS transitions off
+// while the layout changes, as html.dir-switching does for a direction change.
+var faceWanted = null;   // the last Face asked for: a switch that has not been drawn yet shows this one
+var faceSwitch = null;   // the view transition that is running, if any
+function applyFace(name) {
+  const face = name === 'classic' ? 'classic' : 'v2';
+  try { localStorage.setItem(FACE_KEY, face); } catch {}
+  const sel = document.getElementById('face-select');
+  if (sel) sel.value = face;
+  faceWanted = face;
+  if (face === faceNow()) return;
+  const root = document.documentElement;
+  const swap = () => { document.body.classList.toggle(FACE_CLASS, faceWanted === 'v2'); };
+  root.classList.add('face-switching');
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    faceSwitch = null;
+    swap();
+    void root.offsetWidth;   // lay the new Face out now, with transitions off
+    root.classList.remove('face-switching');
+    return;
+  }
+  const mine = faceSwitch = document.startViewTransition(swap);
+  const done = () => { if (faceSwitch === mine) { faceSwitch = null; root.classList.remove('face-switching'); } };   // a newer switch keeps the class
+  mine.ready.catch(() => {});   // skipped (a newer switch, a hidden window): the class has changed all the same
+  mine.finished.then(done, done);
+}

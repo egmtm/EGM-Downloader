@@ -30,6 +30,7 @@ templates/js/_theme.html
 templates/js/_quality.html
 templates/js/_creator.html
 templates/js/_card_order.html
+templates/js/_face.html
 languages/ar.json
 languages/de.json
 languages/en.json

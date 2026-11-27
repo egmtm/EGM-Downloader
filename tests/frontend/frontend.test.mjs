@@ -110,9 +110,13 @@ test("persisted hidden settings panel stays hidden on boot", async () => {
 // Advanced > Interface: the Footer switch hides everything in the footer except the language
 // selector, which keeps its own switch (EGM, Nov 16). Shown by default, turned off only after a confirm.
 const footerParts = (w, d) => [...d.querySelector("footer").children].map(c => [c.id || c.textContent.trim().slice(0, 12), w.getComputedStyle(c).display !== "none"]);
+// These footer tests read computed styles of the Classic layout, so they boot the Classic Face. jsdom
+// cannot judge the v2 Face here: it applies matching rules in source order and ignores specificity,
+// so the later v2 stylesheet would seem to beat the rule that hides the footer rows.
+const classicFace = (w) => w.localStorage.setItem("egm_face", "classic");
 
 test("hide-footer flow: confirm modal, cancel keeps, confirm hides everything but the language selector and saves", async () => {
-  const { w, d, saved } = await bootPage();
+  const { w, d, saved } = await bootPage({ prep: classicFace });
   const chk = d.getElementById("show-footer-chk");
   assert.equal(chk.checked, true, "on by default");
   assert.ok(footerParts(w, d).every(([, shown], i) => i === 0 || shown), "footer shown");
@@ -138,12 +142,12 @@ test("hide-footer flow: confirm modal, cancel keeps, confirm hides everything bu
 });
 
 test("persisted hidden footer stays hidden on boot, and the two switches stay independent", async () => {
-  const { w, d } = await bootPage({ settings: { show_footer: false } });
+  const { w, d } = await bootPage({ settings: { show_footer: false }, prep: classicFace });
   assert.equal(d.getElementById("show-footer-chk").checked, false);
   assert.deepEqual(footerParts(w, d).filter(([, shown]) => shown).map(([id]) => id), ["lang-row"]);
-  const b = await bootPage({ settings: { show_footer: false, show_language_selector: false } });
+  const b = await bootPage({ settings: { show_footer: false, show_language_selector: false }, prep: classicFace });
   assert.deepEqual(footerParts(b.w, b.d).filter(([, shown]) => shown), [], "both off: nothing of the footer shows");
-  const c = await bootPage({ settings: { show_language_selector: false } });
+  const c = await bootPage({ settings: { show_language_selector: false }, prep: classicFace });
   assert.deepEqual(footerParts(c.w, c.d).filter(([, shown]) => !shown).map(([id]) => id), ["lang-row"], "selector off alone hides only the selector");
 });
 
@@ -156,7 +160,7 @@ test("the Interface switches sit in one strip in the order Settings, Language se
 test("the footer link row keeps the layout it had when the style was written on the element", async () => {
   // The row's display moved from an inline style to the class .footer-links so the Footer switch can
   // hide it. Without that rule the links lose their centred, wrapping row with 6px between them.
-  const { w, d } = await bootPage();
+  const { w, d } = await bootPage({ prep: classicFace });
   const row = d.querySelector("footer .footer-links");
   assert.ok(row.contains(d.getElementById("footer-version-pill")) && row.contains(d.getElementById("footer-help-btn")), "the row that holds the links");
   assert.equal(row.getAttribute("style"), null, "no inline style on the row: an inline display would beat the hide rule");
