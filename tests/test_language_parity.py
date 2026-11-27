@@ -353,12 +353,14 @@ def _script(ch):
 
 def _stands_alone(word, text):
     """word is in text and not part of a longer word: the character on each side is not a letter of
-    the same script (so クラシックに counts, a shortened كلاسيك inside كلاسيكي does not)."""
+    the same script (so クラシックに counts, a shortened كلاسيك inside كلاسيكي does not), and no mark is
+    written on its last letter (كلاسيكيّة, with a shadda, is a longer word too)."""
     start = text.find(word)
     while start != -1:
         before = text[start - 1] if start else ""
         after = text[start + len(word)] if start + len(word) < len(text) else ""
-        if (not before or _script(before) != _script(word[0])) and (not after or _script(after) != _script(word[-1])):
+        marked = after and unicodedata.category(after).startswith("M")   # a mark written on the last letter: the word goes on
+        if (not before or _script(before) != _script(word[0])) and (not after or _script(after) != _script(word[-1])) and not marked:
             return True
         start = text.find(word, start + 1)
     return False
@@ -371,7 +373,7 @@ def test_the_face_question_names_face_v2_and_the_classic_button_as_written():
     another word for Classic in the text would pass it; this does not."""
     wrong = {}
     for code, strings in LOCALES.items():
-        if EN["face.label"] not in strings["face.prompt.title"]:
+        if not _stands_alone(EN["face.label"], strings["face.prompt.title"]):   # Faceta or Faces is not Face
             wrong[f"{code}.json: face.prompt.title"] = strings["face.prompt.title"]
         body = strings["face.prompt.body"]
         if EN["face.option.v2"] not in body or not _stands_alone(strings["face.option.classic"], body):
