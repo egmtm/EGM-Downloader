@@ -14,6 +14,7 @@ import glob
 import json
 import os
 import re
+import unicodedata
 from collections import Counter
 
 from conftest import ROOT
@@ -343,3 +344,36 @@ def test_face_and_v2_are_not_translated_in_any_language():
     wrong = {f"{code}.json: {key}": strings[key] for code, strings in OTHERS.items()
              for key in ("face.label", "face.option.v2") if strings[key] != EN[key]}
     assert not wrong, f"Face and v2 stay as they are in every language: {wrong}"
+
+
+def _script(ch):
+    """The Unicode script of a letter (LATIN, CYRILLIC, ARABIC, KATAKANA...), None for anything else."""
+    return unicodedata.name(ch, "").split(" ")[0] if ch.isalpha() else None
+
+
+def _stands_alone(word, text):
+    """word is in text and not part of a longer word: the character on each side is not a letter of
+    the same script (so クラシックに counts, a shortened كلاسيك inside كلاسيكي does not)."""
+    start = text.find(word)
+    while start != -1:
+        before = text[start - 1] if start else ""
+        after = text[start + len(word)] if start + len(word) < len(text) else ""
+        if (not before or _script(before) != _script(word[0])) and (not after or _script(after) != _script(word[-1])):
+            return True
+        start = text.find(word, start + 1)
+    return False
+
+
+def test_the_face_question_names_face_v2_and_the_classic_button_as_written():
+    """The question after What's New repeats the names of the dropdown: its title says Face and its
+    text says v2, as written in every language, and the text names Classic with the same word as the
+    Classic button. The test above guards only the two labels, so a translated Face in the title or
+    another word for Classic in the text would pass it; this does not."""
+    wrong = {}
+    for code, strings in LOCALES.items():
+        if EN["face.label"] not in strings["face.prompt.title"]:
+            wrong[f"{code}.json: face.prompt.title"] = strings["face.prompt.title"]
+        body = strings["face.prompt.body"]
+        if EN["face.option.v2"] not in body or not _stands_alone(strings["face.option.classic"], body):
+            wrong[f"{code}.json: face.prompt.body"] = body
+    assert not wrong, f"the Face question names Face, v2 and the Classic button as written: {wrong}"
