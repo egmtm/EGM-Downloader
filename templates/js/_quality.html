@@ -159,6 +159,7 @@ async function showWhatsNewModal(currentVersion) {
 
 document.getElementById('whats-new-dismiss-btn').addEventListener('click', async () => {
   document.getElementById('whats-new-modal').style.display = 'none';
+  showFacePrompt();
   const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
   if (currentVersion) await post('/api/settings/save', { last_seen_version: currentVersion });
 });
@@ -167,6 +168,26 @@ document.getElementById('footer-version-pill').addEventListener('click', () => {
   const currentVersion = (document.getElementById('footer-version-pill')?.textContent?.trim() || '').replace(/^v/i, '');
   if (currentVersion) showWhatsNewModal(currentVersion);
 });
+
+// ── The Face question: v2 or Classic, asked once, right after What's New closes ──
+// FACE_PROMPT_KEY remembers that it was shown, so closing it without a choice does not bring it
+// back: the page stays as it is, which is v2 on a first launch. Reset settings clears that key with
+// the other egm_ keys, so after a reset it is asked again. Without storage it is never asked,
+// because it could not be remembered.
+function showFacePrompt() {
+  try {
+    if (localStorage.getItem(FACE_PROMPT_KEY)) return;
+    localStorage.setItem(FACE_PROMPT_KEY, '1');
+  } catch { return; }
+  document.getElementById('face-prompt-modal').style.display = 'flex';
+}
+function closeFacePrompt(face) {
+  document.getElementById('face-prompt-modal').style.display = 'none';
+  if (face) applyFace(face);
+}
+document.getElementById('face-prompt-v2-btn').addEventListener('click', () => closeFacePrompt('v2'));
+document.getElementById('face-prompt-classic-btn').addEventListener('click', () => closeFacePrompt('classic'));
+document.getElementById('face-prompt-close-btn').addEventListener('click', () => closeFacePrompt());
 
 // Show once per version, automatically, on page load.
 (async function() {

@@ -2592,6 +2592,21 @@
   </div>
 </div>
 
+<!-- Face question: asked once, right after What's New closes (showFacePrompt in js/_quality.html) -->
+<div class="modal-backdrop" id="face-prompt-modal" style="display:none">
+  <div class="modal" style="max-width:380px;width:90%">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
+      <h3 style="margin:0">Choose your Face</h3>
+      <button class="btn btn-ghost" id="face-prompt-close-btn" data-i18n-attr="title:creator.btn.close,aria-label:creator.btn.close" title="Close" aria-label="Close" style="padding:2px 8px;font-size:14px;line-height:1">✕</button>
+    </div>
+    <p style="font-size:.8rem;color:var(--text2)">The main window has a new layout, v2. Keep it, or go back to Classic. You can change this anytime in Themes.</p>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="face-prompt-classic-btn">Classic</button>
+      <button class="btn btn-primary" id="face-prompt-v2-btn">v2</button>
+    </div>
+  </div>
+</div>
+
 <!-- Filename modal -->
 <div class="modal-backdrop" id="name-modal" style="display:none">
   <div class="modal">

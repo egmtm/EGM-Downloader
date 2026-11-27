@@ -3,7 +3,7 @@
 // transitions, so how the switch looks is not covered here; what it does to the page and the storage is.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bootPage } from "./harness.mjs";
+import { bootPage, CURRENT_APP_VERSION } from "./harness.mjs";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -28,7 +28,8 @@ test("the names are the placeholders, and each is written once in the page's scr
   assert.equal(KEY, "egm_face");
   assert.equal(CLS, "face-v2");
   const scripts = [...d.querySelectorAll("script")].map((s) => s.textContent).join("\n");
-  for (const name of [KEY, CLS]) {
+  assert.equal(w.FACE_PROMPT_KEY, "egm_face_prompt");
+  for (const name of [KEY, CLS, w.FACE_PROMPT_KEY]) {
     assert.equal(scripts.split(`'${name}'`).length - 1 + scripts.split(`"${name}"`).length - 1, 1, `${name} is a constant in one place`);
   }
   w.close();
@@ -266,5 +267,149 @@ test("the Face dropdown is the first control of the Themes tab, above Create the
   sel.value = "v2"; sel.dispatchEvent(new w.Event("change"));
   assert.equal(isV2(), true);
   assert.equal(w.localStorage.getItem(KEY), "v2");
+  w.close();
+});
+
+// ── The one time question after What's New ──────────────────────────────────
+const shown = (d, id) => d.getElementById(id).style.display !== "none";
+const gotIt = async (d) => { d.getElementById("whats-new-dismiss-btn").click(); await wait(0); };
+// What's New shows by itself at load when this version has not been seen yet (the harness default).
+const PROMPT = "face-prompt-modal";
+
+test("the question shows once, right after What's New closes, and not before", async () => {
+  const { w, d, errors, saved, isV2 } = await boot(undefined);
+  const SHOWN = w.FACE_PROMPT_KEY;
+  assert.equal(shown(d, "whats-new-modal"), true, "What's New is up on a first launch");
+  assert.equal(shown(d, PROMPT), false, "the question waits behind it");
+  assert.equal(w.localStorage.getItem(SHOWN), null);
+  await gotIt(d);
+  assert.equal(shown(d, "whats-new-modal"), false);
+  assert.equal(shown(d, PROMPT), true, "Got it brings the question");
+  assert.equal(d.getElementById(PROMPT).style.display, "flex");
+  assert.equal(w.localStorage.getItem(SHOWN), "1", "remembered as soon as it is shown");
+  assert.equal(isV2(), true, "the page stays v2 while it asks");
+  assert.equal(w.localStorage.getItem("egm_face"), null, "asking stores no choice");
+  assert.ok(saved.some((s) => s.last_seen_version === CURRENT_APP_VERSION), "Got it still marks the version as seen");
+  assert.deepEqual(errors, []);
+  w.close();
+});
+
+test("the question has two choices, v2 and Classic, a close button, and looks like the app's other questions", async () => {
+  const { w, d } = await boot(undefined);
+  const modal = d.getElementById(PROMPT);
+  assert.ok(modal.classList.contains("modal-backdrop"));
+  assert.equal(modal.style.display, "none", "hidden at load");
+  assert.equal(modal.children.length, 1);
+  assert.ok(modal.firstElementChild.classList.contains("modal"));
+  const choices = [...modal.querySelectorAll(".modal-actions button")];
+  assert.deepEqual(choices.map((b) => b.id), ["face-prompt-classic-btn", "face-prompt-v2-btn"]);
+  assert.ok(choices[1].classList.contains("btn-primary"), "v2, the default, is the main button");
+  assert.deepEqual([...modal.querySelectorAll("button")].map((b) => b.id).sort(), ["face-prompt-classic-btn", "face-prompt-close-btn", "face-prompt-v2-btn"]);
+  assert.equal(modal.querySelectorAll("h3").length, 1);
+  assert.equal(modal.querySelectorAll("p").length, 1);
+  // a click beside the box is not an answer and does not close it
+  await gotIt(d);
+  modal.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  assert.equal(shown(d, PROMPT), true);
+  w.close();
+});
+
+test("choosing Classic switches to it, closes the question and it is not asked again", async () => {
+  const { w, d, errors, isV2 } = await boot(undefined);
+  await gotIt(d);
+  d.getElementById("face-prompt-classic-btn").click();
+  assert.equal(shown(d, PROMPT), false);
+  assert.equal(isV2(), false);
+  assert.equal(w.localStorage.getItem("egm_face"), "classic");
+  assert.equal(d.getElementById("face-select").value, "classic", "the dropdown in Themes agrees");
+  // What's New opened again from the footer, and closed: no second question
+  d.getElementById("footer-version-pill").click();
+  await wait(20);
+  assert.equal(shown(d, "whats-new-modal"), true);
+  await gotIt(d);
+  assert.equal(shown(d, PROMPT), false);
+  assert.equal(isV2(), false);
+  assert.deepEqual(errors, []);
+  w.close();
+});
+
+test("choosing v2 keeps v2, stores it, closes the question and it is not asked again", async () => {
+  const { w, d, isV2 } = await boot(undefined);
+  await gotIt(d);
+  d.getElementById("face-prompt-v2-btn").click();
+  assert.equal(shown(d, PROMPT), false);
+  assert.equal(isV2(), true);
+  assert.equal(w.localStorage.getItem("egm_face"), "v2");
+  d.getElementById("footer-version-pill").click();
+  await wait(20);
+  await gotIt(d);
+  assert.equal(shown(d, PROMPT), false);
+  w.close();
+});
+
+// Boots a second page with the storage the first one left, as the next launch would find it.
+async function nextLaunch(prev, opts = {}) {
+  const kept = {};
+  for (let i = 0; i < prev.localStorage.length; i++) { const k = prev.localStorage.key(i); kept[k] = prev.localStorage.getItem(k); }
+  return boot(undefined, { ...opts, prep(w) { for (const [k, v] of Object.entries(kept)) w.localStorage.setItem(k, v); } });
+}
+
+test("closing the question without a choice keeps v2, stores no choice, and it is not asked again, not on the next launch either", async () => {
+  const first = await boot(undefined);
+  await gotIt(first.d);
+  first.d.getElementById("face-prompt-close-btn").click();
+  assert.equal(shown(first.d, PROMPT), false);
+  assert.equal(first.isV2(), true);
+  assert.equal(first.w.localStorage.getItem("egm_face"), null, "no choice was made, so none is stored");
+  first.d.getElementById("footer-version-pill").click();
+  await wait(20);
+  await gotIt(first.d);
+  assert.equal(shown(first.d, PROMPT), false, "not again in this session");
+  // the next launch, with What's New up again (a newer version): still not asked
+  const next = await nextLaunch(first.w);
+  assert.equal(shown(next.d, "whats-new-modal"), true);
+  await gotIt(next.d);
+  assert.equal(shown(next.d, PROMPT), false, "not again on the next launch");
+  assert.equal(next.isV2(), true);
+  first.w.close(); next.w.close();
+});
+
+test("with this version already seen there is no What's New at load and no question", async () => {
+  const { w, d } = await boot(undefined, { settings: { last_seen_version: CURRENT_APP_VERSION } });
+  assert.equal(shown(d, "whats-new-modal"), false);
+  assert.equal(shown(d, PROMPT), false);
+  assert.equal(w.localStorage.getItem(w.FACE_PROMPT_KEY), null, "not marked as shown: it will be asked after the next What's New");
+  w.close();
+});
+
+test("after Reset settings the question is asked again", async () => {
+  const first = await boot(undefined, {
+    onFetch: (u) => (u === "/api/settings/reset" ? { ok: true, json: async () => ({ ok: true }) } : null),
+  });
+  await gotIt(first.d);
+  first.d.getElementById("face-prompt-classic-btn").click();
+  assert.equal(first.w.localStorage.getItem(first.w.FACE_PROMPT_KEY), "1");
+  first.w.confirm = () => true;
+  first.w.setTimeout = (fn, ms) => 0;   // jsdom cannot reload; the next launch is booted below
+  first.d.getElementById("adv-reset-btn").click();
+  await wait(300);
+  assert.equal(first.w.localStorage.getItem(first.w.FACE_PROMPT_KEY), null, "Reset forgets that it was asked");
+  const next = await nextLaunch(first.w);
+  assert.equal(shown(next.d, "whats-new-modal"), true, "after a reset What's New shows again");
+  assert.equal(shown(next.d, PROMPT), false);
+  await gotIt(next.d);
+  assert.equal(shown(next.d, PROMPT), true, "and the question follows it");
+  first.w.close(); next.w.close();
+});
+
+test("when it cannot be remembered the question is not asked, and nothing throws", async () => {
+  const { w, d, errors } = await boot(undefined);
+  const real = w.Storage.prototype.setItem;
+  w.Storage.prototype.setItem = () => { throw new Error("storage is full"); };
+  try {
+    await gotIt(d);
+    assert.equal(shown(d, PROMPT), false);
+  } finally { w.Storage.prototype.setItem = real; }
+  assert.deepEqual(errors, []);
   w.close();
 });
