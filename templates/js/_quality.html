@@ -222,6 +222,7 @@ document.getElementById('face-prompt-close-btn').addEventListener('click', () =>
       // Force body to default theme IMMEDIATELY (no waiting for reload to take effect)
       try {
         document.body.className = '';  // strip ALL theme classes (incl. 'custom')
+        faceBoot();   // that took the Face class off too; the Face key is gone with the rest, so this shows the default Face, v2
         const customStyle = document.getElementById('custom-theme-style');
         if (customStyle) customStyle.remove();
       } catch {}
@@ -397,6 +398,8 @@ document.getElementById('face-prompt-close-btn').addEventListener('click', () =>
       // The default card order is stored as no key, so the file always says which order the page has
       // now: an import then puts a default order back instead of leaving the other machine's swapped one
       try { lsKeys[CARD_ORDER_KEY] = JSON.stringify(cardOrderNow()); } catch {}
+      // The same for the Face: v2 can be stored as no key, so the file always says which Face the page shows now
+      try { lsKeys[FACE_KEY] = faceNow(); } catch {}
       const histItems = (h && Array.isArray(h.items)) ? h.items : [];
 
       // Show selector

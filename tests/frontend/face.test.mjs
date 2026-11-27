@@ -413,3 +413,116 @@ test("when it cannot be remembered the question is not asked, and nothing throws
   assert.deepEqual(errors, []);
   w.close();
 });
+
+// ── Reset, Export and Import ────────────────────────────────────────────────
+const seen = { last_seen_version: CURRENT_APP_VERSION };   // no What's New at load: these tests are not about the question
+
+test("Reset settings leaves v2 on the page at once, with no theme class, and the next launch is v2", async () => {
+  for (const stored of ["classic", "v2", undefined]) {
+    const first = await boot(stored, {
+      settings: seen,
+      onFetch: (u) => (u === "/api/settings/reset" ? { ok: true, json: async () => ({ ok: true }) } : null),
+    });
+    first.w.applyTheme("eclipse");
+    const reloads = [];
+    first.w.confirm = () => true;
+    first.w.setTimeout = (fn, ms) => { if (String(fn).includes("location.reload")) reloads.push(ms); return 0; };   // jsdom cannot reload
+    first.d.getElementById("adv-reset-btn").click();
+    await wait(300);
+    assert.equal(first.d.body.className.trim(), first.CLS, `after Reset the page is v2 and nothing else (was ${stored})`);
+    assert.equal(first.w.localStorage.getItem(first.KEY), null, "the stored Face is gone with the other egm_ keys");
+    assert.equal(reloads.length, 1, "the reload Reset already did is still scheduled");
+    const next = await nextLaunch(first.w);
+    assert.equal(next.isV2(), true, "the next launch is v2");
+    assert.deepEqual(first.errors, []);
+    first.w.close(); next.w.close();
+  }
+});
+
+// Runs Export with only Themes & preferences ticked (or only Settings) and returns the file's content.
+async function exportFile(stored, { themes = true, before } = {}) {
+  let content = null;
+  const page = await boot(stored, {
+    settings: seen,
+    prep(w) { w.electronAPI = { saveFile: async (name, c) => { content = c; return { ok: true }; } }; },
+  });
+  if (before) before(page);
+  const keysBefore = page.w.localStorage.getItem(page.KEY);
+  page.w._egmSelectorModal = async () => ({ settings: !themes, history: false, themes, subscriptions: false });
+  page.d.getElementById("adv-export-btn").click();
+  await wait(300);
+  assert.ok(content, "export wrote a file");
+  assert.equal(page.w.localStorage.getItem(page.KEY), keysBefore, "exporting stores nothing");
+  page.w.close();
+  return JSON.parse(content);
+}
+
+test("Export always says which Face the page shows, v2 with no key too", async () => {
+  assert.equal((await exportFile(undefined)).localStorage.egm_face, "v2", "the default, stored as no key, is written as v2");
+  assert.equal((await exportFile("classic")).localStorage.egm_face, "classic");
+  assert.equal((await exportFile("v2")).localStorage.egm_face, "v2");
+  assert.equal((await exportFile("junk")).localStorage.egm_face, "v2", "a bad stored value is exported as what the page shows");
+  // the page decides, not an old stored value
+  assert.equal((await exportFile(undefined, { before: (p) => p.w.applyFace("classic") })).localStorage.egm_face, "classic");
+  // without Themes & preferences it stays out
+  assert.equal("egm_face" in (await exportFile("classic", { themes: false })).localStorage, false);
+});
+
+// Runs Import of `file` on `page` with Themes & preferences ticked; resolves with how many reloads were scheduled.
+async function importFile(page, file) {
+  const reloads = [];
+  page.w.setTimeout = (fn, ms) => { if (String(fn).includes("location.reload")) reloads.push(ms); return 0; };   // jsdom cannot reload
+  page.w.electronAPI = { openFile: async () => ({ content: JSON.stringify(file) }) };
+  page.w._egmSelectorModal = async () => ({ settings: false, history: false, themes: true, subscriptions: false });
+  page.d.getElementById("adv-import-btn").click();
+  await wait(300);
+  return reloads.length;
+}
+
+test("Export then Import on a clean profile carries the Face both ways: Classic to a v2 profile, v2 to a Classic profile", async () => {
+  // a Classic machine exports; a clean profile (v2, no key) imports and is Classic at its next launch
+  {
+    const file = await exportFile("classic");
+    const clean = await boot(undefined, { settings: seen });
+    assert.equal(clean.isV2(), true, "a clean profile starts as v2");
+    assert.equal(await importFile(clean, file), 1, "the page reloads to show it");
+    assert.equal(clean.w.localStorage.getItem(clean.KEY), "classic");
+    const next = await nextLaunch(clean.w, { settings: seen });
+    assert.equal(next.isV2(), false, "Classic after the reload");
+    assert.equal(next.d.getElementById("face-select").value, "classic");
+    clean.w.close(); next.w.close();
+  }
+  // a v2 machine that never chose (no key) exports; a profile set to Classic imports and is v2 at its next launch
+  {
+    const file = await exportFile(undefined);
+    const other = await boot("classic", { settings: seen });
+    assert.equal(other.isV2(), false);
+    assert.equal(await importFile(other, file), 1);
+    assert.equal(other.w.localStorage.getItem(other.KEY), "v2", "the file's v2 replaces the stored Classic");
+    const next = await nextLaunch(other.w, { settings: seen });
+    assert.equal(next.isV2(), true, "v2 after the reload");
+    assert.equal(next.d.getElementById("face-select").value, "v2");
+    other.w.close(); next.w.close();
+  }
+});
+
+test("Import of a file without a Face, or with one that is not text, leaves this machine's Face alone", async () => {
+  for (const ls of [{ "egm-other": "x" }, { egm_face: 5, "egm-other": "x" }, { egm_face: null, "egm-other": "x" }, { egm_face: ["classic"], "egm-other": "x" }]) {
+    const page = await boot("classic", { settings: seen });
+    await importFile(page, { _egm_export_version: 4, localStorage: ls });
+    assert.equal(page.w.localStorage.getItem(page.KEY), "classic", JSON.stringify(ls));
+    assert.equal(page.w.localStorage.getItem("egm-other"), "x", "the other keys still come across");
+    page.w.close();
+  }
+});
+
+test("Import of a Face that is neither value cannot break the page: the next launch is v2 and throws nothing", async () => {
+  const page = await boot("classic", { settings: seen });
+  await importFile(page, { _egm_export_version: 4, localStorage: { egm_face: "<img src=x onerror=alert(1)>" } });
+  const next = await nextLaunch(page.w, { settings: seen });
+  assert.equal(next.isV2(), true);
+  assert.equal(next.d.body.className.trim(), next.CLS);
+  assert.equal(next.d.querySelectorAll("img[src=x]").length, 0);
+  assert.deepEqual(next.errors, []);
+  page.w.close(); next.w.close();
+});
