@@ -86,10 +86,10 @@
       <div class="hpanel-content" id="hpanel-themes" style="display:none">
         <div style="padding:6px 6px 0">
           <label class="adv-port-wrap">
-            <span class="adv-port-label">Face</span>
+            <span class="adv-port-label" data-i18n="face.label">Face</span>
             <select id="face-select" style="background:var(--surf2);border:1px solid var(--border);color:var(--text);font-size:.72rem;border-radius:4px;padding:1px 4px;margin-inline-start:auto;outline:none;cursor:pointer">
-              <option value="v2">v2</option>
-              <option value="classic">Classic</option>
+              <option value="v2" data-i18n="face.option.v2">v2</option>
+              <option value="classic" data-i18n="face.option.classic">Classic</option>
             </select>
           </label>
         </div>
@@ -2596,13 +2596,13 @@
 <div class="modal-backdrop" id="face-prompt-modal" style="display:none">
   <div class="modal" style="max-width:380px;width:90%">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px">
-      <h3 style="margin:0">Choose your Face</h3>
+      <h3 style="margin:0" data-i18n="face.prompt.title">Choose your Face</h3>
       <button class="btn btn-ghost" id="face-prompt-close-btn" data-i18n-attr="title:creator.btn.close,aria-label:creator.btn.close" title="Close" aria-label="Close" style="padding:2px 8px;font-size:14px;line-height:1">✕</button>
     </div>
-    <p style="font-size:.8rem;color:var(--text2)">The main window has a new layout, v2. Keep it, or go back to Classic. You can change this anytime in Themes.</p>
+    <p style="font-size:.8rem;color:var(--text2)" data-i18n="face.prompt.body">The main window has a new layout, v2. Keep it, or go back to Classic. You can change this anytime in Themes.</p>
     <div class="modal-actions">
-      <button class="btn btn-ghost" id="face-prompt-classic-btn">Classic</button>
-      <button class="btn btn-primary" id="face-prompt-v2-btn">v2</button>
+      <button class="btn btn-ghost" id="face-prompt-classic-btn" data-i18n="face.option.classic">Classic</button>
+      <button class="btn btn-primary" id="face-prompt-v2-btn" data-i18n="face.option.v2">v2</button>
     </div>
   </div>
 </div>

@@ -3,7 +3,7 @@
 // transitions, so how the switch looks is not covered here; what it does to the page and the storage is.
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { bootPage, CURRENT_APP_VERSION } from "./harness.mjs";
+import { bootPage, CURRENT_APP_VERSION, en } from "./harness.mjs";
 
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -525,4 +525,28 @@ test("Import of a Face that is neither value cannot break the page: the next lau
   assert.equal(next.d.querySelectorAll("img[src=x]").length, 0);
   assert.deepEqual(next.errors, []);
   page.w.close(); next.w.close();
+});
+
+// ── Strings ─────────────────────────────────────────────────────────────────
+test("the dropdown and the question read their texts from the language file", async () => {
+  // a language file whose five Face texts are marked, so the page can only show them by reading the keys
+  const KEYS = ["face.label", "face.option.v2", "face.option.classic", "face.prompt.title", "face.prompt.body"];
+  const marked = { ...en, strings: { ...en.strings, ...Object.fromEntries(KEYS.map((k) => [k, `[${k}]`])) } };
+  const { w, d } = await boot(undefined, {
+    onFetch: (u) => (u === "/api/language/en" ? { ok: true, json: async () => marked } : null),
+  });
+  const sel = d.getElementById("face-select");
+  assert.equal(sel.closest("label").querySelector("span").textContent, "[face.label]");
+  assert.deepEqual([...sel.options].map((o) => o.textContent), ["[face.option.v2]", "[face.option.classic]"]);
+  assert.deepEqual([...sel.options].map((o) => o.value), ["v2", "classic"], "the values stay the stored words in every language");
+  const modal = d.getElementById("face-prompt-modal");
+  assert.equal(modal.querySelector("h3").textContent, "[face.prompt.title]");
+  assert.equal(modal.querySelector("p").textContent, "[face.prompt.body]");
+  assert.equal(d.getElementById("face-prompt-v2-btn").textContent, "[face.option.v2]");
+  assert.equal(d.getElementById("face-prompt-classic-btn").textContent, "[face.option.classic]");
+  // and English is what the file says
+  assert.equal(en.strings["face.label"], "Face");
+  assert.equal(en.strings["face.option.v2"], "v2");
+  assert.equal(en.strings["face.option.classic"], "Classic");
+  w.close();
 });

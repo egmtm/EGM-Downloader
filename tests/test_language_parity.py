@@ -46,6 +46,8 @@ COMMON = {
     "console.toggle.ytdlp.label",
     "cookies.browser.chrome",
     "cookies.browser.firefox",
+    "face.label",
+    "face.option.v2",
     "fetch.error.prefix",
     "footer.link.github",
     "footer.link.website",
@@ -188,7 +190,11 @@ EXTRA = {
 # New keys waiting for the translator pass: English in the nine other files until then. The pass
 # translates them and takes them out of this set; a key here that is no longer an English copy in
 # any language fails, so the set cannot rot.
-AWAITING_TRANSLATION = set()
+AWAITING_TRANSLATION = {
+    "face.option.classic",
+    "face.prompt.body",
+    "face.prompt.title",
+}
 
 
 
@@ -263,7 +269,11 @@ READ_IN_TEMPLATES = {"audio.option.128.desc": 1, "audio.option.192.desc": 1, "au
                      "themes.section.heritage": 1, "themes.section.other": 1,
                      "themes.filter.imported": 1, "themes.filter.seasonal": 1,
                      # The Footer switch and its confirm box (new texts, listed so a lost hook is seen too).
-                     "footer.toggle.label": 1, "footer.modal.hide.title": 1, "footer.modal.hide.body": 1}
+                     "footer.toggle.label": 1, "footer.modal.hide.title": 1, "footer.modal.hide.body": 1,
+                     # The Face dropdown in the Themes tab and the question after What's New (the two Face
+                     # names are read twice: as the dropdown's options and as the question's buttons).
+                     "face.label": 1, "face.option.v2": 2, "face.option.classic": 2,
+                     "face.prompt.title": 1, "face.prompt.body": 1}
 
 
 def test_the_keys_that_replaced_hardcoded_english_are_read_by_the_templates():
@@ -328,3 +338,12 @@ def test_the_h265_notice_is_the_h264_notice_with_only_the_codec_changed():
              or strings["download.warning.source_codec_h265"]
              != strings["download.warning.source_codec"].replace("H.264", "H.265")]
     assert not wrong, f"the H.265 notice is not the H.264 notice with the codec changed: {wrong}"
+
+
+def test_face_and_v2_are_not_translated_in_any_language():
+    """Face, the name of the setting, and v2, the name of the new layout, read the same in every
+    language. COMMON only fails once every language has changed a key, so one language translating
+    either of them would pass it; this does not."""
+    wrong = {f"{code}.json: {key}": strings[key] for code, strings in OTHERS.items()
+             for key in ("face.label", "face.option.v2") if strings[key] != EN[key]}
+    assert not wrong, f"Face and v2 stay as they are in every language: {wrong}"
