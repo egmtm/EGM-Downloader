@@ -385,6 +385,8 @@ document.getElementById('paste-fetch-btn').addEventListener('click', async () =>
   }
   ta.addEventListener('input', autoGrow);
   ta.addEventListener('paste', () => setTimeout(autoGrow, 0));
+  // The two Faces set the box in different type, so a height fitted in one is wrong in the other (applyFace, _face.html)
+  document.addEventListener('face:changed', autoGrow);
   // Initial sizing in case content is restored from settings
   setTimeout(autoGrow, 0);
 

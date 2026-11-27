@@ -550,3 +550,38 @@ test("the dropdown and the question read their texts from the language file", as
   assert.equal(en.strings["face.option.classic"], "Classic");
   w.close();
 });
+
+// ── The link box after a switch ─────────────────────────────────────────────
+// The link box fits its height to what is typed (autoGrow in _settings.html), and the two Faces
+// set it in different type. Measured in Chromium with 8 lines typed: 158 px in Classic, 190 px in
+// v2, so without a new fit after the switch 34 px of the text, the caret with it, were hidden until
+// the next key. jsdom has no layout, so the test says how tall the content is in each Face.
+test("the link box fits its height again after a switch, and what was typed, the focus and the caret stay", async () => {
+  const { w, d, errors, CLS } = await boot("classic", { settings: { last_seen_version: CURRENT_APP_VERSION } });
+  const ta = d.getElementById("urls");
+  Object.defineProperty(ta, "scrollHeight", { configurable: true, get: () => (d.body.classList.contains(CLS) ? 190 : 158) });
+  ta.focus();
+  ta.value = "https://example.org/1\nhttps://example.org/2\nhttps://exam";
+  ta.dispatchEvent(new w.Event("input"));
+  assert.equal(ta.style.height, "158px", "fitted for Classic while typing");
+  const caret = ta.selectionStart;
+
+  w.applyFace("v2");
+  assert.equal(ta.style.height, "190px", "fitted for v2 right after the switch");
+  w.applyFace("classic");
+  assert.equal(ta.style.height, "158px", "and for Classic on the way back");
+  assert.equal(ta.value, "https://example.org/1\nhttps://example.org/2\nhttps://exam");
+  assert.equal(d.activeElement, ta, "the box keeps the focus");
+  assert.equal(ta.selectionStart, caret);
+
+  // with a view transition the new fit happens with the class change, inside the transition, not before
+  const made = fakeTransitions(d);
+  w.applyFace("v2");
+  assert.equal(ta.style.height, "158px", "not yet: the old look is still to be captured");
+  made[0].run();
+  assert.equal(ta.style.height, "190px", "fitted when the class changes");
+  made[0].go(); made[0].end();
+  await wait(0);
+  assert.deepEqual(errors, []);
+  w.close();
+});

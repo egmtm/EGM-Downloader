@@ -40,7 +40,10 @@ function applyFace(name) {
   faceWanted = face;
   if (face === faceNow()) return;
   const root = document.documentElement;
-  const swap = () => { document.body.classList.toggle(FACE_CLASS, faceWanted === 'v2'); };
+  const swap = () => {
+    document.body.classList.toggle(FACE_CLASS, faceWanted === 'v2');
+    document.dispatchEvent(new CustomEvent('face:changed'));   // what was sized for the other Face sizes itself again (the link box, _settings.html)
+  };
   root.classList.add('face-switching');
   if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) {
     faceSwitch = null;
