@@ -585,3 +585,19 @@ test("the link box fits its height again after a switch, and what was typed, the
   assert.deepEqual(errors, []);
   w.close();
 });
+
+test("a click while a switch is drawn leaves the menu open; the same click with no switch closes it", async () => {
+  // During the switch the browser draws the page as a picture over it, so a click meant for an item in the
+  // menu reaches html, outside the menu, and used to close it.
+  const { w, d, errors } = await boot(undefined);
+  const panel = d.getElementById("hamburger-panel");
+  panel.classList.add("open");
+  d.documentElement.classList.add("face-switching");
+  d.documentElement.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  assert.equal(panel.classList.contains("open"), true, "a click during the switch closed the menu");
+  d.documentElement.classList.remove("face-switching");
+  d.documentElement.dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  assert.equal(panel.classList.contains("open"), false, "a click outside the menu no longer closes it");
+  assert.deepEqual(errors, []);
+  w.close();
+});

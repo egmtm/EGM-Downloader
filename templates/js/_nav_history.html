@@ -57,6 +57,9 @@
   }));
 
   document.addEventListener('click', (e) => {
+    // During a Face switch (about 0.3 s) the page is drawn by the browser's transition layer, so a click meant for the
+    // menu lands outside it: keep the menu open (applyFace in _face.html marks the switch on html)
+    if (document.documentElement.classList.contains('face-switching')) return;
     if (!panel.contains(e.target) && !e.target.closest('.nav-btn')) {
       panel.classList.remove('open');
       setActiveNav(null);
