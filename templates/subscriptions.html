@@ -1113,8 +1113,8 @@ function renderDetail() {
                 <option value="latest"${currentSort === 'latest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.latest', 'Latest')}</option>
                 <option value="oldest"${currentSort === 'oldest' ? ' selected' : ''}>${i18nAttr('subscriptions.sort.oldest', 'Oldest')}</option>
               </select>
-              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="${i18nAttr('tooltip.subscriptions_check_new','Check for new videos')}">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
               <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px;color:var(--red);border-color:var(--red)" onclick="removeSub('${attrEsc(activeSub.id)}')">${i18nAttr('subscriptions.btn.delete', 'Delete')}</button>
+              <button class="fetch-btn" style="padding:5px 14px;font-size:.7rem;height:28px" onclick="fetchVideos('${attrEsc(activeSub.id)}', false)" title="${i18nAttr('tooltip.subscriptions_check_new','Check for new videos')}">${i18nAttr('subscriptions.btn.fetch', 'Fetch')}</button>
             </div>
             ${videos.some(v => v.is_new) ? '<button id="mark-all-seen-btn" class="fetch-btn" style="font-size:.7rem;height:28px;color:var(--acc);border-color:rgba(45,212,191,.4);background:rgba(45,212,191,.06)" onclick="markAllSeen(\'' + attrEsc(activeSub.id) + '\')">' + i18nAttr('subscriptions.btn.mark_seen', 'Mark all seen') + '</button>' : ''}
           </div>
