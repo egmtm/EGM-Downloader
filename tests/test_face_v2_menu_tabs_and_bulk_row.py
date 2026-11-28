@@ -27,3 +27,15 @@ def test_the_download_all_row_wraps_on_a_narrow_page():
     buttons were cut by up to 64 px in German, Spanish, French, Japanese and Dutch."""
     row = _declarations(CSS, "body.face-v2 #bulk-actions")
     assert row.get("flex-wrap") == "wrap", "the Download All row no longer wraps, and the links card cuts its last button"
+
+
+def test_the_subs_tab_reacts_to_the_pointer_like_the_other_tabs():
+    """Classic's #subs-btn:hover (templates/index_styles.html) is an id rule, so it outweighed the v2 tab rule:
+    in v2 Subs got the accent on all four borders and on its text, the other tabs on the bottom border only."""
+    assert "#subs-btn:hover" in read_source("templates/index_styles.html"), "Classic no longer has its own Subs hover: this test is out of date"
+    tab = _declarations(CSS, "body.face-v2 .nav-btn:hover")
+    subs = _declarations(CSS, "body.face-v2 #subs-btn:hover")
+    base = _declarations(CSS, "body.face-v2 .nav-btn")
+    assert subs.get("border-bottom-color") == tab.get("border-bottom-color") and subs.get("color") == tab.get("color"), \
+        "in v2 the Subs tab reacts to the pointer differently from the other tabs again"
+    assert subs.get("border-color") == base.get("border", "").split()[-1], "in v2 the Subs tab's other borders change colour on hover again"

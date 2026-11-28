@@ -26,6 +26,8 @@ body.face-v2 #nav-buttons{display:flex;flex-wrap:wrap;gap:2px}
 /* tabs keep the surf background of the Classic nav buttons: text never sits directly on --bg (some themes have a mid tone --bg) */
 body.face-v2 .nav-btn{background:var(--surf);border:1px solid var(--border);border-bottom:2px solid var(--border2);border-radius:8px 8px 0 0;padding:8px 10px;font-size:.76rem;gap:6px;color:var(--text2)}
 body.face-v2 .nav-btn:hover,body.face-v2 .nav-btn.active{border-bottom-color:var(--acc);color:var(--text)}
+/* Classic's #subs-btn:hover is an id rule and would win over the line above: Subs reacts like the other tabs */
+body.face-v2 #subs-btn:hover{border-color:var(--border);border-bottom-color:var(--acc);color:var(--text)}
 body.face-v2 .nav-btn .nav-icon{width:15px;height:15px}
 body.face-v2 #hamburger-panel{top:calc(100% + 10px)}
 
