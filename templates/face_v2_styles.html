@@ -19,13 +19,15 @@ body.face-v2 .logo{margin:0;width:52px;height:52px}
 body.face-v2 .logo svg{width:52px;height:52px}
 body.face-v2 .header-text{text-align:start;flex:1 1 230px;min-width:0}
 body.face-v2 .header-tagline{font-size:.56rem;letter-spacing:1.3px;margin-top:2px;line-height:1.5}
-body.face-v2 .header-nav{margin:0;justify-self:auto;max-width:100%}
+/* the tabs stay at the end of the header when they move to their own row, so the menu, which opens from their end, stays
+   inside the window; and it opens 10 px under the last row of tabs, however many rows they take */
+body.face-v2 .header-nav{margin:0;margin-inline-start:auto;justify-self:auto;max-width:100%}
 body.face-v2 #nav-buttons{display:flex;flex-wrap:wrap;gap:2px}
 /* tabs keep the surf background of the Classic nav buttons: text never sits directly on --bg (some themes have a mid tone --bg) */
 body.face-v2 .nav-btn{background:var(--surf);border:1px solid var(--border);border-bottom:2px solid var(--border2);border-radius:8px 8px 0 0;padding:8px 10px;font-size:.76rem;gap:6px;color:var(--text2)}
 body.face-v2 .nav-btn:hover,body.face-v2 .nav-btn.active{border-bottom-color:var(--acc);color:var(--text)}
 body.face-v2 .nav-btn .nav-icon{width:15px;height:15px}
-body.face-v2 #hamburger-panel{top:44px}
+body.face-v2 #hamburger-panel{top:calc(100% + 10px)}
 
 /* ---------- hero input bar ---------- */
 body.face-v2 #urls-card{border-radius:14px;padding:0;margin-bottom:12px;overflow:hidden;
