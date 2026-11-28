@@ -20,3 +20,10 @@ def test_the_tabs_stay_at_the_end_of_the_header_and_the_menu_opens_under_them():
     panel = _declarations(CSS, "body.face-v2 #hamburger-panel")
     assert panel.get("top") == "calc(100% + 10px)", \
         "the menu opens at a fixed height again: with two rows of tabs it covers the lower row"
+
+
+def test_the_download_all_row_wraps_on_a_narrow_page():
+    """The links card cuts what sticks out (overflow hidden). With the Theme Creator docked, the Download All
+    buttons were cut by up to 64 px in German, Spanish, French, Japanese and Dutch."""
+    row = _declarations(CSS, "body.face-v2 #bulk-actions")
+    assert row.get("flex-wrap") == "wrap", "the Download All row no longer wraps, and the links card cuts its last button"
