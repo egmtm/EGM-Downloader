@@ -114,7 +114,7 @@ openSUSE Leap 15.5, Tumbleweed
 Rocky Linux 9 / AlmaLinux 9
 Arch Linux, Manjaro, EndeavourOS
 
-Any x86_64 Linux with glibc 2.17+ should also work.
+Any x86_64 Linux with glibc 2.25+ should also work.
 
 
 UPDATING
