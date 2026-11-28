@@ -240,6 +240,12 @@ if [ -z "$FLOOR" ]; then
     echo "   ✗ could not read the glibc version Electron's binary needs"
     exit 1
 fi
+# INSTRUCTIONS.txt, shipped in the zip, tells users which glibc they need: it must say Electron's
+SAID=$(grep -o 'glibc [0-9][0-9.]*+' "$LINUX_DIR/INSTRUCTIONS.txt" | sed 's/^glibc //; s/+$//' | sort -u | paste -sd ' ' -)
+if [ "$SAID" != "$FLOOR" ]; then
+    echo "   ✗ linux/INSTRUCTIONS.txt says glibc ${SAID:-nothing}, Electron needs $FLOOR: update the glibc line there"
+    exit 1
+fi
 TOO_NEW=0
 while IFS= read -r -d '' f; do
     need=$(glibc_needed "$f")

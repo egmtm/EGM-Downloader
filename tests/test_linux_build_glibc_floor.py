@@ -92,8 +92,14 @@ def test_the_build_asks_for_objdump_before_it_starts():
     assert re.search(r'objdump\) echo "   Install: sudo apt install binutils', sh)
 
 
-def _run(tmp_path, needs):
-    """needs: {relative path: glibc versions its stand-in objdump reports}; None writes no file."""
+def _run(tmp_path, needs, instructions=None):
+    """needs: {relative path: glibc versions its stand-in objdump reports}; None writes no file.
+    instructions: the text of INSTRUCTIONS.txt; None uses the real linux/INSTRUCTIONS.txt."""
+    linux_dir = ROOT / "linux"
+    if instructions is not None:
+        linux_dir = tmp_path / "linux"
+        linux_dir.mkdir()
+        (linux_dir / "INSTRUCTIONS.txt").write_text(instructions, encoding="utf-8")
     unpacked = tmp_path / "electron" / "dist" / "linux-unpacked"
     for rel, versions in needs.items():
         f = unpacked / rel
@@ -105,7 +111,7 @@ def _run(tmp_path, needs):
     fake.write_text('#!/bin/sh\n[ "$1" = -T ] || exit 2\n'
                     'sed -n "s/^need \\(.*\\)/0000 DF *UND* 0000 (\\1) symbol/p" "$2" 2>/dev/null\n', encoding="utf-8")
     fake.chmod(fake.stat().st_mode | stat.S_IXUSR)
-    script = f'set -e\nELECTRON_DIR="{tmp_path / "electron"}"\n{_block()}echo BUILD-GOES-ON\n'
+    script = f'set -e\nELECTRON_DIR="{tmp_path / "electron"}"\nLINUX_DIR="{linux_dir}"\n{_block()}echo BUILD-GOES-ON\n'
     env = dict(os.environ, PATH=f"{tools}:{os.environ['PATH']}")
     return subprocess.run(["bash", "-c", script], capture_output=True, text=True, env=env, timeout=60)
 
@@ -136,3 +142,32 @@ def test_an_unreadable_electron_binary_stops_the_build(tmp_path):
     r = _run(tmp_path, {"egm-downloader-bin": [], "resources/app.asar": []})
     assert r.returncode != 0 and "BUILD-GOES-ON" not in r.stdout
     assert "could not read the glibc version Electron's binary needs" in r.stdout
+
+
+# ── INSTRUCTIONS.txt says the same glibc as Electron ───────────────────────────────────────────
+# The zip ships linux/INSTRUCTIONS.txt, and it once said glibc 2.17+ while Electron needed 2.25.
+
+def test_the_shipped_instructions_say_electrons_glibc(tmp_path):
+    r = _run(tmp_path, {"egm-downloader-bin": ELECTRON})
+    assert r.returncode == 0 and "BUILD-GOES-ON" in r.stdout, r.stdout + r.stderr
+
+
+@pytest.mark.parametrize("said, shown", [
+    ("Any x86_64 Linux with glibc 2.17+ should also work.\n", "2.17"),
+    ("Any x86_64 Linux with glibc 2.28+ should also work.\n", "2.28"),
+    ("Any x86_64 Linux should also work.\n", "nothing"),
+    ("glibc 2.25+ here, glibc 2.17+ there\n", "2.17 2.25"),
+])
+def test_instructions_that_say_another_glibc_stop_the_build(tmp_path, said, shown):
+    r = _run(tmp_path, {"egm-downloader-bin": ELECTRON}, instructions=said)
+    assert r.returncode != 0 and "BUILD-GOES-ON" not in r.stdout
+    assert f"linux/INSTRUCTIONS.txt says glibc {shown}, Electron needs 2.25" in r.stdout
+
+
+def test_when_electron_moves_its_glibc_the_instructions_must_follow(tmp_path):
+    r = _run(tmp_path, {"egm-downloader-bin": ["GLIBC_2.28"]}, instructions="glibc 2.25+\n")
+    assert r.returncode != 0 and "BUILD-GOES-ON" not in r.stdout
+    assert "says glibc 2.25, Electron needs 2.28" in r.stdout
+    (tmp_path / "moved").mkdir()
+    r = _run(tmp_path / "moved", {"egm-downloader-bin": ["GLIBC_2.28"]}, instructions="glibc 2.28+\n")
+    assert r.returncode == 0 and "BUILD-GOES-ON" in r.stdout, r.stdout + r.stderr
