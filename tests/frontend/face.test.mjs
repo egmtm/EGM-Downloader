@@ -601,3 +601,29 @@ test("a click while a switch is drawn leaves the menu open; the same click with 
   assert.deepEqual(errors, []);
   w.close();
 });
+
+test("the second click of a double click on Got it answers nothing; a single click and the keyboard still answer", async () => {
+  // The question opens on the first click on Got it, so the second click of a double click lands on the question.
+  const click = (w, el, detail) => el.dispatchEvent(new w.MouseEvent("click", { bubbles: true, detail }));
+  let { w, d, errors, isV2 } = await boot(undefined);
+  await gotIt(d);
+  for (const id of ["face-prompt-v2-btn", "face-prompt-classic-btn", "face-prompt-close-btn"]) {
+    click(w, d.getElementById(id), 2);
+    assert.equal(shown(d, PROMPT), true, `the second click of a double click on ${id} answered the question`);
+  }
+  assert.equal(w.localStorage.getItem("egm_face"), null, "a double click stored a choice");
+  click(w, d.getElementById("face-prompt-classic-btn"), 1);
+  assert.equal(shown(d, PROMPT), false, "a single click no longer answers");
+  assert.equal(isV2(), false);
+  assert.equal(w.localStorage.getItem("egm_face"), "classic");
+  assert.deepEqual(errors, []);
+  w.close();
+  ({ w, d, errors } = await boot(undefined));
+  await gotIt(d);
+  // Enter or Space on a focused button gives a click with detail 0
+  click(w, d.getElementById("face-prompt-v2-btn"), 0);
+  assert.equal(shown(d, PROMPT), false, "the keyboard no longer answers");
+  assert.equal(w.localStorage.getItem("egm_face"), "v2");
+  assert.deepEqual(errors, []);
+  w.close();
+});

@@ -185,9 +185,12 @@ function closeFacePrompt(face) {
   document.getElementById('face-prompt-modal').style.display = 'none';
   if (face) applyFace(face);
 }
-document.getElementById('face-prompt-v2-btn').addEventListener('click', () => closeFacePrompt('v2'));
-document.getElementById('face-prompt-classic-btn').addEventListener('click', () => closeFacePrompt('classic'));
-document.getElementById('face-prompt-close-btn').addEventListener('click', () => closeFacePrompt());
+// The question opens on the click on "Got it", so the second click of a double click there lands on whatever button of
+// the question is now in that place: a click that is the second (or later) of a series answers nothing
+const facePromptClick = face => e => { if (e.detail > 1) return; closeFacePrompt(face); };
+document.getElementById('face-prompt-v2-btn').addEventListener('click', facePromptClick('v2'));
+document.getElementById('face-prompt-classic-btn').addEventListener('click', facePromptClick('classic'));
+document.getElementById('face-prompt-close-btn').addEventListener('click', facePromptClick());
 
 // Show once per version, automatically, on page load.
 (async function() {
